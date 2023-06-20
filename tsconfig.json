@@ -5,7 +5,8 @@
     "exclude": [
         "cjs",
         "esm",
-        "node_modules"
+        "node_modules",
+        "**/*.stories.tsx"
     ],
     "compilerOptions": {
         "module": "ESNext",

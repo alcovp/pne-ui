@@ -7,6 +7,9 @@ import {PneButton} from '../src'
 
 describe('Common render', () => {
     it('renders without crashing', () => {
-        render(<PneButton/>)
+        render(<PneButton
+            color={'pnePrimary'}
+            title={'Push!'}
+        />)
     })
 })

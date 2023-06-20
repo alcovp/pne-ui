@@ -1,5 +1,5 @@
 import {Button, ButtonProps, SxProps} from '@mui/material';
-import React from 'react';
+import * as React from "react";
 
 // https://mui.com/material-ui/guides/typescript/#complications-with-the-component-prop
 const PneButton = <C extends React.ElementType>(
