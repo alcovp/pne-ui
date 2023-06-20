@@ -19,7 +19,8 @@
     "prepublishOnly": "npm test && npm run lint",
     "start": "webpack && webpack-dev-server --mode development",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "chromatic": "npx chromatic"
   },
   "keywords": [
     "react",
@@ -34,7 +35,9 @@
     "README.md",
     "LICENSE"
   ],
-  "author": "Payneteasy",
+  "author": {
+    "name": "Payneteasy"
+  },
   "license": "MIT",
   "peerDependencies": {
     "react": ">=18"
@@ -58,6 +61,7 @@
     "@types/react": "18.2.13",
     "@typescript-eslint/eslint-plugin": "5.60.0",
     "@typescript-eslint/parser": "5.60.0",
+    "chromatic": "^6.19.8",
     "eslint": "8.43.0",
     "eslint-plugin-react": "7.32.2",
     "eslint-plugin-react-hooks": "4.6.0",
@@ -74,5 +78,11 @@
   },
   "dependencies": {
     "@mui/material": "5.13.5"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/alcovp/pne-ui/issues"
+  },
+  "readme": "ERROR: No README data found!",
+  "homepage": "https://github.com/alcovp/pne-ui#readme",
+  "_id": "pne-ui@1.0.6"
 }

@@ -10,7 +10,7 @@ export default {
 
 type Story = StoryObj<typeof PneButton>;
 
-const BUTTON_TEXT = 'Click me!';
+const BUTTON_TEXT = 'Push me!';
 const BUTTON_ALERT_TEXT = 'Click!';
 
 export const Default: Story = {
