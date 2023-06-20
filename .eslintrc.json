@@ -1,0 +1,63 @@
+{
+    "root": true,
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+        "@typescript-eslint",
+        "react",
+        "react-hooks"
+    ],
+    "rules": {
+        "indent": [
+            "error",
+            4,
+            {
+                "SwitchCase": 1
+            }
+        ],
+        "linebreak-style": [
+            "error",
+            "unix"
+        ],
+        "react/jsx-first-prop-new-line": [
+            "error",
+            "multiline"
+        ],
+        "react/jsx-closing-bracket-location": [
+            2,
+            "line-aligned"
+        ],
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-empty-interface": "off",
+        "@typescript-eslint/no-var-requires": "off",
+        "array-bracket-spacing": [
+            "error",
+            "never"
+        ],
+        "object-curly-spacing": [
+            "error",
+            "never"
+        ]
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    },
+    "env": {
+        "browser": true,
+        "node": true
+    },
+    "globals": {
+        "JSX": true
+    }
+}

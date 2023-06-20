@@ -1,0 +1,60 @@
+{
+  "name": "pne-ui",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alcovp/pne-ui.git"
+  },
+  "main": "cjs/index.js",
+  "module": "esm/index.js",
+  "types": "./esm/index.d.ts",
+  "scripts": {
+    "build": "yarn build:esm && yarn build:cjs",
+    "build:esm": "tsc",
+    "build:cjs": "tsc --module commonjs --outDir cjs",
+    "lint": "eslint \"{**/*,*}.{js,ts,jsx,tsx}\"",
+    "test": "jest --config jestconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "start": "webpack && webpack-dev-server --mode development"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "ui",
+    "mui",
+    "keepaway"
+  ],
+  "files": [
+    "cjs",
+    "esm",
+    "README.md",
+    "LICENSE"
+  ],
+  "author": "Payneteasy",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^14.0.0",
+    "@types/jest": "^29.5.2",
+    "@types/react": "18.2.13",
+    "@typescript-eslint/eslint-plugin": "^5.60.0",
+    "@typescript-eslint/parser": "^5.60.0",
+    "eslint": "^8.43.0",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "jest": "^29.5.0",
+    "jest-canvas-mock": "^2.5.1",
+    "jest-environment-jsdom": "^29.5.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "ts-jest": "^29.1.0",
+    "typescript": "5.1.3"
+  },
+  "dependencies": {
+    "@mui/material": "5.13.5"
+  }
+}
