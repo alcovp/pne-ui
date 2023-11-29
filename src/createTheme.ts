@@ -19,7 +19,13 @@ export const createPneTheme = (): Theme => {
             },
             pneNeutral: {
                 main: mainColor
-            },//TODO put 4 colors here and then use it at styleOverrides
+            },//TODO put 6 colors here and then use it at styleOverrides
+            pneText: {
+                main: mainColor
+            },
+            pneTransparent: {
+                main: mainColor
+            },
             pnePrimary: {
                 main: mainColor
             },
@@ -63,6 +69,12 @@ export const createPneTheme = (): Theme => {
                                     backgroundColor: theme.palette.primary.light,
                                     stroke: theme.palette.primary.dark,
                                 }
+                            }
+                        } else if (ownerState.color === 'pneTransparent') {
+                            return {
+                                color: theme.palette.primary.main,
+                                stroke: ownerState.disabled ? theme.palette.text.disabled
+                                    : theme.palette.primary.main,
                             }
                         }
                         return {}
@@ -133,6 +145,13 @@ export const createPneTheme = (): Theme => {
                                     stroke: theme.palette.warning.contrastText,
                                     boxShadow: 'none',
                                 },
+                            }
+                        } else if (ownerState.color === 'pneText') {
+                            return {
+                                color: theme.palette.primary.main,
+                                stroke: ownerState.disabled ? theme.palette.text.disabled
+                                    : theme.palette.primary.main,
+                                boxShadow: 'none',
                             }
                         }
                         return {}

@@ -7,6 +7,8 @@ declare module '@mui/material/styles' {
         pnePrimaryLight: Palette['primary']
         pneWhite: Palette['primary']
         pneWarningLight: Palette['primary']
+        pneText: Palette['primary']
+        pneTransparent: Palette['primary']
     }
 
     interface PaletteOptions {
@@ -15,6 +17,8 @@ declare module '@mui/material/styles' {
         pnePrimaryLight: PaletteOptions['primary']
         pneWhite: PaletteOptions['primary']
         pneWarningLight: PaletteOptions['primary']
+        pneText: PaletteOptions['primary']
+        pneTransparent: PaletteOptions['primary']
     }
 }
 
@@ -22,6 +26,7 @@ declare module '@mui/material/IconButton' {
     interface IconButtonPropsColorOverrides {
         pneNeutral: true
         pnePrimary: true
+        pneTransparent: true
     }
 }
 
@@ -32,6 +37,7 @@ declare module '@mui/material/Button' {
         pneNeutral: true
         pneWhite: true
         pneWarningLight: true
+        pneText: true
     }
 }
 

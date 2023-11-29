@@ -41,6 +41,13 @@ export const White: Story = {
     },
 };
 
+export const Text: Story = {
+    args: {
+        ...Default.args,
+        color: 'pneText'
+    },
+};
+
 export const PrimaryLight: Story = {
     args: {
         ...Default.args,
