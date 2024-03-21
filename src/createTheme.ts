@@ -153,8 +153,11 @@ export const createPneTheme = (): Theme => {
                                     : theme.palette.primary.main,
                                 boxShadow: 'none',
                             }
+                        } else {
+                            return {
+                                boxShadow: 'none',
+                            }
                         }
-                        return {}
                     },
                 }
             },
