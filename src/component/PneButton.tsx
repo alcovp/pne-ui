@@ -9,7 +9,6 @@ const PneButton = <C extends React.ElementType>(
         sx,
         children,
         variant = 'contained',
-        color = 'pnePrimary',
         ...rest
     } = props;
 
@@ -24,7 +23,7 @@ const PneButton = <C extends React.ElementType>(
         ...(Array.isArray(sx) ? sx : [sx])
     ]
 
-    return <Button sx={_sx} variant={variant} color={color} {...rest}>{children}</Button>
+    return <Button sx={_sx} variant={variant} {...rest}>{children}</Button>
 }
 
 export default PneButton;
