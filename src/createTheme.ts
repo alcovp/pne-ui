@@ -156,6 +156,9 @@ export const createPneTheme = (): Theme => {
                         } else {
                             return {
                                 boxShadow: 'none',
+                                '&:hover': {
+                                    boxShadow: 'none',
+                                },
                             }
                         }
                     },
