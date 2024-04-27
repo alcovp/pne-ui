@@ -1,5 +1,6 @@
 import PneButton from './component/PneButton'
 import PneTextField from './component/PneTextField'
+import PneModal from './component/PneModal'
 
 declare module '@mui/material/styles' {
     interface Palette {
@@ -45,4 +46,5 @@ declare module '@mui/material/Button' {
 export {
     PneButton,
     PneTextField,
+    PneModal,
 }

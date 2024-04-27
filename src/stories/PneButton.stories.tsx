@@ -1,12 +1,12 @@
 import * as React from 'react';
 import {PneButton} from '../index';
-import {ComponentMeta, StoryObj} from '@storybook/react';
+import {Meta, StoryObj} from '@storybook/react';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 
 export default {
     title: 'pne-ui/PneButton',
     component: PneButton,
-} as ComponentMeta<typeof PneButton>;
+} as Meta<typeof PneButton>;
 
 type Story = StoryObj<typeof PneButton>;
 
