@@ -84,5 +84,6 @@
   },
   "readme": "ERROR: No README data found!",
   "homepage": "https://github.com/alcovp/pne-ui#readme",
-  "_id": "pne-ui@1.0.6"
+  "_id": "pne-ui@1.0.6",
+  "packageManager": "yarn@4.1.1"
 }
