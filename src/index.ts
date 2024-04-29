@@ -1,6 +1,9 @@
 import PneButton from './component/PneButton'
 import PneTextField from './component/PneTextField'
 import PneModal from './component/PneModal'
+import PneAutocomplete from './component/dropdown/PneAutocomplete'
+import PneAsyncAutocomplete from './component/dropdown/PneAsyncAutocomplete'
+import PneSelect from './component/dropdown/PneSelect'
 
 declare module '@mui/material/styles' {
     interface Palette {
@@ -47,4 +50,7 @@ export {
     PneButton,
     PneTextField,
     PneModal,
+    PneAutocomplete,
+    PneAsyncAutocomplete,
+    PneSelect,
 }
