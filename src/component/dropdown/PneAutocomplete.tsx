@@ -1,6 +1,6 @@
 import React, {ReactNode} from 'react';
 import {Autocomplete, AutocompleteProps, SxProps} from '@mui/material';
-import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from './dropdown';
+import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/dropdown';
 import {TextFieldVariants} from '@mui/material/TextField/TextField';
 import {PneTextField} from "../../index";
 

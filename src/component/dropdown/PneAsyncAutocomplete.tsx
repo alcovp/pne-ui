@@ -1,6 +1,6 @@
 import React, {ReactNode, useEffect, useId, useState} from 'react';
 import {Autocomplete, AutocompleteProps, CircularProgress, SxProps} from '@mui/material';
-import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from './dropdown';
+import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/dropdown';
 import {PneTextField} from "../../index";
 
 export interface IProps<
@@ -61,13 +61,13 @@ const PneAsyncAutocomplete = <
         searchChoices({searchString: inputValue})
             .then(setOptions)
             .catch(reason => {
-                Promise.resolve(error)
-                    .then(() => {
-                        onSearchError ? onSearchError(reason) : console.error(reason)
+                Promise.resolve(reason)
+                    .then(value => {
+                        onSearchError ? onSearchError(value) : console.error(value)
                     })
             })
             .finally(() => setLoading(false))
-    }, [open, inputValue])
+    }, [open, inputValue, onSearchError, searchChoices])
 
     useEffect(() => {
         if (!open) {

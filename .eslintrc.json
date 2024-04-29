@@ -33,6 +33,7 @@
             2,
             "line-aligned"
         ],
+        "react/display-name": "off",
         "react-hooks/rules-of-hooks": "error",
         "react-hooks/exhaustive-deps": "warn",
         "@typescript-eslint/no-non-null-assertion": "off",

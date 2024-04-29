@@ -1,12 +1,9 @@
 import {
-    AbstractEntity,
     assertObject,
     exhaustiveCheck,
-    AutoCompleteChoice,
-    isAbstractEntity,
-    isIAutoCompleteChoice
-} from '../../common/type';
+} from './type';
 import {AutocompleteFreeSoloValueMapping, SxProps} from '@mui/material';
+import {AbstractEntity, AutoCompleteChoice, isAbstractEntity, isIAutoCompleteChoice} from "../paynet/type";
 
 export type PneDropdownChoice = AutoCompleteChoice | AbstractEntity | string
 
