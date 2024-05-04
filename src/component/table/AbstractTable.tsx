@@ -43,7 +43,7 @@ export type TableProps<D> = {
     showNothingIsFoundRow?: boolean
     tableSx?: SxProps
     boxSx?: SxProps
-    noRowsMessage: string
+    noRowsMessage?: string
 }
 
 export interface ITableSortOptions {

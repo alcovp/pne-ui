@@ -4,7 +4,13 @@ import PneModal from './component/PneModal'
 import PneAutocomplete from './component/dropdown/PneAutocomplete'
 import PneAsyncAutocomplete from './component/dropdown/PneAsyncAutocomplete'
 import PneSelect from './component/dropdown/PneSelect'
+import PneTable from './component/table/PneTable'
+import PneTableRow from './component/table/PneTableRow'
+import PneHeaderTableCell from './component/table/PneHeaderTableCell'
+import PneTableCell from './component/table/PneTableCell'
 
+// TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
+// возможностью ее дополнять?
 declare module '@mui/material/styles' {
     interface Palette {
         pneNeutral: Palette['primary']
@@ -53,4 +59,8 @@ export {
     PneAutocomplete,
     PneAsyncAutocomplete,
     PneSelect,
+    PneTable,
+    PneTableRow,
+    PneHeaderTableCell,
+    PneTableCell,
 }
