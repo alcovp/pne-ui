@@ -16,14 +16,14 @@ jobs:
 
       - name: Checkout
         # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node
         # Setup node environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           # Node version. Run "node -v" to check the latest version
-          node-version: 20.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
