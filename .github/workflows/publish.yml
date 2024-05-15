@@ -33,7 +33,7 @@ jobs:
         run: yarn build
 
       - name: Publish
-        run: yarn npm publish
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc && yarn npm publish
 
         env:
           # We need this to our NPM account
