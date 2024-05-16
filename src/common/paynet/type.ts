@@ -1,6 +1,6 @@
 import {z} from 'zod';
 import {AbstractEntitySchema, AutoCompleteChoiceSchema} from "./schema";
-import {isObject} from "../common/type";
+import {isObject} from "../pne/type";
 
 export type AbstractEntity = z.infer<typeof AbstractEntitySchema>
 

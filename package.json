@@ -1,18 +1,14 @@
 {
   "name": "pne-ui",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "description": "",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/alcovp/pne-ui.git"
   },
-  "main": "cjs/index.js",
-  "module": "esm/index.js",
-  "types": "./esm/index.d.ts",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "yarn build:esm && yarn build:cjs",
-    "build:esm": "tsc",
-    "build:cjs": "tsc --module commonjs --outDir cjs",
+    "build": "tsc",
     "lint": "eslint \"{**/*,*}.{js,ts,jsx,tsx}\"",
     "test": "jest --config jestconfig.json",
     "prepare": "npm run build",
@@ -30,8 +26,7 @@
     "keepaway"
   ],
   "files": [
-    "cjs",
-    "esm",
+    "dist",
     "README.md",
     "LICENSE"
   ],
@@ -74,7 +69,7 @@
     "prop-types": "^15.8.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "storybook": "^8.0.9",
+    "storybook": "8.0.9",
     "ts-jest": "29.1.0",
     "typescript": "5.1.3"
   },

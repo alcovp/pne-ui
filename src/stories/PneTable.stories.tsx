@@ -4,7 +4,7 @@ import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
 import React, {useEffect} from "react";
 import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
-import {useTable} from "../component/table/hooks";
+import {useTable} from "../component/table/useTable";
 
 type DataType = {
     id: number

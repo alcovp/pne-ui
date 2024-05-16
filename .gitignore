@@ -4,8 +4,7 @@
 /node_modules
 
 # production
-/cjs
-/esm
+/dist
 
 .env.local
 .env.development.local

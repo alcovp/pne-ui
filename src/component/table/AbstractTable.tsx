@@ -9,7 +9,7 @@ import PneTableRow from './PneTableRow';
 import PneTableCell from './PneTableCell';
 import PneTablePagination from './PneTablePagination';
 import PneTablePaginationActions from './PneTablePaginationActions';
-import {Order} from "../../common/type";
+import {Order} from "../../common/pne/type";
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 

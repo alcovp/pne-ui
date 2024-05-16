@@ -1,6 +1,6 @@
 import React, {ReactNode, useEffect, useId, useState} from 'react';
 import {Autocomplete, AutocompleteProps, CircularProgress, SxProps} from '@mui/material';
-import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/dropdown';
+import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/pne/dropdown';
 import {PneTextField} from "../../index";
 
 export interface IProps<

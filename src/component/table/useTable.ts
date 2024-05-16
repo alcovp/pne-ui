@@ -1,7 +1,7 @@
 import {Dispatch, SetStateAction, useEffect, useState} from 'react';
 import {IPaginatorProps, RowsPerPageOption} from './AbstractTable';
 import {SxProps} from '@mui/material';
-import {ensure, Order} from "../../common/type";
+import {ensure, Order} from "../../common/pne/type";
 import {TableDisplayOptions} from "./type";
 
 const PAGE_SIZE_SETTING_NAME = 'page_size'

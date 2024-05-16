@@ -1,13 +1,13 @@
 import React, {forwardRef, ReactNode} from 'react';
 import {MenuItem, Select, SelectChangeEvent, SelectProps, SelectVariants} from '@mui/material';
-import {PneDropdownChoice} from '../../common/dropdown';
+import {PneDropdownChoice} from '../../common/pne/dropdown';
 import {
     assertObject,
     ensure,
     exhaustiveCheck,
     SelectOption
-} from '../../common/type';
-import {isAbstractEntity, isIAutoCompleteChoice} from "../../paynet/type";
+} from '../../common/pne/type';
+import {isAbstractEntity, isIAutoCompleteChoice} from "../../common/paynet/type";
 
 export interface IProps<T extends PneDropdownChoice, >
     extends Omit<SelectProps<T>, 'children' | 'onChange' | 'variant'> {
