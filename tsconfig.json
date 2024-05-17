@@ -3,7 +3,8 @@
         "src"
     ],
     "exclude": [
-        "dist",
+        "cjs",
+        "esm",
         "node_modules",
         "src/stories",
         "**/*.stories.tsx"
@@ -22,7 +23,7 @@
             "./src",
             "./dev"
         ],
-        "outDir": "./dist",
+        "outDir": "./esm",
         "strict": true,
         "noImplicitReturns": true,
         "noFallthroughCasesInSwitch": true,
