@@ -1,5 +1,5 @@
 import {Dispatch, SetStateAction, useEffect, useState} from 'react';
-import {IPaginatorProps, RowsPerPageOption} from './AbstractTable';
+import {PaginatorProps, RowsPerPageOption} from './AbstractTable';
 import {SxProps} from '@mui/material';
 import {ensure, Order} from "../../common/pne/type";
 import {TableDisplayOptions} from "./type";
@@ -21,7 +21,7 @@ interface IUseTableResult<D> {
     page: number
     pageSize: number
     setHasNext: Dispatch<SetStateAction<boolean>>
-    paginator: IPaginatorProps
+    paginator: PaginatorProps
     data: D[]
     setData: Dispatch<SetStateAction<D[]>>
     setSortIndex: Dispatch<SetStateAction<number>>
@@ -110,7 +110,7 @@ export const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
         }
     }
 
-    const paginator: IPaginatorProps = {
+    const paginator: PaginatorProps = {
         rowsPerPageOptions: rowsPerPageOptions,
         rowsPerPage: pageSize,
         page: pageNumber,

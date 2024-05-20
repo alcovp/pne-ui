@@ -1,7 +1,7 @@
 import React from "react";
 import Box from "@mui/material/Box";
 import {Icon, IconButton} from "@mui/material";
-import {IPaginatorProps} from "./AbstractTable";
+import {PaginatorProps} from "./AbstractTable";
 import PneFirstPageIcon from "./PneFirstPageIcon";
 import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
@@ -14,7 +14,7 @@ interface IPaginationActionsProps {
         event: React.MouseEvent<HTMLButtonElement>,
         newPage: number
     ) => void
-    paginator: IPaginatorProps
+    paginator: PaginatorProps
 }
 
 const PneTablePaginationActions = (props: IPaginationActionsProps) => {

@@ -13,7 +13,7 @@ import {Order} from "../../common/pne/type";
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
-export interface IPaginatorProps {
+export type PaginatorProps = {
     rowsPerPageOptions: RowsPerPageOption[]
     rowsPerPage: number
     page: number
@@ -37,7 +37,7 @@ export type TableProps<D> = {
     createTableHeader: TableCreateHeaderType
     sortOptions?: ITableSortOptions
     lastRow?: React.ReactElement
-    paginator?: IPaginatorProps
+    paginator?: PaginatorProps
     loading?: boolean
     stickyHeader?: boolean
     showNothingIsFoundRow?: boolean
