@@ -9,7 +9,10 @@ import PneTable from './component/table/PneTable'
 import PneTableRow from './component/table/PneTableRow'
 import PneHeaderTableCell from './component/table/PneHeaderTableCell'
 import PneTableCell from './component/table/PneTableCell'
-import {PaginatorProps, TableProps} from './component/table/AbstractTable'
+import AbstractTable, {PaginatorProps, TableProps} from './component/table/AbstractTable'
+import PneTableSortLabel from './component/table/PneTableSortLabel'
+import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
+import AbstractTableCell from './component/table/AbstractTableCell'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -66,6 +69,10 @@ export {
     PneTableRow,
     PneHeaderTableCell,
     PneTableCell,
+    PneTableSortLabel,
+    AbstractTable,
+    AbstractHeaderTableCell,
+    AbstractTableCell,
     PaginatorProps,
     TableProps,
 }
