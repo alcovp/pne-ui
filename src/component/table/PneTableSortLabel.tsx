@@ -1,12 +1,12 @@
 import React from 'react';
 import {SxProps} from '@mui/material/styles';
 import {TableSortLabel, tableSortLabelClasses, TableSortLabelProps} from '@mui/material';
-import {ITableSortOptions} from './AbstractTable';
+import {TableSortOptions} from './AbstractTable';
 
 type TableSortLabelPropsOmittingUnion = 'active' | 'direction' | 'onClick'
 
 interface PneTableSortLabelProps extends Omit<TableSortLabelProps, TableSortLabelPropsOmittingUnion> {
-    sortOptions?: ITableSortOptions
+    sortOptions?: TableSortOptions
     sortIndex: number
 }
 

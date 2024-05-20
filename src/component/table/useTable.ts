@@ -31,7 +31,7 @@ interface IUseTableResult<D> {
     onSortChange: (sortIndex: number, sortOrder: Order) => void
 }
 
-export const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
+const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
     const {
         displayOptions,
         onDisplayOptionsChange,
@@ -158,3 +158,5 @@ export const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
         onSortChange,
     };
 }
+
+export default useTable

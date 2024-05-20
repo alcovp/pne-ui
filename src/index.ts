@@ -6,10 +6,11 @@ import PneAutocomplete from './component/dropdown/PneAutocomplete'
 import PneAsyncAutocomplete from './component/dropdown/PneAsyncAutocomplete'
 import PneSelect from './component/dropdown/PneSelect'
 import PneTable from './component/table/PneTable'
+import useTable from './component/table/useTable'
 import PneTableRow from './component/table/PneTableRow'
 import PneHeaderTableCell from './component/table/PneHeaderTableCell'
 import PneTableCell from './component/table/PneTableCell'
-import AbstractTable, {PaginatorProps, TableProps} from './component/table/AbstractTable'
+import AbstractTable, {PaginatorProps, TableProps, TableSortOptions} from './component/table/AbstractTable'
 import PneTableSortLabel from './component/table/PneTableSortLabel'
 import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
 import AbstractTableCell from './component/table/AbstractTableCell'
@@ -66,6 +67,7 @@ export {
     PneAsyncAutocomplete,
     PneSelect,
     PneTable,
+    useTable,
     PneTableRow,
     PneHeaderTableCell,
     PneTableCell,
@@ -75,4 +77,5 @@ export {
     AbstractTableCell,
     PaginatorProps,
     TableProps,
+    TableSortOptions,
 }

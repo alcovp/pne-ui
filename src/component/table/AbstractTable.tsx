@@ -35,7 +35,7 @@ export type TableProps<D> = {
         arr: D[]
     ) => React.ReactElement
     createTableHeader: TableCreateHeaderType
-    sortOptions?: ITableSortOptions
+    sortOptions?: TableSortOptions
     lastRow?: React.ReactElement
     paginator?: PaginatorProps
     loading?: boolean
@@ -46,7 +46,7 @@ export type TableProps<D> = {
     noRowsMessage?: string
 }
 
-export interface ITableSortOptions {
+export type TableSortOptions = {
     order: Order
     setOrder: (order: Order) => void
     sortIndex: number
@@ -55,7 +55,7 @@ export interface ITableSortOptions {
 }
 
 export interface ITableCreateHeaderParams {
-    sortOptions?: ITableSortOptions
+    sortOptions?: TableSortOptions
 }
 
 export type TableCreateHeaderType = (headerParams: ITableCreateHeaderParams) => React.ReactElement
