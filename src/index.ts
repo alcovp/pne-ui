@@ -10,7 +10,7 @@ import useTable from './component/table/useTable'
 import PneTableRow from './component/table/PneTableRow'
 import PneHeaderTableCell from './component/table/PneHeaderTableCell'
 import PneTableCell from './component/table/PneTableCell'
-import AbstractTable, {PaginatorProps, TableProps, TableSortOptions} from './component/table/AbstractTable'
+import AbstractTable, {PaginatorProps, TableCreateHeaderType, TableProps, TableSortOptions} from './component/table/AbstractTable'
 import PneTableSortLabel from './component/table/PneTableSortLabel'
 import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
 import AbstractTableCell from './component/table/AbstractTableCell'
@@ -76,6 +76,7 @@ export {
     AbstractHeaderTableCell,
     AbstractTableCell,
     PaginatorProps,
+    TableCreateHeaderType,
     TableProps,
     TableSortOptions,
 }
