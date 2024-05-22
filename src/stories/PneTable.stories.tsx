@@ -45,8 +45,8 @@ const HookWrap = () => {
                 <PneTableCell>{rowData.displayName}</PneTableCell>
             </PneTableRow>}
         createTableHeader={() => <PneTableRow>
-            <PneHeaderTableCell>{'id'}</PneHeaderTableCell>
-            <PneHeaderTableCell>{'name'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
         </PneTableRow>}
         paginator={paginator}
     />

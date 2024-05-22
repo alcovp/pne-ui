@@ -19,6 +19,10 @@ const PneTablePagination = styled(TablePagination)`
     & .MuiInputBase-root {
         display: none;
     }
+    & .MuiToolbar-root.MuiTablePagination-toolbar {
+        margin-top: 6px;
+        min-height: 40px;
+    }
 `;
 
 export default PneTablePagination;

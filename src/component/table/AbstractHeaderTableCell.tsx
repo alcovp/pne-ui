@@ -14,8 +14,7 @@ const AbstractHeaderTableCell = (props: TableCellProps) => {
             fontStyle: 'normal',
             fontWeight: 'bold',
             lineHeight: '12px',
-            textTransform: 'uppercase',
-            color: '#809EAE',
+            color: '#4E5D78',
             padding: '12px 19px',
             borderBottom: '1px solid #b7cdda'
         },

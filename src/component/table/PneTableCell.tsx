@@ -19,7 +19,7 @@ const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
             //TODO нужно добавить тему
             // background: props.selected ? theme.palette.action.selected : '#fff',
             border: 'none',
-            color: 'inherit',
+            color: '#4E5D78',
             position: 'relative'
         },
         ...(Array.isArray(sx) ? sx : [sx])

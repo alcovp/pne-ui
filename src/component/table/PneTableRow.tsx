@@ -4,13 +4,12 @@ import {TableRow} from '@mui/material';
 const PneTableRow = styled(TableRow, {
     shouldForwardProp: prop => prop !== 'hover'
 })<{ hover?: boolean }>(({theme, hover = true}) => ({
-    borderColor: 'solid 1px grey',
-    fontSize: '14px',
-    lineHeight: '24px',
-    '&:hover': {
-        //TODO добавить тему
-        // color: hover ? theme.skin.experimentalColor : '',
-        // borderColor: hover ? theme.skin.experimentalColor : '',
+    borderColor: 'transparent',
+    borderBottomColor: '#F1F5FA',
+    fontSize: '12px',
+    lineHeight: '16px',
+    '&:first-of-type': {
+        borderBottomColor: '#F1F5FA',
     },
     '& td': {
         borderTop: '1px solid #fff',
@@ -19,8 +18,6 @@ const PneTableRow = styled(TableRow, {
     },
     '& td:first-of-type': {
         borderLeft: '1px solid #fff',
-        borderTopLeftRadius: '8px',
-        borderBottomLeftRadius: '8px',
         borderColor: 'inherit',
     },
     '& td:last-of-type': {

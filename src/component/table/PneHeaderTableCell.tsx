@@ -12,8 +12,9 @@ const PneHeaderTableCell = (props: TableCellProps) => {
 
     const _sx: SxProps = [
         {
-            borderBottom: 'none',
-            background: 'transparent'
+            //TODO use theme
+            borderBottom: '1px solid #D3E7FF',
+            background: 'transparent',
         },
         ...(Array.isArray(sx) ? sx : [sx])
     ]

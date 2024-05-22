@@ -15,9 +15,10 @@ const PneTable = <D, >(
     const _boxSx: SxProps = {
         display: 'flex',
         flexDirection: 'column',
-        borderRadius: '12px',
-        padding: '16px',
-        background: '#F1F5FA',
+        border: '1px solid #F1F5FA',
+        borderRadius: '8px',
+        padding: '0 16px 8px 16px',
+        background: '#FFF',
         ...boxSx
     }
 

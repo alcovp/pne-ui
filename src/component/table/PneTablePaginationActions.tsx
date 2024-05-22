@@ -37,13 +37,14 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const buttonStyle = {
         width: '40px',
         height: '40px',
-        borderRadius: '8px',
+        borderRadius: '4px',
         fontWeight: 700,
         fontSize: '12px',
-        lineHeight: '12px',
+        lineHeight: '16px',
+        //TODO тут цвет из темы - основной
         color: '#809EAE',
         '&:hover': {
-            background: '#fff',
+            background: '#F1F5FA',
             ...activeActionSx
         },
     }
@@ -58,15 +59,16 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        padding: '0 12px',
+        padding: '0 8px',
         width: 'auto',
         minWidth: '15px',
         height: '40px',
-        borderRadius: '8px',
-        background: '#fff',
+        borderRadius: '4px',
+        background: '#F1F5FA',
         fontWeight: 700,
         fontSize: '12px',
-        lineHeight: '12px',
+        lineHeight: '16px',
+        //TODO тут цвет из темы - основной
         color: '#809EAE',
         ...activeActionSx
     }
