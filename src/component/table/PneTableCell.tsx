@@ -9,6 +9,7 @@ const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
 
     const {
         sx,
+        onClick,
         children,
         ...rest
     } = props;
@@ -20,12 +21,13 @@ const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
             // background: props.selected ? theme.palette.action.selected : '#fff',
             border: 'none',
             color: '#4E5D78',
-            position: 'relative'
+            position: 'relative',
+            cursor: onClick === undefined ? 'inherit' : 'pointer'
         },
         ...(Array.isArray(sx) ? sx : [sx])
     ]
 
-    return <AbstractTableCell sx={_sx} {...rest}>{children}</AbstractTableCell>
+    return <AbstractTableCell sx={_sx} onClick={onClick} {...rest}>{children}</AbstractTableCell>
 }
 
 export default PneTableCell;

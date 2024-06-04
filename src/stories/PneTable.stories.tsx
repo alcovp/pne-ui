@@ -40,9 +40,19 @@ const HookWrap = () => {
     return <PneTable
         data={data}
         createRow={(rowData: DataType, index: number, arr: DataType[]) =>
-            <PneTableRow>
-                <PneTableCell>{rowData.id}</PneTableCell>
-                <PneTableCell>{rowData.displayName}</PneTableCell>
+            <PneTableRow onClick={() => alert('Row clicked: ' + index)}>
+                <PneTableCell onClick={(event) => {
+                    event.stopPropagation()
+                    alert('ID clicked: ' + rowData.id)
+                }}>
+                    {rowData.id}
+                </PneTableCell>
+                <PneTableCell onClick={(event) => {
+                    event.stopPropagation()
+                    alert('Name clicked: ' + rowData.displayName)
+                }}>
+                    {rowData.displayName}
+                </PneTableCell>
             </PneTableRow>}
         createTableHeader={() => <PneTableRow>
             <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
