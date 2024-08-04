@@ -1,6 +1,6 @@
 import React, {forwardRef, ReactNode} from 'react';
 import {MenuItem, Select, SelectChangeEvent, SelectProps, SelectVariants} from '@mui/material';
-import {PneDropdownChoice} from '../../common/pne/dropdown';
+import {PneDropdownChoice} from '../../common/paynet/dropdown';
 import {
     assertObject,
     ensure,
