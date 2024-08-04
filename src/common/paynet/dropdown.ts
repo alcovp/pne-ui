@@ -1,7 +1,4 @@
-import {
-    assertObject,
-    exhaustiveCheck,
-} from '../pne/type';
+import {assertObject, exhaustiveCheck,} from '../pne';
 import {AutocompleteFreeSoloValueMapping, SxProps} from '@mui/material';
 import {AbstractEntity, AutoCompleteChoice, isAbstractEntity, isIAutoCompleteChoice} from "./type";
 
