@@ -1,6 +1,6 @@
 {
   "name": "pne-ui",
-  "version": "1.0.32",
+  "version": "1.0.34",
   "description": "",
   "repository": {
     "type": "git",
@@ -15,8 +15,10 @@
     "build:cjs": "tsc --module commonjs --outDir cjs",
     "lint": "eslint \"{**/*,*}.{js,ts,jsx,tsx}\"",
     "test": "jest --config jestconfig.json",
-    "prepare": "npm run build",
-    "prepublishOnly": "npm test && npm run lint",
+    "prepare": "yarn build",
+    "prepublishOnly": "yarn test && yarn run lint",
+    "npmLogin": "yarn npm login --publish",
+    "publish": "yarn run prepublishOnly && yarn run prepare && yarn version patch && yarn npm publish",
     "start": "webpack && webpack-dev-server --mode development",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",

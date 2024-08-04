@@ -41,16 +41,20 @@ const HookWrap = () => {
         data={data}
         createRow={(rowData: DataType, index: number, arr: DataType[]) =>
             <PneTableRow onClick={() => alert('Row clicked: ' + index)}>
-                <PneTableCell onClick={(event) => {
-                    event.stopPropagation()
-                    alert('ID clicked: ' + rowData.id)
-                }}>
+                <PneTableCell
+                    onClick={(event) => {
+                        event.stopPropagation()
+                        alert('ID clicked: ' + rowData.id)
+                    }}
+                >
                     {rowData.id}
                 </PneTableCell>
-                <PneTableCell onClick={(event) => {
-                    event.stopPropagation()
-                    alert('Name clicked: ' + rowData.displayName)
-                }}>
+                <PneTableCell
+                    onClick={(event) => {
+                        event.stopPropagation()
+                        alert('Name clicked: ' + rowData.displayName)
+                    }}
+                >
                     {rowData.displayName}
                 </PneTableCell>
             </PneTableRow>}
