@@ -15,7 +15,14 @@ interface IParams<D> {
     paginatorActiveActionSx?: SxProps
     rowsPerPageOptions?: RowsPerPageOption[]
     settingsContextName?: string
-    dataGetter?: (page: number, pageSize: number) => Promise<D[]>
+    dataGetter?: (args: {
+        page: number,
+        pageSize: number,
+        order: Order,
+        sortIndex: number,
+        extraDeps?: unknown[]
+    }) => Promise<D[]>,
+    dataGetterExtraDeps?: unknown[]
 }
 
 interface IUseTableResult<D> {
@@ -41,6 +48,7 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
         rowsPerPageOptions = [10, 25, 50/*, {label: '∞', value: -1}*/],
         settingsContextName,
         dataGetter,
+        dataGetterExtraDeps,
     } = params;
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
@@ -164,13 +172,22 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
         wrapSetHasNext(dataList.length === pageSize + 1)
     }
 
-    const fetchDataDeps = [pageNumber, pageSize, order, sortIndex]
+    const fetchDataDeps: unknown[] = [pageNumber, pageSize, order, sortIndex]
+    if (dataGetterExtraDeps) {
+        fetchDataDeps.push(...dataGetterExtraDeps)
+    }
 
     useEffect(() => {
         if (dataGetter) {
-            dataGetter(pageNumber, pageSize).then(afterDataFetch)
+            dataGetter({
+                page: pageNumber,
+                pageSize,
+                order,
+                sortIndex,
+                extraDeps: dataGetterExtraDeps,
+            }).then(afterDataFetch)
         }
-    }, fetchDataDeps);
+    }, fetchDataDeps)
 
     const useSimpleFetch = (getter: () => Promise<D[]>) => {
         if (dataGetter) {
@@ -195,7 +212,7 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
         setOrder,
         onSortChange,
         useSimpleFetch,
-    };
+    }
 }
 
 export default useTable

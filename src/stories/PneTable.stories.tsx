@@ -28,7 +28,7 @@ const HookWrap = () => {
         data,
     } = useTable<DataType>({
         settingsContextName: 'context_1',
-        dataGetter: (page, pageSize) => getList(page, pageSize),
+        dataGetter: ({page, pageSize}) => getList(page, pageSize),
     })
 
     // useSimpleFetch(() => getList(page, pageSize))
