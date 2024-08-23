@@ -13,9 +13,11 @@ type DataType = {
 
 const getList = async (page: number, pageSize: number): Promise<DataType[]> => {
     const data: DataType[] = []
-    for (let i = 1; i <= 21; i++) {
+    for (let i = 1; i <= 51; i++) {
         data.push({id: i, displayName: 'John ' + i})
     }
+
+    await new Promise(resolve => setTimeout(resolve, 400))
 
     return data.slice(page * pageSize, page * pageSize + pageSize + 1)
 }
