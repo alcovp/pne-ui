@@ -28,6 +28,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
 
     const {
         hasNext,
+        disableActions,
         rowsPerPageOptions,
         onPageSizeChange,
         displayedRowsLabel,
@@ -128,27 +129,27 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             <IconButton
                 sx={buttonStyle}
                 onClick={handleFirstPageButtonClick}
-                disabled={page === 0}
+                disabled={disableActions || page === 0}
                 aria-label="first page"
             >
-                <PneFirstPageIcon disabled={page === 0}/>
+                <PneFirstPageIcon disabled={disableActions || page === 0}/>
             </IconButton>
             <IconButton
                 sx={buttonStyle}
                 onClick={handleBackButtonClick}
-                disabled={page === 0}
+                disabled={disableActions || page === 0}
                 aria-label="previous page"
             >
-                <PnePreviousPageIcon disabled={page === 0}/>
+                <PnePreviousPageIcon disabled={disableActions || page === 0}/>
             </IconButton>
             <Icon sx={displayedRowsStyle}>{displayedRowsLabel}</Icon>
             <IconButton
                 sx={buttonStyle}
                 onClick={handleNextButtonClick}
-                disabled={!hasNext}
+                disabled={disableActions || !hasNext}
                 aria-label="next page"
             >
-                <PneNextPageIcon disabled={!hasNext}/>
+                <PneNextPageIcon disabled={disableActions || !hasNext}/>
             </IconButton>
             <Box
                 sx={{

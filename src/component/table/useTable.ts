@@ -9,12 +9,13 @@ const PAGE_NUMBER_SETTING_NAME = 'page_number'
 const SORT_INDEX_SETTING_NAME = 'sort_index'
 const SORT_ORDER_ASC_SETTING_NAME = 'sort_asc'
 
-interface IParams {
+interface IParams<D> {
     displayOptions?: Partial<TableDisplayOptions>
     onDisplayOptionsChange?: (options: TableDisplayOptions) => void
     paginatorActiveActionSx?: SxProps
     rowsPerPageOptions?: RowsPerPageOption[]
     settingsContextName?: string
+    dataGetter?: (page: number, pageSize: number) => Promise<D[]>
 }
 
 interface IUseTableResult<D> {
@@ -29,15 +30,17 @@ interface IUseTableResult<D> {
     setOrder: Dispatch<SetStateAction<Order>>
     order: Order
     onSortChange: (sortIndex: number, sortOrder: Order) => void
+    useSimpleFetch: (dataGetter: () => Promise<D[]>) => void
 }
 
-const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
+const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
     const {
         displayOptions,
         onDisplayOptionsChange,
         paginatorActiveActionSx = {},
         rowsPerPageOptions = [10, 25, 50/*, {label: '∞', value: -1}*/],
         settingsContextName,
+        dataGetter,
     } = params;
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
@@ -76,6 +79,7 @@ const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
     const [pageNumber, setPageNumber] = useState(initialPageNumber);
     const [pageSize, setPageSize] = useState(initialPageSize);
     const [hasNext, setHasNext] = useState(false);
+    const [disableActions, setDisableActions] = useState(false)
     const [data, setData] = useState<D[]>([]);
     const [sortIndex, setSortIndex] = useState<number>(initialSortIndex);
     const [order, setOrder] = useState<Order>(initialSortOrder);
@@ -96,9 +100,13 @@ const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
 
     const displayedRowsLabel = () => {
         if (data.length === 0) {
-            return 'Ø';
+            if (pageNumber === 0) {
+                return 'Ø';
+            } else {
+                return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + pageSize)
+            }
         }
-        return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + data.length);
+        return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + data.length)
     }
 
     const onSortChange = (sortIndex: number, sortOrder: Order) => {
@@ -110,11 +118,18 @@ const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
         }
     }
 
+    const wrapSetHasNext = (hasNext: SetStateAction<boolean>) => {
+        setHasNext(hasNext)
+        setDisableActions(false)
+    }
+
     const paginator: PaginatorProps = {
         rowsPerPageOptions: rowsPerPageOptions,
         rowsPerPage: pageSize,
         page: pageNumber,
+        disableActions: disableActions,
         onPageChange: (event, newPage) => {
+            setDisableActions(true)
             setPageNumber(newPage);
             if (settingsContextName) {
                 sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, newPage.toString());
@@ -144,10 +159,31 @@ const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
         activeActionSx: paginatorActiveActionSx,
     };
 
+    const afterDataFetch = (dataList: D[]) => {
+        setData(dataList.slice(0, pageSize))
+        wrapSetHasNext(dataList.length === pageSize + 1)
+    }
+
+    useEffect(() => {
+        if (dataGetter) {
+            dataGetter(pageNumber, pageSize).then(afterDataFetch)
+        }
+    }, [pageNumber, pageSize]);
+
+    const useSimpleFetch = (getter: () => Promise<D[]>) => {
+        if (dataGetter) {
+            throw new Error('useTable: Do not use useSimpleFetch hook and dataGetter param together! It makes no sense')
+        }
+
+        useEffect(() => {
+            getter().then(afterDataFetch)
+        }, [pageNumber, pageSize])
+    }
+
     return {
         page: pageNumber,
         pageSize,
-        setHasNext,
+        setHasNext: wrapSetHasNext,
         paginator,
         data,
         setData,
@@ -156,6 +192,7 @@ const useTable = <D, >(params: IParams = {}): IUseTableResult<D> => {
         order,
         setOrder,
         onSortChange,
+        useSimpleFetch,
     };
 }
 

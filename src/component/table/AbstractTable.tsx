@@ -23,6 +23,7 @@ export type PaginatorProps = {
     ) => void
     onPageSizeChange: (pageSize: number) => void
     hasNext: boolean
+    disableActions: boolean
     displayedRowsLabel: string
     activeActionSx?: SxProps
 }

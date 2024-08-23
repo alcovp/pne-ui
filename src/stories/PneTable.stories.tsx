@@ -2,7 +2,7 @@ import {PneTable} from "../index";
 import {Meta, StoryObj} from "@storybook/react";
 import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
-import React, {useEffect} from "react";
+import React from "react";
 import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
 import useTable from "../component/table/useTable";
 
@@ -11,9 +11,9 @@ type DataType = {
     displayName: string
 }
 
-const getList = (page: number, pageSize: number): DataType[] => {
+const getList = async (page: number, pageSize: number): Promise<DataType[]> => {
     const data: DataType[] = []
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 1; i <= 21; i++) {
         data.push({id: i, displayName: 'John ' + i})
     }
 
@@ -22,20 +22,21 @@ const getList = (page: number, pageSize: number): DataType[] => {
 
 const HookWrap = () => {
     const {
-        page,
-        pageSize,
-        setHasNext,
         paginator,
         data,
-        setData,
-    } = useTable<DataType>()
+    } = useTable<DataType>({
+        settingsContextName: 'context_1',
+        dataGetter: (page, pageSize) => getList(page, pageSize),
+    })
 
-    useEffect(() => {
-        const list = getList(page, pageSize)
+    // useSimpleFetch(() => getList(page, pageSize))
 
-        setData(list.slice(0, pageSize));
-        setHasNext(list.length === pageSize + 1);
-    }, [page, pageSize])
+    // useEffect(() => {
+    //     const list = getList(page, pageSize)
+    //
+    //     setData(list.slice(0, pageSize));
+    //     setHasNext(list.length === pageSize + 1);
+    // }, [page, pageSize])
 
     return <PneTable
         data={data}
