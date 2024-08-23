@@ -164,11 +164,13 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
         wrapSetHasNext(dataList.length === pageSize + 1)
     }
 
+    const fetchDataDeps = [pageNumber, pageSize, order, sortIndex]
+
     useEffect(() => {
         if (dataGetter) {
             dataGetter(pageNumber, pageSize).then(afterDataFetch)
         }
-    }, [pageNumber, pageSize]);
+    }, fetchDataDeps);
 
     const useSimpleFetch = (getter: () => Promise<D[]>) => {
         if (dataGetter) {
@@ -177,7 +179,7 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
 
         useEffect(() => {
             getter().then(afterDataFetch)
-        }, [pageNumber, pageSize])
+        }, fetchDataDeps)
     }
 
     return {
