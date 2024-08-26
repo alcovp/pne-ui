@@ -7,6 +7,7 @@ import PneAsyncAutocomplete from './component/dropdown/PneAsyncAutocomplete'
 import PneSelect from './component/dropdown/PneSelect'
 import PneTable from './component/table/PneTable'
 import useTable from './component/table/useTable'
+import UseTableParams from './component/table/useTable'
 import PneTableRow from './component/table/PneTableRow'
 import PneHeaderTableCell from './component/table/PneHeaderTableCell'
 import PneTableCell from './component/table/PneTableCell'
@@ -68,6 +69,7 @@ export {
     PneSelect,
     PneTable,
     useTable,
+    UseTableParams,
     PneTableRow,
     PneHeaderTableCell,
     PneTableCell,

@@ -9,7 +9,7 @@ const PAGE_NUMBER_SETTING_NAME = 'page_number'
 const SORT_INDEX_SETTING_NAME = 'sort_index'
 const SORT_ORDER_ASC_SETTING_NAME = 'sort_asc'
 
-type Params<D> = {
+export type UseTableParams<D> = {
     displayOptions?: Partial<TableDisplayOptions>
     onDisplayOptionsChange?: (options: TableDisplayOptions) => void
     paginatorActiveActionSx?: SxProps
@@ -41,7 +41,7 @@ interface IUseTableResult<D> {
     useSimpleFetch: (dataGetter: () => Promise<D[]>) => void
 }
 
-const useTable = <D, >(params: Params<D> = {}): IUseTableResult<D> => {
+const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const {
         displayOptions,
         onDisplayOptionsChange,
