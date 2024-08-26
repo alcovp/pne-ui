@@ -9,20 +9,21 @@ const PAGE_NUMBER_SETTING_NAME = 'page_number'
 const SORT_INDEX_SETTING_NAME = 'sort_index'
 const SORT_ORDER_ASC_SETTING_NAME = 'sort_asc'
 
-interface IParams<D> {
+type Params<D> = {
     displayOptions?: Partial<TableDisplayOptions>
     onDisplayOptionsChange?: (options: TableDisplayOptions) => void
     paginatorActiveActionSx?: SxProps
     rowsPerPageOptions?: RowsPerPageOption[]
     settingsContextName?: string
-    dataGetter?: (args: {
+    dataUseState?: [D[], Dispatch<SetStateAction<D[]>>]
+    fetchData?: (args: {
         page: number,
         pageSize: number,
         order: Order,
         sortIndex: number,
         extraDeps?: unknown[]
     }) => Promise<D[]>,
-    dataGetterExtraDeps?: unknown[]
+    fetchDataExtraDeps?: unknown[]
 }
 
 interface IUseTableResult<D> {
@@ -40,15 +41,16 @@ interface IUseTableResult<D> {
     useSimpleFetch: (dataGetter: () => Promise<D[]>) => void
 }
 
-const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
+const useTable = <D, >(params: Params<D> = {}): IUseTableResult<D> => {
     const {
         displayOptions,
         onDisplayOptionsChange,
         paginatorActiveActionSx = {},
         rowsPerPageOptions = [10, 25, 50/*, {label: '∞', value: -1}*/],
         settingsContextName,
-        dataGetter,
-        dataGetterExtraDeps,
+        dataUseState,
+        fetchData,
+        fetchDataExtraDeps,
     } = params;
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
@@ -84,13 +86,21 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
         }
     }
 
-    const [pageNumber, setPageNumber] = useState(initialPageNumber);
-    const [pageSize, setPageSize] = useState(initialPageSize);
-    const [hasNext, setHasNext] = useState(false);
+    const [pageNumber, setPageNumber] = useState(initialPageNumber)
+    const [pageSize, setPageSize] = useState(initialPageSize)
+    const [hasNext, setHasNext] = useState(false)
     const [disableActions, setDisableActions] = useState(false)
-    const [data, setData] = useState<D[]>([]);
-    const [sortIndex, setSortIndex] = useState<number>(initialSortIndex);
-    const [order, setOrder] = useState<Order>(initialSortOrder);
+    const [data, setData] = useState<D[]>([])
+    const [sortIndex, setSortIndex] = useState<number>(initialSortIndex)
+    const [order, setOrder] = useState<Order>(initialSortOrder)
+
+    const getData = (): D[] => {
+        return dataUseState ? dataUseState[0] : data
+    }
+
+    const getSetData = (): Dispatch<SetStateAction<D[]>> => {
+        return dataUseState ? dataUseState[1] : setData
+    }
 
     useEffect(() => {
         setPageSize(initialPageSize);
@@ -101,20 +111,20 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
     }, [initialPageNumber]);
 
     useEffect(() => {
-        if (data.length === 0 && pageNumber !== 0 && !settingsContextName) {
+        if (getData().length === 0 && pageNumber !== 0 && !settingsContextName) {
             setPageNumber(0);
         }
-    }, [data.length]);
+    }, [getData().length]);
 
     const displayedRowsLabel = () => {
-        if (data.length === 0) {
+        if (getData().length === 0) {
             if (pageNumber === 0) {
                 return 'Ø';
             } else {
                 return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + pageSize)
             }
         }
-        return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + data.length)
+        return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + getData().length)
     }
 
     const onSortChange = (sortIndex: number, sortOrder: Order) => {
@@ -168,29 +178,29 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
     };
 
     const afterDataFetch = (dataList: D[]) => {
-        setData(dataList.slice(0, pageSize))
+        getSetData()(dataList.slice(0, pageSize))
         wrapSetHasNext(dataList.length === pageSize + 1)
     }
 
     const fetchDataDeps: unknown[] = [pageNumber, pageSize, order, sortIndex]
-    if (dataGetterExtraDeps) {
-        fetchDataDeps.push(...dataGetterExtraDeps)
+    if (fetchDataExtraDeps) {
+        fetchDataDeps.push(...fetchDataExtraDeps)
     }
 
     useEffect(() => {
-        if (dataGetter) {
-            dataGetter({
+        if (fetchData) {
+            fetchData({
                 page: pageNumber,
                 pageSize,
                 order,
                 sortIndex,
-                extraDeps: dataGetterExtraDeps,
+                extraDeps: fetchDataExtraDeps,
             }).then(afterDataFetch)
         }
     }, fetchDataDeps)
 
     const useSimpleFetch = (getter: () => Promise<D[]>) => {
-        if (dataGetter) {
+        if (fetchData) {
             throw new Error('useTable: Do not use useSimpleFetch hook and dataGetter param together! It makes no sense')
         }
 
@@ -204,8 +214,8 @@ const useTable = <D, >(params: IParams<D> = {}): IUseTableResult<D> => {
         pageSize,
         setHasNext: wrapSetHasNext,
         paginator,
-        data,
-        setData,
+        data: getData(),
+        setData: getSetData(),
         sortIndex,
         setSortIndex,
         order,

@@ -1,8 +1,8 @@
-import {PneTable} from "../index";
+import {PneButton, PneTable} from "../index";
 import {Meta, StoryObj} from "@storybook/react";
 import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
-import React from "react";
+import React, {useState} from "react";
 import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
 import useTable from "../component/table/useTable";
 
@@ -13,7 +13,7 @@ type DataType = {
 
 const getList = async (page: number, pageSize: number): Promise<DataType[]> => {
     const data: DataType[] = []
-    for (let i = 1; i <= 51; i++) {
+    for (let i = 1; i <= 21; i++) {
         data.push({id: i, displayName: 'John ' + i})
     }
 
@@ -23,12 +23,15 @@ const getList = async (page: number, pageSize: number): Promise<DataType[]> => {
 }
 
 const HookWrap = () => {
+    const [customData, setCustomData] = useState<DataType[]>([])
+
     const {
         paginator,
         data,
     } = useTable<DataType>({
         settingsContextName: 'context_1',
-        dataGetter: ({page, pageSize}) => getList(page, pageSize),
+        dataUseState: [customData, setCustomData],
+        fetchData: ({page, pageSize}) => getList(page, pageSize),
     })
 
     // useSimpleFetch(() => getList(page, pageSize))
@@ -40,33 +43,36 @@ const HookWrap = () => {
     //     setHasNext(list.length === pageSize + 1);
     // }, [page, pageSize])
 
-    return <PneTable
-        data={data}
-        createRow={(rowData: DataType, index: number, arr: DataType[]) =>
-            <PneTableRow onClick={() => alert('Row clicked: ' + index)}>
-                <PneTableCell
-                    onClick={(event) => {
-                        event.stopPropagation()
-                        alert('ID clicked: ' + rowData.id)
-                    }}
-                >
-                    {rowData.id}
-                </PneTableCell>
-                <PneTableCell
-                    onClick={(event) => {
-                        event.stopPropagation()
-                        alert('Name clicked: ' + rowData.displayName)
-                    }}
-                >
-                    {rowData.displayName}
-                </PneTableCell>
+    return <>
+        <PneButton onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}/>
+        <PneTable
+            data={data}
+            createRow={(rowData: DataType, index: number, arr: DataType[]) =>
+                <PneTableRow onClick={() => alert('Row clicked: ' + index)}>
+                    <PneTableCell
+                        onClick={(event) => {
+                            event.stopPropagation()
+                            alert('ID clicked: ' + rowData.id)
+                        }}
+                    >
+                        {rowData.id}
+                    </PneTableCell>
+                    <PneTableCell
+                        onClick={(event) => {
+                            event.stopPropagation()
+                            alert('Name clicked: ' + rowData.displayName)
+                        }}
+                    >
+                        {rowData.displayName}
+                    </PneTableCell>
+                </PneTableRow>}
+            createTableHeader={() => <PneTableRow>
+                <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+                <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
             </PneTableRow>}
-        createTableHeader={() => <PneTableRow>
-            <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
-            <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
-        </PneTableRow>}
-        paginator={paginator}
-    />
+            paginator={paginator}
+        />
+    </>
 }
 
 export default {
