@@ -1,4 +1,4 @@
-import {Dispatch, SetStateAction, useEffect, useState} from 'react';
+import {Dispatch, SetStateAction, useEffect, useRef, useState} from 'react';
 import {PaginatorProps, RowsPerPageOption} from './AbstractTable';
 import {SxProps} from '@mui/material';
 import {ensure, Order} from "../../common/pne/type";
@@ -103,18 +103,21 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     }
 
     useEffect(() => {
-        setPageSize(initialPageSize);
-    }, [initialPageSize]);
+        setPageSize(initialPageSize)
+    }, [initialPageSize])
 
     useEffect(() => {
-        setPageNumber(initialPageNumber);
-    }, [initialPageNumber]);
+        setPageNumber(initialPageNumber)
+    }, [initialPageNumber])
 
+    const isFirstRender = useIsFirstRender()
     useEffect(() => {
-        if (getData().length === 0 && pageNumber !== 0 && !settingsContextName) {
-            setPageNumber(0);
+        if (!isFirstRender) {
+            if (getData().length === 0 && pageNumber !== 0) {
+                setPageNumber(0)
+            }
         }
-    }, [getData().length]);
+    }, [getData().length])
 
     const displayedRowsLabel = () => {
         if (getData().length === 0) {
@@ -226,3 +229,13 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 }
 
 export default useTable
+
+export const useIsFirstRender = () => {
+    const isMountRef = useRef(true)
+
+    useEffect(() => {
+        isMountRef.current = false
+    }, [])
+
+    return isMountRef.current
+}
