@@ -60,7 +60,10 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     // })
     let initialPageSize = displayOptions?.pageSize || rowsPerPageOptions[0]
     let initialSortIndex = displayOptions?.sortColumnIndex || 1
-    let initialSortOrder: Order = displayOptions?.sortAsc ? 'asc' : 'desc'
+    let initialSortOrder: Order = 'asc'
+    if (typeof displayOptions?.sortAsc !== 'undefined') {
+        initialSortOrder = displayOptions.sortAsc ? 'asc' : 'desc'
+    }
     let initialPageNumber = 0
 
     if (settingsContextName) {
