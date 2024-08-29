@@ -22,7 +22,6 @@ const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
             border: 'none',
             color: '#4E5D78',
             position: 'relative',
-            cursor: onClick === undefined ? 'inherit' : 'pointer'
         },
         ...(Array.isArray(sx) ? sx : [sx])
     ]
