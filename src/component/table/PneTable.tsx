@@ -23,8 +23,6 @@ const PneTable = <D, >(
     }
 
     const _tableSx: SxProps = {
-        borderCollapse: 'separate',
-        borderSpacing: '0 2px',
         ...tableSx
     }
 
