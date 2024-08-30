@@ -1,4 +1,4 @@
-import {PneButton, PneTable} from "../index";
+import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneTable} from "../index";
 import {Meta, StoryObj} from "@storybook/react";
 import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
@@ -6,10 +6,7 @@ import React, {useState} from "react";
 import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
 import useTable from "../component/table/useTable";
 
-type DataType = {
-    id: number
-    displayName: string
-}
+type DataType = AbstractEntity
 
 const getList = async (page: number, pageSize: number, limit: number): Promise<DataType[]> => {
     const data: DataType[] = []
@@ -46,6 +43,9 @@ const HookWrap = () => {
     // }, [page, pageSize])
 
     return <>
+        <PneAsyncAutocomplete
+            searchChoices={() => {return getList(1, 10, 10)}}
+        />
         <PneButton onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}>
             Create
         </PneButton>

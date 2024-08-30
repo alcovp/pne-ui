@@ -13,6 +13,7 @@ export interface IProps<
     label?: ReactNode
     variant?: TextFieldVariants
     error?: boolean
+    helperText?: string
     placeholder?: string
 }
 
@@ -33,6 +34,7 @@ const PneAutocomplete = <
         variant,
         size = 'small',
         error = false,
+        helperText,
         sx,
         placeholder,
         ...rest
@@ -53,6 +55,7 @@ const PneAutocomplete = <
                 label={label}
                 variant={variant}
                 error={error}
+                helperText={helperText}
             />
         }}
         size={size}

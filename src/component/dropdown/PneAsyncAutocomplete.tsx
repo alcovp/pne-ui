@@ -14,6 +14,7 @@ export interface IProps<
     }) => Promise<T[]>
     label?: ReactNode
     error?: boolean
+    helperText?: string
     placeholder?: string
     onSearchError?: (reason: any) => void
 }
@@ -35,6 +36,7 @@ const PneAsyncAutocomplete = <
         label,
         size = 'small',
         error = false,
+        helperText,
         sx,
         placeholder,
         onSearchError,
@@ -102,6 +104,7 @@ const PneAsyncAutocomplete = <
                     ),
                 }}
                 error={error}
+                helperText={helperText}
             />
         )}
         sx={innerSx}

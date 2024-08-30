@@ -11,3 +11,10 @@ type Story = StoryObj<typeof PneAutocomplete>;
 export const Default: Story = {
     args: {},
 };
+
+export const Disabled: Story = {
+    args: {
+        ...Default.args,
+        disabled: true
+    },
+};
