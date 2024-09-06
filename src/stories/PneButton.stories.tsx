@@ -20,6 +20,22 @@ export const Default: Story = {
     },
 };
 
+export const Medium: Story = {
+    args: {
+        ...Default.args,
+        color: "pnePrimary",
+        size: 'medium',
+    },
+};
+
+export const Small: Story = {
+    args: {
+        ...Default.args,
+        color: "pnePrimary",
+        size: 'small',
+    },
+};
+
 export const Primary: Story = {
     args: {
         ...Default.args,

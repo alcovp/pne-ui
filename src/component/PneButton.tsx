@@ -9,21 +9,22 @@ const PneButton = <C extends React.ElementType>(
         sx,
         children,
         variant = 'contained',
+        size = 'large',
         ...rest
     } = props;
 
     const _sx: SxProps = [
         {
-            height: '40px',
+            height: size ==='large' ? '40px' : 'inherit',
             fontSize: '12px',
-            lineHeight: '12px',
-            fontWeight: '700',
+            lineHeight: '22px',
+            fontWeight: '400',
             textTransform: 'initial'
         },
         ...(Array.isArray(sx) ? sx : [sx])
     ]
 
-    return <Button sx={_sx} variant={variant} {...rest}>{children}</Button>
+    return <Button sx={_sx} variant={variant} size={size} {...rest}>{children}</Button>
 }
 
 export default PneButton;
