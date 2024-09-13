@@ -1,0 +1,44 @@
+import React, {useState} from 'react';
+import {ExactCriterionSearchLabelEnum} from '../../types';
+import {Box, Chip, SxProps} from '@mui/material';
+import {useTranslation} from 'react-i18next';
+import {ExpandMore} from '@mui/icons-material';
+import {selectUnderChipSx} from './style';
+import {PneSelect} from '../../../../..';
+
+interface IProps {
+    value: ExactCriterionSearchLabelEnum,
+    onChange: (value: ExactCriterionSearchLabelEnum) => void,
+    options: ExactCriterionSearchLabelEnum[],
+}
+
+const SearchUIExactSearchLabelSelect = (props: IProps) => {
+    const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.ExactCriterionSearchLabelEnum'})
+    const {
+        value,
+        onChange,
+        options,
+    } = props
+    const [open, setOpen] = useState(false)
+
+    return <Box sx={{position: 'relative'}}>
+        <Chip
+            onDelete={() => setOpen(true)}
+            deleteIcon={<ExpandMore/>}
+            label={optionRenderer(value)}
+            size={'small'}
+        />
+        <PneSelect
+            open={open}
+            onClose={() => setOpen(false)}
+            onOpen={() => setOpen(true)}
+            sx={selectUnderChipSx}
+            getOptionLabel={opt => optionRenderer(opt.label)}
+            value={value}
+            onChange={(value) => onChange(value as ExactCriterionSearchLabelEnum)}
+            options={options}
+        />
+    </Box>
+}
+
+export default SearchUIExactSearchLabelSelect

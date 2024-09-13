@@ -11,10 +11,33 @@ import UseTableParams from './component/table/useTable'
 import PneTableRow from './component/table/PneTableRow'
 import PneHeaderTableCell from './component/table/PneHeaderTableCell'
 import PneTableCell from './component/table/PneTableCell'
-import AbstractTable, {PaginatorProps, TableCreateHeaderType, TableProps, TableSortOptions} from './component/table/AbstractTable'
+import AbstractTable, {
+    PaginatorProps,
+    TableCreateHeaderType,
+    TableProps,
+    TableSortOptions
+} from './component/table/AbstractTable'
 import PneTableSortLabel from './component/table/PneTableSortLabel'
 import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
 import AbstractTableCell from './component/table/AbstractTableCell'
+import {TableDisplayOptions} from './component/table/type'
+import PneCheckbox from './component/PneCheckbox'
+import {
+    CriterionTypeEnum,
+    ExactCriterionSearchLabelEnum,
+    GroupingType,
+    LinkedEntityTypeEnum,
+    MultichoiceFilterTypeEnum,
+    MultigetCriterion,
+    SearchCriteria,
+    SearchUIConditions,
+    SearchUITemplate
+} from './component/search-ui/filters/types'
+import {SearchUIDefaults, SearchUIProvider} from './component/search-ui/SearchUIProvider'
+import {SearchParams, SearchUI} from './component/search-ui/SearchUI'
+import {useSearchCriteria} from './component/search-ui/filters/hook'
+import {SearchUIFilters, SearchUIFiltersConfig} from './component/search-ui/filters/SearchUIFilters'
+import {MultigetSelect} from './component/search-ui/multiget_select/MultigetSelect'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -81,5 +104,24 @@ export {
     TableCreateHeaderType,
     TableProps,
     TableSortOptions,
+    TableDisplayOptions,
+    PneCheckbox,
+    SearchUI,
+    SearchParams,
+    SearchUIFilters,
+    useSearchCriteria,
+    SearchCriteria,
+    SearchUIProvider,
+    SearchUITemplate,
+    SearchUIDefaults,
+    SearchUIFiltersConfig,
+    SearchUIConditions,
+    CriterionTypeEnum,
+    LinkedEntityTypeEnum,
+    MultichoiceFilterTypeEnum,
+    ExactCriterionSearchLabelEnum,
+    MultigetCriterion,
+    GroupingType,
+    MultigetSelect,
 }
 export * from './common'

@@ -1,0 +1,64 @@
+import {
+    CriterionTypeEnum,
+    DateRangeSpec,
+    ExactCriterionSearchLabelEnum,
+    GroupingDateType,
+    GroupingType,
+    MultigetCriterion,
+    SearchCriteria,
+    SearchUIConditions, MarkerStatusCriterion, SearchUITemplate,
+    StatusCriterion,
+    ThreeDCriterionEnum,
+    UserDefinedCriterionEnum
+} from '../types';
+import {AbstractEntity, AbstractEntityAllableCollection} from '../../../..';
+import {SearchUIFiltersConfig} from '../SearchUIFilters';
+import {SearchUIDefaults} from '../../SearchUIProvider';
+
+export type SearchUIStore = SearchUIState & SearchUIActions
+
+export type SearchUIState = SearchUIConditions & {
+    defaults: SearchUIDefaults
+    settingsContextName: string
+    possibleCriteria: CriterionTypeEnum[]
+    predefinedCriteria: CriterionTypeEnum[]
+    exactSearchLabels: ExactCriterionSearchLabelEnum[]
+    template: SearchUITemplate | null
+    templates: SearchUITemplate[]
+    justAddedCriterion: CriterionTypeEnum | null
+    config?: SearchUIFiltersConfig
+    onFiltersUpdate: (searchCriteria: SearchCriteria) => void
+}
+
+export type SearchUIActions = {
+    setInitialState: (state: Partial<SearchUIState> & Pick<SearchUIState, 'defaults'>) => void
+    clearCriteria: () => void
+    clearCriterion: (criterionType: CriterionTypeEnum) => void
+    addCriterion: (criterionType: CriterionTypeEnum) => void
+    removeCriterion: (criterionType: CriterionTypeEnum) => void
+    createTemplate: (templateName: string) => void
+    updateTemplate: (templateName: string) => void
+    removeTemplate: (template: SearchUITemplate) => void
+    setTemplate: (template: SearchUITemplate) => void
+    loadTemplates: () => void
+    setJustAddedCriterion: (criterion: CriterionTypeEnum | null) => void
+    setMultigetCriterion: (criterion: MultigetCriterion) => void
+    set3DCriterion: (threeD: ThreeDCriterionEnum) => void
+    setStatusCriterion: (status: StatusCriterion) => void
+    setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => void
+    setExactCriterionSearchValue: (searchValue: string) => void
+    setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => void
+    setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => void
+    setProjectCurrencyCriterionCurrency: (currency: AbstractEntity) => void
+    setProjectCurrencyCriterionConvertFlag: (convertToUserCurrency: boolean) => void
+    setCardTypesCriterion: (cardTypes: AbstractEntityAllableCollection) => void
+    setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => void
+    setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => void
+    setGroupingCriterionDateType: (dateType: GroupingDateType) => void
+    setUserDefinedCriterion: (userDefined: UserDefinedCriterionEnum) => void
+    setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => void
+    setRecurrenceStatusesCriterion: (recurrenceStatuses: AbstractEntityAllableCollection) => void
+    setMfoConfigurationTypesCriterion: (mfoConfigurationTypes: AbstractEntityAllableCollection) => void
+    setMarkerTypesCriterion: (markerTypes: AbstractEntityAllableCollection) => void
+    setMarkerStatusCriterion: (markerStatus: MarkerStatusCriterion) => void
+}
