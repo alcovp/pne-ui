@@ -3,7 +3,7 @@ import React from "react";
 import {SearchUI} from "../component/search-ui/SearchUI";
 import {CriterionTypeEnum} from "../component/search-ui/filters/types";
 import {Meta, StoryObj} from "@storybook/react";
-import {SearchUIDefaults, SearchUIProvider} from "../component/search-ui/SearchUIProvider";
+import {SearchUIProvider} from "../component/search-ui/SearchUIProvider";
 
 type DataType = AbstractEntity
 
@@ -20,11 +20,21 @@ const getList = async (page: number, pageSize: number, limit: number): Promise<D
 
 const HookWrap = () => {
 
-    return <SearchUIProvider defaults={{}}>
+    return <SearchUIProvider
+        defaults={{
+            getMatchLinkedItems: async () => [
+                {id: 1, displayName: 'name1'},
+                {id: 2, displayName: 'name2'},
+                {id: 3, displayName: 'name3'},
+            ],
+            showGatesCriterion: () => true,
+        }}
+    >
         <SearchUI<DataType>
             settingsContextName={'context'}
             possibleCriteria={[
                 CriterionTypeEnum.STATUS,
+                CriterionTypeEnum.GATE,
             ]}
             searchData={(searchParams) => getList(
                 0,

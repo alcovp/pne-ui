@@ -8,7 +8,7 @@ import {Box, Chip, IconButton, SxProps} from '@mui/material';
 import {ExpandMore} from '@mui/icons-material';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
 import {CriterionContainer} from './CriterionContainer';
-import {PneButton} from '../../..';
+import {PneButton, SearchUIDefaults} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 
 export type SearchUIFiltersConfig = {
@@ -39,7 +39,14 @@ export const SearchUIFilters = (props: Props) => {
         onFiltersUpdate,
     } = props
 
-    const adjustedPossibleCriteria = [...new Set([...possibleCriteria, ...predefinedCriteria])]
+    const defaults = useContext(SearchUIDefaultsContext)
+
+    const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
+        ...new Set([
+            ...possibleCriteria,
+            ...predefinedCriteria
+        ])
+    ])
 
     const {
         setInitialState,
@@ -58,7 +65,6 @@ export const SearchUIFilters = (props: Props) => {
         conflictingCriteriaGroups: store.config?.conflictingCriteriaGroups,
         hideTemplatesSelect: store.config?.hideTemplatesSelect,
     }))
-    const defaults = useContext(SearchUIDefaultsContext)
 
     const [showFilters, setShowFilters] = useState(true)
 
@@ -166,4 +172,73 @@ const headerSx: SxProps = {
     columnGap: '12px',
     width: '100%',
     py: '15px',
+}
+
+const filterAvailableCriteria = (
+    defaults: SearchUIDefaults,
+    criteria: CriterionTypeEnum[] | undefined
+): CriterionTypeEnum[] => {
+    let filteredCriteria: CriterionTypeEnum[] = [...criteria || []]
+    if (!defaults.showProjectCurrencyCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.PROJECT_CURRENCY)
+    }
+    if (!defaults.showProcessorsCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.PROCESSOR)
+    }
+    if (!defaults.showGatesCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.GATE)
+    }
+    if (!defaults.showProjectsCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.PROJECT)
+    }
+    if (!defaults.showEndpointsCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.ENDPOINT)
+    }
+    if (!defaults.showMerchantsCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.MERCHANT)
+    }
+    if (!defaults.showManagersCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.MANAGER)
+    }
+    if (!defaults.showResellersCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.RESELLER)
+    }
+    // if (!defaults.showSuperiorsCriterion()) {
+    //     filteredCriteria = filteredCriteria
+    //         .filter(c => c !== CriterionTypeEnum.SUPE)
+    // }
+    if (!defaults.showDealersCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.DEALER)
+    }
+    if (!defaults.showCompaniesCriterion()) {
+        filteredCriteria = filteredCriteria
+            .filter(c => c !== CriterionTypeEnum.COMPANY)
+    }
+    // if (!defaults.showFormPaymentTemplatesCriterion()) {
+    //     filteredCriteria = filteredCriteria
+    //         .filter(c => c !== CriterionTypeEnum.)
+    // }
+    // if (!defaults.showFormFinishTemplatesCriterion()) {
+    //     filteredCriteria = filteredCriteria
+    //         .filter(c => c !== CriterionTypeEnum.)
+    // }
+    // if (!defaults.showFormWaitTemplatesCriterion()) {
+    //     filteredCriteria = filteredCriteria
+    //         .filter(c => c !== CriterionTypeEnum.)
+    // }
+    // if (!defaults.showFormPayment3dsTemplatesCriterion()) {
+    //     filteredCriteria = filteredCriteria
+    //         .filter(c => c !== CriterionTypeEnum.)
+    // }
+
+    return filteredCriteria
 }

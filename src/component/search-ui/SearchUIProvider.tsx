@@ -42,6 +42,22 @@ export type SearchUIDefaults = {
     getRecurringPaymentTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentStatuses: () => Promise<AbstractEntity[]>
 
+    showProcessorsCriterion: () => boolean
+    showGatesCriterion: () => boolean
+    showProjectsCriterion: () => boolean
+    showEndpointsCriterion: () => boolean
+    showMerchantsCriterion: () => boolean
+    showManagersCriterion: () => boolean
+    showResellersCriterion: () => boolean
+    // showSuperiorsCriterion: () => boolean
+    showDealersCriterion: () => boolean
+    showCompaniesCriterion: () => boolean
+    showProjectCurrencyCriterion: () => boolean,
+    // showFormPaymentTemplatesCriterion: () => boolean,
+    // showFormFinishTemplatesCriterion: () => boolean,
+    // showFormWaitTemplatesCriterion: () => boolean,
+    // showFormPayment3dsTemplatesCriterion: () => boolean,
+
     showProjectCodeGrouping: () => boolean
     showManagerGrouping: () => boolean
     /**
@@ -77,6 +93,22 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     getTransactionMarkerTypes: () => Promise.resolve([]),
     getRecurringPaymentTypes: () => Promise.resolve([]),
     getRecurringPaymentStatuses: () => Promise.resolve([]),
+
+    showProcessorsCriterion: () => true,
+    showGatesCriterion: () => true,
+    showProjectsCriterion: () => true,
+    showEndpointsCriterion: () => true,
+    showMerchantsCriterion: () => true,
+    showManagersCriterion: () => true,
+    showResellersCriterion: () => true,
+    // showSuperiorsCriterion: () => true,
+    showDealersCriterion: () => true,
+    showCompaniesCriterion: () => true,
+    showProjectCurrencyCriterion: () => true,
+    // showFormPaymentTemplatesCriterion: () => true,
+    // showFormFinishTemplatesCriterion: () => true,
+    // showFormWaitTemplatesCriterion: () => true,
+    // showFormPayment3dsTemplatesCriterion: () => true,
 
     showProjectCodeGrouping: () => true,
     showManagerGrouping: () => true,
