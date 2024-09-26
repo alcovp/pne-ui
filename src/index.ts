@@ -38,6 +38,7 @@ import {SearchParams, SearchUI} from './component/search-ui/SearchUI'
 import {useSearchCriteria} from './component/search-ui/filters/hook'
 import {SearchUIFilters, SearchUIFiltersConfig} from './component/search-ui/filters/SearchUIFilters'
 import {MultigetSelect} from './component/search-ui/multiget_select/MultigetSelect'
+import {createPneTheme} from './createTheme'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -83,6 +84,7 @@ declare module '@mui/material/Button' {
 }
 
 export {
+    createPneTheme,
     PneButton,
     PneTextField,
     PneModal,
