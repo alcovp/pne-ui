@@ -1,7 +1,7 @@
 import React, {forwardRef, Ref} from 'react';
 import {Checkbox, CheckboxProps, SxProps} from '@mui/material';
 
-const PneCheckbox = forwardRef((
+export const PneCheckbox = forwardRef((
     props: CheckboxProps,
     ref: Ref<HTMLButtonElement>
 ) => {
@@ -17,5 +17,3 @@ const PneCheckbox = forwardRef((
 
     return <Checkbox sx={_sx} size={size} {...rest} ref={ref}/>
 });
-
-export default PneCheckbox

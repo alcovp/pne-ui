@@ -35,6 +35,7 @@ const HookWrap = () => {
             possibleCriteria={[
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.GATE,
+                CriterionTypeEnum.GROUPING,
             ]}
             searchData={(searchParams) => getList(
                 0,

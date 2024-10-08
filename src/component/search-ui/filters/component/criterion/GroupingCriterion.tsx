@@ -1,10 +1,9 @@
 import React from 'react';
 import {useSearchUIStore} from '../../state/store';
 import SearchUIGroupingDateTypeSelect from '../select/SearchUIGroupingDateTypeSelect';
-// import AbstractEntitySelectModal from '../../../../table-with-abstarct-entity-selector/AbstractEntitySelectModal';
 import {useTranslation} from 'react-i18next';
 import {Box, Chip, Link, SxProps} from '@mui/material';
-import {useModal} from '../../../../..';
+import {AbstractEntitySelectModal, useModal} from '../../../../..';
 
 export const GroupingCriterion = () => {
     const {t} = useTranslation()
@@ -38,20 +37,19 @@ export const GroupingCriterion = () => {
         >
             {selected != null ? getLinkChildren() : 'Select groups'}
         </Link>
-        {/*//TODO migrate*/}
-        {/*<AbstractEntitySelectModal*/}
-        {/*    open={open}*/}
-        {/*    title={t('performanceReport.grouping')}*/}
-        {/*    handleSave={list => {*/}
-        {/*        setGroupingCriterionGroups(list.unmapped, list.mapped)*/}
-        {/*        handleClose()*/}
-        {/*    }}*/}
-        {/*    unMappedList={available}*/}
-        {/*    mappedList={selected}*/}
-        {/*    onClose={handleClose}*/}
-        {/*    loading={false}*/}
-        {/*    optionRenderer={groupTypeRenderer}*/}
-        {/*/>*/}
+        <AbstractEntitySelectModal
+            open={open}
+            title={t('performanceReport.grouping')}
+            handleSave={list => {
+                setGroupingCriterionGroups(list.unmapped, list.mapped)
+                handleClose()
+            }}
+            unMappedList={available}
+            mappedList={selected}
+            onClose={handleClose}
+            loading={false}
+            optionRenderer={groupTypeRenderer}
+        />
     </Box>
 }
 

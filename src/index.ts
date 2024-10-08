@@ -21,7 +21,7 @@ import PneTableSortLabel from './component/table/PneTableSortLabel'
 import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
 import AbstractTableCell from './component/table/AbstractTableCell'
 import {TableDisplayOptions} from './component/table/type'
-import PneCheckbox from './component/PneCheckbox'
+import {PneCheckbox} from './component/PneCheckbox'
 import {
     CriterionTypeEnum,
     ExactCriterionSearchLabelEnum,
@@ -39,6 +39,13 @@ import {useSearchCriteria} from './component/search-ui/filters/hook'
 import {SearchUIFilters, SearchUIFiltersConfig} from './component/search-ui/filters/SearchUIFilters'
 import {MultigetSelect} from './component/search-ui/multiget_select/MultigetSelect'
 import {createPneTheme} from './createTheme'
+import {
+    AbstractEntitySelector,
+    AbstractEntitySelectorProp,
+    IAbstractEntityOptions,
+    IMappedUnmappedList
+} from './component/non-abstract-entity-selector/AbstractEntitySelector'
+import {AbstractEntitySelectModal} from './component/non-abstract-entity-selector/AbstractEntitySelectModal'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -125,5 +132,10 @@ export {
     MultigetCriterion,
     GroupingType,
     MultigetSelect,
+    AbstractEntitySelector,
+    AbstractEntitySelectModal,
+    AbstractEntitySelectorProp,
+    IMappedUnmappedList,
+    IAbstractEntityOptions,
 }
 export * from './common'

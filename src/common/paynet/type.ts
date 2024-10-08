@@ -1,5 +1,5 @@
 import {z} from 'zod';
-import {AbstractEntitySchema, AutoCompleteChoiceSchema} from "./schema";
+import {AbstractEntitySchema, AutoCompleteChoiceSchema, CountrySchema, StateSchema} from "./schema";
 import {isObject, Order} from "../pne";
 
 export type AbstractEntity = z.infer<typeof AbstractEntitySchema>
@@ -76,3 +76,22 @@ export type AllableCollection<T> = {
 
 export type AbstractEntityAllableCollection = AllableCollection<AbstractEntity>
 export type AutoCompleteChoiceAllableCollection = AllableCollection<AutoCompleteChoice>
+
+
+export type Country = z.infer<typeof CountrySchema>
+export type State = z.infer<typeof StateSchema>
+
+export interface IMappedAbstractEntity {
+    id: number
+    name: string
+    mappingStatus?: 'Mapped' | 'Unmapped'
+}
+
+export const isMappedAbstractEntity = (value: unknown): value is IMappedAbstractEntity => {
+    if (!isObject(value)) {
+        return false
+    }
+
+    return 'id' in value && typeof value.id === 'number' &&
+        'name' in value && typeof value.name === 'string'
+}
