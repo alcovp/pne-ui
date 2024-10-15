@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSelect';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {PneTextField} from '../../../../..';
+import debounce from 'lodash/debounce';
 
 export const ExactSearchCriterion = () => {
 
@@ -21,11 +22,21 @@ export const ExactSearchCriterion = () => {
         setExactCriterionSearchLabel: store.setExactCriterionSearchLabel,
         setExactCriterionSearchValue: store.setExactCriterionSearchValue,
     }))
+    const [searchValue, setSearchValue] = useState(exactSearchValue)
+
+    const debouncedSetSearchValue = useCallback(
+        debounce(setExactCriterionSearchValue, 300),
+        []
+    )
+
+    useEffect(() => {
+        debouncedSetSearchValue(searchValue)
+    }, [searchValue]);
 
     return <Box sx={centerSx}>
         <PneTextField
-            value={exactSearchValue}
-            onChange={(e) => setExactCriterionSearchValue(e.target.value)}
+            value={searchValue}
+            onChange={(e) => setSearchValue(e.target.value)}
             placeholder={t('search')}
             sx={valueInputSx}
             size={'small'}

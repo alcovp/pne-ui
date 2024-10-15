@@ -1,4 +1,4 @@
-import {AbstractEntity, PneHeaderTableCell, PneTableCell, PneTableRow} from "../index";
+import {AbstractEntity, ExactCriterionSearchLabelEnum, PneHeaderTableCell, PneTableCell, PneTableRow} from "../index";
 import React from "react";
 import {SearchUI} from "../component/search-ui/SearchUI";
 import {CriterionTypeEnum} from "../component/search-ui/filters/types";
@@ -8,6 +8,7 @@ import {SearchUIProvider} from "../component/search-ui/SearchUIProvider";
 type DataType = AbstractEntity
 
 const getList = async (page: number, pageSize: number, limit: number): Promise<DataType[]> => {
+    console.log('getList call')
     const data: DataType[] = []
     for (let i = 1; i <= limit; i++) {
         data.push({id: i, displayName: 'John ' + i})
@@ -32,7 +33,11 @@ const HookWrap = () => {
     >
         <SearchUI<DataType>
             settingsContextName={'context'}
+            exactSearchLabels={[
+                ExactCriterionSearchLabelEnum.ALL,
+            ]}
             possibleCriteria={[
+                CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.GATE,
                 CriterionTypeEnum.GROUPING,

@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {ExactCriterionSearchLabelEnum} from '../../types';
-import {Box, Chip, SxProps} from '@mui/material';
+import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {ExpandMore} from '@mui/icons-material';
 import {selectUnderChipSx} from './style';
