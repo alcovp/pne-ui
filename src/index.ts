@@ -3,7 +3,7 @@ import PneTextField from './component/PneTextField'
 import PneModal from './component/PneModal'
 import useModal from './component/useModal'
 import PneAutocomplete from './component/dropdown/PneAutocomplete'
-import PneAsyncAutocomplete from './component/dropdown/PneAsyncAutocomplete'
+import PneAsyncAutocomplete, {PneAsyncAutocompleteProps} from './component/dropdown/PneAsyncAutocomplete'
 import PneSelect from './component/dropdown/PneSelect'
 import PneTable from './component/table/PneTable'
 import useTable from './component/table/useTable'
@@ -46,6 +46,7 @@ import {
     IMappedUnmappedList
 } from './component/non-abstract-entity-selector/AbstractEntitySelector'
 import {AbstractEntitySelectModal} from './component/non-abstract-entity-selector/AbstractEntitySelectModal'
+import {PneDropdownChoice} from './common/paynet/dropdown'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -137,5 +138,7 @@ export {
     AbstractEntitySelectorProp,
     IMappedUnmappedList,
     IAbstractEntityOptions,
+    PneAsyncAutocompleteProps,
+    PneDropdownChoice,
 }
 export * from './common'

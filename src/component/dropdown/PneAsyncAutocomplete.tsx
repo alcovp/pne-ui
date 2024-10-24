@@ -3,7 +3,7 @@ import {Autocomplete, AutocompleteProps, CircularProgress, SxProps} from '@mui/m
 import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/paynet/dropdown';
 import {PneTextField} from "../../index";
 
-export interface IProps<
+export interface PneAsyncAutocompleteProps<
     T extends PneDropdownChoice,
     Multiple extends boolean | undefined = undefined,
     DisableClearable extends boolean | undefined = undefined,
@@ -24,7 +24,7 @@ const PneAsyncAutocomplete = <
     Multiple extends boolean | undefined = false,
     DisableClearable extends boolean | undefined = false,
     FreeSolo extends boolean | undefined = false,
->(props: IProps<
+>(props: PneAsyncAutocompleteProps<
     T,
     Multiple,
     DisableClearable,
