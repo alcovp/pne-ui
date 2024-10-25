@@ -113,6 +113,13 @@ export const getSearchUIActions = (
             template: template,
             templateName: templateName,
         })
+            .then(() => {
+                set((draft) => {
+                    const index = draft.templates.findIndex(t => t.name === templateName)
+                    draft.templates[index].searchConditions = template.searchConditions
+                    draft.template = template
+                })
+            })
             // .catch(raiseUIError)
             .catch(console.error)
     },

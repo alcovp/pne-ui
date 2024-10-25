@@ -12,9 +12,6 @@ export const ProjectCurrencyCriterion = () => {
     const {t} = useTranslation()
     const [availableCurrencies, setAvailableCurrencies] = useState<AbstractEntity[]>([])
     const searchUIDefaults = useContext(SearchUIDefaultsContext)
-    const [defaultCurrency, setDefaultCurrency] = useState<AbstractEntity>(
-        searchUIDefaults.getDefaultCurrency()
-    )
     const {
         currency,
         convertToUserCurrency,
@@ -33,8 +30,8 @@ export const ProjectCurrencyCriterion = () => {
     const [open, setOpen] = useState(false)
 
     useEffect(() => {
-        setDefaultCurrency(searchUIDefaults.getDefaultCurrency())
-    }, [searchUIDefaults.getDefaultCurrency()])
+        setProjectCurrencyCriterionCurrency(searchUIDefaults.getDefaultCurrency())
+    }, [])
 
     useEffect(() => {
         searchUIDefaults.getProjectAvailableCurrencies({
@@ -55,7 +52,7 @@ export const ProjectCurrencyCriterion = () => {
         return t('performanceReport.convertAllTo')
             + ' '
             + t('performanceReport.userCurrency')
-            + ` (${defaultCurrency?.displayName})`
+            + ` (${searchUIDefaults.getDefaultCurrency().displayName})`
     }
 
     return <Box sx={containerSx}>

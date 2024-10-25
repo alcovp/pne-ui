@@ -23,6 +23,10 @@ const HookWrap = () => {
 
     return <SearchUIProvider
         defaults={{
+            getDefaultCurrency: (): AbstractEntity => ({
+                id: 99,
+                displayName: 'BBB',
+            }),
             getMatchLinkedItems: async () => [
                 {id: 1, displayName: 'name1'},
                 {id: 2, displayName: 'name2'},
@@ -41,6 +45,10 @@ const HookWrap = () => {
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.GATE,
                 CriterionTypeEnum.GROUPING,
+                CriterionTypeEnum.PROJECT_CURRENCY,
+            ]}
+            predefinedCriteria={[
+                CriterionTypeEnum.PROJECT_CURRENCY,
             ]}
             searchData={(searchParams) => getList(
                 0,
