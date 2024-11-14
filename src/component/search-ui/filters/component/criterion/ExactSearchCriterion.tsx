@@ -24,6 +24,10 @@ export const ExactSearchCriterion = () => {
     }))
     const [searchValue, setSearchValue] = useState(exactSearchValue)
 
+    useEffect(() => {
+        setSearchValue(exactSearchValue)
+    }, [exactSearchValue])
+
     const debouncedSetSearchValue = useCallback(
         debounce(setExactCriterionSearchValue, 300),
         []
@@ -31,7 +35,7 @@ export const ExactSearchCriterion = () => {
 
     useEffect(() => {
         debouncedSetSearchValue(searchValue)
-    }, [searchValue]);
+    }, [searchValue])
 
     return <Box sx={centerSx}>
         <PneTextField

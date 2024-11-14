@@ -39,6 +39,7 @@ const HookWrap = () => {
             settingsContextName={'context'}
             exactSearchLabels={[
                 ExactCriterionSearchLabelEnum.ALL,
+                ExactCriterionSearchLabelEnum.ID,
             ]}
             possibleCriteria={[
                 CriterionTypeEnum.EXACT,
@@ -48,13 +49,16 @@ const HookWrap = () => {
                 CriterionTypeEnum.PROJECT_CURRENCY,
             ]}
             predefinedCriteria={[
-                CriterionTypeEnum.PROJECT_CURRENCY,
+                CriterionTypeEnum.EXACT,
             ]}
-            searchData={(searchParams) => getList(
-                0,
-                searchParams.rowCount,
-                999
-            )}
+            searchData={(searchParams) => {
+                console.dir(searchParams)
+                return getList(
+                    0,
+                    searchParams.rowCount,
+                    999
+                )
+            }}
             createTableHeader={(headerParams) =>
                 <PneTableRow>
                     <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>

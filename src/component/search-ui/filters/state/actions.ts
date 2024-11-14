@@ -38,6 +38,7 @@ import dayjs, {Dayjs} from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import isoWeek from 'dayjs/plugin/isoWeek'
+import isEqual from 'lodash/isEqual'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -54,7 +55,7 @@ export const getSearchUIActions = (
                 ...state,
             }
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     clearCriteria: () => {
         set((draft) => {
@@ -65,14 +66,14 @@ export const getSearchUIActions = (
                 criteria: draft.predefinedCriteria,
             }
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     clearCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
             clearCriterionReducer(draft, criterionType)
             addInitialMultigetCriterionReducer(draft, criterionType)
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     addCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
@@ -80,7 +81,7 @@ export const getSearchUIActions = (
             addInitialMultigetCriterionReducer(draft, criterionType)
         })
         get().setJustAddedCriterion(criterionType)
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     removeCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
@@ -88,7 +89,7 @@ export const getSearchUIActions = (
             const index = draft.criteria.findIndex(c => c === criterionType)
             draft.criteria.splice(index, 1)
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     createTemplate: (templateName: string) => {
         const template = getTemplate(templateName, get())
@@ -138,7 +139,7 @@ export const getSearchUIActions = (
                         draft.criteria = draft.predefinedCriteria
                     }
                 })
-                get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+                checkIfFiltersChanged(set, get)
             })
             // .catch(raiseUIError)
             .catch(console.error)
@@ -159,7 +160,7 @@ export const getSearchUIActions = (
                 ...conditions,
             }
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     loadTemplates: () => {
         get().defaults.getSearchTemplates(get().settingsContextName)
@@ -181,37 +182,37 @@ export const getSearchUIActions = (
             const index = draft.multigetCriteria.findIndex(c => c.entityType === criterion.entityType)
             draft.multigetCriteria[index] = criterion
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     set3DCriterion: (threeD: ThreeDCriterionEnum) => {
         set((draft) => {
             draft.threeD = threeD
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setStatusCriterion: (status: StatusCriterion) => {
         set((draft) => {
             draft.status = status
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => {
         set((draft) => {
             draft.exactSearchLabel = searchLabel
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setExactCriterionSearchValue: (searchValue: string) => {
         set((draft) => {
             draft.exactSearchValue = searchValue
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.currencies = currencies
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => {
         let spec = dateRangeSpec
@@ -223,80 +224,80 @@ export const getSearchUIActions = (
         set((draft) => {
             draft.dateRangeSpec = spec
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setProjectCurrencyCriterionCurrency: (currency: AbstractEntity) => {
         set((draft) => {
             draft.projectCurrency.currency = currency
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setProjectCurrencyCriterionConvertFlag: (convertToUserCurrency: boolean) => {
         set((draft) => {
             draft.projectCurrency.convertToUserCurrency = convertToUserCurrency
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setCardTypesCriterion: (cardTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.cardTypes = cardTypes
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.transactionTypes = transactionTypes
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setGroupingCriterionDateType: (dateType: GroupingDateType) => {
         set((draft) => {
             draft.grouping.dateType = dateType
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => {
         set((draft) => {
             draft.grouping.availableGroupingTypes = available
             draft.grouping.selectedGroupingTypes = selected
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setUserDefinedCriterion: (userDefined: UserDefinedCriterionEnum) => {
         set((draft) => {
             draft.userDefined = userDefined
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.recurrenceTypes = recurrenceTypes
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setRecurrenceStatusesCriterion: (recurrenceStatuses: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.recurrenceStatuses = recurrenceStatuses
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setMfoConfigurationTypesCriterion: (mfoConfigurationTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.mfoConfigurationTypes = mfoConfigurationTypes
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setMarkerTypesCriterion: (markerTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.markerTypes = markerTypes
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
     setMarkerStatusCriterion: (status: MarkerStatusCriterion) => {
         set((draft) => {
             draft.markerStatus = status
         })
-        get().onFiltersUpdate(extractSearchCriteriaFromState(get()))
+        checkIfFiltersChanged(set, get)
     },
 })
 
@@ -536,6 +537,20 @@ const extractDateTo = (dateRangeSpec: DateRangeSpec): Date | null => {
         return dateRangeSpec.dateTo
     }
 }
+
+const checkIfFiltersChanged = (
+    set: ZustandStoreImmerSet<SearchUIStore>,
+    get: ZustandStoreGet<SearchUIStore>,
+) => {
+    const currentSearchCriteria = extractSearchCriteriaFromState(get())
+
+    if (!isEqual(get().prevSearchCriteria, currentSearchCriteria)) {
+        get().onFiltersUpdate(currentSearchCriteria)
+        set((draft) => {
+            draft.prevSearchCriteria = currentSearchCriteria
+        })
+    }
+} 
 
 const extractSearchCriteriaFromState = (state: SearchUIState): SearchCriteria => {
     return {

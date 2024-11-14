@@ -27,6 +27,7 @@ export type SearchUIState = SearchUIConditions & {
     templates: SearchUITemplate[]
     justAddedCriterion: CriterionTypeEnum | null
     config?: SearchUIFiltersConfig
+    prevSearchCriteria: SearchCriteria | null
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
 }
 
