@@ -28,13 +28,31 @@ export const ExactSearchCriterion = () => {
         setSearchValue(exactSearchValue)
     }, [exactSearchValue])
 
-    const debouncedSetSearchValue = useCallback(
-        debounce(setExactCriterionSearchValue, 300),
+    const debouncedSetSearchValueShort = useCallback(
+        debounce(setExactCriterionSearchValue, 200),
+        []
+    )
+
+    const debouncedSetSearchValueLong = useCallback(
+        debounce(setExactCriterionSearchValue, 500),
         []
     )
 
     useEffect(() => {
-        debouncedSetSearchValue(searchValue)
+        return () => {
+            debouncedSetSearchValueShort.cancel()
+            debouncedSetSearchValueLong.cancel()
+        }
+    }, [])
+
+    useEffect(() => {
+        if (searchValue.length < 4) {
+            debouncedSetSearchValueShort.cancel()
+            debouncedSetSearchValueLong(searchValue);
+        } else {
+            debouncedSetSearchValueLong.cancel()
+            debouncedSetSearchValueShort(searchValue);
+        }
     }, [searchValue])
 
     return <Box sx={centerSx}>

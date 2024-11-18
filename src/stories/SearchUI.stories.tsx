@@ -52,7 +52,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.EXACT,
             ]}
             searchData={(searchParams) => {
-                console.dir(searchParams)
+                console.dir(searchParams.exactSearchValue)
                 return getList(
                     0,
                     searchParams.rowCount,
