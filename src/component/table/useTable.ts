@@ -195,6 +195,8 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 
     useEffect(() => {
         if (fetchData) {
+            console.log('fetchDataDeps useEffect')
+            console.dir(fetchDataDeps)
             fetchData({
                 page: pageNumber,
                 pageSize,

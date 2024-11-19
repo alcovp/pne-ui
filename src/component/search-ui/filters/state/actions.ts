@@ -554,6 +554,7 @@ const checkIfFiltersChanged = (
 
 const extractSearchCriteriaFromState = (state: SearchUIState): SearchCriteria => {
     return {
+        initialized: true,
         exactSearchLabel: extractExactSearchLabel(state.exactSearchLabel),
         exactSearchValue: state.exactSearchValue,
         status: extractStatus(state.status),

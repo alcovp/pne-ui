@@ -6,7 +6,7 @@ import {Box, Divider, SxProps} from '@mui/material';
 import {GetPagedOrderedSortedListRequest} from "../../common";
 import {PneTable, TableCreateHeaderType, TableDisplayOptions, useTable} from '../..';
 
-export type SearchParams = SearchCriteria & GetPagedOrderedSortedListRequest
+export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListRequest, 'initialized'>
 
 type Props<D> = {
     settingsContextName: string
@@ -53,8 +53,12 @@ export const SearchUI = <D, >(props: Props<D>) => {
         onDisplayOptionsChange: setDisplayOptions,
         settingsContextName: settingsContextName,
         dataUseState: dataUseState,
-        fetchDataExtraDeps: [criteria],
+        fetchDataExtraDeps: [...Object.values(criteria)],
         fetchData: ({page, pageSize, order, sortIndex}) => {
+            if (!criteria.initialized) {
+                return new Promise<D[]>(() => [])
+            }
+
             const searchParams: SearchParams = {
                 startNum: page * pageSize,
                 rowCount: pageSize + 1,

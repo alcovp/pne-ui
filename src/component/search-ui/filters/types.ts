@@ -178,6 +178,8 @@ export type MultigetCriterion = {
 }
 
 export type SearchCriteria = {
+    initialized: boolean // это только для предотвращения лишнего вызова при загрузке страницы
+
     exactSearchLabel: string | null
     exactSearchValue: string | null
     status: Status | null
