@@ -5,6 +5,7 @@ import {PaginatorProps} from "./AbstractTable";
 import PneFirstPageIcon from "./PneFirstPageIcon";
 import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
+import {AutoTestAttribute} from "../AutoTestAttribute";
 
 interface IPaginationActionsProps {
     count: number
@@ -107,25 +108,24 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
                 throw new Error('Uncomment RowsPerPageOption type to do like this');
             }
             const selected = rowsPerPage === size;
-            return (
+            return <AutoTestAttribute id={'page-size'} value={label} key={label}>
                 <IconButton
-                    key={index}
                     sx={selected ? selectedButtonStyle : buttonStyle}
                     onClick={() => handleChangePageSizeButtonClick(size)}
                 >
                     {label}
                 </IconButton>
-            )
+            </AutoTestAttribute>
         })
     }
 
-    return (
-        <Box
-            sx={{
-                display: 'flex',
-                width: '100%',
-            }}
-        >
+    return <Box
+        sx={{
+            display: 'flex',
+            width: '100%',
+        }}
+    >
+        <AutoTestAttribute id={'first-page'}>
             <IconButton
                 sx={buttonStyle}
                 onClick={handleFirstPageButtonClick}
@@ -134,6 +134,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             >
                 <PneFirstPageIcon disabled={disableActions || page === 0}/>
             </IconButton>
+        </AutoTestAttribute>
+        <AutoTestAttribute id={'prev-page'}>
             <IconButton
                 sx={buttonStyle}
                 onClick={handleBackButtonClick}
@@ -142,7 +144,11 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             >
                 <PnePreviousPageIcon disabled={disableActions || page === 0}/>
             </IconButton>
+        </AutoTestAttribute>
+        <AutoTestAttribute id={'current-page'}>
             <Icon sx={displayedRowsStyle}>{displayedRowsLabel}</Icon>
+        </AutoTestAttribute>
+        <AutoTestAttribute id={'next-page'}>
             <IconButton
                 sx={buttonStyle}
                 onClick={handleNextButtonClick}
@@ -151,6 +157,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             >
                 <PneNextPageIcon disabled={disableActions || !hasNext}/>
             </IconButton>
+        </AutoTestAttribute>
+        <AutoTestAttribute id={'page-sizes'} value={rowsPerPage}>
             <Box
                 sx={{
                     marginLeft: 'auto',
@@ -159,8 +167,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             >
                 {populateRowsPerPageOptions()}
             </Box>
-        </Box>
-    );
+        </AutoTestAttribute>
+    </Box>
 }
 
 export default PneTablePaginationActions;

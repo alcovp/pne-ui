@@ -47,6 +47,7 @@ import {
 } from './component/non-abstract-entity-selector/AbstractEntitySelector'
 import {AbstractEntitySelectModal} from './component/non-abstract-entity-selector/AbstractEntitySelectModal'
 import {PneDropdownChoice} from './common/paynet/dropdown'
+import {AutoTestAttribute} from './component/AutoTestAttribute'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -140,5 +141,6 @@ export {
     IAbstractEntityOptions,
     PneAsyncAutocompleteProps,
     PneDropdownChoice,
+    AutoTestAttribute,
 }
 export * from './common'
