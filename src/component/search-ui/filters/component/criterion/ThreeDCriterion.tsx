@@ -1,6 +1,6 @@
 import React from 'react';
 import {ThreeDCriterionEnum} from '../../types';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, Chip, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 
@@ -10,7 +10,7 @@ export const ThreeDCriterion = () => {
     const {
         threeD,
         set3DCriterion,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         threeD: store.threeD,
         set3DCriterion: store.set3DCriterion,
     }))

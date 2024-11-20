@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {DateRangeSpecType} from '../../types';
 import {Box, Chip, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {ExpandMore} from '@mui/icons-material';
 import {selectUnderChipSx} from './style';
 import {PneSelect} from '../../../../..';
@@ -22,7 +22,7 @@ const SearchUIDateRangeSpecTypeSelect = (props: IProps) => {
     } = props
     const {
         dateRangeSpecType
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         dateRangeSpecType: store.dateRangeSpec.dateRangeSpecType,
     }))
     const [open, setOpen] = useState(false)

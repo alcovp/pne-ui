@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, Chip, FormControlLabel, FormGroup, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import Typography from '@mui/material/Typography';
@@ -19,7 +19,7 @@ export const ProjectCurrencyCriterion = () => {
         setProjectCurrencyCriterionConvertFlag,
         criteria,
         multigetCriteria,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         currency: store.projectCurrency.currency,
         convertToUserCurrency: store.projectCurrency.convertToUserCurrency,
         setProjectCurrencyCriterionCurrency: store.setProjectCurrencyCriterionCurrency,

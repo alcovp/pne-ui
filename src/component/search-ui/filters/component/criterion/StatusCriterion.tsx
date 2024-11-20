@@ -1,6 +1,6 @@
 import React from 'react';
 import {STATUS_CRITERION_VALUES} from '../../types';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, Chip, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 
@@ -10,7 +10,7 @@ export const StatusCriterion = () => {
     const {
         status,
         setStatusCriterion,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         status: store.status,
         setStatusCriterion: store.setStatusCriterion,
     }))

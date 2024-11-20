@@ -2,7 +2,7 @@ import React from 'react';
 import {CriterionTypeEnum, LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../../types';
 import {Box, Chip, Link, SxProps} from '@mui/material';
 import {MultigetSelect} from '../../../multiget_select/MultigetSelect';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {PneModal, useModal} from '../../../../..';
 
 interface IProps {
@@ -22,7 +22,7 @@ export const MultigetCriterionPanel = (props: IProps) => {
         setMultigetCriterion,
         justAddedCriterion,
         setJustAddedCriterion,
-    } = useSearchUIStore()
+    } = useSearchUIFiltersStore()
 
     const currentMultigetCriterion = multigetCriteria.find(c => c.entityType === entityType)
     if (currentMultigetCriterion === undefined) {

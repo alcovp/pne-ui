@@ -2,7 +2,7 @@ import React, {useContext, useState} from 'react';
 import {Alert, Box, Collapse, Link} from '@mui/material';
 import {SxProps} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {PneButton, PneModal, PneTextField, useModal} from '../../../../..';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 
@@ -16,7 +16,7 @@ const SearchUITemplatePanel = (props: IProps) => {
         createTemplate,
         updateTemplate,
         settingsContextName,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         template: store.template,
         createTemplate: store.createTemplate,
         updateTemplate: store.updateTemplate,

@@ -1,4 +1,4 @@
-import {SearchUIActions, SearchUIState, SearchUIStore} from './type';
+import {SearchUIFiltersActions, SearchUIFiltersState, SearchUIFiltersStore} from './type';
 import {
     AbstractEntity,
     AbstractEntityAllableCollection,
@@ -44,11 +44,11 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(isoWeek)
 
-export const getSearchUIActions = (
-    set: ZustandStoreImmerSet<SearchUIStore>,
-    get: ZustandStoreGet<SearchUIStore>,
-): SearchUIActions => ({
-    setInitialState: (state: Partial<SearchUIState> & Pick<SearchUIState, 'defaults'>) => {
+export const getSearchUIFiltersActions = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+): SearchUIFiltersActions => ({
+    setInitialState: (state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>) => {
         set((draft) => {
             return {
                 ...draft,
@@ -312,7 +312,7 @@ const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): Multiget
 })
 
 const addInitialMultigetCriterionReducer = (
-    draft: WritableDraft<SearchUIStore>,
+    draft: WritableDraft<SearchUIFiltersStore>,
     criterionType: CriterionTypeEnum
 ): void => {
     switch (criterionType) {
@@ -366,7 +366,7 @@ const addInitialMultigetCriterionReducer = (
 }
 
 const clearCriterionReducer = (
-    draft: WritableDraft<SearchUIStore>,
+    draft: WritableDraft<SearchUIFiltersStore>,
     criterionType: CriterionTypeEnum,
 ): void => {
     let index = -1
@@ -539,8 +539,8 @@ const extractDateTo = (dateRangeSpec: DateRangeSpec): Date | null => {
 }
 
 const checkIfFiltersChanged = (
-    set: ZustandStoreImmerSet<SearchUIStore>,
-    get: ZustandStoreGet<SearchUIStore>,
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
 ) => {
     const currentSearchCriteria = extractSearchCriteriaFromState(get())
 
@@ -552,7 +552,7 @@ const checkIfFiltersChanged = (
     }
 } 
 
-const extractSearchCriteriaFromState = (state: SearchUIState): SearchCriteria => {
+const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCriteria => {
     return {
         initialized: true,
         exactSearchLabel: extractExactSearchLabel(state.exactSearchLabel),
@@ -577,7 +577,7 @@ const extractSearchCriteriaFromState = (state: SearchUIState): SearchCriteria =>
     }
 }
 
-const getTemplate = (templateName: string, store: SearchUIStore): SearchUITemplate => ({
+const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchUITemplate => ({
     name: templateName,
     searchConditions: {
         criteria: store.criteria,

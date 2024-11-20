@@ -1,10 +1,10 @@
 import React, {Dispatch, SetStateAction, useState} from 'react';
 import {SearchUIFilters, SearchUIFiltersConfig} from './filters/SearchUIFilters';
 import {CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions} from './filters/types';
-import {useSearchCriteria} from './filters/hook';
 import {Box, Divider, SxProps} from '@mui/material';
 import {GetPagedOrderedSortedListRequest} from "../../common";
 import {PneTable, TableCreateHeaderType, TableDisplayOptions, useTable} from '../..';
+import {useSearchUIStore} from "./state/store";
 
 export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListRequest, 'initialized'>
 
@@ -39,7 +39,16 @@ export const SearchUI = <D, >(props: Props<D>) => {
         dataUseState,
         config,
     } = props
-    const [criteria, setCriteria] = useSearchCriteria()
+
+    const {
+        searchCriteria,
+        setSearchCriteria,
+    } = useSearchUIStore((store) => ({
+        searchCriteria: store.searchCriteria,
+        setSearchCriteria: store.setSearchCriteria,
+    }))
+
+    // const [criteria, setCriteria] = useSearchCriteria()
     const [displayOptions, setDisplayOptions] = useState<TableDisplayOptions>(initialDisplayOptions)
 
     const {
@@ -53,9 +62,9 @@ export const SearchUI = <D, >(props: Props<D>) => {
         onDisplayOptionsChange: setDisplayOptions,
         settingsContextName: settingsContextName,
         dataUseState: dataUseState,
-        fetchDataExtraDeps: [...Object.values(criteria)],
+        fetchDataExtraDeps: [...Object.values(searchCriteria)],
         fetchData: ({page, pageSize, order, sortIndex}) => {
-            if (!criteria.initialized) {
+            if (!searchCriteria.initialized) {
                 return new Promise<D[]>(() => [])
             }
 
@@ -65,25 +74,25 @@ export const SearchUI = <D, >(props: Props<D>) => {
                 orderBy: sortIndex,
                 sortOrder: order,
 
-                exactSearchLabel: criteria.exactSearchLabel,
-                exactSearchValue: criteria.exactSearchValue,
-                status: criteria.status,
-                threeD: criteria.threeD,
-                currencies: criteria.currencies,
-                dateFrom: criteria.dateFrom,
-                dateTo: criteria.dateTo,
-                cardTypes: criteria.cardTypes,
-                transactionTypes: criteria.transactionTypes,
-                projectCurrencyId: criteria.projectCurrencyId,
-                projectCurrencyConvert: criteria.projectCurrencyConvert,
-                groupTypes: criteria.groupTypes,
-                multigetCriteria: criteria.multigetCriteria,
-                userDefined: criteria.userDefined, //TODO че за трэш?
-                recurrenceTypes: criteria.recurrenceTypes,
-                recurrenceStatuses: criteria.recurrenceStatuses,
-                mfoConfigurationTypes: criteria.mfoConfigurationTypes,
-                markerTypes: criteria.markerTypes,
-                markerStatus: criteria.markerStatus,
+                exactSearchLabel: searchCriteria.exactSearchLabel,
+                exactSearchValue: searchCriteria.exactSearchValue,
+                status: searchCriteria.status,
+                threeD: searchCriteria.threeD,
+                currencies: searchCriteria.currencies,
+                dateFrom: searchCriteria.dateFrom,
+                dateTo: searchCriteria.dateTo,
+                cardTypes: searchCriteria.cardTypes,
+                transactionTypes: searchCriteria.transactionTypes,
+                projectCurrencyId: searchCriteria.projectCurrencyId,
+                projectCurrencyConvert: searchCriteria.projectCurrencyConvert,
+                groupTypes: searchCriteria.groupTypes,
+                multigetCriteria: searchCriteria.multigetCriteria,
+                userDefined: searchCriteria.userDefined, //TODO че за трэш?
+                recurrenceTypes: searchCriteria.recurrenceTypes,
+                recurrenceStatuses: searchCriteria.recurrenceStatuses,
+                mfoConfigurationTypes: searchCriteria.mfoConfigurationTypes,
+                markerTypes: searchCriteria.markerTypes,
+                markerStatus: searchCriteria.markerStatus,
             }
 
             return searchData(searchParams)
@@ -97,7 +106,7 @@ export const SearchUI = <D, >(props: Props<D>) => {
             predefinedCriteria={predefinedCriteria}
             exactSearchLabels={exactSearchLabels}
             initialSearchConditions={initialSearchConditions}
-            onFiltersUpdate={setCriteria}
+            onFiltersUpdate={setSearchCriteria}
             config={config}
         />
         <Divider/>

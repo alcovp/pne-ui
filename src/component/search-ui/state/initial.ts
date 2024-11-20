@@ -1,11 +1,11 @@
-import {useState} from 'react';
-import {SearchCriteria, UserDefinedCriterionEnum} from './types';
+import {SearchUIState} from './type';
+import {UserDefinedCriterionEnum} from "../filters/types";
 
-export const useSearchCriteria = () => {
-    return useState<SearchCriteria>({
+export const getSearchUIInitialState = (): SearchUIState => ({
+    searchCriteria: {
         initialized: false,
         exactSearchLabel: null,
-        exactSearchValue: null,
+        exactSearchValue: '',
         status: null,
         threeD: null,
         currencies: [],
@@ -23,5 +23,5 @@ export const useSearchCriteria = () => {
         mfoConfigurationTypes: [],
         markerTypes: [],
         markerStatus: null,
-    })
-}
+    }
+})

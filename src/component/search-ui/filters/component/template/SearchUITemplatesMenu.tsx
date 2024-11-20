@@ -4,7 +4,7 @@ import SearchUITemplatePanel from './SearchUITemplatePanel';
 import {SxProps} from '@mui/material/styles';
 // import {invokeCommonDeletionAlert} from '../../../../ConfirmAlertInvoker'; //TODO migration
 import {useTranslation} from 'react-i18next';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {Close, ExpandMore} from '@mui/icons-material';
 import {SearchUITemplate} from "../../types";
 import {PneButton} from '../../../../..';
@@ -16,7 +16,7 @@ const SearchUITemplatesMenu = () => {
         setTemplate,
         templates,
         template,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         removeTemplate: store.removeTemplate,
         setTemplate: store.setTemplate,
         templates: store.templates,

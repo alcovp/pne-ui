@@ -1,5 +1,5 @@
 import React from 'react';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import SearchUIGroupingDateTypeSelect from '../select/SearchUIGroupingDateTypeSelect';
 import {useTranslation} from 'react-i18next';
 import {Box, Chip, Link, SxProps} from '@mui/material';
@@ -13,7 +13,7 @@ export const GroupingCriterion = () => {
         available,
         selected,
         setGroupingCriterionGroups,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         available: store.grouping.availableGroupingTypes,
         selected: store.grouping.selectedGroupingTypes,
         setGroupingCriterionGroups: store.setGroupingCriterionGroups,

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {GROUPING_DATE_TYPES, GroupingDateType} from '../../types';
 import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {selectUnderChipSx} from './style';
 import {ExpandMore} from '@mui/icons-material';
 import {PneSelect} from '../../../../..';
@@ -12,7 +12,7 @@ const SearchUIGroupingDateTypeSelect = () => {
     const {
         dateType,
         setGroupingCriterionDateType,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         dateType: store.grouping.dateType,
         setGroupingCriterionDateType: store.setGroupingCriterionDateType,
     }))

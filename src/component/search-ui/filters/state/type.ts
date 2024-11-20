@@ -15,9 +15,9 @@ import {AbstractEntity, AbstractEntityAllableCollection} from '../../../..';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
 import {SearchUIDefaults} from '../../SearchUIProvider';
 
-export type SearchUIStore = SearchUIState & SearchUIActions
+export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 
-export type SearchUIState = SearchUIConditions & {
+export type SearchUIFiltersState = SearchUIConditions & {
     defaults: SearchUIDefaults
     settingsContextName: string
     possibleCriteria: CriterionTypeEnum[]
@@ -31,8 +31,8 @@ export type SearchUIState = SearchUIConditions & {
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
 }
 
-export type SearchUIActions = {
-    setInitialState: (state: Partial<SearchUIState> & Pick<SearchUIState, 'defaults'>) => void
+export type SearchUIFiltersActions = {
+    setInitialState: (state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>) => void
     clearCriteria: () => void
     clearCriterion: (criterionType: CriterionTypeEnum) => void
     addCriterion: (criterionType: CriterionTypeEnum) => void

@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {AbstractEntity} from '../../../../..';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 
@@ -9,7 +9,7 @@ export const CardTypesCriterion = () => {
     const {
         cardTypes,
         setCardTypesCriterion,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         cardTypes: store.cardTypes,
         setCardTypesCriterion: store.setCardTypesCriterion,
     }))

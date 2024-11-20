@@ -6,7 +6,7 @@ import utc from 'dayjs/plugin/utc';
 import {SxProps} from '@mui/material';
 import {DateRange, DateRangePicker, LocalizationProvider} from '@mui/x-date-pickers-pro'; //TODO migration
 import {AdapterDayjs} from '@mui/x-date-pickers-pro/AdapterDayjs';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import timezone from 'dayjs/plugin/timezone';
 import {PneTextField} from '../../../../..';
 
@@ -17,7 +17,7 @@ export const DateRangeCriterion = () => {
     const {
         dateRangeSpec,
         setDateRangeCriterion,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         dateRangeSpec: store.dateRangeSpec,
         setDateRangeCriterion: store.setDateRangeCriterion,
     }))

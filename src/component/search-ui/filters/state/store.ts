@@ -1,14 +1,14 @@
 import {create} from 'zustand'
 import {immer} from 'zustand/middleware/immer'
-import {SearchUIStore} from './type';
-import {getSearchUIActions} from './actions';
-import {getSearchUIInitialState} from './initial';
+import {SearchUIFiltersStore} from './type';
+import {getSearchUIFiltersActions} from './actions';
+import {getSearchUIFiltersInitialState} from './initial';
 
-export const useSearchUIStore = create<SearchUIStore>()(
+export const useSearchUIFiltersStore = create<SearchUIFiltersStore>()(
     immer(
         (set, get) => ({
-            ...getSearchUIInitialState(),
-            ...getSearchUIActions(set, get),
+            ...getSearchUIFiltersInitialState(),
+            ...getSearchUIFiltersActions(set, get),
         })
     )
 )

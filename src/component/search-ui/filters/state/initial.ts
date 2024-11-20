@@ -1,5 +1,4 @@
 import {
-    ExactCriterionSearchLabelEnum,
     Grouping,
     GroupingType,
     ProjectCurrency,
@@ -7,7 +6,7 @@ import {
     ThreeDCriterionEnum,
     UserDefinedCriterionEnum
 } from '../types';
-import {SearchUIState} from './type';
+import {SearchUIFiltersState} from './type';
 import {AbstractEntityAllableCollection} from '../../../..';
 import dayjs, {Dayjs} from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -102,7 +101,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
     })
 }
 
-export const getSearchUIInitialState = (): SearchUIState => ({
+export const getSearchUIFiltersInitialState = (): SearchUIFiltersState => ({
     ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
 
     defaults: initialSearchUIDefaults,

@@ -3,7 +3,7 @@ import {SearchUIFiltersHeaderRight} from './styled';
 import {CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions} from './types';
 import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
 import {useTranslation} from 'react-i18next';
-import {useSearchUIStore} from './state/store';
+import {useSearchUIFiltersStore} from './state/store';
 import {Box, Chip, IconButton, SxProps} from '@mui/material';
 import {ExpandMore} from '@mui/icons-material';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
@@ -56,7 +56,7 @@ export const SearchUIFilters = (props: Props) => {
         addCriterion,
         conflictingCriteriaGroups,
         hideTemplatesSelect,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         setInitialState: store.setInitialState,
         loadTemplates: store.loadTemplates,
         criteria: store.criteria,

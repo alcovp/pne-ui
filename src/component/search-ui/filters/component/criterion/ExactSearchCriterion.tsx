@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSelect';
 import {useTranslation} from 'react-i18next';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {PneTextField} from '../../../../..';
 import debounce from 'lodash/debounce';
@@ -15,7 +15,7 @@ export const ExactSearchCriterion = () => {
         exactSearchLabels,
         setExactCriterionSearchLabel,
         setExactCriterionSearchValue,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         exactSearchLabel: store.exactSearchLabel || store.exactSearchLabels[0],
         exactSearchValue: store.exactSearchValue,
         exactSearchLabels: store.exactSearchLabels,

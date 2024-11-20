@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {AbstractEntity} from '../../../../..';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 
@@ -9,7 +9,7 @@ export const MfoConfigurationTypesCriterion = () => {
     const {
         options,
         setCriterion,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         options: store.mfoConfigurationTypes,
         setCriterion: store.setMfoConfigurationTypesCriterion,
     }))

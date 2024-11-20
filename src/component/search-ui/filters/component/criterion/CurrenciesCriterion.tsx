@@ -1,6 +1,6 @@
 import React, {useContext, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 import {AbstractEntity} from '../../../../..';
 
@@ -9,7 +9,7 @@ export const CurrenciesCriterion = () => {
     const {
         currencies,
         setCurrenciesCriterion,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         currencies: store.currencies,
         setCurrenciesCriterion: store.setCurrenciesCriterion,
     }))

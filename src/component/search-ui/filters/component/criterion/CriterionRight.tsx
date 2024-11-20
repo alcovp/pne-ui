@@ -2,7 +2,7 @@ import React from 'react';
 import {CriterionTypeEnum} from '../../types';
 import SearchUIFiltersCriterionHeaderClearButton from '../button/SearchUIFiltersCriterionHeaderClearButton';
 import SearchUIFiltersCriterionHeaderRemoveButton from '../button/SearchUIFiltersCriterionHeaderRemoveButton';
-import {useSearchUIStore} from '../../state/store';
+import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 
 type Props = {
@@ -18,7 +18,7 @@ export const CriterionRight = (props: Props) => {
         removablePredefinedCriteria,
         clearCriterion,
         removeCriterion,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIFiltersStore((store) => ({
         predefinedCriteria: store.predefinedCriteria,
         removablePredefinedCriteria: store.config?.removablePredefinedCriteria,
         clearCriterion: store.clearCriterion,
