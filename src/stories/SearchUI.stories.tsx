@@ -38,8 +38,9 @@ const HookWrap = () => {
         <SearchUI<DataType>
             settingsContextName={'context'}
             exactSearchLabels={[
-                ExactCriterionSearchLabelEnum.ALL,
+                // ExactCriterionSearchLabelEnum.ALL,
                 ExactCriterionSearchLabelEnum.ID,
+                ExactCriterionSearchLabelEnum.NAME,
             ]}
             possibleCriteria={[
                 CriterionTypeEnum.EXACT,

@@ -16,7 +16,7 @@ export const ExactSearchCriterion = () => {
         setExactCriterionSearchLabel,
         setExactCriterionSearchValue,
     } = useSearchUIStore((store) => ({
-        exactSearchLabel: store.exactSearchLabel,
+        exactSearchLabel: store.exactSearchLabel || store.exactSearchLabels[0],
         exactSearchValue: store.exactSearchValue,
         exactSearchLabels: store.exactSearchLabels,
         setExactCriterionSearchLabel: store.setExactCriterionSearchLabel,

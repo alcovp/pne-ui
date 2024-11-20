@@ -486,11 +486,11 @@ const extract3D = (threeD: ThreeDCriterionEnum): boolean | null => {
     return null;
 }
 
-const extractExactSearchLabel = (label: ExactCriterionSearchLabelEnum): string | null => {
-    if (label === ExactCriterionSearchLabelEnum.ALL) {
-        return null;
+const extractExactSearchLabel = (label: ExactCriterionSearchLabelEnum | undefined): string | null => {
+    if (label === ExactCriterionSearchLabelEnum.ALL || label === undefined) {
+        return null
     }
-    return label;
+    return label
 }
 
 const extractEntitiesIds = (allable: AbstractEntityAllableCollection): number[] => {

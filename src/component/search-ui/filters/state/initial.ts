@@ -78,7 +78,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         multigetCriteria: [],
         status: 'ANY',
         threeD: ThreeDCriterionEnum.ANY,
-        exactSearchLabel: ExactCriterionSearchLabelEnum.ALL,
+        exactSearchLabel: undefined,
         exactSearchValue: '',
         currencies: searchUIInitialAllableCollection,
         dateRangeSpec: {

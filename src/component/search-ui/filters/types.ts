@@ -207,7 +207,7 @@ export type SearchUIConditions = {
     multigetCriteria: MultigetCriterion[]
     status: StatusCriterion
     threeD: ThreeDCriterionEnum
-    exactSearchLabel: ExactCriterionSearchLabelEnum
+    exactSearchLabel: ExactCriterionSearchLabelEnum | undefined
     exactSearchValue: string
     currencies: AbstractEntityAllableCollection
     dateRangeSpec: DateRangeSpec
