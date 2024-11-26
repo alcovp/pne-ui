@@ -10,9 +10,11 @@ import {SearchUIFiltersState} from './type';
 import {AbstractEntityAllableCollection} from '../../../..';
 import dayjs, {Dayjs} from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import {initialSearchUIDefaults, SearchUIDefaults} from "../../SearchUIProvider";
 
 dayjs.extend(utc)
+dayjs.extend(timezone)
 
 export const getSearchUIInitialProjectCurrency = (defaults: SearchUIDefaults): Readonly<ProjectCurrency> => {
     return Object.freeze<ProjectCurrency>({
@@ -82,8 +84,8 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         currencies: searchUIInitialAllableCollection,
         dateRangeSpec: {
             dateRangeSpecType: 'TODAY',
-            dateFrom: searchUIInitialDateFrom.toDate(),
-            dateTo: searchUIInitialDateTo.toDate(),
+            dateFrom: searchUIInitialDateFrom.tz('Europe/Moscow', true).toDate(),
+            dateTo: searchUIInitialDateTo.tz('Europe/Moscow', true).toDate(),
             beforeCount: 0,
         },
         cardTypes: searchUIInitialAllableCollection,
