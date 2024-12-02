@@ -3,6 +3,7 @@ import {PaginatorProps, RowsPerPageOption} from './AbstractTable';
 import {SxProps} from '@mui/material';
 import {ensure, Order} from "../../common/pne/type";
 import {TableDisplayOptions} from "./type";
+import {usePneTableStore} from "./state/store";
 
 const PAGE_SIZE_SETTING_NAME = 'page_size'
 const PAGE_NUMBER_SETTING_NAME = 'page_number'
@@ -52,6 +53,14 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         fetchData,
         fetchDataExtraDeps,
     } = params;
+
+    const {
+        needToScrollToPagination,
+        setNeedToScrollToPagination,
+    } = usePneTableStore((store) => ({
+        needToScrollToPagination: store.needToScrollToPagination,
+        setNeedToScrollToPagination: store.setNeedToScrollToPagination,
+    }))
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
     //     pageSize: 10,
@@ -147,6 +156,18 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         setDisableActions(false)
     }
 
+    const paginationRef = useRef<HTMLDivElement | null>(null)
+    const scrollToPagination = () => {
+        if (needToScrollToPagination) {
+            setTimeout(() => {
+                if (paginationRef.current) {
+                    paginationRef.current.scrollIntoView({behavior: "smooth", block: "end"})
+                }
+            }, 100)
+            setNeedToScrollToPagination(false)
+        }
+    }
+
     const paginator: PaginatorProps = {
         rowsPerPageOptions: rowsPerPageOptions,
         rowsPerPage: pageSize,
@@ -181,11 +202,13 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         hasNext,
         displayedRowsLabel: displayedRowsLabel(),
         activeActionSx: paginatorActiveActionSx,
+        paginationRef: paginationRef,
     };
 
     const afterDataFetch = (dataList: D[]) => {
         getSetData()(dataList.slice(0, pageSize))
         wrapSetHasNext(dataList.length === pageSize + 1)
+        scrollToPagination()
     }
 
     const fetchDataDeps: unknown[] = [pageNumber, pageSize, order, sortIndex]

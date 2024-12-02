@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, MutableRefObject} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
@@ -25,6 +25,7 @@ export type PaginatorProps = {
     hasNext: boolean
     disableActions: boolean
     displayedRowsLabel: string
+    paginationRef: MutableRefObject<HTMLDivElement | null>
     activeActionSx?: SxProps
 }
 
@@ -120,6 +121,7 @@ const AbstractTable = <D, >(
         </TableContainer>
         {paginator && (
             <PneTablePagination
+                ref={paginator.paginationRef}
                 count={-1}
                 /*
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment

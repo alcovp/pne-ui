@@ -6,6 +6,7 @@ import PneFirstPageIcon from "./PneFirstPageIcon";
 import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
 import {AutoTestAttribute} from "../AutoTestAttribute";
+import {usePneTableStore} from "./state/store";
 
 interface IPaginationActionsProps {
     count: number
@@ -35,6 +36,12 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         displayedRowsLabel,
         activeActionSx = {},
     } = paginator;
+
+    const {
+        setNeedToScrollToPagination,
+    } = usePneTableStore((store) => ({
+        setNeedToScrollToPagination: store.setNeedToScrollToPagination,
+    }))
 
     const buttonStyle = {
         width: '40px',
@@ -76,18 +83,22 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     }
 
     const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setNeedToScrollToPagination(true)
         onPageChange(event, 0);
     };
 
     const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setNeedToScrollToPagination(true)
         onPageChange(event, page - 1);
     };
 
     const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setNeedToScrollToPagination(true)
         onPageChange(event, page + 1);
     };
 
     // const handleLastPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    //     setNeedToScrollToPagination(true)
     //     onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
     // };
 
