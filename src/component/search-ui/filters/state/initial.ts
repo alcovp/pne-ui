@@ -4,7 +4,6 @@ import {
     ProjectCurrency,
     SearchUIConditions,
     ThreeDCriterionEnum,
-    UserDefinedCriterionEnum
 } from '../types';
 import {SearchUIFiltersState} from './type';
 import {AbstractEntityAllableCollection} from '../../../..';
@@ -92,7 +91,6 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         transactionTypes: searchUIInitialAllableCollection,
         projectCurrency: getSearchUIInitialProjectCurrency(defaults),
         grouping: getSearchUIInitialGrouping(defaults),
-        userDefined: UserDefinedCriterionEnum.TOTAL,
         recurrenceTypes: searchUIInitialAllableCollection,
         recurrenceStatuses: searchUIInitialAllableCollection,
         mfoConfigurationTypes: searchUIInitialAllableCollection,

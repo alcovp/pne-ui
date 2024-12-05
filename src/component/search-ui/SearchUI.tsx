@@ -87,7 +87,6 @@ export const SearchUI = <D, >(props: Props<D>) => {
                 projectCurrencyConvert: searchCriteria.projectCurrencyConvert,
                 groupTypes: searchCriteria.groupTypes,
                 multigetCriteria: searchCriteria.multigetCriteria,
-                userDefined: searchCriteria.userDefined, //TODO че за трэш?
                 recurrenceTypes: searchCriteria.recurrenceTypes,
                 recurrenceStatuses: searchCriteria.recurrenceStatuses,
                 mfoConfigurationTypes: searchCriteria.mfoConfigurationTypes,

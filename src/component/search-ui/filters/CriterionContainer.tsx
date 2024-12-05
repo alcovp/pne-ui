@@ -95,8 +95,6 @@ export const CriterionContainer = (props: IProps) => {
                 return <TransactionTypesCriterion/>
             case CriterionTypeEnum.GROUPING:
                 return <GroupingCriterion/>
-            case CriterionTypeEnum.USER_DEFINED:
-                return 'not implemented'
             case CriterionTypeEnum.RECURRENCE_TYPE:
                 return <RecurrenceTypesCriterion/>
             case CriterionTypeEnum.RECURRENCE_STATUS:

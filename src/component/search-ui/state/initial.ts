@@ -1,5 +1,4 @@
 import {SearchUIState} from './type';
-import {UserDefinedCriterionEnum} from "../filters/types";
 
 export const getSearchUIInitialState = (): SearchUIState => ({
     searchCriteria: {
@@ -17,7 +16,6 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         projectCurrencyConvert: null,
         groupTypes: [],
         multigetCriteria: [],
-        userDefined: UserDefinedCriterionEnum.TOTAL,
         recurrenceTypes: [],
         recurrenceStatuses: [],
         mfoConfigurationTypes: [],

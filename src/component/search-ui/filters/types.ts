@@ -19,7 +19,6 @@ export enum CriterionTypeEnum {
     CARD_TYPES = 'CARD_TYPES',
     GROUPING = 'GROUPING',
     TRANSACTION_TYPES = 'TRANSACTION_TYPES',
-    USER_DEFINED = 'USER_DEFINED',
     RECURRENCE_TYPE = 'RECURRENCE_TYPE',
     RECURRENCE_STATUS = 'RECURRENCE_STATUS',
     MFO_CONFIGURATION_TYPE = 'MFO_CONFIGURATION_TYPE',
@@ -107,14 +106,6 @@ export enum ThreeDCriterionEnum {
     YES = 'YES',
 }
 
-//TODO эту херню удалить
-export enum UserDefinedCriterionEnum {
-    TOTAL = 'TOTAL',
-    SECURE_3D = 'SECURE_3D',
-    NONE_3D_SECURE = 'NONE_3D_SECURE',
-    PAYOUT = 'PAYOUT'
-}
-
 export enum ExactCriterionSearchLabelEnum {
     ALL = 'ALL',
     NAME = 'NAME',
@@ -195,7 +186,6 @@ export type SearchCriteria = {
     projectCurrencyConvert: boolean | null
     groupTypes: GroupingType[]
     multigetCriteria: MultigetCriterion[]
-    userDefined: UserDefinedCriterionEnum
     recurrenceTypes: number[]
     recurrenceStatuses: number[]
     mfoConfigurationTypes: number[]
@@ -217,7 +207,6 @@ export type SearchUIConditions = {
     transactionTypes: AbstractEntityAllableCollection
     projectCurrency: ProjectCurrency
     grouping: Grouping
-    userDefined: UserDefinedCriterionEnum
     recurrenceTypes: AbstractEntityAllableCollection
     recurrenceStatuses: AbstractEntityAllableCollection
     mfoConfigurationTypes: AbstractEntityAllableCollection

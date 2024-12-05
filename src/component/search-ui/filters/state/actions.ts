@@ -22,7 +22,6 @@ import {
     SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
-    UserDefinedCriterionEnum
 } from '../types';
 import {
     getSearchUIInitialGrouping,
@@ -263,12 +262,6 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
-    setUserDefinedCriterion: (userDefined: UserDefinedCriterionEnum) => {
-        set((draft) => {
-            draft.userDefined = userDefined
-        })
-        checkIfFiltersChanged(set, get)
-    },
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.recurrenceTypes = recurrenceTypes
@@ -352,7 +345,6 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.CARD_TYPES:
         case CriterionTypeEnum.TRANSACTION_TYPES:
         case CriterionTypeEnum.GROUPING:
-        case CriterionTypeEnum.USER_DEFINED:
         case CriterionTypeEnum.RECURRENCE_TYPE:
         case CriterionTypeEnum.RECURRENCE_STATUS:
         case CriterionTypeEnum.MFO_CONFIGURATION_TYPE:
@@ -376,9 +368,6 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.THREE_D:
             draft.threeD = getSearchUIInitialSearchCriteria(draft.defaults).threeD
-            break
-        case CriterionTypeEnum.USER_DEFINED:
-            draft.userDefined = getSearchUIInitialSearchCriteria(draft.defaults).userDefined
             break
         case CriterionTypeEnum.EXACT:
             draft.exactSearchLabel = getSearchUIInitialSearchCriteria(draft.defaults).exactSearchLabel
@@ -568,7 +557,6 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         projectCurrencyConvert: state.projectCurrency.convertToUserCurrency,
         groupTypes: extractGroupTypes(state.grouping),
         multigetCriteria: state.multigetCriteria,
-        userDefined: state.userDefined,
         recurrenceTypes: extractEntitiesIds(state.recurrenceTypes),
         recurrenceStatuses: extractEntitiesIds(state.recurrenceStatuses),
         mfoConfigurationTypes: extractEntitiesIds(state.mfoConfigurationTypes),
@@ -592,7 +580,6 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         cardTypes: store.cardTypes,
         transactionTypes: store.transactionTypes,
         grouping: store.grouping,
-        userDefined: store.userDefined,
         recurrenceTypes: store.recurrenceTypes,
         recurrenceStatuses: store.recurrenceStatuses,
         mfoConfigurationTypes: store.mfoConfigurationTypes,

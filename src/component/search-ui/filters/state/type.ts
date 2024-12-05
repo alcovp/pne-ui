@@ -9,7 +9,6 @@ import {
     SearchUIConditions, MarkerStatusCriterion, SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
-    UserDefinedCriterionEnum
 } from '../types';
 import {AbstractEntity, AbstractEntityAllableCollection} from '../../../..';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
@@ -56,7 +55,6 @@ export type SearchUIFiltersActions = {
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => void
     setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => void
     setGroupingCriterionDateType: (dateType: GroupingDateType) => void
-    setUserDefinedCriterion: (userDefined: UserDefinedCriterionEnum) => void
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => void
     setRecurrenceStatusesCriterion: (recurrenceStatuses: AbstractEntityAllableCollection) => void
     setMfoConfigurationTypesCriterion: (mfoConfigurationTypes: AbstractEntityAllableCollection) => void
