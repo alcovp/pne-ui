@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
     Box,
-    Chip,
+    Divider,
     FormControlLabel,
     IconButton,
     Link,
@@ -11,12 +11,13 @@ import {
     TooltipProps,
     Zoom
 } from '@mui/material';
-import {MultigetCriterion, LinkedEntityTypeEnum, MultichoiceFilterTypeEnum} from '../filters/types';
+import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types';
 import {styled} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import {AbstractEntity, PneButton, PneCheckbox, PneTextField, Status} from '../../..';
+import {AbstractEntity, PneButton, PneButtonGroup, PneCheckbox, PneTextField} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
+import {useMultigetSelectStore} from "./state/store";
 // import {usePaynetTheme} from '../../../../theme/usePaynetTheme'; //TODO migration
 // import {raiseUIError} from '../../../../error'; //TODO migration
 
@@ -37,49 +38,88 @@ export const MultigetSelect = (props: Props) => {
     } = props;
     const {t} = useTranslation()
     // const theme = usePaynetTheme()
-    const [filterType, setFilterType] = useState<MultichoiceFilterTypeEnum>(multigetCriterion.filterType)
-    const [searchStrings, setSearchStrings] = useState<string[]>(multigetCriterion.searchString.split(','))
-    const [currentSearchString, setCurrentSearchString] = useState<string>('')
+    // const [searchStrings, setSearchStrings] = useState<string[]>(multigetCriterion.searchString.split(','))
+    // const [currentSearchString, setCurrentSearchString] = useState<string>('')
     const [startRow, setStartRow] = useState<number>(0);
     const [hasNext, setHasNext] = useState<boolean>(false);
-    const [entities, setEntities] = useState<AbstractEntity[]>([]);
-    const [selected, setSelected] = useState<AbstractEntity[]>(parseInitialSelectedEntities(multigetCriterion));
-    const [status, setStatus] = useState<Status | null>(null)
+    // const [entities, setEntities] = useState<AbstractEntity[]>([]);
+    // const [selected, setSelected] = useState<AbstractEntity[]>(parseInitialSelectedEntities(multigetCriterion));
     const {getMatchLinkedItems} = useContext(SearchUIDefaultsContext)
+
+    const {
+        filterType,
+        setFilterType,
+        onlyEnabledStatus,
+        setOnlyEnabledStatus,
+        searchString,
+        setSearchString,
+        searchLabel,
+        setSearchLabel,
+        availableItems,
+        setAvailableItems,
+        selectedItems,
+        setSelectedItems,
+    } = useMultigetSelectStore((store) => ({
+        filterType: store.filterType,
+        setFilterType: store.setFilterType,
+        onlyEnabledStatus: store.onlyEnabledStatus,
+        setOnlyEnabledStatus: store.setOnlyEnabledStatus,
+        searchString: store.searchString,
+        setSearchString: store.setSearchString,
+        searchLabel: store.searchLabel,
+        setSearchLabel: store.setSearchLabel,
+        availableItems: store.availableItems,
+        setAvailableItems: store.setAvailableItems,
+        selectedItems: store.selectedItems,
+        setSelectedItems: store.setSelectedItems,
+    }))
+
+    useEffect(() => {
+        setFilterType(multigetCriterion.filterType)
+    }, [multigetCriterion.filterType])
+
+    useEffect(() => {
+        setSelectedItems(parseInitialSelectedEntities(multigetCriterion))
+    }, [
+        multigetCriterion.filterType,
+        multigetCriterion.deselectedItems,
+        multigetCriterion.deselectedItemNames,
+    ])
 
     useEffect(() => {
         getMatchLinkedItems({
             type: multigetCriterion.entityType,
-            searchString: currentSearchString,
-            status: status,
+            searchString: searchLabel ? (searchLabel + ':' + searchString) : searchString,
+            status: onlyEnabledStatus ? 'E' : null,
             startRow: startRow,
             numRows: PAGE_SIZE,
             criteria: linkedMultigetCriteria,
         })
             .then(entities => {
-                setEntities(entities);
+                setAvailableItems(entities);
                 setHasNext(entities.length > PAGE_SIZE);
             })
             // .catch(raiseUIError);
             .catch(console.error)
     }, [
-        currentSearchString,
+        searchString,
+        searchLabel,
         filterType,
         startRow,
-        status,
+        onlyEnabledStatus,
     ]);
 
     const getSelectedItemsByFilterType = (): AbstractEntity[] => {
         if (filterType === MultichoiceFilterTypeEnum.ALL) {
             return [];
         } else {
-            return selected;
+            return selectedItems;
         }
     }
 
     const getDeselectedItemsByFilterType = (): AbstractEntity[] => {
         if (filterType === MultichoiceFilterTypeEnum.ALL) {
-            return selected;
+            return selectedItems;
         } else {
             return [];
         }
@@ -89,7 +129,7 @@ export const MultigetSelect = (props: Props) => {
         return {
             entityType: multigetCriterion.entityType,
             filterType: filterType,
-            searchString: searchStrings.join(','),
+            searchString: /*searchStrings.join(',')*/ searchString,
             selectedItems: getSelectedItemsByFilterType().map(e => e.id).join(','),
             selectedItemNames: getSelectedItemsByFilterType().map(e => e.displayName).join(','),
             deselectedItems: getDeselectedItemsByFilterType().map(e => e.id).join(','),
@@ -98,15 +138,15 @@ export const MultigetSelect = (props: Props) => {
     }
 
     const onEntityClick = (entity: AbstractEntity) => {
-        if (!selected.some(e => +e.id === +entity.id)) {
-            setSelected([...selected, entity]);
+        if (!selectedItems.some(e => +e.id === +entity.id)) {
+            setSelectedItems([...selectedItems, entity])
         } else {
-            setSelected([...selected.filter(e => +e.id !== +entity.id)]);
+            setSelectedItems([...selectedItems.filter(e => +e.id !== +entity.id)])
         }
     }
 
     const onSelectedClick = (entity: AbstractEntity) => {
-        setSelected([...selected.filter(e => +e.id !== +entity.id)]);
+        setSelectedItems([...selectedItems.filter(e => +e.id !== +entity.id)])
     }
 
     const onSaveClick = () => {
@@ -117,18 +157,18 @@ export const MultigetSelect = (props: Props) => {
         onCancel();
     }
 
-    const onSearchStringClick = (str: string) => {
-        setSearchStrings([...searchStrings.filter(s => s !== str)]);
+    // const onSearchStringClick = (str: string) => {
+    //     setSearchStrings([...searchStrings.filter(s => s !== str)]);
+    // }
+
+    const onExcludeClick = () => {
+        setSelectedItems([])
+        setFilterType(MultichoiceFilterTypeEnum.ALL)
     }
 
-    const onAllClick = () => {
-        setSelected([]);
-        setFilterType(MultichoiceFilterTypeEnum.ALL);
-    }
-
-    const onNoneClick = () => {
-        setSelected([]);
-        setFilterType(MultichoiceFilterTypeEnum.NONE);
+    const onIncludeClick = () => {
+        setSelectedItems([])
+        setFilterType(MultichoiceFilterTypeEnum.NONE)
     }
 
     const onPrevPageClick = () => {
@@ -145,10 +185,17 @@ export const MultigetSelect = (props: Props) => {
     }
 
     const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setCurrentSearchString(event.target.value);
+        setSearchString(event.target.value);
     }
 
-    const shownSearchStrings = searchStrings.filter(s => s.length > 0);
+    const handleSelectedChange = (
+        mappedList: AbstractEntity[],
+        unMappedList: AbstractEntity[]
+    ) => {
+        setSelectedItems(mappedList);
+    }
+
+    const shownSearchStrings = /*searchStrings.filter(s => s.length > 0)*/searchString
 
     const getLinkSx = (selected: boolean): SxProps => {
         return {
@@ -173,46 +220,57 @@ export const MultigetSelect = (props: Props) => {
     ].some(type => type === multigetCriterion.entityType)
 
     return <>
+        <Box sx={{display: 'flex', flexDirection: 'column', rowGap: '16px'}}>
+            <Divider/>
+            <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                <PneButtonGroup>
+                    <PneButton
+                        onClick={onIncludeClick}
+                        color={'pneNeutral'}
+                    >{'Include'}</PneButton>
+                    <PneButton
+                        onClick={onExcludeClick}
+                        color={'pneNeutral'}
+                    >{t('Exclude')}</PneButton>
+                </PneButtonGroup>
+                <FormControlLabel
+                    label={'Only enabled status'}
+                    control={<PneCheckbox
+                        checked={onlyEnabledStatus}
+                        onChange={e => setOnlyEnabledStatus(e.target.checked)}
+                    />}
+                />
+            </Box>
+            <Divider/>
+            <Box sx={{display: 'flex', flexDirection: 'row',  columnGap: '16px'}}>
+                <PneTextField
+                    value={searchString}
+                    onChange={onSearchChange}
+                    label={'Search'}
+                    fullWidth
+                />
+                <PneButtonGroup>
+                    <PneButton
+                        onClick={() => setSearchLabel('all')}
+                        color={'pneNeutral'}
+                    >{t('All')}</PneButton>
+                    <PneButton
+                        onClick={() => setSearchLabel('mid')}
+                        color={'pneNeutral'}
+                    >{'MID'}</PneButton>
+                    <PneButton
+                        onClick={() => setSearchLabel('description')}
+                        color={'pneNeutral'}
+                    >{'Description'}</PneButton>
+                </PneButtonGroup>
+            </Box>
+            <Divider/>
+            <Divider/>
+        </Box>
         <Container>
             <Left>
                 <LeftTop>
-                    <PneTextField
-                        value={currentSearchString}
-                        onChange={onSearchChange}
-                        label={'Search'}
-                        sx={{marginRight: '16px'}}
-                    />
-                    {filterType === MultichoiceFilterTypeEnum.SEARCH ? <FlexRow>
-                        {shownSearchStrings.map((str, index) =>
-                            <Chip
-                                key={index}
-                                onClick={() => onSearchStringClick(str)}
-                                color="primary"
-                                label={str}
-                                variant={'outlined'}
-                                sx={{
-                                    height: '20px',
-                                    mt: '5px',
-                                    '&:hover': {
-                                        textDecoration: 'line-through'
-                                    }
-                                }}
-                            />
-                        )}
-                    </FlexRow> : null}
                     <Controls>
-                        <FlexRow>
-                            <Link
-                                sx={getLinkSx(filterType === MultichoiceFilterTypeEnum.ALL)}
-                                component={'button'}
-                                onClick={onAllClick}
-                            >All</Link>
-                            <Link
-                                sx={getLinkSx(filterType === MultichoiceFilterTypeEnum.NONE)}
-                                component={'button'}
-                                onClick={onNoneClick}
-                            >None</Link>
-                        </FlexRow>
                         <Paging>
                             <Link
                                 sx={getLinkSx(false)}
@@ -231,14 +289,14 @@ export const MultigetSelect = (props: Props) => {
                         <FormControlLabel
                             label={t('react.searchUI.onlyEnabledStatus')}
                             control={<PneCheckbox
-                                checked={status === 'E'}
-                                onChange={e => setStatus(e.target.checked ? 'E' : null)}
+                                checked={onlyEnabledStatus}
+                                onChange={e => setOnlyEnabledStatus(e.target.checked)}
                             />}
                         />
                     </Controls>}
                 </LeftTop>
-                {entities.slice(0, PAGE_SIZE).map((entity, index) => {
-                    const rowSelected = selected.some(e => +e.id === +entity.id);
+                {availableItems.slice(0, PAGE_SIZE).map((entity, index) => {
+                    const rowSelected = selectedItems.some(e => +e.id === +entity.id);
                     return <Row
                         selected={allSelected ? !rowSelected : rowSelected}
                         key={index}
@@ -250,7 +308,7 @@ export const MultigetSelect = (props: Props) => {
                 })}
             </Left>
             <Right>
-                {selected.map((entity, index) =>
+                {selectedItems.map((entity, index) =>
                     <Row
                         selected={!allSelected}
                         key={index}
@@ -366,6 +424,7 @@ const Row = styled('p')<{ selected?: boolean }>`
     white-space: nowrap;
 
     // TODO migration
+
     &:hover {
         background-color: ${p => '#F9F7F8'};
         color: ${p => '#151515'};

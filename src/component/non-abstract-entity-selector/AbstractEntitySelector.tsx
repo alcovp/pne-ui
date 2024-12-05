@@ -402,7 +402,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                         setSearchValue(e.target.value)
                     }}
                     value={searchValue}
-                    label={t('settings.gate.chainStrategySearch')}
+                    label={t('search')}
                 />
             </Box>
             <DragDropContext onDragEnd={onDragEnd}>
