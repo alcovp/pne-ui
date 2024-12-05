@@ -80,19 +80,7 @@ export const SearchUIFilters = (props: Props) => {
             onFiltersUpdate: onFiltersUpdate,
             ...initialSearchConditions
         })
-    }, [
-        initialSearchConditions?.exactSearchLabel,
-        initialSearchConditions?.exactSearchValue,
-        initialSearchConditions?.status,
-        initialSearchConditions?.threeD,
-        initialSearchConditions?.currencies,
-        initialSearchConditions?.dateRangeSpec,
-        initialSearchConditions?.cardTypes,
-        initialSearchConditions?.transactionTypes,
-        initialSearchConditions?.projectCurrency,
-        initialSearchConditions?.grouping,
-        initialSearchConditions?.multigetCriteria?.length,
-    ])
+    }, [])
 
     useEffect(() => {
         loadTemplates()

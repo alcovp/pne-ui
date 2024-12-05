@@ -1,5 +1,5 @@
 import {AbstractEntity, ExactCriterionSearchLabelEnum, PneHeaderTableCell, PneTableCell, PneTableRow} from "../index";
-import React from "react";
+import React, {useState} from "react";
 import {SearchUI} from "../component/search-ui/SearchUI";
 import {CriterionTypeEnum} from "../component/search-ui/filters/types";
 import {Meta, StoryObj} from "@storybook/react";
@@ -20,6 +20,8 @@ const getList = async (page: number, pageSize: number, limit: number): Promise<D
 }
 
 const HookWrap = () => {
+
+    const [data, setData] = useState<DataType[]>([])
 
     return <SearchUIProvider
         defaults={{
@@ -51,6 +53,7 @@ const HookWrap = () => {
             ]}
             predefinedCriteria={[
                 CriterionTypeEnum.EXACT,
+                CriterionTypeEnum.STATUS,
             ]}
             searchData={(searchParams) => {
                 console.dir(searchParams.exactSearchValue)
@@ -59,6 +62,11 @@ const HookWrap = () => {
                     searchParams.rowCount,
                     999
                 )
+            }}
+            dataUseState={[data, setData]}
+            initialSearchConditions={{
+                transactionTypes: {all: true, list: []},
+                status: 'ENABLED',
             }}
             createTableHeader={(headerParams) =>
                 <PneTableRow>
