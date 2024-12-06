@@ -1,10 +1,9 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSelect';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {PneTextField} from '../../../../..';
-import debounce from 'lodash/debounce';
 
 export const ExactSearchCriterion = () => {
 
@@ -28,31 +27,8 @@ export const ExactSearchCriterion = () => {
         setSearchValue(exactSearchValue)
     }, [exactSearchValue])
 
-    const debouncedSetSearchValueShort = useCallback(
-        debounce(setExactCriterionSearchValue, 200),
-        []
-    )
-
-    const debouncedSetSearchValueLong = useCallback(
-        debounce(setExactCriterionSearchValue, 500),
-        []
-    )
-
     useEffect(() => {
-        return () => {
-            debouncedSetSearchValueShort.cancel()
-            debouncedSetSearchValueLong.cancel()
-        }
-    }, [])
-
-    useEffect(() => {
-        if (searchValue.length < 4) {
-            debouncedSetSearchValueShort.cancel()
-            debouncedSetSearchValueLong(searchValue);
-        } else {
-            debouncedSetSearchValueLong.cancel()
-            debouncedSetSearchValueShort(searchValue);
-        }
+        setExactCriterionSearchValue(searchValue)
     }, [searchValue])
 
     return <Box sx={centerSx}>
