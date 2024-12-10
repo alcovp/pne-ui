@@ -8,4 +8,6 @@ export const getMultigetSelectInitialState = (): MultigetSelectState => ({
     searchLabel: 'all',
     availableItems: [],
     selectedItems: [],
+    currentPage: 1,
+    hasNextPage: false,
 })

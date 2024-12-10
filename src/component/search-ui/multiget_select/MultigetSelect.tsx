@@ -1,11 +1,12 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect} from 'react';
 import {
     Box,
     Divider,
     FormControlLabel,
     IconButton,
-    Link,
     SxProps,
+    ToggleButton,
+    ToggleButtonGroup,
     Tooltip,
     tooltipClasses,
     TooltipProps,
@@ -15,9 +16,11 @@ import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from
 import {styled} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import {AbstractEntity, PneButton, PneButtonGroup, PneCheckbox, PneTextField} from '../../..';
+import {AbstractEntity, PneButton, PneCheckbox, PneTextField} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 import {useMultigetSelectStore} from "./state/store";
+import {MultigetSearchLabel} from './state/type';
+import {MultigetSelectTable} from "./MultigetSelectTable";
 // import {usePaynetTheme} from '../../../../theme/usePaynetTheme'; //TODO migration
 // import {raiseUIError} from '../../../../error'; //TODO migration
 
@@ -28,22 +31,17 @@ type Props = {
     onCancel: () => void
 }
 
+export const MULTIGET_PAGE_SIZE = 10
+
 export const MultigetSelect = (props: Props) => {
-    const PAGE_SIZE = 10;
     const {
         multigetCriterion,
         linkedMultigetCriteria,
         onSave,
         onCancel,
-    } = props;
+    } = props
     const {t} = useTranslation()
     // const theme = usePaynetTheme()
-    // const [searchStrings, setSearchStrings] = useState<string[]>(multigetCriterion.searchString.split(','))
-    // const [currentSearchString, setCurrentSearchString] = useState<string>('')
-    const [startRow, setStartRow] = useState<number>(0);
-    const [hasNext, setHasNext] = useState<boolean>(false);
-    // const [entities, setEntities] = useState<AbstractEntity[]>([]);
-    // const [selected, setSelected] = useState<AbstractEntity[]>(parseInitialSelectedEntities(multigetCriterion));
     const {getMatchLinkedItems} = useContext(SearchUIDefaultsContext)
 
     const {
@@ -55,10 +53,11 @@ export const MultigetSelect = (props: Props) => {
         setSearchString,
         searchLabel,
         setSearchLabel,
-        availableItems,
         setAvailableItems,
         selectedItems,
         setSelectedItems,
+        currentPage,
+        setHasNextPage,
     } = useMultigetSelectStore((store) => ({
         filterType: store.filterType,
         setFilterType: store.setFilterType,
@@ -68,10 +67,11 @@ export const MultigetSelect = (props: Props) => {
         setSearchString: store.setSearchString,
         searchLabel: store.searchLabel,
         setSearchLabel: store.setSearchLabel,
-        availableItems: store.availableItems,
         setAvailableItems: store.setAvailableItems,
         selectedItems: store.selectedItems,
         setSelectedItems: store.setSelectedItems,
+        currentPage: store.currentPage,
+        setHasNextPage: store.setHasNextPage,
     }))
 
     useEffect(() => {
@@ -89,15 +89,15 @@ export const MultigetSelect = (props: Props) => {
     useEffect(() => {
         getMatchLinkedItems({
             type: multigetCriterion.entityType,
-            searchString: searchLabel ? (searchLabel + ':' + searchString) : searchString,
+            searchString: searchLabel !== 'all' ? (searchLabel + ':' + searchString) : searchString,
             status: onlyEnabledStatus ? 'E' : null,
-            startRow: startRow,
-            numRows: PAGE_SIZE,
+            startRow: (currentPage - 1) * MULTIGET_PAGE_SIZE,
+            numRows: MULTIGET_PAGE_SIZE,
             criteria: linkedMultigetCriteria,
         })
             .then(entities => {
-                setAvailableItems(entities);
-                setHasNext(entities.length > PAGE_SIZE);
+                setAvailableItems(entities)
+                setHasNextPage(entities.length > MULTIGET_PAGE_SIZE)
             })
             // .catch(raiseUIError);
             .catch(console.error)
@@ -105,7 +105,7 @@ export const MultigetSelect = (props: Props) => {
         searchString,
         searchLabel,
         filterType,
-        startRow,
+        currentPage,
         onlyEnabledStatus,
     ]);
 
@@ -137,18 +137,6 @@ export const MultigetSelect = (props: Props) => {
         }
     }
 
-    const onEntityClick = (entity: AbstractEntity) => {
-        if (!selectedItems.some(e => +e.id === +entity.id)) {
-            setSelectedItems([...selectedItems, entity])
-        } else {
-            setSelectedItems([...selectedItems.filter(e => +e.id !== +entity.id)])
-        }
-    }
-
-    const onSelectedClick = (entity: AbstractEntity) => {
-        setSelectedItems([...selectedItems.filter(e => +e.id !== +entity.id)])
-    }
-
     const onSaveClick = () => {
         onSave(getCurrentMultigetCriterion());
     }
@@ -156,10 +144,6 @@ export const MultigetSelect = (props: Props) => {
     const onCancelClick = () => {
         onCancel();
     }
-
-    // const onSearchStringClick = (str: string) => {
-    //     setSearchStrings([...searchStrings.filter(s => s !== str)]);
-    // }
 
     const onExcludeClick = () => {
         setSelectedItems([])
@@ -171,44 +155,11 @@ export const MultigetSelect = (props: Props) => {
         setFilterType(MultichoiceFilterTypeEnum.NONE)
     }
 
-    const onPrevPageClick = () => {
-        const prevPageStart = startRow - PAGE_SIZE;
-        if (prevPageStart >= 0) {
-            setStartRow(startRow - PAGE_SIZE);
-        }
-    }
-
-    const onNextPageClick = () => {
-        if (hasNext) {
-            setStartRow(startRow + PAGE_SIZE);
-        }
-    }
-
     const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSearchString(event.target.value);
     }
 
-    const handleSelectedChange = (
-        mappedList: AbstractEntity[],
-        unMappedList: AbstractEntity[]
-    ) => {
-        setSelectedItems(mappedList);
-    }
-
-    const shownSearchStrings = /*searchStrings.filter(s => s.length > 0)*/searchString
-
-    const getLinkSx = (selected: boolean): SxProps => {
-        return {
-            padding: '5px',
-            // ...(selected ? { //TODO migration
-            //     backgroundColor: theme.skin.experimentalColor,
-            //     color: theme.color.textContrast,
-            //     textDecorationColor: theme.color.textContrast,
-            // } : undefined)
-        }
-    }
-
-    const allSelected = filterType === MultichoiceFilterTypeEnum.ALL
+    const showGateSearchLabels = multigetCriterion.entityType === LinkedEntityTypeEnum.GATE
     const statusMakesSense = [
         LinkedEntityTypeEnum.PROCESSOR,
         LinkedEntityTypeEnum.GATE,
@@ -221,113 +172,63 @@ export const MultigetSelect = (props: Props) => {
 
     return <>
         <Box sx={{display: 'flex', flexDirection: 'column', rowGap: '16px'}}>
-            <Divider/>
             <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
-                <PneButtonGroup>
-                    <PneButton
-                        onClick={onIncludeClick}
-                        color={'pneNeutral'}
-                    >{'Include'}</PneButton>
-                    <PneButton
-                        onClick={onExcludeClick}
-                        color={'pneNeutral'}
-                    >{t('Exclude')}</PneButton>
-                </PneButtonGroup>
-                <FormControlLabel
+                <ToggleButtonGroup
+                    value={filterType}
+                    exclusive
+                    onChange={(e, value: MultichoiceFilterTypeEnum) => {
+                        if (value === 'NONE') {
+                            onIncludeClick()
+                        } else {
+                            onExcludeClick()
+                        }
+                    }}
+                    size="small"
+                >
+                    <ToggleButton value={'NONE'} sx={toggleSx}>{t('Include')}</ToggleButton>
+                    <ToggleButton value={'ALL'} sx={toggleSx}>{t('Exclude')}</ToggleButton>
+                </ToggleButtonGroup>
+                {statusMakesSense ? <FormControlLabel
                     label={'Only enabled status'}
                     control={<PneCheckbox
                         checked={onlyEnabledStatus}
                         onChange={e => setOnlyEnabledStatus(e.target.checked)}
                     />}
-                />
+                /> : null}
             </Box>
             <Divider/>
-            <Box sx={{display: 'flex', flexDirection: 'row',  columnGap: '16px'}}>
+            <Box sx={{display: 'flex', flexDirection: 'row', columnGap: '16px'}}>
                 <PneTextField
                     value={searchString}
                     onChange={onSearchChange}
                     label={'Search'}
                     fullWidth
                 />
-                <PneButtonGroup>
-                    <PneButton
-                        onClick={() => setSearchLabel('all')}
-                        color={'pneNeutral'}
-                    >{t('All')}</PneButton>
-                    <PneButton
-                        onClick={() => setSearchLabel('mid')}
-                        color={'pneNeutral'}
-                    >{'MID'}</PneButton>
-                    <PneButton
-                        onClick={() => setSearchLabel('description')}
-                        color={'pneNeutral'}
-                    >{'Description'}</PneButton>
-                </PneButtonGroup>
+                {showGateSearchLabels ? <ToggleButtonGroup
+                    value={searchLabel}
+                    exclusive
+                    onChange={(e, value: MultigetSearchLabel) => {
+                        setSearchLabel(value)
+                    }}
+                    size="small"
+                >
+                    <ToggleButton value={'all'} sx={toggleSx}>{t('All')}</ToggleButton>
+                    <ToggleButton value={'mid'} sx={toggleSx}>{'MID'}</ToggleButton>
+                    <ToggleButton value={'description'} sx={toggleSx}>{'Description'}</ToggleButton>
+                </ToggleButtonGroup> : null}
             </Box>
             <Divider/>
+            <MultigetSelectTable/>
             <Divider/>
         </Box>
-        <Container>
-            <Left>
-                <LeftTop>
-                    <Controls>
-                        <Paging>
-                            <Link
-                                sx={getLinkSx(false)}
-                                component={'button'}
-                                onClick={onPrevPageClick}
-                            >{'< prev'}</Link>
-                            <PagingLabel>{`${startRow + 1} - ${startRow + PAGE_SIZE}`}</PagingLabel>
-                            <Link
-                                sx={getLinkSx(false)}
-                                component={'button'}
-                                onClick={onNextPageClick}
-                            >{'next >'}</Link>
-                        </Paging>
-                    </Controls>
-                    {statusMakesSense && <Controls>
-                        <FormControlLabel
-                            label={t('react.searchUI.onlyEnabledStatus')}
-                            control={<PneCheckbox
-                                checked={onlyEnabledStatus}
-                                onChange={e => setOnlyEnabledStatus(e.target.checked)}
-                            />}
-                        />
-                    </Controls>}
-                </LeftTop>
-                {availableItems.slice(0, PAGE_SIZE).map((entity, index) => {
-                    const rowSelected = selectedItems.some(e => +e.id === +entity.id);
-                    return <Row
-                        selected={allSelected ? !rowSelected : rowSelected}
-                        key={index}
-                        onClick={() => onEntityClick(entity)}
-                        title={entity.displayName}
-                    >
-                        {entity.displayName}
-                    </Row>
-                })}
-            </Left>
-            <Right>
-                {selectedItems.map((entity, index) =>
-                    <Row
-                        selected={!allSelected}
-                        key={index}
-                        onClick={() => onSelectedClick(entity)}
-                        title={entity.displayName}
-                    >
-                        {entity.displayName}
-                    </Row>
-                )}
-            </Right>
-        </Container>
-        <Box sx={{display: 'flex', justifyContent: 'space-between'}}>
+        <Box sx={{display: 'flex', justifyContent: 'space-between', mt: '15px'}}>
             <HtmlTooltip
                 placement={'right-end'}
                 title={
                     <div dangerouslySetInnerHTML={{__html: t('react.searchUI.multigetTooltip')}}/>
                 }
             >
-                <IconButton color="primary" component="span">
+                <IconButton color="default" component="span">
                     <InfoOutlinedIcon/>
                 </IconButton>
             </HtmlTooltip>
@@ -340,16 +241,16 @@ export const MultigetSelect = (props: Props) => {
 }
 
 const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): AbstractEntity[] => {
-    let selectedIds: string[];
-    let selectedNames: string[];
+    let selectedIds: string[]
+    let selectedNames: string[]
     if (multigetCriterion.filterType === MultichoiceFilterTypeEnum.ALL) {
-        selectedIds = multigetCriterion.deselectedItems.split(',');
-        selectedNames = multigetCriterion.deselectedItemNames.split(',');
+        selectedIds = multigetCriterion.deselectedItems.split(',')
+        selectedNames = multigetCriterion.deselectedItemNames.split(',')
     } else {
-        selectedIds = multigetCriterion.selectedItems.split(',');
-        selectedNames = multigetCriterion.selectedItemNames.split(',');
+        selectedIds = multigetCriterion.selectedItems.split(',')
+        selectedNames = multigetCriterion.selectedItemNames.split(',')
     }
-    const entities: AbstractEntity[] = [];
+    const entities: AbstractEntity[] = []
 
     for (let i = 0; i < selectedIds.length; i++) {
         if (selectedIds[i]) {
@@ -359,79 +260,10 @@ const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): Abs
             })
         }
     }
-    return entities;
+    return entities
 }
 
-const Container = styled('div')`
-    display: flex;
-    flex-direction: row;
-    margin-bottom: 16px;
-    min-height: 300px;
-    border-bottom: 1px solid #F1F5FA;
-`
-
-const Left = styled('div')`
-    display: flex;
-    flex-direction: column;
-    width: calc(50% - 1px);
-    border-right: 1px solid #F1F5FA;
-`
-
-const LeftTop = styled('div')`
-    display: flex;
-    flex-direction: column;
-    border-bottom: 1px solid #F1F5FA;
-`
-
-const Controls = styled('div')`
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    margin-top: 5px;
-    padding-right: 16px;
-`
-
-const FlexRow = styled('div')`
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-`
-
-const Paging = styled('div')`
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-`
-
-const PagingLabel = styled('span')`
-`
-
-const Right = styled('div')`
-    display: flex;
-    flex-direction: column;
-    width: calc(50% - 0px);
-`
-
-const Row = styled('p')<{ selected?: boolean }>`
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 14px;
-    line-height: 20px;
-    font-weight: ${p => p.selected ? 'bold' : 'normal'};
-    color: #38434D;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    // TODO migration
-
-    &:hover {
-        background-color: ${p => '#F9F7F8'};
-        color: ${p => '#151515'};
-    }
-`;
-// background-color: ${p => p.theme.skin.menuItemHoverBackgroundColor};
-// color: ${p => p.theme.skin.menuItemHoverTextColor};
+const toggleSx: SxProps = {textTransform: 'none'}
 
 const HtmlTooltip = styled(({className, children, ...props}: TooltipProps) => (
     <Tooltip

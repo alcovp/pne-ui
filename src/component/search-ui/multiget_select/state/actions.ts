@@ -36,4 +36,14 @@ export const getMultigetSelectActions = (
             draft.selectedItems = items
         })
     },
+    setCurrentPage: currentPage => {
+        set((draft) => {
+            draft.currentPage = currentPage
+        })
+    },
+    setHasNextPage: hasNextPage => {
+        set((draft) => {
+            draft.hasNextPage = hasNextPage
+        })
+    }
 })

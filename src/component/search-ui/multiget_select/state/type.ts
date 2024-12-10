@@ -10,6 +10,8 @@ export type MultigetSelectState = {
     searchLabel: MultigetSearchLabel
     availableItems: AbstractEntity[]
     selectedItems: AbstractEntity[]
+    currentPage: number
+    hasNextPage: boolean
 }
 
 export type MultigetSelectActions = {
@@ -19,6 +21,8 @@ export type MultigetSelectActions = {
     setSearchLabel: (searchLabel: MultigetSearchLabel) => void
     setAvailableItems: (items: AbstractEntity[]) => void
     setSelectedItems: (items: AbstractEntity[]) => void
+    setCurrentPage: (currentPage: number) => void
+    setHasNextPage: (hasNextPage: boolean) => void
 }
 
 export type MultigetSearchLabel = 'all' | 'mid' | 'description'
