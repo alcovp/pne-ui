@@ -40,7 +40,7 @@ export const MultigetSelectTable = () => {
         setSelectedItems([...selectedItems.filter(e => +e.id !== +entity.id)])
     }
 
-    let knownPagesCount = hasNextPage ? currentPage + 1 : currentPage
+    const knownPagesCount = hasNextPage ? currentPage + 1 : currentPage
 
     return <Box sx={tableSx}>
         <Box sx={columnSx}>

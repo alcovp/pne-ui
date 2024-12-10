@@ -48,7 +48,7 @@ import {AbstractEntitySelectModal} from './component/non-abstract-entity-selecto
 import {PneDropdownChoice} from './common/paynet/dropdown'
 import {AutoTestAttribute} from './component/AutoTestAttribute'
 import {getSearchUIInitialState} from './component/search-ui/state/initial'
-import { PneButtonGroup } from './component/PneButtonGroup'
+import {PneButtonGroup} from './component/PneButtonGroup'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
