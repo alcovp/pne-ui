@@ -185,11 +185,11 @@ export const MultigetSelect = (props: Props) => {
                     }}
                     size="small"
                 >
-                    <ToggleButton value={'NONE'} sx={toggleSx}>{t('Include')}</ToggleButton>
-                    <ToggleButton value={'ALL'} sx={toggleSx}>{t('Exclude')}</ToggleButton>
+                    <ToggleButton value={'NONE'} sx={toggleSx}>{t('react.searchUI.include')}</ToggleButton>
+                    <ToggleButton value={'ALL'} sx={toggleSx}>{t('react.searchUI.exclude')}</ToggleButton>
                 </ToggleButtonGroup>
                 {statusMakesSense ? <FormControlLabel
-                    label={'Only enabled status'}
+                    label={t('react.searchUI.onlyEnabledStatus')}
                     control={<PneCheckbox
                         checked={onlyEnabledStatus}
                         onChange={e => setOnlyEnabledStatus(e.target.checked)}
@@ -212,9 +212,9 @@ export const MultigetSelect = (props: Props) => {
                     }}
                     size="small"
                 >
-                    <ToggleButton value={'all'} sx={toggleSx}>{t('All')}</ToggleButton>
-                    <ToggleButton value={'mid'} sx={toggleSx}>{'MID'}</ToggleButton>
-                    <ToggleButton value={'description'} sx={toggleSx}>{'Description'}</ToggleButton>
+                    <ToggleButton value={'all'} sx={toggleSx}>{t('react.searchUI.all')}</ToggleButton>
+                    <ToggleButton value={'mid'} sx={toggleSx}>{t('MID')}</ToggleButton>
+                    <ToggleButton value={'description'} sx={toggleSx}>{t('react.searchUI.description')}</ToggleButton>
                 </ToggleButtonGroup> : null}
             </Box>
             <Divider/>

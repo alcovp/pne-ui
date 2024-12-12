@@ -46,10 +46,10 @@ export const MultigetSelectTable = () => {
         <Box sx={columnSx}>
             <Box sx={headerSx}>
                 <Box component={'span'} sx={headerTitleSx}>
-                    {t('available')}
+                    {t('react.searchUI.available')}
                 </Box>
             </Box>
-            <Box sx={{display: 'flex', flexDirection: 'column', mb: '5px'}}>
+            <Box sx={{display: 'flex', flexDirection: 'column', minWidth: '360px'}}>
                 {availableItems.slice(0, MULTIGET_PAGE_SIZE).map((entity, index) => {
                     const rowSelected = selectedItems.some(e => +e.id === +entity.id);
                     return <Box
@@ -81,7 +81,7 @@ export const MultigetSelectTable = () => {
         <Box sx={columnSx}>
             <Box sx={{...headerSx, justifyContent: 'space-between',}}>
                 <Box component={'span'} sx={headerTitleSx}>
-                    {filterType === 'ALL' ? t('excluded') : t('selected')}
+                    {filterType === 'ALL' ? t('react.searchUI.excluded') : t('react.searchUI.selected')}
                 </Box>
                 <PneButton
                     color={'pneText'}
@@ -107,7 +107,7 @@ export const MultigetSelectTable = () => {
 }
 
 const tableSx = {display: 'flex', flexDirection: 'row', columnGap: '16px', width: '100%'}
-const columnSx = {display: 'flex', flexDirection: 'column', flex: '1 1 0', minWidth: 0}
+const columnSx = {display: 'flex', flexDirection: 'column', rowGap: '5px', flex: '1 1 0', minWidth: 0}
 const headerSx = {display: 'flex', flexDirection: 'row', alignItems: 'center'}
 const headerTitleSx = {fontSize: '14px', fontWeight: '700', lineHeight: '30px'}
 const rowSx: SxProps = {
