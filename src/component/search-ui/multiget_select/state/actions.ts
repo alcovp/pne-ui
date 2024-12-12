@@ -14,6 +14,7 @@ export const getMultigetSelectActions = (
     setOnlyEnabledStatus: (onlyEnabledStatus: boolean) => {
         set((draft) => {
             draft.onlyEnabledStatus = onlyEnabledStatus
+            draft.currentPage = 1
         })
     },
     setSearchString: (searchString: string) => {

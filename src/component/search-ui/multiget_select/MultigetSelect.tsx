@@ -57,6 +57,7 @@ export const MultigetSelect = (props: Props) => {
         selectedItems,
         setSelectedItems,
         currentPage,
+        setCurrentPage,
         setHasNextPage,
     } = useMultigetSelectStore((store) => ({
         filterType: store.filterType,
@@ -71,6 +72,7 @@ export const MultigetSelect = (props: Props) => {
         selectedItems: store.selectedItems,
         setSelectedItems: store.setSelectedItems,
         currentPage: store.currentPage,
+        setCurrentPage: store.setCurrentPage,
         setHasNextPage: store.setHasNextPage,
     }))
 
@@ -138,11 +140,13 @@ export const MultigetSelect = (props: Props) => {
     }
 
     const onSaveClick = () => {
-        onSave(getCurrentMultigetCriterion());
+        setCurrentPage(1)
+        onSave(getCurrentMultigetCriterion())
     }
 
     const onCancelClick = () => {
-        onCancel();
+        setCurrentPage(1)
+        onCancel()
     }
 
     const onExcludeClick = () => {
@@ -221,17 +225,7 @@ export const MultigetSelect = (props: Props) => {
             <MultigetSelectTable/>
             <Divider/>
         </Box>
-        <Box sx={{display: 'flex', justifyContent: 'space-between', mt: '15px'}}>
-            <HtmlTooltip
-                placement={'right-end'}
-                title={
-                    <div dangerouslySetInnerHTML={{__html: t('react.searchUI.multigetTooltip')}}/>
-                }
-            >
-                <IconButton color="default" component="span">
-                    <InfoOutlinedIcon/>
-                </IconButton>
-            </HtmlTooltip>
+        <Box sx={{display: 'flex', justifyContent: 'end', mt: '15px'}}>
             <Box sx={{display: 'flex', gap: '20px'}}>
                 <PneButton color={'pneNeutral'} onClick={onCancelClick}>{t('cancel')}</PneButton>
                 <PneButton color={'pnePrimary'} onClick={onSaveClick}>{t('save')}</PneButton>
@@ -264,24 +258,3 @@ const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): Abs
 }
 
 const toggleSx: SxProps = {textTransform: 'none'}
-
-const HtmlTooltip = styled(({className, children, ...props}: TooltipProps) => (
-    <Tooltip
-        arrow
-        TransitionComponent={Zoom}
-        classes={{popper: className}}
-        {...props}
-    >{children}</Tooltip>
-))(({theme}) => ({
-    [`& .${tooltipClasses.tooltip}`]: {
-        color: '#fff',
-        maxWidth: 600,
-    },
-    ['& h1, h2']: {
-        color: '#fff',
-        margin: 0,
-    },
-    ['& li']: {
-        listStyle: 'inside',
-    },
-}));

@@ -49,7 +49,7 @@ export const MultigetSelectTable = () => {
                     {t('react.searchUI.available')}
                 </Box>
             </Box>
-            <Box sx={{display: 'flex', flexDirection: 'column', minWidth: '360px'}}>
+            <Box sx={{display: 'flex', flexDirection: 'column', minHeight: '360px'}}>
                 {availableItems.slice(0, MULTIGET_PAGE_SIZE).map((entity, index) => {
                     const rowSelected = selectedItems.some(e => +e.id === +entity.id);
                     return <Box
