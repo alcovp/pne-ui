@@ -56,6 +56,7 @@ export const SearchUIFilters = (props: Props) => {
         addCriterion,
         conflictingCriteriaGroups,
         hideTemplatesSelect,
+        exactSearchLabel,
     } = useSearchUIFiltersStore((store) => ({
         setInitialState: store.setInitialState,
         loadTemplates: store.loadTemplates,
@@ -64,6 +65,7 @@ export const SearchUIFilters = (props: Props) => {
         addCriterion: store.addCriterion,
         conflictingCriteriaGroups: store.config?.conflictingCriteriaGroups,
         hideTemplatesSelect: store.config?.hideTemplatesSelect,
+        exactSearchLabel: store.exactSearchLabel,
     }))
 
     const [showFilters, setShowFilters] = useState(true)
@@ -75,6 +77,7 @@ export const SearchUIFilters = (props: Props) => {
             possibleCriteria: adjustedPossibleCriteria,
             predefinedCriteria: predefinedCriteria,
             exactSearchLabels: exactSearchLabels,
+            exactSearchLabel: exactSearchLabel || exactSearchLabels[0],
             criteria: predefinedCriteria,
             config: config,
             onFiltersUpdate: onFiltersUpdate,

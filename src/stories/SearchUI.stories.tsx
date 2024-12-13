@@ -1,22 +1,47 @@
-import {AbstractEntity, ExactCriterionSearchLabelEnum, PneHeaderTableCell, PneTableCell, PneTableRow} from "../index";
+import {AbstractEntity, ExactCriterionSearchLabelEnum, PneHeaderTableCell, PneTableCell, PneTableRow, ensure} from "../index";
 import React, {useState} from "react";
-import {SearchUI} from "../component/search-ui/SearchUI";
+import {SearchParams, SearchUI} from "../component/search-ui/SearchUI";
 import {CriterionTypeEnum} from "../component/search-ui/filters/types";
 import {Meta, StoryObj} from "@storybook/react";
 import {SearchUIProvider} from "../component/search-ui/SearchUIProvider";
 
 type DataType = AbstractEntity
 
-const getList = async (page: number, pageSize: number, limit: number): Promise<DataType[]> => {
+const getList = async (searchParams: SearchParams): Promise<DataType[]> => {
     console.log('getList call')
-    const data: DataType[] = []
-    for (let i = 1; i <= limit; i++) {
+    let data: DataType[] = []
+    for (let i = 1; i <= 999; i++) {
         data.push({id: i, displayName: 'John ' + i})
     }
-
     await new Promise(resolve => setTimeout(resolve, 400))
 
-    return data.slice(page * pageSize, page * pageSize + pageSize + 1)
+    if (searchParams.multigetCriteria.length) {
+        data = data.filter(item => {
+            const ids = searchParams.multigetCriteria[0].selectedItems.split(',')
+            return ids.some(some => +some === item.id)
+        })
+    }
+
+    if (searchParams.exactSearchValue) {
+        console.log(searchParams.exactSearchValue)
+        console.log(searchParams.exactSearchLabel)
+        data = data.filter(item => {
+            if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.ID) {
+                console.log(searchParams.exactSearchValue)
+                return item.id === +ensure(searchParams.exactSearchValue)
+            } else if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.NAME) {
+                return item.displayName.includes(searchParams.exactSearchValue || '')
+            } else {
+                return true
+            }
+        })
+    }
+
+    const dataSlice = data.slice(
+        searchParams.startNum,
+        searchParams.startNum + searchParams.rowCount
+    )
+    return dataSlice
 }
 
 const HookWrap = () => {
@@ -65,14 +90,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.STATUS,
             ]}
-            searchData={(searchParams) => {
-                console.dir(searchParams.exactSearchValue)
-                return getList(
-                    0,
-                    searchParams.rowCount,
-                    999
-                )
-            }}
+            searchData={getList}
             dataUseState={[data, setData]}
             initialSearchConditions={{
                 transactionTypes: {all: true, list: []},
