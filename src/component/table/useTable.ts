@@ -220,6 +220,8 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 
     const shouldSkipFetchDate = useRef(false)
     useEffect(() => {
+        let mounted = true
+
         if (shouldSkipFetchDate.current) {
             shouldSkipFetchDate.current = false
             return
@@ -230,17 +232,25 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                 try {
                     let data = await fetchData(args)
 
-                    // Если получаем пустой массив, то проверим, первая ли это страница. Если нет, то, вероятно,
-                    // с новыми параметрами поиска сервер отдает меньший массив данных, и нам нужно сбросить страницу
-                    // на первую
+                    /**
+                     * Если получаем пустой массив, то проверим, первая ли это страница. Если нет, то, вероятно,
+                     * с новыми параметрами поиска сервер отдает меньший массив данных, и нам нужно сбросить страницу
+                     * на первую
+                     * Это нужно только для того, чтобы не было промежуточного отображения 'no rows' между этими
+                     * двумя запросами, в случае, когда первый раз получили пустой массив
+                     */
                     if (data.length === 0 && args.page > 0) {
                         // пробуем получить первую страницу данных с новыми параметрами поиска
                         data = await fetchData({...args, page: 0})
                         // надо предотвратить следующую перерисовку из-за измененного pageNumber
-                        shouldSkipFetchDate.current = true
-                        setPageNumber(0)
+                        if (mounted) {
+                            shouldSkipFetchDate.current = true
+                            setPageNumber(0)
+                        }
                     }
-                    afterDataFetch(data)
+                    if (mounted) {
+                        afterDataFetch(data)
+                    }
                 } catch (err) {
                     console.error(err)
                 }
@@ -254,6 +264,10 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
             sortIndex,
             extraDeps: fetchDataExtraDeps,
         })
+
+        return () => {
+            mounted = false
+        }
     }, fetchDataDeps)
 
     const useSimpleFetch = (getter: () => Promise<D[]>) => {
