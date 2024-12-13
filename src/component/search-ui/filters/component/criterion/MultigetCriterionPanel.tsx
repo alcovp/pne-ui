@@ -4,6 +4,7 @@ import {Box, Chip, Link, SxProps} from '@mui/material';
 import {MultigetSelect} from '../../../multiget_select/MultigetSelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {PneModal, useModal} from '../../../../..';
+import {MultigetSelectStoreProvider} from "../../../multiget_select/state/IsolatedStoreProvider";
 
 interface IProps {
     criterionType: CriterionTypeEnum
@@ -87,18 +88,20 @@ export const MultigetCriterionPanel = (props: IProps) => {
         >
             {getLinkChildren()}
         </Link>
-        <PneModal
-            open={open || currentIsJustAdded}
-            onClose={handleClose}
-            containerSx={{width: '600px'}}
-        >
-            <MultigetSelect
-                multigetCriterion={currentMultigetCriterion}
-                linkedMultigetCriteria={linkedMultigetCriteria}
-                onSave={changeCriterion}
-                onCancel={handleClose}
-            />
-        </PneModal>
+        <MultigetSelectStoreProvider>
+            <PneModal
+                open={open || currentIsJustAdded}
+                onClose={handleClose}
+                containerSx={{width: '600px'}}
+            >
+                <MultigetSelect
+                    multigetCriterion={currentMultigetCriterion}
+                    linkedMultigetCriteria={linkedMultigetCriteria}
+                    onSave={changeCriterion}
+                    onCancel={handleClose}
+                />
+            </PneModal>
+        </MultigetSelectStoreProvider>
     </>
 }
 

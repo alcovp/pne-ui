@@ -43,6 +43,7 @@ const HookWrap = () => {
                 {id: 11, displayName: '(11) name2'},
             ],
             showGatesCriterion: () => true,
+            showProjectsCriterion: () => true,
         }}
     >
         <SearchUI<DataType>
@@ -56,6 +57,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.GATE,
+                CriterionTypeEnum.PROJECT,
                 CriterionTypeEnum.GROUPING,
                 CriterionTypeEnum.PROJECT_CURRENCY,
             ]}

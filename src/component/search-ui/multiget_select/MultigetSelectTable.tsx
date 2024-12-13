@@ -2,9 +2,9 @@ import React from 'react';
 import {Box, Divider, Pagination} from "@mui/material";
 import {AbstractEntity, PneButton} from "../../../index";
 import {MULTIGET_PAGE_SIZE} from "./MultigetSelect";
-import {useMultigetSelectStore} from "./state/store";
 import {useTranslation} from "react-i18next";
 import {SxProps} from "@mui/material/styles";
+import {useMultigetSelectStore} from "./state/store";
 
 export const MultigetSelectTable = () => {
 
@@ -18,7 +18,7 @@ export const MultigetSelectTable = () => {
         currentPage,
         setCurrentPage,
         hasNextPage,
-    } = useMultigetSelectStore((store) => ({
+    } = useMultigetSelectStore()((store) => ({
         filterType: store.filterType,
         availableItems: store.availableItems,
         selectedItems: store.selectedItems,

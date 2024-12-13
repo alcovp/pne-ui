@@ -1,21 +1,7 @@
 import React, {useContext, useEffect} from 'react';
-import {
-    Box,
-    Divider,
-    FormControlLabel,
-    IconButton,
-    SxProps,
-    ToggleButton,
-    ToggleButtonGroup,
-    Tooltip,
-    tooltipClasses,
-    TooltipProps,
-    Zoom
-} from '@mui/material';
+import {Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types';
-import {styled} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {AbstractEntity, PneButton, PneCheckbox, PneTextField} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 import {useMultigetSelectStore} from "./state/store";
@@ -59,7 +45,7 @@ export const MultigetSelect = (props: Props) => {
         currentPage,
         setCurrentPage,
         setHasNextPage,
-    } = useMultigetSelectStore((store) => ({
+    } = useMultigetSelectStore()((store) => ({
         filterType: store.filterType,
         setFilterType: store.setFilterType,
         onlyEnabledStatus: store.onlyEnabledStatus,
@@ -109,7 +95,8 @@ export const MultigetSelect = (props: Props) => {
         filterType,
         currentPage,
         onlyEnabledStatus,
-    ]);
+        linkedMultigetCriteria,
+    ])
 
     const getSelectedItemsByFilterType = (): AbstractEntity[] => {
         if (filterType === MultichoiceFilterTypeEnum.ALL) {
