@@ -10,6 +10,14 @@ const PAGE_NUMBER_SETTING_NAME = 'page_number'
 const SORT_INDEX_SETTING_NAME = 'sort_index'
 const SORT_ORDER_ASC_SETTING_NAME = 'sort_asc'
 
+type FetchDataArgs = {
+    page: number,
+    pageSize: number,
+    order: Order,
+    sortIndex: number,
+    extraDeps?: unknown[]
+}
+
 export type UseTableParams<D> = {
     displayOptions?: Partial<TableDisplayOptions>
     onDisplayOptionsChange?: (options: TableDisplayOptions) => void
@@ -17,13 +25,7 @@ export type UseTableParams<D> = {
     rowsPerPageOptions?: RowsPerPageOption[]
     settingsContextName?: string
     dataUseState?: [D[], Dispatch<SetStateAction<D[]>>]
-    fetchData?: (args: {
-        page: number,
-        pageSize: number,
-        order: Order,
-        sortIndex: number,
-        extraDeps?: unknown[]
-    }) => Promise<D[]>,
+    fetchData?: (args: FetchDataArgs) => Promise<D[]>,
     fetchDataExtraDeps?: unknown[]
 }
 
@@ -216,16 +218,42 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         fetchDataDeps.push(...fetchDataExtraDeps)
     }
 
+    const shouldSkipFetchDate = useRef(false)
     useEffect(() => {
-        if (fetchData) {
-            fetchData({
-                page: pageNumber,
-                pageSize,
-                order,
-                sortIndex,
-                extraDeps: fetchDataExtraDeps,
-            }).then(afterDataFetch)
+        if (shouldSkipFetchDate.current) {
+            shouldSkipFetchDate.current = false
+            return
         }
+
+        const asyncFetchData = async (args: FetchDataArgs) => {
+            if (fetchData) {
+                try {
+                    let data = await fetchData(args)
+
+                    // Если получаем пустой массив, то проверим, первая ли это страница. Если нет, то, вероятно,
+                    // с новыми параметрами поиска сервер отдает меньший массив данных, и нам нужно сбросить страницу
+                    // на первую
+                    if (data.length === 0 && args.page > 0) {
+                        // пробуем получить первую страницу данных с новыми параметрами поиска
+                        data = await fetchData({...args, page: 0})
+                        // надо предотвратить следующую перерисовку из-за измененного pageNumber
+                        shouldSkipFetchDate.current = true
+                        setPageNumber(0)
+                    }
+                    afterDataFetch(data)
+                } catch (err) {
+                    console.error(err)
+                }
+            }
+        }
+
+        asyncFetchData({
+            page: pageNumber,
+            pageSize,
+            order,
+            sortIndex,
+            extraDeps: fetchDataExtraDeps,
+        })
     }, fetchDataDeps)
 
     const useSimpleFetch = (getter: () => Promise<D[]>) => {

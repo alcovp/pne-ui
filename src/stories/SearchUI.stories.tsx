@@ -8,7 +8,7 @@ import {SearchUIProvider} from "../component/search-ui/SearchUIProvider";
 type DataType = AbstractEntity
 
 const getList = async (searchParams: SearchParams): Promise<DataType[]> => {
-    console.log('getList call')
+    console.log('getList call:\n' + JSON.stringify(searchParams))
     let data: DataType[] = []
     for (let i = 1; i <= 999; i++) {
         data.push({id: i, displayName: 'John ' + i})
@@ -23,11 +23,8 @@ const getList = async (searchParams: SearchParams): Promise<DataType[]> => {
     }
 
     if (searchParams.exactSearchValue) {
-        console.log(searchParams.exactSearchValue)
-        console.log(searchParams.exactSearchLabel)
         data = data.filter(item => {
             if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.ID) {
-                console.log(searchParams.exactSearchValue)
                 return item.id === +ensure(searchParams.exactSearchValue)
             } else if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.NAME) {
                 return item.displayName.includes(searchParams.exactSearchValue || '')
