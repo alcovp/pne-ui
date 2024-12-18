@@ -77,6 +77,7 @@ export const MultigetSelect = (props: Props) => {
     ])
 
     useEffect(() => {
+        setLoading(true)
         getMatchLinkedItems({
             type: multigetCriterion.entityType,
             searchString: searchLabel !== 'all' ? (searchLabel + ':' + searchString) : searchString,
@@ -86,9 +87,13 @@ export const MultigetSelect = (props: Props) => {
             criteria: linkedMultigetCriteria,
         })
             .then(entities => {
-                setAvailableItems(entities)
+                if (!entities.length && currentPage > 1) {
+                    setCurrentPage(1)
+                } else {
+                    setAvailableItems(entities)
+                    setLoading(false)
+                }
                 setHasNextPage(entities.length > MULTIGET_PAGE_SIZE)
-                setLoading(false)
             })
             // .catch(raiseUIError);
             .catch(console.error)
