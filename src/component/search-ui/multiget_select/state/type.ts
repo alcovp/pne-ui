@@ -12,6 +12,7 @@ export type MultigetSelectState = {
     selectedItems: AbstractEntity[]
     currentPage: number
     hasNextPage: boolean
+    isLoading: boolean
 }
 
 export type MultigetSelectActions = {
@@ -23,6 +24,7 @@ export type MultigetSelectActions = {
     setSelectedItems: (items: AbstractEntity[]) => void
     setCurrentPage: (currentPage: number) => void
     setHasNextPage: (hasNextPage: boolean) => void
+    setLoading: (isLoading: boolean) => void
 }
 
-export type MultigetSearchLabel = 'all' | 'mid' | 'description'
+export type MultigetSearchLabel = 'all' | 'mid' | 'descriptor'

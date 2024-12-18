@@ -18,6 +18,8 @@ export const MultigetSelectTable = () => {
         currentPage,
         setCurrentPage,
         hasNextPage,
+        isLoading,
+        setLoading,
     } = useMultigetSelectStore()((store) => ({
         filterType: store.filterType,
         availableItems: store.availableItems,
@@ -26,6 +28,8 @@ export const MultigetSelectTable = () => {
         currentPage: store.currentPage,
         setCurrentPage: store.setCurrentPage,
         hasNextPage: store.hasNextPage,
+        isLoading: store.isLoading,
+        setLoading: store.setLoading,
     }))
 
     const onEntityClick = (entity: AbstractEntity) => {
@@ -71,8 +75,13 @@ export const MultigetSelectTable = () => {
                 siblingCount={0}
                 showFirstButton
                 onChange={(event, value: number) => {
+                    if (value === currentPage) {
+                        return
+                    }
+                    setLoading(true)
                     setCurrentPage(value)
                 }}
+                disabled={isLoading}
                 size='small'
                 shape='rounded'
             />

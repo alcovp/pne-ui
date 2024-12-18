@@ -63,19 +63,23 @@ const HookWrap = () => {
                 id: 99,
                 displayName: 'BBB',
             }),
-            getMatchLinkedItems: async () => [
-                {id: 1, displayName: '(1) name1'},
-                {id: 2, displayName: '(2) name2'},
-                {id: 3, displayName: '(3) name3asdasdasd asd asdasd a sasdasdasdasdasdasd'},
-                {id: 4, displayName: '(4) name1'},
-                {id: 5, displayName: '(5) name2'},
-                {id: 6, displayName: '(6) name3'},
-                {id: 7, displayName: '(7) name1'},
-                {id: 8, displayName: '(8) name2'},
-                {id: 9, displayName: '(9) name3'},
-                {id: 10, displayName: '(10) name1'},
-                {id: 11, displayName: '(11) name2'},
-            ],
+            getMatchLinkedItems: async () => {
+                await new Promise(resolve => setTimeout(resolve, 400))
+
+                return [
+                    {id: 1, displayName: '(1) name1'},
+                    {id: 2, displayName: '(2) name2'},
+                    {id: 3, displayName: '(3) name3asdasdasd asd asdasd a sasdasdasdasdasdasd'},
+                    {id: 4, displayName: '(4) name1'},
+                    {id: 5, displayName: '(5) name2'},
+                    {id: 6, displayName: '(6) name3'},
+                    {id: 7, displayName: '(7) name1'},
+                    {id: 8, displayName: '(8) name2'},
+                    {id: 9, displayName: '(9) name3'},
+                    {id: 10, displayName: '(10) name1'},
+                    {id: 11, displayName: '(11) name2'},
+                ]
+            },
             showGatesCriterion: () => true,
             showProjectsCriterion: () => true,
         }}

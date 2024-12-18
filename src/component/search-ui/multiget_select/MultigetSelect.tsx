@@ -45,6 +45,7 @@ export const MultigetSelect = (props: Props) => {
         currentPage,
         setCurrentPage,
         setHasNextPage,
+        setLoading,
     } = useMultigetSelectStore()((store) => ({
         filterType: store.filterType,
         setFilterType: store.setFilterType,
@@ -60,6 +61,7 @@ export const MultigetSelect = (props: Props) => {
         currentPage: store.currentPage,
         setCurrentPage: store.setCurrentPage,
         setHasNextPage: store.setHasNextPage,
+        setLoading: store.setLoading,
     }))
 
     useEffect(() => {
@@ -86,6 +88,7 @@ export const MultigetSelect = (props: Props) => {
             .then(entities => {
                 setAvailableItems(entities)
                 setHasNextPage(entities.length > MULTIGET_PAGE_SIZE)
+                setLoading(false)
             })
             // .catch(raiseUIError);
             .catch(console.error)
@@ -198,14 +201,16 @@ export const MultigetSelect = (props: Props) => {
                 {showGateSearchLabels ? <ToggleButtonGroup
                     value={searchLabel}
                     exclusive
-                    onChange={(e, value: MultigetSearchLabel) => {
-                        setSearchLabel(value)
+                    onChange={(e, value: MultigetSearchLabel | null) => {
+                        if (value !== null) {
+                            setSearchLabel(value)
+                        }
                     }}
                     size="small"
                 >
-                    <ToggleButton value={'all'} sx={toggleSx}>{t('react.searchUI.all')}</ToggleButton>
-                    <ToggleButton value={'mid'} sx={toggleSx}>{t('MID')}</ToggleButton>
-                    <ToggleButton value={'description'} sx={toggleSx}>{t('react.searchUI.description')}</ToggleButton>
+                    <ToggleButton value={'all' satisfies MultigetSearchLabel} sx={toggleSx}>{t('react.searchUI.all')}</ToggleButton>
+                    <ToggleButton value={'mid' satisfies MultigetSearchLabel} sx={toggleSx}>{t('MID')}</ToggleButton>
+                    <ToggleButton value={'descriptor' satisfies MultigetSearchLabel} sx={toggleSx}>{t('react.searchUI.descriptor')}</ToggleButton>
                 </ToggleButtonGroup> : null}
             </Box>
             <Divider/>

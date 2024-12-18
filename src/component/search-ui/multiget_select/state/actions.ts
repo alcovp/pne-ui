@@ -46,5 +46,10 @@ export const getMultigetSelectActions = (
         set((draft) => {
             draft.hasNextPage = hasNextPage
         })
-    }
+    },
+    setLoading: isLoading => {
+        set((draft) => {
+            draft.isLoading = isLoading
+        })
+    },
 })

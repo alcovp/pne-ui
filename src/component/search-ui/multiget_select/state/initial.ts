@@ -10,4 +10,5 @@ export const getMultigetSelectInitialState = (): MultigetSelectState => ({
     selectedItems: [],
     currentPage: 1,
     hasNextPage: false,
+    isLoading: false,
 })

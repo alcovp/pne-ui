@@ -6,8 +6,6 @@ import {getMultigetSelectInitialState} from './initial';
 import {createContext, useContext} from 'react';
 
 export const createIsolatedMultigetSelectStore = () => {
-    console.log('createIsolatedMultigetSelectStore')
-
     return create<MultigetSelectStore>()(
         immer(
             (set, get) => ({
