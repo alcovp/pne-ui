@@ -99,7 +99,13 @@ const HookWrap = () => {
                 CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.STATUS,
             ]}
-            searchData={Service.getList}
+            searchData={(searchParams) => {
+                console.log(JSON.stringify({
+                    searchLabel: searchParams.exactSearchLabel,
+                    searchString: searchParams.exactSearchValue,
+                }, null, 4))
+                return Service.getList(searchParams)
+            }}
             dataUseState={[data, setData]}
             initialSearchConditions={{
                 transactionTypes: {all: true, list: []},
