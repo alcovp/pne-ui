@@ -232,6 +232,8 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                 try {
                     let data = await fetchData(args)
 
+                    console.log('data: ', data)
+
                     /**
                      * Если получаем пустой массив, то проверим, первая ли это страница. Если нет, то, вероятно,
                      * с новыми параметрами поиска сервер отдает меньший массив данных, и нам нужно сбросить страницу

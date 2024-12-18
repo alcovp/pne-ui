@@ -1,4 +1,11 @@
-import {AbstractEntity, ExactCriterionSearchLabelEnum, PneHeaderTableCell, PneTableCell, PneTableRow, ensure} from "../index";
+import {
+    AbstractEntity,
+    ensure,
+    ExactCriterionSearchLabelEnum,
+    PneHeaderTableCell,
+    PneTableCell,
+    PneTableRow
+} from "../index";
 import React, {useState} from "react";
 import {SearchParams, SearchUI} from "../component/search-ui/SearchUI";
 import {CriterionTypeEnum} from "../component/search-ui/filters/types";
@@ -7,40 +14,45 @@ import {SearchUIProvider} from "../component/search-ui/SearchUIProvider";
 
 type DataType = AbstractEntity
 
-const getList = async (searchParams: SearchParams): Promise<DataType[]> => {
-    console.log('getList call:\n' + JSON.stringify(searchParams))
-    let data: DataType[] = []
-    for (let i = 1; i <= 999; i++) {
-        data.push({id: i, displayName: 'John ' + i})
-    }
-    await new Promise(resolve => setTimeout(resolve, 400))
+class Service {
 
-    if (searchParams.multigetCriteria.length) {
-        data = data.filter(item => {
-            const ids = searchParams.multigetCriteria[0].selectedItems.split(',')
-            return ids.some(some => +some === item.id)
-        })
+    static async getList(searchParams: SearchParams): Promise<DataType[]> {
+        console.log('getList call:\n' + JSON.stringify(searchParams))
+        let data: DataType[] = []
+        for (let i = 1; i <= 999; i++) {
+            data.push({id: i, displayName: 'John ' + i})
+        }
+        await new Promise(resolve => setTimeout(resolve, 400))
+
+        if (searchParams.multigetCriteria.length) {
+            data = data.filter(item => {
+                const ids = searchParams.multigetCriteria[0].selectedItems.split(',')
+                return ids.some(some => +some === item.id)
+            })
+        }
+
+        if (searchParams.exactSearchValue) {
+            data = data.filter(item => {
+                if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.ID) {
+                    return item.id === +ensure(searchParams.exactSearchValue)
+                } else if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.NAME) {
+                    return item.displayName.includes(searchParams.exactSearchValue || '')
+                } else {
+                    return true
+                }
+            })
+        }
+
+        const dataSlice = data.slice(
+            searchParams.startNum,
+            searchParams.startNum + searchParams.rowCount
+        )
+        return dataSlice
     }
 
-    if (searchParams.exactSearchValue) {
-        data = data.filter(item => {
-            if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.ID) {
-                return item.id === +ensure(searchParams.exactSearchValue)
-            } else if (searchParams.exactSearchLabel === ExactCriterionSearchLabelEnum.NAME) {
-                return item.displayName.includes(searchParams.exactSearchValue || '')
-            } else {
-                return true
-            }
-        })
-    }
-
-    const dataSlice = data.slice(
-        searchParams.startNum,
-        searchParams.startNum + searchParams.rowCount
-    )
-    return dataSlice
 }
 
+// TODO а потом посмотреть, почему сброс exact search criteria ставит label === null
 const HookWrap = () => {
 
     const [data, setData] = useState<DataType[]>([])
@@ -87,7 +99,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.STATUS,
             ]}
-            searchData={getList}
+            searchData={Service.getList}
             dataUseState={[data, setData]}
             initialSearchConditions={{
                 transactionTypes: {all: true, list: []},

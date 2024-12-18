@@ -10,6 +10,8 @@
         "**/*.stories.tsx"
     ],
     "compilerOptions": {
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
         "module": "ESNext",
         "target": "ESNext",
         "lib": [

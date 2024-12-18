@@ -17,5 +17,26 @@ const config: StorybookConfig = {
     docs: {
         autodocs: "tag",
     },
+    webpackFinal: async (config) => {
+        config.module?.rules?.push({
+            test: /\.(ts|tsx)$/,
+            exclude: /node_modules/,
+            use: [
+                {
+                    loader: "babel-loader",
+                    options: {
+                        presets: [
+                            "@babel/preset-env",
+                            "@babel/preset-typescript",
+                            "@babel/preset-react",
+                        ],
+                        plugins: [["@babel/plugin-proposal-decorators", {legacy: true}]],
+                    },
+                },
+            ],
+        });
+
+        return config;
+    },
 };
 export default config;
