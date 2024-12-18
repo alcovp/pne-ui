@@ -61,6 +61,7 @@ export const getSearchUIFiltersActions = (
             return {
                 ...draft,
                 ...getSearchUIInitialSearchCriteria(draft.defaults),
+                exactSearchLabel: draft.exactSearchLabels[0],
                 template: null,
                 criteria: draft.predefinedCriteria,
             }
@@ -370,7 +371,7 @@ const clearCriterionReducer = (
             draft.threeD = getSearchUIInitialSearchCriteria(draft.defaults).threeD
             break
         case CriterionTypeEnum.EXACT:
-            draft.exactSearchLabel = getSearchUIInitialSearchCriteria(draft.defaults).exactSearchLabel
+            draft.exactSearchLabel = draft.exactSearchLabels[0]
             draft.exactSearchValue = getSearchUIInitialSearchCriteria(draft.defaults).exactSearchValue
             break
         case CriterionTypeEnum.CURRENCY:

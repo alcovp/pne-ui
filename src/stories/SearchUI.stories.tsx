@@ -122,7 +122,7 @@ const HookWrap = () => {
                 </PneTableRow>
             }
             createTableRow={(item) =>
-                <PneTableRow>
+                <PneTableRow key={item.id}>
                     <PneTableCell>{item.id}</PneTableCell>
                     <PneTableCell>{item.displayName}</PneTableCell>
                 </PneTableRow>
