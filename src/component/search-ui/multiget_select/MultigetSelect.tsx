@@ -200,7 +200,7 @@ export const MultigetSelect = (props: Props) => {
                 <PneTextField
                     value={searchString}
                     onChange={onSearchChange}
-                    label={t('search')}
+                    placeholder={t('search')}
                     fullWidth
                 />
                 {showGateSearchLabels ? <ToggleButtonGroup
