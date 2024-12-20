@@ -1,5 +1,5 @@
 import React, {useContext, useEffect} from 'react';
-import {Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material';
+import {Alert, Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types';
 import {useTranslation} from 'react-i18next';
 import {AbstractEntity, PneButton, PneCheckbox, PneTextField} from '../../..';
@@ -169,6 +169,9 @@ export const MultigetSelect = (props: Props) => {
         LinkedEntityTypeEnum.COMPANY,
     ].some(type => type === multigetCriterion.entityType)
 
+    const showPoorSearchEngineImplementationAlert = /\s/.test(searchString) && searchLabel !== 'all'
+    const poorSearchEngineImplementationAlert = t('react.searchUI.poorSearchEngine')
+
     return <>
         <Box sx={{display: 'flex', flexDirection: 'column', rowGap: '16px'}}>
             <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -211,13 +214,26 @@ export const MultigetSelect = (props: Props) => {
                             setSearchLabel(value)
                         }
                     }}
+                    sx={{display: 'flex', flex: '0 0 1'}}
                     size="small"
                 >
-                    <ToggleButton value={'all' satisfies MultigetSearchLabel} sx={toggleSx}>{t('react.searchUI.all')}</ToggleButton>
-                    <ToggleButton value={'mid' satisfies MultigetSearchLabel} sx={toggleSx}>{t('MID')}</ToggleButton>
-                    <ToggleButton value={'descriptor' satisfies MultigetSearchLabel} sx={toggleSx}>{t('react.searchUI.descriptor')}</ToggleButton>
+                    <ToggleButton
+                        value={'all' satisfies MultigetSearchLabel}
+                        sx={toggleSx}
+                    >{t('react.searchUI.all')}</ToggleButton>
+                    <ToggleButton
+                        value={'mid' satisfies MultigetSearchLabel}
+                        sx={toggleSx}
+                    >{t('MID')}</ToggleButton>
+                    <ToggleButton
+                        value={'descriptor' satisfies MultigetSearchLabel}
+                        sx={toggleSx}
+                    >{t('react.searchUI.descriptor')}</ToggleButton>
                 </ToggleButtonGroup> : null}
             </Box>
+            {showPoorSearchEngineImplementationAlert ? <Alert severity='warning'>
+                {poorSearchEngineImplementationAlert}
+            </Alert> : null}
             <Divider/>
             <MultigetSelectTable/>
             <Divider/>
