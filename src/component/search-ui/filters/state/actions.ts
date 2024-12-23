@@ -43,6 +43,8 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(isoWeek)
 
+const LAST_TEMPLATE_NAME = 'last_template_name'
+
 export const getSearchUIFiltersActions = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
@@ -99,6 +101,8 @@ export const getSearchUIFiltersActions = (
             templateName: templateName,
         })
             .then(() => {
+                localStorage.setItem(LAST_TEMPLATE_NAME, template.name)
+
                 set((draft) => {
                     draft.templates.push(template)
                     draft.template = template
@@ -153,6 +157,8 @@ export const getSearchUIFiltersActions = (
             )
         }
 
+        localStorage.setItem(LAST_TEMPLATE_NAME, template.name)
+
         set((draft) => {
             return {
                 ...draft,
@@ -168,6 +174,12 @@ export const getSearchUIFiltersActions = (
                 set((draft) => {
                     draft.templates = templates
                 })
+
+                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME)
+                const lastTemplate = templates.find(t => t.name === lastTemplateName)
+                if (lastTemplate) {
+                    get().setTemplate(lastTemplate)
+                }
             })
             // .catch(raiseUIError)
             .catch(console.error)
