@@ -81,6 +81,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         exactSearchLabel: undefined,
         exactSearchValue: '',
         currencies: searchUIInitialAllableCollection,
+        orderDateType: 'SESSION_STATUS_CHANGED',
         dateRangeSpec: {
             dateRangeSpecType: 'TODAY',
             dateFrom: searchUIInitialDateFrom.tz('Europe/Moscow', true).toDate(),

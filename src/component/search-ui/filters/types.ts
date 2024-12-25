@@ -15,6 +15,7 @@ export enum CriterionTypeEnum {
     GATE = 'GATE',
     DEALER = 'DEALER',
     DATE_RANGE = 'DATE_RANGE',
+    DATE_RANGE_ORDERS = 'DATE_RANGE_ORDERS',
     PROJECT_CURRENCY = 'PROJECT_CURRENCY',
     CARD_TYPES = 'CARD_TYPES',
     GROUPING = 'GROUPING',
@@ -25,6 +26,16 @@ export enum CriterionTypeEnum {
     MARKER_TYPE = 'MARKER_TYPE',
     MARKER_STATUS = 'MARKER_STATUS',
 }
+
+export const ORDER_DATE_TYPES = [
+    'SESSION_CREATED',
+    'SESSION_STATUS_CHANGED',
+    'TX_CREATED',
+    'BANK',
+    'TX_SETTLED',
+    'TX_UNSETTLED',
+] as const
+export type OrderDate = typeof ORDER_DATE_TYPES[number];
 
 export const DATE_RANGE_SPEC_TYPES = [
     'EXACTLY',
@@ -180,6 +191,7 @@ export type SearchCriteria = {
     currencies: number[]
     dateFrom: Date | null
     dateTo: Date | null
+    orderDateType: OrderDate
     cardTypes: number[]
     transactionTypes: number[]
     projectCurrencyId: number | null
@@ -202,6 +214,7 @@ export type SearchUIConditions = {
     exactSearchLabel: ExactCriterionSearchLabelEnum | undefined
     exactSearchValue: string
     currencies: AbstractEntityAllableCollection
+    orderDateType: OrderDate
     dateRangeSpec: DateRangeSpec
     cardTypes: AbstractEntityAllableCollection
     transactionTypes: AbstractEntityAllableCollection

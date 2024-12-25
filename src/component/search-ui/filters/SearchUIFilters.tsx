@@ -15,6 +15,7 @@ export type SearchUIFiltersConfig = {
     conflictingCriteriaGroups?: CriterionTypeEnum[][]
     removablePredefinedCriteria?: CriterionTypeEnum[]
     hideTemplatesSelect?: boolean
+    hideShowFiltersButton?: boolean
 }
 
 type Props = {
@@ -56,6 +57,7 @@ export const SearchUIFilters = (props: Props) => {
         addCriterion,
         conflictingCriteriaGroups,
         hideTemplatesSelect,
+        hideShowFiltersButton,
         exactSearchLabel,
     } = useSearchUIFiltersStore((store) => ({
         setInitialState: store.setInitialState,
@@ -65,6 +67,7 @@ export const SearchUIFilters = (props: Props) => {
         addCriterion: store.addCriterion,
         conflictingCriteriaGroups: store.config?.conflictingCriteriaGroups,
         hideTemplatesSelect: store.config?.hideTemplatesSelect,
+        hideShowFiltersButton: store.config?.hideShowFiltersButton,
         exactSearchLabel: store.exactSearchLabel,
     }))
 
@@ -107,7 +110,7 @@ export const SearchUIFilters = (props: Props) => {
 
     return <Box sx={{px: '16px'}}>
         <Box sx={headerSx}>
-            <IconButton
+            {hideShowFiltersButton ? null : <IconButton
                 onClick={() => setShowFilters(prev => !prev)}
                 size={'small'}
                 color={'pneTransparent'}
@@ -116,7 +119,7 @@ export const SearchUIFilters = (props: Props) => {
                     fontSize={'small'}
                     sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
                 />
-            </IconButton>
+            </IconButton>}
             <Box sx={titleSx} component={'span'}>{t('react.searchUI.filters')}</Box>
             {showFiltersCountChip ? <Chip
                 size={'small'}

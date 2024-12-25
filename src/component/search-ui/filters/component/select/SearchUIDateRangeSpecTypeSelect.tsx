@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {DateRangeSpecType} from '../../types';
+import {DATE_RANGE_SPEC_TYPES, DateRangeSpecType} from '../../types';
 import {Box, Chip, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
@@ -7,29 +7,20 @@ import {ExpandMore} from '@mui/icons-material';
 import {selectUnderChipSx} from './style';
 import {PneSelect} from '../../../../..';
 
-interface IProps {
-    value: DateRangeSpecType
-    onChange: (value: DateRangeSpecType) => void
-    options: readonly DateRangeSpecType[]
-}
-
-const SearchUIDateRangeSpecTypeSelect = (props: IProps) => {
+const SearchUIDateRangeSpecTypeSelect = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.DateRangeSpecType'})
     const {
-        value,
-        onChange,
-        options,
-    } = props
-    const {
-        dateRangeSpecType
+        dateRangeSpec,
+        setDateRangeCriterion,
     } = useSearchUIFiltersStore((store) => ({
-        dateRangeSpecType: store.dateRangeSpec.dateRangeSpecType,
+        dateRangeSpec: store.dateRangeSpec,
+        setDateRangeCriterion: store.setDateRangeCriterion,
     }))
     const [open, setOpen] = useState(false)
 
-    const withInputNear = dateRangeSpecType === 'EXACTLY'
-        || dateRangeSpecType === 'DAYS_BEFORE'
-        || dateRangeSpecType === 'HOURS_BEFORE'
+    const withInputNear = dateRangeSpec.dateRangeSpecType === 'EXACTLY'
+        || dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE'
+        || dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
 
     const selectSx: SxProps = {
         flexShrink: 0,
@@ -42,11 +33,18 @@ const SearchUIDateRangeSpecTypeSelect = (props: IProps) => {
         ...selectUnderChipSx
     }
 
+    const handleSetDateRangeSpecType = (dateRangeSpecType: DateRangeSpecType) => {
+        setDateRangeCriterion({
+            ...dateRangeSpec,
+            dateRangeSpecType: dateRangeSpecType,
+        })
+    }
+
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
             deleteIcon={<ExpandMore/>}
-            label={optionRenderer(value)}
+            label={optionRenderer(dateRangeSpec.dateRangeSpecType)}
             size={'small'}
         />
         <PneSelect
@@ -55,9 +53,9 @@ const SearchUIDateRangeSpecTypeSelect = (props: IProps) => {
             onOpen={() => setOpen(true)}
             sx={selectSx}
             getOptionLabel={opt => optionRenderer(opt.label)}
-            value={value}
-            onChange={(value) => onChange(value as DateRangeSpecType)}
-            options={options}
+            value={dateRangeSpec.dateRangeSpecType}
+            onChange={dateRangeSpec => handleSetDateRangeSpecType(dateRangeSpec as DateRangeSpecType)}
+            options={DATE_RANGE_SPEC_TYPES}
         />
     </Box>
 }

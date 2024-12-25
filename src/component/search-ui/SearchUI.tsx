@@ -81,6 +81,7 @@ export const SearchUI = <D, >(props: Props<D>) => {
                 currencies: searchCriteria.currencies,
                 dateFrom: searchCriteria.dateFrom,
                 dateTo: searchCriteria.dateTo,
+                orderDateType: searchCriteria.orderDateType,
                 cardTypes: searchCriteria.cardTypes,
                 transactionTypes: searchCriteria.transactionTypes,
                 projectCurrencyId: searchCriteria.projectCurrencyId,

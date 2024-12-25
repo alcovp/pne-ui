@@ -226,6 +226,12 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
+    setDateRangeCriterionOrderDateType: orderDateType => {
+        set((draft) => {
+            draft.orderDateType = orderDateType
+        })
+        checkIfFiltersChanged(set, get)
+    },
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => {
         let spec = dateRangeSpec
 
@@ -354,6 +360,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.STATUS:
         case CriterionTypeEnum.THREE_D:
         case CriterionTypeEnum.DATE_RANGE:
+        case CriterionTypeEnum.DATE_RANGE_ORDERS:
         case CriterionTypeEnum.PROJECT_CURRENCY:
         case CriterionTypeEnum.CARD_TYPES:
         case CriterionTypeEnum.TRANSACTION_TYPES:
@@ -388,6 +395,10 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.CURRENCY:
             draft.currencies = searchUIInitialAllableCollection
+            break
+        case CriterionTypeEnum.DATE_RANGE_ORDERS:
+            draft.orderDateType = 'SESSION_STATUS_CHANGED'
+            draft.dateRangeSpec = getSearchUIInitialSearchCriteria(draft.defaults).dateRangeSpec
             break
         case CriterionTypeEnum.DATE_RANGE:
             draft.dateRangeSpec = getSearchUIInitialSearchCriteria(draft.defaults).dateRangeSpec
@@ -564,6 +575,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         currencies: extractEntitiesIds(state.currencies),
         dateFrom: extractDateFrom(state.dateRangeSpec),
         dateTo: extractDateTo(state.dateRangeSpec),
+        orderDateType: state.orderDateType,
         cardTypes: extractEntitiesIds(state.cardTypes),
         transactionTypes: extractEntitiesIds(state.transactionTypes),
         projectCurrencyId: state.projectCurrency.currency.id,
@@ -588,6 +600,7 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         status: store.status,
         currencies: store.currencies,
         threeD: store.threeD,
+        orderDateType: store.orderDateType,
         dateRangeSpec: store.dateRangeSpec,
         projectCurrency: store.projectCurrency,
         cardTypes: store.cardTypes,

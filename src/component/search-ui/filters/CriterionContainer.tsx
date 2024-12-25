@@ -87,6 +87,8 @@ export const CriterionContainer = (props: IProps) => {
                 return <CurrenciesCriterion/>
             case CriterionTypeEnum.DATE_RANGE:
                 return <DateRangeCriterion/>
+            case CriterionTypeEnum.DATE_RANGE_ORDERS:
+                return <DateRangeCriterion showOrdersDateType/>
             case CriterionTypeEnum.PROJECT_CURRENCY:
                 return <ProjectCurrencyCriterion/>
             case CriterionTypeEnum.CARD_TYPES:

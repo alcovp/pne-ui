@@ -94,19 +94,26 @@ const HookWrap = () => {
             possibleCriteria={[
                 CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.STATUS,
-                CriterionTypeEnum.GATE,
-                CriterionTypeEnum.PROJECT,
-                CriterionTypeEnum.GROUPING,
-                CriterionTypeEnum.PROJECT_CURRENCY,
+                CriterionTypeEnum.DATE_RANGE_ORDERS,
+                // CriterionTypeEnum.GATE,
+                // CriterionTypeEnum.PROJECT,
+                // CriterionTypeEnum.GROUPING,
+                // CriterionTypeEnum.PROJECT_CURRENCY,
             ]}
             predefinedCriteria={[
+                CriterionTypeEnum.DATE_RANGE_ORDERS,
                 CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.STATUS,
             ]}
+            config={{
+                hideShowFiltersButton: true,
+                hideTemplatesSelect: true,
+            }}
             searchData={(searchParams) => {
                 console.log(JSON.stringify({
                     searchLabel: searchParams.exactSearchLabel,
                     searchString: searchParams.exactSearchValue,
+                    orderDateType: searchParams.orderDateType,
                 }, null, 4))
                 return Service.getList(searchParams)
             }}

@@ -4,9 +4,12 @@ import {
     ExactCriterionSearchLabelEnum,
     GroupingDateType,
     GroupingType,
+    MarkerStatusCriterion,
     MultigetCriterion,
+    OrderDate,
     SearchCriteria,
-    SearchUIConditions, MarkerStatusCriterion, SearchUITemplate,
+    SearchUIConditions,
+    SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
 } from '../types';
@@ -48,6 +51,7 @@ export type SearchUIFiltersActions = {
     setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => void
     setExactCriterionSearchValue: (searchValue: string) => void
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => void
+    setDateRangeCriterionOrderDateType: (orderDateType: OrderDate) => void
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => void
     setProjectCurrencyCriterionCurrency: (currency: AbstractEntity) => void
     setProjectCurrencyCriterionConvertFlag: (convertToUserCurrency: boolean) => void

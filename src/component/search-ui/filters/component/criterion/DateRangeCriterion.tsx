@@ -1,25 +1,36 @@
 import React, {ChangeEvent} from 'react';
-import {DATE_RANGE_SPEC_TYPES, DateRangeSpecType} from '../../types';
+import {DateRangeSpecType} from '../../types';
 import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect';
 import dayjs, {Dayjs} from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import {SxProps} from '@mui/material';
+import {Box, SxProps} from '@mui/material';
 import {DateRange, DateRangePicker, LocalizationProvider} from '@mui/x-date-pickers-pro'; //TODO migration
 import {AdapterDayjs} from '@mui/x-date-pickers-pro/AdapterDayjs';
 import {useSearchUIFiltersStore} from '../../state/store';
 import timezone from 'dayjs/plugin/timezone';
 import {PneTextField} from '../../../../..';
+import {SearchUIOrderDateTypeSelect} from "../select/SearchUIOrderDateTypeSelect";
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
-export const DateRangeCriterion = () => {
+type Props = {
+    showOrdersDateType?: boolean
+}
+
+export const DateRangeCriterion = (props: Props) => {
+    const {showOrdersDateType} = props
+
     const {
         dateRangeSpec,
         setDateRangeCriterion,
+        orderDateType,
+        setDateRangeCriterionOrderDateType,
     } = useSearchUIFiltersStore((store) => ({
         dateRangeSpec: store.dateRangeSpec,
         setDateRangeCriterion: store.setDateRangeCriterion,
+        orderDateType: store.orderDateType,
+        setDateRangeCriterionOrderDateType: store.setDateRangeCriterionOrderDateType,
     }))
 
     const changeBeforeCount = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -70,11 +81,10 @@ export const DateRangeCriterion = () => {
     ]
 
     return <>
-        <SearchUIDateRangeSpecTypeSelect
-            value={dateRangeSpec.dateRangeSpecType}
-            options={DATE_RANGE_SPEC_TYPES}
-            onChange={handleSetDateRangeSpecType}
-        />
+        <Box sx={{display: 'flex', gap: '5px'}}>
+            {showOrdersDateType ? <SearchUIOrderDateTypeSelect/> : null}
+            <SearchUIDateRangeSpecTypeSelect/>
+        </Box>
         {withInputNear
             ? exactDates
                 ? <LocalizationProvider dateAdapter={AdapterDayjs}>
