@@ -49,10 +49,15 @@ import {PneDropdownChoice} from './common/paynet/dropdown'
 import {AutoTestAttribute} from './component/AutoTestAttribute'
 import {getSearchUIInitialState} from './component/search-ui/state/initial'
 import {PneButtonGroup} from './component/PneButtonGroup'
+import {Skin} from './common/paynet/skin'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
 declare module '@mui/material/styles' {
+    interface Theme {
+        skin: Skin
+    }
+
     interface Palette {
         pneNeutral: Palette['primary']
         pnePrimary: Palette['primary']
@@ -71,6 +76,11 @@ declare module '@mui/material/styles' {
         pneWarningLight: PaletteOptions['primary']
         pneText: PaletteOptions['primary']
         pneTransparent: PaletteOptions['primary']
+    }
+
+    // allow configuration using `createTheme`
+    interface ThemeOptions {
+        skin: Skin
     }
 }
 
@@ -144,5 +154,6 @@ export {
     PneDropdownChoice,
     AutoTestAttribute,
     getSearchUIInitialState,
+    Skin,
 }
 export * from './common'

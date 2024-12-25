@@ -2,18 +2,20 @@ import React from 'react';
 import {SxProps} from '@mui/material/styles';
 import AbstractHeaderTableCell from './AbstractHeaderTableCell';
 import {TableCellProps} from '@mui/material';
+import {usePneTheme} from "../../usePneTheme";
 
 const PneHeaderTableCell = (props: TableCellProps) => {
     const {
         sx,
         children,
         ...rest
-    } = props;
+    } = props
+
+    const theme = usePneTheme()
 
     const _sx: SxProps = [
         {
-            //TODO use theme
-            borderBottom: '1px solid #D3E7FF',
+            borderBottom: `1px solid ${theme.palette.primary.light}`,
             background: 'transparent',
         },
         ...(Array.isArray(sx) ? sx : [sx])

@@ -2,10 +2,10 @@ import React from 'react';
 import {SxProps} from '@mui/material/styles';
 import AbstractTableCell from './AbstractTableCell';
 import {TableCellProps} from '@mui/material';
-// import { usePaynetTheme } from '../../theme/usePaynetTheme';
+import {usePneTheme} from '../../usePneTheme';
 
 const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
-    // const theme = usePaynetTheme();
+    const theme = usePneTheme()
 
     const {
         sx,
@@ -17,8 +17,7 @@ const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
     const _sx: SxProps = [
         {
             padding: '9px 19px',
-            //TODO нужно добавить тему
-            // background: props.selected ? theme.palette.action.selected : '#fff',
+            background: props.selected ? theme.palette.action.selected : '#fff',
             border: 'none',
             color: '#4E5D78',
             position: 'relative',

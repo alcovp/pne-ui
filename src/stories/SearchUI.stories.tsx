@@ -52,7 +52,6 @@ class Service {
 
 }
 
-// TODO а потом посмотреть, почему сброс exact search criteria ставит label === null
 const HookWrap = () => {
 
     const [data, setData] = useState<DataType[]>([])

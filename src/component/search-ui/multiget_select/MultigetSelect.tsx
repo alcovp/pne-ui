@@ -7,7 +7,6 @@ import {SearchUIDefaultsContext} from "../SearchUIProvider";
 import {useMultigetSelectStore} from "./state/store";
 import {MultigetSearchLabel} from './state/type';
 import {MultigetSelectTable} from "./MultigetSelectTable";
-// import {usePaynetTheme} from '../../../../theme/usePaynetTheme'; //TODO migration
 // import {raiseUIError} from '../../../../error'; //TODO migration
 
 type Props = {
@@ -27,7 +26,6 @@ export const MultigetSelect = (props: Props) => {
         onCancel,
     } = props
     const {t} = useTranslation()
-    // const theme = usePaynetTheme()
     const {getMatchLinkedItems} = useContext(SearchUIDefaultsContext)
 
     const {

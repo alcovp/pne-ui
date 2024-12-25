@@ -7,6 +7,7 @@ import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
 import {AutoTestAttribute} from "../AutoTestAttribute";
 import {usePneTableStore} from "./state/store";
+// import {usePneTheme} from "../../usePneTheme";
 
 interface IPaginationActionsProps {
     count: number
@@ -36,6 +37,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         displayedRowsLabel,
         activeActionSx = {},
     } = paginator;
+
+    // const theme = usePneTheme()
 
     const {
         setNeedToScrollToPagination,
