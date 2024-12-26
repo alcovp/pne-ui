@@ -80,6 +80,8 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         threeD: ThreeDCriterionEnum.ANY,
         exactSearchLabel: undefined,
         exactSearchValue: '',
+        ordersSearchLabel: 'merchant_invoice_id',
+        ordersSearchValue: '',
         currencies: searchUIInitialAllableCollection,
         orderDateType: 'SESSION_STATUS_CHANGED',
         dateRangeSpec: {

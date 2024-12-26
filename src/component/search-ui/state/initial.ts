@@ -5,6 +5,8 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         initialized: false,
         exactSearchLabel: null,
         exactSearchValue: '',
+        ordersSearchLabel: null,
+        ordersSearchValue: '',
         status: null,
         threeD: null,
         currencies: [],

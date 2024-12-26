@@ -76,6 +76,8 @@ export const SearchUI = <D, >(props: Props<D>) => {
 
                 exactSearchLabel: searchCriteria.exactSearchLabel,
                 exactSearchValue: searchCriteria.exactSearchValue,
+                ordersSearchLabel: searchCriteria.ordersSearchLabel,
+                ordersSearchValue: searchCriteria.ordersSearchValue,
                 status: searchCriteria.status,
                 threeD: searchCriteria.threeD,
                 currencies: searchCriteria.currencies,

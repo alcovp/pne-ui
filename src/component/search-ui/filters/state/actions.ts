@@ -17,7 +17,7 @@ import {
     LinkedEntityTypeEnum,
     MarkerStatusCriterion,
     MultichoiceFilterTypeEnum,
-    MultigetCriterion,
+    MultigetCriterion, OrderSearchLabel,
     SearchCriteria,
     SearchUITemplate,
     StatusCriterion,
@@ -220,6 +220,26 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
+    setOrderSearchCriterionLabel: searchLabel => {
+        const oldLabel = get().ordersSearchLabel
+        set((draft) => {
+            draft.ordersSearchLabel = searchLabel
+        })
+
+        // если выбран новый по типу search label, то сбрасываем значение
+        if (OrdersSearchLabelsConfig[oldLabel].type !== OrdersSearchLabelsConfig[searchLabel].type) {
+            set((draft) => {
+                draft.ordersSearchValue = ''
+            })
+        }
+        checkIfFiltersChanged(set, get)
+    },
+    setOrderSearchCriterionValue: searchValue => {
+        set((draft) => {
+            draft.ordersSearchValue = searchValue
+        })
+        checkIfFiltersChanged(set, get)
+    },
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.currencies = currencies
@@ -357,6 +377,7 @@ const addInitialMultigetCriterionReducer = (
             break
         case CriterionTypeEnum.CURRENCY:
         case CriterionTypeEnum.EXACT:
+        case CriterionTypeEnum.ORDERS_SEARCH:
         case CriterionTypeEnum.STATUS:
         case CriterionTypeEnum.THREE_D:
         case CriterionTypeEnum.DATE_RANGE:
@@ -392,6 +413,10 @@ const clearCriterionReducer = (
         case CriterionTypeEnum.EXACT:
             draft.exactSearchLabel = draft.exactSearchLabels[0]
             draft.exactSearchValue = getSearchUIInitialSearchCriteria(draft.defaults).exactSearchValue
+            break
+        case CriterionTypeEnum.ORDERS_SEARCH:
+            draft.ordersSearchLabel = 'merchant_invoice_id'
+            draft.ordersSearchValue = ''
             break
         case CriterionTypeEnum.CURRENCY:
             draft.currencies = searchUIInitialAllableCollection
@@ -570,6 +595,8 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         initialized: true,
         exactSearchLabel: extractExactSearchLabel(state.exactSearchLabel),
         exactSearchValue: state.exactSearchValue,
+        ordersSearchLabel: state.ordersSearchLabel,
+        ordersSearchValue: state.ordersSearchValue,
         status: extractStatus(state.status),
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
@@ -597,6 +624,8 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         multigetCriteria: store.multigetCriteria,
         exactSearchLabel: store.exactSearchLabel,
         exactSearchValue: store.exactSearchValue,
+        ordersSearchLabel: store.ordersSearchLabel,
+        ordersSearchValue: store.ordersSearchValue,
         status: store.status,
         currencies: store.currencies,
         threeD: store.threeD,
@@ -676,4 +705,66 @@ const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => 
         dateTo: to.tz('Europe/Moscow', true).toDate(),
         beforeCount: dateRangeSpec.beforeCount
     }
+}
+
+type OrderSearchInputType = {
+    type: 'string' | 'integer' | 'amount' | 'ip' | 'country' | 'card6and4'
+    maxLength: number
+}
+
+export const OrdersSearchLabelsConfig: Readonly<Record<OrderSearchLabel, OrderSearchInputType>> = {
+    'merchant_invoice_id': {type: 'string', maxLength: 128},
+    'order_id': {type: 'integer', maxLength: 10},
+    'processor_order_id': {type: 'string', maxLength: 128},
+    'purpose': {type: 'string', maxLength: 128},
+    'transaction_amount': {type: 'amount', maxLength: 128},
+    'session_token': {type: 'string', maxLength: 36},
+    'customer_phone': {type: 'string', maxLength: 128},
+    'customer_email': {type: 'string', maxLength: 128},
+    'customer_ip': {type: 'ip', maxLength: 128},
+    'customer_ip_country': {type: 'country', maxLength: 128},
+    'customer_billing_country': {type: 'country', maxLength: 128},
+    'customer_dna_id': {type: 'integer', maxLength: 10},
+    'customer_id': {type: 'integer', maxLength: 10},
+    'batch_id': {type: 'integer', maxLength: 10},
+    'source_bank_name': {type: 'string', maxLength: 128},
+    'source_country': {type: 'country', maxLength: 128},
+    'source_from_order_id': {type: 'integer', maxLength: 10},
+    'source_bin': {type: 'integer', maxLength: 6},
+    'source_bin_range_from_order_id': {type: 'integer', maxLength: 10},
+    'source_last4': {type: 'string', maxLength: 4},
+    'source_bin_last4': {type: 'card6and4', maxLength: 128},
+    'source_auth_code': {type: 'string', maxLength: 10},
+    'source_arn': {type: 'string', maxLength: 64},
+    'source_rrn': {type: 'string', maxLength: 20},
+    'source_card_holder': {type: 'string', maxLength: 128},
+    'source_card_ref_id': {type: 'integer', maxLength: 10},
+    'dest_bank_name': {type: 'string', maxLength: 128},
+    'dest_country': {type: 'country', maxLength: 128},
+    'dest_from_order_id': {type: 'integer', maxLength: 10},
+    'dest_bin': {type: 'integer', maxLength: 6},
+    'dest_bin_range_from_order_id': {type: 'integer', maxLength: 10},
+    'dest_last4': {type: 'string', maxLength: 4},
+    'dest_bin_last': {type: 'card6and4', maxLength: 128},
+    'dest_auth_code': {type: 'string', maxLength: 10},
+    'dest_arn': {type: 'string', maxLength: 64},
+    'dest_rrn': {type: 'string', maxLength: 20},
+    'dest_card_ref_id': {type: 'integer', maxLength: 10},
+    'account_number': {type: 'string', maxLength: 64},
+    'routing_number': {type: 'string', maxLength: 16},
+    'reader_key_serial_number': {type: 'string', maxLength: 16},
+    'reader_device_serial_number': {type: 'string', maxLength: 16},
+    'device_serial_number': {type: 'string', maxLength: 64},
+    'phone_serial_number': {type: 'string', maxLength: 128},
+    'phone_imei': {type: 'string', maxLength: 128},
+    'reader_id': {type: 'string', maxLength: 128},
+    'registration_info_id': {type: 'string', maxLength: 128},
+    'inn': {type: 'string', maxLength: 128},
+    'mtcn': {type: 'string', maxLength: 128},
+    'rebill': {type: 'string', maxLength: 128},
+    'swift_number': {type: 'string', maxLength: 128},
+    'webmoney_account': {type: 'string', maxLength: 128},
+    'yamoney_account': {type: 'string', maxLength: 128},
+    'wire_account': {type: 'string', maxLength: 128},
+    'card_number_hash_hash': {type: 'integer', maxLength: 10},
 }

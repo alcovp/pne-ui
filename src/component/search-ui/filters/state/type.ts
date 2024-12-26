@@ -6,7 +6,7 @@ import {
     GroupingType,
     MarkerStatusCriterion,
     MultigetCriterion,
-    OrderDate,
+    OrderDate, OrderSearchLabel,
     SearchCriteria,
     SearchUIConditions,
     SearchUITemplate,
@@ -50,6 +50,8 @@ export type SearchUIFiltersActions = {
     setStatusCriterion: (status: StatusCriterion) => void
     setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => void
     setExactCriterionSearchValue: (searchValue: string) => void
+    setOrderSearchCriterionLabel: (searchLabel: OrderSearchLabel) => void
+    setOrderSearchCriterionValue: (searchValue: string) => void
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => void
     setDateRangeCriterionOrderDateType: (orderDateType: OrderDate) => void
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => void

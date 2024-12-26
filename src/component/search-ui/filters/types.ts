@@ -2,6 +2,7 @@ import {AbstractEntity, AbstractEntityAllableCollection, Status} from '../../..'
 
 export enum CriterionTypeEnum {
     EXACT = 'EXACT',
+    ORDERS_SEARCH = 'ORDERS_SEARCH',
     CURRENCY = 'CURRENCY',
     THREE_D = 'THREE_D',
     STATUS = 'STATUS',
@@ -117,6 +118,71 @@ export enum ThreeDCriterionEnum {
     YES = 'YES',
 }
 
+export const ORDER_SEARCH_LABELS = [
+    'merchant_invoice_id',
+    'order_id',
+    'processor_order_id',
+    'purpose',
+    'transaction_amount',
+    'session_token',
+
+    'customer_phone',
+    'customer_email',
+    'customer_ip',
+    'customer_ip_country',
+    'customer_billing_country',
+    'customer_dna_id',
+    'customer_id',
+    'batch_id',
+
+    'source_bank_name',
+    'source_country',
+    'source_from_order_id',
+    'source_bin',
+    'source_bin_range_from_order_id',
+    'source_last4',
+    'source_bin_last4',
+    'source_auth_code',
+    'source_arn',
+    'source_rrn',
+    'source_card_holder',
+    'source_card_ref_id',
+
+    'dest_bank_name',
+    'dest_country',
+    'dest_from_order_id',
+    'dest_bin',
+    'dest_bin_range_from_order_id',
+    'dest_last4',
+    'dest_bin_last',
+    'dest_auth_code',
+    'dest_arn',
+    'dest_rrn',
+    'dest_card_ref_id',
+
+    'account_number',
+    'routing_number',
+
+    'reader_key_serial_number',
+    'reader_device_serial_number',
+
+    'device_serial_number',
+    'phone_serial_number',
+    'phone_imei',
+
+    'reader_id',
+    'registration_info_id',
+    'inn',
+    'mtcn',
+    'rebill',
+    'swift_number',
+    'webmoney_account',
+    'yamoney_account',
+    'wire_account',
+    'card_number_hash_hash',
+] as const
+export type OrderSearchLabel = typeof ORDER_SEARCH_LABELS[number]
+
 export enum ExactCriterionSearchLabelEnum {
     ALL = 'ALL',
     NAME = 'NAME',
@@ -186,6 +252,8 @@ export type SearchCriteria = {
 
     exactSearchLabel: string | null
     exactSearchValue: string | null
+    ordersSearchLabel: string | null
+    ordersSearchValue: string | null
     status: Status | null
     threeD: boolean | null
     currencies: number[]
@@ -213,6 +281,8 @@ export type SearchUIConditions = {
     threeD: ThreeDCriterionEnum
     exactSearchLabel: ExactCriterionSearchLabelEnum | undefined
     exactSearchValue: string
+    ordersSearchLabel: OrderSearchLabel
+    ordersSearchValue: string
     currencies: AbstractEntityAllableCollection
     orderDateType: OrderDate
     dateRangeSpec: DateRangeSpec

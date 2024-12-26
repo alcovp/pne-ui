@@ -19,6 +19,7 @@ import {DateRangeCriterion} from './component/criterion/DateRangeCriterion';
 import {ProjectCurrencyCriterion} from './component/criterion/ProjectCurrencyCriterion';
 import {GroupingCriterion} from './component/criterion/GroupingCriterion';
 import {exhaustiveCheck} from '../../..';
+import {OrdersSearchCriterion} from "./component/criterion/orders-search/OrdersSearchCriterion";
 
 interface IProps {
     type: CriterionTypeEnum
@@ -79,6 +80,8 @@ export const CriterionContainer = (props: IProps) => {
                 />
             case CriterionTypeEnum.EXACT:
                 return <ExactSearchCriterion/>
+            case CriterionTypeEnum.ORDERS_SEARCH:
+                return <OrdersSearchCriterion/>
             case CriterionTypeEnum.STATUS:
                 return <StatusCriterion/>
             case CriterionTypeEnum.THREE_D:

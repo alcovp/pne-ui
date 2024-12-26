@@ -91,7 +91,8 @@ const HookWrap = () => {
                 ExactCriterionSearchLabelEnum.NAME,
             ]}
             possibleCriteria={[
-                CriterionTypeEnum.EXACT,
+                // CriterionTypeEnum.EXACT,
+                CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
                 // CriterionTypeEnum.GATE,
@@ -101,7 +102,8 @@ const HookWrap = () => {
             ]}
             predefinedCriteria={[
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
-                CriterionTypeEnum.EXACT,
+                // CriterionTypeEnum.EXACT,
+                CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.STATUS,
             ]}
             config={{
