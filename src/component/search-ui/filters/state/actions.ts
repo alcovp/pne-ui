@@ -59,7 +59,7 @@ export const getSearchUIFiltersActions = (
         checkIfFiltersChanged(set, get)
     },
     clearCriteria: () => {
-        localStorage.removeItem(LAST_TEMPLATE_NAME)
+        localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
 
         set((draft) => {
             return {
@@ -103,7 +103,7 @@ export const getSearchUIFiltersActions = (
             templateName: templateName,
         })
             .then(() => {
-                localStorage.setItem(LAST_TEMPLATE_NAME, template.name)
+                localStorage.setItem(LAST_TEMPLATE_NAME + get().settingsContextName, template.name)
 
                 set((draft) => {
                     draft.templates.push(template)
@@ -136,9 +136,9 @@ export const getSearchUIFiltersActions = (
             templateName: template.name,
         })
             .then(() => {
-                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME)
+                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + get().settingsContextName)
                 if (lastTemplateName && lastTemplateName === template.name) {
-                    localStorage.removeItem(LAST_TEMPLATE_NAME)
+                    localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
                 }
 
                 set((draft) => {
@@ -164,7 +164,7 @@ export const getSearchUIFiltersActions = (
             )
         }
 
-        localStorage.setItem(LAST_TEMPLATE_NAME, template.name)
+        localStorage.setItem(LAST_TEMPLATE_NAME + get().settingsContextName, template.name)
 
         set((draft) => {
             return {
@@ -182,7 +182,7 @@ export const getSearchUIFiltersActions = (
                     draft.templates = templates
                 })
 
-                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME)
+                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + get().settingsContextName)
                 const lastTemplate = templates.find(t => t.name === lastTemplateName)
                 if (lastTemplate) {
                     get().setTemplate(lastTemplate)

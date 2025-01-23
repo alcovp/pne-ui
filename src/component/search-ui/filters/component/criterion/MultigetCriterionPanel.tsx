@@ -5,6 +5,7 @@ import {MultigetSelect} from '../../../multiget_select/MultigetSelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {PneModal, useModal} from '../../../../..';
 import {MultigetSelectStoreProvider} from "../../../multiget_select/state/IsolatedStoreProvider";
+import {useTranslation} from "react-i18next";
 
 interface IProps {
     criterionType: CriterionTypeEnum
@@ -16,6 +17,7 @@ export const MultigetCriterionPanel = (props: IProps) => {
         criterionType,
         entityType,
     } = props
+    const {t} = useTranslation()
 
     const {open, handleOpen, handleClose: closeModal} = useModal()
     const {
@@ -55,11 +57,11 @@ export const MultigetCriterionPanel = (props: IProps) => {
             case MultichoiceFilterTypeEnum.ALL:
                 if (currentMultigetCriterion.deselectedItemNames) {
                     return <Box sx={chipsSx}>
-                        <Box component={'span'} sx={linkSpanSx}>{'All excluding'}</Box>
+                        <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.allExcluding')}</Box>
                         {getItemNamesChips(currentMultigetCriterion.deselectedItemNames)}
                     </Box>
                 } else {
-                    return <Box component={'span'} sx={linkSpanSx}>{'All'}</Box>
+                    return <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.all')}</Box>
                 }
             case MultichoiceFilterTypeEnum.NONE:
                 if (currentMultigetCriterion.selectedItemNames) {
@@ -67,7 +69,7 @@ export const MultigetCriterionPanel = (props: IProps) => {
                         {getItemNamesChips(currentMultigetCriterion.selectedItemNames)}
                     </Box>
                 } else {
-                    return <Box component={'span'} sx={linkSpanSx}>{'None'}</Box>
+                    return <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.none')}</Box>
                 }
             case MultichoiceFilterTypeEnum.SEARCH:
                 return <Box
