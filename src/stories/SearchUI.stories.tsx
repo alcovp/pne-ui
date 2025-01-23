@@ -1,5 +1,5 @@
 import {
-    AbstractEntity,
+    AbstractEntity, Country,
     ensure,
     ExactCriterionSearchLabelEnum,
     PneHeaderTableCell,
@@ -78,6 +78,12 @@ const HookWrap = () => {
                     {id: 10, displayName: '(10) name1'},
                     {id: 11, displayName: '(11) name2'},
                 ]
+            },
+            getCountries: async () => {
+                return [
+                    {id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS'},
+                    {id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX'},
+                ] satisfies Country[]
             },
             showGatesCriterion: () => true,
             showProjectsCriterion: () => true,

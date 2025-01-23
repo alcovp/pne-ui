@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import {AbstractEntity, AutoCompleteChoiceWithStatus, Status} from '../..';
+import {AbstractEntity, AutoCompleteChoiceWithStatus, Country, Status} from '../..';
 import {CriterionTypeEnum, LinkedEntityTypeEnum, MultigetCriterion, SearchUITemplate} from "./filters/types";
 
 type GetMatchLinkedItemsRequest = {
@@ -36,6 +36,7 @@ export type SearchUIDefaults = {
     getProjectAvailableCurrencies: (request: GetProjectCurrenciesRequest) => Promise<AutoCompleteChoiceWithStatus[]>
     getCardTypes: () => Promise<AbstractEntity[]>
     getCurrencies: () => Promise<AbstractEntity[]>
+    getCountries: () => Promise<Country[]>
     getMFOTypes: () => Promise<AbstractEntity[]>
     getTransactionTypes: () => Promise<AbstractEntity[]>
     getTransactionMarkerTypes: () => Promise<AbstractEntity[]>
@@ -88,6 +89,7 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     getProjectAvailableCurrencies: () => Promise.resolve([]),
     getCardTypes: () => Promise.resolve([]),
     getCurrencies: () => Promise.resolve([]),
+    getCountries: () => Promise.resolve([]),
     getMFOTypes: () => Promise.resolve([]),
     getTransactionTypes: () => Promise.resolve([]),
     getTransactionMarkerTypes: () => Promise.resolve([]),

@@ -10,6 +10,7 @@ import PneTableCell from './PneTableCell';
 import PneTablePagination from './PneTablePagination';
 import PneTablePaginationActions from './PneTablePaginationActions';
 import {Order} from "../../common/pne/type";
+import {useTranslation} from "react-i18next";
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
@@ -77,7 +78,9 @@ const AbstractTable = <D, >(
         tableSx = {},
         boxSx = {},
         noRowsMessage,
-    } = props;
+    } = props
+
+    const {t} = useTranslation()
 
     const containerRef = useRef<HTMLElement>(null);
     const [nothingRowColSpan, setNothingRowColSpan] = useState(100);
@@ -111,7 +114,7 @@ const AbstractTable = <D, >(
                     {visibleRows.length === 0 && showNothingIsFoundRow && (
                         <PneTableRow hover={false}>
                             <PneTableCell colSpan={nothingRowColSpan}>
-                                {noRowsMessage || 'No rows'}
+                                {noRowsMessage || t('advancedSearch.noRows')}
                             </PneTableCell>
                         </PneTableRow>
                     )}

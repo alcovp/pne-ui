@@ -2849,6 +2849,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime-corejs3@npm:^7.24.4":
+  version: 7.26.0
+  resolution: "@babel/runtime-corejs3@npm:7.26.0"
+  dependencies:
+    core-js-pure: "npm:^3.30.2"
+    regenerator-runtime: "npm:^0.14.0"
+  checksum: 10c0/921fa27c004cf2b92f0d49efc2006cfc1a72d2a35c7374da8ec88d8b63543963e6ef29d4820e068a7892a7d553dc2bac7208aef8fef30642bc843b63255b650b
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.12.1, @babel/runtime@npm:^7.14.5, @babel/runtime@npm:^7.15.4, @babel/runtime@npm:^7.22.6, @babel/runtime@npm:^7.23.2, @babel/runtime@npm:^7.24.1, @babel/runtime@npm:^7.24.6, @babel/runtime@npm:^7.25.6":
   version: 7.25.6
   resolution: "@babel/runtime@npm:7.25.6"
@@ -7862,6 +7872,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"core-js-pure@npm:^3.30.2":
+  version: 3.40.0
+  resolution: "core-js-pure@npm:3.40.0"
+  checksum: 10c0/97590017216e2614e44bacc0b73159061b58e3ac86b61a3ed8cd78fc12bef604c5fb559a7a4d51ae5f2d1bd23ec57760ba6bf2802e802beb42d6bbce136acf52
+  languageName: node
+  linkType: hard
+
 "core-js@npm:^2.6.12":
   version: 2.6.12
   resolution: "core-js@npm:2.6.12"
@@ -10171,6 +10188,15 @@ __metadata:
   version: 5.2.4
   resolution: "ignore@npm:5.2.4"
   checksum: 10c0/7c7cd90edd9fea6e037f9b9da4b01bf0a86b198ce78345f9bbd983929d68ff14830be31111edc5d70c264921f4962404d75b7262b4d9cc3bc12381eccbd03096
+  languageName: node
+  linkType: hard
+
+"imask@npm:^7.6.1":
+  version: 7.6.1
+  resolution: "imask@npm:7.6.1"
+  dependencies:
+    "@babel/runtime-corejs3": "npm:^7.24.4"
+  checksum: 10c0/cda75bb5036bf65b1028a39ee5fe7bb1a654838213e8f85288c5899a9e5eb84ce7d2b37ae2d9d600f553b7b0e9fd2f4ba2cbdb03a2c46cf0fa60075bc0c21f0c
   languageName: node
   linkType: hard
 
@@ -13241,6 +13267,7 @@ __metadata:
     react-beautiful-dnd: "npm:11.0.5"
     react-dom: "npm:18.2.0"
     react-i18next: "npm:11.18.6"
+    react-imask: "npm:^7.6.1"
     react-is: "npm:18.2.0"
     react-virtuoso: "npm:4.7.5"
     storybook: "npm:8.0.9"
@@ -13730,6 +13757,18 @@ __metadata:
     react-native:
       optional: true
   checksum: 10c0/ffc40b157e274bc26fc82fc82761290804fffba33ceed552eb5a8c8c80899ea93a3fa7af4b0d719a9f101f3e08aab6f4754df953f1b720a61aa0317f5459abca
+  languageName: node
+  linkType: hard
+
+"react-imask@npm:^7.6.1":
+  version: 7.6.1
+  resolution: "react-imask@npm:7.6.1"
+  dependencies:
+    imask: "npm:^7.6.1"
+    prop-types: "npm:^15.8.1"
+  peerDependencies:
+    react: ">=0.14.0"
+  checksum: 10c0/48b8c234fb77e4d8b8446712695c63f2b0351a896b17623510a648408dd1b7ab506496124453a821528781b05fe2f5b04514f902e260f8b7f4486c972061da88
   languageName: node
   linkType: hard
 
