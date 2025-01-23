@@ -59,6 +59,8 @@ export const getSearchUIFiltersActions = (
         checkIfFiltersChanged(set, get)
     },
     clearCriteria: () => {
+        localStorage.removeItem(LAST_TEMPLATE_NAME)
+
         set((draft) => {
             return {
                 ...draft,
@@ -134,6 +136,11 @@ export const getSearchUIFiltersActions = (
             templateName: template.name,
         })
             .then(() => {
+                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME)
+                if (lastTemplateName && lastTemplateName === template.name) {
+                    localStorage.removeItem(LAST_TEMPLATE_NAME)
+                }
+
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === template.name)
                     draft.templates.splice(index, 1)
