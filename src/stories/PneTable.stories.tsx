@@ -30,6 +30,7 @@ const HookWrap = () => {
     } = useTable<DataType>({
         settingsContextName: 'context_1',
         dataUseState: [customData, setCustomData],
+        duplicatePagination: true,
         fetchData: ({page, pageSize}) => getList(page, pageSize, 51),
     })
 

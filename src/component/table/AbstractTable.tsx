@@ -28,6 +28,7 @@ export type PaginatorProps = {
     displayedRowsLabel: string
     paginationRef: MutableRefObject<HTMLDivElement | null>
     activeActionSx?: SxProps
+    duplicatePagination?: boolean
 }
 
 export type TableProps<D> = {
@@ -101,7 +102,35 @@ const AbstractTable = <D, >(
         }
     }, [visibleRows.length, showNothingIsFoundRow]);
 
+    const getPneTablePagination = () => {
+        if (!paginator) {
+            return null
+        }
+
+        return <PneTablePagination
+            ref={paginator.paginationRef}
+            count={-1}
+            /*
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore */
+            component={'div'}
+            labelDisplayedRows={() => null}
+            labelRowsPerPage={null}
+            nextIconButtonProps={{
+                disabled: !paginator.hasNext,
+            }}
+            rowsPerPageOptions={paginator.rowsPerPageOptions}
+            rowsPerPage={paginator.rowsPerPage}
+            page={paginator.page}
+            onPageChange={paginator.onPageChange}
+            ActionsComponent={(props) => <PneTablePaginationActions
+                {...props}
+                paginator={paginator}
+            />}
+        />;
+    }
     return <Box sx={{...boxSx}} ref={containerRef}>
+        {paginator && paginator.duplicatePagination && getPneTablePagination()}
         <TableContainer>
             <Table stickyHeader={stickyHeader} sx={{...tableSx}}>
                 <TableHead>
@@ -122,29 +151,7 @@ const AbstractTable = <D, >(
                 </TableBody>
             </Table>
         </TableContainer>
-        {paginator && (
-            <PneTablePagination
-                ref={paginator.paginationRef}
-                count={-1}
-                /*
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore */
-                component={'div'}
-                labelDisplayedRows={() => null}
-                labelRowsPerPage={null}
-                nextIconButtonProps={{
-                    disabled: !paginator.hasNext,
-                }}
-                rowsPerPageOptions={paginator.rowsPerPageOptions}
-                rowsPerPage={paginator.rowsPerPage}
-                page={paginator.page}
-                onPageChange={paginator.onPageChange}
-                ActionsComponent={(props) => <PneTablePaginationActions
-                    {...props}
-                    paginator={paginator}
-                />}
-            />
-        )}
+        {paginator && getPneTablePagination()}
     </Box>
 }
 

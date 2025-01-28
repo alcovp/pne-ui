@@ -22,6 +22,7 @@ export type UseTableParams<D> = {
     displayOptions?: Partial<TableDisplayOptions>
     onDisplayOptionsChange?: (options: TableDisplayOptions) => void
     paginatorActiveActionSx?: SxProps
+    duplicatePagination?: boolean
     rowsPerPageOptions?: RowsPerPageOption[]
     settingsContextName?: string
     dataUseState?: [D[], Dispatch<SetStateAction<D[]>>]
@@ -54,6 +55,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         dataUseState,
         fetchData,
         fetchDataExtraDeps,
+        duplicatePagination,
     } = params;
 
     const {
@@ -204,6 +206,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         hasNext,
         displayedRowsLabel: displayedRowsLabel(),
         activeActionSx: paginatorActiveActionSx,
+        duplicatePagination: duplicatePagination,
         paginationRef: paginationRef,
     };
 

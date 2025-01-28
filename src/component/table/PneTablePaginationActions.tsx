@@ -63,7 +63,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
 
     const selectedButtonStyle = {
         ...buttonStyle,
-        background: '#fff',
+        background: '#F1F5FA',
         ...activeActionSx
     }
 
