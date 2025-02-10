@@ -70,7 +70,7 @@ export const searchUIInitialDateTo: Dayjs = Object.freeze<Dayjs>(
 export const searchUIInitialAllableCollection: AbstractEntityAllableCollection =
     Object.freeze<AbstractEntityAllableCollection>({
         all: true,
-        list: [],
+        entities: [],
     })
 
 export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Readonly<SearchUIConditions> => {

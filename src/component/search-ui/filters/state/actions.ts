@@ -543,12 +543,12 @@ const extractEntitiesIds = (allable: AbstractEntityAllableCollection): number[] 
         return []
     }
 
-    if (!allable.list) {
-        console.warn('This is weird that allable.list is undefined')
+    if (!allable.entities) {
+        console.warn('This is weird that allable.entities is undefined')
         return []
     }
 
-    return allable.list.map(c => c.id);
+    return allable.entities.map(c => c.id);
 }
 
 const extractGroupTypes = (grouping: Grouping): GroupingType[] => {

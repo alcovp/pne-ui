@@ -1,5 +1,5 @@
 import {
-    AbstractEntity, Country,
+    AbstractEntity, AutoCompleteChoiceWithStatus, Country,
     ensure,
     ExactCriterionSearchLabelEnum,
     PneHeaderTableCell,
@@ -85,6 +85,20 @@ const HookWrap = () => {
                     {id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX'},
                 ] satisfies Country[]
             },
+            getCurrencies: async () => {
+                return [
+                    {id: 1, displayName: 'USD'},
+                    {id: 2, displayName: 'RUB'},
+                    {id: 99, displayName: 'BBB'},
+                ]
+            },
+            getProjectAvailableCurrencies: async () => {
+                return [
+                    {choiceId: 1, displayName: 'USD', description: '', status: "E"},
+                    {choiceId: 2, displayName: 'RUB', description: '', status: "E"},
+                    {choiceId: 99, displayName: 'BBB', description: '', status: "E"},
+                ] satisfies AutoCompleteChoiceWithStatus[]
+            },
             showGatesCriterion: () => true,
             showProjectsCriterion: () => true,
         }}
@@ -101,7 +115,8 @@ const HookWrap = () => {
                 CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
-                // CriterionTypeEnum.GATE,
+                CriterionTypeEnum.PROJECT_CURRENCY,
+                CriterionTypeEnum.GATE,
                 // CriterionTypeEnum.PROJECT,
                 // CriterionTypeEnum.GROUPING,
                 // CriterionTypeEnum.PROJECT_CURRENCY,
@@ -111,6 +126,7 @@ const HookWrap = () => {
                 // CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.STATUS,
+                CriterionTypeEnum.PROJECT_CURRENCY,
             ]}
             config={{
                 hideShowFiltersButton: true,
@@ -126,7 +142,7 @@ const HookWrap = () => {
             }}
             dataUseState={[data, setData]}
             initialSearchConditions={{
-                transactionTypes: {all: true, list: []},
+                transactionTypes: {all: true, entities: []},
                 status: 'ENABLED',
             }}
             createTableHeader={(headerParams) =>

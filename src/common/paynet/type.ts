@@ -70,7 +70,7 @@ export type GetPagedOrderedSortedListRequest = GetPagedListRequest & {
 }
 
 export type AllableCollection<T> = {
-    list: T[]
+    entities: T[]
     all: boolean
 }
 
