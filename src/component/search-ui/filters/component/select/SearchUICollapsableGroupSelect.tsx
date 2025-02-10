@@ -1,41 +1,111 @@
-import React, {useState} from 'react';
-import {MenuItem, Select, SelectChangeEvent, styled} from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import {Box, MenuItem, Select, SelectChangeEvent, styled, Typography} from '@mui/material';
 import {selectUnderChipSx} from "./style";
-import Box from "@mui/material/Box";
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {useSearchUIFiltersStore} from "../../state/store";
+import {OrderSearchLabel} from "../../types";
+import {useTranslation} from "react-i18next";
 
-// Описание структуры данных для групп
 interface GroupConfig {
     id: string
     label: string
-    // Список опций внутри группы
     items: {
-        value: string
+        value: OrderSearchLabel
         label: string
-        // Если нужно кастомное отображение, можно добавить сюда
-        // любые поля, например icon, description и т.д.
     }[]
 }
 
-// Пример заранее известного массива групп (конфиг)
 const GROUPS: GroupConfig[] = [
     {
-        id: 'group1',
-        label: 'Группа 1',
+        id: 'searchLabelGroupID.orders.main',
+        label: 'searchLabelGroup.main',
         items: [
-            {value: 'option1_1', label: 'Опция 1.1'},
-            {value: 'option1_2', label: 'Опция 1.2'},
+            {value: 'merchant_invoice_id', label: 'searchLabel.merchant_invoice_id'},
+            {value: 'order_id', label: 'searchLabel.order_id'},
+            {value: 'processor_order_id', label: 'searchLabel.processor_order_id'},
+            {value: 'purpose', label: 'searchLabel.purpose'},
+            {value: 'transaction_amount', label: 'searchLabel.transaction_amount'},
+            {value: 'session_token', label: 'searchLabel.session_token'},
+            {value: 'batch_id', label: 'searchLabel.batch_id'},
         ],
     },
     {
-        id: 'group2',
-        label: 'Группа 2',
+        id: 'searchLabelGroupID.orders.customer',
+        label: 'searchLabelGroup.customer',
         items: [
-            {value: 'option2_1', label: 'Опция 2.1'},
-            {value: 'option2_2', label: 'Опция 2.2'},
-            {value: 'option2_3', label: 'Опция 2.3'},
+            {value: 'customer_id', label: 'searchLabel.customer_id'},
+            {value: 'customer_phone', label: 'searchLabel.customer_phone'},
+            {value: 'customer_email', label: 'searchLabel.customer_email'},
+            {value: 'customer_ip', label: 'searchLabel.customer_ip'},
+            {value: 'customer_ip_country', label: 'searchLabel.customer_ip_country'},
+            {value: 'customer_billing_country', label: 'searchLabel.customer_billing_country'},
+        ],
+    },
+    {
+        id: 'searchLabelGroupID.orders.sourceCard',
+        label: 'searchLabelGroup.sourceCard',
+        items: [
+            {value: 'source_bank_name', label: 'searchLabel.source_bank_name'},
+            {value: 'source_country', label: 'searchLabel.source_country'},
+            {value: 'source_from_order_id', label: 'searchLabel.source_from_order_id'},
+            {value: 'source_bin', label: 'searchLabel.source_bin'},
+            {value: 'source_bin_range_from_order_id', label: 'searchLabel.source_bin_range_from_order_id'},
+            {value: 'source_last4', label: 'searchLabel.source_last4'},
+            {value: 'source_bin_last4', label: 'searchLabel.source_bin_last4'},
+            {value: 'source_auth_code', label: 'searchLabel.source_auth_code'},
+            {value: 'source_arn', label: 'searchLabel.source_arn'},
+            {value: 'source_rrn', label: 'searchLabel.source_rrn'},
+            {value: 'source_card_holder', label: 'searchLabel.source_card_holder'},
+            {value: 'source_card_ref_id', label: 'searchLabel.source_card_ref_id'},
+        ],
+    },
+    {
+        id: 'searchLabelGroupID.orders.destinationCard',
+        label: 'searchLabelGroup.destinationCard',
+        items: [
+            {value: 'dest_bank_name', label: 'searchLabel.dest_bank_name'},
+            {value: 'dest_country', label: 'searchLabel.dest_country'},
+            {value: 'dest_from_order_id', label: 'searchLabel.dest_from_order_id'},
+            {value: 'dest_bin', label: 'searchLabel.dest_bin'},
+            {value: 'dest_bin_range_from_order_id', label: 'searchLabel.dest_bin_range_from_order_id'},
+            {value: 'dest_last4', label: 'searchLabel.dest_last4'},
+            {value: 'dest_bin_last', label: 'searchLabel.dest_bin_last'},
+            {value: 'dest_auth_code', label: 'searchLabel.dest_auth_code'},
+            {value: 'dest_arn', label: 'searchLabel.dest_arn'},
+            {value: 'dest_rrn', label: 'searchLabel.dest_rrn'},
+            {value: 'dest_card_ref_id', label: 'searchLabel.dest_card_ref_id'},
+        ],
+    },
+    {
+        id: 'searchLabelGroupID.orders.wire',
+        label: 'searchLabelGroup.wire',
+        items: [
+            {value: 'account_number', label: 'searchLabel.account_number'},
+            {value: 'routing_number', label: 'searchLabel.routing_number'},
+        ],
+    },
+    {
+        id: 'searchLabelGroupID.orders.cardPresentAPI',
+        label: 'searchLabelGroup.cardPresentAPI',
+        items: [
+            {value: 'reader_id', label: 'searchLabel.reader_id'},
+            {value: 'reader_key_serial_number', label: 'searchLabel.reader_key_serial_number'},
+            {value: 'reader_device_serial_number', label: 'searchLabel.reader_device_serial_number'},
+        ],
+    },
+    {
+        id: 'searchLabelGroupID.orders.mobileAPI',
+        label: 'searchLabelGroup.mobileAPI',
+        items: [
+            {value: 'device_serial_number', label: 'searchLabel.device_serial_number'},
+            {value: 'phone_serial_number', label: 'searchLabel.phone_serial_number'},
+            {value: 'phone_imei', label: 'searchLabel.phone_imei'},
         ],
     },
 ]
+
+const EXPANDED_GROUPS_STORAGE_KEY = 'SearchUI_ordersSearch_expandedGroups'
 
 type Props = {
     open: boolean
@@ -44,103 +114,111 @@ type Props = {
 }
 
 export const SearchUICollapsableGroupSelect = (props: Props) => {
+    const {t} = useTranslation()
 
-    // Выбранное значение
-    const [value, setValue] = useState<string>('asdasd')
+    const {
+        ordersSearchLabel,
+        setOrderSearchCriterionLabel,
+    } = useSearchUIFiltersStore((store) => ({
+        ordersSearchLabel: store.ordersSearchLabel,
+        setOrderSearchCriterionLabel: store.setOrderSearchCriterionLabel,
+    }))
 
-    // Храним состояние развернутости групп
-    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-        group1: true,
-        group2: false,
+    const [selectedValue, setSelectedValue] = useState<string>(ordersSearchLabel)
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
+        const stored = localStorage.getItem(EXPANDED_GROUPS_STORAGE_KEY)
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored)
+                GROUPS.forEach(group => {
+                    if (typeof parsed[group.id] !== 'boolean') {
+                        parsed[group.id] = true
+                    }
+                })
+                return parsed
+            } catch (err) {
+                console.error('Error parsing expandedGroups from localStorage:', err)
+            }
+        }
+        const defaultState: Record<string, boolean> = {}
+        GROUPS.forEach(group => {
+            defaultState[group.id] = true
+        })
+        return defaultState
     })
 
-    // Обработчик выбора (стандартный для Select)
+    useEffect(() => {
+        localStorage.setItem(EXPANDED_GROUPS_STORAGE_KEY, JSON.stringify(expandedGroups))
+    }, [expandedGroups])
+
     const handleChange = (event: SelectChangeEvent) => {
-        console.log(event)
-        const v = event.target.value
-        console.log(v)
-        setValue(v)
+        setOrderSearchCriterionLabel(event.target.value as OrderSearchLabel)
     }
 
-    // Тоггл разворачивания/сворачивания группы
-    const toggleGroup = (event: MouseEvent, groupId: string) => {
-        alert('group')
-        // Чтобы клик по заголовку группы не засчитывался как выбор пункта (не вызывался handleChange)
-        event.stopPropagation()
-        event.preventDefault()
-
-        setExpandedGroups((prev) => ({
+    const toggleGroup = (groupId: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        e.preventDefault()
+        setExpandedGroups(prev => ({
             ...prev,
             [groupId]: !prev[groupId],
         }))
     }
 
+    const menuItems: React.ReactNode[] = GROUPS.flatMap(group => {
+        const isExpanded = expandedGroups[group.id];
+
+        return [
+            <MenuItem
+                key={group.id}
+                sx={{
+                    bgcolor: '#f0f0f0',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    lineHeight: 1.5,
+                    p: 1,
+                }}
+                disableRipple
+            >
+                <Box
+                    onClick={(e) => toggleGroup(group.id, e)}
+                    sx={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                    }}
+                >
+                    <Typography variant="subtitle2">{t(group.label)}</Typography>
+                    {isExpanded ? <ExpandLessIcon fontSize="small"/> : <ExpandMoreIcon fontSize="small"/>}
+                </Box>
+            </MenuItem>,
+            ...group.items.map(item => (
+                <MenuItem
+                    key={`${group.id}-${item.value}`}
+                    value={item.value}
+                    onClick={() => setSelectedValue(item.value)}
+                    sx={{pl: 4, display: isExpanded ? 'block' : 'none'}}
+                >
+                    {t(item.label)}
+                </MenuItem>
+            ))
+        ]
+    })
+
     return <Select
-        value={value}
-        // onChange={handleChange}
-        size={'small'}
-        variant={'outlined'}
+        value={selectedValue}
+        onChange={handleChange}
+        displayEmpty
+        MenuProps={{
+            anchorOrigin: {vertical: 'bottom', horizontal: 'left'},
+            transformOrigin: {vertical: 'top', horizontal: 'left'},
+        }}
+        fullWidth
         sx={selectUnderChipSx}
         {...props}
     >
-        {/*{optionsPresent ? options.map(mapChoiceToSelectOption).map(option =>*/}
-        {/*    <MenuItem*/}
-        {/*        disabled={disableMenuItem ? disableMenuItem(option) : false}*/}
-        {/*        key={option.value}*/}
-        {/*        value={option.value}*/}
-        {/*    >*/}
-        {/*        {getOptionLabel(option)}*/}
-        {/*    </MenuItem>) : null}*/}
-        {/*{GROUPS.map((group) => {*/}
-        {/*    // Заголовок группы как псевдо-пункт (не выбирает значение, а управляет коллапсом)*/}
-        {/*    const isExpanded = expandedGroups[group.id]*/}
-        {/*    return <React.Fragment key={group.id}>*/}
-        {/*        <MenuItem*/}
-        {/*            // Важно: onClick должен останавливать всплытие*/}
-        {/*            onClick={(e) => toggleGroup(e, group.id)}*/}
-        {/*            // Добавим небольшой Layout, чтобы и текст, и иконка были в одной строке*/}
-        {/*            // и выглядели как "заголовок" с иконкой*/}
-        {/*        >*/}
-        {/*            <Box display="flex" width="100%" justifyContent="space-between" alignItems="center">*/}
-        {/*                <Box>*/}
-        {/*                    <TitleSpan>{group.label}</TitleSpan>*/}
-        {/*                    <GreySpan>Описание группы</GreySpan>*/}
-        {/*                </Box>*/}
-        {/*                {isExpanded ? <ExpandLessIcon/> : <ExpandMoreIcon/>}*/}
-        {/*            </Box>*/}
-        {/*        </MenuItem>*/}
-
-        {/*        /!* Пункты внутри группы *!/*/}
-        {/*        <Collapse in={isExpanded} timeout="auto" unmountOnExit>*/}
-        {/*            {group.items.map((item) => (*/}
-        {/*                <MenuItem key={item.value} value={item.value}>*/}
-        {/*                    <TitleSpan>{item.label}</TitleSpan>*/}
-        {/*                    <GreySpan>Доп. инфо</GreySpan>*/}
-        {/*                </MenuItem>*/}
-        {/*            ))}*/}
-        {/*        </Collapse>*/}
-        {/*    </React.Fragment>*/}
-        {/*})}*/}
-        <Box>
-            {GROUPS[0].items.map((item) => (
-                <MenuItem
-                    onClick={() => setValue(item.value)}
-                    key={item.value}
-                    value={item.value}
-                >
-                    <TitleSpan>{item.label}</TitleSpan>
-                    <GreySpan>Доп. инфо</GreySpan>
-                </MenuItem>
-            ))}
-        </Box>
+        {menuItems}
     </Select>
 }
-
-const TitleSpan = styled('span')(({theme}) => ({
-    fontWeight: 'bold',
-    marginRight: theme.spacing(1),
-}))
-
-const GreySpan = styled('span')(({theme}) => ({
-    color: theme.palette.grey[600],
-}))

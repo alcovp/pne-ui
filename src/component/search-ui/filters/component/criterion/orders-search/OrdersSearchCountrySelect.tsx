@@ -6,8 +6,10 @@ import {selectUnderChipSx} from '../../select/style';
 import PneSelect from '../../../../../dropdown/PneSelect';
 import {SearchUIDefaultsContext} from "../../../../SearchUIProvider";
 import {Country} from '../../../../../../common';
+import {useTranslation} from "react-i18next";
 
 export const OrdersSearchCountrySelect = () => {
+    const {t} = useTranslation()
 
     const {
         ordersSearchValue,
@@ -37,7 +39,7 @@ export const OrdersSearchCountrySelect = () => {
         <Chip
             onDelete={() => setOpen(true)}
             deleteIcon={<ExpandMore/>}
-            label={country ? country.displayName : ''}
+            label={country ? country.displayName : t('react.searchUI.countrySelectPlaceholder')}
             size={'small'}
         />
         <PneSelect
