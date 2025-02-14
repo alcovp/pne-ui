@@ -17,7 +17,7 @@ const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
     const _sx: SxProps = [
         {
             padding: '9px 19px',
-            background: props.selected ? theme.palette.action.selected : '#fff',
+            background: props.selected ? theme.palette.action.selected : 'inherit',
             border: 'none',
             color: '#4E5D78',
             position: 'relative',

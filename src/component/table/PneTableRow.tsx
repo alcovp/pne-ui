@@ -22,8 +22,6 @@ const PneTableRow = styled(TableRow, {
     },
     '& td:last-of-type': {
         borderRight: '1px solid #fff',
-        borderTopRightRadius: '8px',
-        borderBottomRightRadius: '8px',
         borderColor: 'inherit',
     },
 }))

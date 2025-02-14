@@ -5,6 +5,7 @@ import PneTableCell from "../component/table/PneTableCell";
 import React, {useState} from "react";
 import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
 import useTable from "../component/table/useTable";
+import {Box} from "@mui/material";
 
 type DataType = AbstractEntity
 
@@ -43,9 +44,11 @@ const HookWrap = () => {
     //     setHasNext(list.length === pageSize + 1);
     // }, [page, pageSize])
 
-    return <>
+    return <Box sx={{background: '#FFFFFF'}}>
         <PneAsyncAutocomplete
-            searchChoices={() => {return getList(1, 10, 10)}}
+            searchChoices={() => {
+                return getList(1, 10, 10)
+            }}
         />
         <PneButton onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}>
             Create
@@ -85,7 +88,7 @@ const HookWrap = () => {
             </PneTableRow>}
             paginator={paginator}
         />
-    </>
+    </Box>
 }
 
 export default {
