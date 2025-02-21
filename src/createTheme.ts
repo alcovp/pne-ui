@@ -9,6 +9,7 @@ export const createPneTheme = (
     options?: Omit<ThemeOptions, 'skin'> | undefined,
     ...args: object[]
 ): Theme => {
+    console.log('Creating theme...')
     const theme = createTheme({
         skin: skin,
         palette: {
@@ -99,6 +100,7 @@ export const createPneTheme = (
                                 },
                             }
                         } else if (ownerState.color === 'pneNeutral') {
+                            console.log('The color is pneNeutral')
                             return {
                                 backgroundColor: '#F1F5FA', //TODO hardcode. move to pne palette
                                 color: theme.palette.primary.main,

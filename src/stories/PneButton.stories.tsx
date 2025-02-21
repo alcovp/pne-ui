@@ -190,12 +190,15 @@ export const Analysis: StoryObj = {
             width: '150px',
         }}
     >
-        <PneButton {...args} pneStyle={'contained'}/>
-        <PneButton {...args} pneStyle={'outlined'}/>
-        <PneButton {...args} pneStyle={'text'}/>
-        <PneButton {...args} pneStyle={'error'}/>
-        <PneButton {...args} pneStyle={'pneContained'}/>
+        <PneButton {...args} pneStyle={'contained'}>contained</PneButton>
+        <PneButton {...args} pneStyle={'pneContained'}>pneContained</PneButton>
+        <PneButton {...args} pneStyle={'outlined'}>outlined</PneButton>
+        <PneButton {...args} pneStyle={'text'}>text</PneButton>
+        <PneButton {...args} pneStyle={'error'}>error</PneButton>
         <Divider/>
-        <PneButton {...args} pneStyle={'contained'} startIcon={<RepairedFillIcon/>}/>
+        <PneButton {...args} pneStyle={'contained'} startIcon={<RepairedFillIcon/>}>RepairedIcon</PneButton>
+        <Divider/>
+        <PneButton {...args} pneStyle={undefined} color={'pnePrimary'}>pnePrimary</PneButton>
+        <PneButton {...args} pneStyle={undefined} color={'pneNeutral'}>pneNeutral</PneButton>
     </Box>,
 }

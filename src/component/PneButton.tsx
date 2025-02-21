@@ -10,10 +10,10 @@ const PneButton = <C extends React.ElementType>(
     const {
         sx,
         children,
-        variant = 'contained',
+        variant,
         color,
         size = 'large',
-        pneStyle = 'contained',
+        pneStyle,
         ...rest
     } = props;
 
