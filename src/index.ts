@@ -7,7 +7,7 @@ import PneAsyncAutocomplete, {PneAsyncAutocompleteProps} from './component/dropd
 import PneSelect from './component/dropdown/PneSelect'
 import PneTable from './component/table/PneTable'
 import useTable from './component/table/useTable'
-import UseTableParams from './component/table/useTable'
+import type UseTableParams from './component/table/useTable'
 import PneTableRow from './component/table/PneTableRow'
 import PneHeaderTableCell from './component/table/PneHeaderTableCell'
 import PneTableCell from './component/table/PneTableCell'
@@ -50,6 +50,7 @@ import {AutoTestAttribute} from './component/AutoTestAttribute'
 import {getSearchUIInitialState} from './component/search-ui/state/initial'
 import {PneButtonGroup} from './component/PneButtonGroup'
 import {Skin} from './common/paynet/skin'
+import CustomIconWrapper from './component/CustomIconWrapper'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -155,5 +156,6 @@ export {
     AutoTestAttribute,
     getSearchUIInitialState,
     Skin,
+    CustomIconWrapper,
 }
 export * from './common'

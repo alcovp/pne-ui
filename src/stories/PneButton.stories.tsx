@@ -2,6 +2,8 @@ import * as React from "react";
 import {PneButton} from "../index";
 import {Meta, StoryObj} from "@storybook/react";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
+import {Box, Divider, SvgIcon} from "@mui/material";
+import CustomIconWrapper from "../component/CustomIconWrapper";
 
 export default {
     title: "pne-ui/PneButton",
@@ -81,13 +83,119 @@ export const WarningLight: Story = {
 export const StartIcon: Story = {
     args: {
         ...Primary.args,
-        startIcon: <DirectionsRunIcon />,
+        startIcon: <DirectionsRunIcon/>,
     },
 };
 
 export const EndIcon: Story = {
     args: {
         ...Primary.args,
-        endIcon: <DirectionsRunIcon />,
+        endIcon: <DirectionsRunIcon/>,
     },
 };
+
+const BrokenFillIcon = () => {
+    return <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path
+            d="M10.4941 11.6663H11.5008C13.5141 11.6663 15.1675 10.0197 15.1675 7.99967C15.1675 5.98634 13.5208 4.33301 11.5008 4.33301H10.4941"
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        />
+        <path
+            d="M6.50065 4.33301H5.50065C3.48065 4.33301 1.83398 5.97967 1.83398 7.99967C1.83398 10.013 3.48065 11.6663 5.50065 11.6663H6.50065"
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        />
+        <path
+            d="M5.83398 8H11.1673" strokeWidth="1.5" strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </svg>
+}
+
+const RepairedFillIcon = () => {
+    return <CustomIconWrapper height={16} width={17}>
+        <path
+            d="M10.4941 11.6663H11.5008C13.5141 11.6663 15.1675 10.0197 15.1675 7.99967C15.1675 5.98634 13.5208 4.33301 11.5008 4.33301H10.4941"
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        />
+        <path
+            d="M6.50065 4.33301H5.50065C3.48065 4.33301 1.83398 5.97967 1.83398 7.99967C1.83398 10.013 3.48065 11.6663 5.50065 11.6663H6.50065"
+            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        />
+        <path
+            d="M5.83398 8H11.1673" strokeWidth="1.5" strokeLinecap="round"
+            strokeLinejoin="round"
+        />
+    </CustomIconWrapper>
+}
+
+export const Analysis: StoryObj = {
+    args: {
+        children: 'Click me!',
+
+        pneStyle: 'contained',
+        // variant: 'contained',
+        // color: 'pnePrimary',
+        size: 'large',
+
+        disabled: false,
+        startIcon: false,
+        endIcon: false,
+    },
+
+    argTypes: {
+        children: {
+            name: 'Button text',
+            control: 'text',
+        },
+        pneStyle: {
+            control: 'select',
+            options: ['outlined', 'contained', 'text', 'error', 'pneContained'],
+        },
+        // variant: {
+        //     control: 'select',
+        //     options: ['outlined', 'contained', 'text'],
+        // },
+        // color: {
+        //     control: 'select',
+        //     options: ['pneText', 'pnePrimary', 'pnePrimaryLight', 'pneNeutral', 'pneWhite', 'pneWarningLight'],
+        // },
+        size: {
+            control: 'radio',
+            options: ['small', 'medium', 'large'],
+        },
+        disabled: {
+            control: 'boolean',
+        },
+        startIcon: {
+            control: 'boolean',
+            mapping: {
+                true: <BrokenFillIcon/>,
+                false: undefined,
+            },
+        },
+        endIcon: {
+            control: 'boolean',
+            mapping: {
+                true: <DirectionsRunIcon/>,
+                false: undefined,
+            },
+        },
+    },
+    name: 'PneStyle prop research',
+    render: (args) => <Box
+        sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '5px',
+            width: '150px',
+        }}
+    >
+        <PneButton {...args} pneStyle={'contained'}/>
+        <PneButton {...args} pneStyle={'outlined'}/>
+        <PneButton {...args} pneStyle={'text'}/>
+        <PneButton {...args} pneStyle={'error'}/>
+        <PneButton {...args} pneStyle={'pneContained'}/>
+        <Divider/>
+        <PneButton {...args} pneStyle={'contained'} startIcon={<RepairedFillIcon/>}/>
+    </Box>,
+}

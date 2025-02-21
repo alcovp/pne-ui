@@ -3,18 +3,13 @@ import {Skin} from './common/paynet/skin';
 import {ThemeOptions} from '@mui/material/styles/createTheme';
 
 const MISSING_COLOR = '#ff00dc'
-let theme: Theme | null = null
 
 export const createPneTheme = (
     skin: Skin,
     options?: Omit<ThemeOptions, 'skin'> | undefined,
     ...args: object[]
 ): Theme => {
-    if (theme) {
-        return theme
-    }
-
-    theme = createTheme({
+    const theme = createTheme({
         skin: skin,
         palette: {
             tonalOffset: {
