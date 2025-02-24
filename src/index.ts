@@ -51,6 +51,7 @@ import {getSearchUIInitialState} from './component/search-ui/state/initial'
 import {PneButtonGroup} from './component/PneButtonGroup'
 import {Skin} from './common/paynet/skin'
 import CustomIconWrapper from './component/CustomIconWrapper'
+import { PneSwitch } from './component/PneSwitch'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -150,5 +151,6 @@ export {
     getSearchUIInitialState,
     Skin,
     CustomIconWrapper,
+    PneSwitch,
 }
 export * from './common'

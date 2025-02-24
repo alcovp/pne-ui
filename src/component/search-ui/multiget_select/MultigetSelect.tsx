@@ -2,7 +2,7 @@ import React, {useContext, useEffect} from 'react';
 import {Alert, Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material';
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types';
 import {useTranslation} from 'react-i18next';
-import {AbstractEntity, PneButton, PneCheckbox, PneTextField} from '../../..';
+import {AbstractEntity, PneButton, PneSwitch, PneTextField} from '../../..'
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 import {useMultigetSelectStore} from "./state/store";
 import {MultigetSearchLabel} from './state/type';
@@ -190,7 +190,7 @@ export const MultigetSelect = (props: Props) => {
                 </ToggleButtonGroup>
                 {statusMakesSense ? <FormControlLabel
                     label={t('react.searchUI.onlyEnabledStatus')}
-                    control={<PneCheckbox
+                    control={<PneSwitch
                         checked={onlyEnabledStatus}
                         onChange={e => setOnlyEnabledStatus(e.target.checked)}
                     />}
