@@ -1,7 +1,7 @@
 import React, {forwardRef, Ref} from 'react'
 import {Switch, SwitchProps, SxProps} from '@mui/material'
 
-export const PneSwitch = forwardRef((
+const PneSwitch = forwardRef((
     props: SwitchProps,
     ref: Ref<HTMLButtonElement>,
 ) => {
@@ -17,3 +17,5 @@ export const PneSwitch = forwardRef((
 
     return <Switch sx={_sx} size={size} {...rest} ref={ref}/>
 })
+
+export default PneSwitch
