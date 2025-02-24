@@ -1,13 +1,8 @@
-import React, {forwardRef, ReactNode} from 'react';
-import {MenuItem, Select, SelectChangeEvent, SelectProps, SelectVariants} from '@mui/material';
-import {PneDropdownChoice} from '../../common/paynet/dropdown';
-import {
-    assertObject,
-    ensure,
-    exhaustiveCheck,
-    SelectOption
-} from '../../common/pne/type';
-import {isAbstractEntity, isIAutoCompleteChoice} from "../../common/paynet/type";
+import React, {forwardRef, ReactNode} from 'react'
+import {FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, SelectProps, SelectVariants} from '@mui/material'
+import {PneDropdownChoice} from '../../common/paynet/dropdown'
+import {assertObject, ensure, exhaustiveCheck, SelectOption} from '../../common/pne/type'
+import {isAbstractEntity, isIAutoCompleteChoice} from '../../common/paynet/type'
 
 export interface IProps<T extends PneDropdownChoice, >
     extends Omit<SelectProps<T>, 'children' | 'onChange' | 'variant'> {
@@ -29,6 +24,10 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         getOptionLabel = createDefaultOptionLabel,
         variant = 'outlined',
         disableMenuItem,
+        label,
+        disabled,
+        error,
+        required,
         ...rest
     } = props
 
@@ -36,22 +35,40 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         const value = event.target.value
 
         onChange(ensure(options.find(
-            opt => mapChoiceToSelectOption(opt).value === value
+            opt => mapChoiceToSelectOption(opt).value === value,
         )))
     }
 
     const optionsPresent = options?.length > 0
 
-    return <Select ref={ref} onChange={handleChange} size={size} variant={variant} {...rest}>
-        {optionsPresent ? options.map(mapChoiceToSelectOption).map(option =>
-            <MenuItem
-                disabled={disableMenuItem ? disableMenuItem(option) : false}
-                key={option.value}
-                value={option.value}
-            >
-                {getOptionLabel(option)}
-            </MenuItem>) : null}
-    </Select>
+    return <FormControl
+        size={size}
+        variant={variant}
+        disabled={disabled}
+        error={error}
+        required={required}
+        fullWidth
+    >
+        <InputLabel id="select-label">{label}</InputLabel>
+        <Select
+            ref={ref}
+            labelId="select-label"
+            onChange={handleChange}
+            size={size}
+            variant={variant}
+            label={label}
+            {...rest}
+        >
+            {optionsPresent ? options.map(mapChoiceToSelectOption).map(option =>
+                <MenuItem
+                    disabled={disableMenuItem ? disableMenuItem(option) : false}
+                    key={option.value}
+                    value={option.value}
+                >
+                    {getOptionLabel(option)}
+                </MenuItem>) : null}
+        </Select>
+    </FormControl>
 })
 
 export default PneSelect
@@ -84,6 +101,6 @@ const mapChoiceToSelectOption = <T extends PneDropdownChoice>(choice: T): Select
     exhaustiveCheck(choice)
 
     throw new TypeError('Incompatible types of select option:\n'
-        + JSON.stringify(choice, null, 4)
+        + JSON.stringify(choice, null, 4),
     )
 }
