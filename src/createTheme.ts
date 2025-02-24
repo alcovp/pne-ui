@@ -22,10 +22,7 @@ export const createPneTheme = (
             },
             pneNeutral: {
                 main: skin.experimentalColor || MISSING_COLOR
-            },//TODO put 5 colors here and then use it at styleOverrides
-            pneText: {
-                main: skin.experimentalColor || MISSING_COLOR
-            },
+            },//TODO put 4 colors here and then use it at styleOverrides
             pnePrimary: {
                 main: skin.experimentalColor || MISSING_COLOR
             },
@@ -69,30 +66,13 @@ export const createPneTheme = (
             MuiButton: {
                 styleOverrides: {
                     root: ({ownerState, theme}) => {
-                        if (ownerState.color === 'pnePrimary') {
-                            return {
-                                backgroundColor: theme.palette.primary.main,
-                                color: theme.palette.primary.contrastText,
-                                stroke: theme.palette.primary.contrastText,
-                                boxShadow: 'none',
-                                '&:hover': {
-                                    backgroundColor: theme.palette.primary.dark,
-                                    stroke: theme.palette.primary.contrastText,
-                                    boxShadow: 'none',
-                                },
-                            }
-                        } else if (ownerState.color === 'pneNeutral') {
-                            console.log('The color is pneNeutral')
+                        if (ownerState.color === 'pneNeutral') {
                             return {
                                 backgroundColor: '#F1F5FA', //TODO hardcode. move to pne palette
                                 color: theme.palette.primary.main,
-                                stroke: ownerState.disabled ? theme.palette.text.disabled
-                                    : theme.palette.primary.main,
                                 boxShadow: 'none',
                                 '&:hover': {
                                     backgroundColor: theme.palette.primary.light,
-                                    stroke: ownerState.disabled ? theme.palette.text.disabled
-                                        : theme.palette.primary.main,
                                     boxShadow: 'none',
                                 },
                             }
@@ -100,13 +80,9 @@ export const createPneTheme = (
                             return {
                                 backgroundColor: '#fff',
                                 color: theme.palette.primary.main,
-                                stroke: ownerState.disabled ? theme.palette.text.disabled
-                                    : theme.palette.primary.main,
                                 boxShadow: 'none',
                                 '&:hover': {
                                     backgroundColor: theme.palette.primary.light,
-                                    stroke: ownerState.disabled ? theme.palette.text.disabled
-                                        : theme.palette.primary.main,
                                     boxShadow: 'none',
                                 },
                             }
@@ -114,13 +90,10 @@ export const createPneTheme = (
                             return {
                                 backgroundColor: theme.palette.primary.light,
                                 color: theme.palette.primary.main,
-                                stroke: ownerState.disabled ? theme.palette.text.disabled
-                                    : theme.palette.primary.main,
                                 boxShadow: 'none',
                                 '&:hover': {
                                     backgroundColor: theme.palette.primary.main,
                                     color: theme.palette.primary.contrastText,
-                                    stroke: theme.palette.primary.contrastText,
                                     boxShadow: 'none',
                                 },
                             }
@@ -128,23 +101,14 @@ export const createPneTheme = (
                             return {
                                 backgroundColor: theme.palette.warning.light,
                                 color: theme.palette.warning.contrastText,
-                                stroke: theme.palette.warning.contrastText,
                                 boxShadow: 'none',
                                 '&:hover': {
                                     backgroundColor: theme.palette.warning.main,
                                     color: theme.palette.warning.contrastText,
-                                    stroke: theme.palette.warning.contrastText,
                                     boxShadow: 'none',
                                 },
                             }
-                        } else if (ownerState.color === 'pneText') {
-                            return {
-                                color: theme.palette.primary.main,
-                                stroke: ownerState.disabled ? theme.palette.text.disabled
-                                    : theme.palette.primary.main,
-                                boxShadow: 'none',
-                            }
-                        } else {
+                        }  else {
                             return {
                                 boxShadow: 'none',
                                 '&:hover': {

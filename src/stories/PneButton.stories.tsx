@@ -25,7 +25,6 @@ export const Default: Story = {
 export const Medium: Story = {
     args: {
         ...Default.args,
-        color: "pnePrimary",
         size: 'medium',
     },
 };
@@ -33,7 +32,6 @@ export const Medium: Story = {
 export const Small: Story = {
     args: {
         ...Default.args,
-        color: "pnePrimary",
         size: 'small',
     },
 };
@@ -41,7 +39,6 @@ export const Small: Story = {
 export const Primary: Story = {
     args: {
         ...Default.args,
-        color: "pnePrimary",
     },
 };
 
@@ -56,13 +53,6 @@ export const White: Story = {
     args: {
         ...Default.args,
         color: "pneWhite",
-    },
-};
-
-export const Text: Story = {
-    args: {
-        ...Default.args,
-        color: "pneText",
     },
 };
 
@@ -134,7 +124,7 @@ export const Analysis: StoryObj = {
 
         pneStyle: 'contained',
         // variant: 'contained',
-        // color: 'pnePrimary',
+        // color: 'primary',
         size: 'large',
 
         disabled: false,
@@ -157,7 +147,7 @@ export const Analysis: StoryObj = {
         // },
         // color: {
         //     control: 'select',
-        //     options: ['pneText', 'pnePrimary', 'pnePrimaryLight', 'pneNeutral', 'pneWhite', 'pneWarningLight'],
+        //     options: ['pnePrimaryLight', 'pneNeutral', 'pneWhite', 'pneWarningLight'],
         // },
         size: {
             control: 'radio',
@@ -197,7 +187,6 @@ export const Analysis: StoryObj = {
         <Divider/>
         <PneButton {...args} pneStyle={'contained'} startIcon={<RepairedFillIcon/>}>RepairedIcon</PneButton>
         <Divider/>
-        <PneButton {...args} pneStyle={undefined} color={'pnePrimary'}>pnePrimary</PneButton>
         <PneButton {...args} pneStyle={undefined} color={'pneNeutral'}>pneNeutral</PneButton>
     </Box>,
 }

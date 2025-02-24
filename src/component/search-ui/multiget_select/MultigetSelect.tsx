@@ -239,7 +239,7 @@ export const MultigetSelect = (props: Props) => {
         <Box sx={{display: 'flex', justifyContent: 'end', mt: '15px'}}>
             <Box sx={{display: 'flex', gap: '20px'}}>
                 <PneButton color={'pneNeutral'} onClick={onCancelClick}>{t('cancel')}</PneButton>
-                <PneButton color={'pnePrimary'} onClick={onSaveClick}>{t('save')}</PneButton>
+                <PneButton onClick={onSaveClick}>{t('save')}</PneButton>
             </Box>
         </Box>
     </>

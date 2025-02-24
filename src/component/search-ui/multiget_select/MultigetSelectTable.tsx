@@ -90,8 +90,7 @@ export const MultigetSelectTable = () => {
                     {filterType === 'ALL' ? t('react.searchUI.excluded') : t('react.searchUI.selected')}
                 </Box>
                 <PneButton
-                    color={'pneText'}
-                    variant={'text'}
+                    pneStyle={'text'}
                     size={'small'}
                     onClick={() => setSelectedItems([])}
                 >{t('clear')}</PneButton>
