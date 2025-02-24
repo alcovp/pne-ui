@@ -113,7 +113,7 @@ export const SearchUIFilters = (props: Props) => {
             {hideShowFiltersButton ? null : <IconButton
                 onClick={() => setShowFilters(prev => !prev)}
                 size={'small'}
-                color={'pneTransparent'}
+                color={'primary'}
             >
                 <ExpandMore
                     fontSize={'small'}

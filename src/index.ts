@@ -66,7 +66,6 @@ declare module '@mui/material/styles' {
         pneWhite: Palette['primary']
         pneWarningLight: Palette['primary']
         pneText: Palette['primary']
-        pneTransparent: Palette['primary']
     }
 
     interface PaletteOptions {
@@ -76,7 +75,6 @@ declare module '@mui/material/styles' {
         pneWhite: PaletteOptions['primary']
         pneWarningLight: PaletteOptions['primary']
         pneText: PaletteOptions['primary']
-        pneTransparent: PaletteOptions['primary']
     }
 
     // allow configuration using `createTheme`
@@ -89,7 +87,6 @@ declare module '@mui/material/IconButton' {
     interface IconButtonPropsColorOverrides {
         pneNeutral: true
         pnePrimary: true
-        pneTransparent: true
     }
 }
 

@@ -22,11 +22,8 @@ export const createPneTheme = (
             },
             pneNeutral: {
                 main: skin.experimentalColor || MISSING_COLOR
-            },//TODO put 6 colors here and then use it at styleOverrides
+            },//TODO put 5 colors here and then use it at styleOverrides
             pneText: {
-                main: skin.experimentalColor || MISSING_COLOR
-            },
-            pneTransparent: {
                 main: skin.experimentalColor || MISSING_COLOR
             },
             pnePrimary: {
@@ -43,25 +40,16 @@ export const createPneTheme = (
             },
         },
         components: {
-            // MuiTooltip: {
-            //     styleOverrides: {
-            //         tooltip: {},
-            //         popper: {
-            //             // our menu has 1050 and mui modals have 1080 z-indexes
-            //             zIndex: 1040 + '!important',
-            //         }
-            //     },
-            // },
             MuiIconButton: {
                 styleOverrides: {
                     root: ({ownerState, theme}) => {
                         if (ownerState.color === 'pnePrimary') {
                             return {
                                 backgroundColor: theme.palette.primary.main,
-                                stroke: '#fff',
+                                color: theme.palette.primary.contrastText,
                                 '&:hover': {
                                     backgroundColor: theme.palette.primary.dark,
-                                    stroke: '#fff',
+                                    color: theme.palette.primary.contrastText,
                                 }
                             }
                         } else if (ownerState.color === 'pneNeutral') {
@@ -72,12 +60,6 @@ export const createPneTheme = (
                                     backgroundColor: theme.palette.primary.light,
                                     stroke: theme.palette.primary.dark,
                                 }
-                            }
-                        } else if (ownerState.color === 'pneTransparent') {
-                            return {
-                                color: theme.palette.primary.main,
-                                stroke: ownerState.disabled ? theme.palette.text.disabled
-                                    : theme.palette.primary.main,
                             }
                         }
                         return {}

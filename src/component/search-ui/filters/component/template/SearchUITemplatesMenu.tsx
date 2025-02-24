@@ -71,7 +71,7 @@ const SearchUITemplatesMenu = () => {
                         >{template.name}</Box>
                         <IconButton
                             onClick={() => handleRemoveTemplate(template)}
-                            color={'pneTransparent'}
+                            color={'primary'}
                         >
                             <Close fontSize={'small'}/>
                         </IconButton>
