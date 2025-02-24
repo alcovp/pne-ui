@@ -1,7 +1,7 @@
 import {Button, ButtonProps, SxProps} from '@mui/material';
 import * as React from "react";
 
-export type PneButtonStyle = 'contained' | 'outlined' | 'error' | 'text' | 'pneContained'
+export type PneButtonStyle = 'contained' | 'outlined' | 'error' | 'text'
 
 // https://mui.com/material-ui/guides/typescript/#complications-with-the-component-prop
 const PneButton = <C extends React.ElementType>(
@@ -37,10 +37,6 @@ const PneButton = <C extends React.ElementType>(
             case 'text':
                 finalVariant = 'text'
                 finalColor = 'primary'
-                break
-            case 'pneContained':
-                finalVariant = 'contained'
-                finalColor = 'pnePrimary'
                 break
             default:
                 console.warn(`Unknown pneStyle: ${pneStyle}`)

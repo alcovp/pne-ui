@@ -149,7 +149,7 @@ export const Analysis: StoryObj = {
         },
         pneStyle: {
             control: 'select',
-            options: ['outlined', 'contained', 'text', 'error', 'pneContained'],
+            options: ['outlined', 'contained', 'text', 'error'],
         },
         // variant: {
         //     control: 'select',
@@ -191,7 +191,6 @@ export const Analysis: StoryObj = {
         }}
     >
         <PneButton {...args} pneStyle={'contained'}>contained</PneButton>
-        <PneButton {...args} pneStyle={'pneContained'}>pneContained</PneButton>
         <PneButton {...args} pneStyle={'outlined'}>outlined</PneButton>
         <PneButton {...args} pneStyle={'text'}>text</PneButton>
         <PneButton {...args} pneStyle={'error'}>error</PneButton>
