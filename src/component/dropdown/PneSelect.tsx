@@ -28,6 +28,7 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         disabled,
         error,
         required,
+        sx,
         ...rest
     } = props
 
@@ -47,6 +48,7 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         disabled={disabled}
         error={error}
         required={required}
+        sx={sx}
         fullWidth
     >
         <InputLabel id="select-label">{label}</InputLabel>

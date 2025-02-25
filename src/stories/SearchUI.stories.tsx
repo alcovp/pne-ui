@@ -129,8 +129,8 @@ const HookWrap = () => {
                 CriterionTypeEnum.PROJECT_CURRENCY,
             ]}
             config={{
-                hideShowFiltersButton: true,
-                hideTemplatesSelect: true,
+                // hideShowFiltersButton: true,
+                // hideTemplatesSelect: true,
             }}
             searchData={(searchParams) => {
                 console.log(JSON.stringify({
