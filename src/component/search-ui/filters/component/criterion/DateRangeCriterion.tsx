@@ -1,15 +1,15 @@
-import React, {ChangeEvent} from 'react';
-import {DateRangeSpecType} from '../../types';
-import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect';
-import dayjs, {Dayjs} from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import {Box, SxProps} from '@mui/material';
-import {DateRange, DateRangePicker, LocalizationProvider} from '@mui/x-date-pickers-pro'; //TODO migration
-import {AdapterDayjs} from '@mui/x-date-pickers-pro/AdapterDayjs';
-import {useSearchUIFiltersStore} from '../../state/store';
-import timezone from 'dayjs/plugin/timezone';
-import {PneTextField} from '../../../../..';
-import {SearchUIOrderDateTypeSelect} from "../select/SearchUIOrderDateTypeSelect";
+import React, {ChangeEvent} from 'react'
+import {DateRangeSpecType} from '../../types'
+import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect'
+import dayjs, {Dayjs} from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import {Box, SxProps} from '@mui/material'
+import {DateRange, DateRangePicker, LocalizationProvider} from '@mui/x-date-pickers-pro' //TODO migration
+import {AdapterDayjs} from '@mui/x-date-pickers-pro/AdapterDayjs'
+import {useSearchUIFiltersStore} from '../../state/store'
+import timezone from 'dayjs/plugin/timezone'
+import {PneTextField} from '../../../../..'
+import {SearchUIOrderDateTypeSelect} from '../select/SearchUIOrderDateTypeSelect'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -94,14 +94,15 @@ export const DateRangeCriterion = (props: Props) => {
                         onChange={handleSetDateRange}
                         slotProps={{
                             fieldSeparator: {sx: {display: 'none'}},
-                            popper: {placement: 'auto'}
+                            popper: {placement: 'auto'},
                         }}
                     />
                 </LocalizationProvider>
                 : <PneTextField
-                    value={dateRangeSpec.beforeCount}
+                    value={dateRangeSpec.beforeCount || ''}
                     onChange={changeBeforeCount}
                     type={'number'}
+                    inputProps={{min: 0}}
                     sx={beforeCountSx}
                 />
             : null}
@@ -112,7 +113,7 @@ const beforeCountSx: SxProps = {
     '& fieldset': {
         borderRadius: '0',
         borderColor: 'transparent !important',
-    }
+    },
 }
 
 const dateRangePickerSx: SxProps = {
