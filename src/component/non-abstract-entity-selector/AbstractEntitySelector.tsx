@@ -1,6 +1,6 @@
 import React, {HTMLAttributes, useEffect, useState} from 'react';
 import {DragDropContext, Draggable, DraggableProvided, Droppable, DropResult} from '@hello-pangea/dnd';
-import {Box, Stack} from '@mui/material';
+import {Box, IconButton, InputAdornment, Stack} from '@mui/material';
 import {Virtuoso} from 'react-virtuoso';
 import {TFunction, useTranslation} from 'react-i18next';
 
@@ -18,6 +18,7 @@ import {
 } from '../../common';
 import PneTextField from '../PneTextField';
 import PneButton from '../PneButton';
+import {ClearIcon} from '@mui/x-date-pickers-pro'
 
 //TODO must be removed
 export type ProcessorPaymentApparatus = {
@@ -403,6 +404,15 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     }}
                     value={searchValue}
                     label={t('search')}
+                    InputProps={{
+                        endAdornment: searchValue && (
+                            <InputAdornment position="end">
+                                <IconButton onClick={e => setSearchValue('')} edge="end">
+                                    <ClearIcon />
+                                </IconButton>
+                            </InputAdornment>
+                        ),
+                    }}
                 />
             </Box>
             <DragDropContext onDragEnd={onDragEnd}>
@@ -522,7 +532,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                             Item: HeightPreservingItem,
                                         }}
                                         scrollerRef={(value) => provided.innerRef(value as HTMLElement)}
-                                        data={addedList.filter(item => renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase()))}
+                                        data={addedList}
                                         itemContent={(index, item) => {
                                             return (
                                                 <Draggable

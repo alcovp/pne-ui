@@ -118,10 +118,11 @@ const HookWrap = () => {
                 CriterionTypeEnum.PROJECT_CURRENCY,
                 CriterionTypeEnum.GATE,
                 // CriterionTypeEnum.PROJECT,
-                // CriterionTypeEnum.GROUPING,
+                CriterionTypeEnum.GROUPING,
                 // CriterionTypeEnum.PROJECT_CURRENCY,
             ]}
             predefinedCriteria={[
+                CriterionTypeEnum.GROUPING,
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
                 // CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.ORDERS_SEARCH,
