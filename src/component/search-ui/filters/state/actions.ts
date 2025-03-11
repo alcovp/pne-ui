@@ -674,19 +674,19 @@ const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => 
             break
         case 'THIS_WEEK':
             from = now.startOf('isoWeek')
-            to = now.endOf('isoWeek').add(1, 'day')
+            to = now.endOf('isoWeek').add(1, 'day').startOf('day')
             break
         case 'LAST_WEEK':
             from = now.startOf('isoWeek').subtract(1, 'week')
-            to = now.endOf('isoWeek').subtract(1, 'week').add(1, 'day')
+            to = now.endOf('isoWeek').subtract(1, 'week').add(1, 'day').startOf('day')
             break
         case 'THIS_MONTH':
             from = now.startOf('month')
-            to = now.endOf('month').add(1, 'day')
+            to = now.endOf('month').add(1, 'day').startOf('day')
             break
         case 'LAST_MONTH':
             from = now.startOf('month').subtract(1, 'month')
-            to = now.subtract(1, 'month').endOf('month').add(1, 'day')
+            to = now.subtract(1, 'month').endOf('month').add(1, 'day').startOf('day')
             break
         case 'DAYS_BEFORE':
             if (dateRangeSpec.beforeCount === null) {
