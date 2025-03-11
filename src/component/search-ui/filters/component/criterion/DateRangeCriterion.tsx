@@ -10,6 +10,7 @@ import {useSearchUIFiltersStore} from '../../state/store'
 import timezone from 'dayjs/plugin/timezone'
 import {PneTextField} from '../../../../..'
 import {SearchUIOrderDateTypeSelect} from '../select/SearchUIOrderDateTypeSelect'
+import {filtersInputSx} from './style'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -102,18 +103,20 @@ export const DateRangeCriterion = (props: Props) => {
                     value={dateRangeSpec.beforeCount || ''}
                     onChange={changeBeforeCount}
                     type={'number'}
-                    inputProps={{min: 0}}
-                    sx={beforeCountSx}
+                    inputProps={{min: 1}}
+                    sx={{
+                        ...filtersInputSx,
+                        ml: '5px',
+                        width: '80px',
+                    }}
+                    size={'small'}
+                    variant={'filled'}
+                    InputProps={{
+                        disableUnderline: true,
+                    }}
                 />
             : null}
     </>
-}
-
-const beforeCountSx: SxProps = {
-    '& fieldset': {
-        borderRadius: '0',
-        borderColor: 'transparent !important',
-    },
 }
 
 const dateRangePickerSx: SxProps = {

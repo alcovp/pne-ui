@@ -4,6 +4,7 @@ import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {PneTextField} from '../../../../..';
+import { filtersInputSx } from './style';
 
 export const ExactSearchCriterion = () => {
 
@@ -36,7 +37,7 @@ export const ExactSearchCriterion = () => {
             value={searchValue}
             onChange={(e) => setSearchValue(e.target.value)}
             placeholder={t('search')}
-            sx={valueInputSx}
+            sx={filtersInputSx}
             size={'small'}
             variant={'filled'}
             InputProps={{
@@ -57,16 +58,4 @@ const centerSx: SxProps = {
     flexDirection: 'row',
     alignItems: 'center',
     columnGap: '8px',
-}
-
-const valueInputSx: SxProps = {
-    '& .MuiInputBase-root.MuiFilledInput-root': {
-        height: '24px',
-        borderRadius: '16px',
-    },
-    '& .MuiInputBase-input.MuiFilledInput-input': {
-        py: '3px',
-        fontSize: '13px',
-        lineHeight: '18px',
-    },
 }

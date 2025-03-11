@@ -88,7 +88,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
             dateRangeSpecType: 'TODAY',
             dateFrom: searchUIInitialDateFrom.tz('Europe/Moscow', true).toDate(),
             dateTo: searchUIInitialDateTo.tz('Europe/Moscow', true).toDate(),
-            beforeCount: 0,
+            beforeCount: 1,
         },
         cardTypes: searchUIInitialAllableCollection,
         transactionTypes: searchUIInitialAllableCollection,
