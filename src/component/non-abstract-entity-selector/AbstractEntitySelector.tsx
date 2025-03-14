@@ -413,6 +413,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                             </InputAdornment>
                         ),
                     }}
+                    autoFocus={true}
                 />
             </Box>
             <DragDropContext onDragEnd={onDragEnd}>
