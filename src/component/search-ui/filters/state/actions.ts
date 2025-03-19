@@ -651,7 +651,9 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
 })
 
 const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => {
-    const now = dayjs()
+    const nowLocal = dayjs()
+    const nowServer = dayjs().utc().tz('Europe/Moscow')
+
     let from: Dayjs = dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom)
         : dayjs(searchUIInitialDateFrom)
     let to: Dayjs = dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo)
@@ -665,42 +667,42 @@ const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => 
         case 'DATE_INDEPENDENT':
             break
         case 'TODAY':
-            from = now.startOf('day')
-            to = now.startOf('day').add(1, 'day')
+            from = nowLocal.startOf('day')
+            to = nowLocal.startOf('day').add(1, 'day')
             break
         case 'YESTERDAY':
-            from = now.startOf('day').subtract(1, 'd')
-            to = now.startOf('day')
+            from = nowLocal.startOf('day').subtract(1, 'd')
+            to = nowLocal.startOf('day')
             break
         case 'THIS_WEEK':
-            from = now.startOf('isoWeek')
-            to = now.endOf('isoWeek').add(1, 'day').startOf('day')
+            from = nowLocal.startOf('isoWeek')
+            to = nowLocal.endOf('isoWeek').add(1, 'day').startOf('day')
             break
         case 'LAST_WEEK':
-            from = now.startOf('isoWeek').subtract(1, 'week')
-            to = now.endOf('isoWeek').subtract(1, 'week').add(1, 'day').startOf('day')
+            from = nowLocal.startOf('isoWeek').subtract(1, 'week')
+            to = nowLocal.endOf('isoWeek').subtract(1, 'week').add(1, 'day').startOf('day')
             break
         case 'THIS_MONTH':
-            from = now.startOf('month')
-            to = now.endOf('month').add(1, 'day').startOf('day')
+            from = nowLocal.startOf('month')
+            to = nowLocal.endOf('month').add(1, 'day').startOf('day')
             break
         case 'LAST_MONTH':
-            from = now.startOf('month').subtract(1, 'month')
-            to = now.subtract(1, 'month').endOf('month').add(1, 'day').startOf('day')
+            from = nowLocal.startOf('month').subtract(1, 'month')
+            to = nowLocal.subtract(1, 'month').endOf('month').add(1, 'day').startOf('day')
             break
         case 'DAYS_BEFORE':
             if (dateRangeSpec.beforeCount === null) {
                 throw new Error('Don\'t do like this')
             }
-            from = now.startOf('day').subtract(dateRangeSpec.beforeCount, 'd')
-            to = now.startOf('day').add(1, 'day')
+            from = nowLocal.startOf('day').subtract(dateRangeSpec.beforeCount, 'd')
+            to = nowLocal.startOf('day').add(1, 'day')
             break
         case 'HOURS_BEFORE':
             if (dateRangeSpec.beforeCount === null) {
                 throw new Error('Don\'t do like this')
             }
-            to = now
-            from = now.subtract(dateRangeSpec.beforeCount, 'hour')
+            to = nowServer
+            from = nowServer.subtract(dateRangeSpec.beforeCount, 'hour')
             break
         default:
             exhaustiveCheck(dateRangeSpec.dateRangeSpecType)

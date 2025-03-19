@@ -17,7 +17,7 @@ type DataType = AbstractEntity
 class Service {
 
     static async getList(searchParams: SearchParams): Promise<DataType[]> {
-        console.log('getList call:\n' + JSON.stringify(searchParams))
+        console.log('getList call:\n' + JSON.stringify(searchParams, null, 4))
         let data: DataType[] = []
         for (let i = 1; i <= 999; i++) {
             data.push({id: i, displayName: 'John ' + i})
