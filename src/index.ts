@@ -22,7 +22,6 @@ import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
 import AbstractTableCell from './component/table/AbstractTableCell'
 import {TableDisplayOptions} from './component/table/type'
 import {PneCheckbox} from './component/PneCheckbox'
-import {PneToggleButtonGroup} from './component/PneToggleButtonGroup'
 import {
     CriterionTypeEnum,
     ExactCriterionSearchLabelEnum,
@@ -169,6 +168,5 @@ export {
     CustomIconWrapper,
     PneSwitch,
     OrderSearchLabel,
-    PneToggleButtonGroup,
 }
 export * from './common'
