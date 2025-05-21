@@ -1,6 +1,6 @@
-import {createTheme, Theme} from '@mui/material/styles';
-import {Skin} from './common/paynet/skin';
-import {ThemeOptions} from '@mui/material/styles/createTheme';
+import {createTheme, Theme} from '@mui/material/styles'
+import {Skin} from './common/paynet/skin'
+import {ThemeOptions} from '@mui/material/styles/createTheme'
 
 const MISSING_COLOR = '#ff00dc'
 
@@ -15,25 +15,28 @@ export const createPneTheme = (
         palette: {
             tonalOffset: {
                 dark: 0.1, // results: as designed: #1075eb, generated: #207be5
-                light: 0.8 // results: as designed: #D3E7FF, generated: #D3E7FF
+                light: 0.8, // results: as designed: #D3E7FF, generated: #D3E7FF
             },
             primary: {
-                main: skin.experimentalColor || MISSING_COLOR
+                main: skin.experimentalColor || MISSING_COLOR,
             },
             pneNeutral: {
-                main: skin.experimentalColor || MISSING_COLOR
+                main: skin.experimentalColor || MISSING_COLOR,
             },//TODO put 4 colors here and then use it at styleOverrides
             pnePrimary: {
-                main: skin.experimentalColor || MISSING_COLOR
+                main: skin.experimentalColor || MISSING_COLOR,
             },
             pnePrimaryLight: {
-                main: skin.experimentalColor || MISSING_COLOR
+                main: skin.experimentalColor || MISSING_COLOR,
             },
             pneWhite: {
-                main: skin.experimentalColor || MISSING_COLOR
+                main: skin.experimentalColor || MISSING_COLOR,
             },
             pneWarningLight: {
-                main: '#F5762F'
+                main: '#F5762F',
+            },
+            pneAccentuated: {
+                main: skin.experimentalColor || MISSING_COLOR,
             },
         },
         components: {
@@ -47,7 +50,7 @@ export const createPneTheme = (
                                 '&:hover': {
                                     backgroundColor: theme.palette.primary.dark,
                                     color: theme.palette.primary.contrastText,
-                                }
+                                },
                             }
                         } else if (ownerState.color === 'pneNeutral') {
                             return {
@@ -56,12 +59,12 @@ export const createPneTheme = (
                                 '&:hover': {
                                     backgroundColor: theme.palette.primary.light,
                                     stroke: theme.palette.primary.dark,
-                                }
+                                },
                             }
                         }
                         return {}
                     },
-                }
+                },
             },
             MuiButton: {
                 styleOverrides: {
@@ -108,7 +111,7 @@ export const createPneTheme = (
                                     boxShadow: 'none',
                                 },
                             }
-                        }  else {
+                        } else {
                             return {
                                 boxShadow: 'none',
                                 '&:hover': {
@@ -117,7 +120,20 @@ export const createPneTheme = (
                             }
                         }
                     },
-                }
+                },
+            },
+            MuiToggleButtonGroup: {
+                styleOverrides: {
+                    root: ({ownerState, theme}) => {
+                        if (ownerState.color === 'pneAccentuated') {
+                            return {
+                                backgroundColor: '#ffffff',
+                            }
+                        } else {
+                            return {}
+                        }
+                    },
+                },
             },
         },
         ...options,

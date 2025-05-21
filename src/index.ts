@@ -15,13 +15,14 @@ import AbstractTable, {
     PaginatorProps,
     TableCreateHeaderType,
     TableProps,
-    TableSortOptions
+    TableSortOptions,
 } from './component/table/AbstractTable'
 import PneTableSortLabel from './component/table/PneTableSortLabel'
 import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
 import AbstractTableCell from './component/table/AbstractTableCell'
 import {TableDisplayOptions} from './component/table/type'
 import {PneCheckbox} from './component/PneCheckbox'
+import {PneToggleButtonGroup} from './component/PneToggleButtonGroup'
 import {
     CriterionTypeEnum,
     ExactCriterionSearchLabelEnum,
@@ -29,9 +30,10 @@ import {
     LinkedEntityTypeEnum,
     MultichoiceFilterTypeEnum,
     MultigetCriterion,
+    OrderSearchLabel,
     SearchCriteria,
     SearchUIConditions,
-    SearchUITemplate
+    SearchUITemplate,
 } from './component/search-ui/filters/types'
 import {SearchUIDefaults, SearchUIProvider} from './component/search-ui/SearchUIProvider'
 import {SearchParams, SearchUI} from './component/search-ui/SearchUI'
@@ -42,7 +44,7 @@ import {
     AbstractEntitySelector,
     AbstractEntitySelectorProp,
     IAbstractEntityOptions,
-    IMappedUnmappedList
+    IMappedUnmappedList,
 } from './component/non-abstract-entity-selector/AbstractEntitySelector'
 import {AbstractEntitySelectModal} from './component/non-abstract-entity-selector/AbstractEntitySelectModal'
 import {PneDropdownChoice} from './common/paynet/dropdown'
@@ -66,6 +68,7 @@ declare module '@mui/material/styles' {
         pnePrimaryLight: Palette['primary']
         pneWhite: Palette['primary']
         pneWarningLight: Palette['primary']
+        pneAccentuated: Palette['primary']
     }
 
     interface PaletteOptions {
@@ -74,6 +77,7 @@ declare module '@mui/material/styles' {
         pnePrimaryLight: PaletteOptions['primary']
         pneWhite: PaletteOptions['primary']
         pneWarningLight: PaletteOptions['primary']
+        pneAccentuated: PaletteOptions['primary']
     }
 
     // allow configuration using `createTheme`
@@ -95,6 +99,18 @@ declare module '@mui/material/Button' {
         pneNeutral: true
         pneWhite: true
         pneWarningLight: true
+    }
+}
+
+declare module '@mui/material/ToggleButtonGroup' {
+    interface ToggleButtonGroupPropsColorOverrides {
+        pneAccentuated: true
+    }
+}
+
+declare module '@mui/material/ToggleButton' {
+    interface ToggleButtonPropsColorOverrides {
+        pneAccentuated: true
     }
 }
 
@@ -152,5 +168,7 @@ export {
     Skin,
     CustomIconWrapper,
     PneSwitch,
+    OrderSearchLabel,
+    PneToggleButtonGroup,
 }
 export * from './common'

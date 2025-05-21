@@ -184,6 +184,7 @@ export const MultigetSelect = (props: Props) => {
                         }
                     }}
                     size="small"
+                    // color={'pneAccentuated'}
                 >
                     <ToggleButton value={'NONE'} sx={toggleSx}>{t('react.searchUI.include')}</ToggleButton>
                     <ToggleButton value={'ALL'} sx={toggleSx}>{t('react.searchUI.exclude')}</ToggleButton>
