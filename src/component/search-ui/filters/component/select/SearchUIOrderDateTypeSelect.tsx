@@ -9,13 +9,10 @@ import {PneSelect} from '../../../../..';
 
 export const SearchUIOrderDateTypeSelect = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'orders.orderlist.search.datesType'})
-    const {
-        orderDateType,
-        setDateRangeCriterionOrderDateType,
-    } = useSearchUIFiltersStore((store) => ({
-        orderDateType: store.orderDateType,
-        setDateRangeCriterionOrderDateType: store.setDateRangeCriterionOrderDateType,
-    }))
+
+    const orderDateType = useSearchUIFiltersStore(s => s.orderDateType)
+    const setDateRangeCriterionOrderDateType = useSearchUIFiltersStore(s => s.setDateRangeCriterionOrderDateType)
+
     const [open, setOpen] = useState(false)
 
     const selectSx: SxProps = {

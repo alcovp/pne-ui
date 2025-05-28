@@ -8,11 +8,7 @@ import {SearchUICollapsableGroupSelect} from './SearchUICollapsableGroupSelect';
 export const SearchUIOrdersSearchLabelSelect = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'searchLabel'})
 
-    const {
-        ordersSearchLabel,
-    } = useSearchUIFiltersStore((store) => ({
-        ordersSearchLabel: store.ordersSearchLabel,
-    }))
+    const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
 
     const [open, setOpen] = useState(false)
 

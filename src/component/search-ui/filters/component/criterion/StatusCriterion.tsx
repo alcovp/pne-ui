@@ -7,13 +7,8 @@ import {useTranslation} from 'react-i18next';
 export const StatusCriterion = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.StatusCriterionEnum'})
 
-    const {
-        status,
-        setStatusCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        status: store.status,
-        setStatusCriterion: store.setStatusCriterion,
-    }))
+    const status = useSearchUIFiltersStore(s => s.status)
+    const setStatusCriterion = useSearchUIFiltersStore(s => s.setStatusCriterion)
 
     return <Box sx={centerSx}>
         {STATUS_CRITERION_VALUES.map(value => {

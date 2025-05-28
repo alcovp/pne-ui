@@ -6,13 +6,10 @@ import {AbstractEntity} from "../../../../../common";
 
 export const MarkerTypesCriterion = () => {
     const [availableOptions, setAvailableOptions] = useState<AbstractEntity[]>([])
-    const {
-        options,
-        setCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        options: store.markerTypes,
-        setCriterion: store.setMarkerTypesCriterion,
-    }))
+
+    const options = useSearchUIFiltersStore(s => s.markerTypes)
+    const setCriterion = useSearchUIFiltersStore(s => s.setMarkerTypesCriterion)
+
     const {getTransactionMarkerTypes} = useContext(SearchUIDefaultsContext)
 
     useEffect(() => {

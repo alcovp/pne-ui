@@ -6,13 +6,9 @@ import {Box, Chip, SxProps} from '@mui/material';
 
 export const MarkerStatusCriterion = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.MarkerStatusCriterionEnum'})
-    const {
-        status,
-        setStatusCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        status: store.markerStatus,
-        setStatusCriterion: store.setMarkerStatusCriterion,
-    }))
+
+    const status = useSearchUIFiltersStore(s => s.markerStatus)
+    const setStatusCriterion = useSearchUIFiltersStore(s => s.setMarkerStatusCriterion)
 
     return <Box sx={centerSx}>
         {MARKER_STATUS_CRITERION_VALUES.map(value => {

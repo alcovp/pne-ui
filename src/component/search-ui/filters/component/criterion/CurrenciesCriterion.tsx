@@ -6,13 +6,10 @@ import {AbstractEntity} from '../../../../..';
 
 export const CurrenciesCriterion = () => {
     const [availableCurrencies, setAvailableCurrencies] = useState<AbstractEntity[]>([])
-    const {
-        currencies,
-        setCurrenciesCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        currencies: store.currencies,
-        setCurrenciesCriterion: store.setCurrenciesCriterion,
-    }))
+
+    const currencies = useSearchUIFiltersStore(s => s.currencies)
+    const setCurrenciesCriterion = useSearchUIFiltersStore(s => s.setCurrenciesCriterion)
+
     const {getCurrencies} = useContext(SearchUIDefaultsContext)
 
     useEffect(() => {

@@ -11,17 +11,12 @@ interface IProps {
 }
 
 const SearchUITemplatePanel = (props: IProps) => {
-    const {
-        template,
-        createTemplate,
-        updateTemplate,
-        settingsContextName,
-    } = useSearchUIFiltersStore((store) => ({
-        template: store.template,
-        createTemplate: store.createTemplate,
-        updateTemplate: store.updateTemplate,
-        settingsContextName: store.settingsContextName,
-    }))
+
+    const template = useSearchUIFiltersStore(s => s.template)
+    const createTemplate = useSearchUIFiltersStore(s => s.createTemplate)
+    const updateTemplate = useSearchUIFiltersStore(s => s.updateTemplate)
+    const settingsContextName = useSearchUIFiltersStore(s => s.settingsContextName)
+
     const {t} = useTranslation()
     const {open, handleOpen, handleClose} = useModal()
     const [templateName, setTemplateName] = useState(template?.name || '')

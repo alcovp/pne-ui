@@ -6,13 +6,10 @@ import {AbstractEntity} from '../../../../..';
 
 export const TransactionTypesCriterion = () => {
     const [availableOptions, setAvailableOptions] = useState<AbstractEntity[]>([])
-    const {
-        options,
-        setCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        options: store.transactionTypes,
-        setCriterion: store.setTransactionTypesCriterion,
-    }))
+
+    const options = useSearchUIFiltersStore(s => s.transactionTypes)
+    const setCriterion = useSearchUIFiltersStore(s => s.setTransactionTypesCriterion)
+
     const {getTransactionTypes} = useContext(SearchUIDefaultsContext)
 
     useEffect(() => {

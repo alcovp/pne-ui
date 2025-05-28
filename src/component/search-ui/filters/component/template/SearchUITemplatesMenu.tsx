@@ -11,17 +11,12 @@ import {PneButton} from '../../../../..';
 
 const SearchUITemplatesMenu = () => {
     const {t} = useTranslation();
-    const {
-        removeTemplate,
-        setTemplate,
-        templates,
-        template,
-    } = useSearchUIFiltersStore((store) => ({
-        removeTemplate: store.removeTemplate,
-        setTemplate: store.setTemplate,
-        templates: store.templates,
-        template: store.template,
-    }))
+
+    const removeTemplate = useSearchUIFiltersStore(s => s.removeTemplate)
+    const setTemplate = useSearchUIFiltersStore(s => s.setTemplate)
+    const templates = useSearchUIFiltersStore(s => s.templates)
+    const template = useSearchUIFiltersStore(s => s.template)
+
     const placeholder = template?.name || t('react.searchUI.template');
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {

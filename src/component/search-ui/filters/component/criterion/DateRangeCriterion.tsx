@@ -22,17 +22,8 @@ type Props = {
 export const DateRangeCriterion = (props: Props) => {
     const {showOrdersDateType} = props
 
-    const {
-        dateRangeSpec,
-        setDateRangeCriterion,
-        orderDateType,
-        setDateRangeCriterionOrderDateType,
-    } = useSearchUIFiltersStore((store) => ({
-        dateRangeSpec: store.dateRangeSpec,
-        setDateRangeCriterion: store.setDateRangeCriterion,
-        orderDateType: store.orderDateType,
-        setDateRangeCriterionOrderDateType: store.setDateRangeCriterionOrderDateType,
-    }))
+    const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
+    const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
 
     const changeBeforeCount = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         const value = event.target.value

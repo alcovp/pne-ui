@@ -11,13 +11,7 @@ import {useTranslation} from "react-i18next";
 export const OrdersSearchCountrySelect = () => {
     const {t} = useTranslation()
 
-    const {
-        ordersSearchValue,
-        setOrderSearchCriterionValue,
-    } = useSearchUIFiltersStore((store) => ({
-        ordersSearchValue: store.ordersSearchValue,
-        setOrderSearchCriterionValue: store.setOrderSearchCriterionValue,
-    }))
+    const setOrderSearchCriterionValue = useSearchUIFiltersStore(s => s.setOrderSearchCriterionValue)
 
     const [availableCountries, setAvailableCountries] = useState<Country[]>([])
     const [country, setCountry] = useState<Country>()

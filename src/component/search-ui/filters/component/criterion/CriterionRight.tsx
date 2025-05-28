@@ -13,17 +13,11 @@ export const CriterionRight = (props: Props) => {
     const {
         criterionType
     } = props
-    const {
-        predefinedCriteria,
-        removablePredefinedCriteria,
-        clearCriterion,
-        removeCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        predefinedCriteria: store.predefinedCriteria,
-        removablePredefinedCriteria: store.config?.removablePredefinedCriteria,
-        clearCriterion: store.clearCriterion,
-        removeCriterion: store.removeCriterion,
-    }))
+
+    const predefinedCriteria = useSearchUIFiltersStore(s => s.predefinedCriteria)
+    const removablePredefinedCriteria = useSearchUIFiltersStore(s => s.config?.removablePredefinedCriteria)
+    const clearCriterion = useSearchUIFiltersStore(s => s.clearCriterion)
+    const removeCriterion = useSearchUIFiltersStore(s => s.removeCriterion)
 
     const clear = () => {
         clearCriterion(criterionType)

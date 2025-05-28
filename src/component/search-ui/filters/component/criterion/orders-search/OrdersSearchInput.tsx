@@ -13,15 +13,10 @@ export const OrdersSearchInput = () => {
 
     const {t} = useTranslation()
 
-    const {
-        ordersSearchLabel,
-        ordersSearchValue,
-        setOrderSearchCriterionValue,
-    } = useSearchUIFiltersStore((store) => ({
-        ordersSearchLabel: store.ordersSearchLabel,
-        ordersSearchValue: store.ordersSearchValue,
-        setOrderSearchCriterionValue: store.setOrderSearchCriterionValue,
-    }))
+    const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
+    const ordersSearchValue = useSearchUIFiltersStore(s => s.ordersSearchValue)
+    const setOrderSearchCriterionValue = useSearchUIFiltersStore(s => s.setOrderSearchCriterionValue)
+
     const [searchValue, setSearchValue] = useState(ordersSearchValue)
 
     useEffect(() => {

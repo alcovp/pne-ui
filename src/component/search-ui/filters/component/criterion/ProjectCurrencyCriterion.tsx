@@ -12,21 +12,14 @@ export const ProjectCurrencyCriterion = () => {
     const {t} = useTranslation()
     const [availableCurrencies, setAvailableCurrencies] = useState<AbstractEntity[]>([])
     const searchUIDefaults = useContext(SearchUIDefaultsContext)
-    const {
-        currency,
-        convertToUserCurrency,
-        setProjectCurrencyCriterionCurrency,
-        setProjectCurrencyCriterionConvertFlag,
-        criteria,
-        multigetCriteria,
-    } = useSearchUIFiltersStore((store) => ({
-        currency: store.projectCurrency.currency,
-        convertToUserCurrency: store.projectCurrency.convertToUserCurrency,
-        setProjectCurrencyCriterionCurrency: store.setProjectCurrencyCriterionCurrency,
-        setProjectCurrencyCriterionConvertFlag: store.setProjectCurrencyCriterionConvertFlag,
-        criteria: store.criteria,
-        multigetCriteria: store.multigetCriteria,
-    }))
+
+    const currency = useSearchUIFiltersStore(s => s.projectCurrency.currency)
+    const convertToUserCurrency = useSearchUIFiltersStore(s => s.projectCurrency.convertToUserCurrency)
+    const setProjectCurrencyCriterionCurrency = useSearchUIFiltersStore(s => s.setProjectCurrencyCriterionCurrency)
+    const setProjectCurrencyCriterionConvertFlag = useSearchUIFiltersStore(s => s.setProjectCurrencyCriterionConvertFlag)
+    const criteria = useSearchUIFiltersStore(s => s.criteria)
+    const multigetCriteria = useSearchUIFiltersStore(s => s.multigetCriteria)
+
     const [open, setOpen] = useState(false)
 
     useEffect(() => {

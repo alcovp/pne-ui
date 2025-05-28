@@ -6,13 +6,10 @@ import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 
 export const MfoConfigurationTypesCriterion = () => {
     const [availableOptions, setAvailableOptions] = useState<AbstractEntity[]>([])
-    const {
-        options,
-        setCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        options: store.mfoConfigurationTypes,
-        setCriterion: store.setMfoConfigurationTypesCriterion,
-    }))
+
+    const options = useSearchUIFiltersStore(s => s.mfoConfigurationTypes)
+    const setCriterion = useSearchUIFiltersStore(s => s.setMfoConfigurationTypesCriterion)
+
     const {getMFOTypes} = useContext(SearchUIDefaultsContext)
 
     useEffect(() => {

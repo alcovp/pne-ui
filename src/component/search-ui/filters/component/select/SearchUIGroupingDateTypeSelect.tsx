@@ -9,13 +9,10 @@ import {PneSelect} from '../../../../..';
 
 const SearchUIGroupingDateTypeSelect = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'performanceReport.groupType'})
-    const {
-        dateType,
-        setGroupingCriterionDateType,
-    } = useSearchUIFiltersStore((store) => ({
-        dateType: store.grouping.dateType,
-        setGroupingCriterionDateType: store.setGroupingCriterionDateType,
-    }))
+
+    const dateType = useSearchUIFiltersStore(s => s.grouping.dateType)
+    const setGroupingCriterionDateType = useSearchUIFiltersStore(s => s.setGroupingCriterionDateType)
+
     const [open, setOpen] = useState(false)
 
     return <Box sx={{position: 'relative'}}>

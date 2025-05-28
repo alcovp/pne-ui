@@ -6,13 +6,10 @@ import {AbstractEntity} from '../../../../..';
 
 export const RecurrenceStatusesCriterion = () => {
     const [availableOptions, setAvailableOptions] = useState<AbstractEntity[]>([])
-    const {
-        options,
-        setCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        options: store.recurrenceStatuses,
-        setCriterion: store.setRecurrenceStatusesCriterion,
-    }))
+
+    const options = useSearchUIFiltersStore(s => s.recurrenceStatuses)
+    const setCriterion = useSearchUIFiltersStore(s => s.setRecurrenceStatusesCriterion)
+
     const {getRecurringPaymentStatuses} = useContext(SearchUIDefaultsContext)
 
     useEffect(() => {

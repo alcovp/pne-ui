@@ -49,27 +49,15 @@ export const SearchUIFilters = (props: Props) => {
         ])
     ])
 
-    const {
-        setInitialState,
-        loadTemplates,
-        criteria,
-        clearCriteria,
-        addCriterion,
-        conflictingCriteriaGroups,
-        hideTemplatesSelect,
-        hideShowFiltersButton,
-        exactSearchLabel,
-    } = useSearchUIFiltersStore((store) => ({
-        setInitialState: store.setInitialState,
-        loadTemplates: store.loadTemplates,
-        criteria: store.criteria,
-        clearCriteria: store.clearCriteria,
-        addCriterion: store.addCriterion,
-        conflictingCriteriaGroups: store.config?.conflictingCriteriaGroups,
-        hideTemplatesSelect: store.config?.hideTemplatesSelect,
-        hideShowFiltersButton: store.config?.hideShowFiltersButton,
-        exactSearchLabel: store.exactSearchLabel,
-    }))
+    const setInitialState = useSearchUIFiltersStore(s => s.setInitialState)
+    const loadTemplates = useSearchUIFiltersStore(s => s.loadTemplates)
+    const criteria = useSearchUIFiltersStore(s => s.criteria)
+    const clearCriteria = useSearchUIFiltersStore(s => s.clearCriteria)
+    const addCriterion = useSearchUIFiltersStore(s => s.addCriterion)
+    const conflictingCriteriaGroups = useSearchUIFiltersStore(s => s.config?.conflictingCriteriaGroups)
+    const hideTemplatesSelect = useSearchUIFiltersStore(s => s.config?.hideTemplatesSelect)
+    const hideShowFiltersButton = useSearchUIFiltersStore(s => s.config?.hideShowFiltersButton)
+    const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel)
 
     const [showFilters, setShowFilters] = useState(true)
 

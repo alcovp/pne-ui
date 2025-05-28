@@ -9,15 +9,10 @@ export const GroupingCriterion = () => {
     const {t} = useTranslation()
     const {t: groupTypeRenderer} = useTranslation('', {keyPrefix: 'performanceReport.groupType'})
     const {open, handleOpen, handleClose} = useModal()
-    const {
-        available,
-        selected,
-        setGroupingCriterionGroups,
-    } = useSearchUIFiltersStore((store) => ({
-        available: store.grouping.availableGroupingTypes,
-        selected: store.grouping.selectedGroupingTypes,
-        setGroupingCriterionGroups: store.setGroupingCriterionGroups,
-    }))
+
+    const available = useSearchUIFiltersStore(s => s.grouping.availableGroupingTypes)
+    const selected = useSearchUIFiltersStore(s => s.grouping.selectedGroupingTypes)
+    const setGroupingCriterionGroups = useSearchUIFiltersStore(s => s.setGroupingCriterionGroups)
 
     const getLinkChildren = () => {
         return <Box sx={chipsSx}>

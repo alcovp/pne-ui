@@ -116,13 +116,8 @@ type Props = {
 export const SearchUICollapsableGroupSelect = (props: Props) => {
     const {t} = useTranslation()
 
-    const {
-        ordersSearchLabel,
-        setOrderSearchCriterionLabel,
-    } = useSearchUIFiltersStore((store) => ({
-        ordersSearchLabel: store.ordersSearchLabel,
-        setOrderSearchCriterionLabel: store.setOrderSearchCriterionLabel,
-    }))
+    const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
+    const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
 
     const [selectedValue, setSelectedValue] = useState<string>(ordersSearchLabel)
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {

@@ -9,19 +9,13 @@ import { filtersInputSx } from './style';
 export const ExactSearchCriterion = () => {
 
     const {t} = useTranslation()
-    const {
-        exactSearchLabel,
-        exactSearchValue,
-        exactSearchLabels,
-        setExactCriterionSearchLabel,
-        setExactCriterionSearchValue,
-    } = useSearchUIFiltersStore((store) => ({
-        exactSearchLabel: store.exactSearchLabel || store.exactSearchLabels[0],
-        exactSearchValue: store.exactSearchValue,
-        exactSearchLabels: store.exactSearchLabels,
-        setExactCriterionSearchLabel: store.setExactCriterionSearchLabel,
-        setExactCriterionSearchValue: store.setExactCriterionSearchValue,
-    }))
+
+    const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel || s.exactSearchLabels[0])
+    const exactSearchValue = useSearchUIFiltersStore(s => s.exactSearchValue)
+    const exactSearchLabels = useSearchUIFiltersStore(s => s.exactSearchLabels)
+    const setExactCriterionSearchLabel = useSearchUIFiltersStore(s => s.setExactCriterionSearchLabel)
+    const setExactCriterionSearchValue = useSearchUIFiltersStore(s => s.setExactCriterionSearchValue)
+
     const [searchValue, setSearchValue] = useState(exactSearchValue)
 
     useEffect(() => {

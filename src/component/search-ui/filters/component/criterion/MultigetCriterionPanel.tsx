@@ -20,12 +20,11 @@ export const MultigetCriterionPanel = (props: IProps) => {
     const {t} = useTranslation()
 
     const {open, handleOpen, handleClose: closeModal} = useModal()
-    const {
-        multigetCriteria,
-        setMultigetCriterion,
-        justAddedCriterion,
-        setJustAddedCriterion,
-    } = useSearchUIFiltersStore()
+
+    const multigetCriteria = useSearchUIFiltersStore(s => s.multigetCriteria)
+    const setMultigetCriterion = useSearchUIFiltersStore(s => s.setMultigetCriterion)
+    const justAddedCriterion = useSearchUIFiltersStore(s => s.justAddedCriterion)
+    const setJustAddedCriterion = useSearchUIFiltersStore(s => s.setJustAddedCriterion)
 
     const currentMultigetCriterion = multigetCriteria.find(c => c.entityType === entityType)
     if (currentMultigetCriterion === undefined) {

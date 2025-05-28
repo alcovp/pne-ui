@@ -1,21 +1,18 @@
-import React, {useState} from 'react';
-import {DATE_RANGE_SPEC_TYPES, DateRangeSpecType} from '../../types';
-import {Box, Chip, SxProps} from '@mui/material';
-import {useTranslation} from 'react-i18next';
-import {useSearchUIFiltersStore} from '../../state/store';
-import {ExpandMore} from '@mui/icons-material';
-import {selectUnderChipSx} from './style';
-import {PneSelect} from '../../../../..';
+import React, {useState} from 'react'
+import {DATE_RANGE_SPEC_TYPES, DateRangeSpecType} from '../../types'
+import {Box, Chip, SxProps} from '@mui/material'
+import {useTranslation} from 'react-i18next'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {ExpandMore} from '@mui/icons-material'
+import {selectUnderChipSx} from './style'
+import {PneSelect} from '../../../../..'
 
 const SearchUIDateRangeSpecTypeSelect = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.DateRangeSpecType'})
-    const {
-        dateRangeSpec,
-        setDateRangeCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        dateRangeSpec: store.dateRangeSpec,
-        setDateRangeCriterion: store.setDateRangeCriterion,
-    }))
+
+    const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
+    const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
+
     const [open, setOpen] = useState(false)
 
     const withInputNear = dateRangeSpec.dateRangeSpecType === 'EXACTLY'
@@ -30,7 +27,7 @@ const SearchUIDateRangeSpecTypeSelect = () => {
             borderColor: 'transparent !important',
             borderRightColor: withInputNear ? '#F1F5FA !important' : 'transparent !important',
         },
-        ...selectUnderChipSx
+        ...selectUnderChipSx,
     }
 
     const handleSetDateRangeSpecType = (dateRangeSpecType: DateRangeSpecType) => {

@@ -7,13 +7,8 @@ import {useTranslation} from 'react-i18next';
 export const ThreeDCriterion = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.ThreeDCriterionEnum'})
 
-    const {
-        threeD,
-        set3DCriterion,
-    } = useSearchUIFiltersStore((store) => ({
-        threeD: store.threeD,
-        set3DCriterion: store.set3DCriterion,
-    }))
+    const threeD = useSearchUIFiltersStore(s => s.threeD)
+    const set3DCriterion = useSearchUIFiltersStore(s => s.set3DCriterion)
 
     const options = [
         ThreeDCriterionEnum.ANY,
