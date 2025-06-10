@@ -3,7 +3,7 @@ import {MultichoiceFilterTypeEnum} from "../../filters/types";
 
 export const getMultigetSelectInitialState = (): MultigetSelectState => ({
     filterType: MultichoiceFilterTypeEnum.NONE,
-    onlyEnabledStatus: false,
+    onlyEnabledStatus: true,
     searchString: '',
     searchLabel: 'all',
     availableItems: [],

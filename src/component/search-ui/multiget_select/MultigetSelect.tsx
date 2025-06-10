@@ -1,12 +1,12 @@
-import React, {useContext, useEffect} from 'react';
-import {Alert, Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material';
-import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types';
-import {useTranslation} from 'react-i18next';
+import React, {useContext, useEffect} from 'react'
+import {Alert, Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types'
+import {useTranslation} from 'react-i18next'
 import {AbstractEntity, PneButton, PneSwitch, PneTextField} from '../../..'
-import {SearchUIDefaultsContext} from "../SearchUIProvider";
-import {useMultigetSelectStore} from "./state/store";
-import {MultigetSearchLabel} from './state/type';
-import {MultigetSelectTable} from "./MultigetSelectTable";
+import {SearchUIDefaultsContext} from '../SearchUIProvider'
+import {useMultigetSelectStore} from './state/store'
+import {MultigetSearchLabel} from './state/type'
+import {MultigetSelectTable} from './MultigetSelectTable'
 // import {raiseUIError} from '../../../../error'; //TODO migration
 
 type Props = {
@@ -28,39 +28,21 @@ export const MultigetSelect = (props: Props) => {
     const {t} = useTranslation()
     const {getMatchLinkedItems} = useContext(SearchUIDefaultsContext)
 
-    const {
-        filterType,
-        setFilterType,
-        onlyEnabledStatus,
-        setOnlyEnabledStatus,
-        searchString,
-        setSearchString,
-        searchLabel,
-        setSearchLabel,
-        setAvailableItems,
-        selectedItems,
-        setSelectedItems,
-        currentPage,
-        setCurrentPage,
-        setHasNextPage,
-        setLoading,
-    } = useMultigetSelectStore()((store) => ({
-        filterType: store.filterType,
-        setFilterType: store.setFilterType,
-        onlyEnabledStatus: store.onlyEnabledStatus,
-        setOnlyEnabledStatus: store.setOnlyEnabledStatus,
-        searchString: store.searchString,
-        setSearchString: store.setSearchString,
-        searchLabel: store.searchLabel,
-        setSearchLabel: store.setSearchLabel,
-        setAvailableItems: store.setAvailableItems,
-        selectedItems: store.selectedItems,
-        setSelectedItems: store.setSelectedItems,
-        currentPage: store.currentPage,
-        setCurrentPage: store.setCurrentPage,
-        setHasNextPage: store.setHasNextPage,
-        setLoading: store.setLoading,
-    }))
+    const filterType = useMultigetSelectStore()(s => s.filterType)
+    const onlyEnabledStatus = useMultigetSelectStore()(s => s.onlyEnabledStatus)
+    const searchString = useMultigetSelectStore()(s => s.searchString)
+    const searchLabel = useMultigetSelectStore()(s => s.searchLabel)
+    const selectedItems = useMultigetSelectStore()(s => s.selectedItems)
+    const currentPage = useMultigetSelectStore()(s => s.currentPage)
+    const setFilterType = useMultigetSelectStore()(s => s.setFilterType)
+    const setOnlyEnabledStatus = useMultigetSelectStore()(s => s.setOnlyEnabledStatus)
+    const setSearchString = useMultigetSelectStore()(s => s.setSearchString)
+    const setSearchLabel = useMultigetSelectStore()(s => s.setSearchLabel)
+    const setAvailableItems = useMultigetSelectStore()(s => s.setAvailableItems)
+    const setSelectedItems = useMultigetSelectStore()(s => s.setSelectedItems)
+    const setCurrentPage = useMultigetSelectStore()(s => s.setCurrentPage)
+    const setHasNextPage = useMultigetSelectStore()(s => s.setHasNextPage)
+    const setLoading = useMultigetSelectStore()(s => s.setLoading)
 
     useEffect(() => {
         setFilterType(multigetCriterion.filterType)
@@ -106,17 +88,17 @@ export const MultigetSelect = (props: Props) => {
 
     const getSelectedItemsByFilterType = (): AbstractEntity[] => {
         if (filterType === MultichoiceFilterTypeEnum.ALL) {
-            return [];
+            return []
         } else {
-            return selectedItems;
+            return selectedItems
         }
     }
 
     const getDeselectedItemsByFilterType = (): AbstractEntity[] => {
         if (filterType === MultichoiceFilterTypeEnum.ALL) {
-            return selectedItems;
+            return selectedItems
         } else {
-            return [];
+            return []
         }
     }
 
@@ -153,7 +135,7 @@ export const MultigetSelect = (props: Props) => {
     }
 
     const onSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchString(event.target.value);
+        setSearchString(event.target.value)
     }
 
     const showGateSearchLabels = multigetCriterion.entityType === LinkedEntityTypeEnum.GATE
@@ -230,7 +212,7 @@ export const MultigetSelect = (props: Props) => {
                     >{t('react.searchUI.descriptor')}</ToggleButton>
                 </ToggleButtonGroup> : null}
             </Box>
-            {showPoorSearchEngineImplementationAlert ? <Alert severity='warning'>
+            {showPoorSearchEngineImplementationAlert ? <Alert severity="warning">
                 {poorSearchEngineImplementationAlert}
             </Alert> : null}
             <Divider/>
@@ -262,7 +244,7 @@ const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): Abs
         if (selectedIds[i]) {
             entities.push({
                 id: parseInt(selectedIds[i]),
-                displayName: selectedNames[i]
+                displayName: selectedNames[i],
             })
         }
     }

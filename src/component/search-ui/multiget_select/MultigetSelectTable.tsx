@@ -1,34 +1,23 @@
-import React from 'react';
-import {Box, Divider, Pagination} from "@mui/material";
-import {AbstractEntity, PneButton} from "../../../index";
-import {MULTIGET_PAGE_SIZE} from "./MultigetSelect";
-import {useTranslation} from "react-i18next";
-import {SxProps} from "@mui/material/styles";
-import {useMultigetSelectStore} from "./state/store";
+import React from 'react'
+import {Box, Divider, Pagination} from '@mui/material'
+import {AbstractEntity, PneButton} from '../../../index'
+import {MULTIGET_PAGE_SIZE} from './MultigetSelect'
+import {useTranslation} from 'react-i18next'
+import {SxProps} from '@mui/material/styles'
+import {useMultigetSelectStore} from './state/store'
 
 export const MultigetSelectTable = () => {
 
     const {t} = useTranslation()
 
-    const {
-        filterType,
-        availableItems,
-        selectedItems,
-        setSelectedItems,
-        currentPage,
-        setCurrentPage,
-        hasNextPage,
-        isLoading,
-    } = useMultigetSelectStore()((store) => ({
-        filterType: store.filterType,
-        availableItems: store.availableItems,
-        selectedItems: store.selectedItems,
-        setSelectedItems: store.setSelectedItems,
-        currentPage: store.currentPage,
-        setCurrentPage: store.setCurrentPage,
-        hasNextPage: store.hasNextPage,
-        isLoading: store.isLoading,
-    }))
+    const filterType = useMultigetSelectStore()(s => s.filterType)
+    const availableItems = useMultigetSelectStore()(s => s.availableItems)
+    const selectedItems = useMultigetSelectStore()(s => s.selectedItems)
+    const currentPage = useMultigetSelectStore()(s => s.currentPage)
+    const hasNextPage = useMultigetSelectStore()(s => s.hasNextPage)
+    const isLoading = useMultigetSelectStore()(s => s.isLoading)
+    const setSelectedItems = useMultigetSelectStore()(s => s.setSelectedItems)
+    const setCurrentPage = useMultigetSelectStore()(s => s.setCurrentPage)
 
     const onEntityClick = (entity: AbstractEntity) => {
         if (!selectedItems.some(e => +e.id === +entity.id)) {
@@ -53,7 +42,7 @@ export const MultigetSelectTable = () => {
             </Box>
             <Box sx={{display: 'flex', flexDirection: 'column', minHeight: '360px'}}>
                 {availableItems.slice(0, MULTIGET_PAGE_SIZE).map((entity, index) => {
-                    const rowSelected = selectedItems.some(e => +e.id === +entity.id);
+                    const rowSelected = selectedItems.some(e => +e.id === +entity.id)
                     return <Box
                         sx={{
                             ...rowSx,
@@ -79,13 +68,13 @@ export const MultigetSelectTable = () => {
                     setCurrentPage(value)
                 }}
                 disabled={isLoading}
-                size='small'
-                shape='rounded'
+                size="small"
+                shape="rounded"
             />
         </Box>
         <Divider orientation={'vertical'} flexItem/>
         <Box sx={columnSx}>
-            <Box sx={{...headerSx, justifyContent: 'space-between',}}>
+            <Box sx={{...headerSx, justifyContent: 'space-between'}}>
                 <Box component={'span'} sx={headerTitleSx}>
                     {filterType === 'ALL' ? t('react.searchUI.excluded') : t('react.searchUI.selected')}
                 </Box>
@@ -104,7 +93,7 @@ export const MultigetSelectTable = () => {
                         title={entity.displayName}
                     >
                         {entity.displayName}
-                    </Box>
+                    </Box>,
                 )}
             </Box>
         </Box>
