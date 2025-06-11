@@ -99,6 +99,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         mfoConfigurationTypes: searchUIInitialAllableCollection,
         markerTypes: searchUIInitialAllableCollection,
         markerStatus: 'any',
+        processorLogEntryType: null,
 
         criteria: [],
     })

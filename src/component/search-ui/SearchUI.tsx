@@ -95,6 +95,7 @@ export const SearchUI = <D, >(props: Props<D>) => {
                 mfoConfigurationTypes: searchCriteria.mfoConfigurationTypes,
                 markerTypes: searchCriteria.markerTypes,
                 markerStatus: searchCriteria.markerStatus,
+                processorLogEntryType: searchCriteria.processorLogEntryType,
             }
 
             return searchData(searchParams)

@@ -66,4 +66,5 @@ export type SearchUIFiltersActions = {
     setMfoConfigurationTypesCriterion: (mfoConfigurationTypes: AbstractEntityAllableCollection) => void
     setMarkerTypesCriterion: (markerTypes: AbstractEntityAllableCollection) => void
     setMarkerStatusCriterion: (markerStatus: MarkerStatusCriterion) => void
+    setProcessorLogEntryType: (entryType: AbstractEntity) => void
 }

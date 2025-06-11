@@ -42,6 +42,7 @@ export type SearchUIDefaults = {
     getTransactionMarkerTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentStatuses: () => Promise<AbstractEntity[]>
+    getProcessorLogEntryTypes: () => Promise<AbstractEntity[]>
 
     showProcessorsCriterion: () => boolean
     showGatesCriterion: () => boolean
@@ -95,6 +96,7 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     getTransactionMarkerTypes: () => Promise.resolve([]),
     getRecurringPaymentTypes: () => Promise.resolve([]),
     getRecurringPaymentStatuses: () => Promise.resolve([]),
+    getProcessorLogEntryTypes: () => Promise.resolve([]),
 
     showProcessorsCriterion: () => true,
     showGatesCriterion: () => true,

@@ -20,6 +20,7 @@ import {ProjectCurrencyCriterion} from './component/criterion/ProjectCurrencyCri
 import {GroupingCriterion} from './component/criterion/GroupingCriterion';
 import {exhaustiveCheck} from '../../..';
 import {OrdersSearchCriterion} from "./component/criterion/orders-search/OrdersSearchCriterion";
+import { ProcessorLogEntryTypesCriterion } from './component/criterion/ProcessorLogEntryTypesCriterion'
 
 interface IProps {
     type: CriterionTypeEnum
@@ -110,6 +111,8 @@ export const CriterionContainer = (props: IProps) => {
                 return <MarkerTypesCriterion/>
             case CriterionTypeEnum.MARKER_STATUS:
                 return <MarkerStatusCriterion/>
+            case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
+                return <ProcessorLogEntryTypesCriterion/>
             default:
                 exhaustiveCheck(type)
         }

@@ -1,16 +1,18 @@
 import {
-    AbstractEntity, AutoCompleteChoiceWithStatus, Country,
+    AbstractEntity,
+    AutoCompleteChoiceWithStatus,
+    Country,
     ensure,
     ExactCriterionSearchLabelEnum,
     PneHeaderTableCell,
     PneTableCell,
-    PneTableRow
-} from "../index";
-import React, {useState} from "react";
-import {SearchParams, SearchUI} from "../component/search-ui/SearchUI";
-import {CriterionTypeEnum} from "../component/search-ui/filters/types";
-import {Meta, StoryObj} from "@storybook/react";
-import {SearchUIProvider} from "../component/search-ui/SearchUIProvider";
+    PneTableRow,
+} from '../index'
+import React, { useState } from 'react'
+import { SearchParams, SearchUI } from '../component/search-ui/SearchUI'
+import { CriterionTypeEnum } from '../component/search-ui/filters/types'
+import { Meta, StoryObj } from '@storybook/react'
+import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 
 type DataType = AbstractEntity
 
@@ -101,6 +103,13 @@ const HookWrap = () => {
             },
             showGatesCriterion: () => true,
             showProjectsCriterion: () => true,
+            getProcessorLogEntryTypes: async () => {
+                return [
+                    {id: 1, displayName: 'One'},
+                    {id: 2, displayName: 'Second'},
+                    {id: 99, displayName: '33333'},
+                ]
+            },
         }}
     >
         <SearchUI<DataType>
@@ -121,6 +130,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.GROUPING,
                 CriterionTypeEnum.DATE_RANGE,
                 // CriterionTypeEnum.PROJECT_CURRENCY,
+                CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE
             ]}
             predefinedCriteria={[
                 // CriterionTypeEnum.GROUPING,
@@ -130,6 +140,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.PROJECT_CURRENCY,
                 CriterionTypeEnum.DATE_RANGE,
+                CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE
             ]}
             config={{
                 // hideShowFiltersButton: true,
@@ -140,6 +151,7 @@ const HookWrap = () => {
                     searchLabel: searchParams.exactSearchLabel,
                     searchString: searchParams.exactSearchValue,
                     orderDateType: searchParams.orderDateType,
+                    processorLogEntryType: searchParams.processorLogEntryType
                 }, null, 4))
                 return Service.getList(searchParams)
             }}

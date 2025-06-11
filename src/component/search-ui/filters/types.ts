@@ -26,6 +26,7 @@ export enum CriterionTypeEnum {
     MFO_CONFIGURATION_TYPE = 'MFO_CONFIGURATION_TYPE',
     MARKER_TYPE = 'MARKER_TYPE',
     MARKER_STATUS = 'MARKER_STATUS',
+    PROCESSOR_LOG_ENTRY_TYPE = 'PROCESSOR_LOG_ENTRY_TYPE',
 }
 
 export const ORDER_DATE_TYPES = [
@@ -271,6 +272,7 @@ export type SearchCriteria = {
     mfoConfigurationTypes: number[]
     markerTypes: number[]
     markerStatus: MarkerStatusCriterion | null
+    processorLogEntryType: string | null
 }
 
 export type SearchUIConditions = {
@@ -295,6 +297,7 @@ export type SearchUIConditions = {
     mfoConfigurationTypes: AbstractEntityAllableCollection
     markerTypes: AbstractEntityAllableCollection
     markerStatus: MarkerStatusCriterion
+    processorLogEntryType: AbstractEntity | null
 }
 
 export type SearchUITemplate = {

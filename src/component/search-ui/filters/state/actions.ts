@@ -1,12 +1,12 @@
-import {SearchUIFiltersActions, SearchUIFiltersState, SearchUIFiltersStore} from './type';
+import { SearchUIFiltersActions, SearchUIFiltersState, SearchUIFiltersStore } from './type'
 import {
     AbstractEntity,
     AbstractEntityAllableCollection,
     exhaustiveCheck,
     Status,
     ZustandStoreGet,
-    ZustandStoreImmerSet
-} from '../../../..';
+    ZustandStoreImmerSet,
+} from '../../../..'
 import {
     CriterionTypeEnum,
     DateRangeSpec,
@@ -17,25 +17,26 @@ import {
     LinkedEntityTypeEnum,
     MarkerStatusCriterion,
     MultichoiceFilterTypeEnum,
-    MultigetCriterion, OrderSearchLabel,
+    MultigetCriterion,
+    OrderSearchLabel,
     SearchCriteria,
     SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
-} from '../types';
+} from '../types'
 import {
     getSearchUIInitialGrouping,
     getSearchUIInitialProjectCurrency,
     getSearchUIInitialSearchCriteria,
     searchUIInitialAllableCollection,
     searchUIInitialDateFrom,
-    searchUIInitialDateTo
-} from './initial';
-import {WritableDraft} from 'immer/src/internal';
+    searchUIInitialDateTo,
+} from './initial'
+import { WritableDraft } from 'immer/src/internal'
 // import {raiseUIError} from '../../../../../error';
-import dayjs, {Dayjs} from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import dayjs, { Dayjs } from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+import timezone from 'dayjs/plugin/timezone'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import isEqual from 'lodash/isEqual'
 
@@ -156,11 +157,11 @@ export const getSearchUIFiltersActions = (
             .catch(console.error)
     },
     setTemplate: (template: SearchUITemplate) => {
-        const conditions = {...template.searchConditions}
+        const conditions = { ...template.searchConditions }
 
         if (conditions.dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
             conditions.dateRangeSpec = calculateNonExactDates(
-                conditions.dateRangeSpec
+                conditions.dateRangeSpec,
             )
         }
 
@@ -338,6 +339,13 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
+    setProcessorLogEntryType: entryType => {
+        console.log('setProcessorLogEntryType', entryType)
+        set((draft) => {
+            draft.processorLogEntryType = entryType
+        })
+        checkIfFiltersChanged(set, get)
+    },
 })
 
 const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
@@ -352,7 +360,7 @@ const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): Multiget
 
 const addInitialMultigetCriterionReducer = (
     draft: WritableDraft<SearchUIFiltersStore>,
-    criterionType: CriterionTypeEnum
+    criterionType: CriterionTypeEnum,
 ): void => {
     switch (criterionType) {
         case CriterionTypeEnum.ENDPOINT:
@@ -398,6 +406,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.MFO_CONFIGURATION_TYPE:
         case CriterionTypeEnum.MARKER_TYPE:
         case CriterionTypeEnum.MARKER_STATUS:
+        case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
             // not multiget, so do nothing
             break
         default:
@@ -498,20 +507,23 @@ const clearCriterionReducer = (
         case CriterionTypeEnum.MARKER_STATUS:
             draft.markerStatus = getSearchUIInitialSearchCriteria(draft.defaults).markerStatus
             break
+        case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
+            draft.processorLogEntryType = getSearchUIInitialSearchCriteria(draft.defaults).processorLogEntryType
+            break
         default:
             exhaustiveCheck(criterionType)
-            throw new Error('Unknown criterion type: ' + criterionType);
+            throw new Error('Unknown criterion type: ' + criterionType)
     }
 }
 
 const extractStatus = (status: StatusCriterion): Status | null => {
     if (status === 'ENABLED') {
-        return 'E';
+        return 'E'
     }
     if (status === 'DISABLED') {
-        return 'D';
+        return 'D'
     }
-    return null;
+    return null
 }
 
 const extractMarkerStatus = (status: MarkerStatusCriterion): MarkerStatusCriterion | null => {
@@ -521,14 +533,21 @@ const extractMarkerStatus = (status: MarkerStatusCriterion): MarkerStatusCriteri
     return status
 }
 
+const extractProcessorLogEntryType = (type: AbstractEntity | null): string | null => {
+    if (type === null || !type.id || type.displayName === '') {
+        return null
+    }
+    return type.displayName
+}
+
 const extract3D = (threeD: ThreeDCriterionEnum): boolean | null => {
     if (threeD === ThreeDCriterionEnum.YES) {
-        return true;
+        return true
     }
     if (threeD === ThreeDCriterionEnum.NO) {
-        return false;
+        return false
     }
-    return null;
+    return null
 }
 
 const extractExactSearchLabel = (label: ExactCriterionSearchLabelEnum | undefined): string | null => {
@@ -548,7 +567,7 @@ const extractEntitiesIds = (allable: AbstractEntityAllableCollection): number[] 
         return []
     }
 
-    return allable.entities.map(c => c.id);
+    return allable.entities.map(c => c.id)
 }
 
 const extractGroupTypes = (grouping: Grouping): GroupingType[] => {
@@ -595,7 +614,7 @@ const checkIfFiltersChanged = (
             draft.prevSearchCriteria = currentSearchCriteria
         })
     }
-} 
+}
 
 const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCriteria => {
     return {
@@ -621,6 +640,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         mfoConfigurationTypes: extractEntitiesIds(state.mfoConfigurationTypes),
         markerTypes: extractEntitiesIds(state.markerTypes),
         markerStatus: extractMarkerStatus(state.markerStatus),
+        processorLogEntryType: extractProcessorLogEntryType(state.processorLogEntryType),
     }
 }
 
@@ -647,7 +667,8 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         mfoConfigurationTypes: store.mfoConfigurationTypes,
         markerTypes: store.markerTypes,
         markerStatus: store.markerStatus,
-    }
+        processorLogEntryType: store.processorLogEntryType,
+    },
 })
 
 const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => {
@@ -712,7 +733,7 @@ const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => 
         dateRangeSpecType: dateRangeSpec.dateRangeSpecType,
         dateFrom: from.tz('Europe/Moscow', true).toDate(),
         dateTo: to.tz('Europe/Moscow', true).toDate(),
-        beforeCount: dateRangeSpec.beforeCount
+        beforeCount: dateRangeSpec.beforeCount,
     }
 }
 
@@ -722,58 +743,58 @@ type OrderSearchInputType = {
 }
 
 export const OrdersSearchLabelsConfig: Readonly<Record<OrderSearchLabel, OrderSearchInputType>> = {
-    'merchant_invoice_id': {type: 'string', maxLength: 128},
-    'order_id': {type: 'integer', maxLength: 10},
-    'processor_order_id': {type: 'string', maxLength: 128},
-    'purpose': {type: 'string', maxLength: 128},
-    'transaction_amount': {type: 'amount', maxLength: 128},
-    'session_token': {type: 'string', maxLength: 36},
-    'customer_phone': {type: 'string', maxLength: 128},
-    'customer_email': {type: 'string', maxLength: 128},
-    'customer_ip': {type: 'ip', maxLength: 128},
-    'customer_ip_country': {type: 'country', maxLength: 128},
-    'customer_billing_country': {type: 'country', maxLength: 128},
-    'customer_dna_id': {type: 'integer', maxLength: 10},
-    'customer_id': {type: 'integer', maxLength: 10},
-    'batch_id': {type: 'integer', maxLength: 10},
-    'source_bank_name': {type: 'string', maxLength: 128},
-    'source_country': {type: 'country', maxLength: 128},
-    'source_from_order_id': {type: 'integer', maxLength: 10},
-    'source_bin': {type: 'integer', maxLength: 6},
-    'source_bin_range_from_order_id': {type: 'integer', maxLength: 10},
-    'source_last4': {type: 'string', maxLength: 4},
-    'source_bin_last4': {type: 'card6and4', maxLength: 128},
-    'source_auth_code': {type: 'string', maxLength: 10},
-    'source_arn': {type: 'string', maxLength: 64},
-    'source_rrn': {type: 'string', maxLength: 20},
-    'source_card_holder': {type: 'string', maxLength: 128},
-    'source_card_ref_id': {type: 'integer', maxLength: 10},
-    'dest_bank_name': {type: 'string', maxLength: 128},
-    'dest_country': {type: 'country', maxLength: 128},
-    'dest_from_order_id': {type: 'integer', maxLength: 10},
-    'dest_bin': {type: 'integer', maxLength: 6},
-    'dest_bin_range_from_order_id': {type: 'integer', maxLength: 10},
-    'dest_last4': {type: 'string', maxLength: 4},
-    'dest_bin_last': {type: 'card6and4', maxLength: 128},
-    'dest_auth_code': {type: 'string', maxLength: 10},
-    'dest_arn': {type: 'string', maxLength: 64},
-    'dest_rrn': {type: 'string', maxLength: 20},
-    'dest_card_ref_id': {type: 'integer', maxLength: 10},
-    'account_number': {type: 'string', maxLength: 64},
-    'routing_number': {type: 'string', maxLength: 16},
-    'reader_key_serial_number': {type: 'string', maxLength: 16},
-    'reader_device_serial_number': {type: 'string', maxLength: 16},
-    'device_serial_number': {type: 'string', maxLength: 64},
-    'phone_serial_number': {type: 'string', maxLength: 128},
-    'phone_imei': {type: 'string', maxLength: 128},
-    'reader_id': {type: 'string', maxLength: 128},
-    'registration_info_id': {type: 'string', maxLength: 128},
-    'inn': {type: 'string', maxLength: 128},
-    'mtcn': {type: 'string', maxLength: 128},
-    'rebill': {type: 'string', maxLength: 128},
-    'swift_number': {type: 'string', maxLength: 128},
-    'webmoney_account': {type: 'string', maxLength: 128},
-    'yamoney_account': {type: 'string', maxLength: 128},
-    'wire_account': {type: 'string', maxLength: 128},
-    'card_number_hash_hash': {type: 'integer', maxLength: 10},
+    'merchant_invoice_id': { type: 'string', maxLength: 128 },
+    'order_id': { type: 'integer', maxLength: 10 },
+    'processor_order_id': { type: 'string', maxLength: 128 },
+    'purpose': { type: 'string', maxLength: 128 },
+    'transaction_amount': { type: 'amount', maxLength: 128 },
+    'session_token': { type: 'string', maxLength: 36 },
+    'customer_phone': { type: 'string', maxLength: 128 },
+    'customer_email': { type: 'string', maxLength: 128 },
+    'customer_ip': { type: 'ip', maxLength: 128 },
+    'customer_ip_country': { type: 'country', maxLength: 128 },
+    'customer_billing_country': { type: 'country', maxLength: 128 },
+    'customer_dna_id': { type: 'integer', maxLength: 10 },
+    'customer_id': { type: 'integer', maxLength: 10 },
+    'batch_id': { type: 'integer', maxLength: 10 },
+    'source_bank_name': { type: 'string', maxLength: 128 },
+    'source_country': { type: 'country', maxLength: 128 },
+    'source_from_order_id': { type: 'integer', maxLength: 10 },
+    'source_bin': { type: 'integer', maxLength: 6 },
+    'source_bin_range_from_order_id': { type: 'integer', maxLength: 10 },
+    'source_last4': { type: 'string', maxLength: 4 },
+    'source_bin_last4': { type: 'card6and4', maxLength: 128 },
+    'source_auth_code': { type: 'string', maxLength: 10 },
+    'source_arn': { type: 'string', maxLength: 64 },
+    'source_rrn': { type: 'string', maxLength: 20 },
+    'source_card_holder': { type: 'string', maxLength: 128 },
+    'source_card_ref_id': { type: 'integer', maxLength: 10 },
+    'dest_bank_name': { type: 'string', maxLength: 128 },
+    'dest_country': { type: 'country', maxLength: 128 },
+    'dest_from_order_id': { type: 'integer', maxLength: 10 },
+    'dest_bin': { type: 'integer', maxLength: 6 },
+    'dest_bin_range_from_order_id': { type: 'integer', maxLength: 10 },
+    'dest_last4': { type: 'string', maxLength: 4 },
+    'dest_bin_last': { type: 'card6and4', maxLength: 128 },
+    'dest_auth_code': { type: 'string', maxLength: 10 },
+    'dest_arn': { type: 'string', maxLength: 64 },
+    'dest_rrn': { type: 'string', maxLength: 20 },
+    'dest_card_ref_id': { type: 'integer', maxLength: 10 },
+    'account_number': { type: 'string', maxLength: 64 },
+    'routing_number': { type: 'string', maxLength: 16 },
+    'reader_key_serial_number': { type: 'string', maxLength: 16 },
+    'reader_device_serial_number': { type: 'string', maxLength: 16 },
+    'device_serial_number': { type: 'string', maxLength: 64 },
+    'phone_serial_number': { type: 'string', maxLength: 128 },
+    'phone_imei': { type: 'string', maxLength: 128 },
+    'reader_id': { type: 'string', maxLength: 128 },
+    'registration_info_id': { type: 'string', maxLength: 128 },
+    'inn': { type: 'string', maxLength: 128 },
+    'mtcn': { type: 'string', maxLength: 128 },
+    'rebill': { type: 'string', maxLength: 128 },
+    'swift_number': { type: 'string', maxLength: 128 },
+    'webmoney_account': { type: 'string', maxLength: 128 },
+    'yamoney_account': { type: 'string', maxLength: 128 },
+    'wire_account': { type: 'string', maxLength: 128 },
+    'card_number_hash_hash': { type: 'integer', maxLength: 10 },
 }
