@@ -30,16 +30,16 @@ const SearchUIAbstractEntitySelect = (props: Props) => {
     }, [value.all])
 
     useEffect(() => {
-        setOptionsWithAll([allOption, ...options])
+        setOptionsWithAll([allOption, ...(options ?? [])])
     }, [options])
 
     useEffect(() => {
-        if (value.entities.length === 0 || value.entities.length === options.length) {
-            setIsSelectAllChecked(true)
-        } else {
-            setIsSelectAllChecked(false)
-        }
-    }, [options])
+        const entities = value.entities ?? []
+        const optLength = options?.length ?? 0
+        setIsSelectAllChecked(
+            entities.length === 0 || entities.length === optLength
+        )
+    }, [options, value.entities])
 
     const onOptionChange = (value: readonly AbstractEntity[]) => {
         if (value.length === 0
@@ -70,7 +70,7 @@ const SearchUIAbstractEntitySelect = (props: Props) => {
 
 
     return <PneAutocomplete
-        value={isSelectAllChecked ? [allOption] : value.entities}
+        value={isSelectAllChecked ? [allOption] : (value.entities ?? [])}
         options={optionsWithAll}
         onChange={(e, value) => onOptionChange(value as AbstractEntity[])}
         sx={selectSx}
