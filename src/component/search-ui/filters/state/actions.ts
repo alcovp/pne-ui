@@ -157,7 +157,8 @@ export const getSearchUIFiltersActions = (
             .catch(console.error)
     },
     setTemplate: (template: SearchUITemplate) => {
-        const conditions = { ...template.searchConditions }
+        const defaults = getSearchUIInitialSearchCriteria(get().defaults)
+        const conditions = { ...defaults, ...template.searchConditions }
 
         if (conditions.dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
             conditions.dateRangeSpec = calculateNonExactDates(
