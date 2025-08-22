@@ -113,6 +113,15 @@ const HookWrap = () => {
         }}
     >
         <SearchUI<DataType>
+            tableParams={{
+                duplicatePagination: true,
+                rowsPerPageOptions: [1, 5, 8],
+                displayOptions: {
+                    pageSize: 5,
+                    // sortAsc: true,
+                    // sortColumnIndex: 1
+                }
+            }}
             settingsContextName={'context'}
             exactSearchLabels={[
                 // ExactCriterionSearchLabelEnum.ALL,
