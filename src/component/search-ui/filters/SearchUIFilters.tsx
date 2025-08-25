@@ -165,71 +165,27 @@ const headerSx: SxProps = {
     py: '15px',
 }
 
-const filterAvailableCriteria = (
+export const filterAvailableCriteria = (
     defaults: SearchUIDefaults,
     criteria: CriterionTypeEnum[] | undefined
 ): CriterionTypeEnum[] => {
-    let filteredCriteria: CriterionTypeEnum[] = [...criteria || []]
-    if (!defaults.showProjectCurrencyCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.PROJECT_CURRENCY)
+    const visibilityFlags: Partial<Record<CriterionTypeEnum, boolean>> = {
+        [CriterionTypeEnum.PROJECT_CURRENCY]: defaults.showProjectCurrencyCriterion(),
+        [CriterionTypeEnum.PROCESSOR]: defaults.showProcessorsCriterion(),
+        [CriterionTypeEnum.GATE]: defaults.showGatesCriterion(),
+        [CriterionTypeEnum.PROJECT]: defaults.showProjectsCriterion(),
+        [CriterionTypeEnum.ENDPOINT]: defaults.showEndpointsCriterion(),
+        [CriterionTypeEnum.MERCHANT]: defaults.showMerchantsCriterion(),
+        [CriterionTypeEnum.MANAGER]: defaults.showManagersCriterion(),
+        [CriterionTypeEnum.RESELLER]: defaults.showResellersCriterion(),
+        [CriterionTypeEnum.DEALER]: defaults.showDealersCriterion(),
+        [CriterionTypeEnum.COMPANY]: defaults.showCompaniesCriterion(),
+        // [CriterionTypeEnum.SUPE]: defaults.showSuperiorsCriterion(),
+        // [CriterionTypeEnum.X]: defaults.showFormPaymentTemplatesCriterion(),
+        // [CriterionTypeEnum.X]: defaults.showFormFinishTemplatesCriterion(),
+        // [CriterionTypeEnum.X]: defaults.showFormWaitTemplatesCriterion(),
+        // [CriterionTypeEnum.X]: defaults.showFormPayment3dsTemplatesCriterion(),
     }
-    if (!defaults.showProcessorsCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.PROCESSOR)
-    }
-    if (!defaults.showGatesCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.GATE)
-    }
-    if (!defaults.showProjectsCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.PROJECT)
-    }
-    if (!defaults.showEndpointsCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.ENDPOINT)
-    }
-    if (!defaults.showMerchantsCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.MERCHANT)
-    }
-    if (!defaults.showManagersCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.MANAGER)
-    }
-    if (!defaults.showResellersCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.RESELLER)
-    }
-    // if (!defaults.showSuperiorsCriterion()) {
-    //     filteredCriteria = filteredCriteria
-    //         .filter(c => c !== CriterionTypeEnum.SUPE)
-    // }
-    if (!defaults.showDealersCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.DEALER)
-    }
-    if (!defaults.showCompaniesCriterion()) {
-        filteredCriteria = filteredCriteria
-            .filter(c => c !== CriterionTypeEnum.COMPANY)
-    }
-    // if (!defaults.showFormPaymentTemplatesCriterion()) {
-    //     filteredCriteria = filteredCriteria
-    //         .filter(c => c !== CriterionTypeEnum.)
-    // }
-    // if (!defaults.showFormFinishTemplatesCriterion()) {
-    //     filteredCriteria = filteredCriteria
-    //         .filter(c => c !== CriterionTypeEnum.)
-    // }
-    // if (!defaults.showFormWaitTemplatesCriterion()) {
-    //     filteredCriteria = filteredCriteria
-    //         .filter(c => c !== CriterionTypeEnum.)
-    // }
-    // if (!defaults.showFormPayment3dsTemplatesCriterion()) {
-    //     filteredCriteria = filteredCriteria
-    //         .filter(c => c !== CriterionTypeEnum.)
-    // }
 
-    return filteredCriteria
+    return (criteria || []).filter(c => visibilityFlags[c] !== false)
 }

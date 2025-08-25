@@ -1,15 +1,15 @@
-import React, { Dispatch, SetStateAction, useState } from 'react'
+import React, { Dispatch, SetStateAction, useMemo, useState } from 'react'
 import { SearchUIFilters, SearchUIFiltersConfig } from './filters/SearchUIFilters'
 import { CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions } from './filters/types'
 import { Box, Divider, SxProps } from '@mui/material'
-import { GetPagedOrderedSortedListRequest } from '../../common'
+import { GetPagedOrderedSortedListRequest, Order } from '../../common'
 import { PneTable, TableCreateHeaderType, TableDisplayOptions, useTable } from '../..'
 import { useSearchUIStore } from './state/store'
 import { UseTableParams } from '../table/useTable'
 
 export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListRequest, 'initialized'>
 
-type Props<D> = {
+type Props<D extends Record<string, unknown>> = {
     settingsContextName: string
     possibleCriteria: CriterionTypeEnum[]
     predefinedCriteria?: CriterionTypeEnum[]
@@ -32,7 +32,7 @@ type Props<D> = {
     config?: SearchUIFiltersConfig
 }
 
-export const SearchUI = <D, >(props: Props<D>) => {
+export const SearchUI = <D extends Record<string, unknown>>(props: Props<D>): React.ReactElement => {
     const {
         settingsContextName,
         possibleCriteria,
@@ -62,6 +62,8 @@ export const SearchUI = <D, >(props: Props<D>) => {
         ...tableParams?.displayOptions,
     })
 
+    const fetchDataExtraDeps = useMemo(() => [searchCriteria], [searchCriteria])
+
     const {
         paginator,
         data, setData,
@@ -76,41 +78,18 @@ export const SearchUI = <D, >(props: Props<D>) => {
         onDisplayOptionsChange: setDisplayOptions,
         settingsContextName: settingsContextName,
         dataUseState: dataUseState,
-        fetchDataExtraDeps: [...Object.values(searchCriteria)],
+        fetchDataExtraDeps: fetchDataExtraDeps,
         fetchData: ({ page, pageSize, order, sortIndex }) => {
             if (!searchCriteria.initialized) {
-                return new Promise<D[]>(() => [])
+                return Promise.resolve<D[]>([])
             }
 
-            const searchParams: SearchParams = {
-                startNum: page * pageSize,
-                rowCount: pageSize + 1,
-                orderBy: sortIndex,
-                sortOrder: order,
-
-                exactSearchLabel: searchCriteria.exactSearchLabel,
-                exactSearchValue: searchCriteria.exactSearchValue,
-                ordersSearchLabel: searchCriteria.ordersSearchLabel,
-                ordersSearchValue: searchCriteria.ordersSearchValue,
-                status: searchCriteria.status,
-                threeD: searchCriteria.threeD,
-                currencies: searchCriteria.currencies,
-                dateFrom: searchCriteria.dateFrom,
-                dateTo: searchCriteria.dateTo,
-                orderDateType: searchCriteria.orderDateType,
-                cardTypes: searchCriteria.cardTypes,
-                transactionTypes: searchCriteria.transactionTypes,
-                projectCurrencyId: searchCriteria.projectCurrencyId,
-                projectCurrencyConvert: searchCriteria.projectCurrencyConvert,
-                groupTypes: searchCriteria.groupTypes,
-                multigetCriteria: searchCriteria.multigetCriteria,
-                recurrenceTypes: searchCriteria.recurrenceTypes,
-                recurrenceStatuses: searchCriteria.recurrenceStatuses,
-                mfoConfigurationTypes: searchCriteria.mfoConfigurationTypes,
-                markerTypes: searchCriteria.markerTypes,
-                markerStatus: searchCriteria.markerStatus,
-                processorLogEntryType: searchCriteria.processorLogEntryType,
-            }
+            const searchParams = createSearchParams(searchCriteria, {
+                page,
+                pageSize,
+                order,
+                sortIndex,
+            })
 
             return searchData(searchParams)
         },
@@ -155,3 +134,36 @@ const initialDisplayOptions: TableDisplayOptions = {
 const tableBoxSx: SxProps = {
     p: '16px 16px 0 16px',
 }
+
+export const createSearchParams = (
+    searchCriteria: SearchCriteria,
+    options: { page: number; pageSize: number; order?: Order; sortIndex: number },
+): SearchParams => ({
+    startNum: options.page * options.pageSize,
+    rowCount: options.pageSize + 1,
+    orderBy: options.sortIndex,
+    sortOrder: options.order,
+
+    exactSearchLabel: searchCriteria.exactSearchLabel,
+    exactSearchValue: searchCriteria.exactSearchValue,
+    ordersSearchLabel: searchCriteria.ordersSearchLabel,
+    ordersSearchValue: searchCriteria.ordersSearchValue,
+    status: searchCriteria.status,
+    threeD: searchCriteria.threeD,
+    currencies: searchCriteria.currencies,
+    dateFrom: searchCriteria.dateFrom,
+    dateTo: searchCriteria.dateTo,
+    orderDateType: searchCriteria.orderDateType,
+    cardTypes: searchCriteria.cardTypes,
+    transactionTypes: searchCriteria.transactionTypes,
+    projectCurrencyId: searchCriteria.projectCurrencyId,
+    projectCurrencyConvert: searchCriteria.projectCurrencyConvert,
+    groupTypes: searchCriteria.groupTypes,
+    multigetCriteria: searchCriteria.multigetCriteria,
+    recurrenceTypes: searchCriteria.recurrenceTypes,
+    recurrenceStatuses: searchCriteria.recurrenceStatuses,
+    mfoConfigurationTypes: searchCriteria.mfoConfigurationTypes,
+    markerTypes: searchCriteria.markerTypes,
+    markerStatus: searchCriteria.markerStatus,
+    processorLogEntryType: searchCriteria.processorLogEntryType,
+})

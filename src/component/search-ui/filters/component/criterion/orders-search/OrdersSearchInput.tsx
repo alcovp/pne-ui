@@ -73,7 +73,7 @@ export const OrdersSearchInput = () => {
                     sx={valueInputSx}
                     InputProps={{
                         disableUnderline: true,
-                        inputComponent: AmountMaskInput as any,
+                        inputComponent: AmountMaskInput,
                     }}
                 />
             case 'ip':
@@ -86,7 +86,7 @@ export const OrdersSearchInput = () => {
                     sx={valueInputSx}
                     InputProps={{
                         disableUnderline: true,
-                        inputComponent: IPv4MaskInput as any,
+                        inputComponent: IPv4MaskInput,
                     }}
                 />
             case 'card6and4':
@@ -99,7 +99,7 @@ export const OrdersSearchInput = () => {
                     sx={valueInputSx}
                     InputProps={{
                         disableUnderline: true,
-                        inputComponent: Card6And4MaskInput as any,
+                        inputComponent: Card6And4MaskInput,
                     }}
                 />
             case 'country':

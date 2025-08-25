@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {CriterionTypeEnum, LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../../types';
 import {Box, Chip, Link, SxProps} from '@mui/material';
 import {MultigetSelect} from '../../../multiget_select/MultigetSelect';
@@ -34,7 +34,13 @@ export const MultigetCriterionPanel = (props: IProps) => {
         )
     }
     const linkedMultigetCriteria = multigetCriteria.filter(c => c.entityType !== entityType)
-    const currentIsJustAdded = criterionType === justAddedCriterion
+
+    useEffect(() => {
+        if (justAddedCriterion === criterionType) {
+            handleOpen()
+            setJustAddedCriterion(null)
+        }
+    }, [justAddedCriterion, criterionType, handleOpen, setJustAddedCriterion])
 
     const changeCriterion = (criterion: MultigetCriterion) => {
         setMultigetCriterion(criterion)
@@ -91,7 +97,7 @@ export const MultigetCriterionPanel = (props: IProps) => {
         </Link>
         <MultigetSelectStoreProvider>
             <PneModal
-                open={open || currentIsJustAdded}
+                open={open}
                 onClose={handleClose}
                 containerSx={{width: '600px'}}
             >

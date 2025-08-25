@@ -1,7 +1,8 @@
 import React from "react";
 import {IMaskInput} from "react-imask";
+import {InputBaseComponentProps} from "@mui/material/InputBase";
 
-type MaskProps = {
+type MaskProps = Omit<InputBaseComponentProps, 'onChange'> & {
     name: string
     onChange: (event: { target: { name: string; value: string } }) => void
 }
