@@ -20,6 +20,7 @@ import {
     MultigetCriterion,
     OrderSearchLabel,
     SearchCriteria,
+    SearchUIConditions,
     SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
@@ -56,6 +57,12 @@ export const getSearchUIFiltersActions = (
                 ...draft,
                 ...state,
             }
+        })
+        checkIfFiltersChanged(set, get)
+    },
+    updateConditions: (conditions: Partial<Omit<SearchUIConditions, 'criteria'>>) => {
+        set((draft) => {
+            Object.assign(draft, conditions)
         })
         checkIfFiltersChanged(set, get)
     },

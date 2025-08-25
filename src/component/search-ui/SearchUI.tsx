@@ -15,6 +15,7 @@ type Props<D> = {
     predefinedCriteria?: CriterionTypeEnum[]
     exactSearchLabels?: ExactCriterionSearchLabelEnum[]
     initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    searchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
     searchData: (searchParams: SearchParams) => Promise<D[]>
     createTableHeader: TableCreateHeaderType
     createTableRow: (
@@ -38,6 +39,7 @@ export const SearchUI = <D, >(props: Props<D>) => {
         predefinedCriteria,
         exactSearchLabels,
         initialSearchConditions,
+        searchConditions,
         searchData,
         createTableHeader,
         createTableRow,
@@ -121,6 +123,7 @@ export const SearchUI = <D, >(props: Props<D>) => {
             predefinedCriteria={predefinedCriteria}
             exactSearchLabels={exactSearchLabels}
             initialSearchConditions={initialSearchConditions}
+            searchConditions={searchConditions}
             onFiltersUpdate={setSearchCriteria}
             config={config}
         />

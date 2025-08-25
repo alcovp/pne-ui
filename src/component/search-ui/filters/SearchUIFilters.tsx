@@ -24,6 +24,7 @@ type Props = {
     predefinedCriteria?: CriterionTypeEnum[]
     exactSearchLabels?: ExactCriterionSearchLabelEnum[]
     initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    searchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
     config?: SearchUIFiltersConfig
 }
@@ -36,6 +37,7 @@ export const SearchUIFilters = (props: Props) => {
         predefinedCriteria = [],
         exactSearchLabels = [],
         initialSearchConditions,
+        searchConditions,
         config,
         onFiltersUpdate,
     } = props
@@ -58,6 +60,7 @@ export const SearchUIFilters = (props: Props) => {
     const hideTemplatesSelect = useSearchUIFiltersStore(s => s.config?.hideTemplatesSelect)
     const hideShowFiltersButton = useSearchUIFiltersStore(s => s.config?.hideShowFiltersButton)
     const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel)
+    const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
 
     const [showFilters, setShowFilters] = useState(true)
 
@@ -79,6 +82,12 @@ export const SearchUIFilters = (props: Props) => {
     useEffect(() => {
         loadTemplates()
     }, [])
+
+    useEffect(() => {
+        if (searchConditions) {
+            updateConditions(searchConditions)
+        }
+    }, [searchConditions])
 
     const someCriteriaAdded = criteria.length > 0
     const showFiltersCountChip = someCriteriaAdded && !showFilters
