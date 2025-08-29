@@ -22,6 +22,7 @@ import {GroupingCriterion} from './component/criterion/GroupingCriterion';
 import {exhaustiveCheck} from '../../..';
 import {OrdersSearchCriterion} from "./component/criterion/orders-search/OrdersSearchCriterion";
 import { ProcessorLogEntryTypesCriterion } from './component/criterion/ProcessorLogEntryTypesCriterion'
+import { ErrorCodeCriterion } from './component/criterion/ErrorCodeCriterion'
 
 interface IProps {
     type: CriterionTypeEnum
@@ -116,6 +117,8 @@ export const CriterionContainer = (props: IProps) => {
                 return <MarkerStatusCriterion/>
             case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
                 return <ProcessorLogEntryTypesCriterion/>
+            case CriterionTypeEnum.ERROR_CODE:
+                return <ErrorCodeCriterion/>
             default:
                 exhaustiveCheck(type)
         }

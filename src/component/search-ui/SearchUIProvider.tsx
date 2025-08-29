@@ -1,5 +1,5 @@
 import React, {createContext} from 'react';
-import {AbstractEntity, AutoCompleteChoiceWithStatus, Country, Status} from '../..';
+import {AbstractEntity, AutoCompleteChoice, AutoCompleteChoiceWithStatus, Country, Status} from '../..';
 import {CriterionTypeEnum, LinkedEntityTypeEnum, MultigetCriterion, SearchUITemplate} from "./filters/types";
 
 type GetMatchLinkedItemsRequest = {
@@ -44,6 +44,7 @@ export type SearchUIDefaults = {
     getRecurringPaymentTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentStatuses: () => Promise<AbstractEntity[]>
     getProcessorLogEntryTypes: () => Promise<AbstractEntity[]>
+    searchErrorCodes: (request: { searchString?: string }) => Promise<AutoCompleteChoice[]>
 
     showProcessorsCriterion: () => boolean
     showGatesCriterion: () => boolean
@@ -99,6 +100,7 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     getRecurringPaymentTypes: () => Promise.resolve([]),
     getRecurringPaymentStatuses: () => Promise.resolve([]),
     getProcessorLogEntryTypes: () => Promise.resolve([]),
+    searchErrorCodes: () => Promise.resolve([]),
 
     showProcessorsCriterion: () => true,
     showGatesCriterion: () => true,

@@ -26,5 +26,6 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         markerTypes: [],
         markerStatus: null,
         processorLogEntryType: null,
+        errorCode: null,
     }
 })

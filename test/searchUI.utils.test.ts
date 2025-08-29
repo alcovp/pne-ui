@@ -30,6 +30,7 @@ describe('SearchUI helpers', () => {
             markerTypes: [9],
             markerStatus: 'processed',
             processorLogEntryType: 'log',
+            errorCode: 123,
         }
 
         const params = createSearchParams(criteria, { page: 2, pageSize: 10, order: 'asc', sortIndex: 3 })
@@ -40,6 +41,7 @@ describe('SearchUI helpers', () => {
         expect(params.exactSearchLabel).toBe('ID')
         expect(params.markerStatus).toBe('processed')
         expect(params.transactionStatuses).toEqual([10])
+        expect(params.errorCode).toBe(123)
     })
 
     it('filters available criteria based on defaults', () => {

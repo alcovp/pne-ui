@@ -2,6 +2,7 @@ import { SearchUIFiltersActions, SearchUIFiltersState, SearchUIFiltersStore } fr
 import {
     AbstractEntity,
     AbstractEntityAllableCollection,
+    AutoCompleteChoice,
     exhaustiveCheck,
     Status,
     ZustandStoreGet,
@@ -360,6 +361,12 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
+    setErrorCodeCriterion: errorCode => {
+        set(draft => {
+            draft.errorCode = errorCode
+        })
+        checkIfFiltersChanged(set, get)
+    },
 })
 
 const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
@@ -422,6 +429,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.MARKER_TYPE:
         case CriterionTypeEnum.MARKER_STATUS:
         case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
+        case CriterionTypeEnum.ERROR_CODE:
             // not multiget, so do nothing
             break
         default:
@@ -528,6 +536,9 @@ const clearCriterionReducer = (
         case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
             draft.processorLogEntryType = getSearchUIInitialSearchCriteria(draft.defaults).processorLogEntryType
             break
+        case CriterionTypeEnum.ERROR_CODE:
+            draft.errorCode = getSearchUIInitialSearchCriteria(draft.defaults).errorCode
+            break
         default:
             exhaustiveCheck(criterionType)
             throw new Error('Unknown criterion type: ' + criterionType)
@@ -556,6 +567,13 @@ const extractProcessorLogEntryType = (type: AbstractEntity | null): string | nul
         return null
     }
     return type.displayName
+}
+
+const extractErrorCode = (code: AutoCompleteChoice | null): number | null => {
+    if (code === null || code.choiceId === undefined || code.choiceId === null) {
+        return null
+    }
+    return code.choiceId
 }
 
 const extract3D = (threeD: ThreeDCriterionEnum): boolean | null => {
@@ -660,6 +678,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         markerTypes: extractEntitiesIds(state.markerTypes),
         markerStatus: extractMarkerStatus(state.markerStatus),
         processorLogEntryType: extractProcessorLogEntryType(state.processorLogEntryType),
+        errorCode: extractErrorCode(state.errorCode),
     }
 }
 
@@ -688,6 +707,7 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         markerTypes: store.markerTypes,
         markerStatus: store.markerStatus,
         processorLogEntryType: store.processorLogEntryType,
+        errorCode: store.errorCode,
     },
 })
 

@@ -167,4 +167,5 @@ export const createSearchParams = (
     markerTypes: searchCriteria.markerTypes,
     markerStatus: searchCriteria.markerStatus,
     processorLogEntryType: searchCriteria.processorLogEntryType,
+    errorCode: searchCriteria.errorCode,
 })

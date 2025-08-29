@@ -1,4 +1,4 @@
-import {AbstractEntity, AbstractEntityAllableCollection, Status} from '../../..';
+import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice, Status} from '../../..';
 
 export enum CriterionTypeEnum {
     EXACT = 'EXACT',
@@ -28,6 +28,7 @@ export enum CriterionTypeEnum {
     MARKER_TYPE = 'MARKER_TYPE',
     MARKER_STATUS = 'MARKER_STATUS',
     PROCESSOR_LOG_ENTRY_TYPE = 'PROCESSOR_LOG_ENTRY_TYPE',
+    ERROR_CODE = 'ERROR_CODE',
 }
 
 export const ORDER_DATE_TYPES = [
@@ -275,6 +276,7 @@ export type SearchCriteria = {
     markerTypes: number[]
     markerStatus: MarkerStatusCriterion | null
     processorLogEntryType: string | null
+    errorCode: number | null
 }
 
 export type SearchUIConditions = {
@@ -301,6 +303,7 @@ export type SearchUIConditions = {
     markerTypes: AbstractEntityAllableCollection
     markerStatus: MarkerStatusCriterion
     processorLogEntryType: AbstractEntity | null
+    errorCode: AutoCompleteChoice | null
 }
 
 export type SearchUITemplate = {

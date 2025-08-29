@@ -101,6 +101,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         markerTypes: searchUIInitialAllableCollection,
         markerStatus: 'any',
         processorLogEntryType: null,
+        errorCode: null,
 
         criteria: [],
     })

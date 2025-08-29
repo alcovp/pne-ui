@@ -13,7 +13,7 @@ import {
     StatusCriterion,
     ThreeDCriterionEnum,
 } from '../types';
-import {AbstractEntity, AbstractEntityAllableCollection} from '../../../..';
+import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} from '../../../..';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
 import {SearchUIDefaults} from '../../SearchUIProvider';
 
@@ -69,4 +69,5 @@ export type SearchUIFiltersActions = {
     setMarkerTypesCriterion: (markerTypes: AbstractEntityAllableCollection) => void
     setMarkerStatusCriterion: (markerStatus: MarkerStatusCriterion) => void
     setProcessorLogEntryType: (entryType: AbstractEntity) => void
+    setErrorCodeCriterion: (errorCode: AutoCompleteChoice | null) => void
 }

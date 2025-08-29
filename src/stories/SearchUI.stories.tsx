@@ -124,6 +124,13 @@ const HookWrap = () => {
                     {id: 99, displayName: '33333'},
                 ]
             },
+            searchErrorCodes: async request => {
+                return [
+                    {choiceId: 1, displayName: 'Code 1', description: 'd'},
+                    {choiceId: 2, displayName: 'Code 2', description: 'd'},
+                    {choiceId: 99, displayName: 'Code 3', description: 'd'},
+                ]
+            }
         }}
     >
         <SearchUI<DataType>
@@ -147,6 +154,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.TRANSACTION_TYPES,
                 CriterionTypeEnum.TRANSACTION_STATUS,
+                CriterionTypeEnum.ERROR_CODE,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
                 CriterionTypeEnum.PROJECT_CURRENCY,
@@ -164,8 +172,8 @@ const HookWrap = () => {
                 // CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.PROJECT_CURRENCY,
-                CriterionTypeEnum.DATE_RANGE,
-                CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE
+                // CriterionTypeEnum.DATE_RANGE,
+                CriterionTypeEnum.ERROR_CODE,
             ]}
             config={{
                 // hideShowFiltersButton: true,
