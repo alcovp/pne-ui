@@ -19,6 +19,7 @@ describe('SearchUI helpers', () => {
             orderDateType: 'SESSION_CREATED',
             cardTypes: [3],
             transactionTypes: [4],
+            transactionStatuses: [10],
             projectCurrencyId: 5,
             projectCurrencyConvert: true,
             groupTypes: ['MERCHANT' as GroupingType],
@@ -38,6 +39,7 @@ describe('SearchUI helpers', () => {
         expect(params.sortOrder).toBe('asc')
         expect(params.exactSearchLabel).toBe('ID')
         expect(params.markerStatus).toBe('processed')
+        expect(params.transactionStatuses).toEqual([10])
     })
 
     it('filters available criteria based on defaults', () => {

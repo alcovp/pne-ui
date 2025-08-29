@@ -304,6 +304,12 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
+    setTransactionStatusesCriterion: (transactionStatuses: AbstractEntityAllableCollection) => {
+        set((draft) => {
+            draft.transactionStatuses = transactionStatuses
+        })
+        checkIfFiltersChanged(set, get)
+    },
     setGroupingCriterionDateType: (dateType: GroupingDateType) => {
         set((draft) => {
             draft.grouping.dateType = dateType
@@ -408,6 +414,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.PROJECT_CURRENCY:
         case CriterionTypeEnum.CARD_TYPES:
         case CriterionTypeEnum.TRANSACTION_TYPES:
+        case CriterionTypeEnum.TRANSACTION_STATUS:
         case CriterionTypeEnum.GROUPING:
         case CriterionTypeEnum.RECURRENCE_TYPE:
         case CriterionTypeEnum.RECURRENCE_STATUS:
@@ -496,6 +503,9 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.TRANSACTION_TYPES:
             draft.transactionTypes = searchUIInitialAllableCollection
+            break
+        case CriterionTypeEnum.TRANSACTION_STATUS:
+            draft.transactionStatuses = searchUIInitialAllableCollection
             break
         case CriterionTypeEnum.GROUPING:
             draft.grouping = getSearchUIInitialGrouping(draft.defaults)
@@ -639,6 +649,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         orderDateType: state.orderDateType,
         cardTypes: extractEntitiesIds(state.cardTypes),
         transactionTypes: extractEntitiesIds(state.transactionTypes),
+        transactionStatuses: extractEntitiesIds(state.transactionStatuses),
         projectCurrencyId: state.projectCurrency.currency.id,
         projectCurrencyConvert: state.projectCurrency.convertToUserCurrency,
         groupTypes: extractGroupTypes(state.grouping),
@@ -669,6 +680,7 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         projectCurrency: store.projectCurrency,
         cardTypes: store.cardTypes,
         transactionTypes: store.transactionTypes,
+        transactionStatuses: store.transactionStatuses,
         grouping: store.grouping,
         recurrenceTypes: store.recurrenceTypes,
         recurrenceStatuses: store.recurrenceStatuses,

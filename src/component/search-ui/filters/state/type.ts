@@ -60,6 +60,7 @@ export type SearchUIFiltersActions = {
     setProjectCurrencyCriterionConvertFlag: (convertToUserCurrency: boolean) => void
     setCardTypesCriterion: (cardTypes: AbstractEntityAllableCollection) => void
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => void
+    setTransactionStatusesCriterion: (transactionStatuses: AbstractEntityAllableCollection) => void
     setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => void
     setGroupingCriterionDateType: (dateType: GroupingDateType) => void
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => void

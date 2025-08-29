@@ -14,6 +14,7 @@ import {MfoConfigurationTypesCriterion} from './component/criterion/MfoFonfigura
 import {RecurrenceStatusesCriterion} from './component/criterion/RecurrenceStatusesCriterion';
 import {RecurrenceTypesCriterion} from './component/criterion/RecurrenceTypesCriterion';
 import {TransactionTypesCriterion} from './component/criterion/TransactionTypesCriterion';
+import {TransactionStatusesCriterion} from './component/criterion/TransactionStatusesCriterion';
 import {CardTypesCriterion} from './component/criterion/CardTypesCriterion';
 import {DateRangeCriterion} from './component/criterion/DateRangeCriterion';
 import {ProjectCurrencyCriterion} from './component/criterion/ProjectCurrencyCriterion';
@@ -99,6 +100,8 @@ export const CriterionContainer = (props: IProps) => {
                 return <CardTypesCriterion/>
             case CriterionTypeEnum.TRANSACTION_TYPES:
                 return <TransactionTypesCriterion/>
+            case CriterionTypeEnum.TRANSACTION_STATUS:
+                return <TransactionStatusesCriterion/>
             case CriterionTypeEnum.GROUPING:
                 return <GroupingCriterion/>
             case CriterionTypeEnum.RECURRENCE_TYPE:

@@ -21,6 +21,7 @@ export enum CriterionTypeEnum {
     CARD_TYPES = 'CARD_TYPES',
     GROUPING = 'GROUPING',
     TRANSACTION_TYPES = 'TRANSACTION_TYPES',
+    TRANSACTION_STATUS = 'TRANSACTION_STATUS',
     RECURRENCE_TYPE = 'RECURRENCE_TYPE',
     RECURRENCE_STATUS = 'RECURRENCE_STATUS',
     MFO_CONFIGURATION_TYPE = 'MFO_CONFIGURATION_TYPE',
@@ -263,6 +264,7 @@ export type SearchCriteria = {
     orderDateType: OrderDate
     cardTypes: number[]
     transactionTypes: number[]
+    transactionStatuses: number[]
     projectCurrencyId: number | null
     projectCurrencyConvert: boolean | null
     groupTypes: GroupingType[]
@@ -290,6 +292,7 @@ export type SearchUIConditions = {
     dateRangeSpec: DateRangeSpec
     cardTypes: AbstractEntityAllableCollection
     transactionTypes: AbstractEntityAllableCollection
+    transactionStatuses: AbstractEntityAllableCollection
     projectCurrency: ProjectCurrency
     grouping: Grouping
     recurrenceTypes: AbstractEntityAllableCollection

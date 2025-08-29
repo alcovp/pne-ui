@@ -92,6 +92,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         },
         cardTypes: searchUIInitialAllableCollection,
         transactionTypes: searchUIInitialAllableCollection,
+        transactionStatuses: searchUIInitialAllableCollection,
         projectCurrency: getSearchUIInitialProjectCurrency(defaults),
         grouping: getSearchUIInitialGrouping(defaults),
         recurrenceTypes: searchUIInitialAllableCollection,

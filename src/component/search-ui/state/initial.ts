@@ -15,6 +15,7 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         orderDateType: 'SESSION_STATUS_CHANGED',
         cardTypes: [],
         transactionTypes: [],
+        transactionStatuses: [],
         projectCurrencyId: null,
         projectCurrencyConvert: null,
         groupTypes: [],

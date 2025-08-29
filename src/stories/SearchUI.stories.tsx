@@ -110,6 +110,20 @@ const HookWrap = () => {
                     {id: 99, displayName: '33333'},
                 ]
             },
+            getTransactionTypes: async () => {
+                return [
+                    {id: 1, displayName: 'One'},
+                    {id: 2, displayName: 'Second'},
+                    {id: 99, displayName: '33333'},
+                ]
+            },
+            getTransactionStatuses: async () => {
+                return [
+                    {id: 1, displayName: 'One'},
+                    {id: 2, displayName: 'Second'},
+                    {id: 99, displayName: '33333'},
+                ]
+            },
         }}
     >
         <SearchUI<DataType>
@@ -131,6 +145,8 @@ const HookWrap = () => {
             possibleCriteria={[
                 // CriterionTypeEnum.EXACT,
                 CriterionTypeEnum.ORDERS_SEARCH,
+                CriterionTypeEnum.TRANSACTION_TYPES,
+                CriterionTypeEnum.TRANSACTION_STATUS,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
                 CriterionTypeEnum.PROJECT_CURRENCY,
