@@ -9,7 +9,7 @@ import { UseTableParams } from '../table/useTable'
 
 export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListRequest, 'initialized'>
 
-type Props<D extends Record<string, unknown>> = {
+type Props<D extends object> = {
     settingsContextName: string
     possibleCriteria: CriterionTypeEnum[]
     predefinedCriteria?: CriterionTypeEnum[]
@@ -32,7 +32,7 @@ type Props<D extends Record<string, unknown>> = {
     config?: SearchUIFiltersConfig
 }
 
-export const SearchUI = <D extends Record<string, unknown>>(props: Props<D>): React.ReactElement => {
+export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement => {
     const {
         settingsContextName,
         possibleCriteria,
