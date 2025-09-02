@@ -33,6 +33,8 @@ import {
     SearchCriteria,
     SearchUIConditions,
     SearchUITemplate,
+    TransactionSessionGroup,
+    TransactionSessionStatuses,
 } from './component/search-ui/filters/types'
 import {SearchUIDefaults, SearchUIProvider} from './component/search-ui/SearchUIProvider'
 import {SearchParams, SearchUI} from './component/search-ui/SearchUI'
@@ -168,5 +170,7 @@ export {
     CustomIconWrapper,
     PneSwitch,
     OrderSearchLabel,
+    TransactionSessionGroup,
+    TransactionSessionStatuses,
 }
 export * from './common'

@@ -29,6 +29,7 @@ export enum CriterionTypeEnum {
     MARKER_STATUS = 'MARKER_STATUS',
     PROCESSOR_LOG_ENTRY_TYPE = 'PROCESSOR_LOG_ENTRY_TYPE',
     ERROR_CODE = 'ERROR_CODE',
+    TRANSACTION_SESSION_STATUS = 'TRANSACTION_SESSION_STATUS',
 }
 
 export const ORDER_DATE_TYPES = [
@@ -114,6 +115,21 @@ export const MARKER_STATUS_CRITERION_VALUES = [
     'processed'
 ] as const
 export type MarkerStatusCriterion = typeof MARKER_STATUS_CRITERION_VALUES[number]
+
+export type TransactionSessionGroup =
+    | 'APPROVED'
+    | 'PROCESSING'
+    | 'UNKNOWN'
+    | 'FILTERED'
+    | 'ERROR'
+    | 'PENDING_RETURNS'
+    | 'VALIDATING_3D'
+    | 'VERIFICATING_PHONE'
+    | 'INVOICED'
+    | 'SENT'
+    | 'ALL'
+
+export type TransactionSessionStatuses = Record<TransactionSessionGroup, string[]>
 
 export enum ThreeDCriterionEnum {
     ANY = 'ANY',
@@ -266,6 +282,7 @@ export type SearchCriteria = {
     cardTypes: number[]
     transactionTypes: number[]
     transactionStatuses: number[]
+    transactionSessionStatuses: string | null,
     projectCurrencyId: number | null
     projectCurrencyConvert: boolean | null
     groupTypes: GroupingType[]
@@ -295,6 +312,8 @@ export type SearchUIConditions = {
     cardTypes: AbstractEntityAllableCollection
     transactionTypes: AbstractEntityAllableCollection
     transactionStatuses: AbstractEntityAllableCollection
+    transactionSessionStatusGroup: TransactionSessionGroup
+    transactionSessionStatuses: string[],
     projectCurrency: ProjectCurrency
     grouping: Grouping
     recurrenceTypes: AbstractEntityAllableCollection

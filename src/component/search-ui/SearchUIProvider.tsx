@@ -1,6 +1,13 @@
 import React, {createContext} from 'react';
-import {AbstractEntity, AutoCompleteChoice, AutoCompleteChoiceWithStatus, Country, Status} from '../..';
-import {CriterionTypeEnum, LinkedEntityTypeEnum, MultigetCriterion, SearchUITemplate} from "./filters/types";
+import {
+    AbstractEntity,
+    AutoCompleteChoice,
+    AutoCompleteChoiceWithStatus,
+    Country,
+    Status,
+    TransactionSessionGroup,
+} from '../..'
+import {CriterionTypeEnum, LinkedEntityTypeEnum, MultigetCriterion, SearchUITemplate, TransactionSessionStatuses} from "./filters/types";
 
 type GetMatchLinkedItemsRequest = {
     type: LinkedEntityTypeEnum
@@ -40,6 +47,7 @@ export type SearchUIDefaults = {
     getMFOTypes: () => Promise<AbstractEntity[]>
     getTransactionTypes: () => Promise<AbstractEntity[]>
     getTransactionStatuses: () => Promise<AbstractEntity[]>
+    getTransactionSessionStatuses: () => Promise<Map<TransactionSessionGroup, string[]>>,
     getTransactionMarkerTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentStatuses: () => Promise<AbstractEntity[]>
@@ -96,6 +104,7 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     getMFOTypes: () => Promise.resolve([]),
     getTransactionTypes: () => Promise.resolve([]),
     getTransactionStatuses: () => Promise.resolve([]),
+    getTransactionSessionStatuses: () => Promise.resolve(new Map()),
     getTransactionMarkerTypes: () => Promise.resolve([]),
     getRecurringPaymentTypes: () => Promise.resolve([]),
     getRecurringPaymentStatuses: () => Promise.resolve([]),

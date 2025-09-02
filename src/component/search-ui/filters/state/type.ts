@@ -12,6 +12,7 @@ import {
     SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
+    TransactionSessionGroup,
 } from '../types';
 import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} from '../../../..';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
@@ -61,6 +62,8 @@ export type SearchUIFiltersActions = {
     setCardTypesCriterion: (cardTypes: AbstractEntityAllableCollection) => void
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => void
     setTransactionStatusesCriterion: (transactionStatuses: AbstractEntityAllableCollection) => void
+    setTransactionSessionStatusGroupCriterion: (transactionSessionStatusGroup: TransactionSessionGroup) => void
+    setTransactionSessionStatusesCriterion: (transactionSessionStatuses: string[]) => void
     setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => void
     setGroupingCriterionDateType: (dateType: GroupingDateType) => void
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => void

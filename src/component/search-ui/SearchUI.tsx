@@ -157,6 +157,7 @@ export const createSearchParams = (
     cardTypes: searchCriteria.cardTypes,
     transactionTypes: searchCriteria.transactionTypes,
     transactionStatuses: searchCriteria.transactionStatuses,
+    transactionSessionStatuses: searchCriteria.transactionSessionStatuses,
     projectCurrencyId: searchCriteria.projectCurrencyId,
     projectCurrencyConvert: searchCriteria.projectCurrencyConvert,
     groupTypes: searchCriteria.groupTypes,

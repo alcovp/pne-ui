@@ -25,6 +25,7 @@ import {
     SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
+    TransactionSessionGroup,
 } from '../types'
 import {
     getSearchUIInitialGrouping,
@@ -311,6 +312,18 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
+    setTransactionSessionStatusGroupCriterion: (transactionSessionStatusGroup: TransactionSessionGroup) => {
+        set((draft) => {
+            draft.transactionSessionStatusGroup = transactionSessionStatusGroup
+        })
+        checkIfFiltersChanged(set, get)
+    },
+    setTransactionSessionStatusesCriterion: (transactionSessionStatuses: string[]) => {
+        set((draft) => {
+            draft.transactionSessionStatuses = transactionSessionStatuses
+        })
+        checkIfFiltersChanged(set, get)
+    },
     setGroupingCriterionDateType: (dateType: GroupingDateType) => {
         set((draft) => {
             draft.grouping.dateType = dateType
@@ -422,6 +435,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.CARD_TYPES:
         case CriterionTypeEnum.TRANSACTION_TYPES:
         case CriterionTypeEnum.TRANSACTION_STATUS:
+        case CriterionTypeEnum.TRANSACTION_SESSION_STATUS:
         case CriterionTypeEnum.GROUPING:
         case CriterionTypeEnum.RECURRENCE_TYPE:
         case CriterionTypeEnum.RECURRENCE_STATUS:
@@ -514,6 +528,10 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.TRANSACTION_STATUS:
             draft.transactionStatuses = searchUIInitialAllableCollection
+            break
+        case CriterionTypeEnum.TRANSACTION_SESSION_STATUS:
+            draft.transactionSessionStatusGroup = 'ALL'
+            draft.transactionSessionStatuses = []
             break
         case CriterionTypeEnum.GROUPING:
             draft.grouping = getSearchUIInitialGrouping(draft.defaults)
@@ -668,6 +686,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         cardTypes: extractEntitiesIds(state.cardTypes),
         transactionTypes: extractEntitiesIds(state.transactionTypes),
         transactionStatuses: extractEntitiesIds(state.transactionStatuses),
+        transactionSessionStatuses: state.transactionSessionStatuses.length ? state.transactionSessionStatuses.join(',') : null,
         projectCurrencyId: state.projectCurrency.currency.id,
         projectCurrencyConvert: state.projectCurrency.convertToUserCurrency,
         groupTypes: extractGroupTypes(state.grouping),
@@ -700,6 +719,8 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         cardTypes: store.cardTypes,
         transactionTypes: store.transactionTypes,
         transactionStatuses: store.transactionStatuses,
+        transactionSessionStatusGroup: store.transactionSessionStatusGroup,
+        transactionSessionStatuses: store.transactionSessionStatuses,
         grouping: store.grouping,
         recurrenceTypes: store.recurrenceTypes,
         recurrenceStatuses: store.recurrenceStatuses,

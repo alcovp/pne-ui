@@ -7,6 +7,7 @@ import {
     PneHeaderTableCell,
     PneTableCell,
     PneTableRow,
+    TransactionSessionGroup,
 } from '../index'
 import React, { useState } from 'react'
 import { SearchParams, SearchUI } from '../component/search-ui/SearchUI'
@@ -22,7 +23,7 @@ class Service {
         console.log('getList call:\n' + JSON.stringify(searchParams, null, 4))
         let data: DataType[] = []
         for (let i = 1; i <= 999; i++) {
-            data.push({id: i, displayName: 'John ' + i})
+            data.push({ id: i, displayName: 'John ' + i })
         }
         await new Promise(resolve => setTimeout(resolve, 400))
 
@@ -47,7 +48,7 @@ class Service {
 
         const dataSlice = data.slice(
             searchParams.startNum,
-            searchParams.startNum + searchParams.rowCount
+            searchParams.startNum + searchParams.rowCount,
         )
         return dataSlice
     }
@@ -68,69 +69,74 @@ const HookWrap = () => {
                 await new Promise(resolve => setTimeout(resolve, 400))
 
                 return [
-                    {id: 1, displayName: '(1) name1'},
-                    {id: 2, displayName: '(2) name2'},
-                    {id: 3, displayName: '(3) name3asdasdasd asd asdasd a sasdasdasdasdasdasd'},
-                    {id: 4, displayName: '(4) name1'},
-                    {id: 5, displayName: '(5) name2'},
-                    {id: 6, displayName: '(6) name3'},
-                    {id: 7, displayName: '(7) name1'},
-                    {id: 8, displayName: '(8) name2'},
-                    {id: 9, displayName: '(9) name3'},
-                    {id: 10, displayName: '(10) name1'},
-                    {id: 11, displayName: '(11) name2'},
+                    { id: 1, displayName: '(1) name1' },
+                    { id: 2, displayName: '(2) name2' },
+                    { id: 3, displayName: '(3) name3asdasdasd asd asdasd a sasdasdasdasdasdasd' },
+                    { id: 4, displayName: '(4) name1' },
+                    { id: 5, displayName: '(5) name2' },
+                    { id: 6, displayName: '(6) name3' },
+                    { id: 7, displayName: '(7) name1' },
+                    { id: 8, displayName: '(8) name2' },
+                    { id: 9, displayName: '(9) name3' },
+                    { id: 10, displayName: '(10) name1' },
+                    { id: 11, displayName: '(11) name2' },
                 ]
             },
             getCountries: async () => {
                 return [
-                    {id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS'},
-                    {id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX'},
+                    { id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS' },
+                    { id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX' },
                 ] satisfies Country[]
             },
             getCurrencies: async () => {
                 return [
-                    {id: 1, displayName: 'USD'},
-                    {id: 2, displayName: 'RUB'},
-                    {id: 99, displayName: 'BBB'},
+                    { id: 1, displayName: 'USD' },
+                    { id: 2, displayName: 'RUB' },
+                    { id: 99, displayName: 'BBB' },
                 ]
             },
             getProjectAvailableCurrencies: async () => {
                 return [
-                    {choiceId: 1, displayName: 'USD', description: '', status: "E"},
-                    {choiceId: 2, displayName: 'RUB', description: '', status: "E"},
-                    {choiceId: 99, displayName: 'BBB', description: '', status: "E"},
+                    { choiceId: 1, displayName: 'USD', description: '', status: 'E' },
+                    { choiceId: 2, displayName: 'RUB', description: '', status: 'E' },
+                    { choiceId: 99, displayName: 'BBB', description: '', status: 'E' },
                 ] satisfies AutoCompleteChoiceWithStatus[]
             },
             showGatesCriterion: () => true,
             showProjectsCriterion: () => true,
             getProcessorLogEntryTypes: async () => {
                 return [
-                    {id: 1, displayName: 'One'},
-                    {id: 2, displayName: 'Second'},
-                    {id: 99, displayName: '33333'},
+                    { id: 1, displayName: 'One' },
+                    { id: 2, displayName: 'Second' },
+                    { id: 99, displayName: '33333' },
                 ]
             },
             getTransactionTypes: async () => {
                 return [
-                    {id: 1, displayName: 'One'},
-                    {id: 2, displayName: 'Second'},
-                    {id: 99, displayName: '33333'},
+                    { id: 1, displayName: 'One' },
+                    { id: 2, displayName: 'Second' },
+                    { id: 99, displayName: '33333' },
                 ]
             },
             getTransactionStatuses: async () => {
                 return [
-                    {id: 1, displayName: 'One'},
-                    {id: 2, displayName: 'Second'},
-                    {id: 99, displayName: '33333'},
+                    { id: 1, displayName: 'One' },
+                    { id: 2, displayName: 'Second' },
+                    { id: 99, displayName: '33333' },
                 ]
             },
             searchErrorCodes: async request => {
                 return [
-                    {choiceId: 1, displayName: 'Code 1', description: 'd'},
-                    {choiceId: 2, displayName: 'Code 2', description: 'd'},
-                    {choiceId: 99, displayName: 'Code 3', description: 'd'},
+                    { choiceId: 1, displayName: 'Code 1', description: 'd' },
+                    { choiceId: 2, displayName: 'Code 2', description: 'd' },
+                    { choiceId: 99, displayName: 'Code 3', description: 'd' },
                 ]
-            }
+            },
+            getTransactionSessionStatuses: async () => {
+                return new Map<TransactionSessionGroup, string[]>([
+                    ['ALL', ['MOCK_ONE', 'MOCK_TWO']],
+                ])
+            },
         }}
     >
         <SearchUI<DataType>
@@ -141,7 +147,7 @@ const HookWrap = () => {
                     pageSize: 5,
                     // sortAsc: true,
                     // sortColumnIndex: 1
-                }
+                },
             }}
             settingsContextName={'context'}
             exactSearchLabels={[
@@ -163,7 +169,8 @@ const HookWrap = () => {
                 CriterionTypeEnum.GROUPING,
                 CriterionTypeEnum.DATE_RANGE,
                 // CriterionTypeEnum.PROJECT_CURRENCY,
-                CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE
+                CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE,
+                CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
             ]}
             predefinedCriteria={[
                 // CriterionTypeEnum.GROUPING,
@@ -171,7 +178,7 @@ const HookWrap = () => {
                 // CriterionTypeEnum.EXACT,
                 // CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.STATUS,
-                CriterionTypeEnum.PROJECT_CURRENCY,
+                CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
                 // CriterionTypeEnum.DATE_RANGE,
                 CriterionTypeEnum.ERROR_CODE,
             ]}
@@ -184,13 +191,13 @@ const HookWrap = () => {
                     searchLabel: searchParams.exactSearchLabel,
                     searchString: searchParams.exactSearchValue,
                     orderDateType: searchParams.orderDateType,
-                    processorLogEntryType: searchParams.processorLogEntryType
+                    processorLogEntryType: searchParams.processorLogEntryType,
                 }, null, 4))
                 return Service.getList(searchParams)
             }}
             dataUseState={[data, setData]}
             initialSearchConditions={{
-                transactionTypes: {all: true, entities: []},
+                transactionTypes: { all: true, entities: [] },
                 status: 'ENABLED',
             }}
             createTableHeader={(headerParams) =>
@@ -210,12 +217,12 @@ const HookWrap = () => {
 }
 
 export default {
-    title: "pne-ui/SearchUI",
+    title: 'pne-ui/SearchUI',
     component: HookWrap,
 } as Meta<typeof HookWrap>
 
 type Story = StoryObj<typeof HookWrap>
 
 export const Default: Story = {
-    args: {}
+    args: {},
 }

@@ -20,6 +20,7 @@ describe('SearchUI helpers', () => {
             cardTypes: [3],
             transactionTypes: [4],
             transactionStatuses: [10],
+            transactionSessionStatuses: 's1,s2',
             projectCurrencyId: 5,
             projectCurrencyConvert: true,
             groupTypes: ['MERCHANT' as GroupingType],
@@ -41,6 +42,7 @@ describe('SearchUI helpers', () => {
         expect(params.exactSearchLabel).toBe('ID')
         expect(params.markerStatus).toBe('processed')
         expect(params.transactionStatuses).toEqual([10])
+        expect(params.transactionSessionStatuses).toBe('s1,s2')
         expect(params.errorCode).toBe(123)
     })
 
