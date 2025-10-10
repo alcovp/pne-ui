@@ -54,11 +54,15 @@ const mergeSx = (...styles: Array<SxProps<Theme> | undefined>): SxProps<Theme> |
     return merged as SxProps<Theme>
 }
 
-const getEffectiveBackgroundColor = (element: HTMLElement, fallback: string): string => {
+const getEffectiveBackgroundColor = (
+    element: HTMLElement,
+    fallback: string,
+    getComputedStyleFn: (elt: Element) => CSSStyleDeclaration,
+): string => {
     let current: HTMLElement | null = element
 
     while (current) {
-        const color = window.getComputedStyle(current).backgroundColor
+        const color = getComputedStyleFn(current).backgroundColor
 
         if (color && !TRANSPARENT_VALUES.has(color)) {
             const rgbaMatch = color.match(/rgba?\(([^)]+)\)/)
@@ -107,22 +111,125 @@ export const PneHighContrastLabeledCheckbox = forwardRef<HTMLButtonElement, PneL
     const formControlRef = React.useRef<HTMLDivElement | null>(null)
     const [labelColor, setLabelColor] = React.useState<string>(() => theme.palette.text.primary)
 
-    React.useEffect(() => {
-        if (typeof window === 'undefined') {
-            return
-        }
-
+    const updateLabelColor = React.useCallback(() => {
         const element = formControlRef.current
 
         if (!element) {
             return
         }
 
-        const backgroundColor = getEffectiveBackgroundColor(element, theme.palette.background.paper)
+        const ownerWindow = element.ownerDocument?.defaultView
+
+        if (!ownerWindow) {
+            return
+        }
+
+        const getStyle = ownerWindow.getComputedStyle.bind(ownerWindow)
+        const backgroundColor = getEffectiveBackgroundColor(
+            element,
+            theme.palette.background.paper,
+            getStyle,
+        )
         const contrastColor = theme.palette.getContrastText(backgroundColor)
 
-        setLabelColor(contrastColor)
+        setLabelColor((previous) => (previous === contrastColor ? previous : contrastColor))
     }, [theme])
+
+    React.useEffect(() => {
+        const element = formControlRef.current
+
+        if (!element) {
+            return
+        }
+
+        const ownerWindow = element.ownerDocument?.defaultView
+
+        if (!ownerWindow) {
+            return
+        }
+
+        updateLabelColor()
+
+        const cleanupCallbacks: Array<() => void> = []
+
+        const trackedElements: HTMLElement[] = []
+        let current: HTMLElement | null = element
+
+        while (current) {
+            trackedElements.push(current)
+            current = current.parentElement
+        }
+
+        const MutationObserverCtor = ownerWindow.MutationObserver
+
+        if (MutationObserverCtor) {
+            const mutationObservers: MutationObserver[] = []
+            const config: MutationObserverInit = {
+                attributes: true,
+                attributeFilter: ['style', 'class'],
+            }
+
+            trackedElements.forEach((target) => {
+                const observer = new MutationObserverCtor(() => {
+                    updateLabelColor()
+                })
+
+                observer.observe(target, config)
+                mutationObservers.push(observer)
+            })
+
+            cleanupCallbacks.push(() => {
+                mutationObservers.forEach((observer) => observer.disconnect())
+            })
+        }
+
+        const ResizeObserverCtor = ownerWindow.ResizeObserver
+
+        if (ResizeObserverCtor) {
+            const resizeObserver = new ResizeObserverCtor(() => {
+                updateLabelColor()
+            })
+
+            trackedElements.forEach((target) => {
+                resizeObserver.observe(target)
+            })
+
+            cleanupCallbacks.push(() => {
+                resizeObserver.disconnect()
+            })
+        } else {
+            const handleResize = () => {
+                updateLabelColor()
+            }
+
+            ownerWindow.addEventListener('resize', handleResize)
+            cleanupCallbacks.push(() => {
+                ownerWindow.removeEventListener('resize', handleResize)
+            })
+        }
+
+        trackedElements.forEach((target) => {
+            const handleTransitionEnd = () => {
+                updateLabelColor()
+            }
+
+            const handleAnimationEnd = () => {
+                updateLabelColor()
+            }
+
+            target.addEventListener('transitionend', handleTransitionEnd)
+            target.addEventListener('animationend', handleAnimationEnd)
+
+            cleanupCallbacks.push(() => {
+                target.removeEventListener('transitionend', handleTransitionEnd)
+                target.removeEventListener('animationend', handleAnimationEnd)
+            })
+        })
+
+        return () => {
+            cleanupCallbacks.forEach((dispose) => dispose())
+        }
+    }, [updateLabelColor])
 
     const disabledStateSx: SxProps<Theme> = {
         '& .Mui-disabled': {
