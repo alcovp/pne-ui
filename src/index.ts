@@ -22,6 +22,8 @@ import AbstractHeaderTableCell from './component/table/AbstractHeaderTableCell'
 import AbstractTableCell from './component/table/AbstractTableCell'
 import {TableDisplayOptions} from './component/table/type'
 import {PneCheckbox} from './component/PneCheckbox'
+import {PneLabeledCheckbox} from './component/PneLabeledCheckbox'
+import {PneHighContrastLabeledCheckbox} from './component/PneHighContrastLabeledCheckbox'
 import {
     CriterionTypeEnum,
     ExactCriterionSearchLabelEnum,
@@ -141,6 +143,8 @@ export {
     TableSortOptions,
     TableDisplayOptions,
     PneCheckbox,
+    PneLabeledCheckbox,
+    PneHighContrastLabeledCheckbox,
     SearchUI,
     SearchParams,
     SearchUIFilters,
