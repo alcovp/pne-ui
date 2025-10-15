@@ -49,6 +49,65 @@ dayjs.extend(isoWeek)
 
 const LAST_TEMPLATE_NAME = 'last_template_name'
 
+const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
+    [CriterionTypeEnum.ENDPOINT]: LinkedEntityTypeEnum.ENDPOINT,
+    [CriterionTypeEnum.PROJECT]: LinkedEntityTypeEnum.PROJECT,
+    [CriterionTypeEnum.COMPANY]: LinkedEntityTypeEnum.COMPANY,
+    [CriterionTypeEnum.GATE]: LinkedEntityTypeEnum.GATE,
+    [CriterionTypeEnum.DEALER]: LinkedEntityTypeEnum.DEALER,
+    [CriterionTypeEnum.MANAGER]: LinkedEntityTypeEnum.MANAGER,
+    [CriterionTypeEnum.MERCHANT]: LinkedEntityTypeEnum.MERCHANT,
+    [CriterionTypeEnum.PROCESSOR]: LinkedEntityTypeEnum.PROCESSOR,
+    [CriterionTypeEnum.RESELLER]: LinkedEntityTypeEnum.RESELLER,
+}
+
+const getLinkedEntityTypeByCriterion = (criterion: CriterionTypeEnum): LinkedEntityTypeEnum | null => {
+    return criterionToLinkedEntityMap[criterion] ?? null
+}
+
+const sanitizeMultigetCriteria = (
+    incoming: MultigetCriterion[],
+    activeCriteria: CriterionTypeEnum[],
+): MultigetCriterion[] => {
+    if (!incoming.length) {
+        return []
+    }
+
+    const allowedEntityTypes = new Set(
+        activeCriteria
+            .map(getLinkedEntityTypeByCriterion)
+            .filter((entityType): entityType is LinkedEntityTypeEnum => entityType !== null),
+    )
+
+    if (!allowedEntityTypes.size) {
+        return []
+    }
+
+    const uniqueByEntity = new Map<LinkedEntityTypeEnum, MultigetCriterion>()
+
+    incoming.forEach(multigetCriterion => {
+        if (!allowedEntityTypes.has(multigetCriterion.entityType)) {
+            return
+        }
+
+        if (!uniqueByEntity.has(multigetCriterion.entityType)) {
+            uniqueByEntity.set(multigetCriterion.entityType, multigetCriterion)
+        }
+    })
+
+    return Array.from(uniqueByEntity.values())
+}
+
+const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
+    entityType: entityType,
+    filterType: MultichoiceFilterTypeEnum.NONE,
+    searchString: '',
+    selectedItems: '',
+    selectedItemNames: '',
+    deselectedItems: '',
+    deselectedItemNames: '',
+})
+
 export const getSearchUIFiltersActions = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
@@ -62,9 +121,66 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
-    updateConditions: (conditions: Partial<Omit<SearchUIConditions, 'criteria'>>) => {
+    updateConditions: (conditions: Partial<SearchUIConditions>) => {
         set((draft) => {
-            Object.assign(draft, conditions)
+            const {
+                criteria: incomingCriteria,
+                multigetCriteria: incomingMultigetCriteria,
+                ...rest
+            } = conditions
+
+            const prevCriteria = draft.criteria.slice()
+
+            Object.assign(draft, rest)
+
+            if (incomingCriteria !== undefined) {
+                const allowedCriteria = new Set([
+                    ...draft.predefinedCriteria,
+                    ...draft.possibleCriteria,
+                ])
+
+                const sanitizedIncoming = Array.from(new Set(
+                    incomingCriteria.filter(criterion => allowedCriteria.has(criterion)),
+                ))
+
+                const mergedCriteria = Array.from(new Set([
+                    ...draft.predefinedCriteria,
+                    ...sanitizedIncoming,
+                ]))
+
+                const removedCriteria = prevCriteria.filter(criterion => !mergedCriteria.includes(criterion))
+                removedCriteria.forEach(criterion => {
+                    clearCriterionReducer(draft, criterion)
+                })
+
+                const addedCriteria = mergedCriteria.filter(criterion => !prevCriteria.includes(criterion))
+
+                if (incomingMultigetCriteria === undefined) {
+                    addedCriteria.forEach(criterion => {
+                        addInitialMultigetCriterionReducer(draft, criterion)
+                    })
+                }
+
+                draft.criteria = mergedCriteria
+            }
+
+            if (incomingMultigetCriteria !== undefined) {
+                const sanitizedMultigetCriteria = sanitizeMultigetCriteria(
+                    incomingMultigetCriteria,
+                    draft.criteria,
+                )
+
+                const missingEntityTypes = draft.criteria
+                    .map(getLinkedEntityTypeByCriterion)
+                    .filter((entityType): entityType is LinkedEntityTypeEnum => entityType !== null)
+                    .filter(entityType => !sanitizedMultigetCriteria.some(item => item.entityType === entityType))
+
+                missingEntityTypes.forEach(entityType => {
+                    sanitizedMultigetCriteria.push(getInitialMultigetCriterion(entityType))
+                })
+
+                draft.multigetCriteria = sanitizedMultigetCriteria
+            }
         })
         checkIfFiltersChanged(set, get)
     },
@@ -380,16 +496,6 @@ export const getSearchUIFiltersActions = (
         })
         checkIfFiltersChanged(set, get)
     },
-})
-
-const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
-    entityType: entityType,
-    filterType: MultichoiceFilterTypeEnum.NONE,
-    searchString: '',
-    selectedItems: '',
-    selectedItemNames: '',
-    deselectedItems: '',
-    deselectedItemNames: '',
 })
 
 const addInitialMultigetCriterionReducer = (

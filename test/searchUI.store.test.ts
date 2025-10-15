@@ -1,5 +1,5 @@
 import { useSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
-import { CriterionTypeEnum, SearchUITemplate } from '../src/component/search-ui/filters/types'
+import { CriterionTypeEnum, LinkedEntityTypeEnum, SearchUITemplate } from '../src/component/search-ui/filters/types'
 import {
     getSearchUIFiltersInitialState,
     getSearchUIInitialSearchCriteria,
@@ -80,5 +80,42 @@ describe('SearchUIFilters Zustand store', () => {
         const state = useSearchUIFiltersStore.getState()
         expect(state.templates).toEqual([template])
         expect(getSearchTemplates).toHaveBeenCalledWith('ctx')
+    })
+
+    it('applies external searchConditions without breaking possible criteria', () => {
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const onFiltersUpdate = jest.fn()
+        const visaCard = { id: 1, displayName: 'VISA' }
+        useSearchUIFiltersStore.setState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.PROJECT, CriterionTypeEnum.CARD_TYPES],
+            predefinedCriteria: [CriterionTypeEnum.STATUS],
+            criteria: [CriterionTypeEnum.STATUS],
+            multigetCriteria: [],
+        })
+
+        const { updateConditions, setCardTypesCriterion } = useSearchUIFiltersStore.getState()
+        updateConditions({
+            criteria: [CriterionTypeEnum.MERCHANT, CriterionTypeEnum.PROJECT, CriterionTypeEnum.CARD_TYPES],
+            cardTypes: { all: false, entities: [visaCard] },
+        })
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(state.criteria).toEqual([CriterionTypeEnum.STATUS, CriterionTypeEnum.PROJECT, CriterionTypeEnum.CARD_TYPES])
+        expect(state.multigetCriteria).toHaveLength(1)
+        expect(state.multigetCriteria[0].entityType).toBe(LinkedEntityTypeEnum.PROJECT)
+        expect(state.cardTypes).toEqual({ all: false, entities: [visaCard] })
+        expect(state.possibleCriteria).toEqual([
+            CriterionTypeEnum.STATUS,
+            CriterionTypeEnum.PROJECT,
+            CriterionTypeEnum.CARD_TYPES,
+        ])
+        expect(onFiltersUpdate).toHaveBeenCalled()
+
+        setCardTypesCriterion({ all: true, entities: [] })
+        const afterRemoval = useSearchUIFiltersStore.getState()
+        expect(afterRemoval.cardTypes).toEqual({ all: true, entities: [] })
     })
 })

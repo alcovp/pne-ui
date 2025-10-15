@@ -24,7 +24,7 @@ type Props = {
     predefinedCriteria?: CriterionTypeEnum[]
     exactSearchLabels?: ExactCriterionSearchLabelEnum[]
     initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
-    searchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    searchConditions?: Partial<SearchUIConditions>
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
     config?: SearchUIFiltersConfig
 }

@@ -36,7 +36,7 @@ export type SearchUIFiltersState = SearchUIConditions & {
 
 export type SearchUIFiltersActions = {
     setInitialState: (state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>) => void
-    updateConditions: (conditions: Partial<Omit<SearchUIConditions, 'criteria'>>) => void
+    updateConditions: (conditions: Partial<SearchUIConditions>) => void
     clearCriteria: () => void
     clearCriterion: (criterionType: CriterionTypeEnum) => void
     addCriterion: (criterionType: CriterionTypeEnum) => void

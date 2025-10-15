@@ -15,7 +15,7 @@ type Props<D extends object> = {
     predefinedCriteria?: CriterionTypeEnum[]
     exactSearchLabels?: ExactCriterionSearchLabelEnum[]
     initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
-    searchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    searchConditions?: Partial<SearchUIConditions>
     searchData: (searchParams: SearchParams) => Promise<D[]>
     createTableHeader: TableCreateHeaderType
     createTableRow: (

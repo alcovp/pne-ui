@@ -4,14 +4,15 @@ import {
     Country,
     ensure,
     ExactCriterionSearchLabelEnum,
+    PneButton,
     PneHeaderTableCell,
     PneTableCell,
     PneTableRow,
     TransactionSessionGroup,
 } from '../index'
-import React, { useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { SearchParams, SearchUI } from '../component/search-ui/SearchUI'
-import { CriterionTypeEnum } from '../component/search-ui/filters/types'
+import { CriterionTypeEnum, SearchUIConditions } from '../component/search-ui/filters/types'
 import { Meta, StoryObj } from '@storybook/react'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 
@@ -58,6 +59,22 @@ class Service {
 const HookWrap = () => {
 
     const [data, setData] = useState<DataType[]>([])
+    const [searchConditions, setSearchConditions] = useState<Partial<SearchUIConditions>>({})
+
+    const visaCardType = useMemo<AbstractEntity>(() => ({
+        id: 1,
+        displayName: 'VISA',
+    }), [])
+
+    const onAddVisaCardType = () => {
+        setSearchConditions({
+            criteria: [CriterionTypeEnum.CARD_TYPES],
+            cardTypes: {
+                all: false,
+                entities: [visaCardType],
+            },
+        })
+    }
 
     return <SearchUIProvider
         defaults={{
@@ -93,6 +110,13 @@ const HookWrap = () => {
                     { id: 1, displayName: 'USD' },
                     { id: 2, displayName: 'RUB' },
                     { id: 99, displayName: 'BBB' },
+                ]
+            },
+            getCardTypes: async () => {
+                return [
+                    visaCardType,
+                    { id: 2, displayName: 'MASTERCARD' },
+                    { id: 99, displayName: 'UNIONPAY' },
                 ]
             },
             getProjectAvailableCurrencies: async () => {
@@ -139,6 +163,16 @@ const HookWrap = () => {
             },
         }}
     >
+        <div style={{ marginBottom: 16 }}>
+            <PneButton
+                variant={'contained'}
+                color={'primary'}
+                size={'small'}
+                onClick={onAddVisaCardType}
+            >
+                {'Apply VISA card filter'}
+            </PneButton>
+        </div>
         <SearchUI<DataType>
             tableParams={{
                 duplicatePagination: true,
@@ -161,6 +195,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.TRANSACTION_TYPES,
                 CriterionTypeEnum.TRANSACTION_STATUS,
                 CriterionTypeEnum.ERROR_CODE,
+                CriterionTypeEnum.CARD_TYPES,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
                 CriterionTypeEnum.PROJECT_CURRENCY,
@@ -200,6 +235,7 @@ const HookWrap = () => {
                 transactionTypes: { all: true, entities: [] },
                 status: 'ENABLED',
             }}
+            searchConditions={searchConditions}
             createTableHeader={(headerParams) =>
                 <PneTableRow>
                     <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
