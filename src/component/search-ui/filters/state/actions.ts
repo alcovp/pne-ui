@@ -1,4 +1,9 @@
-import { SearchUIFiltersActions, SearchUIFiltersState, SearchUIFiltersStore } from './type'
+import {
+    SearchUIFiltersActions,
+    SearchUIFiltersState,
+    SearchUIFiltersStore,
+    SearchUIPrefetchedTransactionSessionStatuses,
+} from './type'
 import {
     AbstractEntity,
     AbstractEntityAllableCollection,
@@ -635,10 +640,12 @@ const clearCriterionReducer = (
         case CriterionTypeEnum.TRANSACTION_STATUS:
             draft.transactionStatuses = searchUIInitialAllableCollection
             break
-        case CriterionTypeEnum.TRANSACTION_SESSION_STATUS:
+        case CriterionTypeEnum.TRANSACTION_SESSION_STATUS: {
             draft.transactionSessionStatusGroup = 'APPROVED'
-            draft.transactionSessionStatuses = draft.prefetchedData.transactionSessionStatuses?.get('APPROVED') || []
+            const statuses = draft.prefetchedData.transactionSessionStatuses?.get('APPROVED') ?? []
+            draft.transactionSessionStatuses = [...statuses]
             break
+        }
         case CriterionTypeEnum.GROUPING:
             draft.grouping = getSearchUIInitialGrouping(draft.defaults)
             break
@@ -774,19 +781,33 @@ function ensureTransactionSessionStatusesPrefetched(
 ): void {
     const state = get()
 
-    if (!state.possibleCriteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)) {
+    if (!state.criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)) {
         return
     }
 
-    const { prefetchedData, prefetchedDataLoading } = state
+    const { prefetchedData, prefetchedDataLoading, prefetchedDataMeta } = state
 
-    if (prefetchedData.transactionSessionStatuses) {
-        if (!state.transactionSessionStatuses.length) {
-            const currentGroup = state.transactionSessionStatusGroup
-            const prefetched = prefetchedData.transactionSessionStatuses.get(currentGroup) ?? []
-            set(draft => {
-                draft.transactionSessionStatuses = [...prefetched]
-            })
+    const prefetchedMap = prefetchedData.transactionSessionStatuses
+    if (prefetchedMap) {
+        if (prefetchedDataMeta.transactionSessionStatusesPrefilled) {
+            return
+        }
+
+        const currentGroup = state.transactionSessionStatusGroup
+        const prefetched = prefetchedMap.get(currentGroup) ?? []
+        let statusesUpdated = false
+
+        set(draft => {
+            if (!draft.prefetchedDataMeta.transactionSessionStatusesPrefilled) {
+                if (draft.transactionSessionStatuses.length === 0) {
+                    draft.transactionSessionStatuses = [...prefetched]
+                    statusesUpdated = true
+                }
+                draft.prefetchedDataMeta.transactionSessionStatusesPrefilled = true
+            }
+        })
+
+        if (statusesUpdated) {
             checkIfFiltersChanged(set, get)
         }
         return
@@ -801,19 +822,29 @@ function ensureTransactionSessionStatusesPrefetched(
     })
 
     state.defaults.getTransactionSessionStatuses()
-        .then(statuses => {
+        .then(statusesMap => {
+            let statusesUpdated = false
+
+            const statuses: SearchUIPrefetchedTransactionSessionStatuses = new Map(statusesMap)
+
             set(draft => {
                 draft.prefetchedData.transactionSessionStatuses = statuses
                 draft.prefetchedDataLoading.transactionSessionStatuses = false
 
-                if (draft.transactionSessionStatuses.length === 0) {
-                    const currentGroup = draft.transactionSessionStatusGroup
-                    const prefetched = statuses.get(currentGroup) ?? []
-                    draft.transactionSessionStatuses = [...prefetched]
+                if (!draft.prefetchedDataMeta.transactionSessionStatusesPrefilled) {
+                    if (draft.transactionSessionStatuses.length === 0) {
+                        const currentGroup = draft.transactionSessionStatusGroup
+                        const prefetched = statuses.get(currentGroup) ?? []
+                        draft.transactionSessionStatuses = [...prefetched]
+                        statusesUpdated = true
+                    }
+                    draft.prefetchedDataMeta.transactionSessionStatusesPrefilled = true
                 }
             })
 
-            checkIfFiltersChanged(set, get)
+            if (statusesUpdated) {
+                checkIfFiltersChanged(set, get)
+            }
         })
         .catch(error => {
             console.error(error)

@@ -20,12 +20,18 @@ import {SearchUIDefaults} from '../../SearchUIProvider';
 
 export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 
+export type SearchUIPrefetchedTransactionSessionStatuses = Map<TransactionSessionGroup, string[]>
+
 export type SearchUIPrefetchedData = {
-    transactionSessionStatuses?: Map<TransactionSessionGroup, string[]>
+    transactionSessionStatuses?: SearchUIPrefetchedTransactionSessionStatuses
 }
 
 export type SearchUIPrefetchedDataLoading = {
     transactionSessionStatuses: boolean
+}
+
+export type SearchUIPrefetchedDataMeta = {
+    transactionSessionStatusesPrefilled: boolean
 }
 
 export type SearchUIFiltersState = SearchUIConditions & {
@@ -42,6 +48,7 @@ export type SearchUIFiltersState = SearchUIConditions & {
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
     prefetchedData: SearchUIPrefetchedData
     prefetchedDataLoading: SearchUIPrefetchedDataLoading
+    prefetchedDataMeta: SearchUIPrefetchedDataMeta
 }
 
 export type SearchUIFiltersActions = {

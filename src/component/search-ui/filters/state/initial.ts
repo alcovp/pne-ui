@@ -129,4 +129,7 @@ export const getSearchUIFiltersInitialState = (): SearchUIFiltersState => ({
     prefetchedDataLoading: {
         transactionSessionStatuses: false,
     },
+    prefetchedDataMeta: {
+        transactionSessionStatusesPrefilled: false,
+    },
 })
