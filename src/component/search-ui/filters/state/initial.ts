@@ -3,8 +3,8 @@ import {
     GroupingType,
     ProjectCurrency,
     SearchUIConditions,
-    ThreeDCriterionEnum,
-} from '../types';
+    ThreeDCriterionEnum, TransactionSessionGroup,
+} from '../types'
 import {SearchUIFiltersState} from './type';
 import {AbstractEntityAllableCollection} from '../../../..';
 import dayjs, {Dayjs} from 'dayjs';
@@ -48,6 +48,12 @@ const getAvailableGroupingTypes = (defaults: SearchUIDefaults): GroupingType[] =
     }
 
     return types
+}
+
+export const getSearchUIInitialSessionStatuses = async (defaults: SearchUIDefaults): Promise<Readonly<string[]>> => {
+    const defaultStatuses = await defaults.getTransactionSessionStatuses()
+    const defaultApprovedStatuses = defaultStatuses.get('APPROVED') || []
+    return Object.freeze<string[]>(defaultApprovedStatuses)
 }
 
 export const getSearchUIInitialGrouping = (defaults: SearchUIDefaults): Grouping => Object.freeze<Grouping>({
