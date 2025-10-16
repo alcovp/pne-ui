@@ -1,8 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React from 'react'
 import { Box, Chip, FormControlLabel, SxProps } from '@mui/material'
 import { PneCheckbox, PneModal, PneSelect, useModal } from '../../../../..'
 import { useSearchUIFiltersStore } from '../../state/store'
-import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
 import { TransactionSessionGroup } from '../../types'
 
 export const TransactionSessionStatusCriterion = () => {
@@ -16,32 +15,7 @@ export const TransactionSessionStatusCriterion = () => {
     const transactionSessionStatuses = useSearchUIFiltersStore(s => s.transactionSessionStatuses)
     const setGroup = useSearchUIFiltersStore(s => s.setTransactionSessionStatusGroupCriterion)
     const setStatuses = useSearchUIFiltersStore(s => s.setTransactionSessionStatusesCriterion)
-
-    const { getTransactionSessionStatuses } = useContext(SearchUIDefaultsContext)
-    const [availableStatuses, setAvailableStatuses] = useState<Map<TransactionSessionGroup, string[]>>(new Map())
-    const [initialStatusesSet, setInitialStatusesSet] = useState(transactionSessionStatuses.length > 0)
-
-    useEffect(() => {
-        getTransactionSessionStatuses()
-            .then(setAvailableStatuses)
-            .catch(console.error)
-    }, [getTransactionSessionStatuses])
-
-    useEffect(() => {
-        if (!availableStatuses.size || initialStatusesSet) {
-            return
-        }
-
-        const statuses = availableStatuses.get(transactionSessionStatusGroup) ?? []
-        setStatuses([...statuses])
-        setInitialStatusesSet(true)
-    }, [availableStatuses, initialStatusesSet, setStatuses, transactionSessionStatusGroup])
-
-    useEffect(() => {
-        if (transactionSessionStatuses.length > 0 && !initialStatusesSet) {
-            setInitialStatusesSet(true)
-        }
-    }, [initialStatusesSet, transactionSessionStatuses.length])
+    const availableStatuses = useSearchUIFiltersStore(s => s.prefetchedData.transactionSessionStatuses)
 
     const toggleStatus = (status: string) => {
         if (transactionSessionStatuses.includes(status)) {
@@ -53,13 +27,12 @@ export const TransactionSessionStatusCriterion = () => {
 
     const changeGroup = (group: TransactionSessionGroup) => {
         setGroup(group)
-        const statuses = availableStatuses.get(group) ?? []
+        const statuses = availableStatuses?.get(group) ?? []
         setStatuses([...statuses])
-        setInitialStatusesSet(true)
     }
 
-    const groupOptions = Array.from(availableStatuses.keys())
-    const statusesForGroup = availableStatuses.get(transactionSessionStatusGroup) ?? []
+    const groupOptions = availableStatuses ? Array.from(availableStatuses.keys()) : []
+    const statusesForGroup = availableStatuses?.get(transactionSessionStatusGroup) ?? []
 
     return <>
         <Box sx={containerSx} onClick={handleOpen}>

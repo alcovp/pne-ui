@@ -119,7 +119,7 @@ export const getSearchUIFiltersActions = (
                 ...state,
             }
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     updateConditions: (conditions: Partial<SearchUIConditions>) => {
         set((draft) => {
@@ -182,7 +182,7 @@ export const getSearchUIFiltersActions = (
                 draft.multigetCriteria = sanitizedMultigetCriteria
             }
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     clearCriteria: () => {
         localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
@@ -196,14 +196,14 @@ export const getSearchUIFiltersActions = (
                 criteria: draft.predefinedCriteria,
             }
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     clearCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
             clearCriterionReducer(draft, criterionType)
             addInitialMultigetCriterionReducer(draft, criterionType)
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     addCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
@@ -211,7 +211,7 @@ export const getSearchUIFiltersActions = (
             addInitialMultigetCriterionReducer(draft, criterionType)
         })
         get().setJustAddedCriterion(criterionType)
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     removeCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
@@ -219,7 +219,7 @@ export const getSearchUIFiltersActions = (
             const index = draft.criteria.findIndex(c => c === criterionType)
             draft.criteria.splice(index, 1)
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     createTemplate: (templateName: string) => {
         const template = getTemplate(templateName, get())
@@ -276,7 +276,7 @@ export const getSearchUIFiltersActions = (
                         draft.criteria = draft.predefinedCriteria
                     }
                 })
-                checkIfFiltersChanged(set, get)
+                postUpdate(set, get)
             })
             // .catch(raiseUIError)
             .catch(console.error)
@@ -300,7 +300,7 @@ export const getSearchUIFiltersActions = (
                 ...conditions,
             }
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     loadTemplates: () => {
         get().defaults.getSearchTemplates(get().settingsContextName)
@@ -328,31 +328,31 @@ export const getSearchUIFiltersActions = (
             const index = draft.multigetCriteria.findIndex(c => c.entityType === criterion.entityType)
             draft.multigetCriteria[index] = criterion
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     set3DCriterion: (threeD: ThreeDCriterionEnum) => {
         set((draft) => {
             draft.threeD = threeD
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setStatusCriterion: (status: StatusCriterion) => {
         set((draft) => {
             draft.status = status
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => {
         set((draft) => {
             draft.exactSearchLabel = searchLabel
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setExactCriterionSearchValue: (searchValue: string) => {
         set((draft) => {
             draft.exactSearchValue = searchValue
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setOrderSearchCriterionLabel: searchLabel => {
         const oldLabel = get().ordersSearchLabel
@@ -366,25 +366,25 @@ export const getSearchUIFiltersActions = (
                 draft.ordersSearchValue = ''
             })
         }
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setOrderSearchCriterionValue: searchValue => {
         set((draft) => {
             draft.ordersSearchValue = searchValue
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.currencies = currencies
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setDateRangeCriterionOrderDateType: orderDateType => {
         set((draft) => {
             draft.orderDateType = orderDateType
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => {
         let spec = dateRangeSpec
@@ -396,105 +396,105 @@ export const getSearchUIFiltersActions = (
         set((draft) => {
             draft.dateRangeSpec = spec
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setProjectCurrencyCriterionCurrency: (currency: AbstractEntity) => {
         set((draft) => {
             draft.projectCurrency.currency = currency
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setProjectCurrencyCriterionConvertFlag: (convertToUserCurrency: boolean) => {
         set((draft) => {
             draft.projectCurrency.convertToUserCurrency = convertToUserCurrency
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setCardTypesCriterion: (cardTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.cardTypes = cardTypes
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.transactionTypes = transactionTypes
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setTransactionStatusesCriterion: (transactionStatuses: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.transactionStatuses = transactionStatuses
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setTransactionSessionStatusGroupCriterion: (transactionSessionStatusGroup: TransactionSessionGroup) => {
         set((draft) => {
             draft.transactionSessionStatusGroup = transactionSessionStatusGroup
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setTransactionSessionStatusesCriterion: (transactionSessionStatuses: string[]) => {
         set((draft) => {
             draft.transactionSessionStatuses = transactionSessionStatuses
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setGroupingCriterionDateType: (dateType: GroupingDateType) => {
         set((draft) => {
             draft.grouping.dateType = dateType
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => {
         set((draft) => {
             draft.grouping.availableGroupingTypes = available
             draft.grouping.selectedGroupingTypes = selected
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.recurrenceTypes = recurrenceTypes
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setRecurrenceStatusesCriterion: (recurrenceStatuses: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.recurrenceStatuses = recurrenceStatuses
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setMfoConfigurationTypesCriterion: (mfoConfigurationTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.mfoConfigurationTypes = mfoConfigurationTypes
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setMarkerTypesCriterion: (markerTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.markerTypes = markerTypes
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setMarkerStatusCriterion: (status: MarkerStatusCriterion) => {
         set((draft) => {
             draft.markerStatus = status
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setProcessorLogEntryType: entryType => {
         console.log('setProcessorLogEntryType', entryType)
         set((draft) => {
             draft.processorLogEntryType = entryType
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
     setErrorCodeCriterion: errorCode => {
         set(draft => {
             draft.errorCode = errorCode
         })
-        checkIfFiltersChanged(set, get)
+        postUpdate(set, get)
     },
 })
 
@@ -637,7 +637,7 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.TRANSACTION_SESSION_STATUS:
             draft.transactionSessionStatusGroup = 'APPROVED'
-            draft.transactionSessionStatuses = []
+            draft.transactionSessionStatuses = draft.prefetchedData.transactionSessionStatuses?.get('APPROVED') || []
             break
         case CriterionTypeEnum.GROUPING:
             draft.grouping = getSearchUIInitialGrouping(draft.defaults)
@@ -762,6 +762,75 @@ const extractDateTo = (dateRangeSpec: DateRangeSpec): Date | null => {
     }
 }
 
+const extractTransactionSessionStatuses = (criteria: CriterionTypeEnum[], statuses: string[]): string | null => {
+    if (!criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS))
+        return null
+    return statuses.length ? statuses.join(',') : null
+}
+
+function ensureTransactionSessionStatusesPrefetched(
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+): void {
+    const state = get()
+
+    if (!state.possibleCriteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)) {
+        return
+    }
+
+    const { prefetchedData, prefetchedDataLoading } = state
+
+    if (prefetchedData.transactionSessionStatuses) {
+        if (!state.transactionSessionStatuses.length) {
+            const currentGroup = state.transactionSessionStatusGroup
+            const prefetched = prefetchedData.transactionSessionStatuses.get(currentGroup) ?? []
+            set(draft => {
+                draft.transactionSessionStatuses = [...prefetched]
+            })
+            checkIfFiltersChanged(set, get)
+        }
+        return
+    }
+
+    if (prefetchedDataLoading.transactionSessionStatuses) {
+        return
+    }
+
+    set(draft => {
+        draft.prefetchedDataLoading.transactionSessionStatuses = true
+    })
+
+    state.defaults.getTransactionSessionStatuses()
+        .then(statuses => {
+            set(draft => {
+                draft.prefetchedData.transactionSessionStatuses = statuses
+                draft.prefetchedDataLoading.transactionSessionStatuses = false
+
+                if (draft.transactionSessionStatuses.length === 0) {
+                    const currentGroup = draft.transactionSessionStatusGroup
+                    const prefetched = statuses.get(currentGroup) ?? []
+                    draft.transactionSessionStatuses = [...prefetched]
+                }
+            })
+
+            checkIfFiltersChanged(set, get)
+        })
+        .catch(error => {
+            console.error(error)
+            set(draft => {
+                draft.prefetchedDataLoading.transactionSessionStatuses = false
+            })
+        })
+}
+
+const postUpdate = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+) => {
+    ensureTransactionSessionStatusesPrefetched(set, get)
+    checkIfFiltersChanged(set, get)
+}
+
 const checkIfFiltersChanged = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
@@ -792,7 +861,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         cardTypes: extractEntitiesIds(state.cardTypes),
         transactionTypes: extractEntitiesIds(state.transactionTypes),
         transactionStatuses: extractEntitiesIds(state.transactionStatuses),
-        transactionSessionStatuses: state.transactionSessionStatuses.length ? state.transactionSessionStatuses.join(',') : null,
+        transactionSessionStatuses: extractTransactionSessionStatuses(state.criteria, state.transactionSessionStatuses),
         projectCurrencyId: state.projectCurrency.currency.id,
         projectCurrencyConvert: state.projectCurrency.convertToUserCurrency,
         groupTypes: extractGroupTypes(state.grouping),

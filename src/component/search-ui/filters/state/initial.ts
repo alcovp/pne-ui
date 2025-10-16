@@ -50,12 +50,6 @@ const getAvailableGroupingTypes = (defaults: SearchUIDefaults): GroupingType[] =
     return types
 }
 
-export const getSearchUIInitialSessionStatuses = async (defaults: SearchUIDefaults): Promise<Readonly<string[]>> => {
-    const defaultStatuses = await defaults.getTransactionSessionStatuses()
-    const defaultApprovedStatuses = defaultStatuses.get('APPROVED') || []
-    return Object.freeze<string[]>(defaultApprovedStatuses)
-}
-
 export const getSearchUIInitialGrouping = (defaults: SearchUIDefaults): Grouping => Object.freeze<Grouping>({
     dateType: 'DAY',
     availableGroupingTypes: getAvailableGroupingTypes(defaults),
@@ -130,5 +124,9 @@ export const getSearchUIFiltersInitialState = (): SearchUIFiltersState => ({
 
     onFiltersUpdate: () => {
         throw new Error('Function onFiltersUpdate is not provided')
+    },
+    prefetchedData: {},
+    prefetchedDataLoading: {
+        transactionSessionStatuses: false,
     },
 })
