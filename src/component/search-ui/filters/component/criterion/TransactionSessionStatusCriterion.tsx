@@ -82,14 +82,15 @@ export const TransactionSessionStatusCriterion = () => {
                 />
                 <Box sx={checkboxesSx}>
                     {statusesForGroup.map(status => (
-                        <FormControlLabel
-                            key={status}
-                            label={status}
-                            control={<PneCheckbox
-                                checked={transactionSessionStatuses.includes(status)}
-                                onChange={() => toggleStatus(status)}
-                            />}
-                        />
+                        <Box key={status} sx={checkboxItemSx}>
+                            <FormControlLabel
+                                label={status}
+                                control={<PneCheckbox
+                                    checked={transactionSessionStatuses.includes(status)}
+                                    onChange={() => toggleStatus(status)}
+                                />}
+                            />
+                        </Box>
                     ))}
                 </Box>
             </Box>
@@ -125,4 +126,10 @@ const modalContentSx: SxProps = {
 const checkboxesSx: SxProps = {
     display: 'flex',
     flexDirection: 'column',
+}
+
+const checkboxItemSx: SxProps = {
+    '&:not(:last-of-type)': {
+        borderBottom: '1px solid #EFF2F5',
+    },
 }
