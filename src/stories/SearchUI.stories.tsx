@@ -158,7 +158,26 @@ const HookWrap = () => {
             },
             getTransactionSessionStatuses: async () => {
                 return new Map<TransactionSessionGroup, string[]>([
-                    ['ALL', ['MOCK_ONE', 'MOCK_TWO', 'THREE']],
+                    ['ALL', [
+                        'MOCK_ONE',
+                        'MOCK_TWO',
+                        'CLONE1',
+                        'CLONE2',
+                        'CLONE3',
+                        'CLONE4',
+                        'CLONE5',
+                        'CLONE6',
+                        'CLONE7',
+                        'CLONE8',
+                        'CLONE9',
+                        'CLONE10',
+                        'CLONE11',
+                        'CLONE12',
+                        'CLONE13',
+                        'CLONE14',
+                        'CLONE15',
+                        'THREE',
+                    ]],
                     ['APPROVED', ['MOCK_ONE', 'MOCK_TWO']],
                     ['PROCESSING', ['THREE']],
                 ])
@@ -215,7 +234,7 @@ const HookWrap = () => {
                 // CriterionTypeEnum.EXACT,
                 // CriterionTypeEnum.ORDERS_SEARCH,
                 CriterionTypeEnum.STATUS,
-                CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
+                // CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
                 // CriterionTypeEnum.DATE_RANGE,
                 CriterionTypeEnum.ERROR_CODE,
             ]}

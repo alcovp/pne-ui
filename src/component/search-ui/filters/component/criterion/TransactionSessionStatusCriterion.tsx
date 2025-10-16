@@ -19,12 +19,29 @@ export const TransactionSessionStatusCriterion = () => {
 
     const { getTransactionSessionStatuses } = useContext(SearchUIDefaultsContext)
     const [availableStatuses, setAvailableStatuses] = useState<Map<TransactionSessionGroup, string[]>>(new Map())
+    const [initialStatusesSet, setInitialStatusesSet] = useState(transactionSessionStatuses.length > 0)
 
     useEffect(() => {
         getTransactionSessionStatuses()
             .then(setAvailableStatuses)
             .catch(console.error)
     }, [getTransactionSessionStatuses])
+
+    useEffect(() => {
+        if (!availableStatuses.size || initialStatusesSet) {
+            return
+        }
+
+        const statuses = availableStatuses.get(transactionSessionStatusGroup) ?? []
+        setStatuses([...statuses])
+        setInitialStatusesSet(true)
+    }, [availableStatuses, initialStatusesSet, setStatuses, transactionSessionStatusGroup])
+
+    useEffect(() => {
+        if (transactionSessionStatuses.length > 0 && !initialStatusesSet) {
+            setInitialStatusesSet(true)
+        }
+    }, [initialStatusesSet, transactionSessionStatuses.length])
 
     const toggleStatus = (status: string) => {
         if (transactionSessionStatuses.includes(status)) {
@@ -36,7 +53,9 @@ export const TransactionSessionStatusCriterion = () => {
 
     const changeGroup = (group: TransactionSessionGroup) => {
         setGroup(group)
-        setStatuses([])
+        const statuses = availableStatuses.get(group) ?? []
+        setStatuses([...statuses])
+        setInitialStatusesSet(true)
     }
 
     const groupOptions = Array.from(availableStatuses.keys())
@@ -53,12 +72,13 @@ export const TransactionSessionStatusCriterion = () => {
                 }
             </Box>
         </Box>
-        <PneModal open={open} onClose={handleClose}>
+        <PneModal open={open} onClose={handleClose} title={'react.searchUI.addSessionStatusTitle'}>
             <Box sx={modalContentSx}>
                 <PneSelect
                     value={transactionSessionStatusGroup}
                     onChange={value => changeGroup(value as TransactionSessionGroup)}
                     options={groupOptions}
+                    label={'react.searchUI.transactionSessionStatusGroup'}
                 />
                 <Box sx={checkboxesSx}>
                     {statusesForGroup.map(status => (
@@ -106,4 +126,3 @@ const checkboxesSx: SxProps = {
     display: 'flex',
     flexDirection: 'column',
 }
-

@@ -636,7 +636,7 @@ const clearCriterionReducer = (
             draft.transactionStatuses = searchUIInitialAllableCollection
             break
         case CriterionTypeEnum.TRANSACTION_SESSION_STATUS:
-            draft.transactionSessionStatusGroup = 'ALL'
+            draft.transactionSessionStatusGroup = 'APPROVED'
             draft.transactionSessionStatuses = []
             break
         case CriterionTypeEnum.GROUPING:
