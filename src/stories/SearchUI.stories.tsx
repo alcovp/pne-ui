@@ -158,7 +158,9 @@ const HookWrap = () => {
             },
             getTransactionSessionStatuses: async () => {
                 return new Map<TransactionSessionGroup, string[]>([
-                    ['ALL', ['MOCK_ONE', 'MOCK_TWO']],
+                    ['ALL', ['MOCK_ONE', 'MOCK_TWO', 'THREE']],
+                    ['APPROVED', ['MOCK_ONE', 'MOCK_TWO']],
+                    ['PROCESSING', ['THREE']],
                 ])
             },
         }}
