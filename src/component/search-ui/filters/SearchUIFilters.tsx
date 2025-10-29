@@ -11,11 +11,16 @@ import {CriterionContainer} from './CriterionContainer';
 import {PneButton, SearchUIDefaults} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 
+export type DateRangeCriterionConfig = {
+    enableTimeSelection?: boolean
+}
+
 export type SearchUIFiltersConfig = {
     conflictingCriteriaGroups?: CriterionTypeEnum[][]
     removablePredefinedCriteria?: CriterionTypeEnum[]
     hideTemplatesSelect?: boolean
     hideShowFiltersButton?: boolean
+    dateRange?: DateRangeCriterionConfig
 }
 
 type Props = {

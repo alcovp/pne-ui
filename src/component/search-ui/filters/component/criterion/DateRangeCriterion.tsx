@@ -4,7 +4,12 @@ import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecType
 import dayjs, {Dayjs} from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import {Box, SxProps} from '@mui/material'
-import {DateRange, DateRangePicker, LocalizationProvider} from '@mui/x-date-pickers-pro' //TODO migration
+import {
+    DateRange,
+    DateRangePicker,
+    LocalizationProvider,
+} from '@mui/x-date-pickers-pro' //TODO migration
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker'
 import {AdapterDayjs} from '@mui/x-date-pickers-pro/AdapterDayjs'
 import {useSearchUIFiltersStore} from '../../state/store'
 import timezone from 'dayjs/plugin/timezone'
@@ -19,11 +24,16 @@ type Props = {
     showOrdersDateType?: boolean
 }
 
+const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
+
 export const DateRangeCriterion = (props: Props) => {
     const {showOrdersDateType} = props
 
     const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
     const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
+    const timeSelectionEnabledInConfig = useSearchUIFiltersStore(
+        s => !!s.config?.dateRange?.enableTimeSelection
+    )
 
     const changeBeforeCount = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         const value = event.target.value
@@ -47,8 +57,8 @@ export const DateRangeCriterion = (props: Props) => {
     const setExactDate = (from: Dayjs | null, to: Dayjs | null) => {
         setDateRangeCriterion({
             ...dateRangeSpec,
-            dateFrom: dayjs(from).toDate(),
-            dateTo: dayjs(to).toDate(),
+            dateFrom: from ? dayjs(from).toDate() : null,
+            dateTo: to ? dayjs(to).toDate() : null,
         })
     }
 
@@ -67,10 +77,12 @@ export const DateRangeCriterion = (props: Props) => {
         })
     }
 
-    const dateRange: [Dayjs, Dayjs] = [
-        dayjs(dateRangeSpec.dateFrom),
-        dayjs(dateRangeSpec.dateTo),
+    const dateRange: DateRange<Dayjs> = [
+        dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom) : null,
+        dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo) : null,
     ]
+
+    const enableTimeSelection = showOrdersDateType || timeSelectionEnabledInConfig
 
     return <>
         <Box sx={{display: 'flex', gap: '5px'}}>
@@ -80,15 +92,60 @@ export const DateRangeCriterion = (props: Props) => {
         {withInputNear
             ? exactDates
                 ? <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <DateRangePicker
-                        sx={dateRangePickerSx}
-                        value={dateRange}
-                        onChange={handleSetDateRange}
-                        slotProps={{
-                            fieldSeparator: {sx: {display: 'none'}},
-                            popper: {placement: 'auto'},
-                        }}
-                    />
+                    {enableTimeSelection
+                        ? <Box sx={dateTimePickerContainerSx}>
+                            <DateTimePicker
+                                value={dateRange[0]}
+                                onChange={from => setExactDate(from, dateRange[1])}
+                                ampm={false}
+                                views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                                format={DATE_TIME_FORMAT}
+                                timeSteps={{
+                                    minutes: 1,
+                                    seconds: 1,
+                                }}
+                                slotProps={{
+                                    textField: {
+                                        size: 'small',
+                                        placeholder: DATE_TIME_FORMAT,
+                                        sx: filtersInputSx,
+                                        variant: 'filled',
+                                        InputProps: {disableUnderline: true},
+                                    },
+                                    popper: {placement: 'auto'},
+                                }}
+                            />
+                            <DateTimePicker
+                                value={dateRange[1]}
+                                onChange={to => setExactDate(dateRange[0], to)}
+                                ampm={false}
+                                views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                                format={DATE_TIME_FORMAT}
+                                timeSteps={{
+                                    minutes: 1,
+                                    seconds: 1,
+                                }}
+                                slotProps={{
+                                    textField: {
+                                        size: 'small',
+                                        placeholder: DATE_TIME_FORMAT,
+                                        sx: filtersInputSx,
+                                        variant: 'filled',
+                                        InputProps: {disableUnderline: true},
+                                    },
+                                    popper: {placement: 'auto'},
+                                }}
+                            />
+                        </Box>
+                        : <DateRangePicker
+                            sx={dateRangePickerSx}
+                            value={dateRange}
+                            onChange={handleSetDateRange}
+                            slotProps={{
+                                fieldSeparator: {sx: {display: 'none'}},
+                                popper: {placement: 'auto'},
+                            }}
+                        />}
                 </LocalizationProvider>
                 : <PneTextField
                     value={dateRangeSpec.beforeCount || ''}
@@ -129,4 +186,10 @@ const dateRangePickerSx: SxProps = {
     '& .MuiFormControl-root.MuiTextField-root': {
         m: 0,
     },
+}
+
+const dateTimePickerContainerSx: SxProps = {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '8px',
 }

@@ -756,10 +756,13 @@ const extractDateFrom = (dateRangeSpec: DateRangeSpec): Date | null => {
     }
 }
 
-const extractDateTo = (dateRangeSpec: DateRangeSpec): Date | null => {
+const extractDateTo = (dateRangeSpec: DateRangeSpec, useTime: boolean): Date | null => {
     if (dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT') {
         return dayjs().year(2999).toDate()
     } else if (dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
+        if (useTime) {
+            return dateRangeSpec.dateTo
+        }
         return dayjs(dateRangeSpec.dateTo)
             .startOf('day')
             .add(1, 'd')
@@ -877,6 +880,10 @@ const checkIfFiltersChanged = (
 }
 
 const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCriteria => {
+    const timeSelectionEnabled =
+        state.criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS)
+        || !!state.config?.dateRange?.enableTimeSelection
+
     return {
         initialized: true,
         exactSearchLabel: extractExactSearchLabel(state.exactSearchLabel),
@@ -887,7 +894,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
         dateFrom: extractDateFrom(state.dateRangeSpec),
-        dateTo: extractDateTo(state.dateRangeSpec),
+        dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled),
         orderDateType: state.orderDateType,
         cardTypes: extractEntitiesIds(state.cardTypes),
         transactionTypes: extractEntitiesIds(state.transactionTypes),

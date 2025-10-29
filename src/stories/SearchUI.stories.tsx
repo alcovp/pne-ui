@@ -225,20 +225,23 @@ const HookWrap = () => {
                 CriterionTypeEnum.GROUPING,
                 CriterionTypeEnum.DATE_RANGE,
                 // CriterionTypeEnum.PROJECT_CURRENCY,
-                CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE,
-                CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
+                // CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE,
+                // CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
             ]}
             predefinedCriteria={[
                 // CriterionTypeEnum.GROUPING,
                 // CriterionTypeEnum.DATE_RANGE_ORDERS,
                 // CriterionTypeEnum.EXACT,
                 // CriterionTypeEnum.ORDERS_SEARCH,
-                CriterionTypeEnum.STATUS,
+                // CriterionTypeEnum.STATUS,
                 // CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
-                // CriterionTypeEnum.DATE_RANGE,
-                CriterionTypeEnum.ERROR_CODE,
+                CriterionTypeEnum.DATE_RANGE,
+                // CriterionTypeEnum.ERROR_CODE,
             ]}
             config={{
+                dateRange: {
+                    enableTimeSelection: true,
+                },
                 // hideShowFiltersButton: true,
                 // hideTemplatesSelect: true,
             }}
@@ -252,10 +255,10 @@ const HookWrap = () => {
                 return Service.getList(searchParams)
             }}
             dataUseState={[data, setData]}
-            initialSearchConditions={{
-                transactionTypes: { all: true, entities: [] },
-                status: 'ENABLED',
-            }}
+            // initialSearchConditions={{
+            //     transactionTypes: { all: true, entities: [] },
+            //     status: 'ENABLED',
+            // }}
             searchConditions={searchConditions}
             createTableHeader={(headerParams) =>
                 <PneTableRow>
