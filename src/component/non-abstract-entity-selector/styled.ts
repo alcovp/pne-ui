@@ -1,4 +1,4 @@
-import {styled} from '@mui/material/styles';
+import {styled} from '@mui/system';
 import {PneHeaderTableCell} from "../../index";
 import {ListItem, ListItemButton} from '@mui/material';
 

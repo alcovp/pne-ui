@@ -1,4 +1,4 @@
-import {styled} from '@mui/material/styles';
+import {styled} from '@mui/system';
 import {TableRow} from '@mui/material';
 
 const PneTableRow = styled(TableRow, {
