@@ -2868,7 +2868,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.21.0, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
+"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.17.8, @babel/runtime@npm:^7.18.3, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.8.4, @babel/runtime@npm:^7.8.7":
   version: 7.22.5
   resolution: "@babel/runtime@npm:7.22.5"
   dependencies:
@@ -3995,22 +3995,6 @@ __metadata:
   version: 5.15.15
   resolution: "@mui/core-downloads-tracker@npm:5.15.15"
   checksum: 10c0/6bbe71e00b1a1c20984a8b5e3b194cc6114f5eee54b37ac463ecfd47e3b83aacdb500f6f5f201ed24237679fb52b256cc6a7e81d4dcfcf29f2a151852b81d160
-  languageName: node
-  linkType: hard
-
-"@mui/icons-material@npm:5.11.16":
-  version: 5.11.16
-  resolution: "@mui/icons-material@npm:5.11.16"
-  dependencies:
-    "@babel/runtime": "npm:^7.21.0"
-  peerDependencies:
-    "@mui/material": ^5.0.0
-    "@types/react": ^17.0.0 || ^18.0.0
-    react: ^17.0.0 || ^18.0.0
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-  checksum: 10c0/22099e54ccf8aaf0b7972e4626686999048094b8d783b6e293682cdc4b92da6dbd158709dce24e459babf728b17b625a89f6df40ba8a8cd4a28c6279c7a6293b
   languageName: node
   linkType: hard
 
@@ -13405,7 +13389,6 @@ __metadata:
     "@emotion/react": "npm:11.11.1"
     "@emotion/styled": "npm:11.11.0"
     "@hello-pangea/dnd": "npm:16.6.0"
-    "@mui/icons-material": "npm:5.11.16"
     "@mui/material": "npm:5.15.13"
     "@mui/system": "npm:5.15.13"
     "@mui/x-date-pickers-pro": "npm:6.17.0"
@@ -13454,15 +13437,16 @@ __metadata:
     zod: "npm:3.23.4"
     zustand: "npm:4.4.1"
   peerDependencies:
-    "@emotion/react": ^11.11.0
-    "@emotion/styled": ^11.11.0
-    "@mui/material": ^5.15.13
-    "@mui/system": ^5.15.13
-    "@mui/x-date-pickers-pro": ^6.17.0
-    i18next: ^23.10.0
+    "@emotion/react": ^11
+    "@emotion/styled": ^11
+    "@mui/icons-material": ^5
+    "@mui/material": ^5
+    "@mui/system": ^5
+    "@mui/x-date-pickers-pro": ^6
+    i18next: ^23
     react: ^18 || ^19
     react-dom: ^18 || ^19
-    react-i18next: ^11.18.0
+    react-i18next: ^11
   languageName: unknown
   linkType: soft
 

@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "description": "",
     "repository": {
         "type": "git",
@@ -54,10 +54,10 @@
     "peerDependencies": {
         "@emotion/react": "^11",
         "@emotion/styled": "^11",
+        "@mui/icons-material": "^5",
         "@mui/material": "^5",
         "@mui/system": "^5",
         "@mui/x-date-pickers-pro": "^6",
-        "@mui/icons-material": "^5",
         "i18next": "^23",
         "react": "^18 || ^19",
         "react-dom": "^18 || ^19",
