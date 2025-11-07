@@ -2886,6 +2886,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@babel/runtime@npm:^7.21.0":
+  version: 7.28.4
+  resolution: "@babel/runtime@npm:7.28.4"
+  checksum: 10c0/792ce7af9750fb9b93879cc9d1db175701c4689da890e6ced242ea0207c9da411ccf16dc04e689cc01158b28d7898c40d75598f4559109f761c12ce01e959bf7
+  languageName: node
+  linkType: hard
+
 "@babel/runtime@npm:^7.23.9":
   version: 7.24.4
   resolution: "@babel/runtime@npm:7.24.4"
@@ -3995,6 +4002,22 @@ __metadata:
   version: 5.15.15
   resolution: "@mui/core-downloads-tracker@npm:5.15.15"
   checksum: 10c0/6bbe71e00b1a1c20984a8b5e3b194cc6114f5eee54b37ac463ecfd47e3b83aacdb500f6f5f201ed24237679fb52b256cc6a7e81d4dcfcf29f2a151852b81d160
+  languageName: node
+  linkType: hard
+
+"@mui/icons-material@npm:5.11.16":
+  version: 5.11.16
+  resolution: "@mui/icons-material@npm:5.11.16"
+  dependencies:
+    "@babel/runtime": "npm:^7.21.0"
+  peerDependencies:
+    "@mui/material": ^5.0.0
+    "@types/react": ^17.0.0 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 10c0/22099e54ccf8aaf0b7972e4626686999048094b8d783b6e293682cdc4b92da6dbd158709dce24e459babf728b17b625a89f6df40ba8a8cd4a28c6279c7a6293b
   languageName: node
   linkType: hard
 
@@ -13389,6 +13412,7 @@ __metadata:
     "@emotion/react": "npm:11.11.1"
     "@emotion/styled": "npm:11.11.0"
     "@hello-pangea/dnd": "npm:16.6.0"
+    "@mui/icons-material": "npm:5.11.16"
     "@mui/material": "npm:5.15.13"
     "@mui/system": "npm:5.15.13"
     "@mui/x-date-pickers-pro": "npm:6.17.0"
@@ -13423,6 +13447,7 @@ __metadata:
     jest: "npm:29.5.0"
     jest-canvas-mock: "npm:2.5.1"
     jest-environment-jsdom: "npm:29.5.0"
+    lodash: "npm:^4.17.21"
     prop-types: "npm:15.8.1"
     react: "npm:18.2.0"
     react-beautiful-dnd: "npm:11.0.5"
