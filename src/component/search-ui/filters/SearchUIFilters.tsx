@@ -11,29 +11,84 @@ import {CriterionContainer} from './CriterionContainer';
 import {PneButton, SearchUIDefaults} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 
+/**
+ * Дополнительные настройки критерия диапазона дат.
+ */
 export type DateRangeCriterionConfig = {
+    /**
+     * Разрешает выбор времени вместе с датой.
+     */
     enableTimeSelection?: boolean
 }
 
+/**
+ * Общая конфигурация компонента {@link SearchUIFilters}.
+ */
 export type SearchUIFiltersConfig = {
+    /**
+     * Группы критериев, которые не могут быть активны одновременно.
+     */
     conflictingCriteriaGroups?: CriterionTypeEnum[][]
+    /**
+     * Список предустановленных критериев, которые пользователь может удалить.
+     */
     removablePredefinedCriteria?: CriterionTypeEnum[]
+    /**
+     * Прячет выпадающий список шаблонов фильтров.
+     */
     hideTemplatesSelect?: boolean
+    /**
+     * Прячет кнопку сворачивания/разворачивания панели фильтров.
+     */
     hideShowFiltersButton?: boolean
+    /**
+     * Дополнительные настройки поведения фильтра по диапазону дат.
+     */
     dateRange?: DateRangeCriterionConfig
 }
 
+/**
+ * Свойства компонента {@link SearchUIFilters}.
+ */
 type Props = {
+    /**
+     * Имя контекста настроек, используемое для хранения пользовательских предпочтений.
+     */
     settingsContextName: string
+    /**
+     * Полный набор критериев, доступных в фильтре.
+     */
     possibleCriteria: CriterionTypeEnum[]
+    /**
+     * Критерии, которые активируются автоматически.
+     */
     predefinedCriteria?: CriterionTypeEnum[]
+    /**
+     * Доступные значения точного поиска.
+     */
     exactSearchLabels?: ExactCriterionSearchLabelEnum[]
+    /**
+     * Первоначальное состояние фильтров (кроме перечня критериев).
+     */
     initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    /**
+     * Внешнее состояние фильтра, синхронизируемое со стором.
+     */
     searchConditions?: Partial<SearchUIConditions>
+    /**
+     * Колбэк, вызываемый при изменении условий поиска.
+     */
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
+    /**
+     * Конфигурация поведения фильтра.
+     */
     config?: SearchUIFiltersConfig
 }
 
+/**
+ * Панель фильтров поискового интерфейса с поддержкой шаблонов и динамических критериев.
+ * @param props Свойства компонента.
+ */
 export const SearchUIFilters = (props: Props) => {
     const {t} = useTranslation();
     const {
@@ -170,6 +225,12 @@ const headerSx: SxProps = {
     py: '15px',
 }
 
+/**
+ * Фильтрует список критериев в соответствии с доступностью, предоставленной настройками по умолчанию.
+ * @param defaults Значения по умолчанию из {@link SearchUIDefaultsContext}.
+ * @param criteria Критерии, которые требуется проверить.
+ * @returns Подмножество критериев, доступных пользователю.
+ */
 export const filterAvailableCriteria = (
     defaults: SearchUIDefaults,
     criteria: CriterionTypeEnum[] | undefined

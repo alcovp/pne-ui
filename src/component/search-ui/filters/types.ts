@@ -256,17 +256,33 @@ export enum LinkedEntityTypeEnum {
     FORM_TEMPLATE_TDS_METHOD = 'FORM_TEMPLATE_TDS_METHOD'
 }
 
+/**
+ * Универсальный критерий множественного выбора с поддержкой предзагрузки связанных сущностей.
+ */
 export type MultigetCriterion = {
+    /** Тип связанной сущности, для которой выполняется запрос. */
     entityType: LinkedEntityTypeEnum
+    /** Способ фильтрации, применяемый к множественному выбору. */
     filterType: MultichoiceFilterTypeEnum
+    /** Строка поиска по сущностям. */
     searchString: string
+    /** Идентификаторы выбранных элементов в виде строки. */
     selectedItems: string
+    /** Идентификаторы исключённых элементов. */
     deselectedItems: string
+    /** Отображаемые имена выбранных элементов. */
     selectedItemNames: string
+    /** Отображаемые имена исключённых элементов. */
     deselectedItemNames: string
 }
 
+/**
+ * Плоское представление условий поиска, используемое при запросе данных на сервер.
+ */
 export type SearchCriteria = {
+    /**
+     * Флаг инициализации стора, предотвращающий преждевременные сетевые запросы.
+     */
     initialized: boolean // это только для предотвращения лишнего вызова при загрузке страницы
 
     exactSearchLabel: string | null
@@ -296,6 +312,9 @@ export type SearchCriteria = {
     errorCode: number | null
 }
 
+/**
+ * Расширенное состояние условий поиска, используемое внутри UI и стора.
+ */
 export type SearchUIConditions = {
     criteria: CriterionTypeEnum[]
 
@@ -325,7 +344,12 @@ export type SearchUIConditions = {
     errorCode: AutoCompleteChoice | null
 }
 
+/**
+ * Описание сохранённого шаблона поиска.
+ */
 export type SearchUITemplate = {
+    /** Человекочитаемое имя шаблона. */
     name: string
+    /** Значения условий поиска, сохранённые в шаблоне. */
     searchConditions: SearchUIConditions
 }

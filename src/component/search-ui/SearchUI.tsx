@@ -7,31 +7,85 @@ import { PneTable, TableCreateHeaderType, TableDisplayOptions, useTable } from '
 import { useSearchUIStore } from './state/store'
 import { UseTableParams } from '../table/useTable'
 
+/**
+ * Параметры запроса поиска, отправляемые в обработчик данных таблицы.
+ * Тип формируется на основе SearchCriteria без служебного флага `initialized`
+ * и стандартных параметров пагинации/сортировки списка.
+ */
 export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListRequest, 'initialized'>
 
+/**
+ * Свойства компонента {@link SearchUI}.
+ * @template D Тип строки данных, возвращаемых запросом поиска и отображаемых в таблице.
+ */
 type Props<D extends object> = {
+    /**
+     * Имя контекста настроек, под которым таблица и фильтры сохраняют состояние пользователя.
+     */
     settingsContextName: string
+    /**
+     * Полный список критериев, доступных пользователю для выбора.
+     */
     possibleCriteria: CriterionTypeEnum[]
+    /**
+     * Критерии, которые должны быть активированы при первой загрузке фильтра.
+     */
     predefinedCriteria?: CriterionTypeEnum[]
+    /**
+     * Допустимые точные метки поиска, отображаемые в выпадающем списке.
+     */
     exactSearchLabels?: ExactCriterionSearchLabelEnum[]
+    /**
+     * Начальные значения условий фильтрации, кроме списка критериев.
+     */
     initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    /**
+     * Внешнее управление состоянием фильтров. При изменении значения происходит синхронизация стора.
+     */
     searchConditions?: Partial<SearchUIConditions>
+    /**
+     * Функция загрузки данных по текущим параметрам поиска.
+     */
     searchData: (searchParams: SearchParams) => Promise<D[]>
+    /**
+     * Фабрика заголовка таблицы.
+     */
     createTableHeader: TableCreateHeaderType
+    /**
+     * Фабрика строки таблицы.
+     * @param rowData Данные текущей строки.
+     * @param index Индекс строки.
+     * @param data Все текущие данные таблицы.
+     * @param setData Сеттер для обновления данных таблицы.
+     */
     createTableRow: (
         rowData: D,
         index: number,
         data: D[],
         setData: Dispatch<SetStateAction<D[]>>,
     ) => React.ReactElement
+    /**
+     * Кастомизация поведения таблицы (пагинация, отображение, дублирование пагинатора).
+     */
     tableParams?: Pick<
         UseTableParams<D>,
         'rowsPerPageOptions' | 'duplicatePagination' | 'paginatorActiveActionSx' | 'displayOptions'
     >
+    /**
+     * Внешнее управление данными таблицы через React.useState.
+     */
     dataUseState?: [D[], Dispatch<SetStateAction<D[]>>]
+    /**
+     * Конфигурация виджета фильтров.
+     */
     config?: SearchUIFiltersConfig
 }
 
+/**
+ * Высокоуровневый компонент поискового UI, объединяющий фильтры и таблицу с результатами.
+ * @template D Тип строки данных, отображаемых в таблице.
+ * @param props Свойства компонента.
+ */
 export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement => {
     const {
         settingsContextName,
@@ -135,6 +189,12 @@ const tableBoxSx: SxProps = {
     p: '16px 16px 0 16px',
 }
 
+/**
+ * Преобразует внутреннее состояние фильтров и таблицы в параметры запроса для загрузки данных.
+ * @param searchCriteria Текущее состояние критериев поиска.
+ * @param options Параметры пагинации и сортировки таблицы.
+ * @returns Объект параметров, совместимый с обработчиком `searchData`.
+ */
 export const createSearchParams = (
     searchCriteria: SearchCriteria,
     options: { page: number; pageSize: number; order?: Order; sortIndex: number },
