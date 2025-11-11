@@ -26,6 +26,7 @@ import {PneLabeledCheckbox} from './component/PneLabeledCheckbox'
 import {PneHighContrastLabeledCheckbox} from './component/PneHighContrastLabeledCheckbox'
 import {
     CriterionTypeEnum,
+    DATE_RANGE_SPEC_TYPES,
     ExactCriterionSearchLabelEnum,
     GroupingType,
     LinkedEntityTypeEnum,
@@ -177,5 +178,6 @@ export {
     OrderSearchLabel,
     TransactionSessionGroup,
     TransactionSessionStatuses,
+    DATE_RANGE_SPEC_TYPES,
 }
 export * from './common'
