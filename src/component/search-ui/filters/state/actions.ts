@@ -392,9 +392,29 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get)
     },
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => {
+        const prevDateRangeSpec = get().dateRangeSpec
+        const prevDateRangeSpecType = prevDateRangeSpec.dateRangeSpecType
+        const timeSelectionEnabled =
+            get().criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS)
+            || !!get().config?.dateRange?.enableTimeSelection
+
+        const switchingToExact =
+            dateRangeSpec.dateRangeSpecType === 'EXACTLY'
+            && prevDateRangeSpecType !== 'EXACTLY'
+            && timeSelectionEnabled
+            && prevDateRangeSpec.dateFrom === dateRangeSpec.dateFrom
+            && prevDateRangeSpec.dateTo === dateRangeSpec.dateTo
+
         let spec = dateRangeSpec
 
-        if (dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
+        if (switchingToExact) {
+            const now = dayjs()
+            spec = {
+                ...spec,
+                dateFrom: now.startOf('day').toDate(),
+                dateTo: now.toDate(),
+            }
+        } else if (dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
             spec = calculateNonExactDates(dateRangeSpec)
         }
 
