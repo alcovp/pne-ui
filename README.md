@@ -3,20 +3,20 @@
 [![NPM version][npm-image]][npm-url]
 [![Build][github-build]][github-build-url]
 
-Our wrapper over mui
+Обертка над MUI
 
-## Installation
+## Установка
 
-Install `pne-ui` together with its peer dependencies to avoid missing-package warnings:
+Установите `pne-ui` вместе с peer-зависимостями:
 
 ```bash
 yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^7 @mui/system@^7 @mui/x-date-pickers-pro@^7 @mui/icons-material@^7 i18next@^23 react@^18 react-dom@^18 react-i18next@^11
 ```
 
-Adjust the React and React DOM versions to `^18` or `^19` depending on your application.  
-The MUI packages accept `^6` or `^7`; install the major that matches your host app.
+Подбирайте версии React и React DOM (`^18` или `^19`) в зависимости от вашего приложения.  
+Пакеты MUI поддерживают `^6` и `^7`, установите major-версию, которая совпадает с версией хост-приложения.
 
-Required peer packages and minimum versions:
+Необходимые peer-зависимости и минимальные версии:
 
 - `@emotion/react@^11`
 - `@emotion/styled@^11`
@@ -28,6 +28,58 @@ Required peer packages and minimum versions:
 - `react@^18 || ^19`
 - `react-dom@^18 || ^19`
 - `react-i18next@^11`
+
+## Интеграция SearchUI
+
+### Подключение контекста через `SearchUIProvider`
+
+Компоненты `SearchUI` и его фильтры получают конфигурацию через контекст `SearchUIDefaultsContext`.  
+Чтобы отдать реальные источники данных и управлять видимостью критериев, оберните SearchUI в `SearchUIProvider`
+и передайте нужные обработчики в проп `defaults`:
+
+```tsx
+import {
+    SearchUI,
+    SearchUIProvider,
+    CriterionTypeEnum,
+    ExactCriterionSearchLabelEnum,
+} from 'pne-ui'
+
+export const TransactionsPage = () => (
+    <SearchUIProvider
+        defaults={{
+            getDefaultCurrency: () => ({ id: 643, displayName: 'RUB' }),
+            getCurrencies: fetchCurrencies,
+            getMatchLinkedItems: request => api.multiget(request),
+            showProjectsCriterion: () => true,
+            showManagersCriterion: () => false,
+            // Методы ниже нужны для работы шаблонов фильтров (панель Templates)
+            // Возвращает список шаблонов поиска для выпадающего списка
+            getSearchTemplates: contextName => templatesApi.list(contextName),
+            // Сохраняет текущие настройки фильтров под именем шаблона
+            saveSearchTemplate: request => templatesApi.save(request),
+            // Удаляет ранее сохраненный шаблон
+            deleteSearchTemplate: request => templatesApi.remove(request),
+            // Проверяет, существует ли шаблон с указанным именем
+            searchTemplateExists: request => templatesApi.exists(request),
+        }}
+    >
+        <SearchUI
+            settingsContextName="transactions"
+            possibleCriteria={[
+                CriterionTypeEnum.DATE_RANGE,
+                CriterionTypeEnum.TRANSACTION_TYPES,
+            ]}
+            exactSearchLabels={[ExactCriterionSearchLabelEnum.ID]}
+            /* остальные пропсы */
+        />
+    </SearchUIProvider>
+) 
+```
+
+Передавайте только те поля `SearchUIDefaults`, которые хотите переопределить — остальные значения берутся из
+`initialSearchUIDefaults`. Более развернутый пример можно посмотреть в `src/stories/SearchUI.stories.tsx`.
+`templatesApi` в примере — любая ваша обертка над бэкендом, которая умеет получать/сохранять шаблоны.
 
 [npm-url]: https://www.npmjs.com/package/pne-ui
 
