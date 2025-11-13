@@ -3,7 +3,7 @@
 [![NPM version][npm-image]][npm-url]
 [![Build][github-build]][github-build-url]
 
-Обертка над MUI
+Мега обертка над MUI
 
 ## Установка
 
@@ -122,6 +122,47 @@ export default i18n
 
 После инициализации достаточно один раз импортировать `./i18n` в точке входа или Storybook; все компоненты `pne-ui`
 подтянутся к уже созданному контексту и будут использовать зарегистрированные строки.
+
+## Темизация компонентов MUI
+
+`pne-ui` поставляет вспомогательную функцию `createPneTheme` и тип `Skin`.  
+`Skin` описывает корпоративные цвета Paynet (цвета хедера, меню и т.д.),
+а `createPneTheme(skin)` на их основе строит расширенную MUI-тему с дополнительными палитрами:
+`pnePrimary`, `pneNeutral`, `pnePrimaryLight`, `pneAccentuated`, `pneWhite`, `pneWarningLight`.
+
+### Быстрый старт
+
+1. Описываете skin (берете, например, из `window.PAYNET_SKIN`).
+2. Создаёте тему `const theme = createPneTheme(skin)`.
+3. Оборачиваете приложение в `<ThemeProvider theme={theme}>`, чтобы все компоненты `pne-ui` и стандартные MUI
+   получили одинаковые значения цветов и стили переопределений.
+
+```tsx
+import React from 'react'
+import { ThemeProvider } from '@mui/material'
+import { createPneTheme, Skin, SearchUI } from 'pne-ui'
+
+const skin: Skin = window.PAYNET_SKIN || {
+    headerBackgroundColor: '#18547b',
+    headerTextColor: '#fff',
+    headerBorder: '1px solid #3899d5',
+    menuBackgroundColor: '#fff',
+    /* ... */
+    experimentalColor: '#0a91bc',
+}
+
+const theme = createPneTheme(skin)
+
+export const App = () => (
+    <ThemeProvider theme={theme}>
+        <SearchUI /* ... */ />
+    </ThemeProvider>
+)
+```
+
+При необходимости можно передать второй аргумент `createPneTheme(skin, muiOverrides)` и дополнительно расширить
+тему MUI (тип `ThemeOptions`). Обёрнутые компоненты получают как базовые цвета skin, так и кастомные
+color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), объявленные в `src/index.ts`.
 
 [npm-url]: https://www.npmjs.com/package/pne-ui
 
