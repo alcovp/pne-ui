@@ -10,20 +10,20 @@ Our wrapper over mui
 Install `pne-ui` together with its peer dependencies to avoid missing-package warnings:
 
 ```bash
-yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^5 @mui/system@^5 @mui/x-date-pickers-pro@^6 @mui/icons-material@^5 i18next@^23 react@^18 react-dom@^18 react-i18next@^11
+yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^7 @mui/system@^7 @mui/x-date-pickers-pro@^7 @mui/icons-material@^7 i18next@^23 react@^18 react-dom@^18 react-i18next@^11
 ```
 
 Adjust the React and React DOM versions to `^18` or `^19` depending on your application.  
-The MUI packages accept any currently supported major version (`^5`, `^6`, or `^7`); pick the one that matches the rest of your stack when running the command above.
+The MUI packages accept `^6` or `^7`; install the major that matches your host app.
 
 Required peer packages and minimum versions:
 
 - `@emotion/react@^11`
 - `@emotion/styled@^11`
-- `@mui/material@^5 || ^6 || ^7`
-- `@mui/system@^5 || ^6 || ^7`
+- `@mui/material@^6 || ^7`
+- `@mui/system@^6 || ^7`
 - `@mui/x-date-pickers-pro@^6 || ^7`
-- `@mui/icons-material@^5 || ^6 || ^7`
+- `@mui/icons-material@^6 || ^7`
 - `i18next@^23`
 - `react@^18 || ^19`
 - `react-dom@^18 || ^19`
