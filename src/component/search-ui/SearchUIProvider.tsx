@@ -32,6 +32,32 @@ type GetProjectCurrenciesRequest = {
     multigetCriteria: MultigetCriterion[]
 }
 
+/**
+ * Набор функций и флагов, который описывает среду выполнения SearchUI.
+ * Конкретное приложение обязано переопределить нужные обработчики,
+ * чтобы выдавать списки сущностей, значения по умолчанию и скрывать/показывать
+ * элементы интерфейса.
+ *
+ * @remarks
+ * SearchUI считывает эти значения из {@link SearchUIDefaultsContext}. Все методы
+ * имеют заглушки в {@link initialSearchUIDefaults}, но в рабочем коде следует
+ * передавать реализацию через {@link SearchUIProvider}, иначе поисковой интерфейс
+ * не получит данные и не сможет отобразить нужные фильтры.
+ *
+ * @example
+ * ```tsx
+ * <SearchUIProvider
+ *   defaults={{
+ *     getCountries: fetchCountries,
+ *     showProjectsCriterion: () => true,
+ *   }}
+ * >
+ *   <SearchUI {...props} />
+ * </SearchUIProvider>
+ * ```
+ *
+ * @see src/stories/SearchUI.stories.tsx
+ */
 export type SearchUIDefaults = {
     getDefaultCurrency: () => AbstractEntity
 
@@ -133,8 +159,26 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     showCounterpartyGrouping: () => true,
 }
 
+/**
+ * React-контекст, предоставляющий SearchUIDefaults вглубь дерева.
+ * Используйте `useContext(SearchUIDefaultsContext)`, чтобы получить доступ
+ * к настройкам внутри кастомных фильтров.
+ */
 export const SearchUIDefaultsContext = createContext<SearchUIDefaults>(initialSearchUIDefaults)
 
+/**
+ * Провайдер, который объединяет {@link initialSearchUIDefaults} с пользовательскими
+ * значениями и делает их доступными всему UI поиска.
+ *
+ * Разместите компонент вокруг областей, где монтируется `SearchUI` (см. пример в
+ * `src/stories/SearchUI.stories.tsx`). Так вы определяете, какие источники данных,
+ * шаблоны и флаги видимости должен использовать конкретный экран.
+ *
+ * @param props.defaults Частичный объект SearchUIDefaults. Укажите только то, что
+ *                       нужно переопределить, остальные значения будут взяты
+ *                       из {@link initialSearchUIDefaults}.
+ * @param props.children Дерево компонентов, которые должны читать контекст.
+ */
 export const SearchUIProvider = (props: Props) => {
     const {
         defaults,
