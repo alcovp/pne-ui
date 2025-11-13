@@ -8,9 +8,9 @@ import {
     DateRange,
     DateRangePicker,
     LocalizationProvider,
-} from '@mui/x-date-pickers-pro' //TODO migration
+} from '@mui/x-date-pickers-pro'
 import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker'
-import {AdapterDayjs} from '@mui/x-date-pickers-pro/AdapterDayjs'
+import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs'
 import {useSearchUIFiltersStore} from '../../state/store'
 import timezone from 'dayjs/plugin/timezone'
 import {PneTextField} from '../../../../..'

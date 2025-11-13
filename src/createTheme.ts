@@ -1,6 +1,5 @@
-import {createTheme, Theme} from '@mui/material/styles'
+import {createTheme, Theme, ThemeOptions} from '@mui/material/styles'
 import {Skin} from './common/paynet/skin'
-import {ThemeOptions} from '@mui/material/styles/createTheme'
 
 const MISSING_COLOR = '#ff00dc'
 

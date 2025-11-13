@@ -1,7 +1,7 @@
 import React, {ReactNode} from 'react';
 import {Autocomplete, AutocompleteProps, SxProps} from '@mui/material';
+import type {TextFieldProps} from '@mui/material/TextField';
 import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/paynet/dropdown';
-import {TextFieldVariants} from '@mui/material/TextField/TextField';
 import {PneTextField} from "../../index";
 
 export interface IProps<
@@ -11,7 +11,7 @@ export interface IProps<
     FreeSolo extends boolean | undefined = undefined,
 > extends Omit<AutocompleteProps<T, Multiple, DisableClearable, FreeSolo>, 'renderInput'> {
     label?: ReactNode
-    variant?: TextFieldVariants
+    variant?: TextFieldProps['variant']
     error?: boolean
     helperText?: string
     placeholder?: string

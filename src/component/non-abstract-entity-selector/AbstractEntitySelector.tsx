@@ -18,7 +18,7 @@ import {
 } from '../../common';
 import PneTextField from '../PneTextField';
 import PneButton from '../PneButton';
-import {ClearIcon} from '@mui/x-date-pickers-pro'
+import ClearIcon from '@mui/icons-material/Clear'
 
 //TODO must be removed
 export type ProcessorPaymentApparatus = {
