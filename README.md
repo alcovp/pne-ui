@@ -81,6 +81,48 @@ export const TransactionsPage = () => (
 `initialSearchUIDefaults`. Более развернутый пример можно посмотреть в `src/stories/SearchUI.stories.tsx`.
 `templatesApi` в примере — любая ваша обертка над бэкендом, которая умеет получать/сохранять шаблоны.
 
+## Локализация (i18n)
+
+`pne-ui` не принимает текстовые ресурсы через пропсы и не содержит собственного `I18nextProvider`.  
+Все компоненты используют `useTranslation()` из `react-i18next`, поэтому они читают строки из того же контекста,
+который инициализирован в приложении-хосте. Если в хосте нет i18next, библиотека будет просто возвращать ключи.
+
+### Что нужно сделать в проекте
+
+1. Инициализировать i18next один раз в корне приложения (например, в точке входа или конфигурации Storybook).
+2. Добавить `initReactI18next` или обернуть дерево в `<I18nextProvider i18n={i18nInstance}>`, чтобы контекст был доступен.
+3. Зарегистрировать все строки, которые ожидают компоненты `pne-ui` — в первую очередь ключи вида `react.searchUI.*`,
+   `clear.all`, `search.delete`, и т.д. Они должны жить в ресурсах самого хоста.
+
+### Пример настройки
+
+```ts
+// i18n.ts
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
+
+i18n.use(initReactI18next).init({
+    lng: 'ru',
+    fallbackLng: 'en',
+    defaultNS: 'translation',
+    resources: {
+        ru: {
+            translation: {
+                'react.searchUI.filters': 'Фильтры',
+                'react.searchUI.template': 'Шаблон',
+                'clear.all': 'Очистить всё',
+                // добавьте остальные ключи, которые используете
+            },
+        },
+    },
+})
+
+export default i18n
+```
+
+После инициализации достаточно один раз импортировать `./i18n` в точке входа или Storybook; все компоненты `pne-ui`
+подтянутся к уже созданному контексту и будут использовать зарегистрированные строки.
+
 [npm-url]: https://www.npmjs.com/package/pne-ui
 
 [npm-image]: https://img.shields.io/npm/v/pne-ui
