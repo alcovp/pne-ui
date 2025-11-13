@@ -12,6 +12,7 @@ import PneTableRow from './component/table/PneTableRow'
 import PneHeaderTableCell from './component/table/PneHeaderTableCell'
 import PneTableCell from './component/table/PneTableCell'
 import AbstractTable, {
+    ITableCreateHeaderParams,
     PaginatorProps,
     TableCreateHeaderType,
     TableProps,
@@ -27,11 +28,13 @@ import {PneHighContrastLabeledCheckbox} from './component/PneHighContrastLabeled
 import {
     CriterionTypeEnum,
     DATE_RANGE_SPEC_TYPES,
+    DateRangeSpec,
     ExactCriterionSearchLabelEnum,
     GroupingType,
     LinkedEntityTypeEnum,
     MultichoiceFilterTypeEnum,
     MultigetCriterion,
+    ORDER_SEARCH_LABELS,
     OrderSearchLabel,
     SearchCriteria,
     SearchUIConditions,
@@ -179,5 +182,8 @@ export {
     TransactionSessionGroup,
     TransactionSessionStatuses,
     DATE_RANGE_SPEC_TYPES,
+    ORDER_SEARCH_LABELS,
+    ITableCreateHeaderParams,
+    DateRangeSpec,
 }
 export * from './common'
