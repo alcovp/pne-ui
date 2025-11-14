@@ -17,6 +17,7 @@ import {TransactionTypesCriterion} from './component/criterion/TransactionTypesC
 import {TransactionStatusesCriterion} from './component/criterion/TransactionStatusesCriterion';
 import {TransactionSessionStatusCriterion} from './component/criterion/TransactionSessionStatusCriterion';
 import {CardTypesCriterion} from './component/criterion/CardTypesCriterion';
+import {CountriesCriterion} from './component/criterion/CountriesCriterion';
 import {DateRangeCriterion} from './component/criterion/DateRangeCriterion';
 import {ProjectCurrencyCriterion} from './component/criterion/ProjectCurrencyCriterion';
 import {GroupingCriterion} from './component/criterion/GroupingCriterion';
@@ -100,6 +101,8 @@ export const CriterionContainer = (props: IProps) => {
                 return <ProjectCurrencyCriterion/>
             case CriterionTypeEnum.CARD_TYPES:
                 return <CardTypesCriterion/>
+            case CriterionTypeEnum.COUNTRIES:
+                return <CountriesCriterion/>
             case CriterionTypeEnum.TRANSACTION_TYPES:
                 return <TransactionTypesCriterion/>
             case CriterionTypeEnum.TRANSACTION_STATUS:

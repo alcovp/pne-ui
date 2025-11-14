@@ -1,9 +1,11 @@
 import {
+    CountryAllableCollection,
     Grouping,
     GroupingType,
     ProjectCurrency,
     SearchUIConditions,
-    ThreeDCriterionEnum, TransactionSessionGroup,
+    ThreeDCriterionEnum,
+    TransactionSessionGroup,
 } from '../types'
 import {SearchUIFiltersState} from './type';
 import {AbstractEntityAllableCollection} from '../../../..';
@@ -73,6 +75,12 @@ export const searchUIInitialAllableCollection: AbstractEntityAllableCollection =
         entities: [],
     })
 
+export const searchUICountriesInitialAllableCollection: CountryAllableCollection =
+    Object.freeze<CountryAllableCollection>({
+        all: true,
+        entities: [],
+    })
+
 export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Readonly<SearchUIConditions> => {
     return Object.freeze<SearchUIConditions>({
         multigetCriteria: [],
@@ -83,6 +91,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         ordersSearchLabel: 'merchant_invoice_id',
         ordersSearchValue: '',
         currencies: searchUIInitialAllableCollection,
+        countries: searchUICountriesInitialAllableCollection,
         orderDateType: 'SESSION_STATUS_CHANGED',
         dateRangeSpec: {
             dateRangeSpecType: 'TODAY',

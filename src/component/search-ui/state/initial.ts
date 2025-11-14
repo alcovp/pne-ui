@@ -10,6 +10,7 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         status: null,
         threeD: null,
         currencies: [],
+        countries: [],
         dateFrom: null,
         dateTo: null,
         orderDateType: 'SESSION_STATUS_CHANGED',

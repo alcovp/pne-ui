@@ -1,4 +1,5 @@
 import {
+    CountryAllableCollection,
     CriterionTypeEnum,
     DateRangeSpec,
     ExactCriterionSearchLabelEnum,
@@ -6,7 +7,8 @@ import {
     GroupingType,
     MarkerStatusCriterion,
     MultigetCriterion,
-    OrderDate, OrderSearchLabel,
+    OrderDate,
+    OrderSearchLabel,
     SearchCriteria,
     SearchUIConditions,
     SearchUITemplate,
@@ -72,6 +74,7 @@ export type SearchUIFiltersActions = {
     setOrderSearchCriterionLabel: (searchLabel: OrderSearchLabel) => void
     setOrderSearchCriterionValue: (searchValue: string) => void
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => void
+    setCountriesCriterion: (countries: CountryAllableCollection) => void
     setDateRangeCriterionOrderDateType: (orderDateType: OrderDate) => void
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => void
     setProjectCurrencyCriterionCurrency: (currency: AbstractEntity) => void

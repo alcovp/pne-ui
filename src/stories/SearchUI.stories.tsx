@@ -217,6 +217,7 @@ const HookWrap = () => {
                 CriterionTypeEnum.TRANSACTION_STATUS,
                 CriterionTypeEnum.ERROR_CODE,
                 CriterionTypeEnum.CARD_TYPES,
+                CriterionTypeEnum.COUNTRIES,
                 CriterionTypeEnum.STATUS,
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
                 CriterionTypeEnum.PROJECT_CURRENCY,

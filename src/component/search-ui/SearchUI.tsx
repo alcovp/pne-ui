@@ -211,6 +211,7 @@ export const createSearchParams = (
     status: searchCriteria.status,
     threeD: searchCriteria.threeD,
     currencies: searchCriteria.currencies,
+    countries: searchCriteria.countries,
     dateFrom: searchCriteria.dateFrom,
     dateTo: searchCriteria.dateTo,
     orderDateType: searchCriteria.orderDateType,

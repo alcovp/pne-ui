@@ -7,6 +7,7 @@ import {
 import {
     AbstractEntity,
     AbstractEntityAllableCollection,
+    AllableCollection,
     AutoCompleteChoice,
     exhaustiveCheck,
     Status,
@@ -14,6 +15,7 @@ import {
     ZustandStoreImmerSet,
 } from '../../../..'
 import {
+    CountryAllableCollection,
     CriterionTypeEnum,
     DateRangeSpec,
     ExactCriterionSearchLabelEnum,
@@ -36,6 +38,7 @@ import {
     getSearchUIInitialGrouping,
     getSearchUIInitialProjectCurrency,
     getSearchUIInitialSearchCriteria,
+    searchUICountriesInitialAllableCollection,
     searchUIInitialAllableCollection,
     searchUIInitialDateFrom,
     searchUIInitialDateTo,
@@ -385,6 +388,12 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get)
     },
+    setCountriesCriterion: (countries: CountryAllableCollection) => {
+        set((draft) => {
+            draft.countries = countries
+        })
+        postUpdate(set, get)
+    },
     setDateRangeCriterionOrderDateType: orderDateType => {
         set((draft) => {
             draft.orderDateType = orderDateType
@@ -575,6 +584,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.MARKER_STATUS:
         case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
         case CriterionTypeEnum.ERROR_CODE:
+        case CriterionTypeEnum.COUNTRIES:
             // not multiget, so do nothing
             break
         default:
@@ -604,6 +614,9 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.CURRENCY:
             draft.currencies = searchUIInitialAllableCollection
+            break
+        case CriterionTypeEnum.COUNTRIES:
+            draft.countries = searchUICountriesInitialAllableCollection
             break
         case CriterionTypeEnum.DATE_RANGE_ORDERS:
             draft.orderDateType = 'SESSION_STATUS_CHANGED'
@@ -744,7 +757,7 @@ const extractExactSearchLabel = (label: ExactCriterionSearchLabelEnum | undefine
     return label
 }
 
-const extractEntitiesIds = (allable: AbstractEntityAllableCollection): number[] => {
+const extractEntitiesIds = (allable: AllableCollection<{ id: number }>): number[] => {
     if (allable.all) {
         return []
     }
@@ -913,6 +926,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         status: extractStatus(state.status),
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
+        countries: extractEntitiesIds(state.countries),
         dateFrom: extractDateFrom(state.dateRangeSpec),
         dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled),
         orderDateType: state.orderDateType,
@@ -945,6 +959,7 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         ordersSearchValue: store.ordersSearchValue,
         status: store.status,
         currencies: store.currencies,
+        countries: store.countries,
         threeD: store.threeD,
         orderDateType: store.orderDateType,
         dateRangeSpec: store.dateRangeSpec,

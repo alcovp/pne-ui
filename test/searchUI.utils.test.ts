@@ -14,6 +14,7 @@ describe('SearchUI helpers', () => {
             status: 'E',
             threeD: true,
             currencies: [1, 2],
+            countries: [11],
             dateFrom: new Date('2020-01-01'),
             dateTo: new Date('2020-01-02'),
             orderDateType: 'SESSION_CREATED',
@@ -43,6 +44,7 @@ describe('SearchUI helpers', () => {
         expect(params.markerStatus).toBe('processed')
         expect(params.transactionStatuses).toEqual([10])
         expect(params.transactionSessionStatuses).toBe('s1,s2')
+        expect(params.countries).toEqual([11])
         expect(params.errorCode).toBe(123)
     })
 

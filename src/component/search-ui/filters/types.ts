@@ -1,4 +1,11 @@
-import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice, Status} from '../../..';
+import {
+    AbstractEntity,
+    AbstractEntityAllableCollection,
+    AllableCollection,
+    AutoCompleteChoice,
+    Country,
+    Status,
+} from '../../..';
 
 export enum CriterionTypeEnum {
     EXACT = 'EXACT',
@@ -19,6 +26,7 @@ export enum CriterionTypeEnum {
     DATE_RANGE_ORDERS = 'DATE_RANGE_ORDERS',
     PROJECT_CURRENCY = 'PROJECT_CURRENCY',
     CARD_TYPES = 'CARD_TYPES',
+    COUNTRIES = 'COUNTRIES',
     GROUPING = 'GROUPING',
     TRANSACTION_TYPES = 'TRANSACTION_TYPES',
     TRANSACTION_STATUS = 'TRANSACTION_STATUS',
@@ -68,6 +76,8 @@ export type ProjectCurrency = {
     convertToUserCurrency: boolean
     currency: AbstractEntity
 }
+
+export type CountryAllableCollection = AllableCollection<Country>
 
 export const GROUPING_DATE_TYPES = [
     'MONTH',
@@ -292,6 +302,7 @@ export type SearchCriteria = {
     status: Status | null
     threeD: boolean | null
     currencies: number[]
+    countries: number[]
     dateFrom: Date | null
     dateTo: Date | null
     orderDateType: OrderDate
@@ -326,6 +337,7 @@ export type SearchUIConditions = {
     ordersSearchLabel: OrderSearchLabel
     ordersSearchValue: string
     currencies: AbstractEntityAllableCollection
+    countries: CountryAllableCollection
     orderDateType: OrderDate
     dateRangeSpec: DateRangeSpec
     cardTypes: AbstractEntityAllableCollection
