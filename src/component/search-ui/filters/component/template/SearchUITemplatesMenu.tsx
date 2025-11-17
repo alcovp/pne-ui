@@ -43,7 +43,7 @@ const SearchUITemplatesMenu = () => {
             size={'small'}
             color={'pneNeutral'}
             endIcon={<ExpandMore/>}
-            sx={{mr: '20px',}}
+            sx={{mr: {xs: '8px', sm: '20px'}}}
         >{placeholder}</PneButton>
         <Popover
             open={open}

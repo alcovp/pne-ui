@@ -151,7 +151,11 @@ export const SearchUIFilters = (props: Props) => {
 
     const someCriteriaAdded = criteria.length > 0
     const showFiltersCountChip = someCriteriaAdded && !showFilters
-    const nothingToClear = criteria.every(criterion => predefinedCriteria.includes(criterion))
+    const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
+    const nonRemovablePredefinedCriteria = predefinedCriteria.filter(
+        criterion => !removablePredefinedCriteria.includes(criterion),
+    )
+    const nothingToClear = criteria.every(criterion => nonRemovablePredefinedCriteria.includes(criterion))
     const criteriaOptions = adjustedPossibleCriteria
         .filter(criterion => !criteria.includes(criterion))
         .filter(possibleC => {
@@ -167,23 +171,26 @@ export const SearchUIFilters = (props: Props) => {
 
     return <Box sx={{px: '16px'}}>
         <Box sx={headerSx}>
-            {hideShowFiltersButton ? null : <IconButton
-                onClick={() => setShowFilters(prev => !prev)}
-                size={'small'}
-                color={'primary'}
-            >
-                <ExpandMore
-                    fontSize={'small'}
-                    sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
-                />
-            </IconButton>}
-            <Box sx={titleSx} component={'span'}>{t('react.searchUI.filters')}</Box>
-            {showFiltersCountChip ? <Chip
-                size={'small'}
-                color={'primary'}
-                variant={'outlined'}
-                label={criteria.length}
-            /> : null}
+            <Box sx={headerPrimaryRowSx}>
+                {hideShowFiltersButton ? null : <IconButton
+                    onClick={() => setShowFilters(prev => !prev)}
+                    size={'small'}
+                    color={'primary'}
+                >
+                    <ExpandMore
+                        fontSize={'small'}
+                        sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
+                    />
+                </IconButton>}
+                <Box sx={titleSx} component={'span'}>{t('react.searchUI.filters')}</Box>
+                {showFiltersCountChip ? <Chip
+                    size={'small'}
+                    color={'primary'}
+                    variant={'outlined'}
+                    label={criteria.length}
+                    sx={nowrapChipSx}
+                /> : null}
+            </Box>
             <SearchUIFiltersHeaderRight>
                 {hideTemplatesSelect ? null : <SearchUITemplatesMenu/>}
                 {allCriteriaAdded ? null : <SearchUIAddFilter
@@ -193,7 +200,12 @@ export const SearchUIFilters = (props: Props) => {
                         addCriterion(criterion)
                     }}
                 />}
-                {nothingToClear ? null : <PneButton onClick={clearCriteria} color={'pneNeutral'} size={'small'}>
+                {nothingToClear ? null : <PneButton
+                    onClick={clearCriteria}
+                    color={'pneNeutral'}
+                    size={'small'}
+                    sx={nowrapButtonSx}
+                >
                     {t('clear.all')}
                 </PneButton>}
             </SearchUIFiltersHeaderRight>
@@ -223,7 +235,32 @@ const headerSx: SxProps = {
     columnGap: '12px',
     width: '100%',
     py: '15px',
+    '@media (max-width: 599px)': {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        rowGap: '8px',
+    },
 }
+
+const headerPrimaryRowSx: SxProps = {
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '12px',
+    flexWrap: 'nowrap',
+    width: 'auto',
+    '@media (max-width: 599px)': {
+        width: '100%',
+    },
+}
+
+const nowrapButtonSx: SxProps = {
+    whiteSpace: 'nowrap',
+}
+
+const nowrapChipSx: SxProps = {
+    whiteSpace: 'nowrap',
+}
+
 
 /**
  * Фильтрует список критериев в соответствии с доступностью, предоставленной настройками по умолчанию.

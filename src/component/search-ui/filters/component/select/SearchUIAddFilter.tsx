@@ -24,6 +24,7 @@ const SearchUIAddFilter = (props: Props) => {
             onClick={() => setOpen(true)}
             size={'small'}
             endIcon={<ExpandMore/>}
+            sx={addFilterButtonSx}
         >{t('react.searchUI.addCriterion')}</PneButton>
         <PneSelect
             open={open}
@@ -42,6 +43,10 @@ export default SearchUIAddFilter
 
 const relativeContainerSx: SxProps = {
     position: 'relative',
+}
+
+const addFilterButtonSx: SxProps = {
+    whiteSpace: 'nowrap',
 }
 
 const selectSx: SxProps = {

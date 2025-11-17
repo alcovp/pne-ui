@@ -1,28 +1,28 @@
-import React from 'react';
-import {CriterionTypeEnum, LinkedEntityTypeEnum} from './types';
-import {Box, SxProps} from '@mui/material';
-import {ExactSearchCriterion} from './component/criterion/ExactSearchCriterion';
-import {StatusCriterion} from './component/criterion/StatusCriterion';
-import {CriterionLeft} from './component/criterion/CriterionLeft';
-import {CriterionRight} from './component/criterion/CriterionRight';
-import {ThreeDCriterion} from './component/criterion/ThreeDCriterion';
-import {CurrenciesCriterion} from './component/criterion/CurrenciesCriterion';
-import {MultigetCriterionPanel} from './component/criterion/MultigetCriterionPanel';
-import {MarkerStatusCriterion} from './component/criterion/MarkerStatusCriterion';
-import {MarkerTypesCriterion} from './component/criterion/MarkerTypesCriterion';
-import {MfoConfigurationTypesCriterion} from './component/criterion/MfoFonfigurationTypesCriterion';
-import {RecurrenceStatusesCriterion} from './component/criterion/RecurrenceStatusesCriterion';
-import {RecurrenceTypesCriterion} from './component/criterion/RecurrenceTypesCriterion';
-import {TransactionTypesCriterion} from './component/criterion/TransactionTypesCriterion';
-import {TransactionStatusesCriterion} from './component/criterion/TransactionStatusesCriterion';
-import {TransactionSessionStatusCriterion} from './component/criterion/TransactionSessionStatusCriterion';
-import {CardTypesCriterion} from './component/criterion/CardTypesCriterion';
-import {CountriesCriterion} from './component/criterion/CountriesCriterion';
-import {DateRangeCriterion} from './component/criterion/DateRangeCriterion';
-import {ProjectCurrencyCriterion} from './component/criterion/ProjectCurrencyCriterion';
-import {GroupingCriterion} from './component/criterion/GroupingCriterion';
-import {exhaustiveCheck} from '../../..';
-import {OrdersSearchCriterion} from "./component/criterion/orders-search/OrdersSearchCriterion";
+import React from 'react'
+import { CriterionTypeEnum, LinkedEntityTypeEnum } from './types'
+import { Box, SxProps } from '@mui/material'
+import { ExactSearchCriterion } from './component/criterion/ExactSearchCriterion'
+import { StatusCriterion } from './component/criterion/StatusCriterion'
+import { CriterionLeft } from './component/criterion/CriterionLeft'
+import { CriterionRight } from './component/criterion/CriterionRight'
+import { ThreeDCriterion } from './component/criterion/ThreeDCriterion'
+import { CurrenciesCriterion } from './component/criterion/CurrenciesCriterion'
+import { MultigetCriterionPanel } from './component/criterion/MultigetCriterionPanel'
+import { MarkerStatusCriterion } from './component/criterion/MarkerStatusCriterion'
+import { MarkerTypesCriterion } from './component/criterion/MarkerTypesCriterion'
+import { MfoConfigurationTypesCriterion } from './component/criterion/MfoFonfigurationTypesCriterion'
+import { RecurrenceStatusesCriterion } from './component/criterion/RecurrenceStatusesCriterion'
+import { RecurrenceTypesCriterion } from './component/criterion/RecurrenceTypesCriterion'
+import { TransactionTypesCriterion } from './component/criterion/TransactionTypesCriterion'
+import { TransactionStatusesCriterion } from './component/criterion/TransactionStatusesCriterion'
+import { TransactionSessionStatusCriterion } from './component/criterion/TransactionSessionStatusCriterion'
+import { CardTypesCriterion } from './component/criterion/CardTypesCriterion'
+import { CountriesCriterion } from './component/criterion/CountriesCriterion'
+import { DateRangeCriterion } from './component/criterion/DateRangeCriterion'
+import { ProjectCurrencyCriterion } from './component/criterion/ProjectCurrencyCriterion'
+import { GroupingCriterion } from './component/criterion/GroupingCriterion'
+import { exhaustiveCheck } from '../../..'
+import { OrdersSearchCriterion } from './component/criterion/orders-search/OrdersSearchCriterion'
 import { ProcessorLogEntryTypesCriterion } from './component/criterion/ProcessorLogEntryTypesCriterion'
 import { ErrorCodeCriterion } from './component/criterion/ErrorCodeCriterion'
 
@@ -132,9 +132,15 @@ export const CriterionContainer = (props: IProps) => {
     }
 
     return <Box sx={criterionSx}>
-        <CriterionLeft criterionType={type}/>
-        {renderCriterion()}
-        <CriterionRight criterionType={type}/>
+        <Box sx={criterionLeftWrapperSx}>
+            <CriterionLeft criterionType={type}/>
+        </Box>
+        <Box sx={criterionContentWrapperSx}>
+            {renderCriterion()}
+        </Box>
+        <Box sx={criterionRightWrapperSx}>
+            <CriterionRight criterionType={type}/>
+        </Box>
     </Box>
 }
 
@@ -144,4 +150,44 @@ const criterionSx: SxProps = {
     alignItems: 'center',
     minHeight: '40px',
     borderTop: '1px solid #EFF2F5',
+    columnGap: '16px',
+    '@media (max-width: 599px)': {
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) auto',
+        gridTemplateAreas: `
+            "left right"
+            "content content"
+        `,
+        columnGap: '8px',
+        rowGap: '8px',
+        alignItems: 'center',
+        paddingTop: '8px',
+        paddingBottom: '8px',
+    },
+}
+
+const criterionLeftWrapperSx: SxProps = {
+    display: 'flex',
+    alignItems: 'center',
+    '@media (max-width: 599px)': {
+        gridArea: 'left',
+    },
+}
+
+const criterionContentWrapperSx: SxProps = {
+    flex: 1,
+    '@media (max-width: 599px)': {
+        gridArea: 'content',
+    },
+}
+
+const criterionRightWrapperSx: SxProps = {
+    display: 'flex',
+    alignItems: 'center',
+    marginLeft: 'auto',
+    '@media (max-width: 599px)': {
+        gridArea: 'right',
+        marginLeft: 0,
+        justifyContent: 'flex-end',
+    },
 }
