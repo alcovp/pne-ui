@@ -12,11 +12,85 @@ import {
 } from '../index'
 import React, { useMemo, useState } from 'react'
 import { SearchParams, SearchUI } from '../component/search-ui/SearchUI'
-import { CriterionTypeEnum, SearchUIConditions } from '../component/search-ui/filters/types'
+import {
+    CriterionTypeEnum,
+    LinkedEntityTypeEnum,
+    MultichoiceFilterTypeEnum,
+    MultigetCriterion,
+    SearchUIConditions,
+} from '../component/search-ui/filters/types'
 import { Meta, StoryObj } from '@storybook/react'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 
 type DataType = AbstractEntity
+
+type HookWrapProps = {
+    possibleCriteria?: CriterionTypeEnum[]
+    predefinedCriteria?: CriterionTypeEnum[]
+}
+
+const defaultPossibleCriteria: CriterionTypeEnum[] = [
+    CriterionTypeEnum.ORDERS_SEARCH,
+    CriterionTypeEnum.TRANSACTION_TYPES,
+    CriterionTypeEnum.TRANSACTION_STATUS,
+    CriterionTypeEnum.ERROR_CODE,
+    CriterionTypeEnum.CARD_TYPES,
+    CriterionTypeEnum.COUNTRIES,
+    CriterionTypeEnum.STATUS,
+    CriterionTypeEnum.DATE_RANGE_ORDERS,
+    CriterionTypeEnum.PROJECT_CURRENCY,
+    CriterionTypeEnum.GATE,
+    CriterionTypeEnum.GROUPING,
+    CriterionTypeEnum.DATE_RANGE,
+]
+
+const defaultPredefinedCriteria: CriterionTypeEnum[] = [
+    CriterionTypeEnum.DATE_RANGE,
+]
+
+const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
+    [CriterionTypeEnum.PROJECT]: LinkedEntityTypeEnum.PROJECT,
+    [CriterionTypeEnum.ENDPOINT]: LinkedEntityTypeEnum.ENDPOINT,
+    [CriterionTypeEnum.GATE]: LinkedEntityTypeEnum.GATE,
+    [CriterionTypeEnum.PROCESSOR]: LinkedEntityTypeEnum.PROCESSOR,
+    [CriterionTypeEnum.COMPANY]: LinkedEntityTypeEnum.COMPANY,
+    [CriterionTypeEnum.MANAGER]: LinkedEntityTypeEnum.MANAGER,
+    [CriterionTypeEnum.MERCHANT]: LinkedEntityTypeEnum.MERCHANT,
+    [CriterionTypeEnum.RESELLER]: LinkedEntityTypeEnum.RESELLER,
+    [CriterionTypeEnum.DEALER]: LinkedEntityTypeEnum.DEALER,
+}
+
+const createInitialMultigetCriterion = (criterion: CriterionTypeEnum): MultigetCriterion | null => {
+    const entityType = criterionToLinkedEntityMap[criterion]
+    if (!entityType) {
+        return null
+    }
+
+    return {
+        entityType,
+        filterType: MultichoiceFilterTypeEnum.NONE,
+        searchString: '',
+        selectedItems: '',
+        selectedItemNames: '',
+        deselectedItems: '',
+        deselectedItemNames: '',
+    }
+}
+
+const allFiltersStoryCriteria: CriterionTypeEnum[] = [
+    CriterionTypeEnum.EXACT,
+    CriterionTypeEnum.ORDERS_SEARCH,
+    CriterionTypeEnum.CURRENCY,
+    CriterionTypeEnum.STATUS,
+    CriterionTypeEnum.DATE_RANGE,
+    CriterionTypeEnum.DATE_RANGE_ORDERS,
+    CriterionTypeEnum.PROJECT_CURRENCY,
+    CriterionTypeEnum.GROUPING,
+    CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE,
+    CriterionTypeEnum.ERROR_CODE,
+    CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
+    CriterionTypeEnum.GATE,
+]
 
 class Service {
 
@@ -56,7 +130,22 @@ class Service {
 
 }
 
-const HookWrap = () => {
+const HookWrap = (props: HookWrapProps) => {
+
+    const {
+        possibleCriteria = defaultPossibleCriteria,
+        predefinedCriteria = defaultPredefinedCriteria,
+    } = props
+
+    const initialMultigetCriteria = useMemo<MultigetCriterion[]>(() => (
+        predefinedCriteria
+            .map(createInitialMultigetCriterion)
+            .filter((criterion): criterion is MultigetCriterion => criterion !== null)
+    ), [predefinedCriteria])
+
+    const initialSearchConditions = useMemo(() => ({
+        multigetCriteria: initialMultigetCriteria.map(criterion => ({ ...criterion })),
+    }), [initialMultigetCriteria])
 
     const [data, setData] = useState<DataType[]>([])
     const [searchConditions, setSearchConditions] = useState<Partial<SearchUIConditions>>({})
@@ -149,6 +238,32 @@ const HookWrap = () => {
                     { id: 99, displayName: '33333' },
                 ]
             },
+            getTransactionMarkerTypes: async () => {
+                return [
+                    { id: 1, displayName: 'Fraud alerts' },
+                    { id: 2, displayName: 'Manual review' },
+                    { id: 3, displayName: 'Auto' },
+                ]
+            },
+            getRecurringPaymentTypes: async () => {
+                return [
+                    { id: 1, displayName: 'Subscription' },
+                    { id: 2, displayName: 'Installment' },
+                ]
+            },
+            getRecurringPaymentStatuses: async () => {
+                return [
+                    { id: 1, displayName: 'Active' },
+                    { id: 2, displayName: 'Paused' },
+                    { id: 3, displayName: 'Cancelled' },
+                ]
+            },
+            getMFOTypes: async () => {
+                return [
+                    { id: 1, displayName: 'MFO type 1' },
+                    { id: 2, displayName: 'MFO type 2' },
+                ]
+            },
             searchErrorCodes: async request => {
                 return [
                     { choiceId: 1, displayName: 'Code 1', description: 'd' },
@@ -210,35 +325,8 @@ const HookWrap = () => {
                 ExactCriterionSearchLabelEnum.ID,
                 ExactCriterionSearchLabelEnum.NAME,
             ]}
-            possibleCriteria={[
-                // CriterionTypeEnum.EXACT,
-                CriterionTypeEnum.ORDERS_SEARCH,
-                CriterionTypeEnum.TRANSACTION_TYPES,
-                CriterionTypeEnum.TRANSACTION_STATUS,
-                CriterionTypeEnum.ERROR_CODE,
-                CriterionTypeEnum.CARD_TYPES,
-                CriterionTypeEnum.COUNTRIES,
-                CriterionTypeEnum.STATUS,
-                CriterionTypeEnum.DATE_RANGE_ORDERS,
-                CriterionTypeEnum.PROJECT_CURRENCY,
-                CriterionTypeEnum.GATE,
-                // CriterionTypeEnum.PROJECT,
-                CriterionTypeEnum.GROUPING,
-                CriterionTypeEnum.DATE_RANGE,
-                // CriterionTypeEnum.PROJECT_CURRENCY,
-                // CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE,
-                // CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
-            ]}
-            predefinedCriteria={[
-                // CriterionTypeEnum.GROUPING,
-                // CriterionTypeEnum.DATE_RANGE_ORDERS,
-                // CriterionTypeEnum.EXACT,
-                // CriterionTypeEnum.ORDERS_SEARCH,
-                // CriterionTypeEnum.STATUS,
-                // CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
-                CriterionTypeEnum.DATE_RANGE,
-                // CriterionTypeEnum.ERROR_CODE,
-            ]}
+            possibleCriteria={possibleCriteria}
+            predefinedCriteria={predefinedCriteria}
             config={{
                 dateRange: {
                     enableTimeSelection: true,
@@ -256,10 +344,7 @@ const HookWrap = () => {
                 return Service.getList(searchParams)
             }}
             dataUseState={[data, setData]}
-            // initialSearchConditions={{
-            //     transactionTypes: { all: true, entities: [] },
-            //     status: 'ENABLED',
-            // }}
+            initialSearchConditions={initialSearchConditions}
             searchConditions={searchConditions}
             createTableHeader={(headerParams) =>
                 <PneTableRow>
@@ -286,4 +371,11 @@ type Story = StoryObj<typeof HookWrap>
 
 export const Default: Story = {
     args: {},
+}
+
+export const AllFilters: Story = {
+    args: {
+        possibleCriteria: allFiltersStoryCriteria,
+        predefinedCriteria: allFiltersStoryCriteria,
+    },
 }

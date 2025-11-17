@@ -3,6 +3,7 @@ import { Box, Chip, FormControlLabel, SxProps } from '@mui/material'
 import { PneCheckbox, PneModal, PneSelect, useModal } from '../../../../..'
 import { useSearchUIFiltersStore } from '../../state/store'
 import { TransactionSessionGroup } from '../../types'
+import { useTranslation } from 'react-i18next'
 
 export const TransactionSessionStatusCriterion = () => {
     const {
@@ -10,6 +11,8 @@ export const TransactionSessionStatusCriterion = () => {
         handleOpen,
         handleClose,
     } = useModal()
+
+    const {t} = useTranslation()
 
     const transactionSessionStatusGroup = useSearchUIFiltersStore(s => s.transactionSessionStatusGroup)
     const transactionSessionStatuses = useSearchUIFiltersStore(s => s.transactionSessionStatuses)
@@ -45,13 +48,13 @@ export const TransactionSessionStatusCriterion = () => {
                 }
             </Box>
         </Box>
-        <PneModal open={open} onClose={handleClose} title={'react.searchUI.addSessionStatusTitle'}>
+        <PneModal open={open} onClose={handleClose} title={t('react.searchUI.addSessionStatusTitle')}>
             <Box sx={modalContentSx}>
                 <PneSelect
                     value={transactionSessionStatusGroup}
                     onChange={value => changeGroup(value as TransactionSessionGroup)}
                     options={groupOptions}
-                    label={'react.searchUI.transactionSessionStatusGroup'}
+                    label={t('react.searchUI.transactionSessionStatusGroup')}
                 />
                 <Box sx={checkboxesSx}>
                     {statusesForGroup.map(status => (
