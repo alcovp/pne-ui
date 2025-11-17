@@ -2,6 +2,8 @@ import * as React from 'react';
 import {createPneTheme} from "../src/createTheme";
 import {ThemeProvider} from '@mui/material';
 import {Skin} from "../src";
+import { MINIMAL_VIEWPORTS } from '@storybook/addon-viewport'
+import { withContext } from './decorators/withContext';
 
 const defaultSkin: Skin = {
     'headerBackgroundColor': '#18547b',
@@ -36,11 +38,39 @@ const defaultSkin: Skin = {
     'experimentalColor': '#0a91bc'
 }
 
+const customViewports = {
+    mobile360: {
+        name: 'Mobile 360px',
+        styles: {
+            width: '360px',
+            height: '780px',
+        },
+    },
+    tablet600: {
+        name: 'Tablet 600px',
+        styles: {
+            width: '600px',
+            height: '960px',
+        },
+    },
+}
+
 const preview = {
-    controls: {
-        matchers: {
-            color: /(background|color)$/i,
-            date: /Date$/,
+    decorators: [
+        withContext,
+    ],
+    parameters: {
+        controls: {
+            matchers: {
+                color: /(background|color)$/i,
+                date: /Date$/,
+            },
+        },
+        viewport: {
+            viewports: {
+                ...MINIMAL_VIEWPORTS,
+                ...customViewports,
+            },
         },
     },
     decorators: [
