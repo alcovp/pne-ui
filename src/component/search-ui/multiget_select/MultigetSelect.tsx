@@ -154,7 +154,7 @@ export const MultigetSelect = (props: Props) => {
 
     return <>
         <Box sx={{display: 'flex', flexDirection: 'column', rowGap: '16px'}}>
-            <Box sx={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+            <Box sx={topRowSx}>
                 <ToggleButtonGroup
                     value={filterType}
                     exclusive
@@ -167,6 +167,7 @@ export const MultigetSelect = (props: Props) => {
                     }}
                     size="small"
                     // color={'pneAccentuated'}
+                    sx={mainToggleGroupSx}
                 >
                     <ToggleButton value={'NONE'} sx={toggleSx}>{t('react.searchUI.include')}</ToggleButton>
                     <ToggleButton value={'ALL'} sx={toggleSx}>{t('react.searchUI.exclude')}</ToggleButton>
@@ -180,7 +181,7 @@ export const MultigetSelect = (props: Props) => {
                 /> : null}
             </Box>
             <Divider/>
-            <Box sx={{display: 'flex', flexDirection: 'row', columnGap: '16px'}}>
+            <Box sx={searchRowSx}>
                 <PneTextField
                     value={searchString}
                     onChange={onSearchChange}
@@ -195,7 +196,7 @@ export const MultigetSelect = (props: Props) => {
                             setSearchLabel(value)
                         }
                     }}
-                    sx={{display: 'flex', flex: '0 0 1'}}
+                    sx={searchLabelToggleGroupSx}
                     size="small"
                 >
                     <ToggleButton
@@ -251,4 +252,34 @@ const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): Abs
     return entities
 }
 
-const toggleSx: SxProps = {textTransform: 'none'}
+const toggleSx: SxProps = {
+    textTransform: 'none',
+    flex: 1,
+}
+
+const topRowSx: SxProps = {
+    display: 'flex',
+    flexDirection: {xs: 'column', sm: 'row'},
+    justifyContent: 'space-between',
+    rowGap: '12px',
+    alignItems: {xs: 'flex-start', sm: 'center'},
+}
+
+const mainToggleGroupSx: SxProps = {
+    width: {xs: '100%', sm: 'auto'},
+    flexWrap: 'nowrap',
+}
+
+const searchRowSx: SxProps = {
+    display: 'flex',
+    flexDirection: {xs: 'column', sm: 'row'},
+    columnGap: {xs: 0, sm: '16px'},
+    rowGap: {xs: '12px', sm: 0},
+}
+
+const searchLabelToggleGroupSx: SxProps = {
+    display: 'flex',
+    flex: {xs: 'unset', sm: '0 0 1'},
+    width: {xs: '100%', sm: 'auto'},
+    flexWrap: 'nowrap',
+}

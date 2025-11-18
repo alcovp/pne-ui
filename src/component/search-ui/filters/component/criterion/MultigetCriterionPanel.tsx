@@ -99,7 +99,8 @@ export const MultigetCriterionPanel = (props: IProps) => {
             <PneModal
                 open={open}
                 onClose={handleClose}
-                containerSx={{width: '600px'}}
+                title={t('advancedSearch.addCriteria')}
+                containerSx={modalContainerSx}
             >
                 <MultigetSelect
                     multigetCriterion={currentMultigetCriterion}
@@ -130,4 +131,13 @@ const linkSx: SxProps = {
 const linkSpanSx: SxProps = {
     display: 'inline-block',
     pl: '8px',
+}
+
+const modalContainerSx: SxProps = {
+    width: {
+        xs: 'clamp(360px, calc(100vw - 32px), 600px)',
+        sm: '600px',
+    },
+    minWidth: 0,
+    maxWidth: '600px',
 }

@@ -144,7 +144,11 @@ export const StyledListItem = styled(ListItem)(() => ({
     backgroundColor: 'rgba(25, 118, 210, 0.08)',
     fontSize: '14px',
     marginBottom: '2px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    width: '100%',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
 }));
 
 export const StyledListItemButton = styled(ListItemButton)(() => ({
@@ -153,5 +157,9 @@ export const StyledListItemButton = styled(ListItemButton)(() => ({
     backgroundColor: 'rgba(25, 118, 210, 0.08)',
     fontSize: '14px',
     marginBottom: '2px',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    width: '100%',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    textOverflow: 'ellipsis',
 }));

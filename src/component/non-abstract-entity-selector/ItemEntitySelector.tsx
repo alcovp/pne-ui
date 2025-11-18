@@ -22,6 +22,7 @@ const ItemEntitySelector = ({provided, item, handleClick, name}: IProps) => {
             <StyledListItem
                 key={item.id}
                 onClick={handleClick}
+                title={name}
             >
                 {name}
             </StyledListItem>

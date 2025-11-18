@@ -48,7 +48,12 @@ export const TransactionSessionStatusCriterion = () => {
                 }
             </Box>
         </Box>
-        <PneModal open={open} onClose={handleClose} title={t('react.searchUI.addSessionStatusTitle')}>
+        <PneModal
+            open={open}
+            onClose={handleClose}
+            title={t('react.searchUI.addSessionStatusTitle')}
+            containerSx={modalContainerSx}
+        >
             <Box sx={modalContentSx}>
                 <PneSelect
                     value={transactionSessionStatusGroup}
@@ -108,4 +113,13 @@ const checkboxItemSx: SxProps = {
     '&:not(:last-of-type)': {
         borderBottom: '1px solid #EFF2F5',
     },
+}
+
+const modalContainerSx: SxProps = {
+    width: {
+        xs: 'clamp(360px, calc(100vw - 32px), 600px)',
+        sm: '600px',
+    },
+    minWidth: 0,
+    maxWidth: '600px',
 }

@@ -112,7 +112,12 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
             title={title}
             subtitle={subTitle}
             containerSx={{
-                width: '700px',
+                width: {
+                    xs: 'clamp(360px, calc(100vw - 32px), 600px)',
+                    sm: '600px'
+                },
+                minWidth: 0,
+                maxWidth: '600px',
                 height: 'auto'
             }}
         >
