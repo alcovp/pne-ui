@@ -11,5 +11,10 @@
         "json",
         "node"
     ],
+    "moduleNameMapper": {
+        "^@cloudscape-design/components/theming$": "<rootDir>/__mocks__/cloudscape-theming.mock.ts",
+        "^@cloudscape-design/board-components/board$": "<rootDir>/__mocks__/cloudscape-board.mock.tsx",
+        "^@cloudscape-design/board-components/board-item$": "<rootDir>/__mocks__/cloudscape-board-item.mock.tsx"
+    },
     "testEnvironment": "jsdom"
 }
