@@ -3,18 +3,67 @@ import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import { Box, Typography } from '@mui/material'
-import { PneFloatingActionButtons } from '../index'
+import type { PneFabItem, PneLayoutOption } from '../index'
+import { PneFloatingActionButtons, PneLayoutsPanel } from '../index'
 import type { Meta, StoryObj } from '@storybook/react'
 
 const FloatingDemo = () => {
     const [lastAction, setLastAction] = useState('—')
-    const actions = [
+    const [layouts, setLayouts] = useState<PneLayoutOption[]>([
+        { id: 'default', name: 'Default layout' },
+        { id: 'analytics', name: 'Analytics' },
+        { id: 'compact', name: 'Compact' },
+    ])
+    const [selectedId, setSelectedId] = useState(layouts[0]?.id ?? '')
+    const selectedLayout = layouts.find(layout => layout.id === selectedId)
+
+    const removeLayout = (id: string) => {
+        setLayouts(current => {
+            const nextLayouts = current.filter(layout => layout.id !== id)
+            if (id === selectedId) {
+                setSelectedId(nextLayouts[0]?.id ?? '')
+            }
+            return nextLayouts
+        })
+        setLastAction(`Deleted layout ${id}`)
+    }
+
+    const updateLayout = (id: string) => setLastAction(`Update layout ${id}`)
+
+    const addLayout = (name: string) => {
+        setLayouts(current => {
+            const next = {
+                id: `layout-${current.length + 1}`,
+                name,
+            }
+            setSelectedId(next.id)
+            return [...current, next]
+        })
+        setLastAction(`Added layout "${name}"`)
+    }
+
+    React.useEffect(() => {
+        if (!layouts.length && selectedId) {
+            setSelectedId('')
+        }
+    }, [layouts.length, selectedId])
+
+    const fabItems: PneFabItem[] = [
         {
-            id: 'add',
-            label: 'Add item',
-            icon: <AddIcon fontSize='small' />,
-            onClick: () => setLastAction('Add item'),
+            id: 'layouts',
+            kind: 'content',
+            node: (
+                <PneLayoutsPanel
+                    items={layouts}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                    onDelete={removeLayout}
+                    onUpdate={updateLayout}
+                    onAdd={addLayout}
+                />
+            ),
         },
+        { id: 'divider-1', kind: 'divider' },
         {
             id: 'reset',
             label: 'Reset layout',
@@ -30,14 +79,14 @@ const FloatingDemo = () => {
     ]
 
     return (
-        <Box sx={{ minHeight: 260, position: 'relative', p: 2 }}>
+        <Box sx={{ minHeight: 360, position: 'relative', p: 2 }}>
             <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
-                Resize the canvas to see FAB collapse on mobile breakpoints.
+                FAB shows a layouts panel on top, actions with right-aligned icons, a primary banner, and collapses to a menu on mobile.
             </Typography>
             <Typography variant='body2' sx={{ mb: 2 }}>
                 Last action: {lastAction}
             </Typography>
-            <PneFloatingActionButtons actions={actions} />
+            <PneFloatingActionButtons actions={fabItems} bannerText={selectedLayout ? `Layout: ${selectedLayout.name}` : 'Edit widgets'} />
         </Box>
     )
 }

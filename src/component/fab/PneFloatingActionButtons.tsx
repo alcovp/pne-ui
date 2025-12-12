@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react'
-import AddIcon from '@mui/icons-material/Add'
-import { Box, Button, Fab, ListItemIcon, ListItemText, Menu, MenuItem, Paper, Stack, Tooltip } from '@mui/material'
+import React, { useState } from 'react'
+import EditIcon from '@mui/icons-material/Edit'
+import { Box, Divider, Fab, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Tooltip } from '@mui/material'
 import { DEFAULT_BREAKPOINTS } from '../../common/responsive/breakpoints'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 
@@ -13,19 +13,39 @@ export type PneFabAction = {
     tooltip?: string
 }
 
+export type PneFabContent = {
+    id: string
+    kind: 'content'
+    node: React.ReactNode
+}
+
+export type PneFabDivider = {
+    id: string
+    kind: 'divider'
+}
+
+export type PneFabItem = PneFabAction | PneFabContent | PneFabDivider
+
+const isContentItem = (item: PneFabItem): item is PneFabContent => 'kind' in item && item.kind === 'content'
+const isDividerItem = (item: PneFabItem): item is PneFabDivider => 'kind' in item && item.kind === 'divider'
+const isActionItem = (item: PneFabItem): item is PneFabAction => !isContentItem(item) && !isDividerItem(item)
+
 export type PneFloatingActionButtonsProps = {
-    actions: PneFabAction[]
+    actions: PneFabItem[]
     breakpoints?: readonly number[]
     mobileBreakpoint?: number
     position?: { bottom?: number; right?: number }
     fabLabel?: React.ReactNode
     fabIcon?: React.ReactNode
     className?: string
+    bannerText?: React.ReactNode
 }
 
 /**
- * Responsive FAB menu: shows a single floating button with a menu on small screens,
- * and a sticky action rail on larger screens. Breakpoint set defaults to 6-step layout.
+ * Floating action menu:
+ * - on mobile: actions/content rendered inside a Menu
+ * - on desktop: actions rendered as floating Fabs stacked above the trigger; Menu still opens for content/banner
+ * Actions array may include content blocks (`{ kind: 'content', node: <...> }`) to embed custom UI.
  */
 export function PneFloatingActionButtons({
     actions,
@@ -33,12 +53,12 @@ export function PneFloatingActionButtons({
     mobileBreakpoint = 800,
     position = { bottom: 24, right: 24 },
     fabLabel = 'Actions',
-    fabIcon = <AddIcon />,
+    fabIcon = <EditIcon />,
     className,
+    bannerText,
 }: PneFloatingActionButtonsProps) {
     const breakpoint = useBreakpoint({ breakpoints })
     const isMobile = breakpoint <= mobileBreakpoint
-
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const handleOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
     const handleClose = () => setAnchorEl(null)
@@ -48,54 +68,91 @@ export function PneFloatingActionButtons({
         action.onClick()
     }
 
-    const renderedActions = useMemo(
-        () =>
-            actions.map(action => (
-                <Tooltip key={action.id} title={action.tooltip ?? ''} placement='left'>
-                    <span>
-                        <Button
-                            onClick={() => handleAction(action)}
-                            startIcon={action.icon}
-                            disabled={action.disabled}
-                            fullWidth
-                            variant='contained'
-                            color='primary'
-                            size='small'
-                            sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
-                        >
-                            {action.label}
-                        </Button>
-                    </span>
-                </Tooltip>
-            )),
-        [actions],
-    )
+    const renderMenuItems = (items: PneFabItem[]) =>
+        items.map(item =>
+            isContentItem(item) ? (
+                <Box key={item.id}>
+                    {item.node}
+                </Box>
+            ) : isDividerItem(item) ? (
+                <Divider key={item.id} component='li' role='presentation' sx={{ my: 2 }} />
+            ) : isActionItem(item) ? (
+                <MenuItem
+                    key={item.id}
+                    disabled={item.disabled}
+                    onClick={() => handleAction(item)}
+                    sx={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 1 }}
+                >
+                    <ListItemText primaryTypographyProps={{ fontSize: '0.875rem' }} sx={{ flex: 1 }}>
+                        {item.label}
+                    </ListItemText>
+                    {item.icon ? (
+                        <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', lineHeight: 0 }}>
+                            {item.icon}
+                        </Box>
+                    ) : null}
+                </MenuItem>
+            ) : null,
+        )
 
-    if (isMobile) {
-        return (
-            <Box position='fixed' bottom={position.bottom ?? 24} right={position.right ?? 24} zIndex={1300} className={className}>
+    const menuItems = isMobile ? actions : actions.filter(item => !isActionItem(item))
+    const actionItems = isMobile ? [] : actions.filter(isActionItem)
+
+    return (
+        <Box position='fixed' bottom={position.bottom ?? 24} right={position.right ?? 24} zIndex={1300} className={className}>
+            <Stack spacing={1} alignItems='flex-end'>
+                {!isMobile
+                    ? actionItems.map(item => {
+                          const title =
+                              item.tooltip ?? (typeof item.label === 'string' ? item.label : typeof fabLabel === 'string' ? fabLabel : 'Action')
+                          return (
+                              <Tooltip key={item.id} title={title} placement='left'>
+                                  <span>
+                                      <Fab color='primary' onClick={() => handleAction(item)} aria-label={typeof title === 'string' ? title : 'Action'}>
+                                          {item.icon ?? (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
+                                      </Fab>
+                                  </span>
+                              </Tooltip>
+                          )
+                      })
+                    : null}
                 <Tooltip title={fabLabel}>
                     <Fab color='primary' onClick={handleOpen} aria-label={typeof fabLabel === 'string' ? fabLabel : 'Actions'}>
                         {fabIcon}
                     </Fab>
                 </Tooltip>
-                <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'left' }}>
-                    {actions.map(action => (
-                        <MenuItem key={action.id} disabled={action.disabled} onClick={() => handleAction(action)}>
-                            {action.icon ? <ListItemIcon>{action.icon}</ListItemIcon> : null}
-                            <ListItemText>{action.label}</ListItemText>
-                        </MenuItem>
-                    ))}
-                </Menu>
-            </Box>
-        )
-    }
-
-    return (
-        <Box position='fixed' bottom={position.bottom ?? 24} right={position.right ?? 24} zIndex={1300} className={className}>
-            <Paper elevation={3} sx={{ borderRadius: 2, p: 1, minWidth: 200 }}>
-                <Stack spacing={1}>{renderedActions}</Stack>
-            </Paper>
+            </Stack>
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleClose}
+                anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
+                MenuListProps={{ sx: { py: 0 } }}
+            >
+                {renderMenuItems(menuItems)}
+                {bannerText ? (
+                    <MenuItem
+                        disabled
+                        sx={{
+                            pointerEvents: 'none',
+                            bgcolor: theme => theme.palette.primary.main,
+                            color: theme => theme.palette.primary.contrastText,
+                            '&.Mui-disabled': { opacity: 1 },
+                            minHeight: 60,
+                        }}
+                    >
+                        <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{fabIcon}</ListItemIcon>
+                        <ListItemText
+                            primaryTypographyProps={{
+                                fontWeight: 600,
+                                fontSize: '20px',
+                            }}
+                        >
+                            {bannerText}
+                        </ListItemText>
+                    </MenuItem>
+                ) : null}
+            </Menu>
         </Box>
     )
 }
