@@ -10,6 +10,17 @@ type CloudscapeBoardStylesProps = {
  * and trim padding on small screens. Keeps arrows hidden by default.
  */
 export function CloudscapeBoardStyles({ hideNavigationArrows = true }: CloudscapeBoardStylesProps) {
+    const navigationStyles = hideNavigationArrows
+        ? {
+            '.awsui_direction-button-wrapper, [class*="direction-button-wrapper"]': {
+                display: 'none !important',
+                visibility: 'hidden !important',
+                opacity: '0 !important',
+                pointerEvents: 'none !important',
+            },
+        }
+        : {}
+
     return (
         <GlobalStyles
             styles={{
@@ -22,16 +33,7 @@ export function CloudscapeBoardStyles({ hideNavigationArrows = true }: Cloudscap
                     boxShadow: 'none !important',
                     borderRadius: '0 !important',
                 },
-                ...(hideNavigationArrows
-                    ? {
-                          '.awsui_direction-button-wrapper, [class*="direction-button-wrapper"]': {
-                              display: 'none !important',
-                              visibility: 'hidden !important',
-                              opacity: '0 !important',
-                              pointerEvents: 'none !important',
-                          },
-                      }
-                    : {}),
+                ...navigationStyles,
                 '@media (max-width: 600px)': {
                     '[data-awsui-board]': {
                         paddingLeft: '0 !important',
