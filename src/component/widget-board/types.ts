@@ -1,4 +1,5 @@
 import type { BoardProps } from '@cloudscape-design/board-components/board'
+import type { PneLayoutOption } from './PneLayoutsPanel'
 
 export type WidgetId = string
 
@@ -55,12 +56,20 @@ export type WidgetBoardState = {
     sizeMemory: Partial<Record<WidgetId, number>>
 }
 
-export type WidgetBoardControls = {
-    title?: React.ReactNode
-    resetLabel?: React.ReactNode
-    restoreLabel?: React.ReactNode
-    hideReset?: boolean
-    hideRestore?: boolean
+export type WidgetBoardLayoutOption = PneLayoutOption & {
+    preset: WidgetLayoutPreset
+}
+
+export type WidgetBoardLayouts = {
+    options?: WidgetBoardLayoutOption[]
+    selectedId?: string
+    initialSelectedId?: string
+    onSelect?: (id: string) => void
+}
+
+export type WidgetBoardLoadLayoutsResult = {
+    options: WidgetBoardLayoutOption[]
+    selectedId?: string
 }
 
 export type WidgetBoardProps = {
@@ -68,8 +77,8 @@ export type WidgetBoardProps = {
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
     breakpoints?: readonly number[]
     storageKey?: string
-    loadRemoteLayout?: () => Promise<WidgetLayoutPreset | null>
-    controls?: WidgetBoardControls
+    loadLayouts?: () => Promise<WidgetBoardLoadLayoutsResult | null>
+    layouts?: WidgetBoardLayouts
     empty?: React.ReactNode
     hideNavigationArrows?: boolean
     onLayoutPersist?: (state: WidgetBoardState) => void

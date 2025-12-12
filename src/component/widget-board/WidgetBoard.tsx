@@ -1,18 +1,17 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import Board, { type BoardProps } from '@cloudscape-design/board-components/board'
 import BoardItem from '@cloudscape-design/board-components/board-item'
 import CloseIcon from '@mui/icons-material/Close'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import RestartAltIcon from '@mui/icons-material/RestartAlt'
-import { Box, Chip, IconButton, Stack, Typography } from '@mui/material'
-import PneButton from '../PneButton'
+import { Box, IconButton, Stack, Typography } from '@mui/material'
 import { CloudscapeBoardStyles } from '../cloudscape/CloudscapeBoardStyles'
 import { CloudscapeThemeProvider } from '../cloudscape/CloudscapeThemeProvider'
 import { boardItemI18nStrings, createBoardI18nStrings } from '../cloudscape/boardI18n'
 import type {
     BreakpointLayoutConfig,
     WidgetBoardItemData,
+    WidgetBoardLayoutOption,
     WidgetBoardProps,
     WidgetBoardState,
     WidgetDefinition,
@@ -121,15 +120,81 @@ const getLayoutConfigForWidth = (width: number | undefined, layoutMap: Record<nu
     return { breakpoint, layout: layoutMap[breakpoint] }
 }
 
-const buildStoragePayload = (state: WidgetBoardState) =>
-    JSON.stringify({
-        items: state.items.map(({ id, columnSpan, columnOffset, rowSpan }) => ({ id, columnSpan, columnOffset, rowSpan })),
-        hidden: state.hidden,
-        collapsed: state.collapsed,
-        sizeMemory: state.sizeMemory,
-    })
+type StoredLayoutState = {
+    items: Array<Pick<BoardProps.Item<WidgetBoardItemData>, 'id' | 'columnSpan' | 'columnOffset' | 'rowSpan'>>
+    hidden: string[]
+    collapsed: string[]
+    sizeMemory: Partial<Record<string, number>>
+}
 
-const hydrateStoragePayload = (raw: string) => JSON.parse(raw) as WidgetBoardState
+type PersistedLayoutsState = {
+    selectedLayoutId?: string
+    layouts: Record<string, StoredLayoutState | string>
+}
+
+const buildStoragePayload = (state: WidgetBoardState): StoredLayoutState => ({
+    items: state.items.map(({ id, columnSpan, columnOffset, rowSpan }) => ({ id, columnSpan, columnOffset, rowSpan })),
+    hidden: state.hidden,
+    collapsed: state.collapsed,
+    sizeMemory: state.sizeMemory,
+})
+
+const hydrateStoragePayload = (raw: StoredLayoutState | string) => (typeof raw === 'string' ? JSON.parse(raw) : raw) as StoredLayoutState
+
+const readPersistedLayouts = (storageKey: string): PersistedLayoutsState | null => {
+    if (typeof window === 'undefined') return null
+    const raw = window.localStorage.getItem(storageKey)
+    if (!raw) return null
+
+    try {
+        const parsed = JSON.parse(raw)
+        if (parsed && typeof parsed === 'object' && 'layouts' in parsed) {
+            const layouts = (parsed as PersistedLayoutsState).layouts ?? {}
+            const selectedLayoutId = (parsed as PersistedLayoutsState).selectedLayoutId
+            return { layouts, selectedLayoutId }
+        }
+
+        if (parsed && typeof parsed === 'object' && 'items' in parsed) {
+            return {
+                layouts: { __legacy: parsed as StoredLayoutState },
+                selectedLayoutId: '__legacy',
+            }
+        }
+    } catch {
+        // ignore corrupt storage payloads
+    }
+
+    return null
+}
+
+const buildLayoutOptions = (
+    options: WidgetBoardLayoutOption[] | undefined,
+    layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
+): WidgetBoardLayoutOption[] => {
+    if (options?.length) {
+        return options.map(option => ({
+            ...option,
+            preset: option.preset ?? {
+                layoutByBreakpoint,
+                source: 'static' as const,
+            },
+        }))
+    }
+
+    return [
+        {
+            id: 'default',
+            name: 'Default layout',
+            preset: {
+                layoutByBreakpoint,
+                source: 'static' as const,
+            },
+        },
+    ]
+}
+
+const layoutOptionsEqual = (a: WidgetBoardLayoutOption[], b: WidgetBoardLayoutOption[]) =>
+    a.length === b.length && a.every((option, index) => option.id === b[index]?.id && option.name === b[index]?.name && option.preset === b[index]?.preset)
 
 export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(function WidgetBoard(
     {
@@ -137,8 +202,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutByBreakpoint,
         breakpoints: customBreakpoints,
         storageKey = 'pne-widget-board-layout',
-        loadRemoteLayout,
-        controls,
+        loadLayouts,
+        layouts,
         empty,
         hideNavigationArrows = true,
         onLayoutPersist,
@@ -147,19 +212,127 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     },
     ref,
 ) {
-    const breakpoints = useMemo(
-        () => customBreakpoints ?? Object.keys(layoutByBreakpoint).map(Number).sort((a, b) => a - b),
-        [customBreakpoints, layoutByBreakpoint],
-    )
+    const initialPersistedLayouts = typeof window !== 'undefined' ? readPersistedLayouts(storageKey) : null
+    const persistedLayoutsRef = useRef<PersistedLayoutsState>(initialPersistedLayouts ?? { layouts: {} })
+
+    const [layoutOptions, setLayoutOptions] = useState<WidgetBoardLayoutOption[]>(() => buildLayoutOptions(layouts?.options, layoutByBreakpoint))
+
+    useEffect(() => {
+        if (loadLayouts) return
+        const nextOptions = buildLayoutOptions(layouts?.options, layoutByBreakpoint)
+        setLayoutOptions(prev => (layoutOptionsEqual(prev, nextOptions) ? prev : nextOptions))
+    }, [layoutByBreakpoint, layouts?.options, loadLayouts])
+
+    const layoutOptionsMap = useMemo(() => new Map(layoutOptions.map(option => [option.id, option])), [layoutOptions])
+
+    const initialLayoutId = useMemo(() => {
+        const fromLayouts = layouts?.selectedId
+        if (fromLayouts && layoutOptionsMap.has(fromLayouts)) return fromLayouts
+        const persistedId = persistedLayoutsRef.current.selectedLayoutId
+        if (persistedId && layoutOptionsMap.has(persistedId)) return persistedId
+        if (layouts?.initialSelectedId && layoutOptionsMap.has(layouts.initialSelectedId)) return layouts.initialSelectedId
+        return layoutOptions[0]?.id
+    }, [layoutOptions, layoutOptionsMap, layouts?.initialSelectedId, layouts?.selectedId])
 
     const [layoutSource, setLayoutSource] = useState<WidgetLayoutPreset>(() => ({
-        layoutByBreakpoint,
-        source: 'static' as const,
+        ...(layoutOptionsMap.get(initialLayoutId ?? '')?.preset ?? { layoutByBreakpoint, source: 'static' as const }),
     }))
+
+    const breakpoints = useMemo(
+        () => customBreakpoints ?? Object.keys(layoutSource.layoutByBreakpoint).map(Number).sort((a, b) => a - b),
+        [customBreakpoints, layoutSource.layoutByBreakpoint],
+    )
 
     const [layoutPreset, setLayoutPreset] = useState(() =>
         getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource.layoutByBreakpoint, breakpoints),
     )
+
+    useEffect(() => {
+        setLayoutPreset(getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource.layoutByBreakpoint, breakpoints))
+    }, [breakpoints, layoutSource.layoutByBreakpoint])
+
+    const [selectedLayoutId, setSelectedLayoutId] = useState(initialLayoutId)
+    const selectedLayoutRef = useRef<string | undefined>(initialLayoutId)
+
+    useEffect(() => {
+        selectedLayoutRef.current = selectedLayoutId
+    }, [selectedLayoutId])
+
+    useEffect(() => {
+        if (!selectedLayoutId || layoutOptionsMap.has(selectedLayoutId)) return
+        const fallbackId = layoutOptions[0]?.id
+        if (fallbackId && fallbackId !== selectedLayoutId) {
+            setSelectedLayoutId(fallbackId)
+            layouts?.onSelect?.(fallbackId)
+        }
+    }, [layoutOptions, layoutOptionsMap, layouts?.onSelect, selectedLayoutId])
+
+    useEffect(() => {
+        const externalSelected = layouts?.selectedId
+        if (!externalSelected) return
+        if (!layoutOptionsMap.has(externalSelected)) return
+        if (externalSelected !== selectedLayoutId) {
+            setSelectedLayoutId(externalSelected)
+        }
+    }, [layoutOptionsMap, layouts?.selectedId, selectedLayoutId])
+
+    useEffect(() => {
+        if (!selectedLayoutId || !layouts?.onSelect) return
+        if (layouts.selectedId === selectedLayoutId) return
+        layouts.onSelect(selectedLayoutId)
+    }, [layouts?.onSelect, layouts?.selectedId, selectedLayoutId])
+
+    useEffect(() => {
+        const nextSource = layoutOptionsMap.get(selectedLayoutId ?? '')?.preset ?? {
+            layoutByBreakpoint,
+            source: 'static' as const,
+        }
+        setLayoutSource(prev => (prev === nextSource ? prev : nextSource))
+    }, [layoutByBreakpoint, layoutOptionsMap, selectedLayoutId])
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+        const nextPersisted = readPersistedLayouts(storageKey) ?? { layouts: {} }
+        persistedLayoutsRef.current = nextPersisted
+        if (
+            nextPersisted.selectedLayoutId &&
+            layoutOptionsMap.has(nextPersisted.selectedLayoutId) &&
+            nextPersisted.selectedLayoutId !== selectedLayoutId
+        ) {
+            setSelectedLayoutId(nextPersisted.selectedLayoutId)
+        }
+    }, [layoutOptionsMap, selectedLayoutId, storageKey])
+
+    useEffect(() => {
+        let cancelled = false
+        if (!loadLayouts) return undefined
+
+        loadLayouts().then(result => {
+            if (cancelled || !result?.options) return
+            const nextOptions = buildLayoutOptions(result.options, layoutByBreakpoint)
+            setLayoutOptions(prev => (layoutOptionsEqual(prev, nextOptions) ? prev : nextOptions))
+
+            const currentSelected = selectedLayoutRef.current
+            let nextSelected = currentSelected && nextOptions.some(option => option.id === currentSelected) ? currentSelected : undefined
+
+            if (result.selectedId && nextOptions.some(option => option.id === result.selectedId)) {
+                nextSelected = result.selectedId
+            } else if (!nextSelected) {
+                nextSelected = nextOptions[0]?.id
+            }
+
+            if (nextSelected && nextSelected !== currentSelected) {
+                setSelectedLayoutId(nextSelected)
+                layouts?.onSelect?.(nextSelected)
+            } else if (!currentSelected && nextSelected) {
+                setSelectedLayoutId(nextSelected)
+            }
+        })
+
+        return () => {
+            cancelled = true
+        }
+    }, [layoutByBreakpoint, loadLayouts, layouts?.onSelect])
 
     const fallbackLayoutConfig = useMemo(() => {
         const firstKey = breakpoints[0]
@@ -184,10 +357,13 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(activeDefinitions))
 
     useEffect(() => {
-        const savedState = typeof window !== 'undefined' ? window.localStorage.getItem(storageKey) : null
-        if (savedState) {
+        const storagePayload =
+            (selectedLayoutId && persistedLayoutsRef.current.layouts[selectedLayoutId]) ??
+            persistedLayoutsRef.current.layouts.__legacy
+
+        if (storagePayload) {
             try {
-                const parsed = hydrateStoragePayload(savedState)
+                const parsed = hydrateStoragePayload(storagePayload)
                 const items = (parsed.items || []).flatMap(item => {
                     const definition = definitionsMap.get(item.id as string)
                     if (!definition) return []
@@ -219,7 +395,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         }
 
         setLayoutState(buildDefaultState(activeDefinitions))
-    }, [activeDefinitions, definitionsMap, storageKey])
+    }, [activeDefinitions, definitionsMap, selectedLayoutId])
 
     useEffect(() => {
         if (typeof window === 'undefined') return
@@ -229,34 +405,25 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }, [breakpoints, layoutSource.layoutByBreakpoint])
 
     useEffect(() => {
-        let mounted = true
-        if (!loadRemoteLayout) return undefined
-
-        loadRemoteLayout().then(preset => {
-            if (!mounted || !preset?.layoutByBreakpoint) return
-            setLayoutSource(preset)
-            const nextPreset = getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, preset.layoutByBreakpoint, breakpoints)
-            const nextLayout = nextPreset.layout ?? Object.values(preset.layoutByBreakpoint)[0] ?? fallbackLayoutConfig
-            setLayoutPreset(nextPreset)
-            const nextDefinitions = withLayout(widgets, nextLayout)
-            const nextActiveDefinitions = nextDefinitions.filter(def => (isWidgetEnabled ? isWidgetEnabled(def) : true))
-            setLayoutState(buildDefaultState(nextActiveDefinitions))
-        })
-
-        return () => {
-            mounted = false
-        }
-    }, [breakpoints, fallbackLayoutConfig, isWidgetEnabled, loadRemoteLayout, widgets])
-
-    useEffect(() => {
-        if (typeof window === 'undefined') return
+        if (typeof window === 'undefined' || !selectedLayoutId) return
         try {
-            window.localStorage.setItem(storageKey, buildStoragePayload(layoutState))
+            const payload = buildStoragePayload(layoutState)
+            const nextPersisted = {
+                ...persistedLayoutsRef.current,
+                selectedLayoutId,
+                layouts: {
+                    ...persistedLayoutsRef.current.layouts,
+                    [selectedLayoutId]: payload,
+                },
+            }
+            persistedLayoutsRef.current = nextPersisted
+
+            window.localStorage.setItem(storageKey, JSON.stringify(nextPersisted))
             onLayoutPersist?.(layoutState)
         } catch {
             // ignore storage failures
         }
-    }, [layoutState, onLayoutPersist, storageKey])
+    }, [layoutState, onLayoutPersist, selectedLayoutId, storageKey])
 
     const hideItem = useCallback(
         (id: string) => {
@@ -423,41 +590,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         )
     }
 
-    const controlsConfig = controls ?? {}
-    const showControls = controlsConfig.hideReset !== true || (controlsConfig.hideRestore !== true && layoutState.hidden.length > 0)
-
     return (
         <CloudscapeThemeProvider>
             <CloudscapeBoardStyles hideNavigationArrows={hideNavigationArrows} />
-            <Stack spacing={1.5} className={className}>
-                {showControls && (
-                    <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent='space-between' spacing={1}>
-                        <Typography variant='h6' fontWeight={700}>
-                            {controlsConfig.title ?? 'Widgets layout'}
-                        </Typography>
-                        <Stack direction='row' spacing={1}>
-                            {controlsConfig.hideReset !== true && (
-                                <PneButton onClick={resetLayout} pneStyle='outlined' startIcon={<RestartAltIcon />}>
-                                    {controlsConfig.resetLabel ?? 'Reset to default'}
-                                </PneButton>
-                            )}
-                            {layoutState.hidden.length > 0 && controlsConfig.hideRestore !== true && (
-                                <PneButton pneStyle='text' onClick={() => layoutState.hidden.forEach(restoreItem)}>
-                                    {controlsConfig.restoreLabel ?? 'Restore hidden'}
-                                </PneButton>
-                            )}
-                        </Stack>
-                    </Stack>
-                )}
-
-                {layoutState.hidden.length > 0 && (
-                    <Stack direction='row' spacing={1} flexWrap='wrap'>
-                        {layoutState.hidden.map(id => (
-                            <Chip key={id} variant='outlined' label={`Show ${definitionsMap.get(id)?.title ?? id}`} onClick={() => restoreItem(id)} size='small' />
-                        ))}
-                    </Stack>
-                )}
-
+            <Box className={className}>
                 <Board<WidgetBoardItemData>
                     items={visibleItems}
                     renderItem={renderItem}
@@ -465,7 +601,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     onItemsChange={handleItemsChange}
                     empty={empty ?? <Box sx={{ p: 2, color: 'text.secondary' }}>No widgets available</Box>}
                 />
-            </Stack>
+            </Box>
         </CloudscapeThemeProvider>
     )
 })

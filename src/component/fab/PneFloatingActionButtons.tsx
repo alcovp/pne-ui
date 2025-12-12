@@ -103,18 +103,18 @@ export function PneFloatingActionButtons({
             <Stack spacing={1} alignItems='flex-end'>
                 {!isMobile
                     ? actionItems.map(item => {
-                          const title =
-                              item.tooltip ?? (typeof item.label === 'string' ? item.label : typeof fabLabel === 'string' ? fabLabel : 'Action')
-                          return (
-                              <Tooltip key={item.id} title={title} placement='left'>
-                                  <span>
-                                      <Fab color='primary' onClick={() => handleAction(item)} aria-label={typeof title === 'string' ? title : 'Action'}>
-                                          {item.icon ?? (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
-                                      </Fab>
-                                  </span>
-                              </Tooltip>
-                          )
-                      })
+                        const title =
+                            item.tooltip ?? (typeof item.label === 'string' ? item.label : typeof fabLabel === 'string' ? fabLabel : 'Action')
+                        return (
+                            <Tooltip key={item.id} title={title} placement='left'>
+                                <span>
+                                    <Fab color='primary' onClick={() => handleAction(item)} aria-label={typeof title === 'string' ? title : 'Action'}>
+                                        {item.icon ?? (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
+                                    </Fab>
+                                </span>
+                            </Tooltip>
+                        )
+                    })
                     : null}
                 <Tooltip title={fabLabel}>
                     <Fab color='primary' onClick={handleOpen} aria-label={typeof fabLabel === 'string' ? fabLabel : 'Actions'}>
