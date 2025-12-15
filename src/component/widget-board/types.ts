@@ -3,6 +3,15 @@ import type { PneLayoutOption } from './PneLayoutsPanel'
 
 export type WidgetId = string
 
+export type WidgetLayoutSnapshot = {
+    columnSpan?: number
+    rowSpan?: number
+    columnOffset?: BoardProps.Item['columnOffset']
+    order: number
+}
+
+export type WidgetLayoutMemory = Record<string, Record<WidgetId, WidgetLayoutSnapshot>>
+
 export type WidgetLayoutSize = {
     columnSpan: number
     rowSpan: number
@@ -54,6 +63,7 @@ export type WidgetBoardState = {
     hidden: WidgetId[]
     collapsed: WidgetId[]
     sizeMemory: Partial<Record<WidgetId, number>>
+    layoutMemory: WidgetLayoutMemory
 }
 
 export type WidgetBoardLayoutOption = PneLayoutOption & {

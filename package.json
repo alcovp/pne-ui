@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "3.0.21",
+    "version": "3.0.25",
     "description": "",
     "repository": {
         "type": "git",
@@ -27,7 +27,7 @@
         "prepare": "yarn build",
         "prepublishOnly": "yarn test && yarn run lint",
         "npmLogin": "yarn npm login --publish",
-        "publish": "yarn prepublishOnly && yarn prepare && yarn version patch && npm publish --access public",
+        "release": "yarn version patch && npm publish --access public",
         "start": "webpack && webpack-dev-server --mode development",
         "storybook": "storybook dev -p 6006",
         "build-storybook": "storybook build",

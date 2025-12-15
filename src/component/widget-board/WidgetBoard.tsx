@@ -16,6 +16,8 @@ import type {
     WidgetBoardState,
     WidgetDefinition,
     WidgetLayoutConfig,
+    WidgetLayoutMemory,
+    WidgetLayoutSnapshot,
     WidgetLayoutPreset,
 } from './types'
 
@@ -95,7 +97,17 @@ const buildDefaultState = (definitions: WidgetDefinitionWithLayout[]): WidgetBoa
         hidden,
         collapsed,
         sizeMemory,
+        layoutMemory: {},
     }
+}
+
+const upsertLayoutMemory = (layoutMemory: WidgetLayoutMemory, breakpoint: number | string, id: string, snapshot: WidgetLayoutSnapshot): WidgetLayoutMemory => {
+    const key = String(breakpoint)
+    const next = { ...layoutMemory }
+    const bucket = { ...(next[key] ?? {}) }
+    bucket[id] = snapshot
+    next[key] = bucket
+    return next
 }
 
 const resolveBreakpoint = (width: number | undefined, breakpoints: readonly number[]): number => {
@@ -125,6 +137,7 @@ type StoredLayoutState = {
     hidden: string[]
     collapsed: string[]
     sizeMemory: Partial<Record<string, number>>
+    layoutMemory?: WidgetLayoutMemory
 }
 
 type PersistedLayoutsState = {
@@ -137,6 +150,7 @@ const buildStoragePayload = (state: WidgetBoardState): StoredLayoutState => ({
     hidden: state.hidden,
     collapsed: state.collapsed,
     sizeMemory: state.sizeMemory,
+    layoutMemory: state.layoutMemory,
 })
 
 const hydrateStoragePayload = (raw: StoredLayoutState | string) => (typeof raw === 'string' ? JSON.parse(raw) : raw) as StoredLayoutState
@@ -250,6 +264,11 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     useEffect(() => {
         setLayoutPreset(getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource.layoutByBreakpoint, breakpoints))
     }, [breakpoints, layoutSource.layoutByBreakpoint])
+
+    const currentBreakpointKey = useMemo(
+        () => String(layoutPreset.breakpoint ?? breakpoints[0]),
+        [breakpoints, layoutPreset.breakpoint],
+    )
 
     const [selectedLayoutId, setSelectedLayoutId] = useState(initialLayoutId)
     const selectedLayoutRef = useRef<string | undefined>(initialLayoutId)
@@ -374,6 +393,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 const collapsed = (parsed.collapsed || []).filter(id => definitionsMap.has(id)) as string[]
                 const sizeMemoryEntries = Object.entries(parsed.sizeMemory || {}).filter(([id]) => definitionsMap.has(id))
                 const sizeMemory = Object.fromEntries(sizeMemoryEntries) as Partial<Record<string, number>>
+                const layoutMemory = parsed.layoutMemory ?? {}
 
                 const missingItems = activeDefinitions
                     .filter(def => !hidden.includes(def.id) && !items.some(item => item.id === def.id))
@@ -387,6 +407,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     hidden,
                     collapsed,
                     sizeMemory,
+                    layoutMemory,
                 })
                 return
             } catch (e) {
@@ -427,30 +448,55 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
 
     const hideItem = useCallback(
         (id: string) => {
-            setLayoutState(prev => ({
-                ...prev,
-                items: prev.items.filter(item => item.id !== id),
-                hidden: prev.hidden.includes(id) ? prev.hidden : [...prev.hidden, id],
-                collapsed: prev.collapsed.filter(col => col !== id),
-                sizeMemory: Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => key !== id)) as Partial<Record<string, number>>,
-            }))
+            setLayoutState(prev => {
+                const definition = definitionsMap.get(id)
+                if (!definition) return prev
+
+                const index = prev.items.findIndex(item => item.id === id)
+                const item = index >= 0 ? prev.items[index] : undefined
+                const snapshot: WidgetLayoutSnapshot = {
+                    columnSpan: item?.columnSpan ?? definition.layout.defaultSize.columnSpan,
+                    rowSpan: item?.rowSpan ?? definition.layout.defaultSize.rowSpan,
+                    columnOffset: item?.columnOffset ?? definition.layout.defaultSize.columnOffset,
+                    order: index >= 0 ? index : prev.items.length,
+                }
+
+                const layoutMemory = upsertLayoutMemory(prev.layoutMemory, currentBreakpointKey, id, snapshot)
+
+                return {
+                    ...prev,
+                    layoutMemory,
+                    items: prev.items.filter(boardItem => boardItem.id !== id),
+                    hidden: prev.hidden.includes(id) ? prev.hidden : [...prev.hidden, id],
+                    collapsed: prev.collapsed.filter(col => col !== id),
+                    sizeMemory: Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => key !== id)) as Partial<Record<string, number>>,
+                }
+            })
         },
-        [],
+        [currentBreakpointKey, definitionsMap],
     )
 
     const restoreItem = useCallback(
         (id: string) => {
             const definition = definitionsMap.get(id)
             if (!definition) return
-            setLayoutState(prev => ({
-                ...prev,
-                hidden: prev.hidden.filter(hiddenId => hiddenId !== id),
-                items: [...prev.items, toBoardItem(definition)],
-                collapsed: prev.collapsed.filter(col => col !== id),
-                sizeMemory: Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => key !== id)) as Partial<Record<string, number>>,
-            }))
+            setLayoutState(prev => {
+                const snapshot = prev.layoutMemory?.[currentBreakpointKey]?.[id]
+                const restoredItem = snapshot ? toBoardItem(definition, snapshot) : toBoardItem(definition)
+                const targetOrder = snapshot?.order ?? prev.items.length
+                const nextItems = [...prev.items]
+                nextItems.splice(Math.min(Math.max(targetOrder, 0), nextItems.length), 0, restoredItem)
+
+                return {
+                    ...prev,
+                    hidden: prev.hidden.filter(hiddenId => hiddenId !== id),
+                    items: nextItems,
+                    collapsed: prev.collapsed.filter(col => col !== id),
+                    sizeMemory: Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => key !== id)) as Partial<Record<string, number>>,
+                }
+            })
         },
-        [definitionsMap],
+        [currentBreakpointKey, definitionsMap],
     )
 
     const resetLayout = useCallback(() => setLayoutState(buildDefaultState(activeDefinitions)), [activeDefinitions])
@@ -501,17 +547,39 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const restoreHidden = useCallback(() => {
         setLayoutState(prev => {
             if (prev.hidden.length === 0) return prev
+
             const hiddenSet = new Set(prev.hidden)
+            const restoredWithOrder: Array<{ order: number; hiddenIndex: number; item: BoardProps.Item<WidgetBoardItemData> }> = prev.hidden.flatMap(
+                (id, hiddenIndex) => {
+                    const def = definitionsMap.get(id)
+                    if (!def) return []
+                    const snapshot = prev.layoutMemory?.[currentBreakpointKey]?.[id]
+                    const item = snapshot ? toBoardItem(def, snapshot) : toBoardItem(def)
+                    const order = snapshot?.order ?? prev.items.length + hiddenIndex
+                    return [{ order, hiddenIndex, item }]
+                },
+            )
+
             const nextItems = [...prev.items]
-            prev.hidden.forEach(id => {
-                const def = definitionsMap.get(id)
-                if (!def) return
-                nextItems.push(toBoardItem(def))
-            })
+            restoredWithOrder
+                .sort((a, b) => a.order - b.order || a.hiddenIndex - b.hiddenIndex)
+                .reverse()
+                .forEach(({ order, item }) => {
+                    const target = Math.min(Math.max(order, 0), nextItems.length)
+                    nextItems.splice(target, 0, item)
+                })
+
             const nextSizeMemory = Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => !hiddenSet.has(key)))
-            return { ...prev, hidden: [], collapsed: prev.collapsed.filter(col => !hiddenSet.has(col)), sizeMemory: nextSizeMemory, items: nextItems }
+
+            return {
+                ...prev,
+                hidden: [],
+                collapsed: prev.collapsed.filter(col => !hiddenSet.has(col)),
+                sizeMemory: nextSizeMemory,
+                items: nextItems,
+            }
         })
-    }, [definitionsMap])
+    }, [currentBreakpointKey, definitionsMap])
 
     useImperativeHandle(
         ref,

@@ -21,6 +21,7 @@ export type PneLayoutsPanelProps = {
     title?: React.ReactNode
     addLabel?: React.ReactNode
     className?: string
+    lockedIds?: string[]
 }
 
 const defaultTitle = 'Layouts'
@@ -36,6 +37,7 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
     title = defaultTitle,
     addLabel = defaultAddLabel,
     className,
+    lockedIds = [],
 }) => {
     const [modalOpen, setModalOpen] = useState(false)
     const [name, setName] = useState('')
@@ -51,7 +53,14 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
     const hasAdd = Boolean(onAdd)
 
     return (
-        <Box sx={{ width: 320, maxWidth: '100%', bgcolor: '#fff', fontSize: '14px', lineHeight: '20px' }} className={className}>
+        <Box
+            sx={{ width: 320, maxWidth: '100%', bgcolor: '#fff', fontSize: '14px', lineHeight: '20px' }}
+            className={className}
+            onKeyDown={event => {
+                // Блокируем всплытие, чтобы хоткеи/навигация обёртывающего меню (FAB) не крали ввод из инпутов панели
+                event.stopPropagation()
+            }}
+        >
             <Box
                 sx={{
                     bgcolor: '#fff',
@@ -73,6 +82,7 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
                 ) : (
                     items.map(item => {
                         const selected = item.id === selectedId
+                        const locked = lockedIds.includes(item.id)
                         return (
                             <Box
                                 key={item.id}
@@ -90,7 +100,7 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
                                 }}
                             >
                                 <Box sx={{ flex: 1, fontWeight: 400, fontSize: '14px', lineHeight: '20px' }}>{item.name}</Box>
-                                {onUpdate && selected ? (
+                                {onUpdate && selected && !locked ? (
                                     <IconButton
                                         size='small'
                                         color='inherit'
@@ -102,7 +112,7 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
                                         <RefreshIcon fontSize='small' />
                                     </IconButton>
                                 ) : null}
-                                {onDelete ? (
+                                {onDelete && !locked ? (
                                     <IconButton
                                         size='small'
                                         color='inherit'
