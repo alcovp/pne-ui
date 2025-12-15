@@ -132,55 +132,6 @@ const getLayoutConfigForWidth = (width: number | undefined, layoutMap: Record<nu
     return { breakpoint, layout: layoutMap[breakpoint] }
 }
 
-type StoredLayoutState = {
-    items: Array<Pick<BoardProps.Item<WidgetBoardItemData>, 'id' | 'columnSpan' | 'columnOffset' | 'rowSpan'>>
-    hidden: string[]
-    collapsed: string[]
-    sizeMemory: Partial<Record<string, number>>
-    layoutMemory?: WidgetLayoutMemory
-}
-
-type PersistedLayoutsState = {
-    selectedLayoutId?: string
-    layouts: Record<string, StoredLayoutState | string>
-}
-
-const buildStoragePayload = (state: WidgetBoardState): StoredLayoutState => ({
-    items: state.items.map(({ id, columnSpan, columnOffset, rowSpan }) => ({ id, columnSpan, columnOffset, rowSpan })),
-    hidden: state.hidden,
-    collapsed: state.collapsed,
-    sizeMemory: state.sizeMemory,
-    layoutMemory: state.layoutMemory,
-})
-
-const hydrateStoragePayload = (raw: StoredLayoutState | string) => (typeof raw === 'string' ? JSON.parse(raw) : raw) as StoredLayoutState
-
-const readPersistedLayouts = (storageKey: string): PersistedLayoutsState | null => {
-    if (typeof window === 'undefined') return null
-    const raw = window.localStorage.getItem(storageKey)
-    if (!raw) return null
-
-    try {
-        const parsed = JSON.parse(raw)
-        if (parsed && typeof parsed === 'object' && 'layouts' in parsed) {
-            const layouts = (parsed as PersistedLayoutsState).layouts ?? {}
-            const selectedLayoutId = (parsed as PersistedLayoutsState).selectedLayoutId
-            return { layouts, selectedLayoutId }
-        }
-
-        if (parsed && typeof parsed === 'object' && 'items' in parsed) {
-            return {
-                layouts: { __legacy: parsed as StoredLayoutState },
-                selectedLayoutId: '__legacy',
-            }
-        }
-    } catch {
-        // ignore corrupt storage payloads
-    }
-
-    return null
-}
-
 const buildLayoutOptions = (
     options: WidgetBoardLayoutOption[] | undefined,
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
@@ -215,7 +166,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         widgets,
         layoutByBreakpoint,
         breakpoints: customBreakpoints,
-        storageKey = 'pne-widget-board-layout',
         loadLayouts,
         layouts,
         empty,
@@ -226,9 +176,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     },
     ref,
 ) {
-    const initialPersistedLayouts = typeof window !== 'undefined' ? readPersistedLayouts(storageKey) : null
-    const persistedLayoutsRef = useRef<PersistedLayoutsState>(initialPersistedLayouts ?? { layouts: {} })
-
     const [layoutOptions, setLayoutOptions] = useState<WidgetBoardLayoutOption[]>(() => buildLayoutOptions(layouts?.options, layoutByBreakpoint))
 
     useEffect(() => {
@@ -242,8 +189,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const initialLayoutId = useMemo(() => {
         const fromLayouts = layouts?.selectedId
         if (fromLayouts && layoutOptionsMap.has(fromLayouts)) return fromLayouts
-        const persistedId = persistedLayoutsRef.current.selectedLayoutId
-        if (persistedId && layoutOptionsMap.has(persistedId)) return persistedId
         if (layouts?.initialSelectedId && layoutOptionsMap.has(layouts.initialSelectedId)) return layouts.initialSelectedId
         return layoutOptions[0]?.id
     }, [layoutOptions, layoutOptionsMap, layouts?.initialSelectedId, layouts?.selectedId])
@@ -310,19 +255,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }, [layoutByBreakpoint, layoutOptionsMap, selectedLayoutId])
 
     useEffect(() => {
-        if (typeof window === 'undefined') return
-        const nextPersisted = readPersistedLayouts(storageKey) ?? { layouts: {} }
-        persistedLayoutsRef.current = nextPersisted
-        if (
-            nextPersisted.selectedLayoutId &&
-            layoutOptionsMap.has(nextPersisted.selectedLayoutId) &&
-            nextPersisted.selectedLayoutId !== selectedLayoutId
-        ) {
-            setSelectedLayoutId(nextPersisted.selectedLayoutId)
-        }
-    }, [layoutOptionsMap, selectedLayoutId, storageKey])
-
-    useEffect(() => {
         let cancelled = false
         if (!loadLayouts) return undefined
 
@@ -376,47 +308,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(activeDefinitions))
 
     useEffect(() => {
-        const storagePayload =
-            (selectedLayoutId && persistedLayoutsRef.current.layouts[selectedLayoutId]) ??
-            persistedLayoutsRef.current.layouts.__legacy
-
-        if (storagePayload) {
-            try {
-                const parsed = hydrateStoragePayload(storagePayload)
-                const items = (parsed.items || []).flatMap(item => {
-                    const definition = definitionsMap.get(item.id as string)
-                    if (!definition) return []
-                    return [toBoardItem(definition, item)]
-                })
-
-                const hidden = (parsed.hidden || []).filter(id => definitionsMap.has(id)) as string[]
-                const collapsed = (parsed.collapsed || []).filter(id => definitionsMap.has(id)) as string[]
-                const sizeMemoryEntries = Object.entries(parsed.sizeMemory || {}).filter(([id]) => definitionsMap.has(id))
-                const sizeMemory = Object.fromEntries(sizeMemoryEntries) as Partial<Record<string, number>>
-                const layoutMemory = parsed.layoutMemory ?? {}
-
-                const missingItems = activeDefinitions
-                    .filter(def => !hidden.includes(def.id) && !items.some(item => item.id === def.id))
-                    .map(definition => toBoardItem(definition))
-
-                const allItems = [...items, ...missingItems]
-                const itemsWithCollapse = applyCollapsedState(allItems, collapsed, definitionsMap, sizeMemory)
-
-                setLayoutState({
-                    items: itemsWithCollapse,
-                    hidden,
-                    collapsed,
-                    sizeMemory,
-                    layoutMemory,
-                })
-                return
-            } catch (e) {
-                console.warn('Failed to parse saved widget layout', e)
-            }
-        }
-
         setLayoutState(buildDefaultState(activeDefinitions))
-    }, [activeDefinitions, definitionsMap, selectedLayoutId])
+    }, [activeDefinitions])
 
     useEffect(() => {
         if (typeof window === 'undefined') return
@@ -426,25 +319,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }, [breakpoints, layoutSource.layoutByBreakpoint])
 
     useEffect(() => {
-        if (typeof window === 'undefined' || !selectedLayoutId) return
-        try {
-            const payload = buildStoragePayload(layoutState)
-            const nextPersisted = {
-                ...persistedLayoutsRef.current,
-                selectedLayoutId,
-                layouts: {
-                    ...persistedLayoutsRef.current.layouts,
-                    [selectedLayoutId]: payload,
-                },
-            }
-            persistedLayoutsRef.current = nextPersisted
-
-            window.localStorage.setItem(storageKey, JSON.stringify(nextPersisted))
-            onLayoutPersist?.(layoutState)
-        } catch {
-            // ignore storage failures
-        }
-    }, [layoutState, onLayoutPersist, selectedLayoutId, storageKey])
+        onLayoutPersist?.(layoutState)
+    }, [layoutState, onLayoutPersist])
 
     const hideItem = useCallback(
         (id: string) => {

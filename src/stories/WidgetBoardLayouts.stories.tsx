@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react'
 import { Box, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react'
-import type { WidgetBoardLayoutOption, WidgetDefinition, WidgetLayoutPreset } from '../index'
+import type { WidgetBoardLayoutOption, WidgetBoardState, WidgetDefinition, WidgetLayoutPreset } from '../index'
 import { PneLayoutsPanel, WidgetBoard } from '../index'
 
 const widgets: WidgetDefinition[] = [
@@ -57,7 +57,7 @@ const operationsLayout: WidgetLayoutPreset = {
     },
 }
 
-const layoutOptions: WidgetBoardLayoutOption[] = [
+const initialOptions: WidgetBoardLayoutOption[] = [
     { id: 'analytics', name: 'Analytics focus', preset: analyticsLayout },
     { id: 'operations', name: 'Operations shift', preset: operationsLayout },
 ]
@@ -83,15 +83,71 @@ const WidgetPreview = ({ title, children }: { title: string; children: React.Rea
 )
 
 const BoardWithLayouts = () => {
-    const [selectedLayout, setSelectedLayout] = useState('')
+    const [layoutOptions, setLayoutOptions] = useState<WidgetBoardLayoutOption[]>(initialOptions)
+    const [selectedLayout, setSelectedLayout] = useState(layoutOptions[0]?.id ?? '')
+    const [lastState, setLastState] = useState<WidgetBoardState | null>(null)
+
     const initialLayout = useMemo(
         () => layoutOptions[0]?.preset.layoutByBreakpoint ?? { 12: { columns: 12, widgets: {} } },
-        [],
+        [layoutOptions],
     )
+
+    const stateToPreset = (state: WidgetBoardState | null): WidgetLayoutPreset => {
+        const itemsMap = new Map(state?.items.map(item => [item.id as string, item]))
+        const hiddenSet = new Set(state?.hidden ?? [])
+        const collapsedSet = new Set(state?.collapsed ?? [])
+
+        const widgetsConfig = widgets.reduce<Record<string, any>>((acc, widget) => {
+            const item = itemsMap.get(widget.id)
+            acc[widget.id] = {
+                defaultSize: {
+                    columnSpan: item?.columnSpan ?? 6,
+                    rowSpan: item?.rowSpan ?? 2,
+                    columnOffset: item?.columnOffset,
+                },
+                initialState: {
+                    isHidden: hiddenSet.has(widget.id),
+                    isCollapsed: collapsedSet.has(widget.id),
+                },
+            }
+            return acc
+        }, {})
+
+        return {
+            source: 'static',
+            layoutByBreakpoint: {
+                12: {
+                    columns: 12,
+                    widgets: widgetsConfig,
+                },
+            },
+        }
+    }
+
     const loadUserLayouts = React.useCallback(async () => {
-        await new Promise(resolve => setTimeout(resolve, 300))
-        return { options: layoutOptions, selectedId: layoutOptions[0]?.id }
-    }, [])
+        await new Promise(resolve => setTimeout(resolve, 150))
+        return { options: layoutOptions, selectedId: selectedLayout }
+    }, [layoutOptions, selectedLayout])
+
+    const handleAdd = (name: string) => {
+        const preset = stateToPreset(lastState)
+        const option: WidgetBoardLayoutOption = { id: `${Date.now()}`, name, preset }
+        setLayoutOptions(prev => [...prev, option])
+        setSelectedLayout(option.id)
+    }
+
+    const handleUpdate = (id: string) => {
+        const preset = stateToPreset(lastState)
+        setLayoutOptions(prev => prev.map(option => (option.id === id ? { ...option, preset } : option)))
+    }
+
+    const handleDelete = (id: string) => {
+        setLayoutOptions(prev => {
+            const next = prev.filter(option => option.id !== id)
+            setSelectedLayout(current => (current === id ? next[0]?.id ?? '' : current))
+            return next
+        })
+    }
 
     return (
         <Box sx={{ p: 2 }}>
@@ -101,6 +157,9 @@ const BoardWithLayouts = () => {
                         items={layoutOptions}
                         selectedId={selectedLayout}
                         onSelect={setSelectedLayout}
+                        onAdd={handleAdd}
+                        onUpdate={handleUpdate}
+                        onDelete={handleDelete}
                         title='Layouts'
                     />
                 </Box>
@@ -114,6 +173,7 @@ const BoardWithLayouts = () => {
                             selectedId: selectedLayout,
                             onSelect: setSelectedLayout,
                         }}
+                        onLayoutPersist={setLastState}
                     />
                     <Typography variant='body2' color='text.secondary' sx={{ mt: 1 }}>
                         Selected layout: {selectedLayout || '—'}

@@ -86,7 +86,6 @@ export type WidgetBoardProps = {
     widgets: WidgetDefinition[]
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
     breakpoints?: readonly number[]
-    storageKey?: string
     loadLayouts?: () => Promise<WidgetBoardLoadLayoutsResult | null>
     layouts?: WidgetBoardLayouts
     empty?: React.ReactNode
