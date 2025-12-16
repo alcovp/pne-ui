@@ -10,6 +10,7 @@ import { CloudscapeThemeProvider } from '../cloudscape/CloudscapeThemeProvider'
 import { boardItemI18nStrings, createBoardI18nStrings } from '../cloudscape/boardI18n'
 import { buildPresetFromState } from './layoutPersistence'
 import { setWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
+import { WidgetBoardSkeleton } from './WidgetBoardSkeleton'
 import type {
     BreakpointLayoutConfig,
     WidgetBoardItemData,
@@ -181,6 +182,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const selectedLayoutRef = useRef<string | undefined>(initialOptions[0]?.id)
     const lockedLayoutIdRef = useRef<string | undefined>(defaultOption.id)
     const loadRequestIdRef = useRef(0)
+    const [isLoadingLayouts, setIsLoadingLayouts] = useState(true)
 
     useEffect(() => {
         selectedLayoutRef.current = selectedLayoutId
@@ -224,6 +226,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         let cancelled = false
 
         const requestId = ++loadRequestIdRef.current
+        setIsLoadingLayouts(true)
         loadLayouts()
             .then(result => {
                 if (cancelled || loadRequestIdRef.current !== requestId || !result?.options) return
@@ -248,6 +251,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             })
             .catch(error => {
                 console.warn('Failed to load widget layouts', error)
+            })
+            .finally(() => {
+                if (cancelled || loadRequestIdRef.current !== requestId) return
+                setIsLoadingLayouts(false)
             })
 
         return () => {
@@ -575,7 +582,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }
 
     const boardElement = (
-        <Box>
+        <Box sx={{ display: isLoadingLayouts ? 'none' : 'block' }}>
             <Board<WidgetBoardItemData>
                 items={visibleItems}
                 renderItem={renderItem}
@@ -589,7 +596,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     return (
         <CloudscapeThemeProvider>
             <CloudscapeBoardStyles hideNavigationArrows />
-            {boardElement}
+            <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                {isLoadingLayouts && <WidgetBoardSkeleton />}
+                {boardElement}
+            </Box>
         </CloudscapeThemeProvider>
     )
 })

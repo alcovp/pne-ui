@@ -77,7 +77,7 @@ const WidgetPreview = ({ title, children }: { title: string; children: React.Rea
 
 const BoardWithLayouts = () => {
     const loadLayouts = React.useCallback(async () => {
-        await new Promise(resolve => setTimeout(resolve, 150))
+        await new Promise(resolve => setTimeout(resolve, 2000))
         return {
             options: [
                 { id: 'default', name: 'Analytics focus', layoutByBreakpoint: analyticsLayout.layoutByBreakpoint },
