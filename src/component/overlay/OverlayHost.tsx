@@ -1,38 +1,66 @@
-import React, { useMemo } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import { Alert, Snackbar, type SnackbarOrigin } from '@mui/material'
-import { DEFAULT_BREAKPOINTS } from '../../common/responsive/breakpoints'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 import { useOverlayStore } from './overlayStore'
-import type { PermanentOverlayRender, PermanentPosition } from './types'
+import type { PermanentOverlayInstance, PermanentOverlaySlot } from './types'
 import { Box } from '@mui/material'
+import { PermanentOverlayContext } from './PermanentOverlayContext'
 
-type PneOverlayHostProps = {
+type OverlayHostProps = {
     anchorOrigin?: SnackbarOrigin
     maxSnack?: number
-    breakpoints?: readonly number[]
-    renderPermanent?: PermanentOverlayRender
-    permanent?: React.ReactNode
-    permanentPosition?: PermanentPosition
+    children?: React.ReactNode
 }
 
 const STACK_GAP = 12
 const STACK_OFFSET = 24
+const PERMANENT_OFFSET = 24
 
 /**
  * Renders overlay elements (currently snackbars) driven by the shared overlay store.
  * Mount this once near the root of the app and trigger notifications via `overlayActions`.
+ * Permanent overlays are registered declaratively via `<PermanentOverlay />` components.
  */
-export function PneOverlayHost({
+export function OverlayHost({
     anchorOrigin = { vertical: 'bottom', horizontal: 'left' },
     maxSnack = 10,
-    breakpoints = DEFAULT_BREAKPOINTS,
-    renderPermanent,
-    permanent,
-    permanentPosition,
-}: PneOverlayHostProps) {
+    children,
+}: OverlayHostProps) {
     const snackbars = useOverlayStore(state => state.snackbars)
     const removeSnackbar = useOverlayStore(state => state.removeSnackbar)
-    const breakpoint = useBreakpoint({ breakpoints })
+    const breakpoint = useBreakpoint()
+
+    const [permanentOverlays, setPermanentOverlays] = useState<Map<PermanentOverlaySlot, PermanentOverlayInstance>>(
+        () => new Map(),
+    )
+
+    const registerPermanentOverlay = useCallback((overlay: PermanentOverlayInstance) => {
+        setPermanentOverlays(prev => {
+            const next = new Map(prev)
+            next.set(overlay.slot, overlay)
+            return next
+        })
+    }, [])
+
+    const unregisterPermanentOverlay = useCallback((id: string, slot?: PermanentOverlaySlot) => {
+        setPermanentOverlays(prev => {
+            const next = new Map(prev)
+            if (slot) {
+                const current = next.get(slot)
+                if (current?.id === id) next.delete(slot)
+            } else {
+                for (const [key, value] of next.entries()) {
+                    if (value.id === id) next.delete(key)
+                }
+            }
+            return next
+        })
+    }, [])
+
+    const contextValue = useMemo(
+        () => ({ register: registerPermanentOverlay, unregister: unregisterPermanentOverlay }),
+        [registerPermanentOverlay, unregisterPermanentOverlay],
+    )
 
     const visibleSnackbars = useMemo(() => {
         if (typeof maxSnack === 'number' && maxSnack > 0 && snackbars.length > maxSnack) {
@@ -57,10 +85,35 @@ export function PneOverlayHost({
         return groups
     }, [anchorOrigin, visibleSnackbars])
 
-    const permanentContent = renderPermanent?.({ breakpoint }) ?? permanent ?? null
+    const permanentContent = useMemo(() => {
+        const entries = Array.from(permanentOverlays.values())
+        return entries
+            .map(entry => {
+                const content = entry.render({ breakpoint })
+                if (!content) return null
+                const offset = entry.offset ?? PERMANENT_OFFSET
+                const vertical = entry.slot.startsWith('top') ? 'top' : 'bottom'
+                const horizontal = entry.slot.endsWith('left') ? 'left' : 'right'
+                return (
+                    <Box
+                        key={entry.slot}
+                        sx={{
+                            position: 'fixed',
+                            zIndex: entry.zIndex ?? 1300,
+                            [vertical]: offset,
+                            [horizontal]: offset,
+                        }}
+                    >
+                        {content}
+                    </Box>
+                )
+            })
+            .filter(Boolean)
+    }, [breakpoint, permanentOverlays])
 
     return (
-        <>
+        <PermanentOverlayContext.Provider value={contextValue}>
+            {children}
             {groupedSnackbars.map(group => {
                 const { anchor, items } = group
                 const horizontalStyles =
@@ -114,24 +167,9 @@ export function PneOverlayHost({
                     </Box>
                 )
             })}
-            {permanentContent
-                ? permanentPosition
-                    ? (
-                        <Box
-                            sx={{
-                                position: 'fixed',
-                                zIndex: permanentPosition.zIndex ?? 1300,
-                                [permanentPosition.vertical ?? 'bottom']: permanentPosition.offset ?? 24,
-                                [permanentPosition.horizontal ?? 'right']: permanentPosition.offset ?? 24,
-                            }}
-                        >
-                            {permanentContent}
-                        </Box>
-                    )
-                    : permanentContent
-                : null}
-        </>
+            {permanentContent}
+        </PermanentOverlayContext.Provider>
     )
 }
 
-export default PneOverlayHost
+export default OverlayHost

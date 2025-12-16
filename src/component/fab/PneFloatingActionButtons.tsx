@@ -95,7 +95,8 @@ export function PneFloatingActionButtons({
             ) : null,
         )
 
-    const menuItems = isMobile ? actions : actions.filter(item => !isActionItem(item))
+    // Desktop: keep actions both in the floating stack and inside the menu
+    const menuItems = actions
     const actionItems = isMobile ? [] : actions.filter(isActionItem)
 
     return (

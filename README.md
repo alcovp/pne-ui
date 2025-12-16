@@ -279,6 +279,87 @@ export const Dashboard = () => (
 `WidgetBoard` сам обновляет выбранный лейаут, следит за состоянием виджетов и при изменениях дергает `saveLayouts`
 с актуальным набором опций.
 
+## OverlayHost и уведомления
+
+`OverlayHost` рендерит snackbars из `overlayActions` и принимает декларативные постоянные оверлеи через `PermanentOverlay`
+(по одному на слот: `top-left/top-right/bottom-left/bottom-right`).
+```tsx
+import React from 'react'
+import { OverlayHost, PermanentOverlay, PneFloatingActionButtons, overlayActions } from 'pne-ui'
+
+const AppShell = () => (
+    <OverlayHost>
+        <PermanentOverlay
+            id='page-fab'
+            slot='bottom-right'
+            render={() => (
+                <PneFloatingActionButtons
+                    actions={[
+                        {
+                            id: 'save',
+                            label: 'Save',
+                            onClick: () => overlayActions.showSuccess({ message: 'Saved!' }),
+                        },
+                        { id: 'divider', kind: 'divider' },
+                        {
+                            id: 'info',
+                            label: 'Info',
+                            onClick: () => overlayActions.showInfo({ message: 'Something happened' }),
+                        },
+                    ]}
+                />
+            )}
+        />
+        {/* ваш layout, роутер, модалки и т.д. */}
+    </OverlayHost>
+)
+```
+
+- Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo` или `showSnackbar`.
+- `PermanentOverlay` можно размещать на любом уровне дерева под хостом; последний зарегистрированный в слоте заменяет предыдущий.
+- Слоты фиксированы четырьмя углами; сместить позицию можно через `offset`/`zIndex` пропы на `PermanentOverlay`.
+
+## PneFloatingActionButtons
+
+Плавающее меню действий: на десктопе показывает стек FAB над триггером и параллельно меню, на мобильных все пункты уходят
+в меню. Поддерживает экшены, произвольные блоки контента и разделители. По умолчанию мобильным считается ширина `<= 800px`
+(`mobileBreakpoint`), на десктопе action-кнопки остаются доступны и в меню, и в стеке.
+
+Ключевые пропы:
+- `actions: PneFabItem[]` — массив элементов: action `{ id, label, onClick, icon?, disabled?, tooltip? }`,
+  divider `{ kind: 'divider' }`, content `{ kind: 'content', node }`.
+- `mobileBreakpoint` (default `800`) — ширина, ниже которой показываем только меню.
+- `position` (`{ bottom?: number; right?: number }`) — смещение от края.
+- `fabLabel`/`fabIcon` — подпись и иконка триггера.
+- `bannerText` — необязательный блок внизу меню.
+
+Минимальный пример:
+
+```tsx
+import { PneFloatingActionButtons, overlayActions } from 'pne-ui'
+
+const actions = [
+    { id: 'reset', label: 'Reset layout', onClick: () => overlayActions.showInfo({ message: 'Reset' }) },
+    { id: 'save', label: 'Save', onClick: () => overlayActions.showSuccess({ message: 'Saved' }) },
+    { id: 'divider', kind: 'divider' as const },
+    { id: 'custom', kind: 'content' as const, node: <div style={{ padding: 8 }}>Any JSX here</div> },
+]
+
+export const FabDemo = () => (
+    <PneFloatingActionButtons
+        actions={actions}
+        fabLabel='Actions'
+        bannerText='Edit widgets'
+        position={{ bottom: 24, right: 24 }}
+        mobileBreakpoint={900} // считать мобильным до 900px, иначе поведение как на десктопе
+    />
+)
+```
+
+Поведение по размерам:
+- Ширина > `mobileBreakpoint`: стек FAB над триггером + меню (все action-пункты дублируются в меню).
+- Ширина <= `mobileBreakpoint`: только триггер + меню, стек FAB скрыт.
+
 [npm-url]: https://www.npmjs.com/package/pne-ui
 
 [npm-image]: https://img.shields.io/npm/v/pne-ui

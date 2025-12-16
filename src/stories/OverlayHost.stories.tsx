@@ -2,7 +2,7 @@ import React from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { Box, Stack } from '@mui/material'
-import { DEFAULT_BREAKPOINTS, PneFloatingActionButtons, PneOverlayHost, overlayActions } from '../index'
+import { PneFloatingActionButtons, OverlayHost, PermanentOverlay, overlayActions } from '../index'
 import type { Meta, StoryObj } from '@storybook/react'
 
 const OverlayDemo = () => {
@@ -23,11 +23,13 @@ const OverlayDemo = () => {
 
     return (
         <Box sx={{ minHeight: 260, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-            <PneOverlayHost
-                breakpoints={DEFAULT_BREAKPOINTS}
-                renderPermanent={() => <PneFloatingActionButtons actions={fabActions} breakpoints={DEFAULT_BREAKPOINTS} />}
-                permanentPosition={{ vertical: 'bottom', horizontal: 'right', offset: 24 }}
-            />
+            <OverlayHost>
+                <PermanentOverlay
+                    id='fab'
+                    slot='bottom-right'
+                    render={() => <PneFloatingActionButtons actions={fabActions} />}
+                />
+            </OverlayHost>
             <Stack direction='row' spacing={2}>
                 <button onClick={() => overlayActions.showError({ message: 'Something went wrong' })}>Show error</button>
                 <button onClick={() => overlayActions.showSuccess({ message: 'Saved successfully' })}>Show success</button>
@@ -37,7 +39,7 @@ const OverlayDemo = () => {
 }
 
 export default {
-    title: 'pne-ui/PneOverlayHost',
+    title: 'pne-ui/OverlayHost',
     component: OverlayDemo,
     tags: ['autodocs'],
 } satisfies Meta<typeof OverlayDemo>
