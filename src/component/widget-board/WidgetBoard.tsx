@@ -243,6 +243,19 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     nextSelected = nextOptions[0]?.id
                 }
 
+                const nextOptionsMap = new Map(nextOptions.map(option => [option.id, option]))
+                const nextLayoutSource = nextOptionsMap.get(nextSelected ?? '')?.layoutByBreakpoint ?? defaultOption.layoutByBreakpoint
+                const nextBreakpoints = Object.keys(nextLayoutSource)
+                    .map(Number)
+                    .sort((a, b) => a - b)
+                const nextPreset = getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, nextLayoutSource, nextBreakpoints)
+                const fallbackForNext = nextLayoutSource[nextBreakpoints[0]] ?? Object.values(nextLayoutSource)[0] ?? { columns: 12, widgets: {} }
+                const nextDefinitions = withLayout(widgets, nextPreset.layout ?? fallbackForNext)
+
+                setLayoutSource(prev => (prev === nextLayoutSource ? prev : nextLayoutSource))
+                setLayoutPreset(nextPreset)
+                setLayoutState(buildDefaultState(nextDefinitions))
+
                 if (nextSelected && nextSelected !== currentSelected) {
                     setSelectedLayoutId(nextSelected)
                 } else if (!currentSelected && nextSelected) {
@@ -582,23 +595,20 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }
 
     const boardElement = (
-        <Box sx={{ display: isLoadingLayouts ? 'none' : 'block' }}>
-            <Board<WidgetBoardItemData>
-                items={visibleItems}
-                renderItem={renderItem}
-                i18nStrings={boardI18nStrings}
-                onItemsChange={handleItemsChange}
-                empty={<Box sx={{ p: 2, color: 'text.secondary' }}>No widgets available</Box>}
-            />
-        </Box>
+        <Board<WidgetBoardItemData>
+            items={visibleItems}
+            renderItem={renderItem}
+            i18nStrings={boardI18nStrings}
+            onItemsChange={handleItemsChange}
+            empty={<Box sx={{ p: 2, color: 'text.secondary' }}>No widgets available</Box>}
+        />
     )
 
     return (
         <CloudscapeThemeProvider>
             <CloudscapeBoardStyles hideNavigationArrows />
             <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {isLoadingLayouts && <WidgetBoardSkeleton />}
-                {boardElement}
+                {isLoadingLayouts ? <WidgetBoardSkeleton /> : boardElement}
             </Box>
         </CloudscapeThemeProvider>
     )
