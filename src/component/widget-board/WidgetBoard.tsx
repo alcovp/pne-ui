@@ -8,6 +8,8 @@ import { Box, IconButton, Stack, Typography } from '@mui/material'
 import { CloudscapeBoardStyles } from '../cloudscape/CloudscapeBoardStyles'
 import { CloudscapeThemeProvider } from '../cloudscape/CloudscapeThemeProvider'
 import { boardItemI18nStrings, createBoardI18nStrings } from '../cloudscape/boardI18n'
+import { buildPresetFromState } from './layoutPersistence'
+import { setWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
 import type {
     BreakpointLayoutConfig,
     WidgetBoardItemData,
@@ -18,7 +20,6 @@ import type {
     WidgetLayoutConfig,
     WidgetLayoutMemory,
     WidgetLayoutSnapshot,
-    WidgetLayoutPreset,
 } from './types'
 
 export type WidgetBoardHandle = {
@@ -29,6 +30,12 @@ export type WidgetBoardHandle = {
 type WidgetDefinitionWithLayout = WidgetDefinition & { layout: WidgetLayoutConfig }
 
 const fallbackLayout: WidgetLayoutConfig = { defaultSize: { columnSpan: 1, rowSpan: 2 } }
+const createLayoutId = () => {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+        return crypto.randomUUID()
+    }
+    return `layout-${Date.now()}`
+}
 
 const withLayout = (definitions: WidgetDefinition[], layout: BreakpointLayoutConfig): WidgetDefinitionWithLayout[] =>
     definitions.map(definition => ({
@@ -134,193 +141,226 @@ const getLayoutConfigForWidth = (width: number | undefined, layoutMap: Record<nu
 
 const buildLayoutOptions = (
     options: WidgetBoardLayoutOption[] | undefined,
-    layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
+    fallback: WidgetBoardLayoutOption,
 ): WidgetBoardLayoutOption[] => {
     if (options?.length) {
         return options.map(option => ({
             ...option,
-            preset: option.preset ?? {
-                layoutByBreakpoint,
-                source: 'static' as const,
-            },
+            layoutByBreakpoint: option.layoutByBreakpoint ?? fallback.layoutByBreakpoint,
         }))
     }
 
-    return [
-        {
-            id: 'default',
-            name: 'Default layout',
-            preset: {
-                layoutByBreakpoint,
-                source: 'static' as const,
-            },
-        },
-    ]
+    return [fallback]
 }
 
 const layoutOptionsEqual = (a: WidgetBoardLayoutOption[], b: WidgetBoardLayoutOption[]) =>
-    a.length === b.length && a.every((option, index) => option.id === b[index]?.id && option.name === b[index]?.name && option.preset === b[index]?.preset)
+    a.length === b.length &&
+    a.every((option, index) => option.id === b[index]?.id && option.name === b[index]?.name && option.layoutByBreakpoint === b[index]?.layoutByBreakpoint)
 
 export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(function WidgetBoard(
     {
         widgets,
         layoutByBreakpoint,
-        breakpoints: customBreakpoints,
         loadLayouts,
-        layouts,
-        empty,
-        hideNavigationArrows = true,
-        onLayoutPersist,
-        isWidgetEnabled,
-        className,
+        saveLayouts,
     },
     ref,
 ) {
-    const [layoutOptions, setLayoutOptions] = useState<WidgetBoardLayoutOption[]>(() => buildLayoutOptions(layouts?.options, layoutByBreakpoint))
-
-    useEffect(() => {
-        if (loadLayouts) return
-        const nextOptions = buildLayoutOptions(layouts?.options, layoutByBreakpoint)
-        setLayoutOptions(prev => (layoutOptionsEqual(prev, nextOptions) ? prev : nextOptions))
-    }, [layoutByBreakpoint, layouts?.options, loadLayouts])
-
-    const layoutOptionsMap = useMemo(() => new Map(layoutOptions.map(option => [option.id, option])), [layoutOptions])
-
-    const initialLayoutId = useMemo(() => {
-        const fromLayouts = layouts?.selectedId
-        if (fromLayouts && layoutOptionsMap.has(fromLayouts)) return fromLayouts
-        if (layouts?.initialSelectedId && layoutOptionsMap.has(layouts.initialSelectedId)) return layouts.initialSelectedId
-        return layoutOptions[0]?.id
-    }, [layoutOptions, layoutOptionsMap, layouts?.initialSelectedId, layouts?.selectedId])
-
-    const [layoutSource, setLayoutSource] = useState<WidgetLayoutPreset>(() => ({
-        ...(layoutOptionsMap.get(initialLayoutId ?? '')?.preset ?? { layoutByBreakpoint, source: 'static' as const }),
-    }))
-
-    const breakpoints = useMemo(
-        () => customBreakpoints ?? Object.keys(layoutSource.layoutByBreakpoint).map(Number).sort((a, b) => a - b),
-        [customBreakpoints, layoutSource.layoutByBreakpoint],
+    const defaultOption = useMemo<WidgetBoardLayoutOption>(
+        () => ({
+            id: 'default',
+            name: 'Default layout',
+            layoutByBreakpoint,
+        }),
+        [layoutByBreakpoint],
     )
 
-    const [layoutPreset, setLayoutPreset] = useState(() =>
-        getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource.layoutByBreakpoint, breakpoints),
-    )
-
-    useEffect(() => {
-        setLayoutPreset(getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource.layoutByBreakpoint, breakpoints))
-    }, [breakpoints, layoutSource.layoutByBreakpoint])
-
-    const currentBreakpointKey = useMemo(
-        () => String(layoutPreset.breakpoint ?? breakpoints[0]),
-        [breakpoints, layoutPreset.breakpoint],
-    )
-
-    const [selectedLayoutId, setSelectedLayoutId] = useState(initialLayoutId)
-    const selectedLayoutRef = useRef<string | undefined>(initialLayoutId)
+    const initialOptions = useMemo(() => buildLayoutOptions(undefined, defaultOption), [defaultOption])
+    const [layoutOptions, setLayoutOptions] = useState<WidgetBoardLayoutOption[]>(initialOptions)
+    const [selectedLayoutId, setSelectedLayoutId] = useState<string | undefined>(initialOptions[0]?.id)
+    const selectedLayoutRef = useRef<string | undefined>(initialOptions[0]?.id)
+    const lockedLayoutIdRef = useRef<string | undefined>(defaultOption.id)
+    const loadRequestIdRef = useRef(0)
 
     useEffect(() => {
         selectedLayoutRef.current = selectedLayoutId
     }, [selectedLayoutId])
+
+    const layoutOptionsMap = useMemo(() => new Map(layoutOptions.map(option => [option.id, option])), [layoutOptions])
 
     useEffect(() => {
         if (!selectedLayoutId || layoutOptionsMap.has(selectedLayoutId)) return
         const fallbackId = layoutOptions[0]?.id
         if (fallbackId && fallbackId !== selectedLayoutId) {
             setSelectedLayoutId(fallbackId)
-            layouts?.onSelect?.(fallbackId)
         }
-    }, [layoutOptions, layoutOptionsMap, layouts?.onSelect, selectedLayoutId])
+    }, [layoutOptions, layoutOptionsMap, selectedLayoutId])
+
+    const [layoutSource, setLayoutSource] = useState<Record<number | string, BreakpointLayoutConfig>>(
+        () => layoutOptionsMap.get(selectedLayoutId ?? '')?.layoutByBreakpoint ?? defaultOption.layoutByBreakpoint,
+    )
+
+    const breakpoints = useMemo(() => Object.keys(layoutSource).map(Number).sort((a, b) => a - b), [layoutSource])
+
+    const [layoutPreset, setLayoutPreset] = useState(() =>
+        getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource, breakpoints),
+    )
 
     useEffect(() => {
-        const externalSelected = layouts?.selectedId
-        if (!externalSelected) return
-        if (!layoutOptionsMap.has(externalSelected)) return
-        if (externalSelected !== selectedLayoutId) {
-            setSelectedLayoutId(externalSelected)
-        }
-    }, [layoutOptionsMap, layouts?.selectedId, selectedLayoutId])
+        setLayoutPreset(getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource, breakpoints))
+    }, [breakpoints, layoutSource])
+
+    const currentBreakpointKey = useMemo(
+        () => String(layoutPreset.breakpoint ?? breakpoints[0]),
+        [breakpoints, layoutPreset.breakpoint],
+    )
 
     useEffect(() => {
-        if (!selectedLayoutId || !layouts?.onSelect) return
-        if (layouts.selectedId === selectedLayoutId) return
-        layouts.onSelect(selectedLayoutId)
-    }, [layouts?.onSelect, layouts?.selectedId, selectedLayoutId])
-
-    useEffect(() => {
-        const nextSource = layoutOptionsMap.get(selectedLayoutId ?? '')?.preset ?? {
-            layoutByBreakpoint,
-            source: 'static' as const,
-        }
+        const nextSource = layoutOptionsMap.get(selectedLayoutId ?? '')?.layoutByBreakpoint ?? defaultOption.layoutByBreakpoint
         setLayoutSource(prev => (prev === nextSource ? prev : nextSource))
-    }, [layoutByBreakpoint, layoutOptionsMap, selectedLayoutId])
+    }, [defaultOption.layoutByBreakpoint, layoutOptionsMap, selectedLayoutId])
 
     useEffect(() => {
         let cancelled = false
-        if (!loadLayouts) return undefined
 
-        loadLayouts().then(result => {
-            if (cancelled || !result?.options) return
-            const nextOptions = buildLayoutOptions(result.options, layoutByBreakpoint)
-            setLayoutOptions(prev => (layoutOptionsEqual(prev, nextOptions) ? prev : nextOptions))
+        const requestId = ++loadRequestIdRef.current
+        loadLayouts()
+            .then(result => {
+                if (cancelled || loadRequestIdRef.current !== requestId || !result?.options) return
+                const nextOptions = buildLayoutOptions(result.options, defaultOption)
+                setLayoutOptions(prev => (layoutOptionsEqual(prev, nextOptions) ? prev : nextOptions))
+                lockedLayoutIdRef.current = defaultOption.id
 
-            const currentSelected = selectedLayoutRef.current
-            let nextSelected = currentSelected && nextOptions.some(option => option.id === currentSelected) ? currentSelected : undefined
+                const currentSelected = selectedLayoutRef.current
+                let nextSelected = currentSelected && nextOptions.some(option => option.id === currentSelected) ? currentSelected : undefined
 
-            if (result.selectedId && nextOptions.some(option => option.id === result.selectedId)) {
-                nextSelected = result.selectedId
-            } else if (!nextSelected) {
-                nextSelected = nextOptions[0]?.id
-            }
+                if (result.selectedId && nextOptions.some(option => option.id === result.selectedId)) {
+                    nextSelected = result.selectedId
+                } else if (!nextSelected) {
+                    nextSelected = nextOptions[0]?.id
+                }
 
-            if (nextSelected && nextSelected !== currentSelected) {
-                setSelectedLayoutId(nextSelected)
-                layouts?.onSelect?.(nextSelected)
-            } else if (!currentSelected && nextSelected) {
-                setSelectedLayoutId(nextSelected)
-            }
-        })
+                if (nextSelected && nextSelected !== currentSelected) {
+                    setSelectedLayoutId(nextSelected)
+                } else if (!currentSelected && nextSelected) {
+                    setSelectedLayoutId(nextSelected)
+                }
+            })
+            .catch(error => {
+                console.warn('Failed to load widget layouts', error)
+            })
 
         return () => {
             cancelled = true
         }
-    }, [layoutByBreakpoint, loadLayouts, layouts?.onSelect])
+    }, [defaultOption, loadLayouts])
 
     const fallbackLayoutConfig = useMemo(() => {
         const firstKey = breakpoints[0]
-        return layoutSource.layoutByBreakpoint[firstKey] ?? Object.values(layoutSource.layoutByBreakpoint)[0]
-    }, [breakpoints, layoutSource.layoutByBreakpoint])
+        return layoutSource[firstKey] ?? Object.values(layoutSource)[0]
+    }, [breakpoints, layoutSource])
 
     const definitionsWithLayout = useMemo(
         () => withLayout(widgets, layoutPreset.layout ?? fallbackLayoutConfig ?? { columns: 12, widgets: {} }),
         [fallbackLayoutConfig, layoutPreset.layout, widgets],
     )
 
-    const activeDefinitions = useMemo(
-        () => definitionsWithLayout.filter(def => (isWidgetEnabled ? isWidgetEnabled(def) : true)),
-        [definitionsWithLayout, isWidgetEnabled],
-    )
-
     const definitionsMap = useMemo(
-        () => new Map<string, WidgetDefinitionWithLayout>(activeDefinitions.map(def => [def.id, def])),
-        [activeDefinitions],
+        () => new Map<string, WidgetDefinitionWithLayout>(definitionsWithLayout.map(def => [def.id, def])),
+        [definitionsWithLayout],
     )
 
-    const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(activeDefinitions))
+    const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(definitionsWithLayout))
 
     useEffect(() => {
-        setLayoutState(buildDefaultState(activeDefinitions))
-    }, [activeDefinitions])
+        setLayoutState(buildDefaultState(definitionsWithLayout))
+    }, [definitionsWithLayout])
 
     useEffect(() => {
         if (typeof window === 'undefined') return
-        const handleResize = () => setLayoutPreset(getLayoutConfigForWidth(window.innerWidth, layoutSource.layoutByBreakpoint, breakpoints))
+        const handleResize = () => setLayoutPreset(getLayoutConfigForWidth(window.innerWidth, layoutSource, breakpoints))
         window.addEventListener('resize', handleResize)
         return () => window.removeEventListener('resize', handleResize)
-    }, [breakpoints, layoutSource.layoutByBreakpoint])
+    }, [breakpoints, layoutSource])
+
+    const ensureSelected = useCallback(
+        (options: WidgetBoardLayoutOption[], candidate?: string) => {
+            if (candidate && options.some(option => option.id === candidate)) return candidate
+            return options[0]?.id
+        },
+        [],
+    )
+
+    const buildCurrentPreset = useCallback(
+        () => buildPresetFromState(layoutState, layoutSource, breakpoints),
+        [breakpoints, layoutSource, layoutState],
+    )
+
+    const selectLayout = useCallback(
+        (id: string) => {
+            if (!id || id === selectedLayoutId || !layoutOptionsMap.has(id)) return
+            setSelectedLayoutId(id)
+            saveLayouts(layoutOptions, id)
+        },
+        [layoutOptions, layoutOptionsMap, saveLayouts, selectedLayoutId],
+    )
+
+    const addLayout = useCallback(
+        (name: string) => {
+            const layoutByBreakpoint = buildCurrentPreset()
+            const option: WidgetBoardLayoutOption = {
+                id: createLayoutId(),
+                name: name.trim() || 'Custom layout',
+                layoutByBreakpoint,
+            }
+            const nextOptions = [...layoutOptions, option]
+            setLayoutOptions(nextOptions)
+            setSelectedLayoutId(option.id)
+            saveLayouts(nextOptions, option.id)
+        },
+        [buildCurrentPreset, layoutOptions, saveLayouts],
+    )
+
+    const updateLayout = useCallback(
+        (id: string) => {
+            if (!layoutOptionsMap.has(id)) return
+            if (lockedLayoutIdRef.current && id === lockedLayoutIdRef.current) return
+            const layoutByBreakpoint = buildCurrentPreset()
+            const nextOptions = layoutOptions.map(option => (option.id === id ? { ...option, layoutByBreakpoint } : option))
+            setLayoutOptions(nextOptions)
+            saveLayouts(nextOptions, selectedLayoutId)
+        },
+        [buildCurrentPreset, layoutOptions, layoutOptionsMap, saveLayouts, selectedLayoutId],
+    )
+
+    const deleteLayout = useCallback(
+        (id: string) => {
+            if (!layoutOptionsMap.has(id)) return
+            if (lockedLayoutIdRef.current && id === lockedLayoutIdRef.current) return
+            const nextOptions = layoutOptions.filter(option => option.id !== id)
+            const nextSelected = id === selectedLayoutId ? ensureSelected(nextOptions) : selectedLayoutId
+            setLayoutOptions(nextOptions)
+            setSelectedLayoutId(nextSelected)
+            saveLayouts(nextOptions, nextSelected)
+        },
+        [ensureSelected, layoutOptions, layoutOptionsMap, saveLayouts, selectedLayoutId],
+    )
 
     useEffect(() => {
-        onLayoutPersist?.(layoutState)
-    }, [layoutState, onLayoutPersist])
+        const panelProps = {
+            items: layoutOptions,
+            selectedId: selectedLayoutId,
+            onSelect: selectLayout,
+            onAdd: addLayout,
+            onUpdate: updateLayout,
+            onDelete: deleteLayout,
+            lockedIds: lockedLayoutIdRef.current ? [lockedLayoutIdRef.current] : [],
+        }
+        setWidgetLayoutsPanelBridge(panelProps)
+        return () => {
+            setWidgetLayoutsPanelBridge(null)
+        }
+    }, [addLayout, deleteLayout, layoutOptions, selectLayout, selectedLayoutId, updateLayout])
 
     const hideItem = useCallback(
         (id: string) => {
@@ -375,7 +415,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         [currentBreakpointKey, definitionsMap],
     )
 
-    const resetLayout = useCallback(() => setLayoutState(buildDefaultState(activeDefinitions)), [activeDefinitions])
+    const resetLayout = useCallback(() => setLayoutState(buildDefaultState(definitionsWithLayout)), [definitionsWithLayout])
 
     const handleItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange'] = ({ detail }) => {
         setLayoutState(prev => ({
@@ -534,18 +574,22 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         )
     }
 
+    const boardElement = (
+        <Box>
+            <Board<WidgetBoardItemData>
+                items={visibleItems}
+                renderItem={renderItem}
+                i18nStrings={boardI18nStrings}
+                onItemsChange={handleItemsChange}
+                empty={<Box sx={{ p: 2, color: 'text.secondary' }}>No widgets available</Box>}
+            />
+        </Box>
+    )
+
     return (
         <CloudscapeThemeProvider>
-            <CloudscapeBoardStyles hideNavigationArrows={hideNavigationArrows} />
-            <Box className={className}>
-                <Board<WidgetBoardItemData>
-                    items={visibleItems}
-                    renderItem={renderItem}
-                    i18nStrings={boardI18nStrings}
-                    onItemsChange={handleItemsChange}
-                    empty={empty ?? <Box sx={{ p: 2, color: 'text.secondary' }}>No widgets available</Box>}
-                />
-            </Box>
+            <CloudscapeBoardStyles hideNavigationArrows />
+            {boardElement}
         </CloudscapeThemeProvider>
     )
 })

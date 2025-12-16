@@ -164,6 +164,121 @@ export const App = () => (
 тему MUI (тип `ThemeOptions`). Обёрнутые компоненты получают как базовые цвета skin, так и кастомные
 color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), объявленные в `src/index.ts`.
 
+## WidgetBoard и работа с лейаутами
+
+`WidgetBoard` — дашборд с драгабл-виджетами и встраиваемой панелью лейаутов. Компонент инкапсулирует состояние:
+выбор лейаута, CRUD кастомных схем и сохранение/загрузку лежат внутри `WidgetBoard`; снаружи достаточно передать
+источники данных. Панель (`WidgetLayoutsPanel`) автоматически подключается к борду (по умолчанию без пропсов).
+
+Основные пропсы:
+- `widgets`: список `{ id, title, render }` — содержимое виджетов.
+- `layoutByBreakpoint`: базовый пресет для дефолтного лейаута.
+- `loadLayouts(): Promise<{ options; selectedId? } | null>`: обязательная функция загрузки пользовательских схем (вызывается при маунте). Верните хотя бы дефолтный пресет, если удаленное хранилище пустое.
+- `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (дергается после add/update/delete).
+
+Панель `WidgetLayoutsPanel` — отдельный компонент, который слушает активный `WidgetBoard` без пропсов. Можно размещать в любом месте дерева (включая FAB) или передать свои `items/onSelect/...` при необходимости.
+
+### Структура данных для лейаутов
+
+`loadLayouts` и `saveLayouts` работают с массивом `WidgetBoardLayoutOption`:
+
+- `id: string`: уникальный идентификатор лейаута (можно `uuid` или любое значение бэка).
+- `name: string`: отображаемое имя пресета.
+- `layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>`: карта брейкпоинтов (ключ — число или строка, обычно `12`, `1280`, `1600` и т.д.).
+  - `BreakpointLayoutConfig`: `{ columns: number; widgets: Record<widgetId, WidgetLayoutConfig> }`.
+  - `WidgetLayoutConfig`: `{ defaultSize: { columnSpan; rowSpan; columnOffset? }; limits?; initialState? }`.
+    - `initialState` поддерживает `isHidden` и `isCollapsed`.
+
+Формат функции `loadLayouts`:
+
+```ts
+type LoadLayoutsResult = {
+    options: WidgetBoardLayoutOption[]
+    selectedId?: string // id активного лейаута, если его нет в options — упадет на первый элемент
+} | null
+```
+
+`saveLayouts` получает тот же `options` (уже с последними изменениями) и `selectedId`. При необходимости можно сохранить в API в виде:
+
+```ts
+type PersistedLayout = {
+    id: string
+    name?: string
+    layoutByBreakpoint: Record<number | string, { columns?: number; widgets?: Record<string, {
+        columnSpan?: number
+        rowSpan?: number
+        columnOffset?: number
+        isHidden?: boolean
+        isCollapsed?: boolean
+    }> }>
+}
+
+type PersistedPayload = {
+    layouts: PersistedLayout[]
+    selectedLayoutId?: string
+}
+```
+
+Это соответствует формату, который использует хелпер `buildLayoutSettingsPayload` в `src/component/widget-board/layoutPersistence.ts`.
+
+### Пример использования
+
+```tsx
+import { Box, Stack } from '@mui/material'
+import { WidgetBoard, WidgetLayoutsPanel, type WidgetDefinition, type WidgetBoardLayoutOption } from 'pne-ui'
+
+const widgets: WidgetDefinition[] = [
+    { id: 'traffic', title: 'Traffic', render: () => <div>Traffic content</div> },
+    { id: 'sales', title: 'Sales', render: () => <div>Sales content</div> },
+]
+
+const baseLayoutByBreakpoint = {
+    12: {
+        columns: 12,
+        widgets: {
+            traffic: { defaultSize: { columnSpan: 6, rowSpan: 2 } },
+            sales: { defaultSize: { columnSpan: 6, rowSpan: 2 } },
+        },
+    },
+}
+
+// Загрузка/сохранение пресетов
+const loadLayouts = async (): Promise<{ options: WidgetBoardLayoutOption[]; selectedId?: string }> => {
+    const response = await api.getUserLayouts() // верните { options, selectedId }
+    // Если API пустой, вернем дефолтный пресет
+    return (
+        response ?? {
+            options: [{ id: 'default', name: 'Default', layoutByBreakpoint: baseLayoutByBreakpoint }],
+            selectedId: 'default',
+        }
+    )
+}
+const saveLayouts = async (options: WidgetBoardLayoutOption[], selectedId?: string) => {
+    await api.saveUserLayouts({ options, selectedId })
+}
+
+export const Dashboard = () => (
+    <Box sx={{ p: 2 }}>
+        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'flex-start' }}>
+            <Box sx={{ minWidth: 260 }}>
+                <WidgetLayoutsPanel />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+                <WidgetBoard
+                    widgets={widgets}
+                    layoutByBreakpoint={baseLayoutByBreakpoint}
+                    loadLayouts={loadLayouts}
+                    saveLayouts={saveLayouts}
+                />
+            </Box>
+        </Stack>
+    </Box>
+)
+```
+
+`WidgetBoard` сам обновляет выбранный лейаут, следит за состоянием виджетов и при изменениях дергает `saveLayouts`
+с актуальным набором опций.
+
 [npm-url]: https://www.npmjs.com/package/pne-ui
 
 [npm-image]: https://img.shields.io/npm/v/pne-ui

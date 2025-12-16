@@ -3,13 +3,13 @@ import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import { Box, Typography } from '@mui/material'
-import type { PneFabItem, PneLayoutOption } from '../index'
-import { PneFloatingActionButtons, PneLayoutsPanel } from '../index'
+import type { PneFabItem, WidgetLayoutOption } from '../index'
+import { PneFloatingActionButtons, WidgetLayoutsPanel } from '../index'
 import type { Meta, StoryObj } from '@storybook/react'
 
 const FloatingDemo = () => {
     const [lastAction, setLastAction] = useState('—')
-    const [layouts, setLayouts] = useState<PneLayoutOption[]>([
+    const [layouts, setLayouts] = useState<WidgetLayoutOption[]>([
         { id: 'default', name: 'Default layout' },
         { id: 'analytics', name: 'Analytics' },
         { id: 'compact', name: 'Compact' },
@@ -53,14 +53,7 @@ const FloatingDemo = () => {
             id: 'layouts',
             kind: 'content',
             node: (
-                <PneLayoutsPanel
-                    items={layouts}
-                    selectedId={selectedId}
-                    onSelect={setSelectedId}
-                    onDelete={removeLayout}
-                    onUpdate={updateLayout}
-                    onAdd={addLayout}
-                />
+                <WidgetLayoutsPanel />
             ),
         },
         { id: 'divider-1', kind: 'divider' },

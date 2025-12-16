@@ -1,5 +1,5 @@
 import type { BoardProps } from '@cloudscape-design/board-components/board'
-import type { PneLayoutOption } from './PneLayoutsPanel'
+import type { WidgetLayoutOption } from './WidgetLayoutsPanel'
 
 export type WidgetId = string
 
@@ -39,14 +39,6 @@ export type BreakpointLayoutConfig = {
     widgets: Record<WidgetId, WidgetLayoutConfig>
 }
 
-export type WidgetLayoutPresetSource = 'static' | 'remote-live' | 'remote-cache'
-
-export type WidgetLayoutPreset = {
-    layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
-    source: WidgetLayoutPresetSource
-    version?: string
-}
-
 export type WidgetDefinition = {
     id: WidgetId
     title: string
@@ -66,15 +58,8 @@ export type WidgetBoardState = {
     layoutMemory: WidgetLayoutMemory
 }
 
-export type WidgetBoardLayoutOption = PneLayoutOption & {
-    preset: WidgetLayoutPreset
-}
-
-export type WidgetBoardLayouts = {
-    options?: WidgetBoardLayoutOption[]
-    selectedId?: string
-    initialSelectedId?: string
-    onSelect?: (id: string) => void
+export type WidgetBoardLayoutOption = WidgetLayoutOption & {
+    layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
 }
 
 export type WidgetBoardLoadLayoutsResult = {
@@ -85,12 +70,6 @@ export type WidgetBoardLoadLayoutsResult = {
 export type WidgetBoardProps = {
     widgets: WidgetDefinition[]
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
-    breakpoints?: readonly number[]
-    loadLayouts?: () => Promise<WidgetBoardLoadLayoutsResult | null>
-    layouts?: WidgetBoardLayouts
-    empty?: React.ReactNode
-    hideNavigationArrows?: boolean
-    onLayoutPersist?: (state: WidgetBoardState) => void
-    isWidgetEnabled?: (definition: WidgetDefinition) => boolean
-    className?: string
+    loadLayouts: () => Promise<WidgetBoardLoadLayoutsResult | null>
+    saveLayouts: (options: WidgetBoardLayoutOption[], selectedId?: string) => Promise<void>
 }

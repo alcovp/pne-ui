@@ -1,56 +1,64 @@
-import React, { useState } from 'react'
+import React, { useState, useSyncExternalStore } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
 import PneModal from '../PneModal'
 import PneTextField from '../PneTextField'
 import PneButton from '../PneButton'
+import { getWidgetLayoutsPanelBridge, subscribeWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
 
-export type PneLayoutOption = {
+export type WidgetLayoutOption = {
     id: string
     name: string
 }
 
-export type PneLayoutsPanelProps = {
-    items: PneLayoutOption[]
+export type WidgetLayoutsPanelProps = {
+    items?: WidgetLayoutOption[]
     selectedId?: string
     onSelect?: (id: string) => void
     onDelete?: (id: string) => void
     onUpdate?: (id: string) => void
     onAdd?: (name: string) => void
-    title?: React.ReactNode
     addLabel?: React.ReactNode
     className?: string
     lockedIds?: string[]
 }
 
-const defaultTitle = 'Layouts'
 const defaultAddLabel = 'Add new layout'
 
-export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
+export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     items,
     selectedId,
     onSelect,
     onDelete,
     onUpdate,
     onAdd,
-    title = defaultTitle,
     addLabel = defaultAddLabel,
     className,
     lockedIds = [],
 }) => {
+    const bridge = useSyncExternalStore(subscribeWidgetLayoutsPanelBridge, () => getWidgetLayoutsPanelBridge(), () => null)
+
+    const resolvedItems = items ?? bridge?.items ?? []
+    const resolvedSelectedId = selectedId ?? bridge?.selectedId
+    const resolvedOnSelect = onSelect ?? bridge?.onSelect
+    const resolvedOnDelete = onDelete ?? bridge?.onDelete
+    const resolvedOnUpdate = onUpdate ?? bridge?.onUpdate
+    const resolvedOnAdd = onAdd ?? bridge?.onAdd
+    const resolvedLockedIds = lockedIds.length ? lockedIds : bridge?.lockedIds ?? []
+
     const [modalOpen, setModalOpen] = useState(false)
     const [name, setName] = useState('')
 
     const handleSave = () => {
         const trimmed = name.trim()
-        if (!trimmed || !onAdd) return
-        onAdd(trimmed)
+        if (!trimmed || !resolvedOnAdd) return
+        resolvedOnAdd(trimmed)
         setName('')
         setModalOpen(false)
     }
 
-    const hasAdd = Boolean(onAdd)
+    const hasAdd = Boolean(resolvedOnAdd)
 
     return (
         <Box
@@ -73,20 +81,20 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
                 }}
             >
                 <Typography variant='subtitle2' sx={{ lineHeight: '20px', fontWeight: 400, fontSize: '14px' }}>
-                    {title}
+                    Layouts
                 </Typography>
             </Box>
             <Stack>
-                {items.length === 0 ? (
+                {resolvedItems.length === 0 ? (
                     <Box sx={{ px: 2, minHeight: 32, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>No layouts yet</Box>
                 ) : (
-                    items.map(item => {
-                        const selected = item.id === selectedId
-                        const locked = lockedIds.includes(item.id)
+                    resolvedItems.map(item => {
+                        const selected = item.id === resolvedSelectedId
+                        const locked = resolvedLockedIds.includes(item.id)
                         return (
                             <Box
                                 key={item.id}
-                                onClick={() => onSelect?.(item.id)}
+                                onClick={() => resolvedOnSelect?.(item.id)}
                                 sx={{
                                     display: 'flex',
                                     alignItems: 'center',
@@ -100,25 +108,25 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
                                 }}
                             >
                                 <Box sx={{ flex: 1, fontWeight: 400, fontSize: '14px', lineHeight: '20px' }}>{item.name}</Box>
-                                {onUpdate && selected && !locked ? (
+                                {resolvedOnUpdate && selected && !locked ? (
                                     <IconButton
                                         size='small'
                                         color='inherit'
                                         onClick={event => {
                                             event.stopPropagation()
-                                            onUpdate(item.id)
+                                            resolvedOnUpdate(item.id)
                                         }}
                                     >
                                         <RefreshIcon fontSize='small' />
                                     </IconButton>
                                 ) : null}
-                                {onDelete && !locked ? (
+                                {resolvedOnDelete && !locked ? (
                                     <IconButton
                                         size='small'
                                         color='inherit'
                                         onClick={event => {
                                             event.stopPropagation()
-                                            onDelete(item.id)
+                                            resolvedOnDelete(item.id)
                                         }}
                                     >
                                         <DeleteIcon fontSize='small' />
@@ -191,4 +199,4 @@ export const PneLayoutsPanel: React.FC<PneLayoutsPanelProps> = ({
     )
 }
 
-export default PneLayoutsPanel
+export default WidgetLayoutsPanel

@@ -1,5 +1,5 @@
 export * from './WidgetBoard'
 export * from './types'
-export * from './PneLayoutsPanel'
+export * from './WidgetLayoutsPanel'
 export * from './layoutPersistence'
-export * from './useWidgetLayoutsManager'
+export * from './widgetLayoutsPanelStore'
