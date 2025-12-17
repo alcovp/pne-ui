@@ -198,28 +198,7 @@ type LoadLayoutsResult = {
 } | null
 ```
 
-`saveLayouts` получает тот же `options` (уже с последними изменениями) и `selectedId`. При необходимости можно сохранить в API в виде:
-
-```ts
-type PersistedLayout = {
-    id: string
-    name?: string
-    layoutByBreakpoint: Record<number | string, { columns?: number; widgets?: Record<string, {
-        columnSpan?: number
-        rowSpan?: number
-        columnOffset?: number
-        isHidden?: boolean
-        isCollapsed?: boolean
-    }> }>
-}
-
-type PersistedPayload = {
-    layouts: PersistedLayout[]
-    selectedLayoutId?: string
-}
-```
-
-Это соответствует формату, который использует хелпер `buildLayoutSettingsPayload` в `src/component/widget-board/layoutPersistence.ts`.
+`saveLayouts` получает тот же `options` (уже с последними изменениями) и `selectedId`.
 
 ### Пример использования
 
