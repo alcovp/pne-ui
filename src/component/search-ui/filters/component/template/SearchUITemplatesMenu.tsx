@@ -36,15 +36,17 @@ const SearchUITemplatesMenu = () => {
 
     const open = Boolean(anchorEl);
 
-    // @ts-ignore
     return <>
         <PneButton
             onClick={handleOpen}
             size={'small'}
             color={'pneNeutral'}
             endIcon={<ExpandMore/>}
-            sx={{mr: {xs: '8px', sm: '20px'}}}
-        >{placeholder}</PneButton>
+            sx={templateTriggerSx}
+            title={placeholder}
+        >
+            <Box sx={templateTriggerLabelSx} component="span">{placeholder}</Box>
+        </PneButton>
         <Popover
             open={open}
             onClose={handleClose}
@@ -53,6 +55,7 @@ const SearchUITemplatesMenu = () => {
                 vertical: 'bottom',
                 horizontal: 'left',
             }}
+            slotProps={{paper: {sx: menuPaperSx}}}
         >
             <Box sx={menuContainerSx}>
                 <SearchUITemplatePanel onSave={handleClose}/>
@@ -63,6 +66,7 @@ const SearchUITemplatesMenu = () => {
                             sx={templateNameSx}
                             component={'span'}
                             onClick={() => handleSetTemplate(template)}
+                            title={template.name}
                         >{template.name}</Box>
                         <IconButton
                             onClick={() => handleRemoveTemplate(template)}
@@ -81,12 +85,24 @@ export default SearchUITemplatesMenu
 
 const menuContainerSx: SxProps = {
     p: '16px',
+    width: 'max-content',
+    maxWidth: '100%',
+    boxSizing: 'border-box',
+}
+
+const menuPaperSx: SxProps = {
+    width: 'auto',
+    maxWidth: '300px',
+    boxSizing: 'border-box',
 }
 
 const templateRowSx: SxProps = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
+    columnGap: '8px',
+    m: 0,
     '&:hover button': {
         display: 'flex',
     }
@@ -94,8 +110,33 @@ const templateRowSx: SxProps = {
 
 const templateNameSx: SxProps = {
     display: 'flex',
-    width: '100%',
+    flex: '1 1 auto',
+    minWidth: 0,
     cursor: 'pointer',
     fontSize: '14px',
     lineHeight: '20px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+}
+
+const templateTriggerSx: SxProps = {
+    maxWidth: {xs: '30vw', sm: '250px'},
+    width: {xs: '30vw', sm: 'auto'},
+    mr: {xs: '8px', sm: '20px'},
+    justifyContent: 'space-between',
+    textAlign: 'left',
+    px: '12px',
+    '& .MuiButton-endIcon': {
+        ml: '8px',
+    },
+}
+
+const templateTriggerLabelSx: SxProps = {
+    flex: '1 1 auto',
+    minWidth: 0,
+    display: 'block',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
 }

@@ -105,7 +105,8 @@ export default SearchUITemplatePanel
 
 const linksContainerSx: SxProps = {
     display: 'flex',
-    flexDirection: 'column',
+    flexDirection: 'row',
+    columnGap: '32px',
 }
 
 const linkSx: SxProps = {
