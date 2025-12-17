@@ -109,7 +109,12 @@ export function PneFloatingActionButtons({
                         return (
                             <Tooltip key={item.id} title={title} placement='left'>
                                 <span>
-                                    <Fab color='primary' onClick={() => handleAction(item)} aria-label={typeof title === 'string' ? title : 'Action'}>
+                                    <Fab
+                                        color='primary'
+                                        onClick={() => handleAction(item)}
+                                        aria-label={typeof title === 'string' ? title : 'Action'}
+                                        sx={{ opacity: 0.85 }}
+                                    >
                                         {item.icon ?? (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
                                     </Fab>
                                 </span>
@@ -118,7 +123,7 @@ export function PneFloatingActionButtons({
                     })
                     : null}
                 <Tooltip title={fabLabel}>
-                    <Fab color='primary' onClick={handleOpen} aria-label={typeof fabLabel === 'string' ? fabLabel : 'Actions'}>
+                    <Fab color='primary' onClick={handleOpen} aria-label={typeof fabLabel === 'string' ? fabLabel : 'Actions'} sx={{ opacity: 0.85 }}>
                         {fabIcon}
                     </Fab>
                 </Tooltip>
