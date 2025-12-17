@@ -54,7 +54,7 @@ const defaultPredefinedCriteria: CriterionTypeEnum[] = [
 
 const defaultFiltersConfig: SearchUIFiltersConfig = {
     dateRange: {
-        enableTimeSelection: true,
+        // enableTimeSelection: true,
     },
     // hideShowFiltersButton: true,
     // hideTemplatesSelect: true,
