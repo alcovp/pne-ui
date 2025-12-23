@@ -781,12 +781,20 @@ const extractGroupTypes = (grouping: Grouping): GroupingType[] => {
     return groups
 }
 
-const extractDateFrom = (dateRangeSpec: DateRangeSpec): Date | null => {
+const extractDateFrom = (dateRangeSpec: DateRangeSpec, useTime: boolean): Date | null => {
     if (dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT') {
         return dayjs().year(2000).toDate()
-    } else {
-        return dateRangeSpec.dateFrom
     }
+
+    if (
+        dateRangeSpec.dateRangeSpecType === 'EXACTLY'
+        && !useTime
+        && dateRangeSpec.dateFrom
+    ) {
+        return dayjs(dateRangeSpec.dateFrom).startOf('day').toDate()
+    }
+
+    return dateRangeSpec.dateFrom
 }
 
 const extractDateTo = (dateRangeSpec: DateRangeSpec, useTime: boolean): Date | null => {
@@ -927,7 +935,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
         countries: extractEntitiesIds(state.countries),
-        dateFrom: extractDateFrom(state.dateRangeSpec),
+        dateFrom: extractDateFrom(state.dateRangeSpec, timeSelectionEnabled),
         dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled),
         orderDateType: state.orderDateType,
         cardTypes: extractEntitiesIds(state.cardTypes),

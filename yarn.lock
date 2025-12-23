@@ -13515,9 +13515,6 @@ __metadata:
     zod: "npm:3.23.4"
     zustand: "npm:4.4.1"
   peerDependencies:
-    "@cloudscape-design/board-components": ^3.0.125
-    "@cloudscape-design/components": ^3.0.1118
-    "@cloudscape-design/global-styles": ^1.0.0
     "@emotion/react": ^11
     "@emotion/styled": ^11
     "@mui/icons-material": ^6 || ^7
