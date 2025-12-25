@@ -5,7 +5,7 @@ import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from './state/store';
 import {Box, Chip, IconButton, SxProps} from '@mui/material';
-import {ExpandMore} from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
 import {CriterionContainer} from './CriterionContainer';
 import {PneButton, SearchUIDefaults} from '../../..';
@@ -177,7 +177,7 @@ export const SearchUIFilters = (props: Props) => {
                     size={'small'}
                     color={'primary'}
                 >
-                    <ExpandMore
+                    <ExpandMoreIcon
                         fontSize={'small'}
                         sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
                     />

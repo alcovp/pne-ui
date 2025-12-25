@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Box, Chip } from '@mui/material'
-import { ExpandMore } from '@mui/icons-material'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { selectUnderChipSx } from './style'
 import { AbstractEntity, PneSelect } from '../../../../..'
 import { useTranslation } from 'react-i18next'
@@ -28,7 +28,7 @@ const SearchUIProcessorLogEntryTypeSelect = (props: IProps) => {
     return <Box sx={{ position: 'relative' }}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMore/>}
+            deleteIcon={<ExpandMoreIcon/>}
             label={value ? value.displayName : t('react.chooseOne')}
             size={'small'}
         />

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {CriterionTypeEnum} from '../../types';
 import {Box, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
-import {ExpandMore} from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {PneButton, PneSelect} from '../../../../..';
 
 type Props = {
@@ -23,7 +23,7 @@ const SearchUIAddFilter = (props: Props) => {
         <PneButton
             onClick={() => setOpen(true)}
             size={'small'}
-            endIcon={<ExpandMore/>}
+            endIcon={<ExpandMoreIcon/>}
             sx={addFilterButtonSx}
         >{t('react.searchUI.addCriterion')}</PneButton>
         <PneSelect
