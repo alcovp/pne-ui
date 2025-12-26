@@ -4,7 +4,7 @@ import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {selectUnderChipSx} from './style';
-import {ExpandMore} from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {PneSelect} from '../../../../..';
 
 const SearchUIGroupingDateTypeSelect = () => {
@@ -18,7 +18,7 @@ const SearchUIGroupingDateTypeSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMore/>}
+            deleteIcon={<ExpandMoreIcon/>}
             label={optionRenderer(dateType)}
             size={'small'}
         />

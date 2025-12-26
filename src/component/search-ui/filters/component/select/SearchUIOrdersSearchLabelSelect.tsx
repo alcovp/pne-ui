@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
-import {ExpandMore} from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {useSearchUIFiltersStore} from "../../state/store";
 import {SearchUICollapsableGroupSelect} from './SearchUICollapsableGroupSelect';
 
@@ -15,7 +15,7 @@ export const SearchUIOrdersSearchLabelSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMore/>}
+            deleteIcon={<ExpandMoreIcon/>}
             label={optionRenderer(ordersSearchLabel)}
             size={'small'}
         />

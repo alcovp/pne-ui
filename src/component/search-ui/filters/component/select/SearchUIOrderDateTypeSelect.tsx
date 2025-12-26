@@ -3,7 +3,7 @@ import {ORDER_DATE_TYPES, OrderDate} from '../../types';
 import {Box, Chip, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
-import {ExpandMore} from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {selectUnderChipSx} from './style';
 import {PneSelect} from '../../../../..';
 
@@ -29,7 +29,7 @@ export const SearchUIOrderDateTypeSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMore/>}
+            deleteIcon={<ExpandMoreIcon/>}
             label={optionRenderer(orderDateType)}
             size={'small'}
         />

@@ -5,7 +5,8 @@ import {SxProps} from '@mui/material/styles';
 // import {invokeCommonDeletionAlert} from '../../../../ConfirmAlertInvoker'; //TODO migration
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
-import {Close, ExpandMore} from '@mui/icons-material';
+import CloseIcon from '@mui/icons-material/Close';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {SearchUITemplate} from "../../types";
 import {PneButton} from '../../../../..';
 
@@ -41,7 +42,7 @@ const SearchUITemplatesMenu = () => {
             onClick={handleOpen}
             size={'small'}
             color={'pneNeutral'}
-            endIcon={<ExpandMore/>}
+            endIcon={<ExpandMoreIcon/>}
             sx={templateTriggerSx}
             title={placeholder}
         >
@@ -72,7 +73,7 @@ const SearchUITemplatesMenu = () => {
                             onClick={() => handleRemoveTemplate(template)}
                             color={'primary'}
                         >
-                            <Close fontSize={'small'}/>
+                            <CloseIcon fontSize={'small'}/>
                         </IconButton>
                     </Box>
                 )}
