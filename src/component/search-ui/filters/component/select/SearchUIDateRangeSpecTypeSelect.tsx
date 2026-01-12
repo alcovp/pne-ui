@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import {DATE_RANGE_SPEC_TYPES, DateRangeSpecType} from '../../types'
 import {Box, Chip, SxProps} from '@mui/material'
 import {useTranslation} from 'react-i18next'
@@ -12,8 +12,26 @@ const SearchUIDateRangeSpecTypeSelect = () => {
 
     const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
     const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
+    const dateRangeSpecTypes = useSearchUIFiltersStore(s => s.config?.dateRange?.dateRangeSpecTypes)
 
     const [open, setOpen] = useState(false)
+
+    const availableSpecTypes = useMemo(() => {
+        return dateRangeSpecTypes?.length ? dateRangeSpecTypes : DATE_RANGE_SPEC_TYPES
+    }, [dateRangeSpecTypes])
+
+    useEffect(() => {
+        if (!availableSpecTypes.length) {
+            return
+        }
+
+        if (!availableSpecTypes.includes(dateRangeSpec.dateRangeSpecType)) {
+            setDateRangeCriterion({
+                ...dateRangeSpec,
+                dateRangeSpecType: availableSpecTypes[0],
+            })
+        }
+    }, [availableSpecTypes, dateRangeSpec, setDateRangeCriterion])
 
     const withInputNear = dateRangeSpec.dateRangeSpecType === 'EXACTLY'
         || dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE'
@@ -52,7 +70,7 @@ const SearchUIDateRangeSpecTypeSelect = () => {
             getOptionLabel={opt => optionRenderer(opt.label)}
             value={dateRangeSpec.dateRangeSpecType}
             onChange={dateRangeSpec => handleSetDateRangeSpecType(dateRangeSpec as DateRangeSpecType)}
-            options={DATE_RANGE_SPEC_TYPES}
+            options={availableSpecTypes}
         />
     </Box>
 }

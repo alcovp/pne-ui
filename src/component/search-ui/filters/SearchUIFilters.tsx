@@ -1,6 +1,12 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {SearchUIFiltersHeaderRight} from './styled';
-import {CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions} from './types';
+import {
+    CriterionTypeEnum,
+    DateRangeSpecType,
+    ExactCriterionSearchLabelEnum,
+    SearchCriteria,
+    SearchUIConditions,
+} from './types';
 import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from './state/store';
@@ -19,6 +25,10 @@ export type DateRangeCriterionConfig = {
      * Разрешает выбор времени вместе с датой.
      */
     enableTimeSelection?: boolean
+    /**
+     * Ограничивает список доступных вариантов выбора диапазона дат.
+     */
+    dateRangeSpecTypes?: ReadonlyArray<DateRangeSpecType>
 }
 
 /**

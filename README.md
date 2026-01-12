@@ -81,6 +81,28 @@ export const TransactionsPage = () => (
 `initialSearchUIDefaults`. Более развернутый пример можно посмотреть в `src/stories/SearchUI.stories.tsx`.
 `templatesApi` в примере — любая ваша обертка над бэкендом, которая умеет получать/сохранять шаблоны.
 
+### Кастомизация фильтра диапазона дат
+
+Чтобы ограничить список вариантов диапазона дат, передайте `dateRangeSpecTypes` в `config.dateRange`.
+Например, чтобы убрать вариант `DATE_INDEPENDENT`:
+
+```tsx
+import { DATE_RANGE_SPEC_TYPES } from 'pne-ui'
+
+const config = {
+    dateRange: {
+        dateRangeSpecTypes: DATE_RANGE_SPEC_TYPES.filter(type => type !== 'DATE_INDEPENDENT'),
+    },
+}
+
+<SearchUI
+    settingsContextName="transactions"
+    possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+    config={config}
+    /* остальные пропсы */
+/>
+```
+
 ## Локализация (i18n)
 
 `pne-ui` не принимает текстовые ресурсы через пропсы и не содержит собственного `I18nextProvider`.  
