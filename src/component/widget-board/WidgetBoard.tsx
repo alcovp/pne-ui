@@ -566,6 +566,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
 
         const settingsElement = (
             <Stack direction='row' spacing={0.5} alignItems='center'>
+                {definition.settingsActions}
                 <IconButton
                     aria-label={isCollapsed ? 'Expand widget' : 'Collapse widget'}
                     onClick={() => toggleCollapse(widgetId)}

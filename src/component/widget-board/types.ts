@@ -43,6 +43,7 @@ export type WidgetDefinition = {
     id: WidgetId
     title: string
     render: () => React.ReactNode
+    settingsActions?: React.ReactNode
 }
 
 export type WidgetBoardItemData = {
