@@ -249,7 +249,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     .map(Number)
                     .sort((a, b) => a - b)
                 const nextPreset = getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, nextLayoutSource, nextBreakpoints)
-                const fallbackForNext = nextLayoutSource[nextBreakpoints[0]] ?? Object.values(nextLayoutSource)[0] ?? { columns: 12, widgets: {} }
+                const fallbackForNext = nextLayoutSource[nextBreakpoints[0]] ?? Object.values(nextLayoutSource)[0] ?? { widgets: {} }
                 const nextDefinitions = withLayout(widgets, nextPreset.layout ?? fallbackForNext)
 
                 setLayoutSource(prev => (prev === nextLayoutSource ? prev : nextLayoutSource))
@@ -281,7 +281,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }, [breakpoints, layoutSource])
 
     const definitionsWithLayout = useMemo(
-        () => withLayout(widgets, layoutPreset.layout ?? fallbackLayoutConfig ?? { columns: 12, widgets: {} }),
+        () => withLayout(widgets, layoutPreset.layout ?? fallbackLayoutConfig ?? { widgets: {} }),
         [fallbackLayoutConfig, layoutPreset.layout, widgets],
     )
 

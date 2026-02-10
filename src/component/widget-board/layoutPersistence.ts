@@ -2,7 +2,6 @@ import { DEFAULT_BREAKPOINTS } from '../../common/responsive/breakpoints'
 import type { BreakpointLayoutConfig, WidgetBoardState, WidgetLayoutConfig } from './types'
 
 const cloneLayoutConfig = (config: BreakpointLayoutConfig): BreakpointLayoutConfig => ({
-    columns: config.columns,
     widgets: Object.fromEntries(
         Object.entries(config.widgets).map(([id, widget]) => [
             id,
@@ -69,10 +68,7 @@ export const buildPresetFromState = (
             }
         })
 
-        layoutByBreakpoint[breakpoint] = {
-            columns: base.columns,
-            widgets,
-        }
+        layoutByBreakpoint[breakpoint] = { widgets }
     })
 
     return layoutByBreakpoint

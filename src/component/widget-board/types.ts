@@ -35,7 +35,6 @@ export type WidgetLayoutConfig = {
 }
 
 export type BreakpointLayoutConfig = {
-    columns: number
     widgets: Record<WidgetId, WidgetLayoutConfig>
 }
 
