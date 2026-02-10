@@ -23,6 +23,9 @@ export type WidgetLayoutLimits = {
     minRowSpan?: number
 }
 
+export type WidgetHeightMode = 'auto' | 'fixed'
+export type WidgetHeightModeMemory = Record<string, Partial<Record<WidgetId, WidgetHeightMode>>>
+
 export type WidgetLayoutInitialState = {
     isHidden?: boolean
     isCollapsed?: boolean
@@ -32,6 +35,7 @@ export type WidgetLayoutConfig = {
     defaultSize: WidgetLayoutSize
     limits?: WidgetLayoutLimits
     initialState?: WidgetLayoutInitialState
+    heightMode?: WidgetHeightMode
 }
 
 export type BreakpointLayoutConfig = {
@@ -56,6 +60,7 @@ export type WidgetBoardState = {
     collapsed: WidgetId[]
     sizeMemory: Partial<Record<WidgetId, number>>
     layoutMemory: WidgetLayoutMemory
+    heightModeMemory: WidgetHeightModeMemory
 }
 
 export type WidgetBoardLayoutOption = WidgetLayoutOption & {

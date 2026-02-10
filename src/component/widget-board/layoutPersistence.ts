@@ -9,6 +9,7 @@ const cloneLayoutConfig = (config: BreakpointLayoutConfig): BreakpointLayoutConf
                 defaultSize: { ...widget.defaultSize },
                 limits: widget.limits ? { ...widget.limits } : undefined,
                 initialState: widget.initialState ? { ...widget.initialState } : undefined,
+                heightMode: widget.heightMode,
             },
         ]),
     ) as Record<string, WidgetLayoutConfig>,
@@ -30,6 +31,7 @@ export const buildPresetFromState = (
     const hiddenSet = new Set<string>(state.hidden)
     const collapsedSet = new Set<string>(state.collapsed)
     const sizeMemory = state.sizeMemory ?? {}
+    const heightModeMemory = state.heightModeMemory ?? {}
     const layoutMemory = state.layoutMemory ?? {}
     const itemMap = new Map<string, (typeof state.items)[number]>(state.items.map(item => [item.id as string, item]))
 
@@ -43,6 +45,7 @@ export const buildPresetFromState = (
 
         const widgets: Record<string, WidgetLayoutConfig> = {}
         const memoryForBreakpoint = layoutMemory[String(breakpoint)] ?? {}
+        const heightModeForBreakpoint = heightModeMemory[String(breakpoint)] ?? {}
 
         Object.keys(base.widgets).forEach(id => {
             const baseConfig = base.widgets[id]
@@ -65,6 +68,7 @@ export const buildPresetFromState = (
                     isHidden,
                     isCollapsed,
                 },
+                heightMode: heightModeForBreakpoint[id] ?? baseConfig.heightMode,
             }
         })
 

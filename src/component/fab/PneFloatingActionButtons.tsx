@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import EditIcon from '@mui/icons-material/Edit'
 import { Box, Divider, Fab, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Tooltip } from '@mui/material'
 import { DEFAULT_BREAKPOINTS } from '../../common/responsive/breakpoints'
@@ -51,21 +52,27 @@ export function PneFloatingActionButtons({
     actions,
     breakpoints = DEFAULT_BREAKPOINTS,
     mobileBreakpoint = 800,
-    position = { bottom: 24, right: 24 },
+    position,
     fabLabel = 'Actions',
     fabIcon = <EditIcon />,
     className,
     bannerText,
 }: PneFloatingActionButtonsProps) {
     const breakpoint = useBreakpoint({ breakpoints })
-    const isMobile = breakpoint <= mobileBreakpoint
+    const isMobile = breakpoint < mobileBreakpoint
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
+    const [showScrollTop, setShowScrollTop] = useState(false)
     const handleOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
     const handleClose = () => setAnchorEl(null)
 
     const handleAction = (action: PneFabAction) => {
         handleClose()
         action.onClick()
+    }
+
+    const handleScrollTop = () => {
+        if (typeof window === 'undefined') return
+        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
 
     const renderMenuItems = (items: PneFabItem[]) =>
@@ -98,10 +105,57 @@ export function PneFloatingActionButtons({
     // Desktop: keep actions both in the floating stack and inside the menu
     const menuItems = actions
     const actionItems = isMobile ? [] : actions.filter(isActionItem)
+    const fabSx = isMobile ? { opacity: 0.85 } : { opacity: 0.3 }
+    const stackSx = isMobile ? undefined : { '&:hover .pne-fab': { opacity: 0.85 } }
+    const baseOffset = isMobile ? 16 : 24
+    const bottomOffset = position?.bottom ?? baseOffset
+    const rightOffset = position?.right ?? baseOffset
+    const containerSx = {
+        bottom: `calc(${bottomOffset}px + env(safe-area-inset-bottom, 0px))`,
+        right: `calc(${rightOffset}px + env(safe-area-inset-right, 0px))`,
+    }
+
+    useEffect(() => {
+        if (typeof window === 'undefined') return
+        let frameId: number | null = null
+        const update = () => {
+            frameId = null
+            const offset = window.scrollY ?? document.documentElement.scrollTop ?? 0
+            setShowScrollTop(offset > 16)
+        }
+        update()
+        const handleScroll = () => {
+            if (frameId !== null) return
+            frameId = window.requestAnimationFrame(update)
+        }
+        window.addEventListener('scroll', handleScroll, { passive: true })
+        return () => {
+            window.removeEventListener('scroll', handleScroll)
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId)
+            }
+        }
+    }, [])
 
     return (
-        <Box position='fixed' bottom={position.bottom ?? 24} right={position.right ?? 24} zIndex={1300} className={className}>
-            <Stack spacing={1} alignItems='flex-end'>
+        <Box position='fixed' zIndex={1300} className={className} sx={containerSx}>
+            <Stack spacing={1} alignItems='flex-end' sx={stackSx}>
+                {showScrollTop ? (
+                    <Tooltip title='Scroll to top' placement='left'>
+                        <span>
+                            <Fab
+                                className='pne-fab'
+                                color='primary'
+                                size='small'
+                                onClick={handleScrollTop}
+                                aria-label='Scroll to top'
+                                sx={fabSx}
+                            >
+                                <ArrowUpwardIcon fontSize='small' />
+                            </Fab>
+                        </span>
+                    </Tooltip>
+                ) : null}
                 {!isMobile
                     ? actionItems.map(item => {
                         const title =
@@ -110,10 +164,12 @@ export function PneFloatingActionButtons({
                             <Tooltip key={item.id} title={title} placement='left'>
                                 <span>
                                     <Fab
+                                        className='pne-fab'
                                         color='primary'
+                                        size='small'
                                         onClick={() => handleAction(item)}
                                         aria-label={typeof title === 'string' ? title : 'Action'}
-                                        sx={{ opacity: 0.85 }}
+                                        sx={fabSx}
                                     >
                                         {item.icon ?? (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
                                     </Fab>
@@ -123,7 +179,14 @@ export function PneFloatingActionButtons({
                     })
                     : null}
                 <Tooltip title={fabLabel}>
-                    <Fab color='primary' onClick={handleOpen} aria-label={typeof fabLabel === 'string' ? fabLabel : 'Actions'} sx={{ opacity: 0.85 }}>
+                    <Fab
+                        className='pne-fab'
+                        color='primary'
+                        size='small'
+                        onClick={handleOpen}
+                        aria-label={typeof fabLabel === 'string' ? fabLabel : 'Actions'}
+                        sx={fabSx}
+                    >
                         {fabIcon}
                     </Fab>
                 </Tooltip>

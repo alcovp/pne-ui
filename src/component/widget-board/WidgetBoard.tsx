@@ -17,6 +17,8 @@ import type {
     WidgetBoardLayoutOption,
     WidgetBoardProps,
     WidgetBoardState,
+    WidgetHeightMode,
+    WidgetHeightModeMemory,
     WidgetDefinition,
     WidgetLayoutConfig,
     WidgetLayoutMemory,
@@ -31,6 +33,9 @@ export type WidgetBoardHandle = {
 type WidgetDefinitionWithLayout = WidgetDefinition & { layout: WidgetLayoutConfig }
 
 const fallbackLayout: WidgetLayoutConfig = { defaultSize: { columnSpan: 1, rowSpan: 2 } }
+
+const DEFAULT_ROW_HEIGHT = 96
+const DEFAULT_ROW_GAP = 20
 const createLayoutId = () => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
         return crypto.randomUUID()
@@ -91,11 +96,15 @@ const applyCollapsedState = (
     })
 }
 
-const buildDefaultState = (definitions: WidgetDefinitionWithLayout[]): WidgetBoardState => {
+const buildDefaultState = (definitions: WidgetDefinitionWithLayout[], breakpointKey: string): WidgetBoardState => {
     const hidden = definitions.filter(def => def.layout.initialState?.isHidden).map(def => def.id)
     const collapsed = definitions.filter(def => def.layout.initialState?.isCollapsed).map(def => def.id)
     const sizeMemory: Partial<Record<string, number>> = {}
     const definitionsMap = new Map<string, WidgetDefinitionWithLayout>(definitions.map(def => [def.id, def]))
+    const heightModeById: Partial<Record<string, WidgetHeightMode>> = Object.fromEntries(
+        definitions.map(def => [def.id, def.layout.heightMode ?? 'auto']),
+    )
+    const heightModeMemory: WidgetHeightModeMemory = { [breakpointKey]: heightModeById }
 
     const items = definitions.filter(def => !hidden.includes(def.id)).map(def => toBoardItem(def))
     const collapsedItems = applyCollapsedState(items, collapsed, definitionsMap, sizeMemory)
@@ -106,6 +115,7 @@ const buildDefaultState = (definitions: WidgetDefinitionWithLayout[]): WidgetBoa
         collapsed,
         sizeMemory,
         layoutMemory: {},
+        heightModeMemory,
     }
 }
 
@@ -249,12 +259,13 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     .map(Number)
                     .sort((a, b) => a - b)
                 const nextPreset = getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, nextLayoutSource, nextBreakpoints)
+                const nextBreakpointKey = String(nextPreset.breakpoint ?? nextBreakpoints[0])
                 const fallbackForNext = nextLayoutSource[nextBreakpoints[0]] ?? Object.values(nextLayoutSource)[0] ?? { widgets: {} }
                 const nextDefinitions = withLayout(widgets, nextPreset.layout ?? fallbackForNext)
 
                 setLayoutSource(prev => (prev === nextLayoutSource ? prev : nextLayoutSource))
                 setLayoutPreset(nextPreset)
-                setLayoutState(buildDefaultState(nextDefinitions))
+                setLayoutState(buildDefaultState(nextDefinitions, nextBreakpointKey))
 
                 if (nextSelected && nextSelected !== currentSelected) {
                     setSelectedLayoutId(nextSelected)
@@ -290,18 +301,194 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         [definitionsWithLayout],
     )
 
-    const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(definitionsWithLayout))
+    const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(definitionsWithLayout, currentBreakpointKey))
+    const boardRootRef = useRef<HTMLDivElement | null>(null)
+    const gridMetricsRef = useRef<{ rowHeight: number; rowGap: number } | null>(null)
+    const contentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
+    const resizeObserverRef = useRef<ResizeObserver | null>(null)
+    const measuredRowsRef = useRef<Record<string, number>>({})
 
     useEffect(() => {
-        setLayoutState(buildDefaultState(definitionsWithLayout))
-    }, [definitionsWithLayout])
+        measuredRowsRef.current = {}
+        setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey))
+    }, [currentBreakpointKey, definitionsWithLayout])
+
+    const parseCssNumber = useCallback((value: string | null) => {
+        if (!value) return Number.NaN
+        const parsed = Number.parseFloat(value)
+        return Number.isFinite(parsed) ? parsed : Number.NaN
+    }, [])
+
+    const findGridElement = useCallback((root: HTMLElement) => {
+        const boardRoot = root.querySelector<HTMLElement>('[data-awsui-board]') ?? root
+        const boardStyle = window.getComputedStyle(boardRoot)
+        if (boardStyle.display === 'grid' && boardStyle.gridAutoRows && boardStyle.gridAutoRows !== 'auto') {
+            return boardRoot
+        }
+
+        const preferred = boardRoot.querySelectorAll<HTMLElement>('[class*="awsui_grid_"]')
+        const candidates = preferred.length ? preferred : boardRoot.querySelectorAll<HTMLElement>('div')
+        for (const element of candidates) {
+            if (element !== boardRoot && element.closest('[data-awsui-board-item]')) continue
+            const className = typeof element.className === 'string' ? element.className : ''
+            if (className.includes('grid__item')) continue
+            const style = window.getComputedStyle(element)
+            if (style.display === 'grid' && style.gridAutoRows && style.gridAutoRows !== 'auto') {
+                return element
+            }
+        }
+        return null
+    }, [])
+
+    const updateGridMetrics = useCallback(() => {
+        if (typeof window === 'undefined') return gridMetricsRef.current
+        const root = boardRootRef.current
+        if (!root) return gridMetricsRef.current
+        const grid = findGridElement(root)
+        if (!grid) return gridMetricsRef.current
+        const style = window.getComputedStyle(grid)
+        const rowHeight = parseCssNumber(style.gridAutoRows)
+        const rowGapValue = parseCssNumber(style.rowGap)
+        const gapValue = parseCssNumber(style.gap)
+        const rowGap = Number.isFinite(rowGapValue) ? rowGapValue : Number.isFinite(gapValue) ? gapValue : DEFAULT_ROW_GAP
+        if (!Number.isFinite(rowHeight) || rowHeight <= 0) return gridMetricsRef.current
+        const next = { rowHeight, rowGap }
+        gridMetricsRef.current = next
+        return next
+    }, [findGridElement, parseCssNumber])
+
+    const computeRequiredRows = useCallback(
+        (widgetId: string, contentElement: HTMLDivElement) => {
+            if (!contentElement.isConnected) return null
+            const metrics = updateGridMetrics() ?? { rowHeight: DEFAULT_ROW_HEIGHT, rowGap: DEFAULT_ROW_GAP }
+            const containerRoot =
+                (contentElement.closest('[data-awsui-board-item]') as HTMLElement | null) ??
+                (contentElement.closest('[class*="container-override"]') as HTMLElement | null)
+            if (!containerRoot) return null
+
+            const containerRect = containerRoot.getBoundingClientRect()
+            const contentRect = contentElement.getBoundingClientRect()
+            const offsetTop = contentRect.top - containerRect.top
+            const contentHeight = contentElement.scrollHeight
+
+            if (!Number.isFinite(offsetTop) || !Number.isFinite(contentHeight) || contentHeight <= 0) return null
+
+            const requiredPx = offsetTop + contentHeight
+            const rows = Math.ceil((requiredPx + metrics.rowGap) / (metrics.rowHeight + metrics.rowGap))
+            return rows
+        },
+        [updateGridMetrics],
+    )
+
+    const applyAutoSize = useCallback(
+        (widgetId: string, requiredRows: number) => {
+            setLayoutState(prev => {
+                const definition = definitionsMap.get(widgetId)
+                if (!definition) return prev
+                if (prev.collapsed.includes(widgetId)) return prev
+
+                const heightMode = prev.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
+                if (heightMode !== 'auto') return prev
+
+                const index = prev.items.findIndex(item => item.id === widgetId)
+                if (index < 0) return prev
+
+                const minRows = Math.max(definition.layout.limits?.minRowSpan ?? 2, 2)
+                const nextRows = Math.max(minRows, requiredRows)
+                const currentItem = prev.items[index]
+                if (currentItem.rowSpan === nextRows) return prev
+
+                const nextItems = [...prev.items]
+                nextItems[index] = { ...currentItem, rowSpan: nextRows }
+                return { ...prev, items: nextItems }
+            })
+        },
+        [currentBreakpointKey, definitionsMap],
+    )
+
+    const handleContentResize = useCallback(
+        (widgetId: string, contentElement: HTMLDivElement) => {
+            const requiredRows = computeRequiredRows(widgetId, contentElement)
+            if (!requiredRows) return
+            measuredRowsRef.current[widgetId] = requiredRows
+            applyAutoSize(widgetId, requiredRows)
+        },
+        [applyAutoSize, computeRequiredRows],
+    )
+
+    const handleContentRef = useCallback(
+        (widgetId: string, node: HTMLDivElement | null) => {
+            const map = contentRefs.current
+            const observer = resizeObserverRef.current
+            const prev = map.get(widgetId)
+            if (prev === node) return
+
+            if (prev && observer) {
+                observer.unobserve(prev)
+            }
+
+            if (!node) {
+                map.delete(widgetId)
+                return
+            }
+
+            map.set(widgetId, node)
+            if (observer) {
+                observer.observe(node)
+            }
+            requestAnimationFrame(() => handleContentResize(widgetId, node))
+        },
+        [handleContentResize],
+    )
+
+    useEffect(() => {
+        if (typeof ResizeObserver === 'undefined') return
+        const observer = new ResizeObserver(entries => {
+            entries.forEach(entry => {
+                const target = entry.target as HTMLDivElement
+                const widgetId = target.dataset.widgetId
+                if (!widgetId) return
+                handleContentResize(widgetId, target)
+            })
+        })
+        resizeObserverRef.current = observer
+        contentRefs.current.forEach(element => observer.observe(element))
+        return () => {
+            observer.disconnect()
+            resizeObserverRef.current = null
+        }
+    }, [handleContentResize])
+
+    useEffect(() => {
+        updateGridMetrics()
+        contentRefs.current.forEach((element, widgetId) => {
+            handleContentResize(widgetId, element)
+        })
+    }, [handleContentResize, layoutPreset.breakpoint, updateGridMetrics])
 
     useEffect(() => {
         if (typeof window === 'undefined') return
-        const handleResize = () => setLayoutPreset(getLayoutConfigForWidth(window.innerWidth, layoutSource, breakpoints))
+        let frameId: number | null = null
+        const run = () => {
+            frameId = null
+            updateGridMetrics()
+            contentRefs.current.forEach((element, widgetId) => {
+                handleContentResize(widgetId, element)
+            })
+            setLayoutPreset(getLayoutConfigForWidth(window.innerWidth, layoutSource, breakpoints))
+        }
+        const handleResize = () => {
+            if (frameId !== null) return
+            frameId = window.requestAnimationFrame(run)
+        }
         window.addEventListener('resize', handleResize)
-        return () => window.removeEventListener('resize', handleResize)
-    }, [breakpoints, layoutSource])
+        return () => {
+            window.removeEventListener('resize', handleResize)
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId)
+            }
+        }
+    }, [breakpoints, handleContentResize, layoutSource, updateGridMetrics])
 
     const ensureSelected = useCallback(
         (options: WidgetBoardLayoutOption[], candidate?: string) => {
@@ -435,19 +622,45 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         [currentBreakpointKey, definitionsMap],
     )
 
-    const resetLayout = useCallback(() => setLayoutState(buildDefaultState(definitionsWithLayout)), [definitionsWithLayout])
+    const resetLayout = useCallback(
+        () => setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey)),
+        [currentBreakpointKey, definitionsWithLayout],
+    )
 
     const handleItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange'] = ({ detail }) => {
-        setLayoutState(prev => ({
-            ...prev,
-            items: detail.items
+        setLayoutState(prev => {
+            const nextHeightModeMemory: WidgetHeightModeMemory = { ...prev.heightModeMemory }
+            const nextHeightModeById: Partial<Record<string, WidgetHeightMode>> = {
+                ...(nextHeightModeMemory[currentBreakpointKey] ?? {}),
+            }
+            const nextItems = detail.items
                 .map(item => {
                     const definition = definitionsMap.get(item.id as string)
                     if (!definition) return null
+
+                    const widgetId = item.id as string
+                    const prevItem = prev.items.find(prevItem => prevItem.id === widgetId)
+                    const prevRowSpan = prevItem?.rowSpan ?? definition.layout.defaultSize.rowSpan
+                    const nextRowSpan = item.rowSpan ?? prevRowSpan
+
+                    if (prevRowSpan !== nextRowSpan) {
+                        const requiredRows = measuredRowsRef.current[widgetId]
+                        if (requiredRows) {
+                            if (nextRowSpan < requiredRows) {
+                                nextHeightModeById[widgetId] = 'fixed'
+                            } else {
+                                nextHeightModeById[widgetId] = 'auto'
+                            }
+                        }
+                    }
+
                     return toBoardItem(definition, item)
                 })
-                .filter(Boolean) as BoardProps.Item<WidgetBoardItemData>[],
-        }))
+                .filter(Boolean) as BoardProps.Item<WidgetBoardItemData>[]
+
+            nextHeightModeMemory[currentBreakpointKey] = nextHeightModeById
+            return { ...prev, items: nextItems, heightModeMemory: nextHeightModeMemory }
+        })
     }
 
     const toggleCollapse = useCallback(
@@ -586,10 +799,19 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             </Stack>
         )
 
+        const heightMode = layoutState.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
+        const contentOverflow = heightMode === 'fixed' ? 'auto' : 'hidden'
+
         return (
             <BoardItem key={item.id} i18nStrings={boardItemI18nStrings} header={headerElement} settings={settingsElement} disableContentPaddings>
-                <Box sx={{ p: 2, height: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
-                    {isCollapsed ? <Typography sx={{ color: 'text.secondary', fontSize: 14 }}>Collapsed</Typography> : definition.render()}
+                <Box sx={{ height: '100%', boxSizing: 'border-box', overflow: contentOverflow }}>
+                    <Box
+                        ref={(node: HTMLDivElement | null) => handleContentRef(widgetId, node)}
+                        data-widget-id={widgetId}
+                        sx={{ p: 2, boxSizing: 'border-box' }}
+                    >
+                        {isCollapsed ? <Typography sx={{ color: 'text.secondary', fontSize: 14 }}>Collapsed</Typography> : definition.render()}
+                    </Box>
                 </Box>
             </BoardItem>
         )
@@ -608,7 +830,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     return (
         <CloudscapeThemeProvider>
             <CloudscapeBoardStyles hideNavigationArrows />
-            <Box sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {isLoadingLayouts ? <WidgetBoardSkeleton /> : boardElement}
             </Box>
         </CloudscapeThemeProvider>
