@@ -32,6 +32,26 @@ export type WidgetBoardHandle = {
 
 type WidgetDefinitionWithLayout = WidgetDefinition & { layout: WidgetLayoutConfig }
 
+type WidgetContentProps = {
+    isCollapsed: boolean
+    render: () => React.ReactNode
+    dragLock: boolean
+}
+
+const WidgetContent = React.memo(
+    function WidgetContent({ isCollapsed, render }: WidgetContentProps) {
+        if (isCollapsed) {
+            return <Typography sx={{ color: 'text.secondary', fontSize: 14 }}>Collapsed</Typography>
+        }
+        return <>{render()}</>
+    },
+    (prev, next) => {
+        if (next.dragLock) return true
+        if (prev.dragLock !== next.dragLock) return false
+        return prev.isCollapsed === next.isCollapsed && prev.render === next.render
+    },
+)
+
 const fallbackLayout: WidgetLayoutConfig = { defaultSize: { columnSpan: 1, rowSpan: 2 } }
 
 const DEFAULT_ROW_HEIGHT = 96
@@ -302,6 +322,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     )
 
     const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(definitionsWithLayout, currentBreakpointKey))
+    const [isInteractionLocked, setIsInteractionLocked] = useState(false)
     const boardRootRef = useRef<HTMLDivElement | null>(null)
     const gridMetricsRef = useRef<{ rowHeight: number; rowGap: number } | null>(null)
     const contentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
@@ -312,6 +333,25 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         measuredRowsRef.current = {}
         setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey))
     }, [currentBreakpointKey, definitionsWithLayout])
+
+    useEffect(() => {
+        if (typeof document === 'undefined') return
+        const isDragActive = () => {
+            for (const className of document.body.classList) {
+                if (className.includes('show-grab-cursor') || className.includes('show-resize-cursor')) {
+                    return true
+                }
+            }
+            return false
+        }
+        const update = () => {
+            setIsInteractionLocked(isDragActive())
+        }
+        update()
+        const observer = new MutationObserver(update)
+        observer.observe(document.body, { attributes: true, attributeFilter: ['class'] })
+        return () => observer.disconnect()
+    }, [])
 
     const parseCssNumber = useCallback((value: string | null) => {
         if (!value) return Number.NaN
@@ -408,12 +448,13 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
 
     const handleContentResize = useCallback(
         (widgetId: string, contentElement: HTMLDivElement) => {
+            if (isInteractionLocked) return
             const requiredRows = computeRequiredRows(widgetId, contentElement)
             if (!requiredRows) return
             measuredRowsRef.current[widgetId] = requiredRows
             applyAutoSize(widgetId, requiredRows)
         },
-        [applyAutoSize, computeRequiredRows],
+        [applyAutoSize, computeRequiredRows, isInteractionLocked],
     )
 
     const handleContentRef = useCallback(
@@ -460,21 +501,24 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }, [handleContentResize])
 
     useEffect(() => {
+        if (isInteractionLocked) return
         updateGridMetrics()
         contentRefs.current.forEach((element, widgetId) => {
             handleContentResize(widgetId, element)
         })
-    }, [handleContentResize, layoutPreset.breakpoint, updateGridMetrics])
+    }, [handleContentResize, isInteractionLocked, layoutPreset.breakpoint, updateGridMetrics])
 
     useEffect(() => {
         if (typeof window === 'undefined') return
         let frameId: number | null = null
         const run = () => {
             frameId = null
-            updateGridMetrics()
-            contentRefs.current.forEach((element, widgetId) => {
-                handleContentResize(widgetId, element)
-            })
+            if (!isInteractionLocked) {
+                updateGridMetrics()
+                contentRefs.current.forEach((element, widgetId) => {
+                    handleContentResize(widgetId, element)
+                })
+            }
             setLayoutPreset(getLayoutConfigForWidth(window.innerWidth, layoutSource, breakpoints))
         }
         const handleResize = () => {
@@ -488,7 +532,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 window.cancelAnimationFrame(frameId)
             }
         }
-    }, [breakpoints, handleContentResize, layoutSource, updateGridMetrics])
+    }, [breakpoints, handleContentResize, isInteractionLocked, layoutSource, updateGridMetrics])
 
     const ensureSelected = useCallback(
         (options: WidgetBoardLayoutOption[], candidate?: string) => {
@@ -633,15 +677,24 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             const nextHeightModeById: Partial<Record<string, WidgetHeightMode>> = {
                 ...(nextHeightModeMemory[currentBreakpointKey] ?? {}),
             }
+            const prevItemsById = new Map<string, BoardProps.Item<WidgetBoardItemData>>(
+                prev.items.map(item => [item.id as string, item]),
+            )
             const nextItems = detail.items
                 .map(item => {
-                    const definition = definitionsMap.get(item.id as string)
+                    const widgetId = item.id as string
+                    const definition = definitionsMap.get(widgetId)
                     if (!definition) return null
 
-                    const widgetId = item.id as string
-                    const prevItem = prev.items.find(prevItem => prevItem.id === widgetId)
-                    const prevRowSpan = prevItem?.rowSpan ?? definition.layout.defaultSize.rowSpan
-                    const nextRowSpan = item.rowSpan ?? prevRowSpan
+                    const defaultSize = definition.layout.defaultSize
+                    const limits = definition.layout.limits
+                    const columnSpan = item.columnSpan ?? defaultSize.columnSpan
+                    const rowSpan = item.rowSpan ?? defaultSize.rowSpan
+                    const columnOffset = item.columnOffset ?? defaultSize.columnOffset
+
+                    const prevItem = prevItemsById.get(widgetId)
+                    const prevRowSpan = prevItem?.rowSpan ?? defaultSize.rowSpan
+                    const nextRowSpan = rowSpan
 
                     if (prevRowSpan !== nextRowSpan) {
                         const requiredRows = measuredRowsRef.current[widgetId]
@@ -654,7 +707,43 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                         }
                     }
 
-                    return toBoardItem(definition, item)
+                    const data =
+                        prevItem?.data && prevItem.data.title === definition.title
+                            ? prevItem.data
+                            : { id: definition.id, title: definition.title }
+                    const itemDefinition =
+                        prevItem?.definition &&
+                        prevItem.definition.defaultColumnSpan === defaultSize.columnSpan &&
+                        prevItem.definition.defaultRowSpan === defaultSize.rowSpan &&
+                        prevItem.definition.minColumnSpan === limits?.minColumnSpan &&
+                        prevItem.definition.minRowSpan === limits?.minRowSpan
+                            ? prevItem.definition
+                            : {
+                                  defaultColumnSpan: defaultSize.columnSpan,
+                                  defaultRowSpan: defaultSize.rowSpan,
+                                  minColumnSpan: limits?.minColumnSpan,
+                                  minRowSpan: limits?.minRowSpan,
+                              }
+
+                    if (
+                        prevItem &&
+                        prevItem.columnSpan === columnSpan &&
+                        prevItem.rowSpan === rowSpan &&
+                        prevItem.columnOffset === columnOffset &&
+                        prevItem.data === data &&
+                        prevItem.definition === itemDefinition
+                    ) {
+                        return prevItem
+                    }
+
+                    return {
+                        id: definition.id,
+                        columnSpan,
+                        rowSpan,
+                        columnOffset,
+                        data,
+                        definition: itemDefinition,
+                    }
                 })
                 .filter(Boolean) as BoardProps.Item<WidgetBoardItemData>[]
 
@@ -810,7 +899,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                         data-widget-id={widgetId}
                         sx={{ p: 2, boxSizing: 'border-box' }}
                     >
-                        {isCollapsed ? <Typography sx={{ color: 'text.secondary', fontSize: 14 }}>Collapsed</Typography> : definition.render()}
+                        <WidgetContent isCollapsed={isCollapsed} render={definition.render} dragLock={isInteractionLocked} />
                     </Box>
                 </Box>
             </BoardItem>
