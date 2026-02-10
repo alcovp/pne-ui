@@ -32,6 +32,16 @@ export type WidgetBoardHandle = {
 
 type WidgetDefinitionWithLayout = WidgetDefinition & { layout: WidgetLayoutConfig }
 
+export type WidgetBoardInteractionState = {
+    isInteractionLocked: boolean
+}
+
+export const WidgetBoardInteractionContext = React.createContext<WidgetBoardInteractionState>({
+    isInteractionLocked: false,
+})
+
+export const useWidgetBoardInteraction = () => React.useContext(WidgetBoardInteractionContext)
+
 type WidgetContentProps = {
     isCollapsed: boolean
     render: () => React.ReactNode
@@ -323,6 +333,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
 
     const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(definitionsWithLayout, currentBreakpointKey))
     const [isInteractionLocked, setIsInteractionLocked] = useState(false)
+    const interactionState = useMemo(() => ({ isInteractionLocked }), [isInteractionLocked])
     const boardRootRef = useRef<HTMLDivElement | null>(null)
     const gridMetricsRef = useRef<{ rowHeight: number; rowGap: number } | null>(null)
     const contentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
@@ -719,11 +730,11 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                         prevItem.definition.minRowSpan === limits?.minRowSpan
                             ? prevItem.definition
                             : {
-                                  defaultColumnSpan: defaultSize.columnSpan,
-                                  defaultRowSpan: defaultSize.rowSpan,
-                                  minColumnSpan: limits?.minColumnSpan,
-                                  minRowSpan: limits?.minRowSpan,
-                              }
+                                defaultColumnSpan: defaultSize.columnSpan,
+                                defaultRowSpan: defaultSize.rowSpan,
+                                minColumnSpan: limits?.minColumnSpan,
+                                minRowSpan: limits?.minRowSpan,
+                            }
 
                     if (
                         prevItem &&
@@ -919,9 +930,11 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     return (
         <CloudscapeThemeProvider>
             <CloudscapeBoardStyles hideNavigationArrows />
-            <Box ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {isLoadingLayouts ? <WidgetBoardSkeleton /> : boardElement}
-            </Box>
+            <WidgetBoardInteractionContext.Provider value={interactionState}>
+                <Box ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {isLoadingLayouts ? <WidgetBoardSkeleton /> : boardElement}
+                </Box>
+            </WidgetBoardInteractionContext.Provider>
         </CloudscapeThemeProvider>
     )
 })
