@@ -900,15 +900,31 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         )
 
         const heightMode = layoutState.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
-        const contentOverflow = heightMode === 'fixed' ? 'auto' : 'hidden'
+        const contentOverflow = definition.contentFullHeight ? 'hidden' : heightMode === 'fixed' ? 'auto' : 'hidden'
+
+        const boardItemDataAttributes = { 'data-height-mode': heightMode } as any
 
         return (
-            <BoardItem key={item.id} i18nStrings={boardItemI18nStrings} header={headerElement} settings={settingsElement} disableContentPaddings>
+            <BoardItem
+                {...boardItemDataAttributes}
+                key={item.id}
+                i18nStrings={boardItemI18nStrings}
+                header={headerElement}
+                settings={settingsElement}
+                disableContentPaddings
+            >
                 <Box sx={{ height: '100%', boxSizing: 'border-box', overflow: contentOverflow }}>
                     <Box
                         ref={(node: HTMLDivElement | null) => handleContentRef(widgetId, node)}
                         data-widget-id={widgetId}
-                        sx={{ p: 2, boxSizing: 'border-box' }}
+                        sx={{
+                            p: 2,
+                            boxSizing: 'border-box',
+                            height: definition.contentFullHeight ? '100%' : 'auto',
+                            minHeight: definition.contentFullHeight ? 0 : undefined,
+                            display: definition.contentFullHeight ? 'flex' : 'block',
+                            flexDirection: definition.contentFullHeight ? 'column' : undefined,
+                        }}
                     >
                         <WidgetContent isCollapsed={isCollapsed} render={definition.render} dragLock={isInteractionLocked} />
                     </Box>

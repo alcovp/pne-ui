@@ -47,6 +47,7 @@ export type WidgetDefinition = {
     title: string
     render: () => React.ReactNode
     settingsActions?: React.ReactNode
+    contentFullHeight?: boolean
 }
 
 export type WidgetBoardItemData = {

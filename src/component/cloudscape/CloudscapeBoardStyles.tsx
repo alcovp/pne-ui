@@ -33,6 +33,12 @@ export function CloudscapeBoardStyles({ hideNavigationArrows = true }: Cloudscap
                     boxShadow: 'none !important',
                     borderRadius: '0 !important',
                 },
+                '[data-item-id] [data-height-mode="auto"] [class*="content-fit-height"]': {
+                    overflow: 'hidden !important',
+                },
+                '[data-item-id] [data-height-mode="auto"] [class*="content-wrapper-fit-height"]': {
+                    overflow: 'hidden !important',
+                },
                 ...navigationStyles,
                 '@media (max-width: 600px)': {
                     '[data-awsui-board]': {
