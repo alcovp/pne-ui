@@ -1,7 +1,7 @@
 import React from 'react'
-import { Box, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react'
-import type { WidgetDefinition } from '../index'
+import type { WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
 import { WidgetLayoutsPanel, WidgetBoard } from '../index'
 
 const widgets: WidgetDefinition[] = [
@@ -52,6 +52,109 @@ const operationsLayout = {
                 errors: { defaultSize: { columnSpan: 8, rowSpan: 3 } },
             },
         },
+    },
+}
+
+type LayoutSettingsPayload = WidgetBoardLoadLayoutsResult
+
+const WITH_LAYOUTS_STORAGE_KEY = 'pne-ui.storybook.widget-board.with-layouts.v1'
+const LOAD_DELAY_MS = 350
+const SAVE_DELAY_MS = 120
+
+let inMemoryLayoutSettings: LayoutSettingsPayload | null = null
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+const clonePayload = (payload: LayoutSettingsPayload): LayoutSettingsPayload => {
+    if (typeof structuredClone === 'function') {
+        return structuredClone(payload)
+    }
+
+    return JSON.parse(JSON.stringify(payload)) as LayoutSettingsPayload
+}
+
+const normalizePayload = (payload: LayoutSettingsPayload): LayoutSettingsPayload => {
+    const options = Array.isArray(payload.options) ? payload.options : []
+    if (options.length === 0) {
+        return { options: [] }
+    }
+
+    const hasSelected = payload.selectedId ? options.some(option => option.id === payload.selectedId) : false
+    return { options, selectedId: hasSelected ? payload.selectedId : options[0].id }
+}
+
+const createSeedPayload = (): LayoutSettingsPayload => ({
+    options: [
+        { id: 'default', name: 'Analytics focus', layoutByBreakpoint: analyticsLayout.layoutByBreakpoint },
+        { id: 'operations', name: 'Operations shift', layoutByBreakpoint: operationsLayout.layoutByBreakpoint },
+    ],
+    selectedId: 'default',
+})
+
+const readPayloadFromStorage = (): LayoutSettingsPayload => {
+    if (typeof window === 'undefined' || !window.localStorage) {
+        inMemoryLayoutSettings = normalizePayload(inMemoryLayoutSettings ?? createSeedPayload())
+        return clonePayload(inMemoryLayoutSettings)
+    }
+
+    try {
+        const raw = window.localStorage.getItem(WITH_LAYOUTS_STORAGE_KEY)
+        if (!raw) {
+            const seed = createSeedPayload()
+            window.localStorage.setItem(WITH_LAYOUTS_STORAGE_KEY, JSON.stringify(seed))
+            return clonePayload(seed)
+        }
+
+        const parsed = JSON.parse(raw) as LayoutSettingsPayload
+        const normalized = normalizePayload(parsed)
+        window.localStorage.setItem(WITH_LAYOUTS_STORAGE_KEY, JSON.stringify(normalized))
+        return clonePayload(normalized)
+    } catch (error) {
+        console.warn('Failed to read widget-board story layouts from storage', error)
+        const seed = createSeedPayload()
+        window.localStorage.setItem(WITH_LAYOUTS_STORAGE_KEY, JSON.stringify(seed))
+        return clonePayload(seed)
+    }
+}
+
+const writePayloadToStorage = (payload: LayoutSettingsPayload) => {
+    const normalized = normalizePayload(payload)
+
+    if (typeof window === 'undefined' || !window.localStorage) {
+        inMemoryLayoutSettings = clonePayload(normalized)
+        return
+    }
+
+    try {
+        window.localStorage.setItem(WITH_LAYOUTS_STORAGE_KEY, JSON.stringify(normalized))
+    } catch (error) {
+        console.warn('Failed to save widget-board story layouts to storage', error)
+    }
+}
+
+const resetPayloadStorage = () => {
+    inMemoryLayoutSettings = null
+
+    if (typeof window === 'undefined' || !window.localStorage) {
+        return
+    }
+
+    try {
+        window.localStorage.removeItem(WITH_LAYOUTS_STORAGE_KEY)
+    } catch (error) {
+        console.warn('Failed to reset widget-board story layouts storage', error)
+    }
+}
+
+const mockOrderHistoryLayoutsApi = {
+    async getOrderHistoryLayoutSettings(): Promise<LayoutSettingsPayload> {
+        await wait(LOAD_DELAY_MS)
+        return readPayloadFromStorage()
+    },
+
+    async saveOrderHistoryLayoutSettings(options: WidgetBoardLayoutOption[], selectedId?: string): Promise<void> {
+        await wait(SAVE_DELAY_MS)
+        writePayloadToStorage({ options, selectedId })
     },
 }
 
@@ -226,18 +329,19 @@ const BoardWithLightWidget = () => {
 }
 
 const BoardWithLayouts = () => {
+    const [boardVersion, setBoardVersion] = React.useState(0)
+
     const loadLayouts = React.useCallback(async () => {
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        return {
-            options: [
-                { id: 'default', name: 'Analytics focus', layoutByBreakpoint: analyticsLayout.layoutByBreakpoint },
-                { id: 'operations', name: 'Operations shift', layoutByBreakpoint: operationsLayout.layoutByBreakpoint },
-            ],
-            selectedId: 'default',
-        }
+        return mockOrderHistoryLayoutsApi.getOrderHistoryLayoutSettings()
     }, [])
-    const saveLayouts = React.useCallback(async () => {
-        await new Promise(resolve => setTimeout(resolve, 50))
+
+    const saveLayouts = React.useCallback(async (options: WidgetBoardLayoutOption[], selectedId?: string) => {
+        await mockOrderHistoryLayoutsApi.saveOrderHistoryLayoutSettings(options, selectedId)
+    }, [])
+
+    const resetMockBackend = React.useCallback(() => {
+        resetPayloadStorage()
+        setBoardVersion(prev => prev + 1)
     }, [])
 
     return (
@@ -245,9 +349,25 @@ const BoardWithLayouts = () => {
             <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-start' }}>
                 <Box sx={{ minWidth: 260 }}>
                     <WidgetLayoutsPanel />
+                    <Stack spacing={1} sx={{ mt: 2 }}>
+                        <Button variant='outlined' size='small' onClick={resetMockBackend}>
+                            Reset mock backend
+                        </Button>
+                        <Typography variant='caption' color='text.secondary' sx={{ lineHeight: 1.4 }}>
+                            Backend mock persists to localStorage.
+                            <br />
+                            Key: <code>{WITH_LAYOUTS_STORAGE_KEY}</code>
+                        </Typography>
+                    </Stack>
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 320 }}>
-                    <WidgetBoard widgets={widgets} layoutByBreakpoint={analyticsLayout.layoutByBreakpoint} loadLayouts={loadLayouts} saveLayouts={saveLayouts} />
+                    <WidgetBoard
+                        key={boardVersion}
+                        widgets={widgets}
+                        layoutByBreakpoint={analyticsLayout.layoutByBreakpoint}
+                        loadLayouts={loadLayouts}
+                        saveLayouts={saveLayouts}
+                    />
                 </Box>
             </Stack>
         </Box>

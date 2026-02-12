@@ -19,6 +19,7 @@ export const buildPresetFromState = (
     state: WidgetBoardState | null,
     baseLayoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
     breakpoints: readonly number[] = DEFAULT_BREAKPOINTS,
+    activeBreakpoint?: number | string,
 ): Record<number | string, BreakpointLayoutConfig> => {
     if (!state) {
         return Object.fromEntries(
@@ -36,6 +37,7 @@ export const buildPresetFromState = (
     const itemMap = new Map<string, (typeof state.items)[number]>(state.items.map(item => [item.id as string, item]))
 
     breakpoints.forEach(breakpoint => {
+        const isActiveBreakpoint = activeBreakpoint === undefined || String(activeBreakpoint) === String(breakpoint)
         const base =
             baseLayoutByBreakpoint[breakpoint] ??
             baseLayoutByBreakpoint[String(breakpoint)] ??
@@ -49,9 +51,9 @@ export const buildPresetFromState = (
 
         Object.keys(base.widgets).forEach(id => {
             const baseConfig = base.widgets[id]
-            const item = itemMap.get(id)
+            const item = isActiveBreakpoint ? itemMap.get(id) : undefined
             const rememberedSnapshot = memoryForBreakpoint[id]
-            const isHidden = hiddenSet.has(id) || !item
+            const isHidden = hiddenSet.has(id) || (isActiveBreakpoint && !item)
             const isCollapsed = collapsedSet.has(id)
             const rememberedSize =
                 sizeMemory[id] ?? item?.rowSpan ?? rememberedSnapshot?.rowSpan ?? baseConfig.defaultSize.rowSpan

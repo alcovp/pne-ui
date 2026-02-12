@@ -3,7 +3,6 @@ type PanelBridge = {
     selectedId?: string
     onSelect?: (id: string) => void
     onDelete?: (id: string) => void
-    onUpdate?: (id: string) => void
     onAdd?: (name: string) => void
     lockedIds?: string[]
 }

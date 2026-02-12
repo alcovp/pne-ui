@@ -195,8 +195,8 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 Основные пропсы:
 - `widgets`: список `{ id, title, render }` — содержимое виджетов.
 - `layoutByBreakpoint`: базовый пресет для дефолтного лейаута.
-- `loadLayouts(): Promise<{ options; selectedId? } | null>`: обязательная функция загрузки пользовательских схем (вызывается при маунте). Верните хотя бы дефолтный пресет, если удаленное хранилище пустое.
-- `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (дергается после add/update/delete).
+- `loadLayouts(): Promise<{ options; selectedId? } | null>`: обязательная функция загрузки пользовательских схем (вызывается при маунте). `WidgetBoard` сам добавляет и блокирует встроенный `default`-лейаут.
+- `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (вызывается при select/add/delete и автосохранении изменений в выбранном пользовательском лейауте).
 
 Панель `WidgetLayoutsPanel` — отдельный компонент, который слушает активный `WidgetBoard` без пропсов. Можно размещать в любом месте дерева (включая FAB) или передать свои `items/onSelect/...` при необходимости.
 
@@ -207,8 +207,8 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 - `id: string`: уникальный идентификатор лейаута (можно `uuid` или любое значение бэка).
 - `name: string`: отображаемое имя пресета.
 - `layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>`: карта брейкпоинтов (ключ — число или строка, обычно `12`, `1280`, `1600` и т.д.).
-  - `BreakpointLayoutConfig`: `{ columns: number; widgets: Record<widgetId, WidgetLayoutConfig> }`.
-  - `WidgetLayoutConfig`: `{ defaultSize: { columnSpan; rowSpan; columnOffset? }; limits?; initialState? }`.
+  - `BreakpointLayoutConfig`: `{ widgets: Record<widgetId, WidgetLayoutConfig> }`.
+  - `WidgetLayoutConfig`: `{ defaultSize: { columnSpan; rowSpan; columnOffset? }; limits?; initialState?; heightMode? }`.
     - `initialState` поддерживает `isHidden` и `isCollapsed`.
 
 Формат функции `loadLayouts`:
@@ -235,7 +235,6 @@ const widgets: WidgetDefinition[] = [
 
 const baseLayoutByBreakpoint = {
     12: {
-        columns: 12,
         widgets: {
             traffic: { defaultSize: { columnSpan: 6, rowSpan: 2 } },
             sales: { defaultSize: { columnSpan: 6, rowSpan: 2 } },
@@ -246,13 +245,8 @@ const baseLayoutByBreakpoint = {
 // Загрузка/сохранение пресетов
 const loadLayouts = async (): Promise<{ options: WidgetBoardLayoutOption[]; selectedId?: string }> => {
     const response = await api.getUserLayouts() // верните { options, selectedId }
-    // Если API пустой, вернем дефолтный пресет
-    return (
-        response ?? {
-            options: [{ id: 'default', name: 'Default', layoutByBreakpoint: baseLayoutByBreakpoint }],
-            selectedId: 'default',
-        }
-    )
+    // Если API пустой, вернем пустой набор: WidgetBoard добавит встроенный default сам
+    return response ?? { options: [], selectedId: 'default' }
 }
 const saveLayouts = async (options: WidgetBoardLayoutOption[], selectedId?: string) => {
     await api.saveUserLayouts({ options, selectedId })

@@ -1,6 +1,5 @@
 import React, { useState, useSyncExternalStore } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
-import RefreshIcon from '@mui/icons-material/Refresh'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
 import PneModal from '../PneModal'
 import PneTextField from '../PneTextField'
@@ -17,7 +16,6 @@ export type WidgetLayoutsPanelProps = {
     selectedId?: string
     onSelect?: (id: string) => void
     onDelete?: (id: string) => void
-    onUpdate?: (id: string) => void
     onAdd?: (name: string) => void
     addLabel?: React.ReactNode
     className?: string
@@ -31,7 +29,6 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     selectedId,
     onSelect,
     onDelete,
-    onUpdate,
     onAdd,
     addLabel = defaultAddLabel,
     className,
@@ -43,7 +40,6 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     const resolvedSelectedId = selectedId ?? bridge?.selectedId
     const resolvedOnSelect = onSelect ?? bridge?.onSelect
     const resolvedOnDelete = onDelete ?? bridge?.onDelete
-    const resolvedOnUpdate = onUpdate ?? bridge?.onUpdate
     const resolvedOnAdd = onAdd ?? bridge?.onAdd
     const resolvedLockedIds = lockedIds.length ? lockedIds : bridge?.lockedIds ?? []
 
@@ -108,18 +104,6 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                                 }}
                             >
                                 <Box sx={{ flex: 1, fontWeight: 400, fontSize: '14px', lineHeight: '20px' }}>{item.name}</Box>
-                                {resolvedOnUpdate && selected && !locked ? (
-                                    <IconButton
-                                        size='small'
-                                        color='inherit'
-                                        onClick={event => {
-                                            event.stopPropagation()
-                                            resolvedOnUpdate(item.id)
-                                        }}
-                                    >
-                                        <RefreshIcon fontSize='small' />
-                                    </IconButton>
-                                ) : null}
                                 {resolvedOnDelete && !locked ? (
                                     <IconButton
                                         size='small'
