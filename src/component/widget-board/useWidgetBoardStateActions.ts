@@ -7,8 +7,10 @@ import { buildDefaultState, toBoardItem, upsertLayoutMemory, type WidgetDefiniti
 
 type UseWidgetBoardStateActionsParams = {
     currentBreakpointKey: string
+    defaultDefinitionsMap: Map<string, WidgetDefinitionWithLayout>
     definitionsMap: Map<string, WidgetDefinitionWithLayout>
     definitionsWithLayout: WidgetDefinitionWithLayout[]
+    isDefaultLayoutSelected: boolean
     lockedHeightModeByWidgetId: Partial<Record<string, boolean>>
     measuredRowsRef: MutableRefObject<Record<string, number>>
     setLayoutState: Dispatch<SetStateAction<WidgetBoardState>>
@@ -16,8 +18,10 @@ type UseWidgetBoardStateActionsParams = {
 
 export const useWidgetBoardStateActions = ({
     currentBreakpointKey,
+    defaultDefinitionsMap,
     definitionsMap,
     definitionsWithLayout,
+    isDefaultLayoutSelected,
     lockedHeightModeByWidgetId,
     measuredRowsRef,
     setLayoutState,
@@ -52,10 +56,68 @@ export const useWidgetBoardStateActions = ({
         [currentBreakpointKey, definitionsMap, setLayoutState],
     )
 
-    const resetLayout = useCallback(
-        () => setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey)),
-        [currentBreakpointKey, definitionsWithLayout, setLayoutState],
-    )
+    const resetLayout = useCallback(() => {
+        if (isDefaultLayoutSelected) {
+            setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey))
+            return
+        }
+
+        setLayoutState(prev => {
+            const hiddenSet = new Set(prev.hidden)
+
+            const resetDefinitions = definitionsWithLayout.map(definition => {
+                if (hiddenSet.has(definition.id)) {
+                    return {
+                        ...definition,
+                        layout: {
+                            ...definition.layout,
+                            initialState: {
+                                ...definition.layout.initialState,
+                                isHidden: true,
+                            },
+                        },
+                    }
+                }
+
+                const defaultDefinition = defaultDefinitionsMap.get(definition.id) ?? definition
+                return {
+                    ...defaultDefinition,
+                    layout: {
+                        ...defaultDefinition.layout,
+                        initialState: {
+                            ...defaultDefinition.layout.initialState,
+                            isHidden: false,
+                        },
+                    },
+                }
+            })
+
+            const nextState = buildDefaultState(resetDefinitions, currentBreakpointKey)
+            const nextHidden = prev.hidden.filter(id => definitionsMap.has(id))
+            const nextHiddenSet = new Set(nextHidden)
+            const nextCollapsed = nextState.collapsed.filter(id => !nextHiddenSet.has(id))
+            const nextLayoutMemory = { ...prev.layoutMemory }
+            const currentBreakpointMemory = prev.layoutMemory[currentBreakpointKey] ?? {}
+            const hiddenMemoryEntries = Object.entries(currentBreakpointMemory).filter(([id]) => nextHiddenSet.has(id))
+
+            if (hiddenMemoryEntries.length > 0) {
+                nextLayoutMemory[currentBreakpointKey] = Object.fromEntries(hiddenMemoryEntries)
+            } else {
+                delete nextLayoutMemory[currentBreakpointKey]
+            }
+
+            return {
+                ...nextState,
+                hidden: nextHidden,
+                collapsed: nextCollapsed,
+                layoutMemory: nextLayoutMemory,
+                heightModeMemory: {
+                    ...prev.heightModeMemory,
+                    [currentBreakpointKey]: nextState.heightModeMemory[currentBreakpointKey] ?? {},
+                },
+            }
+        })
+    }, [currentBreakpointKey, defaultDefinitionsMap, definitionsMap, definitionsWithLayout, isDefaultLayoutSelected, setLayoutState])
 
     const handleItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange'] = useCallback(
         ({ detail }) => {
