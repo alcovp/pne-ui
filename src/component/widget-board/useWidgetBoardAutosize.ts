@@ -4,6 +4,8 @@ import type { WidgetBoardState } from './types'
 import { DEFAULT_ROW_GAP, DEFAULT_ROW_HEIGHT, type WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
 
 type UseWidgetBoardAutosizeParams = {
+    autoHeightEnabled: boolean
+    lockedHeightModeByWidgetId: Partial<Record<string, boolean>>
     definitionsMap: Map<string, WidgetDefinitionWithLayout>
     currentBreakpointKey: string
     isInteractionLocked: boolean
@@ -12,6 +14,8 @@ type UseWidgetBoardAutosizeParams = {
 }
 
 export const useWidgetBoardAutosize = ({
+    autoHeightEnabled,
+    lockedHeightModeByWidgetId,
     definitionsMap,
     currentBreakpointKey,
     isInteractionLocked,
@@ -95,6 +99,7 @@ export const useWidgetBoardAutosize = ({
             setLayoutState(prev => {
                 const definition = definitionsMap.get(widgetId)
                 if (!definition) return prev
+                if (lockedHeightModeByWidgetId[widgetId]) return prev
                 if (prev.collapsed.includes(widgetId)) return prev
 
                 const heightMode = prev.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
@@ -113,18 +118,19 @@ export const useWidgetBoardAutosize = ({
                 return { ...prev, items: nextItems }
             })
         },
-        [currentBreakpointKey, definitionsMap, setLayoutState],
+        [currentBreakpointKey, definitionsMap, lockedHeightModeByWidgetId, setLayoutState],
     )
 
     const handleContentResize = useCallback(
         (widgetId: string, contentElement: HTMLDivElement) => {
+            if (!autoHeightEnabled) return
             if (isInteractionLocked) return
             const requiredRows = computeRequiredRows(contentElement)
             if (!requiredRows) return
             measuredRowsRef.current[widgetId] = requiredRows
             applyAutoSize(widgetId, requiredRows)
         },
-        [applyAutoSize, computeRequiredRows, isInteractionLocked],
+        [applyAutoSize, autoHeightEnabled, computeRequiredRows, isInteractionLocked],
     )
 
     const handleContentRef = useCallback(
@@ -144,23 +150,29 @@ export const useWidgetBoardAutosize = ({
             }
 
             map.set(widgetId, node)
+            if (!autoHeightEnabled) {
+                delete measuredRowsRef.current[widgetId]
+                return
+            }
             if (observer) {
                 observer.observe(node)
             }
             requestAnimationFrame(() => handleContentResize(widgetId, node))
         },
-        [handleContentResize],
+        [autoHeightEnabled, handleContentResize],
     )
 
     const remeasureAll = useCallback(() => {
+        if (!autoHeightEnabled) return
         if (isInteractionLocked) return
         updateGridMetrics()
         contentRefs.current.forEach((element, widgetId) => {
             handleContentResize(widgetId, element)
         })
-    }, [handleContentResize, isInteractionLocked, updateGridMetrics])
+    }, [autoHeightEnabled, handleContentResize, isInteractionLocked, updateGridMetrics])
 
     useEffect(() => {
+        if (!autoHeightEnabled) return
         if (typeof ResizeObserver === 'undefined') return
         const observer = new ResizeObserver(entries => {
             entries.forEach(entry => {
@@ -176,7 +188,13 @@ export const useWidgetBoardAutosize = ({
             observer.disconnect()
             resizeObserverRef.current = null
         }
-    }, [handleContentResize])
+    }, [autoHeightEnabled, handleContentResize])
+
+    useEffect(() => {
+        if (!autoHeightEnabled) {
+            measuredRowsRef.current = {}
+        }
+    }, [autoHeightEnabled])
 
     useEffect(() => {
         remeasureAll()

@@ -87,4 +87,5 @@ export type WidgetBoardProps = {
     loadLayouts: () => Promise<WidgetBoardLoadLayoutsResult | null>
     saveLayouts: (options: WidgetBoardLayoutOption[], selectedId?: string) => Promise<void>
     onActionsStateChange?: (state: WidgetBoardActionsState) => void
+    autoHeightEnabled?: boolean
 }

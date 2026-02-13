@@ -41,6 +41,20 @@ const resolveLayoutForBreakpoint = (
 const normalizeHeightMode = (value: WidgetLayoutConfig['heightMode']) => value ?? 'auto'
 const stringifyColumnOffset = (value: WidgetLayoutConfig['defaultSize']['columnOffset']) => JSON.stringify(value ?? null)
 
+const getFixedHeightModeLocks = (
+    layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
+    breakpointKey: number | string,
+): Partial<Record<string, boolean>> => {
+    const layout = resolveLayoutForBreakpoint(layoutByBreakpoint, breakpointKey)
+    if (!layout) return {}
+
+    return Object.fromEntries(
+        Object.entries(layout.widgets)
+            .filter(([, widget]) => normalizeHeightMode(widget.heightMode) === 'fixed')
+            .map(([id]) => [id, true]),
+    )
+}
+
 const isSameWidgetLayout = (current: WidgetLayoutConfig | undefined, base: WidgetLayoutConfig | undefined) => {
     if (!current || !base) return false
 
@@ -105,6 +119,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         loadLayouts,
         saveLayouts,
         onActionsStateChange,
+        autoHeightEnabled = true,
     },
     ref,
 ) {
@@ -195,6 +210,11 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         widgets,
     ])
 
+    const lockedHeightModeByWidgetId = useMemo(
+        () => getFixedHeightModeLocks(layoutByBreakpoint, currentBreakpointKey),
+        [currentBreakpointKey, layoutByBreakpoint],
+    )
+
     const fallbackLayoutConfig = useMemo(() => {
         const firstKey = breakpoints[0]
         return layoutSource[firstKey] ?? Object.values(layoutSource)[0]
@@ -214,6 +234,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const isInteractionLocked = useWidgetBoardInteractionLock()
     const interactionState = useMemo(() => ({ isInteractionLocked }), [isInteractionLocked])
     const { boardRootRef, handleContentRef, measuredRowsRef, remeasureAll } = useWidgetBoardAutosize({
+        autoHeightEnabled,
+        lockedHeightModeByWidgetId,
         definitionsMap,
         currentBreakpointKey,
         isInteractionLocked,
@@ -256,6 +278,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         currentBreakpointKey,
         definitionsMap,
         definitionsWithLayout,
+        lockedHeightModeByWidgetId,
         measuredRowsRef,
         setLayoutState,
     })
@@ -319,7 +342,9 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         if (!definition) return <></>
 
         const isCollapsed = layoutState.collapsed.includes(widgetId)
-        const heightMode = layoutState.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
+        const isHeightModeLocked = Boolean(lockedHeightModeByWidgetId[widgetId])
+        const baseHeightMode = isHeightModeLocked ? 'fixed' : layoutState.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
+        const heightMode = autoHeightEnabled ? baseHeightMode : 'fixed'
 
         return (
             <WidgetBoardItem

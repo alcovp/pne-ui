@@ -9,6 +9,7 @@ type UseWidgetBoardStateActionsParams = {
     currentBreakpointKey: string
     definitionsMap: Map<string, WidgetDefinitionWithLayout>
     definitionsWithLayout: WidgetDefinitionWithLayout[]
+    lockedHeightModeByWidgetId: Partial<Record<string, boolean>>
     measuredRowsRef: MutableRefObject<Record<string, number>>
     setLayoutState: Dispatch<SetStateAction<WidgetBoardState>>
 }
@@ -17,6 +18,7 @@ export const useWidgetBoardStateActions = ({
     currentBreakpointKey,
     definitionsMap,
     definitionsWithLayout,
+    lockedHeightModeByWidgetId,
     measuredRowsRef,
     setLayoutState,
 }: UseWidgetBoardStateActionsParams) => {
@@ -80,15 +82,18 @@ export const useWidgetBoardStateActions = ({
                         const prevItem = prevItemsById.get(widgetId)
                         const prevRowSpan = prevItem?.rowSpan ?? defaultSize.rowSpan
                         const nextRowSpan = rowSpan
+                        const isHeightModeLocked = Boolean(lockedHeightModeByWidgetId[widgetId])
 
                         if (prevRowSpan !== nextRowSpan) {
                             const requiredRows = measuredRowsRef.current[widgetId]
                             if (requiredRows) {
                                 if (nextRowSpan < requiredRows) {
                                     nextHeightModeById[widgetId] = 'fixed'
-                                } else {
+                                } else if (!isHeightModeLocked) {
                                     nextHeightModeById[widgetId] = 'auto'
                                 }
+                            } else if (!isHeightModeLocked && nextRowSpan > prevRowSpan) {
+                                nextHeightModeById[widgetId] = 'auto'
                             }
                         }
 
@@ -136,7 +141,7 @@ export const useWidgetBoardStateActions = ({
                 return { ...prev, items: nextItems, heightModeMemory: nextHeightModeMemory }
             })
         },
-        [currentBreakpointKey, definitionsMap, measuredRowsRef, setLayoutState],
+        [currentBreakpointKey, definitionsMap, lockedHeightModeByWidgetId, measuredRowsRef, setLayoutState],
     )
 
     const toggleCollapse = useCallback(
