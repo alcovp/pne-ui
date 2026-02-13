@@ -317,19 +317,79 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const actionsState = useMemo<WidgetBoardActionsState>(() => {
         const currentPreset = buildCurrentPreset()
         const currentBreakpointLayout = resolveLayoutForBreakpoint(currentPreset, currentBreakpointKey)
-        const resetVisibleOnly = effectiveSelectedLayoutId !== defaultOption.id
+
+        let canResetLayout: boolean
+        if (effectiveSelectedLayoutId === defaultOption.id) {
+            canResetLayout = differsFromBaseLayout(currentBreakpointLayout, defaultBreakpointLayout)
+        } else {
+            const hiddenSet = new Set(layoutState.hidden)
+            const hasHiddenWidgets = hiddenSet.size > 0
+            const visibleItems = layoutState.items.filter(item => {
+                const widgetId = item.id as string
+                return definitionsMap.has(widgetId) && !hiddenSet.has(widgetId)
+            })
+            const visibleItemIdSet = new Set(visibleItems.map(item => item.id as string))
+            const defaultVisibleIds = defaultDefinitionsWithLayout
+                .filter(definition => definitionsMap.has(definition.id) && !hiddenSet.has(definition.id))
+                .map(definition => definition.id)
+
+            const hasDifferentVisibleWidgets =
+                visibleItems.length !== defaultVisibleIds.length || defaultVisibleIds.some(id => !visibleItemIdSet.has(id))
+
+            const hasDifferentOrder = !hasHiddenWidgets && defaultVisibleIds.some((id, index) => visibleItems[index]?.id !== id)
+
+            if (hasDifferentVisibleWidgets || hasDifferentOrder) {
+                canResetLayout = true
+            } else {
+                const visibleItemsMap = new Map(visibleItems.map(item => [item.id as string, item]))
+                const collapsedSet = new Set(layoutState.collapsed)
+                const heightModeById = layoutState.heightModeMemory[currentBreakpointKey] ?? {}
+
+                canResetLayout = defaultVisibleIds.some(id => {
+                    const item = visibleItemsMap.get(id)
+                    const currentDefinition = definitionsMap.get(id)
+                    const defaultDefinition = defaultDefinitionsMap.get(id)
+                    if (!item || !currentDefinition || !defaultDefinition) return true
+
+                    const defaultSize = defaultDefinition.layout.defaultSize
+                    if (item.columnSpan !== defaultSize.columnSpan) return true
+                    if (!hasHiddenWidgets && stringifyColumnOffset(item.columnOffset) !== stringifyColumnOffset(defaultSize.columnOffset)) return true
+
+                    const currentHeightMode = normalizeHeightMode(heightModeById[id] ?? currentDefinition.layout.heightMode)
+                    const defaultHeightMode = normalizeHeightMode(defaultDefinition.layout.heightMode)
+                    if (currentHeightMode !== defaultHeightMode) return true
+                    if (currentHeightMode === 'fixed' && item.rowSpan !== defaultSize.rowSpan) return true
+
+                    const isCollapsed = collapsedSet.has(id)
+                    const defaultIsCollapsed = Boolean(defaultDefinition.layout.initialState?.isCollapsed)
+                    if (isCollapsed !== defaultIsCollapsed) return true
+
+                    return false
+                })
+            }
+        }
 
         return {
             hasHiddenWidgets: layoutState.hidden.some(widgetId => definitionsMap.has(widgetId)),
-            canResetLayout: differsFromBaseLayout(currentBreakpointLayout, defaultBreakpointLayout, {
-                hiddenWidgetIds: resetVisibleOnly ? layoutState.hidden : undefined,
-                ignoreHiddenState: resetVisibleOnly,
-            }),
+            canResetLayout,
             isDefaultLayoutSelected: effectiveSelectedLayoutId === defaultOption.id,
             selectedLayoutId: effectiveSelectedLayoutId,
             defaultLayoutId: defaultOption.id,
         }
-    }, [buildCurrentPreset, currentBreakpointKey, defaultBreakpointLayout, defaultOption.id, definitionsMap, effectiveSelectedLayoutId, layoutState.hidden])
+    }, [
+        buildCurrentPreset,
+        currentBreakpointKey,
+        defaultBreakpointLayout,
+        defaultDefinitionsMap,
+        defaultDefinitionsWithLayout,
+        defaultOption.id,
+        definitionsMap,
+        effectiveSelectedLayoutId,
+        layoutState.collapsed,
+        layoutState.heightModeMemory,
+        layoutState.hidden,
+        layoutState.items,
+    ])
 
     useWidgetBoardLayoutActions({
         buildCurrentPreset,
