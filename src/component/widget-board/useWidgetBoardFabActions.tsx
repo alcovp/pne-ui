@@ -72,6 +72,8 @@ export const useWidgetBoardFabActions = ({
 
     const showResetLayout = Boolean(bridge?.actionsState?.canResetLayout)
     const showRestoreHidden = Boolean(bridge?.actionsState?.hasHiddenWidgets)
+    const canReset = showResetLayout && Boolean(bridge?.onResetLayout)
+    const canRestoreHidden = showRestoreHidden && Boolean(bridge?.onRestoreHidden)
 
     return useMemo<PneFabItem[]>(() => {
         const items: PneFabItem[] = [
@@ -80,30 +82,27 @@ export const useWidgetBoardFabActions = ({
                 kind: 'content',
                 node: <WidgetLayoutsPanel />,
             },
+            { id: 'divider-layouts', kind: 'divider' },
         ]
 
-        if (showResetLayout || showRestoreHidden) {
-            items.push({ id: 'divider-layouts', kind: 'divider' })
-        }
+        items.push({
+            id: 'reset-layout',
+            label: resolvedResetLabel,
+            icon: <RestartAltIcon fontSize='small' />,
+            onClick: handleResetLayout,
+            disabled: !canReset,
+            showInFabStack: canReset,
+        })
 
-        if (showResetLayout) {
-            items.push({
-                id: 'reset-layout',
-                label: resolvedResetLabel,
-                icon: <RestartAltIcon fontSize='small' />,
-                onClick: handleResetLayout,
-            })
-        }
-
-        if (showRestoreHidden) {
-            items.push({
-                id: 'restore-hidden',
-                label: resolvedRestoreHiddenLabel,
-                icon: <RestorePageIcon fontSize='small' />,
-                onClick: handleRestoreHidden,
-            })
-        }
+        items.push({
+            id: 'restore-hidden',
+            label: resolvedRestoreHiddenLabel,
+            icon: <RestorePageIcon fontSize='small' />,
+            onClick: handleRestoreHidden,
+            disabled: !canRestoreHidden,
+            showInFabStack: canRestoreHidden,
+        })
 
         return items
-    }, [handleResetLayout, handleRestoreHidden, resolvedResetLabel, resolvedRestoreHiddenLabel, showResetLayout, showRestoreHidden])
+    }, [canReset, canRestoreHidden, handleResetLayout, handleRestoreHidden, resolvedResetLabel, resolvedRestoreHiddenLabel])
 }

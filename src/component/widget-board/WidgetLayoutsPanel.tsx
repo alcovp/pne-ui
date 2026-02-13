@@ -97,10 +97,15 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                                     gap: 0.5,
                                     px: 2,
                                     minHeight: 32,
-                                    cursor: onSelect ? 'pointer' : 'default',
+                                    cursor: resolvedOnSelect ? 'pointer' : 'default',
                                     bgcolor: selected ? '#EFF2F5' : '#fff',
                                     color: selected ? 'primary.main' : 'text.primary',
                                     transition: 'background-color 0.2s ease, color 0.2s ease',
+                                    '&:hover': resolvedOnSelect
+                                        ? {
+                                            bgcolor: selected ? '#EFF2F5' : theme => theme.palette.action.hover,
+                                        }
+                                        : undefined,
                                 }}
                             >
                                 <Box sx={{ flex: 1, fontWeight: 400, fontSize: '14px', lineHeight: '20px' }}>{item.name}</Box>

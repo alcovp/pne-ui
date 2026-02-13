@@ -39,23 +39,32 @@ const resolveLayoutForBreakpoint = (
     Object.values(layoutByBreakpoint)[0]
 
 const normalizeHeightMode = (value: WidgetLayoutConfig['heightMode']) => value ?? 'auto'
+const stringifyColumnOffset = (value: WidgetLayoutConfig['defaultSize']['columnOffset']) => JSON.stringify(value ?? null)
 
 const isSameWidgetLayout = (current: WidgetLayoutConfig | undefined, base: WidgetLayoutConfig | undefined) => {
     if (!current || !base) return false
 
     const currentSize = current.defaultSize
     const baseSize = base.defaultSize
+    const currentHeightMode = normalizeHeightMode(current.heightMode)
+    const baseHeightMode = normalizeHeightMode(base.heightMode)
+
+    if (currentHeightMode !== baseHeightMode) return false
+
     if (
         currentSize.columnSpan !== baseSize.columnSpan ||
-        currentSize.rowSpan !== baseSize.rowSpan ||
-        (currentSize.columnOffset ?? null) !== (baseSize.columnOffset ?? null)
+        stringifyColumnOffset(currentSize.columnOffset) !== stringifyColumnOffset(baseSize.columnOffset)
     ) {
+        return false
+    }
+
+    // For auto-height widgets rowSpan is runtime-derived by autosize and should not mark layout as user-modified.
+    if (currentHeightMode === 'fixed' && currentSize.rowSpan !== baseSize.rowSpan) {
         return false
     }
 
     if (Boolean(current.initialState?.isHidden) !== Boolean(base.initialState?.isHidden)) return false
     if (Boolean(current.initialState?.isCollapsed) !== Boolean(base.initialState?.isCollapsed)) return false
-    if (normalizeHeightMode(current.heightMode) !== normalizeHeightMode(base.heightMode)) return false
 
     return true
 }

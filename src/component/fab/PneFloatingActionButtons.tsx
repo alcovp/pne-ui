@@ -12,6 +12,8 @@ export type PneFabAction = {
     icon?: React.ReactNode
     disabled?: boolean
     tooltip?: string
+    showInMenu?: boolean
+    showInFabStack?: boolean
 }
 
 export type PneFabContent = {
@@ -102,9 +104,9 @@ export function PneFloatingActionButtons({
             ) : null,
         )
 
-    // Desktop: keep actions both in the floating stack and inside the menu
-    const menuItems = actions
-    const actionItems = isMobile ? [] : actions.filter(isActionItem)
+    // Desktop: actions can be shown independently in menu and floating stack.
+    const menuItems = actions.filter(item => !isActionItem(item) || item.showInMenu !== false)
+    const actionItems = isMobile ? [] : actions.filter(isActionItem).filter(item => item.showInFabStack !== false)
     const fabSx = isMobile ? { opacity: 0.85 } : { opacity: 0.3 }
     const stackSx = isMobile ? undefined : { '&:hover .pne-fab': { opacity: 0.85 } }
     const baseOffset = isMobile ? 16 : 24
