@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { setWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
 import { createLayoutId } from './widgetBoardLayoutUtils'
-import type { BreakpointLayoutConfig, WidgetBoardLayoutOption, WidgetBoardProps } from './types'
+import type { BreakpointLayoutConfig, WidgetBoardActionsState, WidgetBoardLayoutOption, WidgetBoardProps } from './types'
 
 type UseWidgetBoardLayoutActionsParams = {
     buildCurrentPreset: () => Record<number | string, BreakpointLayoutConfig>
@@ -13,6 +13,9 @@ type UseWidgetBoardLayoutActionsParams = {
     layoutSourceOwnerIdRef: MutableRefObject<string | undefined>
     lockedLayoutIdRef: MutableRefObject<string | undefined>
     saveLayouts: WidgetBoardProps['saveLayouts']
+    actionsState: WidgetBoardActionsState
+    onResetLayout: () => void
+    onRestoreHidden: () => void
     selectedLayoutId: string | undefined
     setLayoutOptions: Dispatch<SetStateAction<WidgetBoardLayoutOption[]>>
     setSelectedLayoutId: Dispatch<SetStateAction<string | undefined>>
@@ -27,6 +30,9 @@ export const useWidgetBoardLayoutActions = ({
     layoutSourceOwnerIdRef,
     lockedLayoutIdRef,
     saveLayouts,
+    actionsState,
+    onResetLayout,
+    onRestoreHidden,
     selectedLayoutId,
     setLayoutOptions,
     setSelectedLayoutId,
@@ -144,12 +150,15 @@ export const useWidgetBoardLayoutActions = ({
             onAdd: addLayout,
             onDelete: deleteLayout,
             lockedIds: lockedLayoutIdRef.current ? [lockedLayoutIdRef.current] : [],
+            actionsState,
+            onResetLayout,
+            onRestoreHidden,
         }
         setWidgetLayoutsPanelBridge(panelProps)
         return () => {
             setWidgetLayoutsPanelBridge(null)
         }
-    }, [addLayout, deleteLayout, layoutOptions, lockedLayoutIdRef, selectLayout, selectedLayoutId])
+    }, [actionsState, addLayout, deleteLayout, layoutOptions, lockedLayoutIdRef, onResetLayout, onRestoreHidden, selectLayout, selectedLayoutId])
 
     return {
         addLayout,

@@ -5,6 +5,9 @@ type PanelBridge = {
     onDelete?: (id: string) => void
     onAdd?: (name: string) => void
     lockedIds?: string[]
+    actionsState?: import('./types').WidgetBoardActionsState
+    onResetLayout?: () => void
+    onRestoreHidden?: () => void
 }
 
 type Listener = (state: PanelBridge | null) => void

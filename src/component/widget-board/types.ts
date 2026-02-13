@@ -73,9 +73,18 @@ export type WidgetBoardLoadLayoutsResult = {
     selectedId?: string
 }
 
+export type WidgetBoardActionsState = {
+    hasHiddenWidgets: boolean
+    canResetLayout: boolean
+    isDefaultLayoutSelected: boolean
+    selectedLayoutId?: string
+    defaultLayoutId: string
+}
+
 export type WidgetBoardProps = {
     widgets: WidgetDefinition[]
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
     loadLayouts: () => Promise<WidgetBoardLoadLayoutsResult | null>
     saveLayouts: (options: WidgetBoardLayoutOption[], selectedId?: string) => Promise<void>
+    onActionsStateChange?: (state: WidgetBoardActionsState) => void
 }

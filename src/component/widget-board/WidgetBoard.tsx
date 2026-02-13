@@ -22,15 +22,61 @@ import {
 } from './widgetBoardLayoutUtils'
 import type {
     BreakpointLayoutConfig,
+    WidgetBoardActionsState,
     WidgetBoardItemData,
-    WidgetBoardLayoutOption,
     WidgetBoardProps,
+    WidgetLayoutConfig,
     WidgetBoardState,
 } from './types'
+
+const resolveLayoutForBreakpoint = (
+    layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
+    breakpointKey: number | string,
+): BreakpointLayoutConfig | undefined =>
+    layoutByBreakpoint[breakpointKey] ??
+    layoutByBreakpoint[String(breakpointKey)] ??
+    layoutByBreakpoint[Number(breakpointKey)] ??
+    Object.values(layoutByBreakpoint)[0]
+
+const normalizeHeightMode = (value: WidgetLayoutConfig['heightMode']) => value ?? 'auto'
+
+const isSameWidgetLayout = (current: WidgetLayoutConfig | undefined, base: WidgetLayoutConfig | undefined) => {
+    if (!current || !base) return false
+
+    const currentSize = current.defaultSize
+    const baseSize = base.defaultSize
+    if (
+        currentSize.columnSpan !== baseSize.columnSpan ||
+        currentSize.rowSpan !== baseSize.rowSpan ||
+        (currentSize.columnOffset ?? null) !== (baseSize.columnOffset ?? null)
+    ) {
+        return false
+    }
+
+    if (Boolean(current.initialState?.isHidden) !== Boolean(base.initialState?.isHidden)) return false
+    if (Boolean(current.initialState?.isCollapsed) !== Boolean(base.initialState?.isCollapsed)) return false
+    if (normalizeHeightMode(current.heightMode) !== normalizeHeightMode(base.heightMode)) return false
+
+    return true
+}
+
+const differsFromBaseLayout = (current: BreakpointLayoutConfig | undefined, base: BreakpointLayoutConfig | undefined) => {
+    if (!current || !base) return false
+
+    const widgetIds = new Set([...Object.keys(current.widgets), ...Object.keys(base.widgets)])
+    for (const widgetId of widgetIds) {
+        if (!isSameWidgetLayout(current.widgets[widgetId], base.widgets[widgetId])) {
+            return true
+        }
+    }
+
+    return false
+}
 
 export type WidgetBoardHandle = {
     resetLayout: () => void
     restoreHidden: () => void
+    getActionsState: () => WidgetBoardActionsState
 }
 
 export type WidgetBoardInteractionState = {
@@ -49,6 +95,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutByBreakpoint,
         loadLayouts,
         saveLayouts,
+        onActionsStateChange,
     },
     ref,
 ) {
@@ -196,6 +243,29 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         [breakpoints, currentBreakpointKey, layoutSource, layoutState],
     )
 
+    const { handleItemsChange, hideItem, resetLayout, restoreHidden, toggleCollapse } = useWidgetBoardStateActions({
+        currentBreakpointKey,
+        definitionsMap,
+        definitionsWithLayout,
+        measuredRowsRef,
+        setLayoutState,
+    })
+
+    const actionsState = useMemo<WidgetBoardActionsState>(() => {
+        const currentPreset = buildCurrentPreset()
+        const currentBreakpointLayout = resolveLayoutForBreakpoint(currentPreset, currentBreakpointKey)
+        const defaultBreakpointLayout = resolveLayoutForBreakpoint(defaultOption.layoutByBreakpoint, currentBreakpointKey)
+        const effectiveSelectedLayoutId = selectedLayoutId ?? defaultOption.id
+
+        return {
+            hasHiddenWidgets: layoutState.hidden.some(widgetId => definitionsMap.has(widgetId)),
+            canResetLayout: differsFromBaseLayout(currentBreakpointLayout, defaultBreakpointLayout),
+            isDefaultLayoutSelected: effectiveSelectedLayoutId === defaultOption.id,
+            selectedLayoutId: effectiveSelectedLayoutId,
+            defaultLayoutId: defaultOption.id,
+        }
+    }, [buildCurrentPreset, currentBreakpointKey, defaultOption.id, defaultOption.layoutByBreakpoint, definitionsMap, layoutState.hidden, selectedLayoutId])
+
     useWidgetBoardLayoutActions({
         buildCurrentPreset,
         defaultLayoutId: defaultOption.id,
@@ -205,26 +275,26 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutSourceOwnerIdRef,
         lockedLayoutIdRef,
         saveLayouts,
+        actionsState,
+        onResetLayout: resetLayout,
+        onRestoreHidden: restoreHidden,
         selectedLayoutId,
         setLayoutOptions,
         setSelectedLayoutId,
     })
 
-    const { handleItemsChange, hideItem, resetLayout, restoreHidden, toggleCollapse } = useWidgetBoardStateActions({
-        currentBreakpointKey,
-        definitionsMap,
-        definitionsWithLayout,
-        measuredRowsRef,
-        setLayoutState,
-    })
+    useEffect(() => {
+        onActionsStateChange?.(actionsState)
+    }, [actionsState, onActionsStateChange])
 
     useImperativeHandle(
         ref,
         () => ({
             resetLayout,
             restoreHidden,
+            getActionsState: () => actionsState,
         }),
-        [resetLayout, restoreHidden],
+        [actionsState, resetLayout, restoreHidden],
     )
 
     const visibleItems = useMemo(

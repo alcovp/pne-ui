@@ -1,5 +1,7 @@
 export * from './WidgetBoard'
+export * from './WidgetBoardFab'
 export * from './types'
 export * from './WidgetLayoutsPanel'
+export * from './useWidgetBoardFabActions'
 export * from './layoutPersistence'
 export * from './widgetLayoutsPanelStore'

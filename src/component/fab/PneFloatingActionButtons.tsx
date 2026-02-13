@@ -141,7 +141,7 @@ export function PneFloatingActionButtons({
         <Box position='fixed' zIndex={1300} className={className} sx={containerSx}>
             <Stack spacing={1} alignItems='flex-end' sx={stackSx}>
                 {showScrollTop ? (
-                    <Tooltip title='Scroll to top' placement='left'>
+                    <Tooltip title='Scroll to top' placement='left' disableInteractive>
                         <span>
                             <Fab
                                 className='pne-fab'
@@ -161,7 +161,7 @@ export function PneFloatingActionButtons({
                         const title =
                             item.tooltip ?? (typeof item.label === 'string' ? item.label : typeof fabLabel === 'string' ? fabLabel : 'Action')
                         return (
-                            <Tooltip key={item.id} title={title} placement='left'>
+                            <Tooltip key={item.id} title={title} placement='left' disableInteractive>
                                 <span>
                                     <Fab
                                         className='pne-fab'
@@ -178,7 +178,7 @@ export function PneFloatingActionButtons({
                         )
                     })
                     : null}
-                <Tooltip title={fabLabel}>
+                <Tooltip title={fabLabel} disableInteractive>
                     <Fab
                         className='pne-fab'
                         color='primary'
