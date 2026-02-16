@@ -1,9 +1,9 @@
 import React from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 import BoardItem from '@cloudscape-design/board-components/board-item'
-import CloseIcon from '@mui/icons-material/Close'
-import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
+import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded'
+import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
 import { boardItemI18nStrings } from '../cloudscape/boardI18n'
 import type { WidgetBoardItemData, WidgetHeightMode } from './types'
@@ -87,10 +87,10 @@ export const WidgetBoardItem = ({
                 size='small'
                 sx={{ color: 'rgba(78, 93, 120, 1)' }}
             >
-                {isCollapsed ? <ExpandMoreIcon fontSize='small' /> : <ExpandLessIcon fontSize='small' />}
+                {isCollapsed ? <ExpandMoreRoundedIcon fontSize='medium' /> : <ExpandLessRoundedIcon fontSize='medium' />}
             </IconButton>
             <IconButton aria-label='Hide widget' onClick={() => onHide(widgetId)} size='small' sx={{ color: 'rgba(78, 93, 120, 1)' }}>
-                <CloseIcon fontSize='small' />
+                <CloseRoundedIcon fontSize='medium' />
             </IconButton>
         </Stack>
     )

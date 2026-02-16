@@ -64,10 +64,10 @@ export const WidgetBoardSkeleton = () => {
             settings={
                 <Stack direction='row' spacing={0.5} alignItems='center'>
                     <IconButton aria-label='Collapse widget' size='small' sx={{ color: 'rgba(78, 93, 120, 1)' }} disabled>
-                        <ExpandLessIcon fontSize='small' />
+                        <ExpandLessIcon fontSize='medium' />
                     </IconButton>
                     <IconButton aria-label='Hide widget' size='small' sx={{ color: 'rgba(78, 93, 120, 1)' }} disabled>
-                        <CloseIcon fontSize='small' />
+                        <CloseIcon fontSize='medium' />
                     </IconButton>
                 </Stack>
             }

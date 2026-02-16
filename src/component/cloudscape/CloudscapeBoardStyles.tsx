@@ -39,6 +39,28 @@ export function CloudscapeBoardStyles({ hideNavigationArrows = true }: Cloudscap
                 '[data-item-id] [data-height-mode="auto"] [class*="content-wrapper-fit-height"]': {
                     overflow: 'hidden !important',
                 },
+                // Cloudscape BoardItem adds top offsets for handle/settings wrappers.
+                // With custom widget headers this shifts the drag grip ~2-3px down vs title baseline.
+                // Limit centering to headers that actually contain board-item drag handle.
+                '[class*="awsui_header_"]:has(> [class*="awsui_handle_"])': {
+                    alignItems: 'center !important',
+                    paddingBlockEnd: '0 !important',
+                },
+                '[class*="awsui_header_"] > [class*="awsui_handle_"]': {
+                    marginBlockStart: '0 !important',
+                },
+                '[class*="awsui_header_"] > [class*="awsui_settings_"]': {
+                    marginBlockStart: '0 !important',
+                },
+                // Cloudscape visual refresh applies:
+                // .awsui_refresh_* > .awsui_handle_* { margin-block-start: calc(...2px + 1px); }
+                // Pin it to zero explicitly to avoid 3px vertical drift.
+                '[class*="awsui_header_"][class*="awsui_refresh_"] > [class*="awsui_handle_"]': {
+                    marginBlockStart: '0 !important',
+                },
+                '[class*="awsui_header_"][class*="awsui_refresh_"] > [class*="awsui_settings_"]': {
+                    marginBlockStart: '0 !important',
+                },
                 '@media (hover: none), (pointer: coarse)': {
                     '[data-item-id]': {
                         touchAction: 'manipulation !important',
