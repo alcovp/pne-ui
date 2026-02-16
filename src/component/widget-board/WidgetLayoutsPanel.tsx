@@ -1,6 +1,7 @@
 import React, { useState, useSyncExternalStore } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import PneModal from '../PneModal'
 import PneTextField from '../PneTextField'
 import PneButton from '../PneButton'
@@ -22,18 +23,17 @@ export type WidgetLayoutsPanelProps = {
     lockedIds?: string[]
 }
 
-const defaultAddLabel = 'Add new layout'
-
 export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     items,
     selectedId,
     onSelect,
     onDelete,
     onAdd,
-    addLabel = defaultAddLabel,
+    addLabel,
     className,
     lockedIds = [],
 }) => {
+    const { t } = useTranslation()
     const bridge = useSyncExternalStore(subscribeWidgetLayoutsPanelBridge, () => getWidgetLayoutsPanelBridge(), () => null)
 
     const resolvedItems = items ?? bridge?.items ?? []
@@ -42,6 +42,13 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     const resolvedOnDelete = onDelete ?? bridge?.onDelete
     const resolvedOnAdd = onAdd ?? bridge?.onAdd
     const resolvedLockedIds = lockedIds.length ? lockedIds : bridge?.lockedIds ?? []
+    const resolvedAddLabel = addLabel ?? t('pne.widgetBoard.layouts.add', { defaultValue: 'Add new layout' })
+    const title = t('pne.widgetBoard.layouts.title', { defaultValue: 'Layouts' })
+    const emptyLabel = t('pne.widgetBoard.layouts.empty', { defaultValue: 'No layouts yet' })
+    const modalTitle = t('pne.widgetBoard.layouts.newTitle', { defaultValue: 'New layout' })
+    const templateNameLabel = t('pne.widgetBoard.layouts.templateName', { defaultValue: 'Template name' })
+    const cancelLabel = t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })
+    const saveLabel = t('pne.widgetBoard.layouts.save', { defaultValue: 'Save' })
 
     const [modalOpen, setModalOpen] = useState(false)
     const [name, setName] = useState('')
@@ -77,12 +84,12 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                 }}
             >
                 <Typography variant='subtitle2' sx={{ lineHeight: '20px', fontWeight: 400, fontSize: '14px' }}>
-                    Layouts
+                    {title}
                 </Typography>
             </Box>
             <Stack>
                 {resolvedItems.length === 0 ? (
-                    <Box sx={{ px: 2, minHeight: 32, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>No layouts yet</Box>
+                    <Box sx={{ px: 2, minHeight: 32, display: 'flex', alignItems: 'center', color: 'text.secondary' }}>{emptyLabel}</Box>
                 ) : (
                     resolvedItems.map(item => {
                         const selected = item.id === resolvedSelectedId
@@ -148,15 +155,15 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                             },
                         }}
                     >
-                        {addLabel}
+                        {resolvedAddLabel}
                     </PneButton>
                 </Box>
             ) : null}
             {hasAdd ? (
-                <PneModal open={modalOpen} onClose={() => setModalOpen(false)} title='New layout'>
+                <PneModal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle}>
                     <Stack spacing={2}>
                         <PneTextField
-                            label='Template name'
+                            label={templateNameLabel}
                             fullWidth
                             value={name}
                             onChange={event => setName(event.target.value)}
@@ -169,7 +176,7 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                                 onClick={() => setModalOpen(false)}
                                 sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
                             >
-                                Cancel
+                                {cancelLabel}
                             </PneButton>
                             <PneButton
                                 pneStyle='contained'
@@ -178,7 +185,7 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                                 disabled={!name.trim()}
                                 sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
                             >
-                                Save
+                                {saveLabel}
                             </PneButton>
                         </Box>
                     </Stack>

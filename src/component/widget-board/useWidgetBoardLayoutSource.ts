@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { BreakpointLayoutConfig, WidgetBoardLayoutOption } from './types'
 import { buildLayoutOptions, getLayoutConfigForWidth } from './widgetBoardLayoutUtils'
 
@@ -7,13 +8,14 @@ type UseWidgetBoardLayoutSourceParams = {
 }
 
 export const useWidgetBoardLayoutSource = ({ layoutByBreakpoint }: UseWidgetBoardLayoutSourceParams) => {
+    const { t } = useTranslation()
     const defaultOption = useMemo<WidgetBoardLayoutOption>(
         () => ({
             id: 'default',
-            name: 'Default layout',
+            name: t('pne.widgetBoard.layouts.defaultName', { defaultValue: 'Default layout' }),
             layoutByBreakpoint,
         }),
-        [layoutByBreakpoint],
+        [layoutByBreakpoint, t],
     )
 
     const initialOptions = useMemo(() => buildLayoutOptions(undefined, defaultOption), [defaultOption])

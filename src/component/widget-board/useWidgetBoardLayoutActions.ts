@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
+import { useTranslation } from 'react-i18next'
 import { setWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
 import { createLayoutId } from './widgetBoardLayoutUtils'
 import type { BreakpointLayoutConfig, WidgetBoardActionsState, WidgetBoardLayoutOption, WidgetBoardProps } from './types'
@@ -37,6 +38,7 @@ export const useWidgetBoardLayoutActions = ({
     setLayoutOptions,
     setSelectedLayoutId,
 }: UseWidgetBoardLayoutActionsParams) => {
+    const { t } = useTranslation()
     const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
@@ -78,7 +80,7 @@ export const useWidgetBoardLayoutActions = ({
             const layoutByBreakpoint = buildCurrentPreset()
             const option: WidgetBoardLayoutOption = {
                 id: createLayoutId(),
-                name: name.trim() || 'Custom layout',
+                name: name.trim() || t('pne.widgetBoard.layouts.customName', { defaultValue: 'Custom layout' }),
                 layoutByBreakpoint,
             }
             const nextOptions = [...layoutOptions, option]
@@ -86,7 +88,7 @@ export const useWidgetBoardLayoutActions = ({
             setSelectedLayoutId(option.id)
             persistLayouts(nextOptions, option.id)
         },
-        [buildCurrentPreset, layoutOptions, persistLayouts, setLayoutOptions, setSelectedLayoutId],
+        [buildCurrentPreset, layoutOptions, persistLayouts, setLayoutOptions, setSelectedLayoutId, t],
     )
 
     const deleteLayout = useCallback(

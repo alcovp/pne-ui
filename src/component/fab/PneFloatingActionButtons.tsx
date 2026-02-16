@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import EditIcon from '@mui/icons-material/Edit'
 import { Box, Divider, Fab, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Tooltip } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { DEFAULT_BREAKPOINTS } from '../../common/responsive/breakpoints'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 
@@ -55,13 +56,17 @@ export function PneFloatingActionButtons({
     breakpoints = DEFAULT_BREAKPOINTS,
     mobileBreakpoint = 800,
     position,
-    fabLabel = 'Actions',
+    fabLabel,
     fabIcon = <EditIcon />,
     className,
     bannerText,
 }: PneFloatingActionButtonsProps) {
+    const { t } = useTranslation()
     const breakpoint = useBreakpoint({ breakpoints })
     const isMobile = breakpoint < mobileBreakpoint
+    const resolvedFabLabel = fabLabel ?? t('pne.fab.actions', { defaultValue: 'Actions' })
+    const resolvedFabActionLabel = t('pne.fab.action', { defaultValue: 'Action' })
+    const scrollTopLabel = t('pne.fab.scrollToTop', { defaultValue: 'Scroll to top' })
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const [showScrollTop, setShowScrollTop] = useState(false)
     const handleOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
@@ -143,14 +148,14 @@ export function PneFloatingActionButtons({
         <Box position='fixed' zIndex={1300} className={className} sx={containerSx}>
             <Stack spacing={1} alignItems='flex-end' sx={stackSx}>
                 {showScrollTop ? (
-                    <Tooltip title='Scroll to top' placement='left' disableInteractive>
+                    <Tooltip title={scrollTopLabel} placement='left' disableInteractive>
                         <span>
                             <Fab
                                 className='pne-fab'
                                 color='primary'
                                 size='small'
                                 onClick={handleScrollTop}
-                                aria-label='Scroll to top'
+                                aria-label={scrollTopLabel}
                                 sx={fabSx}
                             >
                                 <ArrowUpwardIcon fontSize='small' />
@@ -161,7 +166,8 @@ export function PneFloatingActionButtons({
                 {!isMobile
                     ? actionItems.map(item => {
                         const title =
-                            item.tooltip ?? (typeof item.label === 'string' ? item.label : typeof fabLabel === 'string' ? fabLabel : 'Action')
+                            item.tooltip ??
+                            (typeof item.label === 'string' ? item.label : typeof resolvedFabLabel === 'string' ? resolvedFabLabel : resolvedFabActionLabel)
                         return (
                             <Tooltip key={item.id} title={title} placement='left' disableInteractive>
                                 <span>
@@ -170,7 +176,7 @@ export function PneFloatingActionButtons({
                                         color='primary'
                                         size='small'
                                         onClick={() => handleAction(item)}
-                                        aria-label={typeof title === 'string' ? title : 'Action'}
+                                        aria-label={typeof title === 'string' ? title : resolvedFabActionLabel}
                                         sx={fabSx}
                                     >
                                         {item.icon ?? (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
@@ -180,13 +186,13 @@ export function PneFloatingActionButtons({
                         )
                     })
                     : null}
-                <Tooltip title={fabLabel} disableInteractive>
+                <Tooltip title={resolvedFabLabel} disableInteractive>
                     <Fab
                         className='pne-fab'
                         color='primary'
                         size='small'
                         onClick={handleOpen}
-                        aria-label={typeof fabLabel === 'string' ? fabLabel : 'Actions'}
+                        aria-label={typeof resolvedFabLabel === 'string' ? resolvedFabLabel : t('pne.fab.actions', { defaultValue: 'Actions' })}
                         sx={fabSx}
                     >
                         {fabIcon}
