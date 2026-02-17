@@ -87,7 +87,9 @@ const Container = styled(Box)`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    min-width: 400px;
+    min-width: min(400px, calc(100vw - 32px));
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
     background: #fff;
     border: none;
     border-radius: 4px;
