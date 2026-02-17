@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { usePneConfirm } from '../confirm'
 import PneModal from '../PneModal'
 import PneTextField from '../PneTextField'
 import PneButton from '../PneButton'
@@ -39,6 +40,7 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     lockedIds = [],
 }) => {
     const { t } = useTranslation()
+    const { confirm } = usePneConfirm()
 
     const resolvedItems = items ?? []
     const resolvedSelectedId = selectedId
@@ -55,6 +57,9 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     const cancelLabel = t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })
     const saveLabel = t('pne.widgetBoard.layouts.save', { defaultValue: 'Save' })
     const basedOnLabel = t('pne.widgetBoard.layouts.basedOn', { defaultValue: 'Will inherit from' })
+    const deleteConfirmTitle = t('react.confirm-alert.title.are-you-sure', { defaultValue: 'Are you sure?' })
+    const deleteConfirmLabel = t('react.confirm-alert.yes.delete', { defaultValue: 'Remove' })
+    const deleteCancelLabel = t('react.confirm-alert.no.cancel', { defaultValue: 'Cancel' })
 
     const [modalOpen, setModalOpen] = useState(false)
     const [name, setName] = useState('')
@@ -68,6 +73,19 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     }
 
     const hasAdd = Boolean(resolvedOnAdd)
+    const handleDelete = (item: WidgetLayoutOption) => {
+        if (!resolvedOnDelete) return
+        void confirm({
+            title: deleteConfirmTitle,
+            message: t('pne.widgetBoard.confirm.deleteLayout', { defaultValue: 'Delete layout "{{name}}"?', name: item.name }),
+            confirmLabel: deleteConfirmLabel,
+            cancelLabel: deleteCancelLabel,
+        }).then(accepted => {
+            if (accepted) {
+                resolvedOnDelete(item.id)
+            }
+        })
+    }
 
     return (
         <Box
@@ -128,7 +146,7 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                                         color='inherit'
                                         onClick={event => {
                                             event.stopPropagation()
-                                            resolvedOnDelete(item.id)
+                                            handleDelete(item)
                                         }}
                                     >
                                         <DeleteIcon fontSize='small' />

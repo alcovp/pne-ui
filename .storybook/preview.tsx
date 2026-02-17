@@ -56,9 +56,6 @@ const customViewports = {
 }
 
 const preview = {
-    decorators: [
-        withContext,
-    ],
     parameters: {
         layout: 'fullscreen',
         controls: {
@@ -75,9 +72,12 @@ const preview = {
         },
     },
     decorators: [
-        (Story) => <ThemeProvider theme={createPneTheme(defaultSkin)}>
-            <Story/>
-        </ThemeProvider>,
+        withContext,
+        (Story) => (
+            <ThemeProvider theme={createPneTheme(defaultSkin)}>
+                <Story/>
+            </ThemeProvider>
+        ),
     ],
 };
 

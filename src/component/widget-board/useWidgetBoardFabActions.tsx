@@ -37,7 +37,6 @@ export const useWidgetBoardFabActions = ({
         restoreHiddenLabel ?? t('pne.widgetBoard.actions.restoreHiddenWidgets', { defaultValue: 'Restore hidden widgets' })
     const confirmTitle = t('react.confirm-alert.title.are-you-sure', { defaultValue: 'Are you sure?' })
     const confirmLabel = t('react.confirm-alert.yes', { defaultValue: 'Yes' })
-    const deleteConfirmLabel = t('react.confirm-alert.yes.delete', { defaultValue: 'Remove' })
     const cancelLabel = t('react.confirm-alert.no.cancel', { defaultValue: 'Cancel' })
     const resetMessage = t('pne.widgetBoard.confirm.resetLayout', { defaultValue: 'Reset selected saved layout to default for this breakpoint?' })
     const restoreHiddenMessage = t('pne.widgetBoard.confirm.restoreHiddenWidgets', { defaultValue: 'Restore all hidden widgets in selected saved layout?' })
@@ -84,25 +83,6 @@ export const useWidgetBoardFabActions = ({
         restoreHidden()
     }, [actionsState?.isDefaultLayoutSelected, cancelLabel, confirm, confirmLabel, confirmTitle, restoreHidden, restoreHiddenMessage])
 
-    const handleDeleteLayout = useCallback(
-        (id: string) => {
-            if (!deleteLayout) return
-
-            const layoutName = layoutItems.find(item => item.id === id)?.name ?? id
-            void confirm({
-                title: confirmTitle,
-                message: t('pne.widgetBoard.confirm.deleteLayout', { defaultValue: 'Delete layout "{{name}}"?', name: layoutName }),
-                confirmLabel: deleteConfirmLabel,
-                cancelLabel,
-            }).then(accepted => {
-                if (accepted) {
-                    deleteLayout?.(id)
-                }
-            })
-        },
-        [cancelLabel, confirm, confirmTitle, deleteConfirmLabel, deleteLayout, layoutItems, t],
-    )
-
     const showResetLayout = Boolean(actionsState?.canResetLayout)
     const showRestoreHidden = Boolean(actionsState?.hasHiddenWidgets)
     const canReset = showResetLayout && Boolean(resetLayout)
@@ -119,7 +99,7 @@ export const useWidgetBoardFabActions = ({
                         selectedId={selectedLayoutId}
                         onSelect={selectLayout}
                         onAdd={addLayout}
-                        onDelete={handleDeleteLayout}
+                        onDelete={deleteLayout}
                         addInfo={addInfo}
                         lockedIds={lockedIds}
                     />
@@ -152,9 +132,9 @@ export const useWidgetBoardFabActions = ({
         addLayout,
         canReset,
         canRestoreHidden,
-        handleDeleteLayout,
         handleResetLayout,
         handleRestoreHidden,
+        deleteLayout,
         layoutItems,
         lockedIds,
         resolvedResetLabel,
