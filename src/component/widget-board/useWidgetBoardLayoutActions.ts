@@ -3,7 +3,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createLayoutId } from './widgetBoardLayoutUtils'
 import type { BreakpointLayoutConfig, WidgetBoardActionsState, WidgetBoardLayoutOption } from './types'
-import type { WidgetBoardFabStore } from './widgetBoardFabStore'
+import type { WidgetBoardFabStore, WidgetBoardVisibilityItem } from './widgetBoardFabStore'
 
 type UseWidgetBoardLayoutActionsParams = {
     buildCurrentPreset: () => Record<number | string, BreakpointLayoutConfig>
@@ -16,6 +16,8 @@ type UseWidgetBoardLayoutActionsParams = {
     saveLayouts: (options: WidgetBoardLayoutOption[], selectedId?: string) => Promise<void>
     fabStore: WidgetBoardFabStore
     actionsState: WidgetBoardActionsState
+    visibilityItems: WidgetBoardVisibilityItem[]
+    onSetWidgetVisibility: (id: string, visible: boolean) => void
     onResetLayout: () => void
     onRestoreHidden: () => void
     selectedLayoutId: string | undefined
@@ -34,6 +36,8 @@ export const useWidgetBoardLayoutActions = ({
     saveLayouts,
     fabStore,
     actionsState,
+    visibilityItems,
+    onSetWidgetVisibility,
     onResetLayout,
     onRestoreHidden,
     selectedLayoutId,
@@ -166,6 +170,8 @@ export const useWidgetBoardLayoutActions = ({
             addInfo,
             lockedIds: lockedLayoutIdRef.current ? [lockedLayoutIdRef.current] : [],
             actionsState,
+            visibilityItems,
+            onSetWidgetVisibility,
             onResetLayout,
             onRestoreHidden,
         }
@@ -181,10 +187,12 @@ export const useWidgetBoardLayoutActions = ({
         fabStore,
         layoutOptions,
         lockedLayoutIdRef,
+        onSetWidgetVisibility,
         onResetLayout,
         onRestoreHidden,
         selectLayout,
         selectedLayoutId,
+        visibilityItems,
     ])
 
     return {

@@ -1,8 +1,16 @@
 import React from 'react'
 import { Box, Button, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react'
-import type { WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
-import { WidgetLayoutsPanel, WidgetBoard, WidgetBoardScopeProvider, useWidgetBoardScopeStore } from '../index'
+import type { PneFabAction, PneFabItem, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
+import {
+    PneButton,
+    WidgetBoardVisibilityModal,
+    WidgetLayoutsPanel,
+    WidgetBoard,
+    WidgetBoardScopeProvider,
+    useWidgetBoardFabActions,
+    useWidgetBoardScopeStore,
+} from '../index'
 
 const widgets: WidgetDefinition[] = [
     {
@@ -334,6 +342,7 @@ const BoardWithLightWidget = () => {
 
 const BoardWithLayoutsContent = () => {
     const [boardVersion, setBoardVersion] = React.useState(0)
+    const [isVisibilityModalOpen, setVisibilityModalOpen] = React.useState(false)
     const boardStore = useWidgetBoardScopeStore()
     const panelProps = boardStore(state => ({
         items: state.items,
@@ -343,7 +352,19 @@ const BoardWithLayoutsContent = () => {
         onAdd: state.onAdd,
         addInfo: state.addInfo,
         lockedIds: state.lockedIds,
+        actionsState: state.actionsState,
+        onResetLayout: state.onResetLayout,
+        visibilityItems: state.visibilityItems,
+        onSetWidgetVisibility: state.onSetWidgetVisibility,
     }))
+    const actions = useWidgetBoardFabActions({
+        store: boardStore,
+        onEditVisibilityClick: () => setVisibilityModalOpen(true),
+    })
+
+    const actionItems = React.useMemo(() => actions.filter(isActionItem), [actions])
+    const resetLayoutAction = actionItems.find(item => item.id === 'reset-layout')
+    const editVisibilityAction = actionItems.find(item => item.id === 'edit-visibility')
 
     const loadLayouts = React.useCallback(async () => {
         return mockOrderHistoryLayoutsApi.getOrderHistoryLayoutSettings()
@@ -364,6 +385,28 @@ const BoardWithLayoutsContent = () => {
                 <Box sx={{ minWidth: 260 }}>
                     <WidgetLayoutsPanel {...panelProps} />
                     <Stack spacing={1} sx={{ mt: 2 }}>
+                        {resetLayoutAction ? (
+                            <PneButton
+                                pneStyle='outlined'
+                                size='small'
+                                startIcon={resetLayoutAction.icon}
+                                disabled={resetLayoutAction.disabled}
+                                onClick={resetLayoutAction.onClick}
+                            >
+                                {resetLayoutAction.label}
+                            </PneButton>
+                        ) : null}
+                        {editVisibilityAction ? (
+                            <PneButton
+                                pneStyle='outlined'
+                                size='small'
+                                startIcon={editVisibilityAction.icon}
+                                disabled={editVisibilityAction.disabled}
+                                onClick={editVisibilityAction.onClick}
+                            >
+                                {editVisibilityAction.label}
+                            </PneButton>
+                        ) : null}
                         <Button variant='outlined' size='small' onClick={resetMockBackend}>
                             Reset mock backend
                         </Button>
@@ -384,9 +427,17 @@ const BoardWithLayoutsContent = () => {
                     />
                 </Box>
             </Stack>
+            <WidgetBoardVisibilityModal
+                open={isVisibilityModalOpen}
+                onClose={() => setVisibilityModalOpen(false)}
+                items={panelProps.visibilityItems}
+                onSetWidgetVisibility={panelProps.onSetWidgetVisibility}
+            />
         </Box>
     )
 }
+
+const isActionItem = (item: PneFabItem): item is PneFabAction => !('kind' in item)
 
 const BoardWithLayouts = () => (
     <WidgetBoardScopeProvider>

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
-import RestorePageIcon from '@mui/icons-material/RestorePage'
+import VisibilityIcon from '@mui/icons-material/Visibility'
 import { useTranslation } from 'react-i18next'
 import { usePneConfirm } from '../confirm'
 import type { PneFabItem } from '../fab/PneFloatingActionButtons'
@@ -10,13 +10,18 @@ import type { WidgetBoardFabStore } from './widgetBoardFabStore'
 export type UseWidgetBoardFabActionsOptions = {
     store: WidgetBoardFabStore
     resetLabel?: React.ReactNode
+    editVisibilityLabel?: React.ReactNode
+    // Backward-compatible alias. Kept to avoid breaking external consumers of this hook/component API.
     restoreHiddenLabel?: React.ReactNode
+    onEditVisibilityClick?: () => void
 }
 
 export const useWidgetBoardFabActions = ({
     store,
     resetLabel,
+    editVisibilityLabel,
     restoreHiddenLabel,
+    onEditVisibilityClick,
 }: UseWidgetBoardFabActionsOptions): PneFabItem[] => {
     const { t } = useTranslation()
     const { confirm } = usePneConfirm()
@@ -30,16 +35,18 @@ export const useWidgetBoardFabActions = ({
     const lockedIds = store(state => state.lockedIds)
     const actionsState = store(state => state.actionsState)
     const resetLayout = store(state => state.onResetLayout)
-    const restoreHidden = store(state => state.onRestoreHidden)
+    const visibilityItems = store(state => state.visibilityItems)
+    const setWidgetVisibility = store(state => state.onSetWidgetVisibility)
 
     const resolvedResetLabel = resetLabel ?? t('pne.widgetBoard.actions.resetLayout', { defaultValue: 'Reset layout' })
-    const resolvedRestoreHiddenLabel =
-        restoreHiddenLabel ?? t('pne.widgetBoard.actions.restoreHiddenWidgets', { defaultValue: 'Restore hidden widgets' })
+    const resolvedEditVisibilityLabel =
+        editVisibilityLabel ??
+        restoreHiddenLabel ??
+        t('pne.widgetBoard.actions.editVisibility', { defaultValue: 'Edit visibility' })
     const confirmTitle = t('react.confirm-alert.title.are-you-sure', { defaultValue: 'Are you sure?' })
     const confirmLabel = t('react.confirm-alert.yes', { defaultValue: 'Yes' })
     const cancelLabel = t('react.confirm-alert.no.cancel', { defaultValue: 'Cancel' })
     const resetMessage = t('pne.widgetBoard.confirm.resetLayout', { defaultValue: 'Reset selected saved layout to default for this breakpoint?' })
-    const restoreHiddenMessage = t('pne.widgetBoard.confirm.restoreHiddenWidgets', { defaultValue: 'Restore all hidden widgets in selected saved layout?' })
 
     const handleResetLayout = useCallback(() => {
         if (!resetLayout) return
@@ -62,31 +69,14 @@ export const useWidgetBoardFabActions = ({
         resetLayout()
     }, [actionsState?.isDefaultLayoutSelected, cancelLabel, confirm, confirmLabel, confirmTitle, resetLayout, resetMessage])
 
-    const handleRestoreHidden = useCallback(() => {
-        if (!restoreHidden) return
-
-        const shouldConfirm = !actionsState?.isDefaultLayoutSelected
-        if (shouldConfirm) {
-            void confirm({
-                title: confirmTitle,
-                message: restoreHiddenMessage,
-                confirmLabel,
-                cancelLabel,
-            }).then(accepted => {
-                if (accepted) {
-                    restoreHidden?.()
-                }
-            })
-            return
-        }
-
-        restoreHidden()
-    }, [actionsState?.isDefaultLayoutSelected, cancelLabel, confirm, confirmLabel, confirmTitle, restoreHidden, restoreHiddenMessage])
+    const canEditVisibility = visibilityItems.length > 0 && Boolean(setWidgetVisibility) && Boolean(onEditVisibilityClick)
+    const handleEditVisibility = useCallback(() => {
+        if (!canEditVisibility) return
+        onEditVisibilityClick?.()
+    }, [canEditVisibility, onEditVisibilityClick])
 
     const showResetLayout = Boolean(actionsState?.canResetLayout)
-    const showRestoreHidden = Boolean(actionsState?.hasHiddenWidgets)
     const canReset = showResetLayout && Boolean(resetLayout)
-    const canRestoreHidden = showRestoreHidden && Boolean(restoreHidden)
 
     return useMemo<PneFabItem[]>(() => {
         const items: PneFabItem[] = [
@@ -118,27 +108,28 @@ export const useWidgetBoardFabActions = ({
         })
 
         items.push({
-            id: 'restore-hidden',
-            label: resolvedRestoreHiddenLabel,
-            icon: <RestorePageIcon fontSize='small' />,
-            onClick: handleRestoreHidden,
-            disabled: !canRestoreHidden,
-            showInFabStack: canRestoreHidden,
+            id: 'edit-visibility',
+            label: resolvedEditVisibilityLabel,
+            icon: <VisibilityIcon fontSize='small' />,
+            onClick: handleEditVisibility,
+            disabled: !canEditVisibility,
+            showInFabStack: Boolean(onEditVisibilityClick),
         })
 
         return items
     }, [
         addInfo,
         addLayout,
+        canEditVisibility,
         canReset,
-        canRestoreHidden,
+        handleEditVisibility,
         handleResetLayout,
-        handleRestoreHidden,
         deleteLayout,
         layoutItems,
         lockedIds,
+        onEditVisibilityClick,
+        resolvedEditVisibilityLabel,
         resolvedResetLabel,
-        resolvedRestoreHiddenLabel,
         selectLayout,
         selectedLayoutId,
     ])

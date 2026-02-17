@@ -305,7 +305,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         [breakpoints, currentBreakpointKey, layoutSource, layoutState],
     )
 
-    const { handleItemsChange, hideItem, resetLayout, restoreHidden, toggleCollapse } = useWidgetBoardStateActions({
+    const { handleItemsChange, hideItem, setWidgetVisibility, resetLayout, restoreHidden, toggleCollapse } = useWidgetBoardStateActions({
         currentBreakpointKey,
         defaultDefinitionsMap,
         definitionsMap,
@@ -393,6 +393,15 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutState.items,
     ])
 
+    const visibilityItems = useMemo(() => {
+        const hiddenSet = new Set(layoutState.hidden)
+        return definitionsWithLayout.map(definition => ({
+            id: definition.id,
+            title: definition.title,
+            visible: !hiddenSet.has(definition.id),
+        }))
+    }, [definitionsWithLayout, layoutState.hidden])
+
     useWidgetBoardLayoutActions({
         buildCurrentPreset,
         defaultLayoutId: defaultOption.id,
@@ -404,6 +413,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         saveLayouts,
         fabStore: scopeFabStore,
         actionsState,
+        visibilityItems,
+        onSetWidgetVisibility: setWidgetVisibility,
         onResetLayout: resetLayout,
         onRestoreHidden: restoreHidden,
         selectedLayoutId,

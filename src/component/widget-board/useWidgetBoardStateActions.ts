@@ -26,34 +26,60 @@ export const useWidgetBoardStateActions = ({
     measuredRowsRef,
     setLayoutState,
 }: UseWidgetBoardStateActionsParams) => {
-    const hideItem = useCallback(
-        (id: string) => {
+    const setWidgetVisibility = useCallback(
+        (id: string, visible: boolean) => {
             setLayoutState(prev => {
                 const definition = definitionsMap.get(id)
                 if (!definition) return prev
 
-                const index = prev.items.findIndex(item => item.id === id)
-                const item = index >= 0 ? prev.items[index] : undefined
-                const snapshot: WidgetLayoutSnapshot = {
-                    columnSpan: item?.columnSpan ?? definition.layout.defaultSize.columnSpan,
-                    rowSpan: item?.rowSpan ?? definition.layout.defaultSize.rowSpan,
-                    columnOffset: item?.columnOffset ?? definition.layout.defaultSize.columnOffset,
-                    order: index >= 0 ? index : prev.items.length,
+                const isHidden = prev.hidden.includes(id)
+                if (visible === !isHidden) return prev
+
+                if (!visible) {
+                    const index = prev.items.findIndex(item => item.id === id)
+                    const item = index >= 0 ? prev.items[index] : undefined
+                    const snapshot: WidgetLayoutSnapshot = {
+                        columnSpan: item?.columnSpan ?? definition.layout.defaultSize.columnSpan,
+                        rowSpan: item?.rowSpan ?? definition.layout.defaultSize.rowSpan,
+                        columnOffset: item?.columnOffset ?? definition.layout.defaultSize.columnOffset,
+                        order: index >= 0 ? index : prev.items.length,
+                    }
+
+                    const layoutMemory = upsertLayoutMemory(prev.layoutMemory, currentBreakpointKey, id, snapshot)
+
+                    return {
+                        ...prev,
+                        layoutMemory,
+                        items: prev.items.filter(boardItem => boardItem.id !== id),
+                        hidden: prev.hidden.includes(id) ? prev.hidden : [...prev.hidden, id],
+                        collapsed: prev.collapsed.filter(col => col !== id),
+                        sizeMemory: Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => key !== id)) as Partial<Record<string, number>>,
+                    }
                 }
 
-                const layoutMemory = upsertLayoutMemory(prev.layoutMemory, currentBreakpointKey, id, snapshot)
+                const snapshot = prev.layoutMemory?.[currentBreakpointKey]?.[id]
+                const restoredItem = snapshot ? toBoardItem(definition, snapshot) : toBoardItem(definition)
+                const nextItems = [...prev.items]
+                const target = Math.min(Math.max(snapshot?.order ?? prev.items.length, 0), nextItems.length)
+                nextItems.splice(target, 0, restoredItem)
 
                 return {
                     ...prev,
-                    layoutMemory,
-                    items: prev.items.filter(boardItem => boardItem.id !== id),
-                    hidden: prev.hidden.includes(id) ? prev.hidden : [...prev.hidden, id],
+                    items: nextItems,
+                    hidden: prev.hidden.filter(hiddenId => hiddenId !== id),
                     collapsed: prev.collapsed.filter(col => col !== id),
                     sizeMemory: Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => key !== id)) as Partial<Record<string, number>>,
                 }
             })
         },
         [currentBreakpointKey, definitionsMap, setLayoutState],
+    )
+
+    const hideItem = useCallback(
+        (id: string) => {
+            setWidgetVisibility(id, false)
+        },
+        [setWidgetVisibility],
     )
 
     const resetLayout = useCallback(() => {
@@ -276,6 +302,7 @@ export const useWidgetBoardStateActions = ({
     return {
         handleItemsChange,
         hideItem,
+        setWidgetVisibility,
         resetLayout,
         restoreHidden,
         toggleCollapse,
