@@ -13,7 +13,6 @@ export type WidgetLayoutOption = {
 
 export type WidgetLayoutAddInfo = {
     basedOnName?: string
-    hasChanges?: boolean
 }
 
 export type WidgetLayoutsPanelProps = {
@@ -56,9 +55,6 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     const cancelLabel = t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })
     const saveLabel = t('pne.widgetBoard.layouts.save', { defaultValue: 'Save' })
     const basedOnLabel = t('pne.widgetBoard.layouts.basedOn', { defaultValue: 'Will inherit from' })
-    const hasChangesLabel = t('pne.widgetBoard.layouts.hasChanges', { defaultValue: 'Has changes' })
-    const hasChangesYesLabel = t('pne.widgetBoard.layouts.hasChangesYes', { defaultValue: 'Yes' })
-    const hasChangesNoLabel = t('pne.widgetBoard.layouts.hasChangesNo', { defaultValue: 'No' })
 
     const [modalOpen, setModalOpen] = useState(false)
     const [name, setName] = useState('')
@@ -184,9 +180,6 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                                 <Stack spacing={0.5}>
                                     <Typography sx={{ fontSize: '13px', lineHeight: '18px', color: '#4E5D78' }}>
                                         {basedOnLabel}: {resolvedAddInfo.basedOnName ?? '—'}
-                                    </Typography>
-                                    <Typography sx={{ fontSize: '13px', lineHeight: '18px', color: '#4E5D78' }}>
-                                        {hasChangesLabel}: {resolvedAddInfo.hasChanges ? hasChangesYesLabel : hasChangesNoLabel}
                                     </Typography>
                                 </Stack>
                             </Box>

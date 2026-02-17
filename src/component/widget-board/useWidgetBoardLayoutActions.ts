@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createLayoutId } from './widgetBoardLayoutUtils'
-import type { BreakpointLayoutConfig, WidgetBoardActionsState, WidgetBoardLayoutOption, WidgetBoardProps } from './types'
+import type { BreakpointLayoutConfig, WidgetBoardActionsState, WidgetBoardLayoutOption } from './types'
 import type { WidgetBoardFabStore } from './widgetBoardFabStore'
 
 type UseWidgetBoardLayoutActionsParams = {
@@ -13,8 +13,8 @@ type UseWidgetBoardLayoutActionsParams = {
     layoutOptionsMap: Map<string, WidgetBoardLayoutOption>
     layoutSourceOwnerIdRef: MutableRefObject<string | undefined>
     lockedLayoutIdRef: MutableRefObject<string | undefined>
-    saveLayouts: WidgetBoardProps['saveLayouts']
-    fabStore?: WidgetBoardFabStore
+    saveLayouts: (options: WidgetBoardLayoutOption[], selectedId?: string) => Promise<void>
+    fabStore: WidgetBoardFabStore
     actionsState: WidgetBoardActionsState
     onResetLayout: () => void
     onRestoreHidden: () => void
@@ -151,18 +151,12 @@ export const useWidgetBoardLayoutActions = ({
         const sourceOption = layoutOptionsMap.get(sourceLayoutId)
         if (!sourceOption) return undefined
 
-        const currentPreset = buildCurrentPreset()
-        const hasChanges = JSON.stringify(currentPreset ?? {}) !== JSON.stringify(sourceOption.layoutByBreakpoint ?? {})
-
         return {
             basedOnName: sourceOption.name,
-            hasChanges,
         }
-    }, [buildCurrentPreset, defaultLayoutId, layoutOptionsMap, selectedLayoutId])
+    }, [defaultLayoutId, layoutOptionsMap, selectedLayoutId])
 
     useEffect(() => {
-        if (!fabStore) return
-
         const panelProps = {
             items: layoutOptions,
             selectedId: selectedLayoutId,

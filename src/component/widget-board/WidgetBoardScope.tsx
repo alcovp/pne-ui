@@ -15,13 +15,12 @@ export const useWidgetBoardScopeStore = (): WidgetBoardFabStore => {
 }
 
 export type WidgetBoardScopeProviderProps = {
-    store?: WidgetBoardFabStore
     children?: React.ReactNode
 }
 
-export const WidgetBoardScopeProvider: React.FC<WidgetBoardScopeProviderProps> = ({ store, children }) => {
-    const fallbackStoreRef = useRef<WidgetBoardFabStore | undefined>(undefined)
-    const resolvedStore = store ?? (fallbackStoreRef.current ??= createWidgetBoardFabStore())
+export const WidgetBoardScopeProvider: React.FC<WidgetBoardScopeProviderProps> = ({ children }) => {
+    const storeRef = useRef<WidgetBoardFabStore | undefined>(undefined)
+    const resolvedStore = storeRef.current ?? (storeRef.current = createWidgetBoardFabStore())
 
     return (
         <WidgetBoardScopeContext.Provider value={resolvedStore}>

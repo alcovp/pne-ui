@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Button, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react'
 import type { WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
-import { WidgetLayoutsPanel, WidgetBoard, createWidgetBoardFabStore } from '../index'
+import { WidgetLayoutsPanel, WidgetBoard, WidgetBoardScopeProvider, useWidgetBoardScopeStore } from '../index'
 
 const widgets: WidgetDefinition[] = [
     {
@@ -311,9 +311,11 @@ const BoardWithHeavyWidgets = () => {
     const saveLayouts = React.useCallback(async () => undefined, [])
 
     return (
-        <Box sx={{ p: 2 }}>
-            <WidgetBoard widgets={heavyWidgets} layoutByBreakpoint={heavyLayout.layoutByBreakpoint} loadLayouts={loadLayouts} saveLayouts={saveLayouts} />
-        </Box>
+        <WidgetBoardScopeProvider>
+            <Box sx={{ p: 2 }}>
+                <WidgetBoard widgets={heavyWidgets} layoutByBreakpoint={heavyLayout.layoutByBreakpoint} loadLayouts={loadLayouts} saveLayouts={saveLayouts} />
+            </Box>
+        </WidgetBoardScopeProvider>
     )
 }
 
@@ -322,16 +324,18 @@ const BoardWithLightWidget = () => {
     const saveLayouts = React.useCallback(async () => undefined, [])
 
     return (
-        <Box sx={{ p: 2 }}>
-            <WidgetBoard widgets={[lightWidget]} layoutByBreakpoint={lightLayout.layoutByBreakpoint} loadLayouts={loadLayouts} saveLayouts={saveLayouts} />
-        </Box>
+        <WidgetBoardScopeProvider>
+            <Box sx={{ p: 2 }}>
+                <WidgetBoard widgets={[lightWidget]} layoutByBreakpoint={lightLayout.layoutByBreakpoint} loadLayouts={loadLayouts} saveLayouts={saveLayouts} />
+            </Box>
+        </WidgetBoardScopeProvider>
     )
 }
 
-const BoardWithLayouts = () => {
+const BoardWithLayoutsContent = () => {
     const [boardVersion, setBoardVersion] = React.useState(0)
-    const fabStore = React.useMemo(() => createWidgetBoardFabStore(), [])
-    const panelProps = fabStore(state => ({
+    const boardStore = useWidgetBoardScopeStore()
+    const panelProps = boardStore(state => ({
         items: state.items,
         selectedId: state.selectedId,
         onSelect: state.onSelect,
@@ -377,13 +381,18 @@ const BoardWithLayouts = () => {
                         layoutByBreakpoint={analyticsLayout.layoutByBreakpoint}
                         loadLayouts={loadLayouts}
                         saveLayouts={saveLayouts}
-                        fabStore={fabStore}
                     />
                 </Box>
             </Stack>
         </Box>
     )
 }
+
+const BoardWithLayouts = () => (
+    <WidgetBoardScopeProvider>
+        <BoardWithLayoutsContent />
+    </WidgetBoardScopeProvider>
+)
 
 export default {
     title: 'pne-ui/WidgetBoard',

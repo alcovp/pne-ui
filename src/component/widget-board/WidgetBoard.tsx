@@ -9,6 +9,7 @@ import { useWidgetBoardAutosize } from './useWidgetBoardAutosize'
 import { useWidgetBoardInteractionLock } from './useWidgetBoardInteractionLock'
 import { useWidgetBoardLayoutActions } from './useWidgetBoardLayoutActions'
 import { useWidgetBoardLayoutSource } from './useWidgetBoardLayoutSource'
+import { useWidgetBoardScopeStore } from './WidgetBoardScope'
 import { useWidgetBoardStateActions } from './useWidgetBoardStateActions'
 import { WidgetBoardItem } from './WidgetBoardItem'
 import { WidgetBoardSkeleton } from './WidgetBoardSkeleton'
@@ -134,13 +135,13 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutByBreakpoint,
         loadLayouts,
         saveLayouts,
-        fabStore,
         onActionsStateChange,
         autoHeightEnabled = true,
     },
     ref,
 ) {
     const [isLoadingLayouts, setIsLoadingLayouts] = useState(true)
+    const scopeFabStore = useWidgetBoardScopeStore()
     const {
         breakpoints,
         currentBreakpointKey,
@@ -401,7 +402,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutSourceOwnerIdRef,
         lockedLayoutIdRef,
         saveLayouts,
-        fabStore,
+        fabStore: scopeFabStore,
         actionsState,
         onResetLayout: resetLayout,
         onRestoreHidden: restoreHidden,

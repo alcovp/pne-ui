@@ -190,8 +190,8 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 
 `WidgetBoard` — дашборд с драгабл-виджетами и встраиваемой панелью лейаутов. Компонент инкапсулирует состояние:
 выбор лейаута, CRUD кастомных схем и сохранение/загрузку лежат внутри `WidgetBoard`; снаружи достаточно передать
-источники данных. Для связи `WidgetBoard` с `WidgetLayoutsPanel`/`WidgetBoardFab` используйте общий store
-`createWidgetBoardFabStore()`.
+источники данных. Для связи `WidgetBoard` с `WidgetLayoutsPanel`/`WidgetBoardFab` используйте
+`WidgetBoardScopeProvider` и `useWidgetBoardScopeStore`.
 
 Основные пропсы:
 - `widgets`: список `{ id, title, render }` — содержимое виджетов.
@@ -200,7 +200,7 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 - `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (вызывается при select/add/delete и автосохранении изменений в выбранном пользовательском лейауте).
 
 Панель `WidgetLayoutsPanel` — презентационный компонент. Передавайте `items/selectedId/onSelect/onAdd/onDelete`
-и прочие данные из общего `WidgetBoardFabStore`.
+и прочие данные из scoped store (`useWidgetBoardScopeStore`).
 
 ### Структура данных для лейаутов
 
@@ -229,7 +229,14 @@ type LoadLayoutsResult = {
 ```tsx
 import React from 'react'
 import { Box, Stack } from '@mui/material'
-import { WidgetBoard, WidgetLayoutsPanel, createWidgetBoardFabStore, type WidgetDefinition, type WidgetBoardLayoutOption } from 'pne-ui'
+import {
+    WidgetBoard,
+    WidgetLayoutsPanel,
+    WidgetBoardScopeProvider,
+    useWidgetBoardScopeStore,
+    type WidgetDefinition,
+    type WidgetBoardLayoutOption,
+} from 'pne-ui'
 
 const widgets: WidgetDefinition[] = [
     { id: 'traffic', title: 'Traffic', render: () => <div>Traffic content</div> },
@@ -255,9 +262,9 @@ const saveLayouts = async (options: WidgetBoardLayoutOption[], selectedId?: stri
     await api.saveUserLayouts({ options, selectedId })
 }
 
-export const Dashboard = () => {
-    const fabStore = React.useMemo(() => createWidgetBoardFabStore(), [])
-    const panelProps = fabStore(state => ({
+const DashboardContent = () => {
+    const boardStore = useWidgetBoardScopeStore()
+    const panelProps = boardStore(state => ({
         items: state.items,
         selectedId: state.selectedId,
         onSelect: state.onSelect,
@@ -279,13 +286,18 @@ export const Dashboard = () => {
                         layoutByBreakpoint={baseLayoutByBreakpoint}
                         loadLayouts={loadLayouts}
                         saveLayouts={saveLayouts}
-                        fabStore={fabStore}
                     />
                 </Box>
             </Box>
         </Box>
     )
 }
+
+export const Dashboard = () => (
+    <WidgetBoardScopeProvider>
+        <DashboardContent />
+    </WidgetBoardScopeProvider>
+)
 ```
 
 `WidgetBoard` сам обновляет выбранный лейаут, следит за состоянием виджетов и при изменениях дергает `saveLayouts`
