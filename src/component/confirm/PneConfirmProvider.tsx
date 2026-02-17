@@ -31,6 +31,10 @@ type PneConfirmContextValue = {
 const PneConfirmContext = createContext<PneConfirmContextValue | null>(null)
 
 const MISSING_PROVIDER_ERROR = 'usePneConfirm must be used within <PneConfirmProvider>'
+const normalizeTitle = (title?: string): string | undefined => {
+    if (!title) return undefined
+    return title.trim().length > 0 ? title : undefined
+}
 
 export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProviderProps) => {
     const { t } = useTranslation()
@@ -40,7 +44,7 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
 
     const fallbackStrings = useMemo(
         () => ({
-            title: t('react.confirm-alert.title.are-you-sure', { defaultValue: 'Are you sure?' }),
+            title: t('react.confirm-alert.title.confirm-action', { defaultValue: 'Confirm action' }),
             confirmLabel: t('react.confirm-alert.yes', { defaultValue: 'Yes' }),
             cancelLabel: t('react.confirm-alert.no.cancel', { defaultValue: 'Cancel' }),
         }),
@@ -67,7 +71,7 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
         (options: PneConfirmOptions) =>
             new Promise<boolean>(resolve => {
                 const pending: PendingConfirm = {
-                    title: options.title ?? defaultOptions?.title ?? fallbackStrings.title,
+                    title: normalizeTitle(options.title) ?? normalizeTitle(defaultOptions?.title) ?? fallbackStrings.title,
                     message: options.message,
                     confirmLabel: options.confirmLabel ?? defaultOptions?.confirmLabel ?? fallbackStrings.confirmLabel,
                     cancelLabel: options.cancelLabel ?? defaultOptions?.cancelLabel ?? fallbackStrings.cancelLabel,
