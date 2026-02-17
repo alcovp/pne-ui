@@ -190,7 +190,8 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 
 `WidgetBoard` — дашборд с драгабл-виджетами и встраиваемой панелью лейаутов. Компонент инкапсулирует состояние:
 выбор лейаута, CRUD кастомных схем и сохранение/загрузку лежат внутри `WidgetBoard`; снаружи достаточно передать
-источники данных. Панель (`WidgetLayoutsPanel`) автоматически подключается к борду (по умолчанию без пропсов).
+источники данных. Для связи `WidgetBoard` с `WidgetLayoutsPanel`/`WidgetBoardFab` используйте общий store
+`createWidgetBoardFabStore()`.
 
 Основные пропсы:
 - `widgets`: список `{ id, title, render }` — содержимое виджетов.
@@ -198,7 +199,8 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 - `loadLayouts(): Promise<{ options; selectedId? } | null>`: обязательная функция загрузки пользовательских схем (вызывается при маунте). `WidgetBoard` сам добавляет и блокирует встроенный `default`-лейаут.
 - `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (вызывается при select/add/delete и автосохранении изменений в выбранном пользовательском лейауте).
 
-Панель `WidgetLayoutsPanel` — отдельный компонент, который слушает активный `WidgetBoard` без пропсов. Можно размещать в любом месте дерева (включая FAB) или передать свои `items/onSelect/...` при необходимости.
+Панель `WidgetLayoutsPanel` — презентационный компонент. Передавайте `items/selectedId/onSelect/onAdd/onDelete`
+и прочие данные из общего `WidgetBoardFabStore`.
 
 ### Структура данных для лейаутов
 
@@ -225,8 +227,9 @@ type LoadLayoutsResult = {
 ### Пример использования
 
 ```tsx
+import React from 'react'
 import { Box, Stack } from '@mui/material'
-import { WidgetBoard, WidgetLayoutsPanel, type WidgetDefinition, type WidgetBoardLayoutOption } from 'pne-ui'
+import { WidgetBoard, WidgetLayoutsPanel, createWidgetBoardFabStore, type WidgetDefinition, type WidgetBoardLayoutOption } from 'pne-ui'
 
 const widgets: WidgetDefinition[] = [
     { id: 'traffic', title: 'Traffic', render: () => <div>Traffic content</div> },
@@ -252,23 +255,37 @@ const saveLayouts = async (options: WidgetBoardLayoutOption[], selectedId?: stri
     await api.saveUserLayouts({ options, selectedId })
 }
 
-export const Dashboard = () => (
-    <Box sx={{ p: 2 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'flex-start' }}>
-            <Box sx={{ minWidth: 260 }}>
-                <WidgetLayoutsPanel />
+export const Dashboard = () => {
+    const fabStore = React.useMemo(() => createWidgetBoardFabStore(), [])
+    const panelProps = fabStore(state => ({
+        items: state.items,
+        selectedId: state.selectedId,
+        onSelect: state.onSelect,
+        onDelete: state.onDelete,
+        onAdd: state.onAdd,
+        addInfo: state.addInfo,
+        lockedIds: state.lockedIds,
+    }))
+
+    return (
+        <Box sx={{ p: 2 }}>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'flex-start' }}>
+                <Box sx={{ minWidth: 260 }}>
+                    <WidgetLayoutsPanel {...panelProps} />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                    <WidgetBoard
+                        widgets={widgets}
+                        layoutByBreakpoint={baseLayoutByBreakpoint}
+                        loadLayouts={loadLayouts}
+                        saveLayouts={saveLayouts}
+                        fabStore={fabStore}
+                    />
+                </Box>
             </Box>
-            <Box sx={{ flex: 1 }}>
-                <WidgetBoard
-                    widgets={widgets}
-                    layoutByBreakpoint={baseLayoutByBreakpoint}
-                    loadLayouts={loadLayouts}
-                    saveLayouts={saveLayouts}
-                />
-            </Box>
-        </Stack>
-    </Box>
-)
+        </Box>
+    )
+}
 ```
 
 `WidgetBoard` сам обновляет выбранный лейаут, следит за состоянием виджетов и при изменениях дергает `saveLayouts`

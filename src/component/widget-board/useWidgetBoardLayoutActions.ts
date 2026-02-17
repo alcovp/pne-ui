@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
-import { setWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
 import { createLayoutId } from './widgetBoardLayoutUtils'
 import type { BreakpointLayoutConfig, WidgetBoardActionsState, WidgetBoardLayoutOption, WidgetBoardProps } from './types'
+import type { WidgetBoardFabStore } from './widgetBoardFabStore'
 
 type UseWidgetBoardLayoutActionsParams = {
     buildCurrentPreset: () => Record<number | string, BreakpointLayoutConfig>
@@ -14,6 +14,7 @@ type UseWidgetBoardLayoutActionsParams = {
     layoutSourceOwnerIdRef: MutableRefObject<string | undefined>
     lockedLayoutIdRef: MutableRefObject<string | undefined>
     saveLayouts: WidgetBoardProps['saveLayouts']
+    fabStore?: WidgetBoardFabStore
     actionsState: WidgetBoardActionsState
     onResetLayout: () => void
     onRestoreHidden: () => void
@@ -31,6 +32,7 @@ export const useWidgetBoardLayoutActions = ({
     layoutSourceOwnerIdRef,
     lockedLayoutIdRef,
     saveLayouts,
+    fabStore,
     actionsState,
     onResetLayout,
     onRestoreHidden,
@@ -144,23 +146,52 @@ export const useWidgetBoardLayoutActions = ({
         setLayoutOptions,
     ])
 
+    const addInfo = useMemo(() => {
+        const sourceLayoutId = selectedLayoutId ?? defaultLayoutId
+        const sourceOption = layoutOptionsMap.get(sourceLayoutId)
+        if (!sourceOption) return undefined
+
+        const currentPreset = buildCurrentPreset()
+        const hasChanges = JSON.stringify(currentPreset ?? {}) !== JSON.stringify(sourceOption.layoutByBreakpoint ?? {})
+
+        return {
+            basedOnName: sourceOption.name,
+            hasChanges,
+        }
+    }, [buildCurrentPreset, defaultLayoutId, layoutOptionsMap, selectedLayoutId])
+
     useEffect(() => {
+        if (!fabStore) return
+
         const panelProps = {
             items: layoutOptions,
             selectedId: selectedLayoutId,
             onSelect: selectLayout,
             onAdd: addLayout,
             onDelete: deleteLayout,
+            addInfo,
             lockedIds: lockedLayoutIdRef.current ? [lockedLayoutIdRef.current] : [],
             actionsState,
             onResetLayout,
             onRestoreHidden,
         }
-        setWidgetLayoutsPanelBridge(panelProps)
+        fabStore.getState().setPanelState(panelProps)
         return () => {
-            setWidgetLayoutsPanelBridge(null)
+            fabStore.getState().resetPanelState()
         }
-    }, [actionsState, addLayout, deleteLayout, layoutOptions, lockedLayoutIdRef, onResetLayout, onRestoreHidden, selectLayout, selectedLayoutId])
+    }, [
+        actionsState,
+        addInfo,
+        addLayout,
+        deleteLayout,
+        fabStore,
+        layoutOptions,
+        lockedLayoutIdRef,
+        onResetLayout,
+        onRestoreHidden,
+        selectLayout,
+        selectedLayoutId,
+    ])
 
     return {
         addLayout,

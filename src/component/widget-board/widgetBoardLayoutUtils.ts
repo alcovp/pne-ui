@@ -17,7 +17,7 @@ export type WidgetDefinitionWithLayout = WidgetDefinition & { layout: WidgetLayo
 const fallbackLayout: WidgetLayoutConfig = { defaultSize: { columnSpan: 1, rowSpan: 2 } }
 
 export const DEFAULT_ROW_HEIGHT = 96
-export const DEFAULT_ROW_GAP = 20
+export const DEFAULT_ROW_GAP = 16
 
 export const createLayoutId = () => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {

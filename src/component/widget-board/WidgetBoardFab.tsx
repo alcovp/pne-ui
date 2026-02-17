@@ -5,11 +5,13 @@ import { useWidgetBoardFabActions, type UseWidgetBoardFabActionsOptions } from '
 export type WidgetBoardFabProps = Omit<PneFloatingActionButtonsProps, 'actions'> & UseWidgetBoardFabActionsOptions
 
 export const WidgetBoardFab: React.FC<WidgetBoardFabProps> = ({
+    store,
     resetLabel,
     restoreHiddenLabel,
     ...fabProps
 }) => {
     const actions = useWidgetBoardFabActions({
+        store,
         resetLabel,
         restoreHiddenLabel,
     })

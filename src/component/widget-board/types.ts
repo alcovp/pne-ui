@@ -86,6 +86,7 @@ export type WidgetBoardProps = {
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
     loadLayouts: () => Promise<WidgetBoardLoadLayoutsResult | null>
     saveLayouts: (options: WidgetBoardLayoutOption[], selectedId?: string) => Promise<void>
+    fabStore?: import('./widgetBoardFabStore').WidgetBoardFabStore
     onActionsStateChange?: (state: WidgetBoardActionsState) => void
     autoHeightEnabled?: boolean
 }

@@ -1,15 +1,19 @@
-import React, { useState, useSyncExternalStore } from 'react'
+import React, { useState } from 'react'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import PneModal from '../PneModal'
 import PneTextField from '../PneTextField'
 import PneButton from '../PneButton'
-import { getWidgetLayoutsPanelBridge, subscribeWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
 
 export type WidgetLayoutOption = {
     id: string
     name: string
+}
+
+export type WidgetLayoutAddInfo = {
+    basedOnName?: string
+    hasChanges?: boolean
 }
 
 export type WidgetLayoutsPanelProps = {
@@ -18,6 +22,7 @@ export type WidgetLayoutsPanelProps = {
     onSelect?: (id: string) => void
     onDelete?: (id: string) => void
     onAdd?: (name: string) => void
+    addInfo?: WidgetLayoutAddInfo
     addLabel?: React.ReactNode
     className?: string
     lockedIds?: string[]
@@ -29,19 +34,20 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     onSelect,
     onDelete,
     onAdd,
+    addInfo,
     addLabel,
     className,
     lockedIds = [],
 }) => {
     const { t } = useTranslation()
-    const bridge = useSyncExternalStore(subscribeWidgetLayoutsPanelBridge, () => getWidgetLayoutsPanelBridge(), () => null)
 
-    const resolvedItems = items ?? bridge?.items ?? []
-    const resolvedSelectedId = selectedId ?? bridge?.selectedId
-    const resolvedOnSelect = onSelect ?? bridge?.onSelect
-    const resolvedOnDelete = onDelete ?? bridge?.onDelete
-    const resolvedOnAdd = onAdd ?? bridge?.onAdd
-    const resolvedLockedIds = lockedIds.length ? lockedIds : bridge?.lockedIds ?? []
+    const resolvedItems = items ?? []
+    const resolvedSelectedId = selectedId
+    const resolvedOnSelect = onSelect
+    const resolvedOnDelete = onDelete
+    const resolvedOnAdd = onAdd
+    const resolvedAddInfo = addInfo
+    const resolvedLockedIds = lockedIds
     const resolvedAddLabel = addLabel ?? t('pne.widgetBoard.layouts.add', { defaultValue: 'Add new layout' })
     const title = t('pne.widgetBoard.layouts.title', { defaultValue: 'Layouts' })
     const emptyLabel = t('pne.widgetBoard.layouts.empty', { defaultValue: 'No layouts yet' })
@@ -49,6 +55,10 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
     const templateNameLabel = t('pne.widgetBoard.layouts.templateName', { defaultValue: 'Template name' })
     const cancelLabel = t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })
     const saveLabel = t('pne.widgetBoard.layouts.save', { defaultValue: 'Save' })
+    const basedOnLabel = t('pne.widgetBoard.layouts.basedOn', { defaultValue: 'Will inherit from' })
+    const hasChangesLabel = t('pne.widgetBoard.layouts.hasChanges', { defaultValue: 'Has changes' })
+    const hasChangesYesLabel = t('pne.widgetBoard.layouts.hasChangesYes', { defaultValue: 'Yes' })
+    const hasChangesNoLabel = t('pne.widgetBoard.layouts.hasChangesNo', { defaultValue: 'No' })
 
     const [modalOpen, setModalOpen] = useState(false)
     const [name, setName] = useState('')
@@ -169,6 +179,18 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                             onChange={event => setName(event.target.value)}
                             autoFocus
                         />
+                        {resolvedAddInfo ? (
+                            <Box sx={{ px: 1.5, py: 1, bgcolor: '#F7F9FC', borderRadius: 1, border: '1px solid #E5E8ED' }}>
+                                <Stack spacing={0.5}>
+                                    <Typography sx={{ fontSize: '13px', lineHeight: '18px', color: '#4E5D78' }}>
+                                        {basedOnLabel}: {resolvedAddInfo.basedOnName ?? '—'}
+                                    </Typography>
+                                    <Typography sx={{ fontSize: '13px', lineHeight: '18px', color: '#4E5D78' }}>
+                                        {hasChangesLabel}: {resolvedAddInfo.hasChanges ? hasChangesYesLabel : hasChangesNoLabel}
+                                    </Typography>
+                                </Stack>
+                            </Box>
+                        ) : null}
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                             <PneButton
                                 pneStyle='text'

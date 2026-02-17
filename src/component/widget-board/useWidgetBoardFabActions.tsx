@@ -1,37 +1,51 @@
-import React, { useCallback, useMemo, useSyncExternalStore } from 'react'
+import React, { useCallback, useMemo } from 'react'
 import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import RestorePageIcon from '@mui/icons-material/RestorePage'
 import { useTranslation } from 'react-i18next'
 import { usePneConfirm } from '../confirm'
 import type { PneFabItem } from '../fab/PneFloatingActionButtons'
 import { WidgetLayoutsPanel } from './WidgetLayoutsPanel'
-import { getWidgetLayoutsPanelBridge, subscribeWidgetLayoutsPanelBridge } from './widgetLayoutsPanelStore'
+import type { WidgetBoardFabStore } from './widgetBoardFabStore'
 
 export type UseWidgetBoardFabActionsOptions = {
+    store: WidgetBoardFabStore
     resetLabel?: React.ReactNode
     restoreHiddenLabel?: React.ReactNode
 }
 
 export const useWidgetBoardFabActions = ({
+    store,
     resetLabel,
     restoreHiddenLabel,
-}: UseWidgetBoardFabActionsOptions = {}): PneFabItem[] => {
+}: UseWidgetBoardFabActionsOptions): PneFabItem[] => {
     const { t } = useTranslation()
     const { confirm } = usePneConfirm()
-    const bridge = useSyncExternalStore(subscribeWidgetLayoutsPanelBridge, () => getWidgetLayoutsPanelBridge(), () => null)
+
+    const layoutItems = store(state => state.items)
+    const selectedLayoutId = store(state => state.selectedId)
+    const selectLayout = store(state => state.onSelect)
+    const addLayout = store(state => state.onAdd)
+    const deleteLayout = store(state => state.onDelete)
+    const addInfo = store(state => state.addInfo)
+    const lockedIds = store(state => state.lockedIds)
+    const actionsState = store(state => state.actionsState)
+    const resetLayout = store(state => state.onResetLayout)
+    const restoreHidden = store(state => state.onRestoreHidden)
+
     const resolvedResetLabel = resetLabel ?? t('pne.widgetBoard.actions.resetLayout', { defaultValue: 'Reset layout' })
     const resolvedRestoreHiddenLabel =
         restoreHiddenLabel ?? t('pne.widgetBoard.actions.restoreHiddenWidgets', { defaultValue: 'Restore hidden widgets' })
     const confirmTitle = t('react.confirm-alert.title.are-you-sure', { defaultValue: 'Are you sure?' })
     const confirmLabel = t('react.confirm-alert.yes', { defaultValue: 'Yes' })
+    const deleteConfirmLabel = t('react.confirm-alert.yes.delete', { defaultValue: 'Remove' })
     const cancelLabel = t('react.confirm-alert.no.cancel', { defaultValue: 'Cancel' })
     const resetMessage = t('pne.widgetBoard.confirm.resetLayout', { defaultValue: 'Reset selected saved layout to default for this breakpoint?' })
     const restoreHiddenMessage = t('pne.widgetBoard.confirm.restoreHiddenWidgets', { defaultValue: 'Restore all hidden widgets in selected saved layout?' })
 
     const handleResetLayout = useCallback(() => {
-        if (!bridge?.onResetLayout) return
+        if (!resetLayout) return
 
-        const shouldConfirm = !bridge.actionsState?.isDefaultLayoutSelected
+        const shouldConfirm = !actionsState?.isDefaultLayoutSelected
         if (shouldConfirm) {
             void confirm({
                 title: confirmTitle,
@@ -40,19 +54,19 @@ export const useWidgetBoardFabActions = ({
                 cancelLabel,
             }).then(accepted => {
                 if (accepted) {
-                    bridge.onResetLayout?.()
+                    resetLayout?.()
                 }
             })
             return
         }
 
-        bridge.onResetLayout()
-    }, [bridge, cancelLabel, confirm, confirmLabel, confirmTitle, resetMessage])
+        resetLayout()
+    }, [actionsState?.isDefaultLayoutSelected, cancelLabel, confirm, confirmLabel, confirmTitle, resetLayout, resetMessage])
 
     const handleRestoreHidden = useCallback(() => {
-        if (!bridge?.onRestoreHidden) return
+        if (!restoreHidden) return
 
-        const shouldConfirm = !bridge.actionsState?.isDefaultLayoutSelected
+        const shouldConfirm = !actionsState?.isDefaultLayoutSelected
         if (shouldConfirm) {
             void confirm({
                 title: confirmTitle,
@@ -61,26 +75,55 @@ export const useWidgetBoardFabActions = ({
                 cancelLabel,
             }).then(accepted => {
                 if (accepted) {
-                    bridge.onRestoreHidden?.()
+                    restoreHidden?.()
                 }
             })
             return
         }
 
-        bridge.onRestoreHidden()
-    }, [bridge, cancelLabel, confirm, confirmLabel, confirmTitle, restoreHiddenMessage])
+        restoreHidden()
+    }, [actionsState?.isDefaultLayoutSelected, cancelLabel, confirm, confirmLabel, confirmTitle, restoreHidden, restoreHiddenMessage])
 
-    const showResetLayout = Boolean(bridge?.actionsState?.canResetLayout)
-    const showRestoreHidden = Boolean(bridge?.actionsState?.hasHiddenWidgets)
-    const canReset = showResetLayout && Boolean(bridge?.onResetLayout)
-    const canRestoreHidden = showRestoreHidden && Boolean(bridge?.onRestoreHidden)
+    const handleDeleteLayout = useCallback(
+        (id: string) => {
+            if (!deleteLayout) return
+
+            const layoutName = layoutItems.find(item => item.id === id)?.name ?? id
+            void confirm({
+                title: confirmTitle,
+                message: t('pne.widgetBoard.confirm.deleteLayout', { defaultValue: 'Delete layout "{{name}}"?', name: layoutName }),
+                confirmLabel: deleteConfirmLabel,
+                cancelLabel,
+            }).then(accepted => {
+                if (accepted) {
+                    deleteLayout?.(id)
+                }
+            })
+        },
+        [cancelLabel, confirm, confirmTitle, deleteConfirmLabel, deleteLayout, layoutItems, t],
+    )
+
+    const showResetLayout = Boolean(actionsState?.canResetLayout)
+    const showRestoreHidden = Boolean(actionsState?.hasHiddenWidgets)
+    const canReset = showResetLayout && Boolean(resetLayout)
+    const canRestoreHidden = showRestoreHidden && Boolean(restoreHidden)
 
     return useMemo<PneFabItem[]>(() => {
         const items: PneFabItem[] = [
             {
                 id: 'layouts',
                 kind: 'content',
-                node: <WidgetLayoutsPanel />,
+                node: (
+                    <WidgetLayoutsPanel
+                        items={layoutItems}
+                        selectedId={selectedLayoutId}
+                        onSelect={selectLayout}
+                        onAdd={addLayout}
+                        onDelete={handleDeleteLayout}
+                        addInfo={addInfo}
+                        lockedIds={lockedIds}
+                    />
+                ),
             },
             { id: 'divider-layouts', kind: 'divider' },
         ]
@@ -104,5 +147,19 @@ export const useWidgetBoardFabActions = ({
         })
 
         return items
-    }, [canReset, canRestoreHidden, handleResetLayout, handleRestoreHidden, resolvedResetLabel, resolvedRestoreHiddenLabel])
+    }, [
+        addInfo,
+        addLayout,
+        canReset,
+        canRestoreHidden,
+        handleDeleteLayout,
+        handleResetLayout,
+        handleRestoreHidden,
+        layoutItems,
+        lockedIds,
+        resolvedResetLabel,
+        resolvedRestoreHiddenLabel,
+        selectLayout,
+        selectedLayoutId,
+    ])
 }

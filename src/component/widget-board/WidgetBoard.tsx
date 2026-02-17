@@ -134,6 +134,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutByBreakpoint,
         loadLayouts,
         saveLayouts,
+        fabStore,
         onActionsStateChange,
         autoHeightEnabled = true,
     },
@@ -400,6 +401,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutSourceOwnerIdRef,
         lockedLayoutIdRef,
         saveLayouts,
+        fabStore,
         actionsState,
         onResetLayout: resetLayout,
         onRestoreHidden: restoreHidden,
@@ -467,7 +469,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         <CloudscapeThemeProvider>
             <CloudscapeBoardStyles hideNavigationArrows />
             <WidgetBoardInteractionContext.Provider value={interactionState}>
-                <Box ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box data-pne-widget-board='true' ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {isLoadingLayouts ? <WidgetBoardSkeleton /> : boardElement}
                 </Box>
             </WidgetBoardInteractionContext.Provider>

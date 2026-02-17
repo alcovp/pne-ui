@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Button, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react'
 import type { WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
-import { WidgetLayoutsPanel, WidgetBoard } from '../index'
+import { WidgetLayoutsPanel, WidgetBoard, createWidgetBoardFabStore } from '../index'
 
 const widgets: WidgetDefinition[] = [
     {
@@ -330,6 +330,16 @@ const BoardWithLightWidget = () => {
 
 const BoardWithLayouts = () => {
     const [boardVersion, setBoardVersion] = React.useState(0)
+    const fabStore = React.useMemo(() => createWidgetBoardFabStore(), [])
+    const panelProps = fabStore(state => ({
+        items: state.items,
+        selectedId: state.selectedId,
+        onSelect: state.onSelect,
+        onDelete: state.onDelete,
+        onAdd: state.onAdd,
+        addInfo: state.addInfo,
+        lockedIds: state.lockedIds,
+    }))
 
     const loadLayouts = React.useCallback(async () => {
         return mockOrderHistoryLayoutsApi.getOrderHistoryLayoutSettings()
@@ -348,7 +358,7 @@ const BoardWithLayouts = () => {
         <Box sx={{ p: 2 }}>
             <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-start' }}>
                 <Box sx={{ minWidth: 260 }}>
-                    <WidgetLayoutsPanel />
+                    <WidgetLayoutsPanel {...panelProps} />
                     <Stack spacing={1} sx={{ mt: 2 }}>
                         <Button variant='outlined' size='small' onClick={resetMockBackend}>
                             Reset mock backend
@@ -367,6 +377,7 @@ const BoardWithLayouts = () => {
                         layoutByBreakpoint={analyticsLayout.layoutByBreakpoint}
                         loadLayouts={loadLayouts}
                         saveLayouts={saveLayouts}
+                        fabStore={fabStore}
                     />
                 </Box>
             </Stack>

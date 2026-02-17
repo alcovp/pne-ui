@@ -28,8 +28,6 @@ const FloatingDemo = () => {
         setLastAction(`Deleted layout ${id}`)
     }
 
-    const updateLayout = (id: string) => setLastAction(`Update layout ${id}`)
-
     const addLayout = (name: string) => {
         setLayouts(current => {
             const next = {
@@ -53,7 +51,14 @@ const FloatingDemo = () => {
             id: 'layouts',
             kind: 'content',
             node: (
-                <WidgetLayoutsPanel />
+                <WidgetLayoutsPanel
+                    items={layouts}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                    onDelete={removeLayout}
+                    onAdd={addLayout}
+                    lockedIds={['default']}
+                />
             ),
         },
         { id: 'divider-1', kind: 'divider' },

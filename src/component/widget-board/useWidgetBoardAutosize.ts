@@ -33,6 +33,10 @@ export const useWidgetBoardAutosize = ({
         const parsed = Number.parseFloat(value)
         return Number.isFinite(parsed) ? parsed : Number.NaN
     }, [])
+    const resolveFallbackRowGap = useCallback(
+        () => (typeof window !== 'undefined' && window.innerWidth < 640 ? 8 : DEFAULT_ROW_GAP),
+        [],
+    )
 
     const findGridElement = useCallback((root: HTMLElement) => {
         const boardRoot = root.querySelector<HTMLElement>('[data-awsui-board]') ?? root
@@ -65,17 +69,18 @@ export const useWidgetBoardAutosize = ({
         const rowHeight = parseCssNumber(style.gridAutoRows)
         const rowGapValue = parseCssNumber(style.rowGap)
         const gapValue = parseCssNumber(style.gap)
-        const rowGap = Number.isFinite(rowGapValue) ? rowGapValue : Number.isFinite(gapValue) ? gapValue : DEFAULT_ROW_GAP
+        const fallbackRowGap = resolveFallbackRowGap()
+        const rowGap = Number.isFinite(rowGapValue) ? rowGapValue : Number.isFinite(gapValue) ? gapValue : fallbackRowGap
         if (!Number.isFinite(rowHeight) || rowHeight <= 0) return gridMetricsRef.current
         const next = { rowHeight, rowGap }
         gridMetricsRef.current = next
         return next
-    }, [findGridElement, parseCssNumber])
+    }, [findGridElement, parseCssNumber, resolveFallbackRowGap])
 
     const computeRequiredRows = useCallback(
         (contentElement: HTMLDivElement) => {
             if (!contentElement.isConnected) return null
-            const metrics = updateGridMetrics() ?? { rowHeight: DEFAULT_ROW_HEIGHT, rowGap: DEFAULT_ROW_GAP }
+            const metrics = updateGridMetrics() ?? { rowHeight: DEFAULT_ROW_HEIGHT, rowGap: resolveFallbackRowGap() }
             const containerRoot =
                 (contentElement.closest('[data-awsui-board-item]') as HTMLElement | null) ??
                 (contentElement.closest('[class*="container-override"]') as HTMLElement | null)
@@ -91,7 +96,7 @@ export const useWidgetBoardAutosize = ({
             const requiredPx = offsetTop + contentHeight
             return Math.ceil((requiredPx + metrics.rowGap) / (metrics.rowHeight + metrics.rowGap))
         },
-        [updateGridMetrics],
+        [resolveFallbackRowGap, updateGridMetrics],
     )
 
     const applyAutoSize = useCallback(
