@@ -10,22 +10,18 @@ import type { WidgetBoardItemData, WidgetHeightMode } from './types'
 import type { WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
 
 type WidgetContentProps = {
-    isCollapsed: boolean
     render: () => React.ReactNode
     dragLock: boolean
 }
 
 const WidgetContent = React.memo(
-    function WidgetContent({ isCollapsed, render }: WidgetContentProps) {
-        if (isCollapsed) {
-            return <Typography sx={{ color: 'text.secondary', fontSize: 14 }}>Collapsed</Typography>
-        }
+    function WidgetContent({ render }: WidgetContentProps) {
         return <>{render()}</>
     },
     (prev, next) => {
         if (next.dragLock) return true
         if (prev.dragLock !== next.dragLock) return false
-        return prev.isCollapsed === next.isCollapsed && prev.render === next.render
+        return prev.render === next.render
     },
 )
 
@@ -52,7 +48,7 @@ export const WidgetBoardItem = ({
 }: WidgetBoardItemProps) => {
     const widgetId = item.id as string
     const contentOverflow = definition.contentFullHeight ? 'hidden' : heightMode === 'fixed' ? 'auto' : 'hidden'
-    const boardItemDataAttributes = { 'data-height-mode': heightMode } as any
+    const boardItemDataAttributes = { 'data-height-mode': heightMode, 'data-collapsed': isCollapsed ? 'true' : 'false' } as any
 
     const headerElement = (
         <Box
@@ -104,22 +100,24 @@ export const WidgetBoardItem = ({
             settings={settingsElement}
             disableContentPaddings
         >
-            <Box sx={{ height: '100%', boxSizing: 'border-box', overflow: contentOverflow }}>
-                <Box
-                    ref={(node: HTMLDivElement | null) => onContentRef(widgetId, node)}
-                    data-widget-id={widgetId}
-                    sx={{
-                        p: 2,
-                        boxSizing: 'border-box',
-                        height: definition.contentFullHeight ? '100%' : 'auto',
-                        minHeight: definition.contentFullHeight ? 0 : undefined,
-                        display: definition.contentFullHeight ? 'flex' : 'block',
-                        flexDirection: definition.contentFullHeight ? 'column' : undefined,
-                    }}
-                >
-                    <WidgetContent isCollapsed={isCollapsed} render={definition.render} dragLock={isInteractionLocked} />
+            {!isCollapsed ? (
+                <Box sx={{ height: '100%', boxSizing: 'border-box', overflow: contentOverflow }}>
+                    <Box
+                        ref={(node: HTMLDivElement | null) => onContentRef(widgetId, node)}
+                        data-widget-id={widgetId}
+                        sx={{
+                            p: 2,
+                            boxSizing: 'border-box',
+                            height: definition.contentFullHeight ? '100%' : 'auto',
+                            minHeight: definition.contentFullHeight ? 0 : undefined,
+                            display: definition.contentFullHeight ? 'flex' : 'block',
+                            flexDirection: definition.contentFullHeight ? 'column' : undefined,
+                        }}
+                    >
+                        <WidgetContent render={definition.render} dragLock={isInteractionLocked} />
+                    </Box>
                 </Box>
-            </Box>
+            ) : null}
         </BoardItem>
     )
 }

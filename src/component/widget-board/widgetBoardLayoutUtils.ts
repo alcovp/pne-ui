@@ -18,6 +18,23 @@ const fallbackLayout: WidgetLayoutConfig = { defaultSize: { columnSpan: 1, rowSp
 
 export const DEFAULT_ROW_HEIGHT = 96
 export const DEFAULT_ROW_GAP = 16
+export const COLLAPSED_ROW_SPAN = 2
+export type WidgetBoardItemDefinition = NonNullable<BoardProps.Item<WidgetBoardItemData>['definition']>
+
+export const createBoardItemDefinition = (
+    definition: WidgetDefinitionWithLayout,
+    isCollapsed = false,
+): WidgetBoardItemDefinition => {
+    const defaultSize = definition.layout.defaultSize
+    const limits = definition.layout.limits
+
+    return {
+        defaultColumnSpan: defaultSize.columnSpan,
+        defaultRowSpan: isCollapsed ? COLLAPSED_ROW_SPAN : defaultSize.rowSpan,
+        minColumnSpan: limits?.minColumnSpan,
+        minRowSpan: isCollapsed ? COLLAPSED_ROW_SPAN : limits?.minRowSpan,
+    }
+}
 
 export const createLayoutId = () => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -37,7 +54,6 @@ export const toBoardItem = (
     overrides?: Partial<Pick<BoardProps.Item<WidgetBoardItemData>, 'columnSpan' | 'rowSpan' | 'columnOffset'>>,
 ): BoardProps.Item<WidgetBoardItemData> => {
     const defaultSize = definition.layout.defaultSize
-    const limits = definition.layout.limits
 
     return {
         id: definition.id,
@@ -45,12 +61,7 @@ export const toBoardItem = (
         rowSpan: overrides?.rowSpan ?? defaultSize.rowSpan,
         columnOffset: overrides?.columnOffset ?? defaultSize.columnOffset,
         data: { id: definition.id, title: definition.title },
-        definition: {
-            defaultColumnSpan: defaultSize.columnSpan,
-            defaultRowSpan: defaultSize.rowSpan,
-            minColumnSpan: limits?.minColumnSpan,
-            minRowSpan: limits?.minRowSpan,
-        },
+        definition: createBoardItemDefinition(definition),
     }
 }
 
@@ -74,8 +85,11 @@ const applyCollapsedState = (
             sizeMemory[widgetId] = item.rowSpan ?? definition.layout.defaultSize.rowSpan
         }
 
-        const minRows = Math.max(definition.layout.limits?.minRowSpan ?? 2, 2)
-        return { ...item, rowSpan: minRows }
+        return {
+            ...item,
+            rowSpan: COLLAPSED_ROW_SPAN,
+            definition: createBoardItemDefinition(definition, true),
+        }
     })
 }
 

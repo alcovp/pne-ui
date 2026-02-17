@@ -40,6 +40,11 @@ export function CloudscapeBoardStyles({ hideNavigationArrows = true }: Cloudscap
                 '[data-item-id] [data-height-mode="auto"] [class*="content-wrapper-fit-height"]': {
                     overflow: 'hidden !important',
                 },
+                '[data-item-id] [data-collapsed="true"] [class*="awsui_resizer_"]': {
+                    display: 'none !important',
+                    visibility: 'hidden !important',
+                    pointerEvents: 'none !important',
+                },
                 // Cloudscape BoardItem adds top offsets for handle/settings wrappers.
                 // With custom widget headers this shifts the drag grip ~2-3px down vs title baseline.
                 // Limit centering to headers that actually contain board-item drag handle.

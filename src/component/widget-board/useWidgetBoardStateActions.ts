@@ -3,7 +3,14 @@ import type { MutableRefObject, SetStateAction } from 'react'
 import type { Dispatch } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 import type { WidgetBoardItemData, WidgetBoardState, WidgetHeightMode, WidgetHeightModeMemory, WidgetLayoutSnapshot } from './types'
-import { buildDefaultState, toBoardItem, upsertLayoutMemory, type WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
+import {
+    buildDefaultState,
+    COLLAPSED_ROW_SPAN,
+    createBoardItemDefinition,
+    toBoardItem,
+    upsertLayoutMemory,
+    type WidgetDefinitionWithLayout,
+} from './widgetBoardLayoutUtils'
 
 type UseWidgetBoardStateActionsParams = {
     currentBreakpointKey: string
@@ -162,9 +169,9 @@ export const useWidgetBoardStateActions = ({
                         if (!definition) return null
 
                         const defaultSize = definition.layout.defaultSize
-                        const limits = definition.layout.limits
+                        const isCollapsed = prev.collapsed.includes(widgetId)
                         const columnSpan = item.columnSpan ?? defaultSize.columnSpan
-                        const rowSpan = item.rowSpan ?? defaultSize.rowSpan
+                        const rowSpan = isCollapsed ? COLLAPSED_ROW_SPAN : (item.rowSpan ?? defaultSize.rowSpan)
                         const columnOffset = item.columnOffset ?? defaultSize.columnOffset
 
                         const prevItem = prevItemsById.get(widgetId)
@@ -172,7 +179,7 @@ export const useWidgetBoardStateActions = ({
                         const nextRowSpan = rowSpan
                         const isHeightModeLocked = Boolean(lockedHeightModeByWidgetId[widgetId])
 
-                        if (prevRowSpan !== nextRowSpan) {
+                        if (!isCollapsed && prevRowSpan !== nextRowSpan) {
                             const requiredRows = measuredRowsRef.current[widgetId]
                             if (requiredRows) {
                                 if (nextRowSpan < requiredRows) {
@@ -189,19 +196,15 @@ export const useWidgetBoardStateActions = ({
                             prevItem?.data && prevItem.data.title === definition.title
                                 ? prevItem.data
                                 : { id: definition.id, title: definition.title }
+                        const resolvedDefinition = createBoardItemDefinition(definition, isCollapsed)
                         const itemDefinition =
                             prevItem?.definition &&
-                            prevItem.definition.defaultColumnSpan === defaultSize.columnSpan &&
-                            prevItem.definition.defaultRowSpan === defaultSize.rowSpan &&
-                            prevItem.definition.minColumnSpan === limits?.minColumnSpan &&
-                            prevItem.definition.minRowSpan === limits?.minRowSpan
+                            prevItem.definition.defaultColumnSpan === resolvedDefinition.defaultColumnSpan &&
+                            prevItem.definition.defaultRowSpan === resolvedDefinition.defaultRowSpan &&
+                            prevItem.definition.minColumnSpan === resolvedDefinition.minColumnSpan &&
+                            prevItem.definition.minRowSpan === resolvedDefinition.minRowSpan
                                 ? prevItem.definition
-                                : {
-                                    defaultColumnSpan: defaultSize.columnSpan,
-                                    defaultRowSpan: defaultSize.rowSpan,
-                                    minColumnSpan: limits?.minColumnSpan,
-                                    minRowSpan: limits?.minRowSpan,
-                                }
+                                : resolvedDefinition
 
                         if (
                             prevItem &&
@@ -248,12 +251,19 @@ export const useWidgetBoardStateActions = ({
                     if (isCollapsed) {
                         const restored = sizeMemory[id] ?? item.rowSpan ?? definition.layout.defaultSize.rowSpan ?? 2
                         delete sizeMemory[id]
-                        return { ...item, rowSpan: restored }
+                        return {
+                            ...item,
+                            rowSpan: restored,
+                            definition: createBoardItemDefinition(definition),
+                        }
                     }
 
                     sizeMemory[id] = item.rowSpan ?? definition.layout.defaultSize.rowSpan ?? 2
-                    const minRows = Math.max(definition.layout.limits?.minRowSpan ?? 2, 2)
-                    return { ...item, rowSpan: minRows }
+                    return {
+                        ...item,
+                        rowSpan: COLLAPSED_ROW_SPAN,
+                        definition: createBoardItemDefinition(definition, true),
+                    }
                 })
 
                 return { ...prev, items, collapsed: nextCollapsed, sizeMemory }
