@@ -15,7 +15,7 @@ const AbstractHeaderTableCell = (props: TableCellProps) => {
             fontWeight: 'bold',
             lineHeight: '12px',
             color: '#4E5D78',
-            padding: '12px 19px',
+            padding: '8px',
             borderBottom: '1px solid #b7cdda'
         },
         ...(Array.isArray(sx) ? sx : [sx])
