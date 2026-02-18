@@ -1,7 +1,8 @@
-import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneTable} from "../index";
+import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneCheckbox, PneSwitch, PneTable} from "../index";
 import {Meta, StoryObj} from "@storybook/react";
 import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
+import PneTableControlCell from "../component/table/PneTableControlCell";
 import React, {useState} from "react";
 import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
 import useTable from "../component/table/useTable";
@@ -22,6 +23,8 @@ const getList = async (page: number, pageSize: number, limit: number): Promise<D
 
 const HookWrap = () => {
     const [customData, setCustomData] = useState<DataType[]>([])
+    const [checkedById, setCheckedById] = useState<Record<number, boolean>>({})
+    const [onById, setOnById] = useState<Record<number, boolean>>({})
 
     const {
         paginator,
@@ -73,6 +76,37 @@ const HookWrap = () => {
                     >
                         {rowData.id}
                     </PneTableCell>
+                    <PneTableControlCell onClick={(event) => event.stopPropagation()}>
+                        <PneCheckbox
+                            checked={checkedById[rowData.id] ?? false}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) => setCheckedById((prevState) => ({
+                                ...prevState,
+                                [rowData.id]: event.target.checked,
+                            }))}
+                        />
+                    </PneTableControlCell>
+                    <PneTableControlCell onClick={(event) => event.stopPropagation()}>
+                        <PneButton
+                            size="small"
+                            onClick={(event) => {
+                                event.stopPropagation()
+                                alert('Control clicked: ' + rowData.id)
+                            }}
+                        >
+                            {'Control'}
+                        </PneButton>
+                    </PneTableControlCell>
+                    <PneTableControlCell onClick={(event) => event.stopPropagation()}>
+                        <PneSwitch
+                            checked={onById[rowData.id] ?? false}
+                            onClick={(event) => event.stopPropagation()}
+                            onChange={(event) => setOnById((prevState) => ({
+                                ...prevState,
+                                [rowData.id]: event.target.checked,
+                            }))}
+                        />
+                    </PneTableControlCell>
                     <PneTableCell
                         onClick={(event) => {
                             event.stopPropagation()
@@ -84,6 +118,9 @@ const HookWrap = () => {
                 </PneTableRow>}
             createTableHeader={() => <PneTableRow>
                 <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+                <PneHeaderTableCell>{'Check'}</PneHeaderTableCell>
+                <PneHeaderTableCell>{'Control'}</PneHeaderTableCell>
+                <PneHeaderTableCell>{'On/Off'}</PneHeaderTableCell>
                 <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
             </PneTableRow>}
             paginator={paginator}
