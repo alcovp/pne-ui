@@ -102,13 +102,13 @@ const AbstractTable = <D, >(
         }
     }, [visibleRows.length, showNothingIsFoundRow]);
 
-    const getPneTablePagination = () => {
+    const getPneTablePagination = (position: 'top' | 'bottom') => {
         if (!paginator) {
             return null
         }
 
         return <PneTablePagination
-            ref={paginator.paginationRef}
+            ref={position === 'bottom' ? paginator.paginationRef : undefined}
             count={-1}
             /*
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -126,11 +126,12 @@ const AbstractTable = <D, >(
             ActionsComponent={(props) => <PneTablePaginationActions
                 {...props}
                 paginator={paginator}
+                shouldRequestScroll={position === 'bottom'}
             />}
         />;
     }
     return <Box sx={{...boxSx}} ref={containerRef}>
-        {paginator && paginator.duplicatePagination && getPneTablePagination()}
+        {paginator && paginator.duplicatePagination && getPneTablePagination('top')}
         <TableContainer>
             <Table stickyHeader={stickyHeader} sx={{...tableSx}}>
                 <TableHead>
@@ -151,7 +152,7 @@ const AbstractTable = <D, >(
                 </TableBody>
             </Table>
         </TableContainer>
-        {paginator && getPneTablePagination()}
+        {paginator && getPneTablePagination('bottom')}
     </Box>
 }
 

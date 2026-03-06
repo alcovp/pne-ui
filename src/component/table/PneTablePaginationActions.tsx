@@ -18,6 +18,7 @@ interface IPaginationActionsProps {
         newPage: number
     ) => void
     paginator: PaginatorProps
+    shouldRequestScroll: boolean
 }
 
 const PneTablePaginationActions = (props: IPaginationActionsProps) => {
@@ -26,7 +27,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         page,
         rowsPerPage,
         onPageChange,
-        paginator
+        paginator,
+        shouldRequestScroll,
     } = props;
 
     const {
@@ -86,17 +88,23 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     }
 
     const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setNeedToScrollToPagination(true)
+        if (shouldRequestScroll) {
+            setNeedToScrollToPagination(true)
+        }
         onPageChange(event, 0);
     };
 
     const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setNeedToScrollToPagination(true)
+        if (shouldRequestScroll) {
+            setNeedToScrollToPagination(true)
+        }
         onPageChange(event, page - 1);
     };
 
     const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-        setNeedToScrollToPagination(true)
+        if (shouldRequestScroll) {
+            setNeedToScrollToPagination(true)
+        }
         onPageChange(event, page + 1);
     };
 
