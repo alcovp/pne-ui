@@ -25,6 +25,27 @@ export const getOptionLabel = <T extends PneDropdownChoice, FreeSolo>(
     )
 }
 
+export const getOptionKey = <T extends PneDropdownChoice, FreeSolo>(
+    option: T | AutocompleteFreeSoloValueMapping<FreeSolo>
+) => {
+    if (typeof option === 'string') {
+        return option
+    }
+
+    assertObject(option)
+    if (isIAutoCompleteChoice(option)) {
+        return option.choiceId
+    } else if (isAbstractEntity(option)) {
+        return option.id
+    }
+
+    exhaustiveCheck(option)
+
+    throw new TypeError('Incompatible types of option:\n'
+        + JSON.stringify(option, null, 4)
+    )
+}
+
 export const isOptionEqualToValue = <T extends PneDropdownChoice>(option: T, value: T) => {
     if (typeof option === 'string' && typeof value === 'string') {
         return option === value

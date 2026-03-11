@@ -1,7 +1,13 @@
 import React, {ReactNode} from 'react';
 import {Autocomplete, AutocompleteProps, SxProps} from '@mui/material';
 import type {TextFieldProps} from '@mui/material/TextField';
-import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/paynet/dropdown';
+import {
+    dropDownSx,
+    getOptionKey,
+    getOptionLabel,
+    isOptionEqualToValue,
+    PneDropdownChoice,
+} from '../../common/paynet/dropdown';
 import {PneTextField} from "../../index";
 
 export interface IProps<
@@ -48,6 +54,7 @@ const PneAutocomplete = <
     return <Autocomplete
         isOptionEqualToValue={isOptionEqualToValue}
         getOptionLabel={getOptionLabel}
+        getOptionKey={getOptionKey}
         renderInput={(params) => {
             return <PneTextField
                 {...params}

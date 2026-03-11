@@ -1,6 +1,12 @@
 import React, {ReactNode, useEffect, useId, useState} from 'react';
 import {Autocomplete, AutocompleteProps, CircularProgress, SxProps} from '@mui/material';
-import {dropDownSx, getOptionLabel, isOptionEqualToValue, PneDropdownChoice} from '../../common/paynet/dropdown';
+import {
+    dropDownSx,
+    getOptionKey,
+    getOptionLabel,
+    isOptionEqualToValue,
+    PneDropdownChoice,
+} from '../../common/paynet/dropdown';
 import {PneTextField} from "../../index";
 
 export interface PneAsyncAutocompleteProps<
@@ -84,6 +90,7 @@ const PneAsyncAutocomplete = <
         onClose={() => setOpen(false)}
         isOptionEqualToValue={isOptionEqualToValue}
         getOptionLabel={getOptionLabel}
+        getOptionKey={getOptionKey}
         options={options}
         loading={loading}
         filterOptions={(x) => x}

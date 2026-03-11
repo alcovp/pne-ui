@@ -1,4 +1,5 @@
 import React, { useContext } from 'react'
+import { Box, Typography } from '@mui/material'
 import { useSearchUIFiltersStore } from '../../state/store'
 import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
 import { AutoCompleteChoice, PneAsyncAutocomplete } from '../../../../..'
@@ -15,6 +16,20 @@ export const ErrorCodeCriterion = () => {
         value={errorCode}
         onChange={(e, value) => setErrorCode(value)}
         searchChoices={searchErrorCodes}
+        renderOption={(props, option) => (
+            <li {...props}>
+                <Box sx={optionContentSx}>
+                    <Typography component="span" variant="body2">
+                        {option.displayName}
+                    </Typography>
+                    {option.description && (
+                        <Typography component="span" variant="caption" color="text.secondary">
+                            {option.description}
+                        </Typography>
+                    )}
+                </Box>
+            </li>
+        )}
         placeholder={t('search')}
         sx={{
             width: '300px',
@@ -37,3 +52,10 @@ export const ErrorCodeCriterion = () => {
 }
 
 export default ErrorCodeCriterion
+
+const optionContentSx = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    py: '4px',
+}

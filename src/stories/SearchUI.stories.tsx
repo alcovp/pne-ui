@@ -25,12 +25,15 @@ import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 
 type DataType = AbstractEntity
 
+type TransactionSessionStatusesScenario = 'validMap' | 'invalidRecord' | 'missingOverride'
+
 type HookWrapProps = {
     possibleCriteria?: CriterionTypeEnum[]
     predefinedCriteria?: CriterionTypeEnum[]
     config?: SearchUIFiltersConfig
     showVisaButton?: boolean
     initialSearchConditions?: Partial<SearchUIConditions>
+    transactionSessionStatusesScenario?: TransactionSessionStatusesScenario
 }
 
 const defaultPossibleCriteria: CriterionTypeEnum[] = [
@@ -107,6 +110,31 @@ const allFiltersStoryPredefinedCriteria: CriterionTypeEnum[] = [
 const allFiltersStoryPossibleCriteria: CriterionTypeEnum[] = [
     ...allFiltersStoryPredefinedCriteria,
     CriterionTypeEnum.COUNTRIES,
+]
+
+const transactionSessionStatusesEntries: [TransactionSessionGroup, string[]][] = [
+    ['ALL', [
+        'MOCK_ONE',
+        'MOCK_TWO',
+        'CLONE1',
+        'CLONE2',
+        'CLONE3',
+        'CLONE4',
+        'CLONE5',
+        'CLONE6',
+        'CLONE7',
+        'CLONE8',
+        'CLONE9',
+        'CLONE10',
+        'CLONE11',
+        'CLONE12',
+        'CLONE13',
+        'CLONE14',
+        'CLONE15',
+        'THREE',
+    ]],
+    ['APPROVED', ['MOCK_ONE', 'MOCK_TWO']],
+    ['PROCESSING', ['THREE']],
 ]
 
 const mockGateEntities: AbstractEntity[] = [
@@ -197,6 +225,7 @@ const HookWrap = (props: HookWrapProps) => {
         config: storyConfig,
         showVisaButton = true,
         initialSearchConditions: initialSearchConditionsOverride,
+        transactionSessionStatusesScenario = 'validMap',
     } = props
 
     const initialMultigetCriteria = useMemo<MultigetCriterion[]>(() => (
@@ -264,6 +293,30 @@ const HookWrap = (props: HookWrapProps) => {
             },
         })
     }
+
+    const transactionSessionStatusesDefaults = useMemo(() => {
+        if (transactionSessionStatusesScenario === 'missingOverride') {
+            return {}
+        }
+
+        if (transactionSessionStatusesScenario === 'invalidRecord') {
+            return {
+                getTransactionSessionStatuses: async () => (
+                    Object.fromEntries(
+                        transactionSessionStatusesEntries.map(([group, statuses]) => [group, [...statuses]]),
+                    ) as unknown as Map<TransactionSessionGroup, string[]>
+                ),
+            }
+        }
+
+        return {
+            getTransactionSessionStatuses: async () => (
+                new Map<TransactionSessionGroup, string[]>(
+                    transactionSessionStatusesEntries.map(([group, statuses]) => [group, [...statuses]]),
+                )
+            ),
+        }
+    }, [transactionSessionStatusesScenario])
 
     return <SearchUIProvider
         defaults={{
@@ -354,37 +407,12 @@ const HookWrap = (props: HookWrapProps) => {
             },
             searchErrorCodes: async request => {
                 return [
-                    { choiceId: 1, displayName: 'Code 1', description: 'd' },
-                    { choiceId: 2, displayName: 'Code 2', description: 'd' },
-                    { choiceId: 99, displayName: 'Code 3', description: 'd' },
+                    { choiceId: 1, displayName: 'Timeout', description: 'External code: 05' },
+                    { choiceId: 2, displayName: 'Timeout', description: 'External code: 51' },
+                    { choiceId: 99, displayName: 'Timeout', description: 'External code: 54' },
                 ]
             },
-            getTransactionSessionStatuses: async () => {
-                return new Map<TransactionSessionGroup, string[]>([
-                    ['ALL', [
-                        'MOCK_ONE',
-                        'MOCK_TWO',
-                        'CLONE1',
-                        'CLONE2',
-                        'CLONE3',
-                        'CLONE4',
-                        'CLONE5',
-                        'CLONE6',
-                        'CLONE7',
-                        'CLONE8',
-                        'CLONE9',
-                        'CLONE10',
-                        'CLONE11',
-                        'CLONE12',
-                        'CLONE13',
-                        'CLONE14',
-                        'CLONE15',
-                        'THREE',
-                    ]],
-                    ['APPROVED', ['MOCK_ONE', 'MOCK_TWO']],
-                    ['PROCESSING', ['THREE']],
-                ])
-            },
+            ...transactionSessionStatusesDefaults,
         }}
     >
         {showVisaButton ? (
@@ -466,5 +494,23 @@ export const AllFilters: Story = {
         },
         showVisaButton: false,
         initialSearchConditions: allFiltersInitialSearchConditions,
+    },
+}
+
+export const TransactionSessionStatusInvalidRecord: Story = {
+    args: {
+        possibleCriteria: [CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
+        predefinedCriteria: [],
+        showVisaButton: false,
+        transactionSessionStatusesScenario: 'invalidRecord',
+    },
+}
+
+export const TransactionSessionStatusMissingOverride: Story = {
+    args: {
+        possibleCriteria: [CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
+        predefinedCriteria: [],
+        showVisaButton: false,
+        transactionSessionStatusesScenario: 'missingOverride',
     },
 }
