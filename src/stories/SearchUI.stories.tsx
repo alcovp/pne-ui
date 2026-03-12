@@ -19,13 +19,14 @@ import {
     MultichoiceFilterTypeEnum,
     MultigetCriterion,
     SearchUIConditions,
+    TransactionSessionStatuses,
 } from '../component/search-ui/filters/types'
 import { Meta, StoryObj } from '@storybook/react'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 
 type DataType = AbstractEntity
 
-type TransactionSessionStatusesScenario = 'validMap' | 'invalidRecord' | 'missingOverride'
+type TransactionSessionStatusesScenario = 'record' | 'missingOverride'
 
 type HookWrapProps = {
     possibleCriteria?: CriterionTypeEnum[]
@@ -225,7 +226,7 @@ const HookWrap = (props: HookWrapProps) => {
         config: storyConfig,
         showVisaButton = true,
         initialSearchConditions: initialSearchConditionsOverride,
-        transactionSessionStatusesScenario = 'validMap',
+        transactionSessionStatusesScenario = 'record',
     } = props
 
     const initialMultigetCriteria = useMemo<MultigetCriterion[]>(() => (
@@ -299,21 +300,11 @@ const HookWrap = (props: HookWrapProps) => {
             return {}
         }
 
-        if (transactionSessionStatusesScenario === 'invalidRecord') {
-            return {
-                getTransactionSessionStatuses: async () => (
-                    Object.fromEntries(
-                        transactionSessionStatusesEntries.map(([group, statuses]) => [group, [...statuses]]),
-                    ) as unknown as Map<TransactionSessionGroup, string[]>
-                ),
-            }
-        }
-
         return {
             getTransactionSessionStatuses: async () => (
-                new Map<TransactionSessionGroup, string[]>(
+                Object.fromEntries(
                     transactionSessionStatusesEntries.map(([group, statuses]) => [group, [...statuses]]),
-                )
+                ) as TransactionSessionStatuses
             ),
         }
     }, [transactionSessionStatusesScenario])
@@ -497,12 +488,12 @@ export const AllFilters: Story = {
     },
 }
 
-export const TransactionSessionStatusInvalidRecord: Story = {
+export const TransactionSessionStatusRecord: Story = {
     args: {
         possibleCriteria: [CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
         predefinedCriteria: [],
         showVisaButton: false,
-        transactionSessionStatusesScenario: 'invalidRecord',
+        transactionSessionStatusesScenario: 'record',
     },
 }
 

@@ -1,5 +1,10 @@
 import { useSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
-import { CriterionTypeEnum, LinkedEntityTypeEnum, SearchUITemplate } from '../src/component/search-ui/filters/types'
+import {
+    CriterionTypeEnum,
+    LinkedEntityTypeEnum,
+    SearchUITemplate,
+    TransactionSessionStatuses,
+} from '../src/component/search-ui/filters/types'
 import {
     getSearchUIFiltersInitialState,
     getSearchUIInitialSearchCriteria,
@@ -117,5 +122,43 @@ describe('SearchUIFilters Zustand store', () => {
         setCardTypesCriterion({ all: true, entities: [] })
         const afterRemoval = useSearchUIFiltersStore.getState()
         expect(afterRemoval.cardTypes).toEqual({ all: true, entities: [] })
+    })
+
+    it('accepts transaction session statuses returned as plain object', async () => {
+        const transactionSessionStatuses: TransactionSessionStatuses = {
+            APPROVED: ['AUTHORIZED', 'CHARGED'],
+            PROCESSING: [],
+            UNKNOWN: [],
+            FILTERED: [],
+            ERROR: [],
+            PENDING_RETURNS: [],
+            VALIDATING_3D: [],
+            VERIFICATING_PHONE: [],
+            INVOICED: [],
+            SENT: [],
+            ALL: [],
+        }
+        const getTransactionSessionStatuses = jest.fn().mockResolvedValue(transactionSessionStatuses)
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        useSearchUIFiltersStore.setState({
+            defaults: {
+                ...initialSearchUIDefaults,
+                getTransactionSessionStatuses,
+            },
+            settingsContextName: 'ctx',
+            onFiltersUpdate: () => {
+            },
+        })
+
+        const { addCriterion } = useSearchUIFiltersStore.getState()
+        addCriterion(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
+        await flushPromises()
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(getTransactionSessionStatuses).toHaveBeenCalled()
+        expect(state.prefetchedData.transactionSessionStatuses).toBeInstanceOf(Map)
+        expect(state.prefetchedData.transactionSessionStatuses?.get('APPROVED')).toEqual(['AUTHORIZED', 'CHARGED'])
+        expect(state.transactionSessionStatuses).toEqual(['AUTHORIZED', 'CHARGED'])
     })
 })

@@ -5,7 +5,6 @@ import {
     AutoCompleteChoiceWithStatus,
     Country,
     Status,
-    TransactionSessionGroup,
 } from '../..'
 import {CriterionTypeEnum, LinkedEntityTypeEnum, MultigetCriterion, SearchUITemplate, TransactionSessionStatuses} from "./filters/types";
 
@@ -73,7 +72,7 @@ export type SearchUIDefaults = {
     getMFOTypes: () => Promise<AbstractEntity[]>
     getTransactionTypes: () => Promise<AbstractEntity[]>
     getTransactionStatuses: () => Promise<AbstractEntity[]>
-    getTransactionSessionStatuses: () => Promise<Map<TransactionSessionGroup, string[]>>,
+    getTransactionSessionStatuses: () => Promise<TransactionSessionStatuses>,
     getTransactionMarkerTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentStatuses: () => Promise<AbstractEntity[]>
@@ -115,6 +114,20 @@ const NOT_CONFIGURED_CALLBACK = () => {
     throw new Error(NOT_CONFIGURED_ERROR)
 }
 
+const createEmptyTransactionSessionStatuses = (): TransactionSessionStatuses => ({
+    APPROVED: [],
+    PROCESSING: [],
+    UNKNOWN: [],
+    FILTERED: [],
+    ERROR: [],
+    PENDING_RETURNS: [],
+    VALIDATING_3D: [],
+    VERIFICATING_PHONE: [],
+    INVOICED: [],
+    SENT: [],
+    ALL: [],
+})
+
 export const initialSearchUIDefaults: SearchUIDefaults = {
     getDefaultCurrency: () => ({id: 1, displayName: '123'}),
 
@@ -130,7 +143,7 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     getMFOTypes: () => Promise.resolve([]),
     getTransactionTypes: () => Promise.resolve([]),
     getTransactionStatuses: () => Promise.resolve([]),
-    getTransactionSessionStatuses: () => Promise.resolve(new Map()),
+    getTransactionSessionStatuses: () => Promise.resolve(createEmptyTransactionSessionStatuses()),
     getTransactionMarkerTypes: () => Promise.resolve([]),
     getRecurringPaymentTypes: () => Promise.resolve([]),
     getRecurringPaymentStatuses: () => Promise.resolve([]),

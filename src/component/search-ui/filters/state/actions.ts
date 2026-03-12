@@ -33,6 +33,7 @@ import {
     StatusCriterion,
     ThreeDCriterionEnum,
     TransactionSessionGroup,
+    TransactionSessionStatuses,
 } from '../types'
 import {
     getSearchUIInitialGrouping,
@@ -819,6 +820,14 @@ const extractTransactionSessionStatuses = (criteria: CriterionTypeEnum[], status
     return statuses.length ? statuses.join(',') : null
 }
 
+const normalizeTransactionSessionStatuses = (
+    source: TransactionSessionStatuses,
+): SearchUIPrefetchedTransactionSessionStatuses => {
+    return new Map(
+        Object.entries(source).map(([group, statuses]) => [group as TransactionSessionGroup, [...statuses]]),
+    )
+}
+
 function ensureTransactionSessionStatusesPrefetched(
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
@@ -869,7 +878,7 @@ function ensureTransactionSessionStatusesPrefetched(
         .then(statusesMap => {
             let statusesUpdated = false
 
-            const statuses: SearchUIPrefetchedTransactionSessionStatuses = new Map(statusesMap)
+            const statuses = normalizeTransactionSessionStatuses(statusesMap)
 
             set(draft => {
                 draft.prefetchedData.transactionSessionStatuses = statuses
