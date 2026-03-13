@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Chip, FormControlLabel, SxProps } from '@mui/material'
 import { PneCheckbox, PneModal, PneSelect, useModal } from '../../../../..'
 import { useSearchUIFiltersStore } from '../../state/store'
-import { TransactionSessionGroup } from '../../types'
+import { TransactionSessionGroup, TransactionSessionStatus } from '../../types'
 import { useTranslation } from 'react-i18next'
 
 export const TransactionSessionStatusCriterion = () => {
@@ -20,22 +20,29 @@ export const TransactionSessionStatusCriterion = () => {
     const setStatuses = useSearchUIFiltersStore(s => s.setTransactionSessionStatusesCriterion)
     const availableStatuses = useSearchUIFiltersStore(s => s.prefetchedData.transactionSessionStatuses)
 
-    const toggleStatus = (status: string) => {
-        if (transactionSessionStatuses.includes(status)) {
-            setStatuses(transactionSessionStatuses.filter(s => s !== status))
-        } else {
-            setStatuses([...transactionSessionStatuses, status])
-        }
+    const copyStatuses = (statuses: TransactionSessionStatus[]) => statuses.map(status => ({ ...status }))
+
+    const toggleStatus = (statusDisplayName: string) => {
+        setStatuses(transactionSessionStatuses.map(status => {
+            if (status.displayName !== statusDisplayName) {
+                return status
+            }
+
+            return {
+                ...status,
+                selected: !status.selected,
+            }
+        }))
     }
 
     const changeGroup = (group: TransactionSessionGroup) => {
         setGroup(group)
         const statuses = availableStatuses?.get(group) ?? []
-        setStatuses([...statuses])
+        setStatuses(copyStatuses(statuses))
     }
 
     const groupOptions = availableStatuses ? Array.from(availableStatuses.keys()) : []
-    const statusesForGroup = availableStatuses?.get(transactionSessionStatusGroup) ?? []
+    const selectedStatuses = transactionSessionStatuses.filter(status => status.selected)
 
     return <>
         <Box sx={containerSx} onClick={handleOpen}>
@@ -43,8 +50,8 @@ export const TransactionSessionStatusCriterion = () => {
                 <Chip label={transactionSessionStatusGroup} size={'small'}/>
             </Box>
             <Box sx={chipsRowSx}>
-                {transactionSessionStatuses.map(status =>
-                    <Chip label={status} size={'small'} key={status}/>)
+                {selectedStatuses.map(status =>
+                    <Chip label={status.displayName} size={'small'} key={status.displayName}/>)
                 }
             </Box>
         </Box>
@@ -62,13 +69,13 @@ export const TransactionSessionStatusCriterion = () => {
                     label={t('react.searchUI.transactionSessionStatusGroup')}
                 />
                 <Box sx={checkboxesSx}>
-                    {statusesForGroup.map(status => (
-                        <Box key={status} sx={checkboxItemSx}>
+                    {transactionSessionStatuses.map(status => (
+                        <Box key={status.displayName} sx={checkboxItemSx}>
                             <FormControlLabel
-                                label={status}
+                                label={status.displayName}
                                 control={<PneCheckbox
-                                    checked={transactionSessionStatuses.includes(status)}
-                                    onChange={() => toggleStatus(status)}
+                                    checked={status.selected}
+                                    onChange={() => toggleStatus(status.displayName)}
                                 />}
                             />
                         </Box>

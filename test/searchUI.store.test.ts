@@ -3,6 +3,7 @@ import {
     CriterionTypeEnum,
     LinkedEntityTypeEnum,
     SearchUITemplate,
+    TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../src/component/search-ui/filters/types'
 import {
@@ -14,6 +15,11 @@ import { initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProv
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
 
 describe('SearchUIFilters Zustand store', () => {
+    const createTransactionSessionStatus = (displayName: string, selected = true): TransactionSessionStatus => ({
+        displayName,
+        selected,
+    })
+
     beforeEach(() => {
         localStorage.clear()
         useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
@@ -124,9 +130,12 @@ describe('SearchUIFilters Zustand store', () => {
         expect(afterRemoval.cardTypes).toEqual({ all: true, entities: [] })
     })
 
-    it('accepts transaction session statuses returned as plain object', async () => {
+    it('accepts transaction session statuses returned as backend objects', async () => {
         const transactionSessionStatuses: TransactionSessionStatuses = {
-            APPROVED: ['AUTHORIZED', 'CHARGED'],
+            APPROVED: [
+                createTransactionSessionStatus('AUTHORIZED'),
+                createTransactionSessionStatus('CHARGED'),
+            ],
             PROCESSING: [],
             UNKNOWN: [],
             FILTERED: [],
@@ -139,6 +148,7 @@ describe('SearchUIFilters Zustand store', () => {
             ALL: [],
         }
         const getTransactionSessionStatuses = jest.fn().mockResolvedValue(transactionSessionStatuses)
+        const onFiltersUpdate = jest.fn()
 
         useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
         useSearchUIFiltersStore.setState({
@@ -147,8 +157,7 @@ describe('SearchUIFilters Zustand store', () => {
                 getTransactionSessionStatuses,
             },
             settingsContextName: 'ctx',
-            onFiltersUpdate: () => {
-            },
+            onFiltersUpdate,
         })
 
         const { addCriterion } = useSearchUIFiltersStore.getState()
@@ -158,7 +167,10 @@ describe('SearchUIFilters Zustand store', () => {
         const state = useSearchUIFiltersStore.getState()
         expect(getTransactionSessionStatuses).toHaveBeenCalled()
         expect(state.prefetchedData.transactionSessionStatuses).toBeInstanceOf(Map)
-        expect(state.prefetchedData.transactionSessionStatuses?.get('APPROVED')).toEqual(['AUTHORIZED', 'CHARGED'])
-        expect(state.transactionSessionStatuses).toEqual(['AUTHORIZED', 'CHARGED'])
+        expect(state.prefetchedData.transactionSessionStatuses?.get('APPROVED')).toEqual(transactionSessionStatuses.APPROVED)
+        expect(state.transactionSessionStatuses).toEqual(transactionSessionStatuses.APPROVED)
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            transactionSessionStatuses: 'AUTHORIZED,CHARGED',
+        }))
     })
 })

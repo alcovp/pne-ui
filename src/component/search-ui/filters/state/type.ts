@@ -15,6 +15,7 @@ import {
     StatusCriterion,
     ThreeDCriterionEnum,
     TransactionSessionGroup,
+    TransactionSessionStatus,
 } from '../types';
 import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} from '../../../..';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
@@ -22,7 +23,7 @@ import {SearchUIDefaults} from '../../SearchUIProvider';
 
 export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 
-export type SearchUIPrefetchedTransactionSessionStatuses = Map<TransactionSessionGroup, string[]>
+export type SearchUIPrefetchedTransactionSessionStatuses = Map<TransactionSessionGroup, TransactionSessionStatus[]>
 
 export type SearchUIPrefetchedData = {
     transactionSessionStatuses?: SearchUIPrefetchedTransactionSessionStatuses
@@ -83,7 +84,7 @@ export type SearchUIFiltersActions = {
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => void
     setTransactionStatusesCriterion: (transactionStatuses: AbstractEntityAllableCollection) => void
     setTransactionSessionStatusGroupCriterion: (transactionSessionStatusGroup: TransactionSessionGroup) => void
-    setTransactionSessionStatusesCriterion: (transactionSessionStatuses: string[]) => void
+    setTransactionSessionStatusesCriterion: (transactionSessionStatuses: TransactionSessionStatus[]) => void
     setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => void
     setGroupingCriterionDateType: (dateType: GroupingDateType) => void
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => void

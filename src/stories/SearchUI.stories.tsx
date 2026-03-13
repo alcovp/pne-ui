@@ -19,6 +19,7 @@ import {
     MultichoiceFilterTypeEnum,
     MultigetCriterion,
     SearchUIConditions,
+    TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../component/search-ui/filters/types'
 import { Meta, StoryObj } from '@storybook/react'
@@ -113,8 +114,15 @@ const allFiltersStoryPossibleCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.COUNTRIES,
 ]
 
-const transactionSessionStatusesEntries: [TransactionSessionGroup, string[]][] = [
-    ['ALL', [
+const createTransactionSessionStatuses = (...displayNames: string[]): TransactionSessionStatus[] => (
+    displayNames.map(displayName => ({
+        displayName,
+        selected: true,
+    }))
+)
+
+const transactionSessionStatusesEntries: [TransactionSessionGroup, TransactionSessionStatus[]][] = [
+    ['ALL', createTransactionSessionStatuses(
         'MOCK_ONE',
         'MOCK_TWO',
         'CLONE1',
@@ -133,9 +141,9 @@ const transactionSessionStatusesEntries: [TransactionSessionGroup, string[]][] =
         'CLONE14',
         'CLONE15',
         'THREE',
-    ]],
-    ['APPROVED', ['MOCK_ONE', 'MOCK_TWO']],
-    ['PROCESSING', ['THREE']],
+    )],
+    ['APPROVED', createTransactionSessionStatuses('MOCK_ONE', 'MOCK_TWO')],
+    ['PROCESSING', createTransactionSessionStatuses('THREE')],
 ]
 
 const mockGateEntities: AbstractEntity[] = [
@@ -303,7 +311,10 @@ const HookWrap = (props: HookWrapProps) => {
         return {
             getTransactionSessionStatuses: async () => (
                 Object.fromEntries(
-                    transactionSessionStatusesEntries.map(([group, statuses]) => [group, [...statuses]]),
+                    transactionSessionStatusesEntries.map(([group, statuses]) => [
+                        group,
+                        statuses.map(status => ({ ...status })),
+                    ]),
                 ) as TransactionSessionStatuses
             ),
         }

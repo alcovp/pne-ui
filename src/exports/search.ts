@@ -20,6 +20,7 @@ export {
     SearchCriteria,
     SearchUIConditions,
     TransactionSessionGroup,
+    TransactionSessionStatus,
     TransactionSessionStatuses,
     DateRangeSpec,
 } from '../component/search-ui/filters/types'

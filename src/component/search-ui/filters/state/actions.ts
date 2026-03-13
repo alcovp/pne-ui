@@ -33,6 +33,7 @@ import {
     StatusCriterion,
     ThreeDCriterionEnum,
     TransactionSessionGroup,
+    TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../types'
 import {
@@ -469,7 +470,7 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get)
     },
-    setTransactionSessionStatusesCriterion: (transactionSessionStatuses: string[]) => {
+    setTransactionSessionStatusesCriterion: (transactionSessionStatuses: TransactionSessionStatus[]) => {
         set((draft) => {
             draft.transactionSessionStatuses = transactionSessionStatuses
         })
@@ -814,17 +815,33 @@ const extractDateTo = (dateRangeSpec: DateRangeSpec, useTime: boolean): Date | n
     }
 }
 
-const extractTransactionSessionStatuses = (criteria: CriterionTypeEnum[], statuses: string[]): string | null => {
+const extractTransactionSessionStatuses = (
+    criteria: CriterionTypeEnum[],
+    statuses: TransactionSessionStatus[],
+): string | null => {
     if (!criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS))
         return null
-    return statuses.length ? statuses.join(',') : null
+    const selectedStatuses = statuses
+        .filter(status => status.selected)
+        .map(status => status.displayName)
+
+    return selectedStatuses.length ? selectedStatuses.join(',') : null
 }
 
-const normalizeTransactionSessionStatuses = (
+const copyTransactionSessionStatuses = (
+    statuses: TransactionSessionStatus[],
+): TransactionSessionStatus[] => {
+    return statuses.map(status => ({ ...status }))
+}
+
+const createTransactionSessionStatusesPrefetchedMap = (
     source: TransactionSessionStatuses,
 ): SearchUIPrefetchedTransactionSessionStatuses => {
     return new Map(
-        Object.entries(source).map(([group, statuses]) => [group as TransactionSessionGroup, [...statuses]]),
+        Object.entries(source).map(([group, statuses]) => [
+            group as TransactionSessionGroup,
+            copyTransactionSessionStatuses(statuses),
+        ]),
     )
 }
 
@@ -853,7 +870,7 @@ function ensureTransactionSessionStatusesPrefetched(
         set(draft => {
             if (!draft.prefetchedDataMeta.transactionSessionStatusesPrefilled) {
                 if (draft.transactionSessionStatuses.length === 0) {
-                    draft.transactionSessionStatuses = [...prefetched]
+                    draft.transactionSessionStatuses = copyTransactionSessionStatuses(prefetched)
                     statusesUpdated = true
                 }
                 draft.prefetchedDataMeta.transactionSessionStatusesPrefilled = true
@@ -878,7 +895,7 @@ function ensureTransactionSessionStatusesPrefetched(
         .then(statusesMap => {
             let statusesUpdated = false
 
-            const statuses = normalizeTransactionSessionStatuses(statusesMap)
+            const statuses = createTransactionSessionStatusesPrefetchedMap(statusesMap)
 
             set(draft => {
                 draft.prefetchedData.transactionSessionStatuses = statuses
@@ -888,7 +905,7 @@ function ensureTransactionSessionStatusesPrefetched(
                     if (draft.transactionSessionStatuses.length === 0) {
                         const currentGroup = draft.transactionSessionStatusGroup
                         const prefetched = statuses.get(currentGroup) ?? []
-                        draft.transactionSessionStatuses = [...prefetched]
+                        draft.transactionSessionStatuses = copyTransactionSessionStatuses(prefetched)
                         statusesUpdated = true
                     }
                     draft.prefetchedDataMeta.transactionSessionStatusesPrefilled = true

@@ -139,7 +139,12 @@ export type TransactionSessionGroup =
     | 'SENT'
     | 'ALL'
 
-export type TransactionSessionStatuses = Record<TransactionSessionGroup, string[]>
+export type TransactionSessionStatus = {
+    displayName: string
+    selected: boolean
+}
+
+export type TransactionSessionStatuses = Record<TransactionSessionGroup, TransactionSessionStatus[]>
 
 export enum ThreeDCriterionEnum {
     ANY = 'ANY',
@@ -344,7 +349,7 @@ export type SearchUIConditions = {
     transactionTypes: AbstractEntityAllableCollection
     transactionStatuses: AbstractEntityAllableCollection
     transactionSessionStatusGroup: TransactionSessionGroup
-    transactionSessionStatuses: string[],
+    transactionSessionStatuses: TransactionSessionStatus[],
     projectCurrency: ProjectCurrency
     grouping: Grouping
     recurrenceTypes: AbstractEntityAllableCollection
