@@ -120,6 +120,11 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
     const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
 
     const [selectedValue, setSelectedValue] = useState<string>(ordersSearchLabel)
+
+    useEffect(() => {
+        setSelectedValue(ordersSearchLabel)
+    }, [ordersSearchLabel])
+
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
         const stored = localStorage.getItem(EXPANDED_GROUPS_STORAGE_KEY)
         if (stored) {
