@@ -23,10 +23,6 @@ export const OrdersSearchInput = () => {
         setSearchValue(ordersSearchValue)
     }, [ordersSearchValue])
 
-    useEffect(() => {
-        setOrderSearchCriterionValue(searchValue)
-    }, [searchValue])
-
     const inputType = OrdersSearchLabelsConfig[ordersSearchLabel]
 
     const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -41,11 +37,13 @@ export const OrdersSearchInput = () => {
         }
 
         setSearchValue(newValue)
+        setOrderSearchCriterionValue(newValue)
     }
 
-    const handleAmountChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const handleMaskedChange = (event: ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value
         setSearchValue(newValue)
+        setOrderSearchCriterionValue(newValue)
     }
 
     const renderInput = () => {
@@ -66,7 +64,7 @@ export const OrdersSearchInput = () => {
             case 'amount':
                 return <PneTextField
                     value={searchValue}
-                    onChange={e => setSearchValue(e.target.value)}
+                    onChange={handleMaskedChange}
                     placeholder={t('search')}
                     size={'small'}
                     variant={'filled'}
@@ -79,7 +77,7 @@ export const OrdersSearchInput = () => {
             case 'ip':
                 return <PneTextField
                     value={searchValue}
-                    onChange={e => setSearchValue(e.target.value)}
+                    onChange={handleMaskedChange}
                     placeholder={t('search')}
                     size={'small'}
                     variant={'filled'}
@@ -92,7 +90,7 @@ export const OrdersSearchInput = () => {
             case 'card6and4':
                 return <PneTextField
                     value={searchValue}
-                    onChange={e => setSearchValue(e.target.value)}
+                    onChange={handleMaskedChange}
                     placeholder={t('search')}
                     size={'small'}
                     variant={'filled'}

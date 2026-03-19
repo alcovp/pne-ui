@@ -8,7 +8,7 @@ type MaskProps = Omit<InputBaseComponentProps, 'onChange'> & {
 }
 
 export const IPv4MaskInput = React.forwardRef<HTMLInputElement, MaskProps>(
-    function AmountMaskInput(props, ref) {
+    function IPv4MaskInput(props, ref) {
         const {
             onChange,
             ...other
@@ -16,9 +16,14 @@ export const IPv4MaskInput = React.forwardRef<HTMLInputElement, MaskProps>(
         return <IMaskInput
             {...other}
             inputRef={ref}
-            mask="000.000.000.000"
-            definitions={{
-                '0': /[0-9]/,
+            mask="num.num.num.num"
+            blocks={{
+                num: {
+                    mask: Number,
+                    min: 0,
+                    max: 255,
+                    scale: 0,
+                }
             }}
             onAccept={(value: string) =>
                 onChange({target: {name: props.name, value}})
