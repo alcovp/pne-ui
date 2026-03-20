@@ -21,6 +21,7 @@ const PneTablePagination = styled(TablePagination)`
     }
     & .MuiToolbar-root.MuiTablePagination-toolbar {
         margin-top: 6px;
+        margin-bottom: 6px;
         min-height: 40px;
     }
 `;
