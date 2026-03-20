@@ -532,6 +532,13 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get)
     },
+    triggerSearch: () => {
+        const currentSearchCriteria = extractSearchCriteriaFromState(get())
+        get().onFiltersUpdate(currentSearchCriteria)
+        set((draft) => {
+            draft.hasUnappliedFilters = false
+        })
+    },
 })
 
 const addInitialMultigetCriterionReducer = (
@@ -939,10 +946,21 @@ const checkIfFiltersChanged = (
     const currentSearchCriteria = extractSearchCriteriaFromState(get())
 
     if (!isEqual(get().prevSearchCriteria, currentSearchCriteria)) {
-        get().onFiltersUpdate(currentSearchCriteria)
-        set((draft) => {
-            draft.prevSearchCriteria = currentSearchCriteria
-        })
+        const isManualSearch = get().config?.manualSearch
+        const isInitialLoad = get().prevSearchCriteria === null
+
+        if (isManualSearch && !isInitialLoad) {
+            set((draft) => {
+                draft.prevSearchCriteria = currentSearchCriteria
+                draft.hasUnappliedFilters = true
+            })
+        } else {
+            get().onFiltersUpdate(currentSearchCriteria)
+            set((draft) => {
+                draft.prevSearchCriteria = currentSearchCriteria
+                draft.hasUnappliedFilters = false
+            })
+        }
     }
 }
 

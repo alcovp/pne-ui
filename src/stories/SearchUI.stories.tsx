@@ -499,6 +499,17 @@ export const AllFilters: Story = {
     },
 }
 
+export const ManualSearch: Story = {
+    args: {
+        possibleCriteria: defaultPossibleCriteria,
+        predefinedCriteria: defaultPredefinedCriteria,
+        config: {
+            manualSearch: true,
+        },
+        showVisaButton: false,
+    },
+}
+
 export const TransactionSessionStatusRecord: Story = {
     args: {
         possibleCriteria: [CriterionTypeEnum.TRANSACTION_SESSION_STATUS],

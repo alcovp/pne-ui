@@ -130,6 +130,7 @@ export const getSearchUIFiltersInitialState = (): SearchUIFiltersState => ({
     templates: [],
     justAddedCriterion: null,
     prevSearchCriteria: null,
+    hasUnappliedFilters: false,
 
     onFiltersUpdate: () => {
         throw new Error('Function onFiltersUpdate is not provided')

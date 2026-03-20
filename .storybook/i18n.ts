@@ -18,6 +18,7 @@ i18nForStorybook
                     'react.searchUI.descriptor': 'Descriptor',
                     'react.searchUI.addCriterion': 'Add filter',
                     'react.searchUI.filters': 'Filters',
+                    'react.searchUI.search': 'Search',
                     'react.searchUI.template': 'Template',
                     'react.searchUI.template.create': 'Create new',
                     'react.searchUI.template.update': 'Update',

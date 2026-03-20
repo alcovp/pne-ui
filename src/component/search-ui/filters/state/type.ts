@@ -48,6 +48,7 @@ export type SearchUIFiltersState = SearchUIConditions & {
     justAddedCriterion: CriterionTypeEnum | null
     config?: SearchUIFiltersConfig
     prevSearchCriteria: SearchCriteria | null
+    hasUnappliedFilters: boolean
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
     prefetchedData: SearchUIPrefetchedData
     prefetchedDataLoading: SearchUIPrefetchedDataLoading
@@ -94,4 +95,5 @@ export type SearchUIFiltersActions = {
     setMarkerStatusCriterion: (markerStatus: MarkerStatusCriterion) => void
     setProcessorLogEntryType: (entryType: AbstractEntity) => void
     setErrorCodeCriterion: (errorCode: AutoCompleteChoice | null) => void
+    triggerSearch: () => void
 }

@@ -103,6 +103,37 @@ const config = {
 />
 ```
 
+### Ручной режим поиска (manual search)
+
+По умолчанию любое изменение фильтра немедленно запускает новый запрос.
+Для экранов с тяжёлыми запросами можно включить ручной режим — фильтры будут
+только накапливать изменения, а запрос отправится по нажатию кнопки **Search**
+в шапке панели фильтров.
+
+```tsx
+<SearchUI
+    settingsContextName="heavy-report"
+    possibleCriteria={[CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.PROJECT]}
+    config={{ manualSearch: true }}
+    /* остальные пропсы */
+/>
+```
+
+Опция работает и для `SearchUIFilters`, если он используется без таблицы:
+
+```tsx
+<SearchUIFilters
+    settingsContextName="standalone-filters"
+    possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+    onFiltersUpdate={handleUpdate}
+    config={{ manualSearch: true }}
+/>
+```
+
+При первой загрузке запрос всё равно отправляется автоматически, чтобы
+пользователь сразу видел данные. Кнопка Search становится активной только
+после того, как фильтры были изменены.
+
 ## Локализация (i18n)
 
 `pne-ui` не принимает текстовые ресурсы через пропсы и не содержит собственного `I18nextProvider`.  

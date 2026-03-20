@@ -55,6 +55,11 @@ export type SearchUIFiltersConfig = {
      * Дополнительные настройки поведения фильтра по диапазону дат.
      */
     dateRange?: DateRangeCriterionConfig
+    /**
+     * Включает ручной режим поиска: при изменении фильтров запрос не отправляется автоматически,
+     * а в шапке панели появляется кнопка «Search».
+     */
+    manualSearch?: boolean
 }
 
 /**
@@ -129,6 +134,9 @@ export const SearchUIFilters = (props: Props) => {
     const conflictingCriteriaGroups = useSearchUIFiltersStore(s => s.config?.conflictingCriteriaGroups)
     const hideTemplatesSelect = useSearchUIFiltersStore(s => s.config?.hideTemplatesSelect)
     const hideShowFiltersButton = useSearchUIFiltersStore(s => s.config?.hideShowFiltersButton)
+    const manualSearch = useSearchUIFiltersStore(s => s.config?.manualSearch)
+    const hasUnappliedFilters = useSearchUIFiltersStore(s => s.hasUnappliedFilters)
+    const triggerSearch = useSearchUIFiltersStore(s => s.triggerSearch)
     const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel)
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
 
@@ -202,6 +210,16 @@ export const SearchUIFilters = (props: Props) => {
                 /> : null}
             </Box>
             <SearchUIFiltersHeaderRight>
+                {manualSearch ? <PneButton
+                    onClick={triggerSearch}
+                    color={'primary'}
+                    size={'small'}
+                    variant={'contained'}
+                    disabled={!hasUnappliedFilters}
+                    sx={nowrapButtonSx}
+                >
+                    {t('react.searchUI.search')}
+                </PneButton> : null}
                 {hideTemplatesSelect ? null : <SearchUITemplatesMenu/>}
                 {allCriteriaAdded ? null : <SearchUIAddFilter
                     options={criteriaOptions}
