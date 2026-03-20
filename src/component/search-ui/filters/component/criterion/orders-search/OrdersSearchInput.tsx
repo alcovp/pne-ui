@@ -6,7 +6,6 @@ import {useTranslation} from "react-i18next";
 import {OrdersSearchLabelsConfig} from "../../../state/actions";
 import {AmountMaskInput} from "./AmountMaskInput";
 import {Card6And4MaskInput} from "./Card6And4MaskInput";
-import {IPv4MaskInput} from "./IPv4MaskInput";
 import {OrdersSearchCountrySelect} from "./OrdersSearchCountrySelect";
 
 export const OrdersSearchInput = () => {
@@ -77,14 +76,13 @@ export const OrdersSearchInput = () => {
             case 'ip':
                 return <PneTextField
                     value={searchValue}
-                    onChange={handleMaskedChange}
-                    placeholder={t('search')}
+                    onChange={handleTextChange}
+                    placeholder={'IPv4 / IPv6'}
                     size={'small'}
                     variant={'filled'}
                     sx={valueInputSx}
                     InputProps={{
                         disableUnderline: true,
-                        inputComponent: IPv4MaskInput,
                     }}
                 />
             case 'card6and4':
@@ -122,3 +120,4 @@ const valueInputSx: SxProps = {
         lineHeight: '18px',
     },
 }
+
