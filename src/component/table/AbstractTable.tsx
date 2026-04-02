@@ -1,9 +1,10 @@
-import React, {useState, useEffect, useRef, MutableRefObject} from 'react';
+import React, {useState, useEffect, useLayoutEffect, useRef, MutableRefObject} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import Box from '@mui/material/Box';
+import Skeleton from '@mui/material/Skeleton';
 import {SxProps} from '@mui/material';
 import PneTableRow from './PneTableRow';
 import PneTableCell from './PneTableCell';
@@ -11,6 +12,7 @@ import PneTablePagination from './PneTablePagination';
 import PneTablePaginationActions from './PneTablePaginationActions';
 import {Order} from "../../common/pne/type";
 import {useTranslation} from "react-i18next";
+import useDelayedLoading from "./useDelayedLoading";
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
@@ -74,6 +76,7 @@ const AbstractTable = <D, >(
         createRow,
         lastRow = null,
         paginator,
+        loading = false,
         stickyHeader = false,
         showNothingIsFoundRow = true,
         tableSx = {},
@@ -83,8 +86,14 @@ const AbstractTable = <D, >(
 
     const {t} = useTranslation()
 
+    const showSkeleton = useDelayedLoading(loading);
+
     const containerRef = useRef<HTMLElement>(null);
-    const [nothingRowColSpan, setNothingRowColSpan] = useState(100);
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+    const lastRowHeightRef = useRef<number | undefined>(undefined);
+    const lastHeaderHeightRef = useRef<number>(0);
+    const lastColumnWidthsRef = useRef<number[]>([]);
+    const [columnCount, setColumnCount] = useState(100);
 
     const visibleRows = React.useMemo(
         () => data,
@@ -92,15 +101,30 @@ const AbstractTable = <D, >(
     );
 
     useEffect(() => {
-        if (visibleRows.length === 0 && showNothingIsFoundRow) {
-            if (containerRef?.current) {
-                const header = containerRef.current.querySelector('table thead tr');
-                if (header) {
-                    setNothingRowColSpan(header.childElementCount);
-                }
+        if (containerRef?.current) {
+            const header = containerRef.current.querySelector('table thead tr');
+            if (header) {
+                setColumnCount(header.childElementCount);
             }
         }
-    }, [visibleRows.length, showNothingIsFoundRow]);
+    });
+
+    useLayoutEffect(() => {
+        if (!showSkeleton && tableContainerRef.current && visibleRows.length > 0) {
+            const containerHeight = tableContainerRef.current.offsetHeight;
+            const thead = containerRef.current?.querySelector('table thead');
+            const headerHeight = thead ? thead.getBoundingClientRect().height : 0;
+            lastHeaderHeightRef.current = headerHeight;
+            lastRowHeightRef.current = (containerHeight - headerHeight) / visibleRows.length;
+
+            const headerCells = containerRef.current?.querySelectorAll('table thead tr th');
+            if (headerCells && headerCells.length > 0) {
+                lastColumnWidthsRef.current = Array.from(headerCells).map(
+                    cell => cell.getBoundingClientRect().width
+                );
+            }
+        }
+    });
 
     const getPneTablePagination = (position: 'top' | 'bottom') => {
         if (!paginator) {
@@ -130,25 +154,69 @@ const AbstractTable = <D, >(
             />}
         />;
     }
+    const skeletonRowCount = paginator?.rowsPerPage || 10;
+    const cellPadding = 16; // 8px top + 8px bottom
+    const skeletonItemHeight = lastRowHeightRef.current
+        ? Math.max(16, lastRowHeightRef.current - cellPadding)
+        : undefined;
+    const skeletonTableHeight = showSkeleton && lastRowHeightRef.current
+        ? lastHeaderHeightRef.current + lastRowHeightRef.current * skeletonRowCount
+        : undefined;
+
+    const SKELETON_COL_HIDDEN = 30;
+    const SKELETON_COL_NARROW = 120;
+
+    const skeletonCellContent = (row: number, col: number) => {
+        const colWidth = lastColumnWidthsRef.current[col];
+        if (colWidth !== undefined && colWidth < SKELETON_COL_HIDDEN) {
+            return null;
+        }
+        const width = colWidth !== undefined && colWidth < SKELETON_COL_NARROW
+            ? '100%'
+            : `${40 + Math.floor((Math.sin(row * 127.1 + col * 311.7) * 43758.5453 % 1 + 1) % 1 * 40)}%`;
+        return <Skeleton variant="rounded" width={width} height={skeletonItemHeight} />;
+    };
+
     return <Box sx={{...boxSx}} ref={containerRef}>
         {paginator && paginator.duplicatePagination && getPneTablePagination('top')}
-        <TableContainer>
-            <Table stickyHeader={stickyHeader} sx={{...tableSx}}>
+        <TableContainer ref={tableContainerRef}>
+            <Table stickyHeader={stickyHeader} sx={{...tableSx, ...(skeletonTableHeight ? {height: skeletonTableHeight} : {})}}>
+                {showSkeleton && lastColumnWidthsRef.current.length > 0 && (
+                    <colgroup>
+                        {lastColumnWidthsRef.current.map((width, i) => (
+                            <col key={i} style={{width}} />
+                        ))}
+                    </colgroup>
+                )}
                 <TableHead>
                     {createTableHeader({
                         sortOptions: sortOptions
                     })}
                 </TableHead>
                 <TableBody>
-                    {visibleRows.map(createRow)}
-                    {visibleRows.length === 0 && showNothingIsFoundRow && (
-                        <PneTableRow hover={false}>
-                            <PneTableCell colSpan={nothingRowColSpan}>
-                                {noRowsMessage || t('advancedSearch.noRows')}
-                            </PneTableCell>
-                        </PneTableRow>
+                    {showSkeleton ? (
+                        Array.from({length: skeletonRowCount}).map((_, rowIndex) => (
+                            <PneTableRow key={`skeleton-${rowIndex}`} hover={false}>
+                                {Array.from({length: columnCount}).map((_, colIndex) => (
+                                    <PneTableCell key={`skeleton-${rowIndex}-${colIndex}`}>
+                                        {skeletonCellContent(rowIndex, colIndex)}
+                                    </PneTableCell>
+                                ))}
+                            </PneTableRow>
+                        ))
+                    ) : (
+                        <>
+                            {visibleRows.map(createRow)}
+                            {visibleRows.length === 0 && showNothingIsFoundRow && (
+                                <PneTableRow hover={false}>
+                                    <PneTableCell colSpan={columnCount}>
+                                        {noRowsMessage || t('advancedSearch.noRows')}
+                                    </PneTableCell>
+                                </PneTableRow>
+                            )}
+                            {lastRow}
+                        </>
                     )}
-                    {lastRow}
                 </TableBody>
             </Table>
         </TableContainer>

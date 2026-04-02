@@ -119,6 +119,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
     const fetchDataExtraDeps = useMemo(() => [searchCriteria], [searchCriteria])
 
     const {
+        loading,
         paginator,
         data, setData,
         sortIndex, setSortIndex,
@@ -174,6 +175,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
                 }}
                 createRow={(item, index, arr) => createTableRow(item, index, arr, setData)}
                 paginator={paginator}
+                loading={loading}
             />
         </Box>
     </>

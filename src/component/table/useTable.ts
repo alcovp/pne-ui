@@ -33,6 +33,7 @@ export type UseTableParams<D> = {
 interface IUseTableResult<D> {
     page: number
     pageSize: number
+    loading: boolean
     setHasNext: Dispatch<SetStateAction<boolean>>
     paginator: PaginatorProps
     data: D[]
@@ -109,6 +110,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const [pageSize, setPageSize] = useState(initialPageSize)
     const [hasNext, setHasNext] = useState(false)
     const [disableActions, setDisableActions] = useState(false)
+    const [loading, setLoading] = useState(!!fetchData)
     const [data, setData] = useState<D[]>([])
     const [sortIndex, setSortIndex] = useState<number>(initialSortIndex)
     const [order, setOrder] = useState<Order>(initialSortOrder)
@@ -216,6 +218,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const afterDataFetch = (dataList: D[]) => {
         getSetData()(dataList.slice(0, pageSize))
         wrapSetHasNext(dataList.length === pageSize + 1)
+        setLoading(false)
         scrollToPagination()
     }
 
@@ -232,6 +235,8 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
             shouldSkipFetchDate.current = false
             return
         }
+
+        setLoading(true)
 
         const asyncFetchData = async (args: FetchDataArgs) => {
             if (fetchData) {
@@ -259,6 +264,9 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                     }
                 } catch (err) {
                     console.error(err)
+                    if (mounted) {
+                        setLoading(false)
+                    }
                 }
             }
         }
@@ -282,13 +290,20 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         }
 
         useEffect(() => {
-            getter().then(afterDataFetch)
+            setLoading(true)
+            getter()
+                .then(afterDataFetch)
+                .catch((err) => {
+                    console.error(err)
+                    setLoading(false)
+                })
         }, fetchDataDeps)
     }
 
     return {
         page: pageNumber,
         pageSize,
+        loading,
         setHasNext: wrapSetHasNext,
         paginator,
         data: getData(),
