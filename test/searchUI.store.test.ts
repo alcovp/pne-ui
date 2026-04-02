@@ -63,6 +63,7 @@ describe('SearchUIFilters Zustand store', () => {
         const { createTemplate } = useSearchUIFiltersStore.getState()
         createTemplate('tmpl')
         await flushPromises()
+        await flushPromises()
         expect(saveSearchTemplate).toHaveBeenCalled()
         const state = useSearchUIFiltersStore.getState()
         expect(state.templates.map(t => t.name)).toContain('tmpl')
@@ -88,9 +89,52 @@ describe('SearchUIFilters Zustand store', () => {
         const { loadTemplates } = useSearchUIFiltersStore.getState()
         loadTemplates()
         await flushPromises()
+        await flushPromises()
         const state = useSearchUIFiltersStore.getState()
         expect(state.templates).toEqual([template])
         expect(getSearchTemplates).toHaveBeenCalledWith('ctx')
+    })
+
+    it('auto-applies the last template in manual search mode', async () => {
+        const template: SearchUITemplate = {
+            name: 'stored',
+            searchConditions: {
+                ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                criteria: [CriterionTypeEnum.STATUS],
+                status: 'ENABLED',
+            },
+        }
+        const getSearchTemplates = jest.fn().mockResolvedValue([template])
+        const onFiltersUpdate = jest.fn()
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: {
+                ...initialSearchUIDefaults,
+                getSearchTemplates,
+            },
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            config: {
+                manualSearch: true,
+            },
+        })
+
+        localStorage.setItem('last_template_namectx', 'stored')
+
+        const { loadTemplates } = useSearchUIFiltersStore.getState()
+        loadTemplates()
+        await flushPromises()
+        await flushPromises()
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(getSearchTemplates).toHaveBeenCalledWith('ctx')
+        expect(state.template?.name).toBe('stored')
+        expect(state.hasUnappliedFilters).toBe(false)
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            status: 'E',
+        }))
     })
 
     it('applies external searchConditions without breaking possible criteria', () => {
@@ -130,6 +174,46 @@ describe('SearchUIFilters Zustand store', () => {
         expect(afterRemoval.cardTypes).toEqual({ all: true, entities: [] })
     })
 
+    it('applies external searchConditions immediately in manual search mode and clears the active template', () => {
+        const onFiltersUpdate = jest.fn()
+        const visaCard = { id: 1, displayName: 'VISA' }
+        const template: SearchUITemplate = {
+            name: 'stored',
+            searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+        }
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.CARD_TYPES],
+            config: {
+                manualSearch: true,
+            },
+        })
+        useSearchUIFiltersStore.setState({ template })
+        onFiltersUpdate.mockClear()
+
+        const { updateConditions } = useSearchUIFiltersStore.getState()
+        updateConditions({
+            criteria: [CriterionTypeEnum.CARD_TYPES],
+            cardTypes: { all: false, entities: [visaCard] },
+        }, {
+            forceSearch: true,
+            resetTemplate: true,
+        })
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(state.template).toBeNull()
+        expect(state.hasUnappliedFilters).toBe(false)
+        expect(state.cardTypes).toEqual({ all: false, entities: [visaCard] })
+        expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            cardTypes: [visaCard.id],
+        }))
+    })
+
     it('accepts transaction session statuses returned as backend objects', async () => {
         const transactionSessionStatuses: TransactionSessionStatuses = {
             APPROVED: [
@@ -162,6 +246,7 @@ describe('SearchUIFilters Zustand store', () => {
 
         const { addCriterion } = useSearchUIFiltersStore.getState()
         addCriterion(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
+        await flushPromises()
         await flushPromises()
 
         const state = useSearchUIFiltersStore.getState()

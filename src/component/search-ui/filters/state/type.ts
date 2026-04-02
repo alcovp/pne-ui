@@ -57,7 +57,13 @@ export type SearchUIFiltersState = SearchUIConditions & {
 
 export type SearchUIFiltersActions = {
     setInitialState: (state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>) => void
-    updateConditions: (conditions: Partial<SearchUIConditions>) => void
+    updateConditions: (
+        conditions: Partial<SearchUIConditions>,
+        options?: {
+            forceSearch?: boolean
+            resetTemplate?: boolean
+        },
+    ) => void
     clearCriteria: () => void
     clearCriterion: (criterionType: CriterionTypeEnum) => void
     addCriterion: (criterionType: CriterionTypeEnum) => void
@@ -65,7 +71,12 @@ export type SearchUIFiltersActions = {
     createTemplate: (templateName: string) => void
     updateTemplate: (templateName: string) => void
     removeTemplate: (template: SearchUITemplate) => void
-    setTemplate: (template: SearchUITemplate) => void
+    setTemplate: (
+        template: SearchUITemplate,
+        options?: {
+            forceSearch?: boolean
+        },
+    ) => void
     loadTemplates: () => void
     setJustAddedCriterion: (criterion: CriterionTypeEnum | null) => void
     setMultigetCriterion: (criterion: MultigetCriterion) => void

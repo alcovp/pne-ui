@@ -27,7 +27,7 @@ const SearchUITemplatesMenu = () => {
         setAnchorEl(null);
     }
     const handleSetTemplate = (template: SearchUITemplate) => {
-        setTemplate(template)
+        setTemplate(template, { forceSearch: true })
         handleClose()
     }
     const handleRemoveTemplate = (template: SearchUITemplate) => {

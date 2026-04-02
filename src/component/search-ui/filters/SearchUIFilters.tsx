@@ -163,7 +163,10 @@ export const SearchUIFilters = (props: Props) => {
 
     useEffect(() => {
         if (searchConditions) {
-            updateConditions(searchConditions)
+            updateConditions(searchConditions, {
+                forceSearch: true,
+                resetTemplate: true,
+            })
         }
     }, [searchConditions])
 

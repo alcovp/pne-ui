@@ -118,6 +118,14 @@ const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): Multiget
     deselectedItemNames: '',
 })
 
+type SearchUIUpdateOptions = {
+    forceSearch?: boolean
+}
+
+type SearchUIConditionsUpdateOptions = SearchUIUpdateOptions & {
+    resetTemplate?: boolean
+}
+
 export const getSearchUIFiltersActions = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
@@ -131,7 +139,10 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get)
     },
-    updateConditions: (conditions: Partial<SearchUIConditions>) => {
+    updateConditions: (
+        conditions: Partial<SearchUIConditions>,
+        options?: SearchUIConditionsUpdateOptions,
+    ) => {
         set((draft) => {
             const {
                 criteria: incomingCriteria,
@@ -191,8 +202,12 @@ export const getSearchUIFiltersActions = (
 
                 draft.multigetCriteria = sanitizedMultigetCriteria
             }
+
+            if (options?.resetTemplate) {
+                draft.template = null
+            }
         })
-        postUpdate(set, get)
+        postUpdate(set, get, options)
     },
     clearCriteria: () => {
         localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
@@ -291,7 +306,7 @@ export const getSearchUIFiltersActions = (
             // .catch(raiseUIError)
             .catch(console.error)
     },
-    setTemplate: (template: SearchUITemplate) => {
+    setTemplate: (template: SearchUITemplate, options?: SearchUIUpdateOptions) => {
         const defaults = getSearchUIInitialSearchCriteria(get().defaults)
         const conditions = { ...defaults, ...template.searchConditions }
 
@@ -310,7 +325,7 @@ export const getSearchUIFiltersActions = (
                 ...conditions,
             }
         })
-        postUpdate(set, get)
+        postUpdate(set, get, options)
     },
     loadTemplates: () => {
         get().defaults.getSearchTemplates(get().settingsContextName)
@@ -322,7 +337,7 @@ export const getSearchUIFiltersActions = (
                 const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + get().settingsContextName)
                 const lastTemplate = templates.find(t => t.name === lastTemplateName)
                 if (lastTemplate) {
-                    get().setTemplate(lastTemplate)
+                    get().setTemplate(lastTemplate, { forceSearch: true })
                 }
             })
             // .catch(raiseUIError)
@@ -934,22 +949,25 @@ function ensureTransactionSessionStatusesPrefetched(
 const postUpdate = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
+    options?: SearchUIUpdateOptions,
 ) => {
     ensureTransactionSessionStatusesPrefetched(set, get)
-    checkIfFiltersChanged(set, get)
+    checkIfFiltersChanged(set, get, options)
 }
 
 const checkIfFiltersChanged = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
+    options?: SearchUIUpdateOptions,
 ) => {
     const currentSearchCriteria = extractSearchCriteriaFromState(get())
 
     if (!isEqual(get().prevSearchCriteria, currentSearchCriteria)) {
         const isManualSearch = get().config?.manualSearch
         const isInitialLoad = get().prevSearchCriteria === null
+        const shouldForceSearch = options?.forceSearch === true
 
-        if (isManualSearch && !isInitialLoad) {
+        if (isManualSearch && !isInitialLoad && !shouldForceSearch) {
             set((draft) => {
                 draft.prevSearchCriteria = currentSearchCriteria
                 draft.hasUnappliedFilters = true
