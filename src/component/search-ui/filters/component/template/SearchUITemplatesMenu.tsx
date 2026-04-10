@@ -124,7 +124,6 @@ const templateNameSx: SxProps = {
 const templateTriggerSx: SxProps = {
     maxWidth: {xs: '30vw', sm: '250px'},
     width: {xs: '30vw', sm: 'auto'},
-    mr: {xs: '8px', sm: '20px'},
     justifyContent: 'space-between',
     textAlign: 'left',
     px: '12px',

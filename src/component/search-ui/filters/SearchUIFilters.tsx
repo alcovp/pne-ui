@@ -1,5 +1,11 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {SearchUIFiltersHeaderRight} from './styled';
+import {
+    SearchUIFiltersHeaderActions,
+    SearchUIFiltersHeaderLeft,
+    SearchUIFiltersHeaderMainRow,
+    SearchUIFiltersHeaderRight,
+    SearchUIFiltersHeaderSearch,
+} from './styled';
 import {
     CriterionTypeEnum,
     DateRangeSpecType,
@@ -189,6 +195,10 @@ export const SearchUIFilters = (props: Props) => {
             return show
         })
     const allCriteriaAdded = criteriaOptions.length === 0
+    const showClearAllButton = !nothingToClear
+    const showTemplatesMenu = !hideTemplatesSelect
+    const showAddFilterButton = !allCriteriaAdded
+    const showMainActionsRow = showClearAllButton || showTemplatesMenu || showAddFilterButton
 
     return <Box sx={{px: '16px'}}>
         <Box sx={headerSx}>
@@ -212,34 +222,42 @@ export const SearchUIFilters = (props: Props) => {
                     sx={nowrapChipSx}
                 /> : null}
             </Box>
-            <SearchUIFiltersHeaderRight>
-                {manualSearch ? <PneButton
-                    onClick={triggerSearch}
-                    color={'primary'}
-                    size={'small'}
-                    variant={'contained'}
-                    disabled={!hasUnappliedFilters}
-                    sx={nowrapButtonSx}
-                >
-                    {t('react.searchUI.search')}
-                </PneButton> : null}
-                {hideTemplatesSelect ? null : <SearchUITemplatesMenu/>}
-                {allCriteriaAdded ? null : <SearchUIAddFilter
-                    options={criteriaOptions}
-                    onChange={criterion => {
-                        setShowFilters(true)
-                        addCriterion(criterion)
-                    }}
-                />}
-                {nothingToClear ? null : <PneButton
-                    onClick={clearCriteria}
-                    color={'pneNeutral'}
-                    size={'small'}
-                    sx={nowrapButtonSx}
-                >
-                    {t('clear.all')}
-                </PneButton>}
-            </SearchUIFiltersHeaderRight>
+            <SearchUIFiltersHeaderActions>
+                {showMainActionsRow ? <SearchUIFiltersHeaderMainRow>
+                    <SearchUIFiltersHeaderLeft>
+                        {showClearAllButton ? <PneButton
+                            onClick={clearCriteria}
+                            color={'pneNeutral'}
+                            size={'small'}
+                            sx={nowrapButtonSx}
+                        >
+                            {t('clear.all')}
+                        </PneButton> : null}
+                    </SearchUIFiltersHeaderLeft>
+                    <SearchUIFiltersHeaderRight>
+                        {showTemplatesMenu ? <SearchUITemplatesMenu/> : null}
+                        {showAddFilterButton ? <SearchUIAddFilter
+                            options={criteriaOptions}
+                            onChange={criterion => {
+                                setShowFilters(true)
+                                addCriterion(criterion)
+                            }}
+                        /> : null}
+                    </SearchUIFiltersHeaderRight>
+                </SearchUIFiltersHeaderMainRow> : null}
+                {manualSearch ? <SearchUIFiltersHeaderSearch>
+                    <PneButton
+                        onClick={triggerSearch}
+                        color={'primary'}
+                        size={'small'}
+                        variant={'contained'}
+                        disabled={!hasUnappliedFilters}
+                        sx={nowrapButtonSx}
+                    >
+                        {t('react.searchUI.search')}
+                    </PneButton>
+                </SearchUIFiltersHeaderSearch> : null}
+            </SearchUIFiltersHeaderActions>
         </Box>
         {showFilters ? <Box>
             {criteria.map((criterion) =>

@@ -505,6 +505,7 @@ export const ManualSearch: Story = {
         predefinedCriteria: defaultPredefinedCriteria,
         config: {
             manualSearch: true,
+            removablePredefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
         },
         showVisaButton: false,
     },
