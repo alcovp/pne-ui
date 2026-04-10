@@ -7,9 +7,22 @@ export type SnackbarOptions = {
     id?: string
     message: React.ReactNode
     variant?: SnackbarVariant
+    /**
+     * Auto-close timeout in milliseconds. `undefined` keeps the snackbar open until closed explicitly.
+     * Timed snackbars render a progress bar in `OverlayHost`.
+     */
     autoHideMs?: number
     action?: React.ReactNode
     anchorOrigin?: SnackbarOrigin
+}
+
+/**
+ * Options for a snackbar with a built-in undo action.
+ * `OverlayHost` renders the same timed-progress indicator as for any other timed snackbar.
+ */
+export type UndoSnackbarOptions = Omit<SnackbarOptions, 'action'> & {
+    undoLabel?: React.ReactNode
+    onUndo: () => void
 }
 
 export type OverlayState = {

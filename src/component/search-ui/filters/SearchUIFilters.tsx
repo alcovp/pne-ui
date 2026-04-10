@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {
     SearchUIFiltersHeaderActions,
     SearchUIFiltersHeaderLeft,
@@ -18,10 +18,18 @@ import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from './state/store';
 import {Box, Chip, IconButton, SxProps} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import isEqual from 'lodash/isEqual';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
 import {CriterionContainer} from './CriterionContainer';
-import {PneButton, SearchUIDefaults} from '../../..';
+import {overlayActions, PneButton, SearchUIDefaults} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
+import {createClearCriteriaUndoSnapshot} from './state/undo';
+
+type PendingClearCriteriaUndo = {
+    snackbarId: string
+    timeoutId: ReturnType<typeof setTimeout> | null
+    baseline: ReturnType<typeof createClearCriteriaUndoSnapshot>
+}
 
 /**
  * Дополнительные настройки критерия диапазона дат.
@@ -136,6 +144,7 @@ export const SearchUIFilters = (props: Props) => {
     const loadTemplates = useSearchUIFiltersStore(s => s.loadTemplates)
     const criteria = useSearchUIFiltersStore(s => s.criteria)
     const clearCriteria = useSearchUIFiltersStore(s => s.clearCriteria)
+    const restoreClearCriteriaSnapshot = useSearchUIFiltersStore(s => s.restoreClearCriteriaSnapshot)
     const addCriterion = useSearchUIFiltersStore(s => s.addCriterion)
     const conflictingCriteriaGroups = useSearchUIFiltersStore(s => s.config?.conflictingCriteriaGroups)
     const hideTemplatesSelect = useSearchUIFiltersStore(s => s.config?.hideTemplatesSelect)
@@ -147,6 +156,22 @@ export const SearchUIFilters = (props: Props) => {
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
 
     const [showFilters, setShowFilters] = useState(true)
+    const pendingClearCriteriaUndoRef = useRef<PendingClearCriteriaUndo | null>(null)
+
+    const clearPendingClearCriteriaUndo = (dismissSnackbar = true) => {
+        const pending = pendingClearCriteriaUndoRef.current
+        if (!pending) return
+
+        if (pending.timeoutId) {
+            clearTimeout(pending.timeoutId)
+        }
+
+        if (dismissSnackbar) {
+            overlayActions.removeSnackbar(pending.snackbarId)
+        }
+
+        pendingClearCriteriaUndoRef.current = null
+    }
 
     useEffect(() => {
         setInitialState({
@@ -176,6 +201,25 @@ export const SearchUIFilters = (props: Props) => {
         }
     }, [searchConditions])
 
+    useEffect(() => {
+        const unsubscribe = useSearchUIFiltersStore.subscribe(state => {
+            const pending = pendingClearCriteriaUndoRef.current
+            if (!pending) return
+
+            const currentSnapshot = createClearCriteriaUndoSnapshot(state)
+            if (isEqual(currentSnapshot, pending.baseline)) {
+                return
+            }
+
+            clearPendingClearCriteriaUndo()
+        })
+
+        return () => {
+            clearPendingClearCriteriaUndo()
+            unsubscribe()
+        }
+    }, [])
+
     const someCriteriaAdded = criteria.length > 0
     const showFiltersCountChip = someCriteriaAdded && !showFilters
     const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
@@ -199,6 +243,32 @@ export const SearchUIFilters = (props: Props) => {
     const showTemplatesMenu = !hideTemplatesSelect
     const showAddFilterButton = !allCriteriaAdded
     const showMainActionsRow = showClearAllButton || showTemplatesMenu || showAddFilterButton
+    const handleClearCriteria = () => {
+        const snapshotBeforeClear = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
+
+        clearPendingClearCriteriaUndo()
+        clearCriteria()
+
+        const baseline = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
+        const autoHideMs = 5000
+        const snackbarId = overlayActions.showUndoSnackbar({
+            message: t('react.searchUI.clearAll.cleared', {defaultValue: 'All filters cleared'}),
+            undoLabel: t('react.searchUI.undo', {defaultValue: 'Undo'}),
+            autoHideMs,
+            onUndo: () => {
+                clearPendingClearCriteriaUndo(false)
+                restoreClearCriteriaSnapshot(snapshotBeforeClear)
+            },
+        })
+
+        pendingClearCriteriaUndoRef.current = {
+            snackbarId,
+            baseline,
+            timeoutId: setTimeout(() => {
+                clearPendingClearCriteriaUndo(false)
+            }, autoHideMs),
+        }
+    }
 
     return <Box sx={{px: '16px'}}>
         <Box sx={headerSx}>
@@ -226,7 +296,7 @@ export const SearchUIFilters = (props: Props) => {
                 {showMainActionsRow ? <SearchUIFiltersHeaderMainRow>
                     <SearchUIFiltersHeaderLeft>
                         {showClearAllButton ? <PneButton
-                            onClick={clearCriteria}
+                            onClick={handleClearCriteria}
                             color={'pneNeutral'}
                             size={'small'}
                             sx={nowrapButtonSx}

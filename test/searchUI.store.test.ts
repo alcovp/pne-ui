@@ -7,6 +7,9 @@ import {
     TransactionSessionStatuses,
 } from '../src/component/search-ui/filters/types'
 import {
+    createClearCriteriaUndoSnapshot,
+} from '../src/component/search-ui/filters/state/undo'
+import {
     getSearchUIFiltersInitialState,
     getSearchUIInitialSearchCriteria,
 } from '../src/component/search-ui/filters/state/initial'
@@ -212,6 +215,73 @@ describe('SearchUIFilters Zustand store', () => {
         expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
             cardTypes: [visaCard.id],
         }))
+    })
+
+    it('restores a clear-all snapshot and re-runs search when filters were previously applied', () => {
+        const onFiltersUpdate = jest.fn()
+        const template: SearchUITemplate = {
+            name: 'stored',
+            searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+        }
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        useSearchUIFiltersStore.setState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            criteria: [CriterionTypeEnum.STATUS],
+            status: 'ENABLED',
+            template,
+            hasUnappliedFilters: false,
+        })
+        localStorage.setItem('last_template_namectx', 'stored')
+
+        const snapshot = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
+        const { clearCriteria, restoreClearCriteriaSnapshot } = useSearchUIFiltersStore.getState()
+
+        clearCriteria()
+        onFiltersUpdate.mockClear()
+        restoreClearCriteriaSnapshot(snapshot)
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(state.criteria).toEqual([CriterionTypeEnum.STATUS])
+        expect(state.status).toBe('ENABLED')
+        expect(state.template?.name).toBe('stored')
+        expect(state.hasUnappliedFilters).toBe(false)
+        expect(localStorage.getItem('last_template_namectx')).toBe('stored')
+        expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            status: 'E',
+        }))
+    })
+
+    it('restores a clear-all snapshot without searching when manual changes were unapplied', () => {
+        const onFiltersUpdate = jest.fn()
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        useSearchUIFiltersStore.setState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            config: {
+                manualSearch: true,
+            },
+            criteria: [CriterionTypeEnum.STATUS],
+            status: 'ENABLED',
+            hasUnappliedFilters: true,
+        })
+
+        const snapshot = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
+        const { clearCriteria, restoreClearCriteriaSnapshot } = useSearchUIFiltersStore.getState()
+
+        clearCriteria()
+        onFiltersUpdate.mockClear()
+        restoreClearCriteriaSnapshot(snapshot)
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(state.criteria).toEqual([CriterionTypeEnum.STATUS])
+        expect(state.status).toBe('ENABLED')
+        expect(state.hasUnappliedFilters).toBe(true)
+        expect(onFiltersUpdate).not.toHaveBeenCalled()
     })
 
     it('accepts transaction session statuses returned as backend objects', async () => {

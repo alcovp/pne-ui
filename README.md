@@ -29,6 +29,29 @@ yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^7 @mui/sys
 - `react-dom@^18 || ^19`
 - `react-i18next@^11`
 
+## OverlayHost
+
+Компоненты, которые используют `overlayActions` напрямую или косвенно, требуют смонтированный
+`<OverlayHost />` в приложении-хосте. Это касается и `SearchUI`, потому что `Clear all` использует
+undo-snackbar.
+
+Подключайте `OverlayHost` ровно один раз, обычно рядом с корнем приложения:
+
+```tsx
+import { OverlayHost } from 'pne-ui'
+
+export const App = () => (
+    <OverlayHost>
+        <ApplicationRoutes />
+    </OverlayHost>
+)
+```
+
+Важные правила интеграции:
+- если `overlayActions.*` вызываются без смонтированного `OverlayHost`, библиотека пишет явный `console.error`, а snackbar не будет виден пользователю;
+- если в DOM смонтировано больше одного `OverlayHost`, библиотека пишет явный `console.error`, потому что такая конфигурация дублирует snackbar-ы и может рассинхронизировать их таймеры;
+- `OverlayHost` должен подключаться в приложении-хосте, а не внутри отдельных виджетов библиотеки.
+
 ## Интеграция SearchUI
 
 ### Подключение контекста через `SearchUIProvider`
@@ -375,7 +398,9 @@ const AppShell = () => (
 )
 ```
 
-- Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo` или `showSnackbar`.
+- Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo`, `showSnackbar` или `showUndoSnackbar`.
+- `showUndoSnackbar` возвращает `id` snackbar и добавляет встроенную action-кнопку `Undo` (или ваш `undoLabel`).
+- Любой snackbar с конечным `autoHideMs` показывает progress bar вверху карточки; если `autoHideMs` не задан, progress bar не рендерится.
 - `PermanentOverlay` можно размещать на любом уровне дерева под хостом; последний зарегистрированный в слоте заменяет предыдущий.
 - Слоты фиксированы четырьмя углами; сместить позицию можно через `offset`/`zIndex` пропы на `PermanentOverlay`.
 

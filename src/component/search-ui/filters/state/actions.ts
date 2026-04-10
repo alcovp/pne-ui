@@ -51,6 +51,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
 import isoWeek from 'dayjs/plugin/isoWeek'
+import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
 
 dayjs.extend(utc)
@@ -208,6 +209,36 @@ export const getSearchUIFiltersActions = (
             }
         })
         postUpdate(set, get, options)
+    },
+    restoreClearCriteriaSnapshot: snapshot => {
+        const restoredSnapshot = cloneDeep(snapshot)
+        const {
+            template,
+            hasUnappliedFilters,
+            ...conditions
+        } = restoredSnapshot
+
+        if (template?.name) {
+            localStorage.setItem(LAST_TEMPLATE_NAME + get().settingsContextName, template.name)
+        } else {
+            localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
+        }
+
+        set(draft => {
+            Object.assign(draft, conditions)
+            draft.template = template
+        })
+
+        const currentSearchCriteria = extractSearchCriteriaFromState(get())
+
+        if (!hasUnappliedFilters) {
+            get().onFiltersUpdate(currentSearchCriteria)
+        }
+
+        set(draft => {
+            draft.prevSearchCriteria = currentSearchCriteria
+            draft.hasUnappliedFilters = hasUnappliedFilters
+        })
     },
     clearCriteria: () => {
         localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)

@@ -37,6 +37,11 @@ export type SearchUIPrefetchedDataMeta = {
     transactionSessionStatusesPrefilled: boolean
 }
 
+export type SearchUIClearCriteriaUndoSnapshot = SearchUIConditions & {
+    template: SearchUITemplate | null
+    hasUnappliedFilters: boolean
+}
+
 export type SearchUIFiltersState = SearchUIConditions & {
     defaults: SearchUIDefaults
     settingsContextName: string
@@ -64,6 +69,7 @@ export type SearchUIFiltersActions = {
             resetTemplate?: boolean
         },
     ) => void
+    restoreClearCriteriaSnapshot: (snapshot: SearchUIClearCriteriaUndoSnapshot) => void
     clearCriteria: () => void
     clearCriterion: (criterionType: CriterionTypeEnum) => void
     addCriterion: (criterionType: CriterionTypeEnum) => void

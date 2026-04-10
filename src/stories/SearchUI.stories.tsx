@@ -4,6 +4,7 @@ import {
     Country,
     ensure,
     ExactCriterionSearchLabelEnum,
+    OverlayHost,
     PneButton,
     PneHeaderTableCell,
     PneTableCell,
@@ -320,160 +321,162 @@ const HookWrap = (props: HookWrapProps) => {
         }
     }, [transactionSessionStatusesScenario])
 
-    return <SearchUIProvider
-        defaults={{
-            getDefaultCurrency: (): AbstractEntity => ({
-                id: 99,
-                displayName: 'BBB',
-            }),
-            getMatchLinkedItems: async () => {
-                await new Promise(resolve => setTimeout(resolve, 400))
+    return <OverlayHost>
+        <SearchUIProvider
+            defaults={{
+                getDefaultCurrency: (): AbstractEntity => ({
+                    id: 99,
+                    displayName: 'BBB',
+                }),
+                getMatchLinkedItems: async () => {
+                    await new Promise(resolve => setTimeout(resolve, 400))
 
-                return mockGateEntities
-            },
-            getCountries: async () => {
-                return [
-                    { id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS' },
-                    { id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX' },
-                ] satisfies Country[]
-            },
-            getCurrencies: async () => {
-                return [
-                    { id: 1, displayName: 'USD' },
-                    { id: 2, displayName: 'RUB' },
-                    { id: 99, displayName: 'BBB' },
-                ]
-            },
-            getCardTypes: async () => {
-                return [
-                    visaCardType,
-                    { id: 2, displayName: 'MASTERCARD' },
-                    { id: 99, displayName: 'UNIONPAY' },
-                ]
-            },
-            getProjectAvailableCurrencies: async () => {
-                return [
-                    { choiceId: 1, displayName: 'USD', description: '', status: 'E' },
-                    { choiceId: 2, displayName: 'RUB', description: '', status: 'E' },
-                    { choiceId: 99, displayName: 'BBB', description: '', status: 'E' },
-                ] satisfies AutoCompleteChoiceWithStatus[]
-            },
-            showGatesCriterion: () => true,
-            showProjectsCriterion: () => true,
-            getProcessorLogEntryTypes: async () => {
-                return [
-                    { id: 1, displayName: 'One' },
-                    { id: 2, displayName: 'Second' },
-                    { id: 99, displayName: '33333' },
-                ]
-            },
-            getTransactionTypes: async () => {
-                return [
-                    { id: 1, displayName: 'One' },
-                    { id: 2, displayName: 'Second' },
-                    { id: 99, displayName: '33333' },
-                ]
-            },
-            getTransactionStatuses: async () => {
-                return [
-                    { id: 1, displayName: 'One' },
-                    { id: 2, displayName: 'Second' },
-                    { id: 99, displayName: '33333' },
-                ]
-            },
-            getTransactionMarkerTypes: async () => {
-                return [
-                    { id: 1, displayName: 'Fraud alerts' },
-                    { id: 2, displayName: 'Manual review' },
-                    { id: 3, displayName: 'Auto' },
-                ]
-            },
-            getRecurringPaymentTypes: async () => {
-                return [
-                    { id: 1, displayName: 'Subscription' },
-                    { id: 2, displayName: 'Installment' },
-                ]
-            },
-            getRecurringPaymentStatuses: async () => {
-                return [
-                    { id: 1, displayName: 'Active' },
-                    { id: 2, displayName: 'Paused' },
-                    { id: 3, displayName: 'Cancelled' },
-                ]
-            },
-            getMFOTypes: async () => {
-                return [
-                    { id: 1, displayName: 'MFO type 1' },
-                    { id: 2, displayName: 'MFO type 2' },
-                ]
-            },
-            searchErrorCodes: async request => {
-                return [
-                    { choiceId: 1, displayName: 'Timeout', description: 'External code: 05' },
-                    { choiceId: 2, displayName: 'Timeout', description: 'External code: 51' },
-                    { choiceId: 99, displayName: 'Timeout', description: 'External code: 54' },
-                ]
-            },
-            ...transactionSessionStatusesDefaults,
-        }}
-    >
-        {showVisaButton ? (
-            <div style={{ marginBottom: 16 }}>
-                <PneButton
-                    variant={'contained'}
-                    color={'primary'}
-                    size={'small'}
-                    onClick={onAddVisaCardType}
-                >
-                    {'Apply VISA card filter'}
-                </PneButton>
-            </div>
-        ) : null}
-        <SearchUI<DataType>
-            tableParams={{
-                duplicatePagination: true,
-                rowsPerPageOptions: [1, 5, 8],
-                displayOptions: {
-                    pageSize: 5,
+                    return mockGateEntities
+                },
+                getCountries: async () => {
+                    return [
+                        { id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS' },
+                        { id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX' },
+                    ] satisfies Country[]
+                },
+                getCurrencies: async () => {
+                    return [
+                        { id: 1, displayName: 'USD' },
+                        { id: 2, displayName: 'RUB' },
+                        { id: 99, displayName: 'BBB' },
+                    ]
+                },
+                getCardTypes: async () => {
+                    return [
+                        visaCardType,
+                        { id: 2, displayName: 'MASTERCARD' },
+                        { id: 99, displayName: 'UNIONPAY' },
+                    ]
+                },
+                getProjectAvailableCurrencies: async () => {
+                    return [
+                        { choiceId: 1, displayName: 'USD', description: '', status: 'E' },
+                        { choiceId: 2, displayName: 'RUB', description: '', status: 'E' },
+                        { choiceId: 99, displayName: 'BBB', description: '', status: 'E' },
+                    ] satisfies AutoCompleteChoiceWithStatus[]
+                },
+                showGatesCriterion: () => true,
+                showProjectsCriterion: () => true,
+                getProcessorLogEntryTypes: async () => {
+                    return [
+                        { id: 1, displayName: 'One' },
+                        { id: 2, displayName: 'Second' },
+                        { id: 99, displayName: '33333' },
+                    ]
+                },
+                getTransactionTypes: async () => {
+                    return [
+                        { id: 1, displayName: 'One' },
+                        { id: 2, displayName: 'Second' },
+                        { id: 99, displayName: '33333' },
+                    ]
+                },
+                getTransactionStatuses: async () => {
+                    return [
+                        { id: 1, displayName: 'One' },
+                        { id: 2, displayName: 'Second' },
+                        { id: 99, displayName: '33333' },
+                    ]
+                },
+                getTransactionMarkerTypes: async () => {
+                    return [
+                        { id: 1, displayName: 'Fraud alerts' },
+                        { id: 2, displayName: 'Manual review' },
+                        { id: 3, displayName: 'Auto' },
+                    ]
+                },
+                getRecurringPaymentTypes: async () => {
+                    return [
+                        { id: 1, displayName: 'Subscription' },
+                        { id: 2, displayName: 'Installment' },
+                    ]
+                },
+                getRecurringPaymentStatuses: async () => {
+                    return [
+                        { id: 1, displayName: 'Active' },
+                        { id: 2, displayName: 'Paused' },
+                        { id: 3, displayName: 'Cancelled' },
+                    ]
+                },
+                getMFOTypes: async () => {
+                    return [
+                        { id: 1, displayName: 'MFO type 1' },
+                        { id: 2, displayName: 'MFO type 2' },
+                    ]
+                },
+                searchErrorCodes: async request => {
+                    return [
+                        { choiceId: 1, displayName: 'Timeout', description: 'External code: 05' },
+                        { choiceId: 2, displayName: 'Timeout', description: 'External code: 51' },
+                        { choiceId: 99, displayName: 'Timeout', description: 'External code: 54' },
+                    ]
+                },
+                ...transactionSessionStatusesDefaults,
+            }}
+        >
+            {showVisaButton ? (
+                <div style={{ marginBottom: 16 }}>
+                    <PneButton
+                        variant={'contained'}
+                        color={'primary'}
+                        size={'small'}
+                        onClick={onAddVisaCardType}
+                    >
+                        {'Apply VISA card filter'}
+                    </PneButton>
+                </div>
+            ) : null}
+            <SearchUI<DataType>
+                tableParams={{
+                    duplicatePagination: true,
+                    rowsPerPageOptions: [1, 5, 8],
+                    displayOptions: {
+                        pageSize: 5,
                     // sortAsc: true,
                     // sortColumnIndex: 1
-                },
-            }}
-            settingsContextName={'context'}
-            exactSearchLabels={[
+                    },
+                }}
+                settingsContextName={'context'}
+                exactSearchLabels={[
                 // ExactCriterionSearchLabelEnum.ALL,
-                ExactCriterionSearchLabelEnum.ID,
-                ExactCriterionSearchLabelEnum.NAME,
-            ]}
-            possibleCriteria={possibleCriteria}
-            predefinedCriteria={predefinedCriteria}
-            config={filtersConfig}
-            searchData={(searchParams) => {
-                console.log(JSON.stringify({
-                    searchLabel: searchParams.exactSearchLabel,
-                    searchString: searchParams.exactSearchValue,
-                    orderDateType: searchParams.orderDateType,
-                    processorLogEntryType: searchParams.processorLogEntryType,
-                }, null, 4))
-                return Service.getList(searchParams)
-            }}
-            dataUseState={[data, setData]}
-            initialSearchConditions={initialSearchConditions}
-            searchConditions={searchConditions}
-            createTableHeader={(headerParams) =>
-                <PneTableRow>
-                    <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
-                    <PneHeaderTableCell>{'header2'}</PneHeaderTableCell>
-                </PneTableRow>
-            }
-            createTableRow={(item) =>
-                <PneTableRow key={item.id}>
-                    <PneTableCell>{item.id}</PneTableCell>
-                    <PneTableCell>{item.displayName}</PneTableCell>
-                </PneTableRow>
-            }
-        />
-    </SearchUIProvider>
+                    ExactCriterionSearchLabelEnum.ID,
+                    ExactCriterionSearchLabelEnum.NAME,
+                ]}
+                possibleCriteria={possibleCriteria}
+                predefinedCriteria={predefinedCriteria}
+                config={filtersConfig}
+                searchData={(searchParams) => {
+                    console.log(JSON.stringify({
+                        searchLabel: searchParams.exactSearchLabel,
+                        searchString: searchParams.exactSearchValue,
+                        orderDateType: searchParams.orderDateType,
+                        processorLogEntryType: searchParams.processorLogEntryType,
+                    }, null, 4))
+                    return Service.getList(searchParams)
+                }}
+                dataUseState={[data, setData]}
+                initialSearchConditions={initialSearchConditions}
+                searchConditions={searchConditions}
+                createTableHeader={(headerParams) =>
+                    <PneTableRow>
+                        <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'header2'}</PneHeaderTableCell>
+                    </PneTableRow>
+                }
+                createTableRow={(item) =>
+                    <PneTableRow key={item.id}>
+                        <PneTableCell>{item.id}</PneTableCell>
+                        <PneTableCell>{item.displayName}</PneTableCell>
+                    </PneTableRow>
+                }
+            />
+        </SearchUIProvider>
+    </OverlayHost>
 }
 
 export default {

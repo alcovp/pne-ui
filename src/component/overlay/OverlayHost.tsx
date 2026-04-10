@@ -2,9 +2,10 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { Alert, Snackbar, type SnackbarOrigin } from '@mui/material'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 import { useOverlayStore } from './overlayStore'
-import type { PermanentOverlayInstance, PermanentOverlaySlot } from './types'
+import type { PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
 import { Box } from '@mui/material'
 import { PermanentOverlayContext } from './PermanentOverlayContext'
+import { registerOverlayHost } from './overlayRuntime'
 
 type OverlayHostProps = {
     anchorOrigin?: SnackbarOrigin
@@ -12,9 +13,158 @@ type OverlayHostProps = {
     children?: React.ReactNode
 }
 
+type ManagedSnackbarProps = {
+    anchor: SnackbarOrigin
+    onRemove: (id: string) => void
+    snack: SnackbarOptions
+}
+
 const STACK_GAP = 12
 const STACK_OFFSET = 24
 const PERMANENT_OFFSET = 24
+
+const clearTimer = (timer: ReturnType<typeof setInterval> | ReturnType<typeof setTimeout> | null) => {
+    if (timer) {
+        clearTimeout(timer)
+    }
+}
+
+const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
+    const autoHideMs = typeof snack.autoHideMs === 'number' && snack.autoHideMs > 0 ? snack.autoHideMs : null
+    const [remainingMs, setRemainingMs] = useState<number | null>(autoHideMs)
+    const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+    const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
+    const startedAtRef = React.useRef<number | null>(null)
+    const remainingRef = React.useRef<number | null>(autoHideMs)
+
+    const remove = useCallback(() => {
+        if (snack.id) {
+            onRemove(snack.id)
+        }
+    }, [onRemove, snack.id])
+
+    const stopTimer = useCallback(() => {
+        clearTimer(timeoutRef.current)
+        clearTimer(intervalRef.current)
+        timeoutRef.current = null
+        intervalRef.current = null
+    }, [])
+
+    const syncRemaining = useCallback(() => {
+        if (startedAtRef.current == null || remainingRef.current == null) {
+            return
+        }
+
+        const elapsed = Date.now() - startedAtRef.current
+        setRemainingMs(Math.max(remainingRef.current - elapsed, 0))
+    }, [])
+
+    const startTimer = useCallback((duration: number) => {
+        if (autoHideMs == null) {
+            return
+        }
+
+        if (duration <= 0) {
+            stopTimer()
+            remove()
+            return
+        }
+
+        stopTimer()
+        remainingRef.current = duration
+        startedAtRef.current = Date.now()
+        setRemainingMs(duration)
+
+        timeoutRef.current = setTimeout(() => {
+            stopTimer()
+            remove()
+        }, duration)
+
+        intervalRef.current = setInterval(syncRemaining, 50)
+    }, [autoHideMs, remove, stopTimer, syncRemaining])
+
+    const pauseTimer = useCallback(() => {
+        if (autoHideMs == null || startedAtRef.current == null || remainingRef.current == null) {
+            return
+        }
+
+        const elapsed = Date.now() - startedAtRef.current
+        const nextRemaining = Math.max(remainingRef.current - elapsed, 0)
+        remainingRef.current = nextRemaining
+        startedAtRef.current = null
+        setRemainingMs(nextRemaining)
+        stopTimer()
+    }, [autoHideMs, stopTimer])
+
+    const resumeTimer = useCallback(() => {
+        if (autoHideMs == null || startedAtRef.current != null) {
+            return
+        }
+
+        startTimer(remainingRef.current ?? autoHideMs)
+    }, [autoHideMs, startTimer])
+
+    React.useEffect(() => {
+        if (autoHideMs == null) {
+            return undefined
+        }
+
+        startTimer(autoHideMs)
+        return stopTimer
+    }, [autoHideMs, startTimer, stopTimer])
+
+    const progressScale = autoHideMs != null && remainingMs != null
+        ? Math.max(Math.min(remainingMs / autoHideMs, 1), 0)
+        : null
+
+    return (
+        <Snackbar
+            open
+            anchorOrigin={anchor}
+            data-testid={snack.id ? `overlay-snackbar-${snack.id}` : 'overlay-snackbar'}
+            onClose={(_event, reason) => {
+                if (reason === 'clickaway') return
+                remove()
+            }}
+            onMouseEnter={pauseTimer}
+            onMouseLeave={resumeTimer}
+            onFocus={pauseTimer}
+            onBlur={resumeTimer}
+            sx={{ position: 'static', transform: 'none', pointerEvents: 'auto', minWidth: 288 }}
+        >
+            <Alert
+                elevation={1}
+                onClose={remove}
+                severity={snack.variant ?? 'info'}
+                action={snack.action}
+                sx={{
+                    position: 'relative',
+                    overflow: 'hidden',
+                    alignItems: 'center',
+                }}
+            >
+                {progressScale != null ? (
+                    <Box
+                        data-testid='overlay-snackbar-progress'
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            height: '3px',
+                            backgroundColor: 'currentColor',
+                            opacity: 0.24,
+                            transformOrigin: 'left',
+                            transform: `scaleX(${progressScale})`,
+                            pointerEvents: 'none',
+                        }}
+                    />
+                ) : null}
+                {snack.message}
+            </Alert>
+        </Snackbar>
+    )
+}
 
 /**
  * Renders overlay elements (currently snackbars) driven by the shared overlay store.
@@ -111,6 +261,8 @@ export function OverlayHost({
             .filter(Boolean)
     }, [breakpoint, permanentOverlays])
 
+    React.useEffect(() => registerOverlayHost(), [])
+
     return (
         <PermanentOverlayContext.Provider value={contextValue}>
             {children}
@@ -141,29 +293,14 @@ export function OverlayHost({
                             ...verticalStyles,
                         }}
                     >
-                        {items.map(snack => (
-                            <Snackbar
+                        {items.map(snack => snack.id ? (
+                            <ManagedSnackbar
                                 key={snack.id}
-                                open
-                                anchorOrigin={anchor}
-                                autoHideDuration={snack.autoHideMs}
-                                onClose={(_event, reason) => {
-                                    if (reason === 'clickaway') return
-                                    snack.id && removeSnackbar(snack.id)
-                                }}
-                                sx={{ position: 'static', transform: 'none', pointerEvents: 'auto', minWidth: 288 }}
-                            >
-                                <Alert
-                                    elevation={1}
-                                    onClose={() => snack.id && removeSnackbar(snack.id)}
-                                    severity={snack.variant ?? 'info'}
-                                    action={snack.action}
-                                    sx={{ alignItems: 'center' }}
-                                >
-                                    {snack.message}
-                                </Alert>
-                            </Snackbar>
-                        ))}
+                                anchor={anchor}
+                                onRemove={removeSnackbar}
+                                snack={snack}
+                            />
+                        ) : null)}
                     </Box>
                 )
             })}

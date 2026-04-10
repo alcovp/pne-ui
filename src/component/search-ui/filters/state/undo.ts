@@ -1,0 +1,35 @@
+import cloneDeep from 'lodash/cloneDeep'
+import type { SearchUIFiltersState, SearchUIClearCriteriaUndoSnapshot } from './type'
+
+export const createClearCriteriaUndoSnapshot = (
+    state: SearchUIFiltersState,
+): SearchUIClearCriteriaUndoSnapshot => cloneDeep({
+    multigetCriteria: state.multigetCriteria,
+    status: state.status,
+    threeD: state.threeD,
+    exactSearchLabel: state.exactSearchLabel,
+    exactSearchValue: state.exactSearchValue,
+    ordersSearchLabel: state.ordersSearchLabel,
+    ordersSearchValue: state.ordersSearchValue,
+    currencies: state.currencies,
+    countries: state.countries,
+    orderDateType: state.orderDateType,
+    dateRangeSpec: state.dateRangeSpec,
+    cardTypes: state.cardTypes,
+    transactionTypes: state.transactionTypes,
+    transactionStatuses: state.transactionStatuses,
+    transactionSessionStatusGroup: state.transactionSessionStatusGroup,
+    transactionSessionStatuses: state.transactionSessionStatuses,
+    projectCurrency: state.projectCurrency,
+    grouping: state.grouping,
+    recurrenceTypes: state.recurrenceTypes,
+    recurrenceStatuses: state.recurrenceStatuses,
+    mfoConfigurationTypes: state.mfoConfigurationTypes,
+    markerTypes: state.markerTypes,
+    markerStatus: state.markerStatus,
+    processorLogEntryType: state.processorLogEntryType,
+    errorCode: state.errorCode,
+    criteria: state.criteria,
+    template: state.template,
+    hasUnappliedFilters: state.hasUnappliedFilters,
+})
