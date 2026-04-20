@@ -126,6 +126,42 @@ const config = {
 />
 ```
 
+### Динамическая доступность критериев
+
+Если критерий должен быть доступен только при определённом состоянии фильтров,
+передайте правила в `config.criterionAvailabilityRules`. Недоступный критерий
+удаляется из активных `criteria`, его значение очищается тем же способом, что и
+при ручном удалении фильтра, и он не показывается в списке добавления. Если
+такой критерий входит в `predefinedCriteria`, он автоматически вернётся в
+активные фильтры, когда снова станет доступен.
+
+Например, `ORDERS_SEARCH` можно оставлять активным только для
+`orderDateType === 'SESSION_STATUS_CHANGED'`:
+
+```tsx
+<SearchUI
+    settingsContextName="orders"
+    predefinedCriteria={[
+        CriterionTypeEnum.DATE_RANGE_ORDERS,
+        CriterionTypeEnum.ORDERS_SEARCH,
+    ]}
+    possibleCriteria={[
+        CriterionTypeEnum.CARD_TYPES,
+        CriterionTypeEnum.CURRENCY,
+        CriterionTypeEnum.TRANSACTION_TYPES,
+    ]}
+    config={{
+        criterionAvailabilityRules: [{
+            criterion: CriterionTypeEnum.ORDERS_SEARCH,
+            isAvailable: conditions => (
+                conditions.orderDateType === 'SESSION_STATUS_CHANGED'
+            ),
+        }],
+    }}
+    /* остальные пропсы */
+/>
+```
+
 ### Ручной режим поиска (manual search)
 
 По умолчанию любое изменение фильтра немедленно запускает новый запрос.

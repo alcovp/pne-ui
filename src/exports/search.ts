@@ -18,6 +18,7 @@ export {
     ORDER_SEARCH_LABELS,
     OrderSearchLabel,
     SearchCriteria,
+    SearchUICriterionAvailabilityRule,
     SearchUIConditions,
     TransactionSessionGroup,
     TransactionSessionStatus,

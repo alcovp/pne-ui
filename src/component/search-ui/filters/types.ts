@@ -362,6 +362,20 @@ export type SearchUIConditions = {
 }
 
 /**
+ * Правило доступности критерия, зависящее от текущего состояния фильтров.
+ */
+export type SearchUICriterionAvailabilityRule = {
+    /**
+     * Критерий, доступность которого вычисляется правилом.
+     */
+    criterion: CriterionTypeEnum
+    /**
+     * Возвращает true, если критерий может быть активен и доступен для добавления.
+     */
+    isAvailable: (conditions: Readonly<SearchUIConditions>) => boolean
+}
+
+/**
  * Описание сохранённого шаблона поиска.
  */
 export type SearchUITemplate = {

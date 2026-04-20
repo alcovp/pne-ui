@@ -1,7 +1,12 @@
 import { createSearchParams } from '../src/component/search-ui/SearchUI'
+import {
+    getCriteriaWithAvailabilityRules,
+    isCriterionAvailable,
+} from '../src/component/search-ui/filters/criterionAvailability'
 import { filterAvailableCriteria } from '../src/component/search-ui/filters/SearchUIFilters'
 import { CriterionTypeEnum, GroupingType, SearchCriteria } from '../src/component/search-ui/filters/types'
 import { initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProvider'
+import { getSearchUIInitialSearchCriteria } from '../src/component/search-ui/filters/state/initial'
 
 describe('SearchUI helpers', () => {
     it('creates search params from criteria', () => {
@@ -60,5 +65,29 @@ describe('SearchUI helpers', () => {
             CriterionTypeEnum.CURRENCY,
         ])
         expect(result).toEqual([CriterionTypeEnum.CURRENCY])
+    })
+
+    it('checks criterion availability rules against current filter conditions', () => {
+        const conditions = {
+            ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+            orderDateType: 'BANK' as const,
+        }
+        const config = {
+            criterionAvailabilityRules: [{
+                criterion: CriterionTypeEnum.ORDERS_SEARCH,
+                isAvailable: () => false,
+            }, {
+                criterion: CriterionTypeEnum.DATE_RANGE_ORDERS,
+                isAvailable: () => true,
+            }],
+        }
+
+        expect(getCriteriaWithAvailabilityRules(config)).toEqual([
+            CriterionTypeEnum.ORDERS_SEARCH,
+            CriterionTypeEnum.DATE_RANGE_ORDERS,
+        ])
+        expect(isCriterionAvailable(CriterionTypeEnum.ORDERS_SEARCH, conditions, config)).toBe(false)
+        expect(isCriterionAvailable(CriterionTypeEnum.DATE_RANGE_ORDERS, conditions, config)).toBe(true)
+        expect(isCriterionAvailable(CriterionTypeEnum.CARD_TYPES, conditions, config)).toBe(true)
     })
 })

@@ -217,6 +217,93 @@ describe('SearchUIFilters Zustand store', () => {
         }))
     })
 
+    it('removes unavailable predefined criteria and restores them when they become available', () => {
+        const onFiltersUpdate = jest.fn()
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [
+                CriterionTypeEnum.DATE_RANGE_ORDERS,
+                CriterionTypeEnum.ORDERS_SEARCH,
+            ],
+            predefinedCriteria: [
+                CriterionTypeEnum.DATE_RANGE_ORDERS,
+                CriterionTypeEnum.ORDERS_SEARCH,
+            ],
+            criteria: [
+                CriterionTypeEnum.DATE_RANGE_ORDERS,
+                CriterionTypeEnum.ORDERS_SEARCH,
+            ],
+            ordersSearchValue: 'invoice-1',
+            config: {
+                criterionAvailabilityRules: [{
+                    criterion: CriterionTypeEnum.ORDERS_SEARCH,
+                    isAvailable: conditions => conditions.orderDateType === 'SESSION_STATUS_CHANGED',
+                }],
+            },
+        })
+
+        onFiltersUpdate.mockClear()
+        const { setDateRangeCriterionOrderDateType } = useSearchUIFiltersStore.getState()
+        setDateRangeCriterionOrderDateType('BANK')
+
+        const unavailableState = useSearchUIFiltersStore.getState()
+        expect(unavailableState.criteria).toEqual([CriterionTypeEnum.DATE_RANGE_ORDERS])
+        expect(unavailableState.ordersSearchLabel).toBe('merchant_invoice_id')
+        expect(unavailableState.ordersSearchValue).toBe('')
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            orderDateType: 'BANK',
+            ordersSearchValue: '',
+        }))
+
+        setDateRangeCriterionOrderDateType('SESSION_STATUS_CHANGED')
+
+        const availableState = useSearchUIFiltersStore.getState()
+        expect(availableState.criteria).toEqual([
+            CriterionTypeEnum.DATE_RANGE_ORDERS,
+            CriterionTypeEnum.ORDERS_SEARCH,
+        ])
+    })
+
+    it('does not apply unavailable criteria from external searchConditions', () => {
+        const onFiltersUpdate = jest.fn()
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.ORDERS_SEARCH],
+            orderDateType: 'BANK',
+            config: {
+                criterionAvailabilityRules: [{
+                    criterion: CriterionTypeEnum.ORDERS_SEARCH,
+                    isAvailable: conditions => conditions.orderDateType === 'SESSION_STATUS_CHANGED',
+                }],
+            },
+        })
+
+        const { updateConditions } = useSearchUIFiltersStore.getState()
+        updateConditions({
+            criteria: [CriterionTypeEnum.ORDERS_SEARCH],
+            ordersSearchValue: 'invoice-2',
+            orderDateType: 'BANK',
+        })
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(state.criteria).toEqual([])
+        expect(state.ordersSearchValue).toBe('')
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            orderDateType: 'BANK',
+            ordersSearchValue: '',
+        }))
+    })
+
     it('restores a clear-all snapshot and re-runs search when filters were previously applied', () => {
         const onFiltersUpdate = jest.fn()
         const template: SearchUITemplate = {

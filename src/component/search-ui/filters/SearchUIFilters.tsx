@@ -11,6 +11,7 @@ import {
     DateRangeSpecType,
     ExactCriterionSearchLabelEnum,
     SearchCriteria,
+    SearchUICriterionAvailabilityRule,
     SearchUIConditions,
 } from './types';
 import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
@@ -24,6 +25,7 @@ import {CriterionContainer} from './CriterionContainer';
 import {overlayActions, PneButton, SearchUIDefaults} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 import {createClearCriteriaUndoSnapshot} from './state/undo';
+import {isCriterionAvailable} from './criterionAvailability';
 
 type PendingClearCriteriaUndo = {
     snackbarId: string
@@ -53,6 +55,12 @@ export type SearchUIFiltersConfig = {
      * Группы критериев, которые не могут быть активны одновременно.
      */
     conflictingCriteriaGroups?: CriterionTypeEnum[][]
+    /**
+     * Правила доступности критериев, зависящие от текущего состояния фильтров.
+     * Недоступный критерий удаляется из активных критериев и не отображается в списке добавления.
+     * Если недоступный критерий снова становится доступным и входит в predefinedCriteria, он возвращается автоматически.
+     */
+    criterionAvailabilityRules?: SearchUICriterionAvailabilityRule[]
     /**
      * Список предустановленных критериев, которые пользователь может удалить.
      */
@@ -154,6 +162,7 @@ export const SearchUIFilters = (props: Props) => {
     const triggerSearch = useSearchUIFiltersStore(s => s.triggerSearch)
     const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel)
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
+    const filtersState = useSearchUIFiltersStore(s => s)
 
     const [showFilters, setShowFilters] = useState(true)
     const pendingClearCriteriaUndoRef = useRef<PendingClearCriteriaUndo | null>(null)
@@ -229,6 +238,7 @@ export const SearchUIFilters = (props: Props) => {
     const nothingToClear = criteria.every(criterion => nonRemovablePredefinedCriteria.includes(criterion))
     const criteriaOptions = adjustedPossibleCriteria
         .filter(criterion => !criteria.includes(criterion))
+        .filter(criterion => isCriterionAvailable(criterion, filtersState, config))
         .filter(possibleC => {
             let show = true
             conflictingCriteriaGroups?.forEach(group => {

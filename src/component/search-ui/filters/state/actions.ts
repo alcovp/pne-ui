@@ -37,6 +37,10 @@ import {
     TransactionSessionStatuses,
 } from '../types'
 import {
+    getCriteriaWithAvailabilityRules,
+    isCriterionAvailable,
+} from '../criterionAvailability'
+import {
     getSearchUIInitialGrouping,
     getSearchUIInitialProjectCurrency,
     getSearchUIInitialSearchCriteria,
@@ -228,6 +232,7 @@ export const getSearchUIFiltersActions = (
             Object.assign(draft, conditions)
             draft.template = template
         })
+        syncCriterionAvailability(set, get)
 
         const currentSearchCriteria = extractSearchCriteriaFromState(get())
 
@@ -651,7 +656,6 @@ const clearCriterionReducer = (
     draft: WritableDraft<SearchUIFiltersStore>,
     criterionType: CriterionTypeEnum,
 ): void => {
-    let index = -1
     switch (criterionType) {
         case CriterionTypeEnum.STATUS:
             draft.status = getSearchUIInitialSearchCriteria(draft.defaults).status
@@ -681,40 +685,31 @@ const clearCriterionReducer = (
             draft.dateRangeSpec = getSearchUIInitialSearchCriteria(draft.defaults).dateRangeSpec
             break
         case CriterionTypeEnum.PROJECT:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.PROJECT)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.PROJECT)
             break
         case CriterionTypeEnum.ENDPOINT:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.ENDPOINT)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.ENDPOINT)
             break
         case CriterionTypeEnum.GATE:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.GATE)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.GATE)
             break
         case CriterionTypeEnum.PROCESSOR:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.PROCESSOR)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.PROCESSOR)
             break
         case CriterionTypeEnum.COMPANY:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.COMPANY)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.COMPANY)
             break
         case CriterionTypeEnum.MANAGER:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.MANAGER)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.MANAGER)
             break
         case CriterionTypeEnum.MERCHANT:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.MERCHANT)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.MERCHANT)
             break
         case CriterionTypeEnum.RESELLER:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.RESELLER)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.RESELLER)
             break
         case CriterionTypeEnum.DEALER:
-            index = draft.multigetCriteria.findIndex(c => c.entityType === LinkedEntityTypeEnum.DEALER)
-            draft.multigetCriteria.splice(index, 1)
+            removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.DEALER)
             break
         case CriterionTypeEnum.PROJECT_CURRENCY:
             draft.projectCurrency = getSearchUIInitialProjectCurrency(draft.defaults)
@@ -761,6 +756,16 @@ const clearCriterionReducer = (
         default:
             exhaustiveCheck(criterionType)
             throw new Error('Unknown criterion type: ' + criterionType)
+    }
+}
+
+const removeMultigetCriterionReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+    entityType: LinkedEntityTypeEnum,
+): void => {
+    const index = draft.multigetCriteria.findIndex(c => c.entityType === entityType)
+    if (index >= 0) {
+        draft.multigetCriteria.splice(index, 1)
     }
 }
 
@@ -982,8 +987,69 @@ const postUpdate = (
     get: ZustandStoreGet<SearchUIFiltersStore>,
     options?: SearchUIUpdateOptions,
 ) => {
+    syncCriterionAvailability(set, get)
     ensureTransactionSessionStatusesPrefetched(set, get)
     checkIfFiltersChanged(set, get, options)
+}
+
+const syncCriterionAvailability = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+) => {
+    const criteriaWithRules = getCriteriaWithAvailabilityRules(get().config)
+    if (!criteriaWithRules.length) {
+        return
+    }
+
+    set(draft => {
+        const maxPasses = criteriaWithRules.length + 1
+
+        for (let pass = 0; pass < maxPasses; pass++) {
+            let changed = false
+
+            criteriaWithRules.forEach(criterion => {
+                if (isCriterionAvailable(criterion, draft, draft.config)) {
+                    if (
+                        draft.predefinedCriteria.includes(criterion)
+                        && !draft.criteria.includes(criterion)
+                    ) {
+                        restorePredefinedCriterionReducer(draft, criterion)
+                        changed = true
+                    }
+                    return
+                }
+
+                clearCriterionReducer(draft, criterion)
+                if (draft.criteria.includes(criterion)) {
+                    draft.criteria = draft.criteria.filter(activeCriterion => activeCriterion !== criterion)
+                    changed = true
+                }
+            })
+
+            if (!changed) {
+                return
+            }
+        }
+    })
+}
+
+const restorePredefinedCriterionReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+    criterion: CriterionTypeEnum,
+): void => {
+    addInitialMultigetCriterionReducer(draft, criterion)
+
+    const activePredefinedCriteria = draft.predefinedCriteria.filter(predefinedCriterion => (
+        predefinedCriterion === criterion || draft.criteria.includes(predefinedCriterion)
+    ))
+    const activeCustomCriteria = draft.criteria.filter(activeCriterion => (
+        !draft.predefinedCriteria.includes(activeCriterion)
+    ))
+
+    draft.criteria = Array.from(new Set([
+        ...activePredefinedCriteria,
+        ...activeCustomCriteria,
+    ]))
 }
 
 const checkIfFiltersChanged = (

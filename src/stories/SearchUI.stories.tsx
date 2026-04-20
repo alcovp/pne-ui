@@ -66,6 +66,14 @@ const defaultFiltersConfig: SearchUIFiltersConfig = {
     // hideTemplatesSelect: true,
 }
 
+const ordersSearchAvailabilityConfig: SearchUIFiltersConfig = {
+    manualSearch: true,
+    criterionAvailabilityRules: [{
+        criterion: CriterionTypeEnum.ORDERS_SEARCH,
+        isAvailable: conditions => conditions.orderDateType === 'SESSION_STATUS_CHANGED',
+    }],
+}
+
 const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
     [CriterionTypeEnum.PROJECT]: LinkedEntityTypeEnum.PROJECT,
     [CriterionTypeEnum.ENDPOINT]: LinkedEntityTypeEnum.ENDPOINT,
@@ -511,6 +519,25 @@ export const ManualSearch: Story = {
             removablePredefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
         },
         showVisaButton: false,
+    },
+}
+
+export const ConditionalOrdersSearch: Story = {
+    args: {
+        possibleCriteria: [
+            CriterionTypeEnum.CARD_TYPES,
+            CriterionTypeEnum.CURRENCY,
+            CriterionTypeEnum.TRANSACTION_TYPES,
+        ],
+        predefinedCriteria: [
+            CriterionTypeEnum.DATE_RANGE_ORDERS,
+            CriterionTypeEnum.ORDERS_SEARCH,
+        ],
+        config: ordersSearchAvailabilityConfig,
+        showVisaButton: false,
+        initialSearchConditions: {
+            ordersSearchValue: 'invoice-1',
+        },
     },
 }
 
