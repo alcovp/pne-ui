@@ -50,6 +50,7 @@ export type TableProps<D> = {
     tableSx?: SxProps
     boxSx?: SxProps
     noRowsMessage?: string
+    skeletonRowHeight?: number
 }
 
 export type TableSortOptions = {
@@ -82,6 +83,7 @@ const AbstractTable = <D, >(
         tableSx = {},
         boxSx = {},
         noRowsMessage,
+        skeletonRowHeight,
     } = props
 
     const {t} = useTranslation()
@@ -156,11 +158,29 @@ const AbstractTable = <D, >(
     }
     const skeletonRowCount = paginator?.rowsPerPage || 10;
     const cellPadding = 16; // 8px top + 8px bottom
-    const skeletonItemHeight = lastRowHeightRef.current
-        ? Math.max(16, lastRowHeightRef.current - cellPadding)
+    const cellBorderHeight = 2; // 1px top + 1px bottom from PneTableRow
+    const actualSkeletonRowHeight = lastRowHeightRef.current ?? skeletonRowHeight;
+    const skeletonRowSx: SxProps | undefined = actualSkeletonRowHeight
+        ? {
+            height: actualSkeletonRowHeight,
+            maxHeight: actualSkeletonRowHeight,
+        }
         : undefined;
-    const skeletonTableHeight = showSkeleton && lastRowHeightRef.current
-        ? lastHeaderHeightRef.current + lastRowHeightRef.current * skeletonRowCount
+    const skeletonCellSx: SxProps | undefined = actualSkeletonRowHeight
+        ? {
+            '&&': {
+                boxSizing: 'border-box',
+                height: actualSkeletonRowHeight,
+                maxHeight: actualSkeletonRowHeight,
+                overflow: 'hidden',
+            },
+        }
+        : undefined;
+    const skeletonItemHeight = actualSkeletonRowHeight
+        ? Math.max(16, actualSkeletonRowHeight - cellPadding - cellBorderHeight)
+        : undefined;
+    const skeletonTableHeight = showSkeleton && actualSkeletonRowHeight && lastHeaderHeightRef.current > 0
+        ? lastHeaderHeightRef.current + actualSkeletonRowHeight * skeletonRowCount
         : undefined;
 
     const SKELETON_COL_HIDDEN = 30;
@@ -196,9 +216,16 @@ const AbstractTable = <D, >(
                 <TableBody>
                     {showSkeleton ? (
                         Array.from({length: skeletonRowCount}).map((_, rowIndex) => (
-                            <PneTableRow key={`skeleton-${rowIndex}`} hover={false}>
+                            <PneTableRow
+                                key={`skeleton-${rowIndex}`}
+                                hover={false}
+                                sx={skeletonRowSx}
+                            >
                                 {Array.from({length: columnCount}).map((_, colIndex) => (
-                                    <PneTableCell key={`skeleton-${rowIndex}-${colIndex}`}>
+                                    <PneTableCell
+                                        key={`skeleton-${rowIndex}-${colIndex}`}
+                                        sx={skeletonCellSx}
+                                    >
                                         {skeletonCellContent(rowIndex, colIndex)}
                                     </PneTableCell>
                                 ))}

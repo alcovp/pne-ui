@@ -4,24 +4,36 @@ const DELAY_BEFORE_SHOWING = 300;
 const MIN_DISPLAY_DURATION = 500;
 
 /**
- * Хук задержки отображения состояния загрузки.
+ * Хук стабилизации отображения состояния загрузки.
  *
- * Если загрузка завершается быстрее {@link DELAY_BEFORE_SHOWING} мс, индикатор не показывается вовсе.
- * Если индикатор был показан, он остаётся видимым минимум {@link MIN_DISPLAY_DURATION} мс,
- * чтобы избежать мерцания.
+ * Initial loading показывается сразу, чтобы таблица не рендерила пустую высоту до первого
+ * skeleton. Последующие loading-состояния остаются отложенными, чтобы избежать мерцания
+ * при быстрых refetch.
  */
 const useDelayedLoading = (loading: boolean): boolean => {
-    const [showSkeleton, setShowSkeleton] = useState(false);
-    const skeletonShownAt = useRef<number | null>(null);
+    const [showSkeleton, setShowSkeleton] = useState(loading);
+    const isInitialLoadingRef = useRef(loading);
+    const initialLoadingHandledRef = useRef(false);
+    const skeletonShownAt = useRef<number | null>(loading ? Date.now() : null);
 
     useEffect(() => {
         if (loading) {
+            if (isInitialLoadingRef.current && !initialLoadingHandledRef.current) {
+                initialLoadingHandledRef.current = true;
+                setShowSkeleton(true);
+                skeletonShownAt.current = skeletonShownAt.current ?? Date.now();
+                return undefined;
+            }
+
             const timer = setTimeout(() => {
                 setShowSkeleton(true);
                 skeletonShownAt.current = Date.now();
             }, DELAY_BEFORE_SHOWING);
+
             return () => clearTimeout(timer);
         }
+
+        initialLoadingHandledRef.current = true;
 
         if (skeletonShownAt.current) {
             const elapsed = Date.now() - skeletonShownAt.current;
