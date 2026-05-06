@@ -56,8 +56,10 @@ export const OrdersSearchInput = () => {
                     sx={valueInputSx}
                     size={'small'}
                     variant={'filled'}
-                    InputProps={{
-                        disableUnderline: true,
+                    slotProps={{
+                        input: {
+                            disableUnderline: true,
+                        },
                     }}
                 />
             case 'amount':
@@ -68,9 +70,11 @@ export const OrdersSearchInput = () => {
                     size={'small'}
                     variant={'filled'}
                     sx={valueInputSx}
-                    InputProps={{
-                        disableUnderline: true,
-                        inputComponent: AmountMaskInput,
+                    slotProps={{
+                        input: {
+                            disableUnderline: true,
+                            inputComponent: AmountMaskInput,
+                        },
                     }}
                 />
             case 'ip':
@@ -81,8 +85,10 @@ export const OrdersSearchInput = () => {
                     size={'small'}
                     variant={'filled'}
                     sx={valueInputSx}
-                    InputProps={{
-                        disableUnderline: true,
+                    slotProps={{
+                        input: {
+                            disableUnderline: true,
+                        },
                     }}
                 />
             case 'card6and4':
@@ -93,9 +99,11 @@ export const OrdersSearchInput = () => {
                     size={'small'}
                     variant={'filled'}
                     sx={valueInputSx}
-                    InputProps={{
-                        disableUnderline: true,
-                        inputComponent: Card6And4MaskInput,
+                    slotProps={{
+                        input: {
+                            disableUnderline: true,
+                            inputComponent: Card6And4MaskInput,
+                        },
                     }}
                 />
             case 'country':
@@ -120,4 +128,3 @@ const valueInputSx: SxProps = {
         lineHeight: '18px',
     },
 }
-

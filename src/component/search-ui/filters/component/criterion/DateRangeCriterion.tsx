@@ -112,10 +112,12 @@ export const DateRangeCriterion = (props: Props) => {
                                     slotProps={{
                                         textField: {
                                             size: 'small',
-                                            placeholder: DATE_TIME_FORMAT,
                                             sx: stackDateTimePickers ? dateTimePickerFullWidthInputSx : filtersInputSx,
                                             variant: 'filled',
-                                            InputProps: { disableUnderline: true },
+                                            slotProps: {
+                                                htmlInput: { placeholder: DATE_TIME_FORMAT },
+                                                input: { disableUnderline: true },
+                                            },
                                         },
                                         popper: { placement: 'auto' },
                                     }}
@@ -133,10 +135,12 @@ export const DateRangeCriterion = (props: Props) => {
                                     slotProps={{
                                         textField: {
                                             size: 'small',
-                                            placeholder: DATE_TIME_FORMAT,
                                             sx: stackDateTimePickers ? dateTimePickerFullWidthInputSx : filtersInputSx,
                                             variant: 'filled',
-                                            InputProps: { disableUnderline: true },
+                                            slotProps: {
+                                                htmlInput: { placeholder: DATE_TIME_FORMAT },
+                                                input: { disableUnderline: true },
+                                            },
                                         },
                                         popper: { placement: 'auto' },
                                     }}
@@ -147,7 +151,6 @@ export const DateRangeCriterion = (props: Props) => {
                                 value={dateRange}
                                 onChange={handleSetDateRange}
                                 slotProps={{
-                                    fieldSeparator: { sx: { display: 'none' } },
                                     popper: { placement: 'auto' },
                                 }}
                             />}
@@ -156,7 +159,10 @@ export const DateRangeCriterion = (props: Props) => {
                         value={dateRangeSpec.beforeCount || ''}
                         onChange={changeBeforeCount}
                         type={'number'}
-                        inputProps={{ min: 1 }}
+                        slotProps={{
+                            htmlInput: { min: 1 },
+                            input: { disableUnderline: true },
+                        }}
                         sx={{
                             ...filtersInputSx,
                             ml: '5px',
@@ -164,9 +170,6 @@ export const DateRangeCriterion = (props: Props) => {
                         }}
                         size={'small'}
                         variant={'filled'}
-                        InputProps={{
-                            disableUnderline: true,
-                        }}
                     />
                 : null}
         </Box>

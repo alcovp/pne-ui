@@ -23,7 +23,7 @@ import {
     TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../component/search-ui/filters/types'
-import { Meta, StoryObj } from '@storybook/react'
+import { Meta, StoryObj } from '@storybook/react-webpack5'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 
 type DataType = AbstractEntity

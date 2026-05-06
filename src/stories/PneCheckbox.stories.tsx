@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {PneCheckbox} from '../index'
-import {Meta, StoryObj} from '@storybook/react'
+import {Meta, StoryObj} from '@storybook/react-webpack5'
 
 export default {
     title: 'pne-ui/PneCheckbox',

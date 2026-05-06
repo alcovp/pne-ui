@@ -87,9 +87,9 @@ const SearchUIAbstractEntitySelect = (props: Props) => {
                 </li>
             }
         }}
-        renderTags={(tagValue, getTagProps) =>
+        renderValue={(tagValue, getItemProps) =>
             tagValue.map((option, index) => {
-                const {key, onDelete, ...tagProps} = getTagProps({index})
+                const {key, onDelete, ...tagProps} = getItemProps({index})
                 return <Chip
                     {...tagProps}
                     key={key}

@@ -6,6 +6,7 @@ import { GetPagedOrderedSortedListRequest, Order } from '../../common'
 import { PneTable, TableCreateHeaderType, TableDisplayOptions, useTable } from '../..'
 import { useSearchUIStore } from './state/store'
 import { UseTableParams } from '../table/useTable'
+import { useShallow } from 'zustand/react/shallow'
 
 /**
  * Параметры запроса поиска, отправляемые в обработчик данных таблицы.
@@ -105,10 +106,10 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
     const {
         searchCriteria,
         setSearchCriteria,
-    } = useSearchUIStore((store) => ({
+    } = useSearchUIStore(useShallow((store) => ({
         searchCriteria: store.searchCriteria,
         setSearchCriteria: store.setSearchCriteria,
-    }))
+    })))
 
     // const [criteria, setCriteria] = useSearchCriteria()
     const [displayOptions, setDisplayOptions] = useState<TableDisplayOptions>({

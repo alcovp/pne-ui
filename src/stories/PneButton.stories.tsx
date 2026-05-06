@@ -1,6 +1,6 @@
 import * as React from "react";
 import {PneButton} from "../index";
-import {Meta, StoryObj} from "@storybook/react";
+import {Meta, StoryObj} from "@storybook/react-webpack5";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import {Box, Divider, SvgIcon} from "@mui/material";
 import CustomIconWrapper from "../component/CustomIconWrapper";

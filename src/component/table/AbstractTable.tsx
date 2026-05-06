@@ -6,6 +6,7 @@ import TableHead from '@mui/material/TableHead';
 import Box from '@mui/material/Box';
 import Skeleton from '@mui/material/Skeleton';
 import {SxProps} from '@mui/material';
+import type { TablePaginationActionsProps } from '@mui/material/TablePaginationActions';
 import PneTableRow from './PneTableRow';
 import PneTableCell from './PneTableCell';
 import PneTablePagination from './PneTablePagination';
@@ -149,7 +150,7 @@ const AbstractTable = <D, >(
             rowsPerPage={paginator.rowsPerPage}
             page={paginator.page}
             onPageChange={paginator.onPageChange}
-            ActionsComponent={(props) => <PneTablePaginationActions
+            ActionsComponent={(props: TablePaginationActionsProps) => <PneTablePaginationActions
                 {...props}
                 paginator={paginator}
                 shouldRequestScroll={position === 'bottom'}

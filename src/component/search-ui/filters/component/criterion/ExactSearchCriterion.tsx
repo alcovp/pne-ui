@@ -34,8 +34,10 @@ export const ExactSearchCriterion = () => {
             sx={filtersInputSx}
             size={'small'}
             variant={'filled'}
-            InputProps={{
-                disableUnderline: true,
+            slotProps={{
+                input: {
+                    disableUnderline: true,
+                },
             }}
         />
         <Box component={'span'} sx={{display: 'inline-block', color: '#8A94A6'}}>{t('in')}</Box>

@@ -83,7 +83,7 @@ const SearchUITemplatePanel = (props: IProps) => {
                     value={templateName}
                     label={t('react.searchUI.template.name')}
                     onChange={handleChange}
-                    inputProps={{required: true}}
+                    slotProps={{htmlInput: {required: true}}}
                     sx={{width: '100%'}}
                     autoFocus
                 />

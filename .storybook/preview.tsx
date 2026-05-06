@@ -2,7 +2,7 @@ import * as React from 'react';
 import {createPneTheme} from "../src/createTheme";
 import {ThemeProvider} from '@mui/material';
 import {Skin} from "../src";
-import { MINIMAL_VIEWPORTS } from '@storybook/addon-viewport'
+import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 import { withContext } from './decorators/withContext';
 
 const defaultSkin: Skin = {

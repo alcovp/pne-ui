@@ -78,9 +78,11 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         onChange: handleChange,
         actionBlock: (
             <Stack
-                sx={{marginTop: '16px'}}
-                flexDirection='row'
-                gap={2}
+                direction='row'
+                sx={{
+                    marginTop: '16px',
+                    gap: 2,
+                }}
             >
                 <PneButton
                     variant='outlined'

@@ -29,14 +29,26 @@ export type SelectOption = {
 
 export type Order = 'asc' | 'desc'
 
-export type ZustandStoreSet<STORE> = (
-    partial: (STORE | Partial<STORE> | ((state: STORE) => (STORE | Partial<STORE>))),
-    replace?: boolean
-) => void
+export type ZustandStoreSet<STORE> = {
+    (
+        partial: STORE | Partial<STORE> | ((state: STORE) => STORE | Partial<STORE>),
+        replace?: false,
+    ): void
+    (state: STORE | ((state: STORE) => STORE), replace: true): void
+}
 
-export type ZustandStoreImmerSet<STORE> = (
-    nextStateOrUpdater: (STORE | Partial<STORE> | ((state: WritableDraft<STORE>) => void)),
-    shouldReplace?: boolean
-) => void
+export type ZustandStoreImmerSet<STORE> = {
+    (
+        nextStateOrUpdater:
+            | STORE
+            | Partial<STORE>
+            | ((state: WritableDraft<STORE>) => void),
+        shouldReplace?: false,
+    ): void
+    (
+        nextStateOrUpdater: STORE | ((state: WritableDraft<STORE>) => void),
+        shouldReplace: true,
+    ): void
+}
 
 export type ZustandStoreGet<STORE> = () => Readonly<STORE>

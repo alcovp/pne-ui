@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Meta, StoryObj } from '@storybook/react'
+import { Meta, StoryObj } from '@storybook/react-webpack5'
 import { Box, Stack, Typography } from '@mui/material'
 import { PneHighContrastLabeledCheckbox } from '../index'
 

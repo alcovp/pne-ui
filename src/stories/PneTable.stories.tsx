@@ -1,5 +1,5 @@
 import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneCheckbox, PneSwitch, PneTable} from "../index";
-import {Meta, StoryObj} from "@storybook/react";
+import {Meta, StoryObj} from "@storybook/react-webpack5";
 import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
 import PneTableControlCell from "../component/table/PneTableControlCell";

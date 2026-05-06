@@ -21,6 +21,7 @@
         "importHelpers": true,
         "declaration": true,
         "sourceMap": true,
+        "rootDir": "./src",
         "rootDirs": [
             "./src",
             "./dev"
@@ -32,6 +33,7 @@
         "noUnusedLocals": false,
         "noUnusedParameters": false,
         "moduleResolution": "Node",
+        "ignoreDeprecations": "6.0",
         "jsx": "react",
         "esModuleInterop": true,
         "skipLibCheck": true,
@@ -39,5 +41,9 @@
         "noImplicitAny": true,
         "strictNullChecks": true,
         "strictFunctionTypes": true,
+        "types": [
+            "node",
+            "jest"
+        ],
     }
 }

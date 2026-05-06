@@ -62,7 +62,7 @@ export const WidgetBoardSkeleton = () => {
                 </Box>
             }
             settings={
-                <Stack direction='row' spacing={0.5} alignItems='center'>
+                <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
                     <IconButton aria-label='Collapse widget' size='small' sx={{ color: 'rgba(78, 93, 120, 1)' }} disabled>
                         <ExpandLessIcon fontSize='medium' />
                     </IconButton>

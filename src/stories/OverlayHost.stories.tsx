@@ -3,7 +3,7 @@ import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import { Box, Stack } from '@mui/material'
 import { PneFloatingActionButtons, OverlayHost, PermanentOverlay, overlayActions } from '../index'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 
 const OverlayDemo = () => {
     const fabActions = [

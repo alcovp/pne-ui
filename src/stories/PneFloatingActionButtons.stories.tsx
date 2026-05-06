@@ -5,7 +5,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import { Box, Typography } from '@mui/material'
 import type { PneFabItem, WidgetLayoutOption } from '../index'
 import { PneFloatingActionButtons, WidgetLayoutsPanel } from '../index'
-import type { Meta, StoryObj } from '@storybook/react'
+import type { Meta, StoryObj } from '@storybook/react-webpack5'
 
 const FloatingDemo = () => {
     const [lastAction, setLastAction] = useState('—')

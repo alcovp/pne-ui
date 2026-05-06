@@ -404,14 +404,16 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     }}
                     value={searchValue}
                     label={t('search')}
-                    InputProps={{
-                        endAdornment: searchValue && (
-                            <InputAdornment position="end">
-                                <IconButton onClick={e => setSearchValue('')} edge="end">
-                                    <ClearIcon />
-                                </IconButton>
-                            </InputAdornment>
-                        ),
+                    slotProps={{
+                        input: {
+                            endAdornment: searchValue && (
+                                <InputAdornment position="end">
+                                    <IconButton onClick={e => setSearchValue('')} edge="end">
+                                        <ClearIcon />
+                                    </IconButton>
+                                </InputAdornment>
+                            ),
+                        },
                     }}
                     autoFocus={true}
                 />

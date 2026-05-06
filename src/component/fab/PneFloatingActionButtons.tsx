@@ -97,7 +97,7 @@ export function PneFloatingActionButtons({
                     onClick={() => handleAction(item)}
                     sx={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 1 }}
                 >
-                    <ListItemText primaryTypographyProps={{ fontSize: '0.875rem' }} sx={{ flex: 1 }}>
+                    <ListItemText slotProps={{ primary: { sx: { fontSize: '0.875rem' } } }} sx={{ flex: 1 }}>
                         {item.label}
                     </ListItemText>
                     {item.icon ? (
@@ -145,8 +145,21 @@ export function PneFloatingActionButtons({
     }, [])
 
     return (
-        <Box position='fixed' zIndex={1300} className={className} sx={containerSx}>
-            <Stack spacing={1} alignItems='flex-end' sx={stackSx}>
+        <Box
+            className={className}
+            sx={{
+                position: 'fixed',
+                zIndex: 1300,
+                ...containerSx,
+            }}
+        >
+            <Stack
+                spacing={1}
+                sx={{
+                    alignItems: 'flex-end',
+                    ...(stackSx ?? {}),
+                }}
+            >
                 {showScrollTop ? (
                     <Tooltip title={isMobile ? '' : scrollTopLabel} placement='left' disableInteractive>
                         <span>
@@ -204,7 +217,7 @@ export function PneFloatingActionButtons({
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
                 anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-                MenuListProps={{ sx: { py: 0 } }}
+                slotProps={{ list: { sx: { py: 0 } } }}
             >
                 {renderMenuItems(menuItems)}
                 {bannerText ? (
@@ -220,9 +233,13 @@ export function PneFloatingActionButtons({
                     >
                         <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{fabIcon}</ListItemIcon>
                         <ListItemText
-                            primaryTypographyProps={{
-                                fontWeight: 600,
-                                fontSize: '20px',
+                            slotProps={{
+                                primary: {
+                                    sx: {
+                                        fontWeight: 600,
+                                        fontSize: '20px',
+                                    },
+                                },
                             }}
                         >
                             {bannerText}

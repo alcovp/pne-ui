@@ -4,6 +4,7 @@ import {SxProps} from '@mui/material';
 import {ensure, Order} from "../../common/pne/type";
 import {TableDisplayOptions} from "./type";
 import {usePneTableStore} from "./state/store";
+import {useShallow} from 'zustand/react/shallow';
 
 const PAGE_SIZE_SETTING_NAME = 'page_size'
 const PAGE_NUMBER_SETTING_NAME = 'page_number'
@@ -62,10 +63,10 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const {
         needToScrollToPagination,
         setNeedToScrollToPagination,
-    } = usePneTableStore((store) => ({
+    } = usePneTableStore(useShallow((store) => ({
         needToScrollToPagination: store.needToScrollToPagination,
         setNeedToScrollToPagination: store.setNeedToScrollToPagination,
-    }))
+    })))
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
     //     pageSize: 10,

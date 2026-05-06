@@ -7,6 +7,7 @@ import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
 import {AutoTestAttribute} from "../AutoTestAttribute";
 import {usePneTableStore} from "./state/store";
+import {useShallow} from 'zustand/react/shallow';
 // import {usePneTheme} from "../../usePneTheme";
 
 interface IPaginationActionsProps {
@@ -14,7 +15,7 @@ interface IPaginationActionsProps {
     page: number
     rowsPerPage: number
     onPageChange: (
-        event: React.MouseEvent<HTMLButtonElement>,
+        event: React.MouseEvent<HTMLButtonElement> | null,
         newPage: number
     ) => void
     paginator: PaginatorProps
@@ -44,9 +45,9 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
 
     const {
         setNeedToScrollToPagination,
-    } = usePneTableStore((store) => ({
+    } = usePneTableStore(useShallow((store) => ({
         setNeedToScrollToPagination: store.setNeedToScrollToPagination,
-    }))
+    })))
 
     const buttonStyle = {
         width: '40px',
