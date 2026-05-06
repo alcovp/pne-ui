@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSelect';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
@@ -16,20 +16,10 @@ export const ExactSearchCriterion = () => {
     const setExactCriterionSearchLabel = useSearchUIFiltersStore(s => s.setExactCriterionSearchLabel)
     const setExactCriterionSearchValue = useSearchUIFiltersStore(s => s.setExactCriterionSearchValue)
 
-    const [searchValue, setSearchValue] = useState(exactSearchValue)
-
-    useEffect(() => {
-        setSearchValue(exactSearchValue)
-    }, [exactSearchValue])
-
-    useEffect(() => {
-        setExactCriterionSearchValue(searchValue)
-    }, [searchValue])
-
     return <Box sx={centerSx}>
         <PneTextField
-            value={searchValue}
-            onChange={(e) => setSearchValue(e.target.value)}
+            value={exactSearchValue}
+            onChange={(e) => setExactCriterionSearchValue(e.target.value)}
             placeholder={t('search')}
             sx={filtersInputSx}
             size={'small'}
