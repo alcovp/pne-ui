@@ -78,8 +78,8 @@ export type SearchUIFiltersConfig = {
      */
     dateRange?: DateRangeCriterionConfig
     /**
-     * Включает ручной режим поиска: при изменении фильтров запрос не отправляется автоматически,
-     * а в шапке панели появляется кнопка «Search».
+     * Включает ручной режим поиска: при изменении фильтров запрос не отправляется автоматически.
+     * Кнопка в шапке панели остается видимой всегда: в ручном режиме это «Search», в автоматическом — «Refresh».
      */
     manualSearch?: boolean
 }
@@ -117,6 +117,10 @@ type Props = {
      */
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
     /**
+     * Флаг активной загрузки данных таблицы. Используется для защиты кнопки поиска от повторных нажатий.
+     */
+    searchLoading?: boolean
+    /**
      * Конфигурация поведения фильтра.
      */
     config?: SearchUIFiltersConfig
@@ -137,6 +141,7 @@ export const SearchUIFilters = (props: Props) => {
         searchConditions,
         config,
         onFiltersUpdate,
+        searchLoading = false,
     } = props
 
     const defaults = useContext(SearchUIDefaultsContext)
@@ -158,7 +163,6 @@ export const SearchUIFilters = (props: Props) => {
     const hideTemplatesSelect = useSearchUIFiltersStore(s => s.config?.hideTemplatesSelect)
     const hideShowFiltersButton = useSearchUIFiltersStore(s => s.config?.hideShowFiltersButton)
     const manualSearch = useSearchUIFiltersStore(s => s.config?.manualSearch)
-    const hasUnappliedFilters = useSearchUIFiltersStore(s => s.hasUnappliedFilters)
     const triggerSearch = useSearchUIFiltersStore(s => s.triggerSearch)
     const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel)
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
@@ -325,18 +329,20 @@ export const SearchUIFilters = (props: Props) => {
                         /> : null}
                     </SearchUIFiltersHeaderRight>
                 </SearchUIFiltersHeaderMainRow> : null}
-                {manualSearch ? <SearchUIFiltersHeaderSearch>
+                <SearchUIFiltersHeaderSearch>
                     <PneButton
                         onClick={triggerSearch}
                         color={'primary'}
                         size={'small'}
                         variant={'contained'}
-                        disabled={!hasUnappliedFilters}
+                        disabled={searchLoading}
                         sx={nowrapButtonSx}
                     >
-                        {t('react.searchUI.search')}
+                        {manualSearch
+                            ? t('react.searchUI.search')
+                            : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
                     </PneButton>
-                </SearchUIFiltersHeaderSearch> : null}
+                </SearchUIFiltersHeaderSearch>
             </SearchUIFiltersHeaderActions>
         </Box>
         {showFilters ? <Box>

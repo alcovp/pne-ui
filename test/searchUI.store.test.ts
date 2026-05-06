@@ -217,6 +217,33 @@ describe('SearchUIFilters Zustand store', () => {
         }))
     })
 
+    it('reruns search with current filters when manual filters are already applied', () => {
+        const onFiltersUpdate = jest.fn()
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        useSearchUIFiltersStore.setState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            config: {
+                manualSearch: true,
+            },
+            criteria: [CriterionTypeEnum.STATUS],
+            status: 'ENABLED',
+            hasUnappliedFilters: false,
+        })
+
+        const { triggerSearch } = useSearchUIFiltersStore.getState()
+        triggerSearch()
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(state.hasUnappliedFilters).toBe(false)
+        expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            initialized: true,
+            status: 'E',
+        }))
+    })
+
     it('removes unavailable predefined criteria and restores them when they become available', () => {
         const onFiltersUpdate = jest.fn()
 

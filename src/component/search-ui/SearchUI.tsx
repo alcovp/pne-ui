@@ -161,6 +161,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
             searchConditions={searchConditions}
             onFiltersUpdate={setSearchCriteria}
             config={config}
+            searchLoading={loading}
         />
         <Divider/>
         <Box sx={tableBoxSx}>
