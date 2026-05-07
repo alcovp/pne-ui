@@ -119,12 +119,6 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
     const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
     const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
 
-    const [selectedValue, setSelectedValue] = useState<string>(ordersSearchLabel)
-
-    useEffect(() => {
-        setSelectedValue(ordersSearchLabel)
-    }, [ordersSearchLabel])
-
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
         const stored = localStorage.getItem(EXPANDED_GROUPS_STORAGE_KEY)
         if (stored) {
@@ -198,7 +192,6 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                 <MenuItem
                     key={`${group.id}-${item.value}`}
                     value={item.value}
-                    onClick={() => setSelectedValue(item.value)}
                     sx={{pl: 4, display: isExpanded ? 'block' : 'none'}}
                 >
                     {t(item.label)}
@@ -208,7 +201,7 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
     })
 
     return <Select
-        value={selectedValue}
+        value={ordersSearchLabel}
         onChange={handleChange}
         displayEmpty
         MenuProps={{

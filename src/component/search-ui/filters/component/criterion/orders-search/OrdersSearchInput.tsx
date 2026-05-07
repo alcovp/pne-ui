@@ -1,4 +1,4 @@
-import React, {ChangeEvent, useEffect, useState} from 'react';
+import React, {ChangeEvent} from 'react';
 import {useSearchUIFiltersStore} from "../../../state/store";
 import {exhaustiveCheck, PneTextField} from "../../../../../../index";
 import {SxProps} from "@mui/material";
@@ -16,12 +16,6 @@ export const OrdersSearchInput = () => {
     const ordersSearchValue = useSearchUIFiltersStore(s => s.ordersSearchValue)
     const setOrderSearchCriterionValue = useSearchUIFiltersStore(s => s.setOrderSearchCriterionValue)
 
-    const [searchValue, setSearchValue] = useState(ordersSearchValue)
-
-    useEffect(() => {
-        setSearchValue(ordersSearchValue)
-    }, [ordersSearchValue])
-
     const inputType = OrdersSearchLabelsConfig[ordersSearchLabel]
 
     const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -35,13 +29,11 @@ export const OrdersSearchInput = () => {
             newValue = newValue.slice(0, inputType.maxLength)
         }
 
-        setSearchValue(newValue)
         setOrderSearchCriterionValue(newValue)
     }
 
     const handleMaskedChange = (event: ChangeEvent<HTMLInputElement>) => {
         const newValue = event.target.value
-        setSearchValue(newValue)
         setOrderSearchCriterionValue(newValue)
     }
 
@@ -50,7 +42,7 @@ export const OrdersSearchInput = () => {
             case 'integer':
             case 'string':
                 return <PneTextField
-                    value={searchValue}
+                    value={ordersSearchValue}
                     onChange={handleTextChange}
                     placeholder={t('search')}
                     sx={valueInputSx}
@@ -64,7 +56,7 @@ export const OrdersSearchInput = () => {
                 />
             case 'amount':
                 return <PneTextField
-                    value={searchValue}
+                    value={ordersSearchValue}
                     onChange={handleMaskedChange}
                     placeholder={t('search')}
                     size={'small'}
@@ -79,7 +71,7 @@ export const OrdersSearchInput = () => {
                 />
             case 'ip':
                 return <PneTextField
-                    value={searchValue}
+                    value={ordersSearchValue}
                     onChange={handleTextChange}
                     placeholder={'IPv4 / IPv6'}
                     size={'small'}
@@ -93,7 +85,7 @@ export const OrdersSearchInput = () => {
                 />
             case 'card6and4':
                 return <PneTextField
-                    value={searchValue}
+                    value={ordersSearchValue}
                     onChange={handleMaskedChange}
                     placeholder={t('search')}
                     size={'small'}
