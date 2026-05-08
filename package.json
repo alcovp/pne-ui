@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "4.0.17",
+    "version": "4.0.18",
     "description": "",
     "repository": {
         "type": "git",
@@ -19,15 +19,18 @@
         "./package.json": "./package.json"
     },
     "scripts": {
-        "build": "yarn build:esm && yarn build:cjs",
+        "clean": "rm -rf cjs esm",
+        "build": "yarn clean && yarn build:esm && yarn build:cjs",
         "build:esm": "tsc",
         "build:cjs": "tsc --module commonjs --outDir cjs",
         "lint": "eslint \"{**/*,*}.{js,ts,jsx,tsx}\"",
-        "test": "jest --config jestconfig.json",
+        "test": "jest --config jestconfig.json --maxWorkers=2",
+        "check": "yarn test && yarn lint",
         "prepare": "yarn build",
-        "prepublishOnly": "yarn test && yarn run lint",
-        "npmLogin": "yarn npm login --publish",
-        "release": "yarn version patch && npm publish --access public",
+        "prepublishOnly": "yarn check",
+        "npmLogin": "npm login --registry=https://registry.npmjs.org/",
+        "release:check": "npm whoami --registry=https://registry.npmjs.org/ && yarn check && yarn build && npm pack --dry-run --ignore-scripts",
+        "release": "yarn release:check && yarn version patch && npm publish --ignore-scripts --access public",
         "start": "webpack && webpack-dev-server --mode development",
         "storybook": "storybook dev -p 6006",
         "build-storybook": "storybook build",

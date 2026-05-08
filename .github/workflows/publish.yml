@@ -27,13 +27,16 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Install dependencies
-        run: yarn && yarn install
+        run: yarn install --immutable
+
+      - name: Check
+        run: yarn check
 
       - name: Build
         run: yarn build
 
       - name: Publish
-        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc && yarn npm publish
+        run: npm publish --ignore-scripts --access public
 
         env:
           # We need this to our NPM account
