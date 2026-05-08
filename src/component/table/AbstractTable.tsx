@@ -96,7 +96,7 @@ const AbstractTable = <D, >(
     const lastRowHeightRef = useRef<number | undefined>(undefined);
     const lastHeaderHeightRef = useRef<number>(0);
     const lastColumnWidthsRef = useRef<number[]>([]);
-    const [columnCount, setColumnCount] = useState(100);
+    const [columnCount, setColumnCount] = useState(5);
 
     const visibleRows = React.useMemo(
         () => data,
