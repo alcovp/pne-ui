@@ -1,14 +1,15 @@
-import React, {forwardRef, ReactNode} from 'react'
-import {FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, SelectProps, SelectVariants} from '@mui/material'
+import React, {forwardRef, ReactNode, useId} from 'react'
+import {Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, SelectProps, SelectVariants} from '@mui/material'
 import {PneDropdownChoice} from '../../common/paynet/dropdown'
 import {assertObject, ensure, exhaustiveCheck, SelectOption} from '../../common/pne/type'
 import {isAbstractEntity, isIAutoCompleteChoice} from '../../common/paynet/type'
 
 export interface IProps<T extends PneDropdownChoice, >
-    extends Omit<SelectProps<T>, 'children' | 'onChange' | 'variant'> {
+    extends Omit<SelectProps<T>, 'children' | 'onChange' | 'placeholder' | 'variant'> {
     options: readonly T[]
     onChange: (option: T) => void
     getOptionLabel?: (option: SelectOption) => ReactNode
+    placeholder?: ReactNode
     variant?: SelectVariants
     disableMenuItem?: (option: SelectOption) => boolean
 }
@@ -29,8 +30,15 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         error,
         required,
         sx,
+        displayEmpty,
+        placeholder,
+        renderValue,
         ...rest
     } = props
+
+    const labelId = useId()
+    const hasLabel = label !== undefined && label !== null && label !== ''
+    const mappedOptions = options.map(mapChoiceToSelectOption)
 
     const handleChange = (event: SelectChangeEvent<T>) => {
         const value = event.target.value
@@ -41,6 +49,27 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
     }
 
     const optionsPresent = options?.length > 0
+    const shouldRenderPlaceholder = placeholder !== undefined && placeholder !== null
+
+    const renderSelectedValue = (selected: T) => {
+        if (isEmptyValue(selected)) {
+            return <Box
+                component='span'
+                sx={{color: 'text.secondary'}}
+            >
+                {placeholder}
+            </Box>
+        }
+
+        if (Array.isArray(selected)) {
+            return selected.map((value, index) => <React.Fragment key={String(value)}>
+                {index > 0 ? ', ' : null}
+                {renderSingleSelectedValue(value, mappedOptions, getOptionLabel)}
+            </React.Fragment>)
+        }
+
+        return renderSingleSelectedValue(selected, mappedOptions, getOptionLabel)
+    }
 
     return <FormControl
         size={size}
@@ -51,17 +80,19 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         sx={sx}
         fullWidth
     >
-        <InputLabel id="select-label">{label}</InputLabel>
+        {hasLabel ? <InputLabel id={labelId}>{label}</InputLabel> : null}
         <Select
             ref={ref}
-            labelId="select-label"
+            displayEmpty={displayEmpty ?? shouldRenderPlaceholder}
+            labelId={hasLabel ? labelId : undefined}
             onChange={handleChange}
             size={size}
             variant={variant}
-            label={label}
+            label={hasLabel ? label : undefined}
+            renderValue={renderValue ?? (shouldRenderPlaceholder ? renderSelectedValue : undefined)}
             {...rest}
         >
-            {optionsPresent ? options.map(mapChoiceToSelectOption).map(option =>
+            {optionsPresent ? mappedOptions.map(option =>
                 <MenuItem
                     disabled={disableMenuItem ? disableMenuItem(option) : false}
                     key={option.value}
@@ -77,6 +108,37 @@ export default PneSelect
 
 const createDefaultOptionLabel = (option: SelectOption): ReactNode => {
     return option.label
+}
+
+const isEmptyValue = (value: unknown): boolean => {
+    return value === '' || value === undefined || value === null
+        || (Array.isArray(value) && value.length === 0)
+}
+
+const renderSingleSelectedValue = (
+    value: unknown,
+    options: SelectOption[],
+    getOptionLabel: (option: SelectOption) => ReactNode,
+): ReactNode => {
+    const option = options.find(option => option.value === value)
+
+    if (option) {
+        return getOptionLabel(option)
+    }
+
+    if (typeof value === 'string' || typeof value === 'number') {
+        return value
+    }
+
+    if (isIAutoCompleteChoice(value)) {
+        return value.displayName
+    }
+
+    if (isAbstractEntity(value)) {
+        return value.displayName
+    }
+
+    return ''
 }
 
 const mapChoiceToSelectOption = <T extends PneDropdownChoice>(choice: T): SelectOption => {
