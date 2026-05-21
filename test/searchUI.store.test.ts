@@ -1,7 +1,9 @@
 import { useSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
 import {
     CriterionTypeEnum,
+    ExactCriterionSearchLabelEnum,
     LinkedEntityTypeEnum,
+    MultichoiceFilterTypeEnum,
     SearchUITemplate,
     TransactionSessionStatus,
     TransactionSessionStatuses,
@@ -98,6 +100,55 @@ describe('SearchUIFilters Zustand store', () => {
         expect(getSearchTemplates).toHaveBeenCalledWith('ctx')
     })
 
+    it('normalizes loaded templates with legacy empty multiget criteria', async () => {
+        const template: SearchUITemplate = {
+            name: 'migrated',
+            searchConditions: {
+                ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                criteria: [CriterionTypeEnum.MERCHANT],
+                multigetCriteria: [{
+                    entityType: LinkedEntityTypeEnum.MERCHANT,
+                    filterType: MultichoiceFilterTypeEnum.NONE,
+                } as SearchUITemplate['searchConditions']['multigetCriteria'][number]],
+            },
+        }
+        const getSearchTemplates = jest.fn().mockResolvedValue([template])
+        const defaults = { ...initialSearchUIDefaults, getSearchTemplates }
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        useSearchUIFiltersStore.setState({
+            defaults,
+            settingsContextName: 'ctx',
+            possibleCriteria: [CriterionTypeEnum.MERCHANT],
+            onFiltersUpdate: () => {
+            },
+        })
+
+        const { loadTemplates } = useSearchUIFiltersStore.getState()
+        loadTemplates()
+        await flushPromises()
+        await flushPromises()
+
+        const state = useSearchUIFiltersStore.getState()
+        const normalizedCriterion = state.templates[0].searchConditions.multigetCriteria[0]
+        expect(normalizedCriterion).toMatchObject({
+            entityType: LinkedEntityTypeEnum.MERCHANT,
+            filterType: MultichoiceFilterTypeEnum.NONE,
+            searchString: '',
+            selectedItems: '',
+            selectedItemNames: '',
+            deselectedItems: '',
+            deselectedItemNames: '',
+        })
+
+        state.setTemplate(state.templates[0])
+        expect(useSearchUIFiltersStore.getState().multigetCriteria[0]).toMatchObject({
+            selectedItems: '',
+            selectedItemNames: '',
+            deselectedItems: '',
+            deselectedItemNames: '',
+        })
+    })
+
     it('auto-applies the last template in manual search mode', async () => {
         const template: SearchUITemplate = {
             name: 'stored',
@@ -137,6 +188,77 @@ describe('SearchUIFilters Zustand store', () => {
         expect(state.hasUnappliedFilters).toBe(false)
         expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
             status: 'E',
+        }))
+    })
+
+    it('initializes a new context without leaking previous filter values', () => {
+        const oldTemplate: SearchUITemplate = {
+            name: 'old',
+            searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+        }
+        const onFiltersUpdate = jest.fn()
+
+        useSearchUIFiltersStore.setState({
+            settingsContextName: 'GatesListPage',
+            possibleCriteria: [
+                CriterionTypeEnum.EXACT,
+                CriterionTypeEnum.CURRENCY,
+                CriterionTypeEnum.STATUS,
+            ],
+            predefinedCriteria: [CriterionTypeEnum.EXACT],
+            exactSearchLabels: [
+                ExactCriterionSearchLabelEnum.ALL,
+                ExactCriterionSearchLabelEnum.NAME,
+            ],
+            criteria: [
+                CriterionTypeEnum.EXACT,
+                CriterionTypeEnum.CURRENCY,
+                CriterionTypeEnum.STATUS,
+            ],
+            exactSearchLabel: ExactCriterionSearchLabelEnum.NAME,
+            exactSearchValue: 'stale-gate',
+            status: 'ENABLED',
+            currencies: {
+                all: false,
+                entities: [{ id: 840, displayName: 'USD' }],
+            },
+            template: oldTemplate,
+            templates: [oldTemplate],
+            hasUnappliedFilters: true,
+        })
+
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ProjectsListPage',
+            possibleCriteria: [
+                CriterionTypeEnum.CURRENCY,
+                CriterionTypeEnum.STATUS,
+            ],
+            predefinedCriteria: [],
+            exactSearchLabels: [
+                ExactCriterionSearchLabelEnum.ALL,
+                ExactCriterionSearchLabelEnum.IDENTIFIER,
+            ],
+            exactSearchLabel: ExactCriterionSearchLabelEnum.ALL,
+            onFiltersUpdate,
+        })
+
+        const state = useSearchUIFiltersStore.getState()
+        expect(state.settingsContextName).toBe('ProjectsListPage')
+        expect(state.criteria).toEqual([])
+        expect(state.currencies).toEqual({ all: true, entities: [] })
+        expect(state.status).toBe('ANY')
+        expect(state.exactSearchLabel).toBe(ExactCriterionSearchLabelEnum.ALL)
+        expect(state.exactSearchValue).toBe('')
+        expect(state.template).toBeNull()
+        expect(state.templates).toEqual([])
+        expect(state.hasUnappliedFilters).toBe(false)
+        expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
+            currencies: [],
+            exactSearchLabel: null,
+            exactSearchValue: '',
+            status: null,
         }))
     })
 

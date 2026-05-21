@@ -41,6 +41,7 @@ import {
     isCriterionAvailable,
 } from '../criterionAvailability'
 import {
+    getSearchUIFiltersInitialState,
     getSearchUIInitialGrouping,
     getSearchUIInitialProjectCurrency,
     getSearchUIInitialSearchCriteria,
@@ -80,6 +81,38 @@ const getLinkedEntityTypeByCriterion = (criterion: CriterionTypeEnum): LinkedEnt
     return criterionToLinkedEntityMap[criterion] ?? null
 }
 
+const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
+    entityType: entityType,
+    filterType: MultichoiceFilterTypeEnum.NONE,
+    searchString: '',
+    selectedItems: '',
+    selectedItemNames: '',
+    deselectedItems: '',
+    deselectedItemNames: '',
+})
+
+const normalizeMultigetCriterion = (multigetCriterion: MultigetCriterion): MultigetCriterion => {
+    const initialCriterion = getInitialMultigetCriterion(multigetCriterion.entityType)
+    return {
+        ...initialCriterion,
+        ...multigetCriterion,
+        filterType: multigetCriterion.filterType ?? initialCriterion.filterType,
+        searchString: multigetCriterion.searchString ?? initialCriterion.searchString,
+        selectedItems: multigetCriterion.selectedItems ?? initialCriterion.selectedItems,
+        selectedItemNames: multigetCriterion.selectedItemNames ?? initialCriterion.selectedItemNames,
+        deselectedItems: multigetCriterion.deselectedItems ?? initialCriterion.deselectedItems,
+        deselectedItemNames: multigetCriterion.deselectedItemNames ?? initialCriterion.deselectedItemNames,
+    }
+}
+
+const normalizeSearchUITemplate = (template: SearchUITemplate): SearchUITemplate => ({
+    ...template,
+    searchConditions: {
+        ...template.searchConditions,
+        multigetCriteria: (template.searchConditions.multigetCriteria ?? []).map(normalizeMultigetCriterion),
+    },
+})
+
 const sanitizeMultigetCriteria = (
     incoming: MultigetCriterion[],
     activeCriteria: CriterionTypeEnum[],
@@ -106,22 +139,12 @@ const sanitizeMultigetCriteria = (
         }
 
         if (!uniqueByEntity.has(multigetCriterion.entityType)) {
-            uniqueByEntity.set(multigetCriterion.entityType, multigetCriterion)
+            uniqueByEntity.set(multigetCriterion.entityType, normalizeMultigetCriterion(multigetCriterion))
         }
     })
 
     return Array.from(uniqueByEntity.values())
 }
-
-const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
-    entityType: entityType,
-    filterType: MultichoiceFilterTypeEnum.NONE,
-    searchString: '',
-    selectedItems: '',
-    selectedItemNames: '',
-    deselectedItems: '',
-    deselectedItemNames: '',
-})
 
 type SearchUIUpdateOptions = {
     forceSearch?: boolean
@@ -139,6 +162,8 @@ export const getSearchUIFiltersActions = (
         set((draft) => {
             return {
                 ...draft,
+                ...getSearchUIFiltersInitialState(),
+                ...getSearchUIInitialSearchCriteria(state.defaults),
                 ...state,
             }
         })
@@ -345,6 +370,7 @@ export const getSearchUIFiltersActions = (
     setTemplate: (template: SearchUITemplate, options?: SearchUIUpdateOptions) => {
         const defaults = getSearchUIInitialSearchCriteria(get().defaults)
         const conditions = { ...defaults, ...template.searchConditions }
+        conditions.multigetCriteria = (conditions.multigetCriteria ?? []).map(normalizeMultigetCriterion)
 
         if (conditions.dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
             conditions.dateRangeSpec = calculateNonExactDates(
@@ -366,12 +392,13 @@ export const getSearchUIFiltersActions = (
     loadTemplates: () => {
         get().defaults.getSearchTemplates(get().settingsContextName)
             .then(templates => {
+                const normalizedTemplates = templates.map(normalizeSearchUITemplate)
                 set((draft) => {
-                    draft.templates = templates
+                    draft.templates = normalizedTemplates
                 })
 
                 const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + get().settingsContextName)
-                const lastTemplate = templates.find(t => t.name === lastTemplateName)
+                const lastTemplate = normalizedTemplates.find(t => t.name === lastTemplateName)
                 if (lastTemplate) {
                     get().setTemplate(lastTemplate, { forceSearch: true })
                 }

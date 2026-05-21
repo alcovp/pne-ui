@@ -164,7 +164,6 @@ export const SearchUIFilters = (props: Props) => {
     const hideShowFiltersButton = useSearchUIFiltersStore(s => s.config?.hideShowFiltersButton)
     const manualSearch = useSearchUIFiltersStore(s => s.config?.manualSearch)
     const triggerSearch = useSearchUIFiltersStore(s => s.triggerSearch)
-    const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel)
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
     const filtersState = useSearchUIFiltersStore(s => s)
 
@@ -193,7 +192,7 @@ export const SearchUIFilters = (props: Props) => {
             possibleCriteria: adjustedPossibleCriteria,
             predefinedCriteria: predefinedCriteria,
             exactSearchLabels: exactSearchLabels,
-            exactSearchLabel: exactSearchLabel || exactSearchLabels[0],
+            exactSearchLabel: exactSearchLabels[0],
             criteria: predefinedCriteria,
             config: config,
             onFiltersUpdate: onFiltersUpdate,

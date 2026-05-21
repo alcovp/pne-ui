@@ -7,6 +7,7 @@ import { PneTable, TableCreateHeaderType, TableDisplayOptions, useTable } from '
 import { useSearchUIStore } from './state/store'
 import { UseTableParams } from '../table/useTable'
 import { useShallow } from 'zustand/react/shallow'
+import { useSearchUIFiltersStore } from './filters/state/store'
 
 /**
  * Параметры запроса поиска, отправляемые в обработчик данных таблицы.
@@ -110,6 +111,8 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
         searchCriteria: store.searchCriteria,
         setSearchCriteria: store.setSearchCriteria,
     })))
+    const filtersSettingsContextName = useSearchUIFiltersStore(store => store.settingsContextName)
+    const filtersContextReady = filtersSettingsContextName === settingsContextName
 
     // const [criteria, setCriteria] = useSearchCriteria()
     const [displayOptions, setDisplayOptions] = useState<TableDisplayOptions>({
@@ -117,7 +120,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
         ...tableParams?.displayOptions,
     })
 
-    const fetchDataExtraDeps = useMemo(() => [searchCriteria], [searchCriteria])
+    const fetchDataExtraDeps = useMemo(() => [searchCriteria, filtersContextReady], [searchCriteria, filtersContextReady])
 
     const {
         loading,
@@ -136,7 +139,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
         dataUseState: dataUseState,
         fetchDataExtraDeps: fetchDataExtraDeps,
         fetchData: ({ page, pageSize, order, sortIndex }) => {
-            if (!searchCriteria.initialized) {
+            if (!searchCriteria.initialized || !filtersContextReady) {
                 return Promise.resolve<D[]>([])
             }
 
