@@ -43,6 +43,7 @@ export interface IAbstractEntityOptions<T> {
     selected: T[]
     height?: string
     disableMoving?: 'ADDED' | 'AVAILABLE' | undefined
+    allowNewlyAddedRemoval?: boolean
     optionRenderer?: TFunction
     textRepresentation?: 'ID' | 'NAME' | undefined
     textRepresentationValue?: string
@@ -106,6 +107,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         height,
         optionRenderer,
         disableMoving,
+        allowNewlyAddedRemoval = false,
         textRepresentation,
         textRepresentationValue = '',
         onChange,
@@ -117,6 +119,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
     const [searchValue, setSearchValue] = useState('');
     const [availableList, setAvailableList] = useState<AbstractEntity[]>([]);
     const [addedList, setAddedList] = useState<AbstractEntity[]>([]);
+    const [initialAddedIds, setInitialAddedIds] = useState<Set<number>>(() => new Set());
     const [textValue, setTextValue] = useState(textRepresentationValue);
     const [initialType, setInitialType] = useState<string | undefined>(undefined);
 
@@ -127,6 +130,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         });
         const type = list.length > 0 ? checkInitialType(list[0]) : checkInitialType(selected[0]);
         setInitialType(type);
+        setInitialAddedIds(new Set(selectedArray.map(item => item.id)));
         if (list.length > 0) {
             if (type === 'string') {
                 const uniqArray = list.filter(item => selected.indexOf(item) == -1)
@@ -146,10 +150,20 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         }
     }, [reset]);
 
+    const canMoveFromAvailable = () => disableMoving !== 'AVAILABLE';
+
+    const canMoveFromAdded = (item: AbstractEntity) => {
+        return disableMoving !== 'ADDED'
+            || (allowNewlyAddedRemoval && !initialAddedIds.has(item.id));
+    };
+
     const onListChange = (item: AbstractEntity, type: 'ADD' | 'AVAILABLE') => {
         let tempAddedList: AbstractEntity[];
         switch (type) {
             case 'ADD':
+                if (!canMoveFromAdded(item)) {
+                    return;
+                }
                 tempAddedList = addedList.filter(i => i.id !== item.id);
                 setAvailableList(prevState => {
                     return [...prevState, item]
@@ -169,6 +183,9 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 }
                 break;
             case 'AVAILABLE':
+                if (!canMoveFromAvailable()) {
+                    return;
+                }
                 tempAddedList = [...addedList, item]
                 setAvailableList(prevState => {
                     return prevState.filter(i => i.id !== item.id)
@@ -201,6 +218,14 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         }
 
         if (destination.index === source.index && destination.droppableId === source.droppableId) {
+            return;
+        }
+
+        if (source.droppableId === 'addedList' && !canMoveFromAdded(addedList[source.index])) {
+            return;
+        }
+
+        if (source.droppableId === 'availableList' && !canMoveFromAvailable()) {
             return;
         }
 
@@ -518,9 +543,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                     return (
                                         <ItemEntitySelector
                                             handleClick={() => {
-                                                if (disableMoving !== 'ADDED') {
-                                                    onListChange(addedList[rubric.source.index], 'ADD');
-                                                }
+                                                onListChange(addedList[rubric.source.index], 'ADD');
                                             }}
                                             provided={provided}
                                             item={addedList[rubric.source.index]}
@@ -542,14 +565,12 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                                     key={item.id}
                                                     draggableId={item.id.toString()}
                                                     index={index}
-                                                    isDragDisabled={disableMoving === 'ADDED'}
+                                                    isDragDisabled={!canMoveFromAdded(item)}
                                                 >
                                                     {(provided: DraggableProvided) => (
                                                         <ItemEntitySelector
                                                             handleClick={() => {
-                                                                if (disableMoving !== 'ADDED') {
-                                                                    onListChange(item, 'ADD');
-                                                                }
+                                                                onListChange(item, 'ADD');
                                                             }}
                                                             provided={provided}
                                                             item={item}

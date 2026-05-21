@@ -20,6 +20,7 @@ interface IProps<T extends AbstractEntitySelectorProp> {
     subTitle?: string;
     loading?: boolean;
     disableMoving?: 'ADDED' | 'AVAILABLE' | undefined;
+    allowNewlyAddedRemoval?: boolean;
     optionRenderer?: TFunction;
     textRepresentation?: 'ID' | 'NAME' | undefined;
     textRepresentationValue?: string
@@ -36,6 +37,7 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         subTitle,
         loading = false,
         disableMoving,
+        allowNewlyAddedRemoval,
         optionRenderer,
         textRepresentation,
         textRepresentationValue
@@ -72,6 +74,7 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         selected: mappedList,
         height: autoHeight(),
         disableMoving,
+        allowNewlyAddedRemoval,
         optionRenderer,
         textRepresentation,
         textRepresentationValue,
