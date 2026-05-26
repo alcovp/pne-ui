@@ -1,8 +1,12 @@
 import * as React from "react";
 import {PneButton} from "../index";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
-import {Box, Divider, SvgIcon} from "@mui/material";
+import {Box, Divider, Typography} from "@mui/material";
+import {alpha} from "@mui/material/styles";
+import type {SxProps, Theme} from "@mui/material/styles";
 import CustomIconWrapper from "../component/CustomIconWrapper";
 
 export default {
@@ -83,6 +87,168 @@ export const EndIcon: Story = {
         endIcon: <DirectionsRunIcon/>,
     },
 };
+
+type ButtonMatrixVariant = 'contained' | 'outlined' | 'text'
+type ButtonMatrixSize = 'small' | 'medium' | 'large'
+type ButtonMatrixState = 'enable' | 'disabled' | 'hover' | 'pressed'
+type ButtonMatrixIcon = 'none' | 'start' | 'end' | 'only'
+
+const matrixColumns: Array<{
+    key: string
+    label: string
+    size: ButtonMatrixSize
+    variant: ButtonMatrixVariant
+}> = [
+    {key: 'contained-small', label: 'Contained Small', size: 'small', variant: 'contained'},
+    {key: 'contained-medium', label: 'Contained Medium', size: 'medium', variant: 'contained'},
+    {key: 'contained-large', label: 'Contained Large', size: 'large', variant: 'contained'},
+    {key: 'outlined-small', label: 'Outlined Small', size: 'small', variant: 'outlined'},
+    {key: 'outlined-medium', label: 'Outlined Medium', size: 'medium', variant: 'outlined'},
+    {key: 'outlined-large', label: 'Outlined Large', size: 'large', variant: 'outlined'},
+    {key: 'text-small', label: 'Text Small', size: 'small', variant: 'text'},
+    {key: 'text-medium', label: 'Text Medium', size: 'medium', variant: 'text'},
+    {key: 'text-large', label: 'Text Large', size: 'large', variant: 'text'},
+]
+
+const matrixRows: Array<{
+    key: string
+    label: string
+    state: ButtonMatrixState
+    icon: ButtonMatrixIcon
+}> = [
+    {key: 'enable', label: 'Enable', state: 'enable', icon: 'none'},
+    {key: 'disabled', label: 'Disabled', state: 'disabled', icon: 'none'},
+    {key: 'hover', label: 'Hover', state: 'hover', icon: 'none'},
+    {key: 'pressed', label: 'Pressed', state: 'pressed', icon: 'none'},
+    {key: 'start-icon', label: 'Start icon', state: 'enable', icon: 'start'},
+    {key: 'end-icon', label: 'End icon', state: 'enable', icon: 'end'},
+    {key: 'icon-only', label: 'Icon only', state: 'enable', icon: 'only'},
+]
+
+const getButtonPreviewSx = (
+    state: ButtonMatrixState,
+    variant: ButtonMatrixVariant,
+): SxProps<Theme> | undefined => {
+    if (state === 'enable' || state === 'disabled') {
+        return undefined
+    }
+
+    return theme => {
+        const feedbackBackgroundColor = alpha(theme.palette.primary.main, 0.1)
+
+        if (variant === 'contained') {
+            return {
+                backgroundColor: theme.palette.primary.dark,
+                pointerEvents: 'none',
+            }
+        }
+
+        if (variant === 'outlined') {
+            return {
+                backgroundColor: feedbackBackgroundColor,
+                borderColor: theme.palette.primary.dark,
+                color: theme.palette.primary.dark,
+                pointerEvents: 'none',
+            }
+        }
+
+        return {
+            backgroundColor: feedbackBackgroundColor,
+            color: theme.palette.primary.dark,
+            pointerEvents: 'none',
+        }
+    }
+}
+
+const renderMatrixButton = (
+    row: typeof matrixRows[number],
+    column: typeof matrixColumns[number],
+) => {
+    const commonProps = {
+        disabled: row.state === 'disabled',
+        pneStyle: column.variant,
+        size: column.size,
+        sx: getButtonPreviewSx(row.state, column.variant),
+    }
+
+    if (row.icon === 'start') {
+        return <PneButton {...commonProps} startIcon={<ArrowBackIcon/>}>Button</PneButton>
+    }
+
+    if (row.icon === 'end') {
+        return <PneButton {...commonProps} endIcon={<ArrowForwardIcon/>}>Button</PneButton>
+    }
+
+    if (row.icon === 'only') {
+        return <PneButton {...commonProps} startIcon={<ArrowForwardIcon/>} aria-label='Button'/>
+    }
+
+    return <PneButton {...commonProps}>Button</PneButton>
+}
+
+export const DesignMatrix: Story = {
+    parameters: {
+        layout: 'fullscreen',
+    },
+    render: () => <Box
+        sx={{
+            backgroundColor: '#fff',
+            color: '#4E5D78',
+            overflowX: 'auto',
+            p: 4,
+        }}
+    >
+        <Box
+            sx={{
+                alignItems: 'center',
+                columnGap: 4,
+                display: 'grid',
+                gridTemplateColumns: `140px repeat(${matrixColumns.length}, 160px)`,
+                minWidth: 1620,
+                rowGap: 5,
+            }}
+        >
+            <Box/>
+            {matrixColumns.map(column => <Typography
+                key={column.key}
+                sx={{
+                    color: '#4E5D78',
+                    fontFamily: 'Arial, sans-serif',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    lineHeight: '20px',
+                }}
+            >
+                {column.label}
+            </Typography>)}
+            {matrixRows.flatMap(row => [
+                <Box key={`${row.key}-label`}>
+                    <Typography
+                        sx={{
+                            color: '#4E5D78',
+                            fontFamily: 'Arial, sans-serif',
+                            fontSize: 14,
+                            fontWeight: 700,
+                            lineHeight: '20px',
+                        }}
+                    >
+                        {row.label}
+                    </Typography>
+                </Box>,
+                ...matrixColumns.map(column => <Box
+                    key={`${row.key}-${column.key}`}
+                    sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        minHeight: 40,
+                    }}
+                >
+                    {renderMatrixButton(row, column)}
+                </Box>),
+            ])}
+        </Box>
+    </Box>,
+}
 
 const BrokenFillIcon = () => {
     return <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg">
