@@ -44,12 +44,10 @@ const PlaceholderSelectStory = () => {
             onChange={setValue}
         />
         <PneField
-            htmlFor='message-server'
             label='Message server'
             required
         >
             <PneSelect
-                id='message-server'
                 options={['Email', 'SFTP']}
                 placeholder='Please select'
                 value={value}

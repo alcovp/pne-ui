@@ -8,6 +8,7 @@ import {
     PneDropdownChoice,
 } from '../../common/paynet/dropdown';
 import {PneTextField} from "../../index";
+import {usePneFieldControlProps} from '../PneFieldContext';
 
 export interface PneAsyncAutocompleteProps<
     T extends PneDropdownChoice,
@@ -22,6 +23,7 @@ export interface PneAsyncAutocompleteProps<
     error?: boolean
     helperText?: string
     placeholder?: string
+    required?: boolean
     onSearchError?: (reason: any) => void
 }
 
@@ -36,15 +38,18 @@ const PneAsyncAutocomplete = <
     DisableClearable,
     FreeSolo
 >) => {
-
     const {
         searchChoices,
+        disabled,
         label,
         size = 'small',
-        error = false,
+        error,
         helperText,
+        fullWidth,
+        id: idProp,
         sx,
         placeholder,
+        required,
         onSearchError,
         ...rest
     } = props
@@ -58,8 +63,16 @@ const PneAsyncAutocomplete = <
     const [options, setOptions] = useState<readonly T[]>([])
     const [loading, setLoading] = useState(false)
     const [inputValue, setInputValue] = useState('')
-    const id = useId()
+    const generatedId = useId()
     const requestIdRef = useRef(0)
+    const controlProps = usePneFieldControlProps({
+        disabled,
+        error,
+        fullWidth,
+        id: idProp,
+        required,
+    })
+    const id = controlProps.id ?? generatedId
 
     useEffect(() => {
         if (!open) {
@@ -103,6 +116,8 @@ const PneAsyncAutocomplete = <
     }, [open, inputValue, onSearchError, searchChoices])
 
     return <Autocomplete
+        disabled={controlProps.disabled}
+        fullWidth={controlProps.fullWidth}
         id={id}
         open={open}
         onOpen={() => setOpen(true)}
@@ -120,6 +135,7 @@ const PneAsyncAutocomplete = <
                 {...params}
                 label={label}
                 placeholder={placeholder}
+                required={controlProps.required}
                 slotProps={{
                     ...params.slotProps,
                     input: {
@@ -132,7 +148,7 @@ const PneAsyncAutocomplete = <
                         ),
                     },
                 }}
-                error={error}
+                error={controlProps.error ?? false}
                 helperText={helperText}
             />
         )}

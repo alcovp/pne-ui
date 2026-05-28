@@ -3,6 +3,7 @@ import {Box, FormControl, InputLabel, MenuItem, Select, SelectChangeEvent, Selec
 import {PneDropdownChoice} from '../../common/paynet/dropdown'
 import {assertObject, ensure, exhaustiveCheck, SelectOption} from '../../common/pne/type'
 import {isAbstractEntity, isIAutoCompleteChoice} from '../../common/paynet/type'
+import {usePneFieldControlProps} from '../PneFieldContext'
 
 export interface IProps<T extends PneDropdownChoice, >
     extends Omit<SelectProps<T>, 'children' | 'onChange' | 'placeholder' | 'variant'> {
@@ -19,6 +20,7 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
     ref: React.Ref<HTMLSelectElement>,
 ) => {
     const {
+        'aria-describedby': ariaDescribedBy,
         options,
         onChange,
         size = 'small',
@@ -33,12 +35,23 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         displayEmpty,
         placeholder,
         renderValue,
+        id,
+        labelId: labelIdProp,
         ...rest
     } = props
 
-    const labelId = useId()
+    const generatedLabelId = useId()
     const hasLabel = label !== undefined && label !== null && label !== ''
     const mappedOptions = options.map(mapChoiceToSelectOption)
+    const controlProps = usePneFieldControlProps({
+        ariaDescribedBy,
+        disabled,
+        error,
+        id,
+        required,
+    })
+    const internalLabelId = labelIdProp ?? generatedLabelId
+    const resolvedLabelId = hasLabel ? internalLabelId : labelIdProp ?? controlProps.labelId
 
     const handleChange = (event: SelectChangeEvent<T>) => {
         const value = event.target.value
@@ -74,17 +87,19 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
     return <FormControl
         size={size}
         variant={variant}
-        disabled={disabled}
-        error={error}
-        required={required}
+        disabled={controlProps.disabled}
+        error={controlProps.error}
+        required={controlProps.required}
         sx={sx}
         fullWidth
     >
-        {hasLabel ? <InputLabel id={labelId}>{label}</InputLabel> : null}
+        {hasLabel ? <InputLabel id={internalLabelId}>{label}</InputLabel> : null}
         <Select
             ref={ref}
+            aria-describedby={controlProps.ariaDescribedBy}
             displayEmpty={displayEmpty ?? shouldRenderPlaceholder}
-            labelId={hasLabel ? labelId : undefined}
+            id={controlProps.id}
+            labelId={resolvedLabelId}
             onChange={handleChange}
             size={size}
             variant={variant}

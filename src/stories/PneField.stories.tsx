@@ -27,13 +27,10 @@ export const Base: Story = {
         }}
     >
         <PneField
-            htmlFor='report-file-name'
             label='Report file name'
         >
             <PneTextField
                 defaultValue='Cashflow_10_12_2024'
-                fullWidth
-                id='report-file-name'
             />
         </PneField>
     </Stack>,
@@ -47,13 +44,10 @@ export const Controls: Story = {
         }}
     >
         <PneField
-            htmlFor='report-file-name-controls'
             label='Report file name'
         >
             <PneTextField
                 defaultValue='Cashflow_10_12_2024'
-                fullWidth
-                id='report-file-name-controls'
             />
         </PneField>
         <PneField

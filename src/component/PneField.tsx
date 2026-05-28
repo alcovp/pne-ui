@@ -1,6 +1,7 @@
-import React, {ReactNode, forwardRef} from 'react'
+import React, {ReactNode, forwardRef, isValidElement, useId} from 'react'
 import {FormControl, FormControlProps, FormHelperText, FormLabel, SxProps} from '@mui/material'
 import {Theme} from '@mui/material/styles'
+import {PneFieldContext, PneFieldContextValue} from './PneFieldContext'
 
 export interface PneFieldProps
     extends Omit<FormControlProps, 'children' | 'disabled' | 'error' | 'fullWidth' | 'required'> {
@@ -34,7 +35,21 @@ const PneField = forwardRef<HTMLDivElement, PneFieldProps>((props, ref) => {
         ...rest
     } = props
 
-    const helperTextId = helperText && id ? `${id}-helper-text` : undefined
+    const generatedId = useId()
+    const fieldId = id ?? generatedId
+    const childId = getChildId(children)
+    const controlId = htmlFor ?? childId ?? `${fieldId}-control`
+    const helperTextId = helperText ? `${fieldId}-helper-text` : undefined
+    const labelId = label ? `${fieldId}-label` : undefined
+    const contextValue: PneFieldContextValue = {
+        controlId,
+        disabled,
+        error,
+        fullWidth,
+        helperTextId,
+        labelId,
+        required,
+    }
 
     return <FormControl
         disabled={disabled}
@@ -53,7 +68,8 @@ const PneField = forwardRef<HTMLDivElement, PneFieldProps>((props, ref) => {
     >
         {label
             ? <FormLabel
-                htmlFor={htmlFor}
+                htmlFor={controlId}
+                id={labelId}
                 required={required}
                 sx={[
                     {
@@ -73,7 +89,9 @@ const PneField = forwardRef<HTMLDivElement, PneFieldProps>((props, ref) => {
                 {label}
             </FormLabel>
             : null}
-        {children}
+        <PneFieldContext.Provider value={contextValue}>
+            {children}
+        </PneFieldContext.Provider>
         {helperText
             ? <FormHelperText
                 id={helperTextId}
@@ -89,5 +107,15 @@ const PneField = forwardRef<HTMLDivElement, PneFieldProps>((props, ref) => {
             : null}
     </FormControl>
 })
+
+const getChildId = (children: ReactNode): string | undefined => {
+    if (!isValidElement<{ id?: unknown }>(children)) {
+        return undefined
+    }
+
+    return typeof children.props.id === 'string' && children.props.id !== ''
+        ? children.props.id
+        : undefined
+}
 
 export default PneField

@@ -9,6 +9,7 @@ import {
     PneDropdownChoice,
 } from '../../common/paynet/dropdown';
 import {PneTextField} from "../../index";
+import {usePneFieldControlProps} from '../PneFieldContext';
 
 export interface IProps<
     T extends PneDropdownChoice,
@@ -21,6 +22,7 @@ export interface IProps<
     error?: boolean
     helperText?: string
     placeholder?: string
+    required?: boolean
 }
 
 const PneAutocomplete = <
@@ -34,15 +36,18 @@ const PneAutocomplete = <
     DisableClearable,
     FreeSolo
 >) => {
-
     const {
+        disabled,
         label,
         variant,
         size = 'small',
-        error = false,
+        error,
         helperText,
+        fullWidth,
+        id,
         sx,
         placeholder,
+        required,
         ...rest
     } = props
 
@@ -50,8 +55,18 @@ const PneAutocomplete = <
         dropDownSx,
         ...(Array.isArray(sx) ? sx : [sx])
     ]
+    const controlProps = usePneFieldControlProps({
+        disabled,
+        error,
+        fullWidth,
+        id,
+        required,
+    })
 
     return <Autocomplete
+        disabled={controlProps.disabled}
+        fullWidth={controlProps.fullWidth}
+        id={controlProps.id}
         isOptionEqualToValue={isOptionEqualToValue}
         getOptionLabel={getOptionLabel}
         getOptionKey={getOptionKey}
@@ -61,8 +76,9 @@ const PneAutocomplete = <
                 placeholder={placeholder}
                 label={label}
                 variant={variant}
-                error={error}
+                error={controlProps.error ?? false}
                 helperText={helperText}
+                required={controlProps.required}
             />
         }}
         size={size}
