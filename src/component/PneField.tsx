@@ -73,9 +73,11 @@ const PneField = forwardRef<HTMLDivElement, PneFieldProps>((props, ref) => {
                 required={required}
                 sx={[
                     {
+                        alignSelf: 'flex-start',
                         color: error ? 'error.main' : 'text.secondary',
                         fontSize: '0.875rem',
                         lineHeight: '20px',
+                        maxWidth: '100%',
                         '&.Mui-focused': {
                             color: error ? 'error.main' : 'text.secondary',
                         },
