@@ -45,6 +45,34 @@ describe('PneField', () => {
         expect(input.getAttribute('aria-describedby')).toBe(helperText.id)
     })
 
+    it('keeps child text field helper text visible when field provides error state', () => {
+        render(<PneField
+            error
+            id='report-file-field'
+            label='Report file name'
+        >
+            <PneTextField helperText='Required'/>
+        </PneField>)
+
+        expect(screen.getByText('Required')).toBeTruthy()
+    })
+
+    it('merges field helper text with child text field helper text', () => {
+        render(<PneField
+            helperText='Field helper'
+            id='report-file-field'
+            label='Report file name'
+        >
+            <PneTextField helperText='Child helper'/>
+        </PneField>)
+
+        const input = screen.getByLabelText('Report file name')
+
+        expect(screen.getByText('Field helper')).toBeTruthy()
+        expect(screen.getByText('Child helper')).toBeTruthy()
+        expect(input.getAttribute('aria-describedby')).toBe('report-file-field-control-helper-text report-file-field-helper-text')
+    })
+
     it('merges existing text input descriptions with the field helper text', () => {
         render(<>
             <div id='custom-help'>Custom help</div>
@@ -80,7 +108,7 @@ describe('PneField', () => {
         expect(screen.getByLabelText('Report file name')).toBeTruthy()
     })
 
-    it('generates text input ids and propagates field state to pne controls', () => {
+    it('generates text input ids and propagates non-native field state to pne controls', () => {
         render(<PneField
             disabled
             error
@@ -94,6 +122,29 @@ describe('PneField', () => {
 
         expect(input.hasAttribute('disabled')).toBe(true)
         expect(input.getAttribute('aria-invalid')).toBe('true')
+        expect(input.hasAttribute('required')).toBe(false)
+    })
+
+    it('does not use field required as native input validation', () => {
+        render(<PneField
+            label='Report file name'
+            required
+        >
+            <PneTextField/>
+        </PneField>)
+
+        const input = screen.getByLabelText(/Report file name/)
+
+        expect(input.hasAttribute('required')).toBe(false)
+    })
+
+    it('keeps explicit text input required as native input validation', () => {
+        render(<PneField label='Report file name'>
+            <PneTextField required/>
+        </PneField>)
+
+        const input = screen.getByLabelText(/Report file name/)
+
         expect(input.hasAttribute('required')).toBe(true)
     })
 

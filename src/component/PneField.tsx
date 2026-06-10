@@ -48,7 +48,6 @@ const PneField = forwardRef<HTMLDivElement, PneFieldProps>((props, ref) => {
         fullWidth,
         helperTextId,
         labelId,
-        required,
     }
 
     return <FormControl

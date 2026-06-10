@@ -11,6 +11,7 @@ const PneTextField = forwardRef((
         disabled,
         error,
         fullWidth,
+        helperText,
         id,
         required,
         slotProps,
@@ -33,14 +34,24 @@ const PneTextField = forwardRef((
         id,
         required,
     })
+    const textFieldHelperTextId = helperText && controlProps.id
+        ? `${controlProps.id}-helper-text`
+        : undefined
+    const resolvedAriaDescribedBy = mergeAriaDescribedBy(
+        ariaDescribedBy,
+        getAriaDescribedBy(inputSlotProps),
+        getAriaDescribedBy(htmlInputSlotProps),
+        textFieldHelperTextId,
+        controlProps.ariaDescribedBy,
+    )
     const _sx: SxProps = [
         ...(Array.isArray(sx) ? sx : [sx])
     ]
-    const resolvedSlotProps = controlProps.ariaDescribedBy
+    const resolvedSlotProps = resolvedAriaDescribedBy
         ? {
             ...slotProps,
-            input: withAriaDescribedBy(slotProps?.input, controlProps.ariaDescribedBy),
-            htmlInput: withAriaDescribedBy(slotProps?.htmlInput, controlProps.ariaDescribedBy),
+            input: withAriaDescribedBy(slotProps?.input, resolvedAriaDescribedBy),
+            htmlInput: withAriaDescribedBy(slotProps?.htmlInput, resolvedAriaDescribedBy),
         }
         : slotProps
 
@@ -49,6 +60,7 @@ const PneTextField = forwardRef((
         error={controlProps.error}
         fullWidth={controlProps.fullWidth}
         id={controlProps.id}
+        helperText={helperText}
         ref={ref}
         required={controlProps.required}
         size={size}

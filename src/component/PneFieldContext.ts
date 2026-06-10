@@ -7,7 +7,6 @@ export interface PneFieldContextValue {
     fullWidth?: boolean
     helperTextId?: string
     labelId?: string
-    required?: boolean
 }
 
 export interface PneFieldControlProps {
@@ -39,7 +38,7 @@ export const usePneFieldControlProps = (
         fullWidth: props.fullWidth ?? fieldContext?.fullWidth,
         id: props.id ?? fieldContext?.controlId,
         labelId: fieldContext?.labelId,
-        required: props.required ?? fieldContext?.required,
+        required: props.required,
     }
 }
 
