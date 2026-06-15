@@ -1,6 +1,7 @@
 import { useSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
 import {
     CriterionTypeEnum,
+    DateRangeSpec,
     ExactCriterionSearchLabelEnum,
     LinkedEntityTypeEnum,
     MultichoiceFilterTypeEnum,
@@ -9,6 +10,10 @@ import {
     TransactionSessionStatuses,
 } from '../src/component/search-ui/filters/types'
 import {
+    createDateOnlyPickerDate,
+    createDateOnlyPickerValue,
+} from '../src/component/search-ui/filters/dateRangeTimeZone'
+import {
     createClearCriteriaUndoSnapshot,
 } from '../src/component/search-ui/filters/state/undo'
 import {
@@ -16,6 +21,7 @@ import {
     getSearchUIInitialSearchCriteria,
 } from '../src/component/search-ui/filters/state/initial'
 import { initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProvider'
+import dayjs from 'dayjs'
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
 
@@ -337,6 +343,107 @@ describe('SearchUIFilters Zustand store', () => {
         expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
             cardTypes: [visaCard.id],
         }))
+    })
+
+    it('keeps legacy browser-local timezone for date-only EXACTLY dates by default', () => {
+        const onFiltersUpdate = jest.fn()
+        const dateRangeSpec: DateRangeSpec = {
+            dateRangeSpecType: 'EXACTLY',
+            dateFrom: new Date('2025-05-13T21:00:00.000Z'),
+            dateTo: new Date('2025-05-15T21:00:00.000Z'),
+            beforeCount: 1,
+        }
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.DATE_RANGE],
+            predefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
+            criteria: [CriterionTypeEnum.DATE_RANGE],
+            dateRangeSpec,
+        })
+
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: dayjs(dateRangeSpec.dateFrom).startOf('day').toDate(),
+            dateTo: dayjs(dateRangeSpec.dateTo).startOf('day').add(1, 'day').toDate(),
+        }))
+    })
+
+    it('can opt date-only EXACTLY dates into Moscow timezone', () => {
+        const onFiltersUpdate = jest.fn()
+        const dateRangeSpec: DateRangeSpec = {
+            dateRangeSpecType: 'EXACTLY',
+            dateFrom: new Date('2025-05-13T21:00:00.000Z'),
+            dateTo: new Date('2025-05-15T21:00:00.000Z'),
+            beforeCount: 1,
+        }
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.DATE_RANGE],
+            predefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
+            criteria: [CriterionTypeEnum.DATE_RANGE],
+            dateRangeSpec,
+            config: {
+                dateRange: {
+                    dateOnlyTimeZone: 'Europe/Moscow',
+                },
+            },
+        })
+
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: new Date('2025-05-13T21:00:00.000Z'),
+            dateTo: new Date('2025-05-16T21:00:00.000Z'),
+        }))
+    })
+
+    it('preserves exact instants when time selection is enabled', () => {
+        const onFiltersUpdate = jest.fn()
+        const dateRangeSpec: DateRangeSpec = {
+            dateRangeSpecType: 'EXACTLY',
+            dateFrom: new Date('2025-05-14T10:20:30.000Z'),
+            dateTo: new Date('2025-05-16T11:21:31.000Z'),
+            beforeCount: 1,
+        }
+
+        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = useSearchUIFiltersStore.getState()
+        setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.DATE_RANGE],
+            predefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
+            criteria: [CriterionTypeEnum.DATE_RANGE],
+            dateRangeSpec,
+            config: {
+                dateRange: {
+                    enableTimeSelection: true,
+                },
+            },
+        })
+
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: dateRangeSpec.dateFrom,
+            dateTo: dateRangeSpec.dateTo,
+        }))
+    })
+
+    it('anchors date-only picker values to the configured day timezone', () => {
+        const selectedDay = dayjs('2025-05-14T15:30:00')
+        const anchoredDate = createDateOnlyPickerDate(selectedDay, 'Europe/Moscow')
+
+        expect(anchoredDate.toISOString()).toBe('2025-05-13T21:00:00.000Z')
+        expect(
+            createDateOnlyPickerValue(anchoredDate, 'Europe/Moscow')?.format('YYYY-MM-DD'),
+        ).toBe('2025-05-14')
     })
 
     it('reruns search with current filters when manual filters are already applied', () => {

@@ -26,6 +26,7 @@ import {overlayActions, PneButton, SearchUIDefaults} from '../../..';
 import {SearchUIDefaultsContext} from "../SearchUIProvider";
 import {createClearCriteriaUndoSnapshot} from './state/undo';
 import {isCriterionAvailable} from './criterionAvailability';
+import type { SearchUIDateOnlyTimeZone } from './dateRangeTimeZone';
 
 type PendingClearCriteriaUndo = {
     snackbarId: string
@@ -41,6 +42,12 @@ export type DateRangeCriterionConfig = {
      * Разрешает выбор времени вместе с датой.
      */
     enableTimeSelection?: boolean
+    /**
+     * Таймзона для выбора дат без времени в режиме EXACTLY.
+     * По умолчанию сохраняется старое поведение с локальной таймзоной браузера.
+     * Укажите Europe/Moscow для экранов, где date-only диапазон должен быть московскими бизнес-сутками.
+     */
+    dateOnlyTimeZone?: SearchUIDateOnlyTimeZone
     /**
      * Ограничивает список доступных вариантов выбора диапазона дат.
      */

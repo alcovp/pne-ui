@@ -58,6 +58,13 @@ import timezone from 'dayjs/plugin/timezone'
 import isoWeek from 'dayjs/plugin/isoWeek'
 import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
+import {
+    applyDateOnlyTimeZone,
+    createDateOnlySearchDate,
+    createDateOnlySearchEndExclusiveDate,
+    resolveDateOnlyTimeZone,
+    SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
+} from '../dateRangeTimeZone'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -373,8 +380,13 @@ export const getSearchUIFiltersActions = (
         conditions.multigetCriteria = (conditions.multigetCriteria ?? []).map(normalizeMultigetCriterion)
 
         if (conditions.dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
+            const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(
+                conditions.criteria,
+                get().config,
+            )
             conditions.dateRangeSpec = calculateNonExactDates(
                 conditions.dateRangeSpec,
+                getNonExactDateRangeTimeZone(get().config, timeSelectionEnabled),
             )
         }
 
@@ -483,9 +495,10 @@ export const getSearchUIFiltersActions = (
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => {
         const prevDateRangeSpec = get().dateRangeSpec
         const prevDateRangeSpecType = prevDateRangeSpec.dateRangeSpecType
-        const timeSelectionEnabled =
-            get().criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS)
-            || !!get().config?.dateRange?.enableTimeSelection
+        const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(
+            get().criteria,
+            get().config,
+        )
 
         const switchingToExact =
             dateRangeSpec.dateRangeSpecType === 'EXACTLY'
@@ -504,7 +517,10 @@ export const getSearchUIFiltersActions = (
                 dateTo: now.toDate(),
             }
         } else if (dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
-            spec = calculateNonExactDates(dateRangeSpec)
+            spec = calculateNonExactDates(
+                dateRangeSpec,
+                getNonExactDateRangeTimeZone(get().config, timeSelectionEnabled),
+            )
         }
 
         set((draft) => {
@@ -868,7 +884,38 @@ const extractGroupTypes = (grouping: Grouping): GroupingType[] => {
     return groups
 }
 
-const extractDateFrom = (dateRangeSpec: DateRangeSpec, useTime: boolean): Date | null => {
+const isDateRangeTimeSelectionEnabled = (
+    criteria: CriterionTypeEnum[],
+    config: SearchUIFiltersState['config'],
+): boolean => {
+    return criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS)
+        || !!config?.dateRange?.enableTimeSelection
+}
+
+const getConfiguredDateOnlyTimeZone = (config: SearchUIFiltersState['config']): string | null => {
+    return resolveDateOnlyTimeZone(config?.dateRange?.dateOnlyTimeZone)
+}
+
+const getNonExactDateRangeTimeZone = (
+    config: SearchUIFiltersState['config'],
+    timeSelectionEnabled: boolean,
+): string | null => {
+    if (timeSelectionEnabled) {
+        return SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE
+    }
+
+    if (config?.dateRange?.dateOnlyTimeZone !== undefined) {
+        return getConfiguredDateOnlyTimeZone(config)
+    }
+
+    return SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE
+}
+
+const extractDateFrom = (
+    dateRangeSpec: DateRangeSpec,
+    useTime: boolean,
+    dateOnlyTimeZone: string | null,
+): Date | null => {
     if (dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT') {
         return dayjs().year(2000).toDate()
     }
@@ -878,23 +925,24 @@ const extractDateFrom = (dateRangeSpec: DateRangeSpec, useTime: boolean): Date |
         && !useTime
         && dateRangeSpec.dateFrom
     ) {
-        return dayjs(dateRangeSpec.dateFrom).startOf('day').toDate()
+        return createDateOnlySearchDate(dateRangeSpec.dateFrom, dateOnlyTimeZone)
     }
 
     return dateRangeSpec.dateFrom
 }
 
-const extractDateTo = (dateRangeSpec: DateRangeSpec, useTime: boolean): Date | null => {
+const extractDateTo = (
+    dateRangeSpec: DateRangeSpec,
+    useTime: boolean,
+    dateOnlyTimeZone: string | null,
+): Date | null => {
     if (dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT') {
         return dayjs().year(2999).toDate()
     } else if (dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
         if (useTime) {
             return dateRangeSpec.dateTo
         }
-        return dayjs(dateRangeSpec.dateTo)
-            .startOf('day')
-            .add(1, 'd')
-            .toDate()
+        return createDateOnlySearchEndExclusiveDate(dateRangeSpec.dateTo, dateOnlyTimeZone)
     } else {
         return dateRangeSpec.dateTo
     }
@@ -1107,9 +1155,8 @@ const checkIfFiltersChanged = (
 }
 
 const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCriteria => {
-    const timeSelectionEnabled =
-        state.criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS)
-        || !!state.config?.dateRange?.enableTimeSelection
+    const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(state.criteria, state.config)
+    const dateOnlyTimeZone = getConfiguredDateOnlyTimeZone(state.config)
 
     return {
         initialized: true,
@@ -1121,8 +1168,8 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
         countries: extractEntitiesIds(state.countries),
-        dateFrom: extractDateFrom(state.dateRangeSpec, timeSelectionEnabled),
-        dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled),
+        dateFrom: extractDateFrom(state.dateRangeSpec, timeSelectionEnabled, dateOnlyTimeZone),
+        dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled, dateOnlyTimeZone),
         orderDateType: state.orderDateType,
         cardTypes: extractEntitiesIds(state.cardTypes),
         transactionTypes: extractEntitiesIds(state.transactionTypes),
@@ -1174,9 +1221,12 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
     },
 })
 
-const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => {
+const calculateNonExactDates = (
+    dateRangeSpec: DateRangeSpec,
+    timeZone: string | null = SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
+): DateRangeSpec => {
     const nowLocal = dayjs()
-    const nowServer = dayjs().utc().tz('Europe/Moscow')
+    const nowServer = timeZone ? dayjs().utc().tz(timeZone) : dayjs()
 
     let from: Dayjs = dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom)
         : dayjs(searchUIInitialDateFrom)
@@ -1234,8 +1284,8 @@ const calculateNonExactDates = (dateRangeSpec: DateRangeSpec): DateRangeSpec => 
 
     return {
         dateRangeSpecType: dateRangeSpec.dateRangeSpecType,
-        dateFrom: from.tz('Europe/Moscow', true).toDate(),
-        dateTo: to.tz('Europe/Moscow', true).toDate(),
+        dateFrom: applyDateOnlyTimeZone(from, timeZone).toDate(),
+        dateTo: applyDateOnlyTimeZone(to, timeZone).toDate(),
         beforeCount: dateRangeSpec.beforeCount,
     }
 }

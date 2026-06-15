@@ -61,6 +61,7 @@ const defaultPredefinedCriteria: CriterionTypeEnum[] = [
 const defaultFiltersConfig: SearchUIFiltersConfig = {
     dateRange: {
         // enableTimeSelection: true,
+        // dateOnlyTimeZone: 'Europe/Moscow',
     },
     // hideShowFiltersButton: true,
     // hideTemplatesSelect: true,

@@ -13,6 +13,7 @@ import dayjs, {Dayjs} from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import {initialSearchUIDefaults, SearchUIDefaults} from "../../SearchUIProvider";
+import { SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE } from '../dateRangeTimeZone';
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -95,8 +96,8 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         orderDateType: 'SESSION_STATUS_CHANGED',
         dateRangeSpec: {
             dateRangeSpecType: 'TODAY',
-            dateFrom: searchUIInitialDateFrom.tz('Europe/Moscow', true).toDate(),
-            dateTo: searchUIInitialDateTo.tz('Europe/Moscow', true).toDate(),
+            dateFrom: searchUIInitialDateFrom.tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+            dateTo: searchUIInitialDateTo.tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
             beforeCount: 1,
         },
         cardTypes: searchUIInitialAllableCollection,

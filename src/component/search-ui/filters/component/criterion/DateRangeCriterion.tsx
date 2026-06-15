@@ -2,19 +2,19 @@ import React, { ChangeEvent } from 'react'
 import { DateRangeSpecType } from '../../types'
 import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect'
 import dayjs, { Dayjs } from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 import { Box, SxProps, useMediaQuery } from '@mui/material'
 import { DateRange, DateRangePicker, LocalizationProvider } from '@mui/x-date-pickers-pro'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { useSearchUIFiltersStore } from '../../state/store'
-import timezone from 'dayjs/plugin/timezone'
 import { PneTextField } from '../../../../..'
 import { SearchUIOrderDateTypeSelect } from '../select/SearchUIOrderDateTypeSelect'
 import { filtersInputSx } from './style'
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
+import {
+    createDateOnlyPickerDate,
+    createDateOnlyPickerValue,
+    resolveDateOnlyTimeZone,
+} from '../../dateRangeTimeZone'
 
 type Props = {
     showOrdersDateType?: boolean
@@ -29,6 +29,9 @@ export const DateRangeCriterion = (props: Props) => {
     const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
     const timeSelectionEnabledInConfig = useSearchUIFiltersStore(
         s => !!s.config?.dateRange?.enableTimeSelection,
+    )
+    const dateOnlyTimeZone = useSearchUIFiltersStore(
+        s => resolveDateOnlyTimeZone(s.config?.dateRange?.dateOnlyTimeZone),
     )
 
     const changeBeforeCount = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -49,12 +52,25 @@ export const DateRangeCriterion = (props: Props) => {
     const daysOrHoursBefore = dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE'
         || dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
     const withInputNear = exactDates || daysOrHoursBefore
+    const enableTimeSelection = !!showOrdersDateType || timeSelectionEnabledInConfig
+
+    const createExactDate = (date: Dayjs | null): Date | null => {
+        if (!date) {
+            return null
+        }
+
+        if (enableTimeSelection) {
+            return dayjs(date).toDate()
+        }
+
+        return createDateOnlyPickerDate(date, dateOnlyTimeZone)
+    }
 
     const setExactDate = (from: Dayjs | null, to: Dayjs | null) => {
         setDateRangeCriterion({
             ...dateRangeSpec,
-            dateFrom: from ? dayjs(from).toDate() : null,
-            dateTo: to ? dayjs(to).toDate() : null,
+            dateFrom: createExactDate(from),
+            dateTo: createExactDate(to),
         })
     }
 
@@ -73,12 +89,16 @@ export const DateRangeCriterion = (props: Props) => {
         })
     }
 
-    const dateRange: DateRange<Dayjs> = [
-        dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom) : null,
-        dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo) : null,
-    ]
+    const dateRange: DateRange<Dayjs> = enableTimeSelection
+        ? [
+            dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom) : null,
+            dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo) : null,
+        ]
+        : [
+            createDateOnlyPickerValue(dateRangeSpec.dateFrom, dateOnlyTimeZone),
+            createDateOnlyPickerValue(dateRangeSpec.dateTo, dateOnlyTimeZone),
+        ]
 
-    const enableTimeSelection = showOrdersDateType || timeSelectionEnabledInConfig
     const isSmallScreen = useMediaQuery('(max-width:599px)')
     const stackDateTimePickers = enableTimeSelection && isSmallScreen
     const dateTimePickerWrapperSx: SxProps = stackDateTimePickers
