@@ -177,7 +177,7 @@ const WidgetPreview = ({ title, children }: { title: string; children: React.Rea
             boxSizing: 'border-box',
         }}
     >
-        <Typography variant='subtitle2' sx={{ fontWeight: 700, mb: 0.5 }}>
+        <Typography variant='subtitle2' sx={{ fontWeight: 600, mb: 0.5 }}>
             {title}
         </Typography>
         <Typography variant='body2' color='text.secondary'>
@@ -215,7 +215,7 @@ const HeavyWidgetContent = ({ seed, title, level }: { seed: number; title: strin
 
     return (
         <Box sx={{ p: 2, display: 'grid', gap: 1.5 }}>
-            <Typography variant='subtitle2' sx={{ fontWeight: 700 }}>
+            <Typography variant='subtitle2' sx={{ fontWeight: 600 }}>
                 {title}
             </Typography>
             {tags.length > 0 && (
@@ -235,7 +235,7 @@ const HeavyWidgetContent = ({ seed, title, level }: { seed: number; title: strin
                             <Typography variant='caption' color='text.secondary'>
                                 Metric {index + 1}
                             </Typography>
-                            <Typography variant='body2' sx={{ fontWeight: 700 }}>
+                            <Typography variant='body2' sx={{ fontWeight: 600 }}>
                                 {(seed + 2) * (index + 4)}%
                             </Typography>
                         </Box>

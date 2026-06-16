@@ -64,7 +64,7 @@ export const WidgetBoardItem = ({
                 component='h3'
                 sx={{
                     fontSize: 18,
-                    fontWeight: 700,
+                    fontWeight: 600,
                     lineHeight: '24px',
                     color: 'rgba(78, 93, 120, 1)',
                 }}
