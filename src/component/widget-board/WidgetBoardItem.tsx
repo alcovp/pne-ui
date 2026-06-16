@@ -1,6 +1,7 @@
 import React from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 import BoardItem from '@cloudscape-design/board-components/board-item'
+import '@fontsource/roboto/600.css'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded'
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'

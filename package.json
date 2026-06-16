@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "4.0.35",
+    "version": "4.0.36",
     "description": "",
     "repository": {
         "type": "git",
@@ -123,6 +123,7 @@
         "@cloudscape-design/board-components": "3.0.125",
         "@cloudscape-design/components": "3.0.1118",
         "@cloudscape-design/global-styles": "1.0.0",
+        "@fontsource/roboto": "^5.2.10",
         "@hello-pangea/dnd": "18.0.1",
         "dayjs": "1.11.20",
         "immer": "10.0.3",
