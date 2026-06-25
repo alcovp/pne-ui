@@ -1,9 +1,5 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
-import Board, { type BoardProps } from '@cloudscape-design/board-components/board'
-import { Box } from '@mui/material'
-import { CloudscapeBoardStyles } from '../cloudscape/CloudscapeBoardStyles'
-import { CloudscapeThemeProvider } from '../cloudscape/CloudscapeThemeProvider'
-import { createBoardI18nStrings } from '../cloudscape/boardI18n'
+import type { BoardProps } from '@cloudscape-design/board-components/board'
 import { buildPresetFromState } from './layoutPersistence'
 import { useWidgetBoardAutosize } from './useWidgetBoardAutosize'
 import { useWidgetBoardInteractionLock } from './useWidgetBoardInteractionLock'
@@ -11,8 +7,9 @@ import { useWidgetBoardLayoutActions } from './useWidgetBoardLayoutActions'
 import { useWidgetBoardLayoutSource } from './useWidgetBoardLayoutSource'
 import { useWidgetBoardScopeStore } from './WidgetBoardScope'
 import { useWidgetBoardStateActions } from './useWidgetBoardStateActions'
+import { WidgetBoardCloudscapeEngine } from './WidgetBoardCloudscapeEngine'
 import { WidgetBoardItem } from './WidgetBoardItem'
-import { WidgetBoardSkeleton } from './WidgetBoardSkeleton'
+import { WidgetBoardReactGridLayoutEngine, WidgetBoardReactGridLayoutItem } from './WidgetBoardReactGridLayoutEngine'
 import {
     buildDefaultState,
     buildLayoutOptions,
@@ -28,6 +25,9 @@ import type {
     WidgetBoardProps,
     WidgetLayoutConfig,
     WidgetBoardState,
+    WidgetBoardEngine,
+    WidgetHeightMode,
+    WidgetBoardInteractionMode,
 } from './types'
 
 const resolveLayoutForBreakpoint = (
@@ -129,6 +129,9 @@ export const WidgetBoardInteractionContext = React.createContext<WidgetBoardInte
 
 export const useWidgetBoardInteraction = () => React.useContext(WidgetBoardInteractionContext)
 
+const DEFAULT_WIDGET_BOARD_ENGINE: WidgetBoardEngine = 'react-grid-layout'
+const DEFAULT_WIDGET_BOARD_INTERACTION_MODE: WidgetBoardInteractionMode = 'view'
+
 export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(function WidgetBoard(
     {
         widgets,
@@ -137,6 +140,9 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         saveLayouts,
         onActionsStateChange,
         autoHeightEnabled = true,
+        engine = DEFAULT_WIDGET_BOARD_ENGINE,
+        interactionMode = DEFAULT_WIDGET_BOARD_INTERACTION_MODE,
+        reactGridLayoutOptions,
     },
     ref,
 ) {
@@ -441,24 +447,35 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         [layoutState.items, definitionsMap],
     )
 
-    const boardI18nStrings = useMemo(() => createBoardI18nStrings<WidgetBoardItemData>(item => item.data.title), [])
+    const activeLayoutConfig = layoutPreset.layout ?? fallbackLayoutConfig
+    const reactGridLayoutColumns = activeLayoutConfig?.columns ?? reactGridLayoutOptions?.columns ?? 12
+    const reactGridLayoutRowHeight = activeLayoutConfig?.rowHeight ?? reactGridLayoutOptions?.rowHeight ?? 96
+    const reactGridLayoutMargin = activeLayoutConfig?.margin ?? reactGridLayoutOptions?.margin ?? [0, 0]
+    const reactGridLayoutContainerPadding = activeLayoutConfig?.containerPadding ?? reactGridLayoutOptions?.containerPadding ?? [0, 0]
 
-    const renderItem = (item: BoardProps.Item<WidgetBoardItemData>) => {
+    const resolveItemRenderState = (item: BoardProps.Item<WidgetBoardItemData>) => {
         const widgetId = item.id as string
         const definition = definitionsMap.get(widgetId)
-        if (!definition) return <></>
+        if (!definition) return null
 
         const isCollapsed = layoutState.collapsed.includes(widgetId)
         const isHeightModeLocked = Boolean(lockedHeightModeByWidgetId[widgetId])
         const baseHeightMode = isHeightModeLocked ? 'fixed' : layoutState.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
-        const heightMode = autoHeightEnabled ? baseHeightMode : 'fixed'
+        const heightMode: WidgetHeightMode = autoHeightEnabled ? baseHeightMode : 'fixed'
+
+        return { definition, heightMode, isCollapsed }
+    }
+
+    const renderCloudscapeItem = (item: BoardProps.Item<WidgetBoardItemData>) => {
+        const renderState = resolveItemRenderState(item)
+        if (!renderState) return <></>
 
         return (
             <WidgetBoardItem
                 item={item}
-                definition={definition}
-                heightMode={heightMode}
-                isCollapsed={isCollapsed}
+                definition={renderState.definition}
+                heightMode={renderState.heightMode}
+                isCollapsed={renderState.isCollapsed}
                 isInteractionLocked={isInteractionLocked}
                 onContentRef={handleContentRef}
                 onHide={hideItem}
@@ -467,24 +484,47 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         )
     }
 
-    const boardElement = (
-        <Board<WidgetBoardItemData>
-            items={visibleItems}
-            renderItem={renderItem}
-            i18nStrings={boardI18nStrings}
-            onItemsChange={handleItemsChange}
-            empty={<Box sx={{ p: 2, color: 'text.secondary' }}>No widgets available</Box>}
-        />
-    )
+    const renderReactGridLayoutItem = (item: BoardProps.Item<WidgetBoardItemData>) => {
+        const renderState = resolveItemRenderState(item)
+        if (!renderState) return <></>
+
+        return (
+            <WidgetBoardReactGridLayoutItem
+                item={item}
+                definition={renderState.definition}
+                heightMode={renderState.heightMode}
+                isCollapsed={renderState.isCollapsed}
+                interactionMode={interactionMode}
+                onContentRef={handleContentRef}
+                onHide={hideItem}
+            />
+        )
+    }
 
     return (
-        <CloudscapeThemeProvider>
-            <CloudscapeBoardStyles hideNavigationArrows />
-            <WidgetBoardInteractionContext.Provider value={interactionState}>
-                <Box data-pne-widget-board='true' ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    {isLoadingLayouts ? <WidgetBoardSkeleton /> : boardElement}
-                </Box>
-            </WidgetBoardInteractionContext.Provider>
-        </CloudscapeThemeProvider>
+        <WidgetBoardInteractionContext.Provider value={interactionState}>
+            {engine === 'react-grid-layout' ? (
+                <WidgetBoardReactGridLayoutEngine
+                    boardRootRef={boardRootRef}
+                    columns={reactGridLayoutColumns}
+                    containerPadding={reactGridLayoutContainerPadding}
+                    interactionMode={interactionMode}
+                    isLoadingLayouts={isLoadingLayouts}
+                    items={visibleItems}
+                    margin={reactGridLayoutMargin}
+                    onItemsChange={handleItemsChange}
+                    renderItem={renderReactGridLayoutItem}
+                    rowHeight={reactGridLayoutRowHeight}
+                />
+            ) : (
+                <WidgetBoardCloudscapeEngine
+                    boardRootRef={boardRootRef}
+                    items={visibleItems}
+                    isLoadingLayouts={isLoadingLayouts}
+                    onItemsChange={handleItemsChange}
+                    renderItem={renderCloudscapeItem}
+                />
+            )}
+        </WidgetBoardInteractionContext.Provider>
     )
 })

@@ -26,6 +26,13 @@ export type WidgetLayoutLimits = {
 export type WidgetHeightMode = 'auto' | 'fixed'
 export type WidgetHeightModeMemory = Record<string, Partial<Record<WidgetId, WidgetHeightMode>>>
 
+/**
+ * React Grid Layout is the default engine. `cloudscape` is retained only as an explicit
+ * deprecated compatibility path while downstream consumers finish migrating.
+ */
+export type WidgetBoardEngine = 'react-grid-layout' | 'cloudscape'
+export type WidgetBoardInteractionMode = 'view' | 'edit'
+
 export type WidgetLayoutInitialState = {
     isHidden?: boolean
     isCollapsed?: boolean
@@ -39,6 +46,10 @@ export type WidgetLayoutConfig = {
 }
 
 export type BreakpointLayoutConfig = {
+    columns?: number
+    rowHeight?: number
+    margin?: readonly [number, number]
+    containerPadding?: readonly [number, number] | null
     widgets: Record<WidgetId, WidgetLayoutConfig>
 }
 
@@ -81,6 +92,13 @@ export type WidgetBoardActionsState = {
     defaultLayoutId: string
 }
 
+export type WidgetBoardReactGridLayoutOptions = {
+    columns?: number
+    rowHeight?: number
+    margin?: readonly [number, number]
+    containerPadding?: readonly [number, number] | null
+}
+
 export type WidgetBoardProps = {
     widgets: WidgetDefinition[]
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
@@ -88,4 +106,7 @@ export type WidgetBoardProps = {
     saveLayouts: (options: WidgetBoardLayoutOption[], selectedId?: string) => Promise<void>
     onActionsStateChange?: (state: WidgetBoardActionsState) => void
     autoHeightEnabled?: boolean
+    engine?: WidgetBoardEngine
+    interactionMode?: WidgetBoardInteractionMode
+    reactGridLayoutOptions?: WidgetBoardReactGridLayoutOptions
 }

@@ -1,10 +1,11 @@
 import React from 'react'
 import { Box, Button, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import type { PneFabAction, PneFabItem, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
+import type { PneFabAction, PneFabItem, WidgetBoardInteractionMode, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
 import {
     PneButton,
     WidgetBoardVisibilityModal,
+    WidgetBoardHeaderControls,
     WidgetLayoutsPanel,
     WidgetBoard,
     WidgetBoardScopeProvider,
@@ -281,6 +282,9 @@ const heavyLayout = {
     layoutByBreakpoint: {
         12: {
             columns: 12,
+            rowHeight: 48,
+            margin: [0, 0],
+            containerPadding: [0, 0],
             widgets: Object.fromEntries(
                 heavyWidgetIds.map((id, index) => [
                     id,
@@ -339,6 +343,84 @@ const BoardWithLightWidget = () => {
         </WidgetBoardScopeProvider>
     )
 }
+
+const BoardWithReactGridLayout = ({ interactionMode }: { interactionMode: WidgetBoardInteractionMode }) => {
+    const loadLayouts = React.useCallback(async () => ({ options: [{ id: 'default', name: 'RGL', layoutByBreakpoint: heavyLayout.layoutByBreakpoint }] }), [])
+    const saveLayouts = React.useCallback(async () => undefined, [])
+
+    return (
+        <WidgetBoardScopeProvider>
+            <Box sx={{ p: 2 }}>
+                <WidgetBoard
+                    engine='react-grid-layout'
+                    interactionMode={interactionMode}
+                    widgets={heavyWidgets}
+                    layoutByBreakpoint={heavyLayout.layoutByBreakpoint}
+                    loadLayouts={loadLayouts}
+                    saveLayouts={saveLayouts}
+                    reactGridLayoutOptions={{
+                        columns: 12,
+                        rowHeight: 48,
+                        margin: [0, 0],
+                        containerPadding: [0, 0],
+                    }}
+                />
+            </Box>
+        </WidgetBoardScopeProvider>
+    )
+}
+
+const BoardWithHeaderControlsContent = () => {
+    const [interactionMode, setInteractionMode] = React.useState<WidgetBoardInteractionMode>('view')
+
+    const loadLayouts = React.useCallback(async () => {
+        return mockOrderHistoryLayoutsApi.getOrderHistoryLayoutSettings()
+    }, [])
+
+    const saveLayouts = React.useCallback(async (options: WidgetBoardLayoutOption[], selectedId?: string) => {
+        await mockOrderHistoryLayoutsApi.saveOrderHistoryLayoutSettings(options, selectedId)
+    }, [])
+
+    return (
+        <Box sx={{ p: 2 }}>
+            <Stack spacing={2}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        minHeight: 40,
+                    }}
+                >
+                    <WidgetBoardHeaderControls
+                        interactionMode={interactionMode}
+                        onInteractionModeChange={setInteractionMode}
+                    />
+                </Box>
+                <WidgetBoard
+                    engine='react-grid-layout'
+                    interactionMode={interactionMode}
+                    widgets={heavyWidgets}
+                    layoutByBreakpoint={heavyLayout.layoutByBreakpoint}
+                    loadLayouts={loadLayouts}
+                    saveLayouts={saveLayouts}
+                    reactGridLayoutOptions={{
+                        columns: 12,
+                        rowHeight: 48,
+                        margin: [0, 0],
+                        containerPadding: [0, 0],
+                    }}
+                />
+            </Stack>
+        </Box>
+    )
+}
+
+const BoardWithHeaderControls = () => (
+    <WidgetBoardScopeProvider>
+        <BoardWithHeaderControlsContent />
+    </WidgetBoardScopeProvider>
+)
 
 const BoardWithLayoutsContent = () => {
     const [boardVersion, setBoardVersion] = React.useState(0)
@@ -461,4 +543,16 @@ export const HeavyContent: StoryObj<typeof BoardWithLayouts> = {
 
 export const LightContent: StoryObj<typeof BoardWithLayouts> = {
     render: () => <BoardWithLightWidget />,
+}
+
+export const ReactGridLayoutViewMode: StoryObj<typeof BoardWithLayouts> = {
+    render: () => <BoardWithReactGridLayout interactionMode='view' />,
+}
+
+export const ReactGridLayoutEditMode: StoryObj<typeof BoardWithLayouts> = {
+    render: () => <BoardWithReactGridLayout interactionMode='edit' />,
+}
+
+export const ReactGridLayoutHeaderControls: StoryObj<typeof BoardWithLayouts> = {
+    render: () => <BoardWithHeaderControls />,
 }

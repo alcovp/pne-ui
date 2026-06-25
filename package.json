@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "4.0.36",
+    "version": "4.0.39",
     "description": "",
     "repository": {
         "type": "git",
@@ -128,6 +128,7 @@
         "dayjs": "1.11.20",
         "immer": "10.0.3",
         "lodash": "4.18.1",
+        "react-grid-layout": "2.2.3",
         "react-imask": "^7.6.1",
         "react-is": "19.2.5",
         "react-virtuoso": "4.7.5",
