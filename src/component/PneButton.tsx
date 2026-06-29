@@ -48,7 +48,7 @@ const PneButton = <C extends React.ElementType>(
 
     const _sx: SxProps = [
         {
-            height: size ==='large' ? '40px' : 'inherit',
+            height: size === 'large' ? '40px' : size === 'small' ? '30px' : 'inherit',
             fontSize: '12px',
             lineHeight: '22px',
             fontWeight: '400',

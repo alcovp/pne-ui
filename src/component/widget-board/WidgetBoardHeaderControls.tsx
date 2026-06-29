@@ -1,8 +1,9 @@
 import React, { useMemo, useState } from 'react'
+import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
-import { Box, ButtonBase, Divider, Menu, MenuItem, Stack, Typography } from '@mui/material'
+import { Box, Divider, Menu, MenuItem, Stack, Typography } from '@mui/material'
 import { alpha, type SxProps, type Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import PneButton from '../PneButton'
@@ -19,6 +20,31 @@ export type WidgetBoardHeaderControlsProps = {
 }
 
 const neutralColor = '#5E7594'
+const headerButtonSx: SxProps<Theme> = {
+    flexShrink: 0,
+    whiteSpace: 'nowrap',
+}
+const layoutButtonSx: SxProps<Theme> = {
+    maxWidth: 240,
+    minWidth: 0,
+    flexShrink: 1,
+    justifyContent: 'flex-start',
+    '& .MuiButton-startIcon, & .MuiButton-endIcon': {
+        flex: '0 0 auto',
+    },
+    '& .MuiButton-endIcon': {
+        ml: 'auto',
+    },
+}
+const buttonLabelSx: SxProps<Theme> = {
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+}
+const buttonIconSx: SxProps<Theme> = {
+    fontSize: 16,
+}
 
 export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps> = ({
     interactionMode,
@@ -68,73 +94,47 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
         setLayoutAnchorEl(null)
     }
 
+    const handleOpenLayoutMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
+        setLayoutAnchorEl(event.currentTarget)
+    }
+
     return (
         <Box
             className={className}
             data-pne-widget-board-header-controls='true'
-            sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                minWidth: 0,
-                ...sx,
-            }}
+            sx={[
+                {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    minWidth: 0,
+                },
+                ...(Array.isArray(sx) ? sx : sx ? [sx] : []),
+            ]}
         >
-            <ButtonBase
+            <PneButton
                 aria-haspopup='menu'
                 aria-expanded={layoutMenuOpen ? 'true' : undefined}
-                onClick={event => setLayoutAnchorEl(event.currentTarget)}
-                sx={{
-                    minHeight: 32,
-                    maxWidth: 240,
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 1.5,
-                    py: 0.75,
-                    borderRadius: 0.5,
-                    bgcolor: 'rgba(94, 117, 148, 0.1)',
-                    color: neutralColor,
-                    flexShrink: 1,
-                    minWidth: 0,
-                    '&:hover': {
-                        bgcolor: 'rgba(94, 117, 148, 0.14)',
-                    },
-                }}
+                color='pneNeutral'
+                size='small'
+                startIcon={<BookmarkBorderOutlinedIcon sx={buttonIconSx} />}
+                endIcon={<KeyboardArrowDownIcon sx={buttonIconSx} />}
+                onClick={handleOpenLayoutMenu}
+                sx={layoutButtonSx}
             >
-                <SaveOutlinedIcon sx={{ fontSize: 16, flex: '0 0 auto' }} />
-                <Typography
-                    component='span'
-                    sx={{
-                        minWidth: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        fontSize: 14,
-                        lineHeight: '20px',
-                        color: 'inherit',
-                    }}
-                >
+                <Box component='span' sx={buttonLabelSx}>
                     {selectedLayoutName}
-                </Typography>
-                <KeyboardArrowDownIcon sx={{ fontSize: 16, flex: '0 0 auto' }} />
-            </ButtonBase>
+                </Box>
+            </PneButton>
 
             {isEditMode ? (
                 <>
                     <PneButton
                         pneStyle='contained'
                         size='small'
-                        startIcon={<SaveOutlinedIcon sx={{ fontSize: 16 }} />}
+                        startIcon={<SaveOutlinedIcon sx={buttonIconSx} />}
                         onClick={openSaveAsModal}
-                        sx={{
-                            minHeight: 32,
-                            height: 32,
-                            borderRadius: 0.5,
-                            px: 1.5,
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                        }}
+                        sx={headerButtonSx}
                     >
                         {t('pne.widgetBoard.actions.saveAs', { defaultValue: 'Save as' })}
                     </PneButton>
@@ -142,42 +142,21 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                         pneStyle='outlined'
                         size='small'
                         onClick={() => onInteractionModeChange('view')}
-                        sx={{
-                            minHeight: 32,
-                            height: 32,
-                            borderRadius: 0.5,
-                            px: 1,
-                            whiteSpace: 'nowrap',
-                            flexShrink: 0,
-                        }}
+                        sx={headerButtonSx}
                     >
                         {t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })}
                     </PneButton>
                 </>
             ) : (
-                <ButtonBase
+                <PneButton
+                    color='pneNeutral'
+                    size='small'
+                    startIcon={<EditOutlinedIcon sx={buttonIconSx} />}
                     onClick={() => onInteractionModeChange('edit')}
-                    sx={{
-                        minHeight: 32,
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        px: 1,
-                        py: 0.75,
-                        borderRadius: 0.5,
-                        bgcolor: 'rgba(94, 117, 148, 0.1)',
-                        color: neutralColor,
-                        flexShrink: 0,
-                        '&:hover': {
-                            bgcolor: 'rgba(94, 117, 148, 0.14)',
-                        },
-                    }}
+                    sx={headerButtonSx}
                 >
-                    <EditOutlinedIcon sx={{ fontSize: 16 }} />
-                    <Typography component='span' sx={{ fontSize: 14, lineHeight: '20px', color: 'inherit' }}>
-                        {t('edit', { defaultValue: 'Edit' })}
-                    </Typography>
-                </ButtonBase>
+                    {t('edit', { defaultValue: 'Edit' })}
+                </PneButton>
             )}
 
             <Menu
