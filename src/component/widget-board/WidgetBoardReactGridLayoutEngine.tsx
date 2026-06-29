@@ -277,6 +277,7 @@ export const WidgetBoardReactGridLayoutEngine = ({
 }: WidgetBoardReactGridLayoutEngineProps) => {
     const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1280 })
     const layout = useMemo(() => toReactGridLayout(items, columns, interactionMode), [columns, interactionMode, items])
+    const rowGap = margin[1] ?? 0
 
     const handleLayoutCommit = useCallback(
         (nextLayout: Layout) => {
@@ -295,7 +296,18 @@ export const WidgetBoardReactGridLayoutEngine = ({
     )
 
     return (
-        <Box data-pne-widget-board='true' ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 0 }}>
+        <Box
+            data-pne-widget-board='true'
+            ref={boardRootRef}
+            sx={{
+                '--pne-widget-board-row-height': `${rowHeight}px`,
+                '--pne-widget-board-row-gap': `${rowGap}px`,
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0,
+            }}
+        >
             <Box ref={containerRef} sx={{ width: '100%' }}>
                 {isLoadingLayouts ? (
                     <Box sx={{ p: 2, color: 'text.secondary' }}>Loading widgets...</Box>

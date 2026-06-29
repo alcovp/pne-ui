@@ -38,6 +38,22 @@ export const useWidgetBoardAutosize = ({
         [],
     )
 
+    const readRootGridMetrics = useCallback(
+        (root: HTMLElement) => {
+            const style = window.getComputedStyle(root)
+            const rowHeight = parseCssNumber(style.getPropertyValue('--pne-widget-board-row-height'))
+            const rowGap = parseCssNumber(style.getPropertyValue('--pne-widget-board-row-gap'))
+
+            if (!Number.isFinite(rowHeight) || rowHeight <= 0) return null
+
+            return {
+                rowHeight,
+                rowGap: Number.isFinite(rowGap) ? rowGap : resolveFallbackRowGap(),
+            }
+        },
+        [parseCssNumber, resolveFallbackRowGap],
+    )
+
     const findGridElement = useCallback((root: HTMLElement) => {
         const boardRoot = root.querySelector<HTMLElement>('[data-awsui-board]') ?? root
         const boardStyle = window.getComputedStyle(boardRoot)
@@ -63,6 +79,11 @@ export const useWidgetBoardAutosize = ({
         if (typeof window === 'undefined') return gridMetricsRef.current
         const root = boardRootRef.current
         if (!root) return gridMetricsRef.current
+        const rootMetrics = readRootGridMetrics(root)
+        if (rootMetrics) {
+            gridMetricsRef.current = rootMetrics
+            return rootMetrics
+        }
         const grid = findGridElement(root)
         if (!grid) return gridMetricsRef.current
         const style = window.getComputedStyle(grid)
@@ -75,7 +96,7 @@ export const useWidgetBoardAutosize = ({
         const next = { rowHeight, rowGap }
         gridMetricsRef.current = next
         return next
-    }, [findGridElement, parseCssNumber, resolveFallbackRowGap])
+    }, [findGridElement, parseCssNumber, readRootGridMetrics, resolveFallbackRowGap])
 
     const computeRequiredRows = useCallback(
         (contentElement: HTMLDivElement) => {
@@ -83,6 +104,7 @@ export const useWidgetBoardAutosize = ({
             const metrics = updateGridMetrics() ?? { rowHeight: DEFAULT_ROW_HEIGHT, rowGap: resolveFallbackRowGap() }
             const containerRoot =
                 (contentElement.closest('[data-awsui-board-item]') as HTMLElement | null) ??
+                (contentElement.closest('[data-pne-widget-board-rgl-item]') as HTMLElement | null) ??
                 (contentElement.closest('[class*="container-override"]') as HTMLElement | null)
             if (!containerRoot) return null
 
