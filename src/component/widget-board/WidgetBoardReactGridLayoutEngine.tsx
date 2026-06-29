@@ -296,44 +296,42 @@ export const WidgetBoardReactGridLayoutEngine = ({
 
     return (
         <Box data-pne-widget-board='true' ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {isLoadingLayouts ? (
-                <Box sx={{ p: 2, color: 'text.secondary' }}>Loading widgets...</Box>
-            ) : (
-                <Box ref={containerRef} sx={{ width: '100%' }}>
-                    {mounted ? (
-                        <ReactGridLayout
-                            autoSize
-                            width={width}
-                            layout={layout}
-                            gridConfig={{
-                                cols: columns,
-                                rowHeight,
-                                margin,
-                                containerPadding,
-                                maxRows: Number.POSITIVE_INFINITY,
-                            }}
-                            dragConfig={{
-                                enabled: interactionMode === 'edit',
-                                handle: '.pne-widget-board-rgl-drag-handle',
-                                cancel: '.pne-widget-board-rgl-control',
-                            }}
-                            resizeConfig={{
-                                enabled: interactionMode === 'edit',
-                                handles: interactionMode === 'edit' ? ['se'] : [],
-                            }}
-                            compactor={noCompactor}
-                            onDragStop={handleLayoutCommit}
-                            onResizeStop={handleLayoutCommit}
-                        >
-                            {items.map(item => (
-                                <div key={item.id} style={{ height: '100%' }}>
-                                    {renderItem(item)}
-                                </div>
-                            ))}
-                        </ReactGridLayout>
-                    ) : null}
-                </Box>
-            )}
+            <Box ref={containerRef} sx={{ width: '100%' }}>
+                {isLoadingLayouts ? (
+                    <Box sx={{ p: 2, color: 'text.secondary' }}>Loading widgets...</Box>
+                ) : mounted ? (
+                    <ReactGridLayout
+                        autoSize
+                        width={width}
+                        layout={layout}
+                        gridConfig={{
+                            cols: columns,
+                            rowHeight,
+                            margin,
+                            containerPadding,
+                            maxRows: Number.POSITIVE_INFINITY,
+                        }}
+                        dragConfig={{
+                            enabled: interactionMode === 'edit',
+                            handle: '.pne-widget-board-rgl-drag-handle',
+                            cancel: '.pne-widget-board-rgl-control',
+                        }}
+                        resizeConfig={{
+                            enabled: interactionMode === 'edit',
+                            handles: interactionMode === 'edit' ? ['se'] : [],
+                        }}
+                        compactor={noCompactor}
+                        onDragStop={handleLayoutCommit}
+                        onResizeStop={handleLayoutCommit}
+                    >
+                        {items.map(item => (
+                            <div key={item.id} style={{ height: '100%' }}>
+                                {renderItem(item)}
+                            </div>
+                        ))}
+                    </ReactGridLayout>
+                ) : null}
+            </Box>
         </Box>
     )
 }
