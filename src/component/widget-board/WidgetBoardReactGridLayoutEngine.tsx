@@ -228,6 +228,20 @@ export const WidgetBoardReactGridLayoutItem = ({
                         {definition.title}
                     </Box>
                 </Typography>
+                {definition.settingsActions ? (
+                    <Box
+                        className='pne-widget-board-rgl-control'
+                        sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            flex: '0 1 auto',
+                            minWidth: 0,
+                            ml: 1,
+                        }}
+                    >
+                        {definition.settingsActions}
+                    </Box>
+                ) : null}
                 {showControls ? (
                     <Box className='pne-widget-board-rgl-control' sx={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
                         <IconButton
