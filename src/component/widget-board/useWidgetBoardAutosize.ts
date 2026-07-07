@@ -3,6 +3,8 @@ import type { Dispatch, SetStateAction } from 'react'
 import type { WidgetBoardState } from './types'
 import { DEFAULT_ROW_GAP, DEFAULT_ROW_HEIGHT, type WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
 
+const AUTOSIZE_PIXEL_TOLERANCE = 1
+
 type UseWidgetBoardAutosizeParams = {
     autoHeightEnabled: boolean
     lockedHeightModeByWidgetId: Partial<Record<string, boolean>>
@@ -116,7 +118,12 @@ export const useWidgetBoardAutosize = ({
             if (!Number.isFinite(offsetTop) || !Number.isFinite(contentHeight) || contentHeight <= 0) return null
 
             const requiredPx = offsetTop + contentHeight
-            return Math.ceil((requiredPx + metrics.rowGap) / (metrics.rowHeight + metrics.rowGap))
+            const rowUnit = metrics.rowHeight + metrics.rowGap
+            const rawRows = (requiredPx + metrics.rowGap) / rowUnit
+            const roundedRows = Math.round(rawRows)
+            const rowTolerance = AUTOSIZE_PIXEL_TOLERANCE / rowUnit
+
+            return Math.abs(rawRows - roundedRows) <= rowTolerance ? roundedRows : Math.ceil(rawRows)
         },
         [resolveFallbackRowGap, updateGridMetrics],
     )
@@ -201,17 +208,31 @@ export const useWidgetBoardAutosize = ({
     useEffect(() => {
         if (!autoHeightEnabled) return
         if (typeof ResizeObserver === 'undefined') return
+        let frameId: number | null = null
+        const pendingElements = new Map<string, HTMLDivElement>()
+        const flushPendingElements = () => {
+            frameId = null
+            const entries = Array.from(pendingElements.entries())
+            pendingElements.clear()
+            entries.forEach(([widgetId, element]) => handleContentResize(widgetId, element))
+        }
         const observer = new ResizeObserver(entries => {
             entries.forEach(entry => {
                 const target = entry.target as HTMLDivElement
                 const widgetId = target.dataset.widgetId
                 if (!widgetId) return
-                handleContentResize(widgetId, target)
+                pendingElements.set(widgetId, target)
             })
+            if (frameId === null) {
+                frameId = requestAnimationFrame(flushPendingElements)
+            }
         })
         resizeObserverRef.current = observer
         contentRefs.current.forEach(element => observer.observe(element))
         return () => {
+            if (frameId !== null) {
+                cancelAnimationFrame(frameId)
+            }
             observer.disconnect()
             resizeObserverRef.current = null
         }

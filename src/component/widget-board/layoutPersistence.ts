@@ -59,8 +59,12 @@ export const buildPresetFromState = (
             const rememberedSnapshot = memoryForBreakpoint[id]
             const isHidden = hiddenSet.has(id) || (isActiveBreakpoint && !item)
             const isCollapsed = collapsedSet.has(id)
+            const heightMode = heightModeForBreakpoint[id] ?? baseConfig.heightMode
+            const isFixedHeight = heightMode === 'fixed'
             const rememberedSize =
-                sizeMemory[id] ?? item?.rowSpan ?? rememberedSnapshot?.rowSpan ?? baseConfig.defaultSize.rowSpan
+                isFixedHeight
+                    ? sizeMemory[id] ?? item?.rowSpan ?? rememberedSnapshot?.rowSpan ?? baseConfig.defaultSize.rowSpan
+                    : baseConfig.defaultSize.rowSpan
 
             widgets[id] = {
                 defaultSize: {
@@ -74,7 +78,7 @@ export const buildPresetFromState = (
                     isHidden,
                     isCollapsed,
                 },
-                heightMode: heightModeForBreakpoint[id] ?? baseConfig.heightMode,
+                heightMode,
             }
         })
 

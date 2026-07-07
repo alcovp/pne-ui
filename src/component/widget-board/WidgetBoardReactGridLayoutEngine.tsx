@@ -256,7 +256,10 @@ export const WidgetBoardReactGridLayoutItem = ({
                 ) : null}
             </Box>
             {!isCollapsed ? (
-                <Box sx={{ flex: '1 1 auto', minHeight: 0, boxSizing: 'border-box', overflow: contentOverflow }}>
+                <Box
+                    data-pne-widget-board-content-body='true'
+                    sx={{ flex: '1 1 auto', minHeight: 0, boxSizing: 'border-box', overflow: contentOverflow }}
+                >
                     <Box
                         ref={(node: HTMLDivElement | null) => onContentRef(widgetId, node)}
                         data-widget-id={widgetId}

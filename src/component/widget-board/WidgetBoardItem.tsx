@@ -102,7 +102,10 @@ export const WidgetBoardItem = ({
             disableContentPaddings
         >
             {!isCollapsed ? (
-                <Box sx={{ height: '100%', boxSizing: 'border-box', overflow: contentOverflow }}>
+                <Box
+                    data-pne-widget-board-content-body='true'
+                    sx={{ height: '100%', boxSizing: 'border-box', overflow: contentOverflow }}
+                >
                     <Box
                         ref={(node: HTMLDivElement | null) => onContentRef(widgetId, node)}
                         data-widget-id={widgetId}
