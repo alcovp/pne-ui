@@ -4,9 +4,15 @@ import {
     isCriterionAvailable,
 } from '../src/component/search-ui/filters/criterionAvailability'
 import { filterAvailableCriteria } from '../src/component/search-ui/filters/SearchUIFilters'
-import { CriterionTypeEnum, GroupingType, SearchCriteria } from '../src/component/search-ui/filters/types'
+import {
+    CriterionTypeEnum,
+    GroupingType,
+    ORDER_SEARCH_LABELS,
+    SearchCriteria,
+} from '../src/component/search-ui/filters/types'
 import { initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProvider'
 import { getSearchUIInitialSearchCriteria } from '../src/component/search-ui/filters/state/initial'
+import { OrdersSearchLabelsConfig } from '../src/component/search-ui/filters/state/actions'
 
 describe('SearchUI helpers', () => {
     it('creates search params from criteria', () => {
@@ -16,6 +22,7 @@ describe('SearchUI helpers', () => {
             exactSearchValue: '42',
             ordersSearchLabel: 'order_id',
             ordersSearchValue: '7',
+            customerLevelId: 15,
             status: 'E',
             threeD: true,
             currencies: [1, 2],
@@ -51,6 +58,7 @@ describe('SearchUI helpers', () => {
         expect(params.transactionSessionStatuses).toBe('s1,s2')
         expect(params.countries).toEqual([11])
         expect(params.errorCode).toBe(123)
+        expect(params.customerLevelId).toBe(15)
     })
 
     it('filters available criteria based on defaults', () => {
@@ -65,6 +73,31 @@ describe('SearchUI helpers', () => {
             CriterionTypeEnum.CURRENCY,
         ])
         expect(result).toEqual([CriterionTypeEnum.CURRENCY])
+    })
+
+    it('only exposes customer level when merchant and currency dependencies are available', () => {
+        expect(filterAvailableCriteria(initialSearchUIDefaults, [
+            CriterionTypeEnum.CUSTOMER_LEVEL,
+            CriterionTypeEnum.MERCHANT,
+        ])).toEqual([CriterionTypeEnum.MERCHANT])
+
+        expect(filterAvailableCriteria(initialSearchUIDefaults, [
+            CriterionTypeEnum.CUSTOMER_LEVEL,
+            CriterionTypeEnum.MERCHANT,
+            CriterionTypeEnum.CURRENCY,
+        ])).toEqual([
+            CriterionTypeEnum.CUSTOMER_LEVEL,
+            CriterionTypeEnum.MERCHANT,
+            CriterionTypeEnum.CURRENCY,
+        ])
+    })
+
+    it('configures merchant customer identifier as an exact string criterion', () => {
+        expect(ORDER_SEARCH_LABELS).toContain('merchant_customer_identifier')
+        expect(OrdersSearchLabelsConfig.merchant_customer_identifier).toEqual({
+            type: 'string',
+            maxLength: 128,
+        })
     })
 
     it('checks criterion availability rules against current filter conditions', () => {

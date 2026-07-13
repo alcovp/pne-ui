@@ -7,6 +7,7 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         exactSearchValue: '',
         ordersSearchLabel: null,
         ordersSearchValue: '',
+        customerLevelId: null,
         status: null,
         threeD: null,
         currencies: [],

@@ -91,6 +91,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         exactSearchValue: '',
         ordersSearchLabel: 'merchant_invoice_id',
         ordersSearchValue: '',
+        customerLevel: null,
         currencies: searchUIInitialAllableCollection,
         countries: searchUICountriesInitialAllableCollection,
         orderDateType: 'SESSION_STATUS_CHANGED',

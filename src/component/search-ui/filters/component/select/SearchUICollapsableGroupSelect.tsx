@@ -35,6 +35,7 @@ const GROUPS: GroupConfig[] = [
         label: 'searchLabelGroup.customer',
         items: [
             {value: 'customer_id', label: 'searchLabel.customer_id'},
+            {value: 'merchant_customer_identifier', label: 'searchLabel.merchant_customer_identifier'},
             {value: 'customer_phone', label: 'searchLabel.customer_phone'},
             {value: 'customer_email', label: 'searchLabel.customer_email'},
             {value: 'customer_ip', label: 'searchLabel.customer_ip'},

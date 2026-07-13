@@ -221,6 +221,7 @@ export const createSearchParams = (
     exactSearchValue: searchCriteria.exactSearchValue,
     ordersSearchLabel: searchCriteria.ordersSearchLabel,
     ordersSearchValue: searchCriteria.ordersSearchValue,
+    customerLevelId: searchCriteria.customerLevelId,
     status: searchCriteria.status,
     threeD: searchCriteria.threeD,
     currencies: searchCriteria.currencies,

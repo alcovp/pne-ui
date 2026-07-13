@@ -95,6 +95,7 @@ const createSearchUIRetentionSnapshot = (state: SearchUIFiltersState): SearchUIR
         exactSearchValue: state.exactSearchValue,
         ordersSearchLabel: state.ordersSearchLabel,
         ordersSearchValue: state.ordersSearchValue,
+        customerLevel: state.customerLevel,
         status: state.status,
         currencies: state.currencies,
         countries: state.countries,

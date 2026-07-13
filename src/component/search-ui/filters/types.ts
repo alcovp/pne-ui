@@ -11,6 +11,8 @@ export enum CriterionTypeEnum {
     EXACT = 'EXACT',
     ORDERS_SEARCH = 'ORDERS_SEARCH',
     CURRENCY = 'CURRENCY',
+    /** Requires MERCHANT and CURRENCY to be present in the configured criteria list. */
+    CUSTOMER_LEVEL = 'CUSTOMER_LEVEL',
     THREE_D = 'THREE_D',
     STATUS = 'STATUS',
     MERCHANT = 'MERCHANT',
@@ -39,6 +41,11 @@ export enum CriterionTypeEnum {
     ERROR_CODE = 'ERROR_CODE',
     TRANSACTION_SESSION_STATUS = 'TRANSACTION_SESSION_STATUS',
 }
+
+export const CUSTOMER_LEVEL_DEPENDENCIES = [
+    CriterionTypeEnum.MERCHANT,
+    CriterionTypeEnum.CURRENCY,
+] as const
 
 export const ORDER_DATE_TYPES = [
     'SESSION_CREATED',
@@ -167,6 +174,7 @@ export const ORDER_SEARCH_LABELS = [
     'customer_billing_country',
     'customer_dna_id',
     'customer_id',
+    'merchant_customer_identifier',
     'batch_id',
 
     'source_bank_name',
@@ -216,6 +224,20 @@ export const ORDER_SEARCH_LABELS = [
     'card_number_hash_hash',
 ] as const
 export type OrderSearchLabel = typeof ORDER_SEARCH_LABELS[number]
+
+/**
+ * CMS customer level available for an explicitly selected merchant.
+ */
+export type CustomerLevel = AbstractEntity
+
+/**
+ * Parameters used by SearchUI to resolve customer levels for the active dependencies.
+ * An empty currency list means that levels must not be restricted by currency.
+ */
+export type GetCustomerLevelsRequest = {
+    merchantId: number
+    currencyIds: number[]
+}
 
 export enum ExactCriterionSearchLabelEnum {
     ALL = 'ALL',
@@ -304,6 +326,7 @@ export type SearchCriteria = {
     exactSearchValue: string | null
     ordersSearchLabel: string | null
     ordersSearchValue: string | null
+    customerLevelId: number | null
     status: Status | null
     threeD: boolean | null
     currencies: number[]
@@ -341,6 +364,7 @@ export type SearchUIConditions = {
     exactSearchValue: string
     ordersSearchLabel: OrderSearchLabel
     ordersSearchValue: string
+    customerLevel: CustomerLevel | null
     currencies: AbstractEntityAllableCollection
     countries: CountryAllableCollection
     orderDateType: OrderDate

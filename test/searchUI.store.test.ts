@@ -54,6 +54,128 @@ describe('SearchUIFilters Zustand store', () => {
         expect(state.justAddedCriterion).toBe(CriterionTypeEnum.CURRENCY)
     })
 
+    it('adds customer level together with merchant and currency dependencies', () => {
+        store.setState({
+            possibleCriteria: [
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+                CriterionTypeEnum.MERCHANT,
+                CriterionTypeEnum.CURRENCY,
+            ],
+        })
+
+        store.getState().addCriterion(CriterionTypeEnum.CUSTOMER_LEVEL)
+
+        const state = store.getState()
+        expect(state.criteria).toEqual([
+            CriterionTypeEnum.MERCHANT,
+            CriterionTypeEnum.CURRENCY,
+            CriterionTypeEnum.CUSTOMER_LEVEL,
+        ])
+        expect(state.multigetCriteria).toEqual([
+            expect.objectContaining({
+                entityType: LinkedEntityTypeEnum.MERCHANT,
+                filterType: MultichoiceFilterTypeEnum.NONE,
+            }),
+        ])
+
+        state.setCustomerLevelCriterion({ id: 20, displayName: 'VIP' })
+        expect(store.getState().customerLevel).toBeNull()
+    })
+
+    it('extracts customer level and clears it when merchant or currency changes', () => {
+        const onFiltersUpdate = jest.fn()
+        const merchantCriterion = {
+            entityType: LinkedEntityTypeEnum.MERCHANT,
+            filterType: MultichoiceFilterTypeEnum.NONE,
+            searchString: '',
+            selectedItems: '10',
+            selectedItemNames: 'Merchant 10',
+            deselectedItems: '',
+            deselectedItemNames: '',
+        }
+        store.setState({
+            criteria: [
+                CriterionTypeEnum.MERCHANT,
+                CriterionTypeEnum.CURRENCY,
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+            ],
+            multigetCriteria: [merchantCriterion],
+            onFiltersUpdate,
+        })
+
+        store.getState().setCustomerLevelCriterion({ id: 20, displayName: 'VIP' })
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            customerLevelId: 20,
+        }))
+
+        store.getState().setCurrenciesCriterion({
+            all: false,
+            entities: [{ id: 840, displayName: 'USD' }],
+        })
+        expect(store.getState().customerLevel).toBeNull()
+
+        store.getState().setCustomerLevelCriterion({ id: 20, displayName: 'VIP' })
+        store.getState().setMultigetCriterion({
+            ...merchantCriterion,
+            selectedItems: '11',
+            selectedItemNames: 'Merchant 11',
+        })
+        expect(store.getState().customerLevel).toBeNull()
+    })
+
+    it('preserves customer level in templates and clear-all undo snapshots', async () => {
+        const saveSearchTemplate = jest.fn().mockResolvedValue(undefined)
+        const customerLevel = { id: 20, displayName: 'VIP' }
+        const merchantCriterion = {
+            entityType: LinkedEntityTypeEnum.MERCHANT,
+            filterType: MultichoiceFilterTypeEnum.NONE,
+            searchString: '',
+            selectedItems: '10',
+            selectedItemNames: 'Merchant 10',
+            deselectedItems: '',
+            deselectedItemNames: '',
+        }
+        store.setState({
+            defaults: {
+                ...initialSearchUIDefaults,
+                saveSearchTemplate,
+            },
+            possibleCriteria: [
+                CriterionTypeEnum.MERCHANT,
+                CriterionTypeEnum.CURRENCY,
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+            ],
+            criteria: [
+                CriterionTypeEnum.MERCHANT,
+                CriterionTypeEnum.CURRENCY,
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+            ],
+            multigetCriteria: [merchantCriterion],
+            customerLevel,
+        })
+
+        store.getState().createTemplate('customer-level-template')
+        await flushPromises()
+
+        expect(saveSearchTemplate).toHaveBeenCalledWith(expect.objectContaining({
+            template: expect.objectContaining({
+                searchConditions: expect.objectContaining({ customerLevel }),
+            }),
+        }))
+
+        const snapshot = createClearCriteriaUndoSnapshot(store.getState())
+        store.getState().clearCriteria()
+        expect(store.getState().customerLevel).toBeNull()
+
+        store.getState().restoreClearCriteriaSnapshot(snapshot)
+        expect(store.getState().customerLevel).toEqual(customerLevel)
+        expect(store.getState().criteria).toEqual([
+            CriterionTypeEnum.MERCHANT,
+            CriterionTypeEnum.CURRENCY,
+            CriterionTypeEnum.CUSTOMER_LEVEL,
+        ])
+    })
+
     it('removes criterion', () => {
         store.setState({ criteria: [CriterionTypeEnum.CURRENCY, CriterionTypeEnum.STATUS] })
         const { removeCriterion } = store.getState()

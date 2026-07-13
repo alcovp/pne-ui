@@ -17,6 +17,7 @@ import {
 } from '../../../..'
 import {
     CountryAllableCollection,
+    CUSTOMER_LEVEL_DEPENDENCIES,
     CriterionTypeEnum,
     DateRangeSpec,
     ExactCriterionSearchLabelEnum,
@@ -66,6 +67,7 @@ import {
     resolveDateOnlyTimeZone,
     SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../dateRangeTimeZone'
+import { getConcreteCustomerLevelMerchantId } from '../customerLevelDependencies'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -88,6 +90,11 @@ const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntity
 const getLinkedEntityTypeByCriterion = (criterion: CriterionTypeEnum): LinkedEntityTypeEnum | null => {
     return criterionToLinkedEntityMap[criterion] ?? null
 }
+
+const isConfiguredCriterion = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+    criterion: CriterionTypeEnum,
+): boolean => draft.possibleCriteria.includes(criterion) || draft.predefinedCriteria.includes(criterion)
 
 const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
     entityType: entityType,
@@ -172,6 +179,40 @@ const isRetainedSnapshotCompatible = (
         && snapshot.manualSearch === !!state.config?.manualSearch
 }
 
+const addCriterionReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+    criterion: CriterionTypeEnum,
+    configuredOnly = false,
+): void => {
+    if (configuredOnly && !isConfiguredCriterion(draft, criterion)) {
+        return
+    }
+
+    if (draft.criteria.includes(criterion)) {
+        const entityType = getLinkedEntityTypeByCriterion(criterion)
+        if (
+            entityType !== null
+            && !draft.multigetCriteria.some(multigetCriterion => multigetCriterion.entityType === entityType)
+        ) {
+            draft.multigetCriteria.push(getInitialMultigetCriterion(entityType))
+        }
+        return
+    }
+
+    draft.criteria.push(criterion)
+    addInitialMultigetCriterionReducer(draft, criterion)
+}
+
+const ensureCustomerLevelDependenciesReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+): void => {
+    if (!draft.criteria.includes(CriterionTypeEnum.CUSTOMER_LEVEL)) {
+        return
+    }
+
+    CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
+}
+
 const applyConditionsReducer = (
     draft: WritableDraft<SearchUIFiltersStore>,
     conditions: Partial<SearchUIConditions>,
@@ -234,6 +275,8 @@ const applyConditionsReducer = (
 
         draft.multigetCriteria = sanitizedMultigetCriteria
     }
+
+    ensureCustomerLevelDependenciesReducer(draft)
 }
 
 const restoreAppliedSearchCriteria = (
@@ -283,6 +326,8 @@ export const getSearchUIFiltersActions = (
             }
 
             Object.assign(draft, initialState)
+
+            ensureCustomerLevelDependenciesReducer(draft)
 
             if (retainedSnapshot && isRetainedSnapshotCompatible(retainedSnapshot, initialState)) {
                 applyConditionsReducer(draft, retainedSnapshot.searchConditions)
@@ -356,6 +401,7 @@ export const getSearchUIFiltersActions = (
             Object.assign(draft, conditions)
             draft.template = template
             draft.activeTemplateName = template?.name ?? null
+            ensureCustomerLevelDependenciesReducer(draft)
         })
         syncCriterionAvailability(set, get)
 
@@ -377,14 +423,14 @@ export const getSearchUIFiltersActions = (
         localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
 
         set((draft) => {
-            return {
-                ...draft,
+            Object.assign(draft, {
                 ...getSearchUIInitialSearchCriteria(draft.defaults),
                 exactSearchLabel: draft.exactSearchLabels[0],
                 template: null,
                 activeTemplateName: null,
                 criteria: draft.predefinedCriteria,
-            }
+            })
+            ensureCustomerLevelDependenciesReducer(draft)
         })
         postUpdate(set, get)
     },
@@ -397,8 +443,10 @@ export const getSearchUIFiltersActions = (
     },
     addCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
-            draft.criteria.push(criterionType)
-            addInitialMultigetCriterionReducer(draft, criterionType)
+            if (criterionType === CriterionTypeEnum.CUSTOMER_LEVEL) {
+                CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
+            }
+            addCriterionReducer(draft, criterionType)
         })
         get().setJustAddedCriterion(criterionType)
         postUpdate(set, get)
@@ -467,6 +515,7 @@ export const getSearchUIFiltersActions = (
                         draft.template = null
                         draft.activeTemplateName = null
                         draft.criteria = draft.predefinedCriteria
+                        ensureCustomerLevelDependenciesReducer(draft)
                     }
                 })
                 postUpdate(set, get)
@@ -493,12 +542,10 @@ export const getSearchUIFiltersActions = (
         localStorage.setItem(LAST_TEMPLATE_NAME + get().settingsContextName, template.name)
 
         set((draft) => {
-            return {
-                ...draft,
-                template: template,
-                activeTemplateName: template.name,
-                ...conditions,
-            }
+            Object.assign(draft, defaults)
+            draft.template = template
+            draft.activeTemplateName = template.name
+            applyConditionsReducer(draft, conditions)
         })
         postUpdate(set, get, options)
     },
@@ -546,8 +593,18 @@ export const getSearchUIFiltersActions = (
     },
     setMultigetCriterion: (criterion: MultigetCriterion) => {
         set((draft) => {
+            const previousMerchantId = criterion.entityType === LinkedEntityTypeEnum.MERCHANT
+                ? getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
+                : null
             const index = draft.multigetCriteria.findIndex(c => c.entityType === criterion.entityType)
             draft.multigetCriteria[index] = criterion
+
+            if (
+                criterion.entityType === LinkedEntityTypeEnum.MERCHANT
+                && previousMerchantId !== getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
+            ) {
+                draft.customerLevel = null
+            }
         })
         postUpdate(set, get)
     },
@@ -595,8 +652,19 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get)
     },
+    setCustomerLevelCriterion: customerLevel => {
+        set((draft) => {
+            draft.customerLevel = getConcreteCustomerLevelMerchantId(draft.multigetCriteria) === null
+                ? null
+                : customerLevel
+        })
+        postUpdate(set, get)
+    },
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => {
         set((draft) => {
+            if (!isEqual(draft.currencies, currencies)) {
+                draft.customerLevel = null
+            }
             draft.currencies = currencies
         })
         postUpdate(set, get)
@@ -789,6 +857,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.RESELLER:
             draft.multigetCriteria.push(getInitialMultigetCriterion(LinkedEntityTypeEnum.RESELLER))
             break
+        case CriterionTypeEnum.CUSTOMER_LEVEL:
         case CriterionTypeEnum.CURRENCY:
         case CriterionTypeEnum.EXACT:
         case CriterionTypeEnum.ORDERS_SEARCH:
@@ -836,8 +905,12 @@ const clearCriterionReducer = (
             draft.ordersSearchLabel = 'merchant_invoice_id'
             draft.ordersSearchValue = ''
             break
+        case CriterionTypeEnum.CUSTOMER_LEVEL:
+            draft.customerLevel = null
+            break
         case CriterionTypeEnum.CURRENCY:
             draft.currencies = searchUIInitialAllableCollection
+            draft.customerLevel = null
             break
         case CriterionTypeEnum.COUNTRIES:
             draft.countries = searchUICountriesInitialAllableCollection
@@ -869,6 +942,7 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.MERCHANT:
             removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.MERCHANT)
+            draft.customerLevel = null
             break
         case CriterionTypeEnum.RESELLER:
             removeMultigetCriterionReducer(draft, LinkedEntityTypeEnum.RESELLER)
@@ -1300,6 +1374,10 @@ const checkIfFiltersChanged = (
 const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCriteria => {
     const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(state.criteria, state.config)
     const dateOnlyTimeZone = getConfiguredDateOnlyTimeZone(state.config)
+    const customerLevelDependenciesSatisfied = state.criteria.includes(CriterionTypeEnum.CUSTOMER_LEVEL)
+        && state.criteria.includes(CriterionTypeEnum.MERCHANT)
+        && state.criteria.includes(CriterionTypeEnum.CURRENCY)
+        && getConcreteCustomerLevelMerchantId(state.multigetCriteria) !== null
 
     return {
         initialized: true,
@@ -1307,6 +1385,9 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         exactSearchValue: state.exactSearchValue,
         ordersSearchLabel: state.ordersSearchLabel,
         ordersSearchValue: state.ordersSearchValue,
+        customerLevelId: customerLevelDependenciesSatisfied
+            ? state.customerLevel?.id ?? null
+            : null,
         status: extractStatus(state.status),
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
@@ -1341,6 +1422,7 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         exactSearchValue: store.exactSearchValue,
         ordersSearchLabel: store.ordersSearchLabel,
         ordersSearchValue: store.ordersSearchValue,
+        customerLevel: store.customerLevel,
         status: store.status,
         currencies: store.currencies,
         countries: store.countries,
@@ -1452,6 +1534,7 @@ export const OrdersSearchLabelsConfig: Readonly<Record<OrderSearchLabel, OrderSe
     'customer_billing_country': { type: 'country', maxLength: 128 },
     'customer_dna_id': { type: 'integer', maxLength: 10 },
     'customer_id': { type: 'integer', maxLength: 10 },
+    'merchant_customer_identifier': { type: 'string', maxLength: 128 },
     'batch_id': { type: 'integer', maxLength: 10 },
     'source_bank_name': { type: 'string', maxLength: 128 },
     'source_country': { type: 'country', maxLength: 128 },

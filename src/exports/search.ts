@@ -9,9 +9,12 @@ export {
 } from '../component/search-ui/filters/SearchUIFilters'
 export {
     CriterionTypeEnum,
+    CUSTOMER_LEVEL_DEPENDENCIES,
+    CustomerLevel,
     DATE_RANGE_SPEC_TYPES,
     ExactCriterionSearchLabelEnum,
     GroupingType,
+    GetCustomerLevelsRequest,
     LinkedEntityTypeEnum,
     MultichoiceFilterTypeEnum,
     MultigetCriterion,

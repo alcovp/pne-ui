@@ -35,6 +35,7 @@ type HookWrapProps = {
     predefinedCriteria?: CriterionTypeEnum[]
     config?: SearchUIFiltersConfig
     showVisaButton?: boolean
+    settingsContextName?: string
     initialSearchConditions?: Partial<SearchUIConditions>
     transactionSessionStatusesScenario?: TransactionSessionStatusesScenario
 }
@@ -103,6 +104,26 @@ const createInitialMultigetCriterion = (criterion: CriterionTypeEnum): MultigetC
         deselectedItemNames: '',
     }
 }
+
+const customerLevelMerchantCriterion: MultigetCriterion = {
+    entityType: LinkedEntityTypeEnum.MERCHANT,
+    filterType: MultichoiceFilterTypeEnum.NONE,
+    searchString: '',
+    selectedItems: '42',
+    selectedItemNames: 'Merchant 42',
+    deselectedItems: '',
+    deselectedItemNames: '',
+}
+
+const customerLevelStoryArgs = {
+    possibleCriteria: [
+        CriterionTypeEnum.CUSTOMER_LEVEL,
+        CriterionTypeEnum.MERCHANT,
+        CriterionTypeEnum.CURRENCY,
+    ],
+    predefinedCriteria: [CriterionTypeEnum.CUSTOMER_LEVEL],
+    showVisaButton: false,
+} satisfies HookWrapProps
 
 const allFiltersStoryPredefinedCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.EXACT,
@@ -243,6 +264,7 @@ const HookWrap = (props: HookWrapProps) => {
         predefinedCriteria = defaultPredefinedCriteria,
         config: storyConfig,
         showVisaButton = true,
+        settingsContextName = 'context',
         initialSearchConditions: initialSearchConditionsOverride,
         transactionSessionStatusesScenario = 'record',
     } = props
@@ -355,6 +377,23 @@ const HookWrap = (props: HookWrapProps) => {
                         { id: 99, displayName: 'BBB' },
                     ]
                 },
+                getCustomerLevels: async ({ merchantId, currencyIds }) => {
+                    const levels = [
+                        {
+                            level: { id: 1, displayName: `Regular (merchant ${merchantId})` },
+                            currencyIds: [1, 2],
+                        },
+                        {
+                            level: { id: 2, displayName: `VIP (merchant ${merchantId})` },
+                            currencyIds: [1],
+                        },
+                    ]
+
+                    return levels
+                        .filter(item => currencyIds.length === 0
+                            || item.currencyIds.some(currencyId => currencyIds.includes(currencyId)))
+                        .map(item => item.level)
+                },
                 getCardTypes: async () => {
                     return [
                         visaCardType,
@@ -450,7 +489,7 @@ const HookWrap = (props: HookWrapProps) => {
                     // sortColumnIndex: 1
                     },
                 }}
-                settingsContextName={'context'}
+                settingsContextName={settingsContextName}
                 exactSearchLabels={[
                 // ExactCriterionSearchLabelEnum.ALL,
                     ExactCriterionSearchLabelEnum.ID,
@@ -538,6 +577,62 @@ export const ConditionalOrdersSearch: Story = {
         showVisaButton: false,
         initialSearchConditions: {
             ordersSearchValue: 'invoice-1',
+        },
+    },
+}
+
+export const CustomerLevel: Story = {
+    args: {
+        ...customerLevelStoryArgs,
+        settingsContextName: 'storybook-customer-level-select-merchant',
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Customer Level stays disabled until exactly one merchant is selected.',
+            },
+        },
+    },
+}
+
+export const CustomerLevelWithOptions: Story = {
+    args: {
+        ...customerLevelStoryArgs,
+        settingsContextName: 'storybook-customer-level-with-options',
+        initialSearchConditions: {
+            multigetCriteria: [customerLevelMerchantCriterion],
+            currencies: {
+                all: false,
+                entities: [{ id: 1, displayName: 'USD' }],
+            },
+        },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Merchant 42 and USD load the Regular and VIP customer levels.',
+            },
+        },
+    },
+}
+
+export const CustomerLevelWithoutOptions: Story = {
+    args: {
+        ...customerLevelStoryArgs,
+        settingsContextName: 'storybook-customer-level-without-options',
+        initialSearchConditions: {
+            multigetCriteria: [customerLevelMerchantCriterion],
+            currencies: {
+                all: false,
+                entities: [{ id: 99, displayName: 'BBB' }],
+            },
+        },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Merchant 42 has no customer levels for BBB, so the empty-state placeholder is shown.',
+            },
         },
     },
 }

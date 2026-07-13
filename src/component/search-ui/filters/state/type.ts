@@ -111,6 +111,7 @@ export type SearchUIFiltersActions = {
     setExactCriterionSearchValue: (searchValue: string) => void
     setOrderSearchCriterionLabel: (searchLabel: OrderSearchLabel) => void
     setOrderSearchCriterionValue: (searchValue: string) => void
+    setCustomerLevelCriterion: (customerLevel: AbstractEntity | null) => void
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => void
     setCountriesCriterion: (countries: CountryAllableCollection) => void
     setDateRangeCriterionOrderDateType: (orderDateType: OrderDate) => void

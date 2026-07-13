@@ -11,6 +11,7 @@ export const createClearCriteriaUndoSnapshot = (
     exactSearchValue: state.exactSearchValue,
     ordersSearchLabel: state.ordersSearchLabel,
     ordersSearchValue: state.ordersSearchValue,
+    customerLevel: state.customerLevel,
     currencies: state.currencies,
     countries: state.countries,
     orderDateType: state.orderDateType,

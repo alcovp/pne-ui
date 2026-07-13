@@ -7,6 +7,7 @@ import {
     SearchUIFiltersHeaderSearch,
 } from './styled';
 import {
+    CUSTOMER_LEVEL_DEPENDENCIES,
     CriterionTypeEnum,
     DateRangeSpecType,
     ExactCriterionSearchLabelEnum,
@@ -273,15 +274,25 @@ export const SearchUIFiltersContent = (props: Props) => {
     const nothingToClear = criteria.every(criterion => nonRemovablePredefinedCriteria.includes(criterion))
     const criteriaOptions = adjustedPossibleCriteria
         .filter(criterion => !criteria.includes(criterion))
-        .filter(criterion => isCriterionAvailable(criterion, filtersState, config))
         .filter(possibleC => {
-            let show = true
-            conflictingCriteriaGroups?.forEach(group => {
-                if (group.includes(possibleC) && group.some(conflictingC => criteria.includes(conflictingC))) {
-                    show = false
+            const criteriaToAdd = possibleC === CriterionTypeEnum.CUSTOMER_LEVEL
+                ? [possibleC, ...CUSTOMER_LEVEL_DEPENDENCIES]
+                : [possibleC]
+
+            return criteriaToAdd.every(candidate => {
+                if (!isCriterionAvailable(candidate, filtersState, config)) {
+                    return false
                 }
+
+                if (criteria.includes(candidate)) {
+                    return true
+                }
+
+                return !conflictingCriteriaGroups?.some(group => (
+                    group.includes(candidate)
+                    && group.some(conflictingCriterion => criteria.includes(conflictingCriterion))
+                ))
             })
-            return show
         })
     const allCriteriaAdded = criteriaOptions.length === 0
     const showClearAllButton = !nothingToClear
@@ -456,5 +467,11 @@ export const filterAvailableCriteria = (
         // [CriterionTypeEnum.X]: defaults.showFormPayment3dsTemplatesCriterion(),
     }
 
-    return (criteria || []).filter(c => visibilityFlags[c] !== false)
+    const visibleCriteria = (criteria || []).filter(c => visibilityFlags[c] !== false)
+    const customerLevelDependenciesAvailable = visibleCriteria.includes(CriterionTypeEnum.MERCHANT)
+        && visibleCriteria.includes(CriterionTypeEnum.CURRENCY)
+
+    return visibleCriteria.filter(criterion => (
+        criterion !== CriterionTypeEnum.CUSTOMER_LEVEL || customerLevelDependenciesAvailable
+    ))
 }

@@ -25,6 +25,7 @@ import { exhaustiveCheck } from '../../..'
 import { OrdersSearchCriterion } from './component/criterion/orders-search/OrdersSearchCriterion'
 import { ProcessorLogEntryTypesCriterion } from './component/criterion/ProcessorLogEntryTypesCriterion'
 import { ErrorCodeCriterion } from './component/criterion/ErrorCodeCriterion'
+import { CustomerLevelCriterion } from './component/criterion/CustomerLevelCriterion'
 
 interface IProps {
     type: CriterionTypeEnum
@@ -93,6 +94,8 @@ export const CriterionContainer = (props: IProps) => {
                 return <ThreeDCriterion/>
             case CriterionTypeEnum.CURRENCY:
                 return <CurrenciesCriterion/>
+            case CriterionTypeEnum.CUSTOMER_LEVEL:
+                return <CustomerLevelCriterion/>
             case CriterionTypeEnum.DATE_RANGE:
                 return <DateRangeCriterion/>
             case CriterionTypeEnum.DATE_RANGE_ORDERS:
