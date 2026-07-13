@@ -1,4 +1,4 @@
-import { useSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
+import { createSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
 import {
     CriterionTypeEnum,
     DateRangeSpec,
@@ -9,6 +9,7 @@ import {
     TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../src/component/search-ui/filters/types'
+import type { SearchUIRetentionSnapshot } from '../src/component/search-ui/filters/state/type'
 import {
     createDateOnlyPickerDate,
     createDateOnlyPickerValue,
@@ -26,6 +27,8 @@ import dayjs from 'dayjs'
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
 
 describe('SearchUIFilters Zustand store', () => {
+    let store: ReturnType<typeof createSearchUIFiltersStore>
+
     const createTransactionSessionStatus = (displayName: string, selected = true): TransactionSessionStatus => ({
         displayName,
         selected,
@@ -33,8 +36,9 @@ describe('SearchUIFilters Zustand store', () => {
 
     beforeEach(() => {
         localStorage.clear()
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        useSearchUIFiltersStore.setState({
+        store = createSearchUIFiltersStore()
+        store.setState(getSearchUIFiltersInitialState())
+        store.setState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
             onFiltersUpdate: () => {
@@ -43,18 +47,18 @@ describe('SearchUIFilters Zustand store', () => {
     })
 
     it('adds criterion', () => {
-        const { addCriterion } = useSearchUIFiltersStore.getState()
+        const { addCriterion } = store.getState()
         addCriterion(CriterionTypeEnum.CURRENCY)
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.criteria).toContain(CriterionTypeEnum.CURRENCY)
         expect(state.justAddedCriterion).toBe(CriterionTypeEnum.CURRENCY)
     })
 
     it('removes criterion', () => {
-        useSearchUIFiltersStore.setState({ criteria: [CriterionTypeEnum.CURRENCY, CriterionTypeEnum.STATUS] })
-        const { removeCriterion } = useSearchUIFiltersStore.getState()
+        store.setState({ criteria: [CriterionTypeEnum.CURRENCY, CriterionTypeEnum.STATUS] })
+        const { removeCriterion } = store.getState()
         removeCriterion(CriterionTypeEnum.CURRENCY)
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.criteria).toEqual([CriterionTypeEnum.STATUS])
     })
 
@@ -62,8 +66,8 @@ describe('SearchUIFilters Zustand store', () => {
         const saveSearchTemplate = jest.fn().mockResolvedValue(undefined)
         const defaults = { ...initialSearchUIDefaults, saveSearchTemplate }
         const initial = getSearchUIFiltersInitialState()
-        useSearchUIFiltersStore.setState(initial)
-        useSearchUIFiltersStore.setState({
+        store.setState(initial)
+        store.setState({
             defaults,
             settingsContextName: 'ctx',
             criteria: [CriterionTypeEnum.STATUS],
@@ -71,12 +75,12 @@ describe('SearchUIFilters Zustand store', () => {
             },
         })
 
-        const { createTemplate } = useSearchUIFiltersStore.getState()
+        const { createTemplate } = store.getState()
         createTemplate('tmpl')
         await flushPromises()
         await flushPromises()
         expect(saveSearchTemplate).toHaveBeenCalled()
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.templates.map(t => t.name)).toContain('tmpl')
         expect(state.template?.name).toBe('tmpl')
         expect(localStorage.getItem('last_template_namectx')).toBe('tmpl')
@@ -89,19 +93,19 @@ describe('SearchUIFilters Zustand store', () => {
         }
         const getSearchTemplates = jest.fn().mockResolvedValue([template])
         const defaults = { ...initialSearchUIDefaults, getSearchTemplates }
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        useSearchUIFiltersStore.setState({
+        store.setState(getSearchUIFiltersInitialState())
+        store.setState({
             defaults,
             settingsContextName: 'ctx',
             onFiltersUpdate: () => {
             },
         })
 
-        const { loadTemplates } = useSearchUIFiltersStore.getState()
+        const { loadTemplates } = store.getState()
         loadTemplates()
         await flushPromises()
         await flushPromises()
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.templates).toEqual([template])
         expect(getSearchTemplates).toHaveBeenCalledWith('ctx')
     })
@@ -120,8 +124,8 @@ describe('SearchUIFilters Zustand store', () => {
         }
         const getSearchTemplates = jest.fn().mockResolvedValue([template])
         const defaults = { ...initialSearchUIDefaults, getSearchTemplates }
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        useSearchUIFiltersStore.setState({
+        store.setState(getSearchUIFiltersInitialState())
+        store.setState({
             defaults,
             settingsContextName: 'ctx',
             possibleCriteria: [CriterionTypeEnum.MERCHANT],
@@ -129,12 +133,12 @@ describe('SearchUIFilters Zustand store', () => {
             },
         })
 
-        const { loadTemplates } = useSearchUIFiltersStore.getState()
+        const { loadTemplates } = store.getState()
         loadTemplates()
         await flushPromises()
         await flushPromises()
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         const normalizedCriterion = state.templates[0].searchConditions.multigetCriteria[0]
         expect(normalizedCriterion).toMatchObject({
             entityType: LinkedEntityTypeEnum.MERCHANT,
@@ -147,7 +151,7 @@ describe('SearchUIFilters Zustand store', () => {
         })
 
         state.setTemplate(state.templates[0])
-        expect(useSearchUIFiltersStore.getState().multigetCriteria[0]).toMatchObject({
+        expect(store.getState().multigetCriteria[0]).toMatchObject({
             selectedItems: '',
             selectedItemNames: '',
             deselectedItems: '',
@@ -167,8 +171,8 @@ describe('SearchUIFilters Zustand store', () => {
         const getSearchTemplates = jest.fn().mockResolvedValue([template])
         const onFiltersUpdate = jest.fn()
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        store.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: {
                 ...initialSearchUIDefaults,
@@ -183,18 +187,112 @@ describe('SearchUIFilters Zustand store', () => {
 
         localStorage.setItem('last_template_namectx', 'stored')
 
-        const { loadTemplates } = useSearchUIFiltersStore.getState()
+        const { loadTemplates } = store.getState()
         loadTemplates()
         await flushPromises()
         await flushPromises()
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(getSearchTemplates).toHaveBeenCalledWith('ctx')
         expect(state.template?.name).toBe('stored')
         expect(state.hasUnappliedFilters).toBe(false)
         expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
             status: 'E',
         }))
+    })
+
+    it('loads templates without overwriting retained filter conditions', async () => {
+        const template: SearchUITemplate = {
+            name: 'stored',
+            searchConditions: {
+                ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                criteria: [CriterionTypeEnum.STATUS],
+                status: 'DISABLED',
+            },
+        }
+        const getSearchTemplates = jest.fn().mockResolvedValue([template])
+        const onFiltersUpdate = jest.fn()
+        const retainedSnapshot: SearchUIRetentionSnapshot = {
+            searchConditions: {
+                ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                criteria: [CriterionTypeEnum.STATUS],
+                status: 'ENABLED',
+            },
+            appliedSearchCriteria: null,
+            activeTemplateName: 'stored',
+            hasUnappliedFilters: false,
+            possibleCriteria: [CriterionTypeEnum.STATUS],
+            predefinedCriteria: [],
+            exactSearchLabels: [],
+            manualSearch: false,
+        }
+
+        const { setInitialState } = store.getState()
+        setInitialState({
+            defaults: {
+                ...initialSearchUIDefaults,
+                getSearchTemplates,
+            },
+            settingsContextName: 'ctx',
+            possibleCriteria: [CriterionTypeEnum.STATUS],
+            predefinedCriteria: [],
+            exactSearchLabels: [],
+            onFiltersUpdate,
+        }, retainedSnapshot)
+
+        localStorage.setItem('last_template_namectx', 'stored')
+        store.getState().loadTemplates()
+        await flushPromises()
+        await flushPromises()
+
+        const state = store.getState()
+        expect(state.restoredFromRetention).toBe(true)
+        expect(state.status).toBe('ENABLED')
+        expect(state.template?.name).toBe('stored')
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'E' }))
+        expect(onFiltersUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'D' }))
+    })
+
+    it('does not auto-apply the last template when external conditions are provided', async () => {
+        const template: SearchUITemplate = {
+            name: 'stored',
+            searchConditions: {
+                ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                criteria: [CriterionTypeEnum.STATUS],
+                status: 'DISABLED',
+            },
+        }
+        const getSearchTemplates = jest.fn().mockResolvedValue([template])
+        const onFiltersUpdate = jest.fn()
+
+        store.getState().setInitialState({
+            defaults: {
+                ...initialSearchUIDefaults,
+                getSearchTemplates,
+            },
+            settingsContextName: 'ctx',
+            possibleCriteria: [CriterionTypeEnum.STATUS],
+            predefinedCriteria: [],
+            exactSearchLabels: [],
+            onFiltersUpdate,
+        })
+        store.getState().updateConditions({
+            criteria: [CriterionTypeEnum.STATUS],
+            status: 'ENABLED',
+        }, {
+            forceSearch: true,
+            resetTemplate: true,
+        })
+
+        localStorage.setItem('last_template_namectx', 'stored')
+        store.getState().loadTemplates()
+        await flushPromises()
+        await flushPromises()
+
+        const state = store.getState()
+        expect(state.status).toBe('ENABLED')
+        expect(state.template).toBeNull()
+        expect(onFiltersUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'D' }))
     })
 
     it('initializes a new context without leaking previous filter values', () => {
@@ -204,7 +302,7 @@ describe('SearchUIFilters Zustand store', () => {
         }
         const onFiltersUpdate = jest.fn()
 
-        useSearchUIFiltersStore.setState({
+        store.setState({
             settingsContextName: 'GatesListPage',
             possibleCriteria: [
                 CriterionTypeEnum.EXACT,
@@ -233,7 +331,7 @@ describe('SearchUIFilters Zustand store', () => {
             hasUnappliedFilters: true,
         })
 
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ProjectsListPage',
@@ -250,7 +348,7 @@ describe('SearchUIFilters Zustand store', () => {
             onFiltersUpdate,
         })
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.settingsContextName).toBe('ProjectsListPage')
         expect(state.criteria).toEqual([])
         expect(state.currencies).toEqual({ all: true, entities: [] })
@@ -269,10 +367,10 @@ describe('SearchUIFilters Zustand store', () => {
     })
 
     it('applies external searchConditions without breaking possible criteria', () => {
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
+        store.setState(getSearchUIFiltersInitialState())
         const onFiltersUpdate = jest.fn()
         const visaCard = { id: 1, displayName: 'VISA' }
-        useSearchUIFiltersStore.setState({
+        store.setState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
             onFiltersUpdate,
@@ -282,13 +380,13 @@ describe('SearchUIFilters Zustand store', () => {
             multigetCriteria: [],
         })
 
-        const { updateConditions, setCardTypesCriterion } = useSearchUIFiltersStore.getState()
+        const { updateConditions, setCardTypesCriterion } = store.getState()
         updateConditions({
             criteria: [CriterionTypeEnum.MERCHANT, CriterionTypeEnum.PROJECT, CriterionTypeEnum.CARD_TYPES],
             cardTypes: { all: false, entities: [visaCard] },
         })
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.criteria).toEqual([CriterionTypeEnum.STATUS, CriterionTypeEnum.PROJECT, CriterionTypeEnum.CARD_TYPES])
         expect(state.multigetCriteria).toHaveLength(1)
         expect(state.multigetCriteria[0].entityType).toBe(LinkedEntityTypeEnum.PROJECT)
@@ -301,7 +399,7 @@ describe('SearchUIFilters Zustand store', () => {
         expect(onFiltersUpdate).toHaveBeenCalled()
 
         setCardTypesCriterion({ all: true, entities: [] })
-        const afterRemoval = useSearchUIFiltersStore.getState()
+        const afterRemoval = store.getState()
         expect(afterRemoval.cardTypes).toEqual({ all: true, entities: [] })
     })
 
@@ -313,8 +411,8 @@ describe('SearchUIFilters Zustand store', () => {
             searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
         }
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        store.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
@@ -324,10 +422,10 @@ describe('SearchUIFilters Zustand store', () => {
                 manualSearch: true,
             },
         })
-        useSearchUIFiltersStore.setState({ template })
+        store.setState({ template })
         onFiltersUpdate.mockClear()
 
-        const { updateConditions } = useSearchUIFiltersStore.getState()
+        const { updateConditions } = store.getState()
         updateConditions({
             criteria: [CriterionTypeEnum.CARD_TYPES],
             cardTypes: { all: false, entities: [visaCard] },
@@ -336,7 +434,7 @@ describe('SearchUIFilters Zustand store', () => {
             resetTemplate: true,
         })
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.template).toBeNull()
         expect(state.hasUnappliedFilters).toBe(false)
         expect(state.cardTypes).toEqual({ all: false, entities: [visaCard] })
@@ -354,8 +452,8 @@ describe('SearchUIFilters Zustand store', () => {
             beforeCount: 1,
         }
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        store.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
@@ -381,8 +479,8 @@ describe('SearchUIFilters Zustand store', () => {
             beforeCount: 1,
         }
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        store.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
@@ -413,8 +511,8 @@ describe('SearchUIFilters Zustand store', () => {
             beforeCount: 1,
         }
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        store.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
@@ -449,8 +547,8 @@ describe('SearchUIFilters Zustand store', () => {
     it('reruns search with current filters when manual filters are already applied', () => {
         const onFiltersUpdate = jest.fn()
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        useSearchUIFiltersStore.setState({
+        store.setState(getSearchUIFiltersInitialState())
+        store.setState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
             onFiltersUpdate,
@@ -462,10 +560,10 @@ describe('SearchUIFilters Zustand store', () => {
             hasUnappliedFilters: false,
         })
 
-        const { triggerSearch } = useSearchUIFiltersStore.getState()
+        const { triggerSearch } = store.getState()
         triggerSearch()
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.hasUnappliedFilters).toBe(false)
         expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
             initialized: true,
@@ -476,8 +574,8 @@ describe('SearchUIFilters Zustand store', () => {
     it('removes unavailable predefined criteria and restores them when they become available', () => {
         const onFiltersUpdate = jest.fn()
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        store.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
@@ -504,10 +602,10 @@ describe('SearchUIFilters Zustand store', () => {
         })
 
         onFiltersUpdate.mockClear()
-        const { setDateRangeCriterionOrderDateType } = useSearchUIFiltersStore.getState()
+        const { setDateRangeCriterionOrderDateType } = store.getState()
         setDateRangeCriterionOrderDateType('BANK')
 
-        const unavailableState = useSearchUIFiltersStore.getState()
+        const unavailableState = store.getState()
         expect(unavailableState.criteria).toEqual([CriterionTypeEnum.DATE_RANGE_ORDERS])
         expect(unavailableState.ordersSearchLabel).toBe('merchant_invoice_id')
         expect(unavailableState.ordersSearchValue).toBe('')
@@ -518,7 +616,7 @@ describe('SearchUIFilters Zustand store', () => {
 
         setDateRangeCriterionOrderDateType('SESSION_STATUS_CHANGED')
 
-        const availableState = useSearchUIFiltersStore.getState()
+        const availableState = store.getState()
         expect(availableState.criteria).toEqual([
             CriterionTypeEnum.DATE_RANGE_ORDERS,
             CriterionTypeEnum.ORDERS_SEARCH,
@@ -528,8 +626,8 @@ describe('SearchUIFilters Zustand store', () => {
     it('does not apply unavailable criteria from external searchConditions', () => {
         const onFiltersUpdate = jest.fn()
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        const { setInitialState } = useSearchUIFiltersStore.getState()
+        store.setState(getSearchUIFiltersInitialState())
+        const { setInitialState } = store.getState()
         setInitialState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
@@ -544,14 +642,14 @@ describe('SearchUIFilters Zustand store', () => {
             },
         })
 
-        const { updateConditions } = useSearchUIFiltersStore.getState()
+        const { updateConditions } = store.getState()
         updateConditions({
             criteria: [CriterionTypeEnum.ORDERS_SEARCH],
             ordersSearchValue: 'invoice-2',
             orderDateType: 'BANK',
         })
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.criteria).toEqual([])
         expect(state.ordersSearchValue).toBe('')
         expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
@@ -567,8 +665,8 @@ describe('SearchUIFilters Zustand store', () => {
             searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
         }
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        useSearchUIFiltersStore.setState({
+        store.setState(getSearchUIFiltersInitialState())
+        store.setState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
             onFiltersUpdate,
@@ -579,14 +677,14 @@ describe('SearchUIFilters Zustand store', () => {
         })
         localStorage.setItem('last_template_namectx', 'stored')
 
-        const snapshot = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
-        const { clearCriteria, restoreClearCriteriaSnapshot } = useSearchUIFiltersStore.getState()
+        const snapshot = createClearCriteriaUndoSnapshot(store.getState())
+        const { clearCriteria, restoreClearCriteriaSnapshot } = store.getState()
 
         clearCriteria()
         onFiltersUpdate.mockClear()
         restoreClearCriteriaSnapshot(snapshot)
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.criteria).toEqual([CriterionTypeEnum.STATUS])
         expect(state.status).toBe('ENABLED')
         expect(state.template?.name).toBe('stored')
@@ -600,8 +698,8 @@ describe('SearchUIFilters Zustand store', () => {
     it('restores a clear-all snapshot without searching when manual changes were unapplied', () => {
         const onFiltersUpdate = jest.fn()
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        useSearchUIFiltersStore.setState({
+        store.setState(getSearchUIFiltersInitialState())
+        store.setState({
             defaults: initialSearchUIDefaults,
             settingsContextName: 'ctx',
             onFiltersUpdate,
@@ -613,14 +711,14 @@ describe('SearchUIFilters Zustand store', () => {
             hasUnappliedFilters: true,
         })
 
-        const snapshot = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
-        const { clearCriteria, restoreClearCriteriaSnapshot } = useSearchUIFiltersStore.getState()
+        const snapshot = createClearCriteriaUndoSnapshot(store.getState())
+        const { clearCriteria, restoreClearCriteriaSnapshot } = store.getState()
 
         clearCriteria()
         onFiltersUpdate.mockClear()
         restoreClearCriteriaSnapshot(snapshot)
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(state.criteria).toEqual([CriterionTypeEnum.STATUS])
         expect(state.status).toBe('ENABLED')
         expect(state.hasUnappliedFilters).toBe(true)
@@ -647,8 +745,8 @@ describe('SearchUIFilters Zustand store', () => {
         const getTransactionSessionStatuses = jest.fn().mockResolvedValue(transactionSessionStatuses)
         const onFiltersUpdate = jest.fn()
 
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-        useSearchUIFiltersStore.setState({
+        store.setState(getSearchUIFiltersInitialState())
+        store.setState({
             defaults: {
                 ...initialSearchUIDefaults,
                 getTransactionSessionStatuses,
@@ -657,12 +755,12 @@ describe('SearchUIFilters Zustand store', () => {
             onFiltersUpdate,
         })
 
-        const { addCriterion } = useSearchUIFiltersStore.getState()
+        const { addCriterion } = store.getState()
         addCriterion(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
         await flushPromises()
         await flushPromises()
 
-        const state = useSearchUIFiltersStore.getState()
+        const state = store.getState()
         expect(getTransactionSessionStatuses).toHaveBeenCalled()
         expect(state.prefetchedData.transactionSessionStatuses).toBeInstanceOf(Map)
         expect(state.prefetchedData.transactionSessionStatuses?.get('APPROVED')).toEqual(transactionSessionStatuses.APPROVED)

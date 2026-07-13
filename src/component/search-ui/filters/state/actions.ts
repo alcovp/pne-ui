@@ -3,6 +3,7 @@ import {
     SearchUIFiltersState,
     SearchUIFiltersStore,
     SearchUIPrefetchedTransactionSessionStatuses,
+    SearchUIRetentionSnapshot,
 } from './type'
 import {
     AbstractEntity,
@@ -161,87 +162,178 @@ type SearchUIConditionsUpdateOptions = SearchUIUpdateOptions & {
     resetTemplate?: boolean
 }
 
+const isRetainedSnapshotCompatible = (
+    snapshot: SearchUIRetentionSnapshot,
+    state: SearchUIFiltersState,
+): boolean => {
+    return isEqual(snapshot.possibleCriteria, state.possibleCriteria)
+        && isEqual(snapshot.predefinedCriteria, state.predefinedCriteria)
+        && isEqual(snapshot.exactSearchLabels, state.exactSearchLabels)
+        && snapshot.manualSearch === !!state.config?.manualSearch
+}
+
+const applyConditionsReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+    conditions: Partial<SearchUIConditions>,
+): void => {
+    const {
+        criteria: incomingCriteria,
+        multigetCriteria: incomingMultigetCriteria,
+        ...rest
+    } = conditions
+
+    const prevCriteria = draft.criteria.slice()
+
+    Object.assign(draft, rest)
+
+    if (incomingCriteria !== undefined) {
+        const allowedCriteria = new Set([
+            ...draft.predefinedCriteria,
+            ...draft.possibleCriteria,
+        ])
+
+        const sanitizedIncoming = Array.from(new Set(
+            incomingCriteria.filter(criterion => allowedCriteria.has(criterion)),
+        ))
+
+        const mergedCriteria = Array.from(new Set([
+            ...draft.predefinedCriteria,
+            ...sanitizedIncoming,
+        ]))
+
+        const removedCriteria = prevCriteria.filter(criterion => !mergedCriteria.includes(criterion))
+        removedCriteria.forEach(criterion => {
+            clearCriterionReducer(draft, criterion)
+        })
+
+        const addedCriteria = mergedCriteria.filter(criterion => !prevCriteria.includes(criterion))
+
+        if (incomingMultigetCriteria === undefined) {
+            addedCriteria.forEach(criterion => {
+                addInitialMultigetCriterionReducer(draft, criterion)
+            })
+        }
+
+        draft.criteria = mergedCriteria
+    }
+
+    if (incomingMultigetCriteria !== undefined) {
+        const sanitizedMultigetCriteria = sanitizeMultigetCriteria(
+            incomingMultigetCriteria,
+            draft.criteria,
+        )
+
+        const missingEntityTypes = draft.criteria
+            .map(getLinkedEntityTypeByCriterion)
+            .filter((entityType): entityType is LinkedEntityTypeEnum => entityType !== null)
+            .filter(entityType => !sanitizedMultigetCriteria.some(item => item.entityType === entityType))
+
+        missingEntityTypes.forEach(entityType => {
+            sanitizedMultigetCriteria.push(getInitialMultigetCriterion(entityType))
+        })
+
+        draft.multigetCriteria = sanitizedMultigetCriteria
+    }
+}
+
+const restoreAppliedSearchCriteria = (
+    snapshot: SearchUIRetentionSnapshot,
+    retainedDraftSearchCriteria: SearchCriteria,
+    currentSearchCriteria: SearchCriteria,
+): SearchCriteria => {
+    if (!snapshot.hasUnappliedFilters || !snapshot.appliedSearchCriteria) {
+        return currentSearchCriteria
+    }
+
+    const retainedDraftWithoutDates = {
+        ...retainedDraftSearchCriteria,
+        dateFrom: currentSearchCriteria.dateFrom,
+        dateTo: currentSearchCriteria.dateTo,
+    }
+
+    if (!isEqual(retainedDraftWithoutDates, currentSearchCriteria)) {
+        return currentSearchCriteria
+    }
+
+    return {
+        ...cloneDeep(snapshot.appliedSearchCriteria),
+        dateFrom: isEqual(snapshot.appliedSearchCriteria.dateFrom, retainedDraftSearchCriteria.dateFrom)
+            ? currentSearchCriteria.dateFrom
+            : snapshot.appliedSearchCriteria.dateFrom,
+        dateTo: isEqual(snapshot.appliedSearchCriteria.dateTo, retainedDraftSearchCriteria.dateTo)
+            ? currentSearchCriteria.dateTo
+            : snapshot.appliedSearchCriteria.dateTo,
+    }
+}
+
 export const getSearchUIFiltersActions = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
 ): SearchUIFiltersActions => ({
-    setInitialState: (state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>) => {
+    setInitialState: (
+        state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
+        retainedSnapshot?: SearchUIRetentionSnapshot,
+    ) => {
         set((draft) => {
-            return {
+            const initialState = {
                 ...draft,
                 ...getSearchUIFiltersInitialState(),
                 ...getSearchUIInitialSearchCriteria(state.defaults),
                 ...state,
             }
+
+            Object.assign(draft, initialState)
+
+            if (retainedSnapshot && isRetainedSnapshotCompatible(retainedSnapshot, initialState)) {
+                applyConditionsReducer(draft, retainedSnapshot.searchConditions)
+                draft.activeTemplateName = retainedSnapshot.activeTemplateName
+                draft.restoredFromRetention = true
+            }
+
+            draft.initialized = true
         })
-        postUpdate(set, get)
+
+        const retainedDraftSearchCriteria = get().restoredFromRetention
+            ? extractSearchCriteriaFromState(get())
+            : null
+
+        syncCriterionAvailability(set, get)
+        normalizeRetainedDateRange(set, get)
+        ensureTransactionSessionStatusesPrefetched(set, get)
+
+        if (get().restoredFromRetention && retainedSnapshot && retainedDraftSearchCriteria) {
+            const currentSearchCriteria = extractSearchCriteriaFromState(get())
+            const appliedSearchCriteria = get().config?.manualSearch
+                ? restoreAppliedSearchCriteria(
+                    retainedSnapshot,
+                    retainedDraftSearchCriteria,
+                    currentSearchCriteria,
+                )
+                : currentSearchCriteria
+
+            get().onFiltersUpdate(appliedSearchCriteria)
+            set((draft) => {
+                draft.prevSearchCriteria = currentSearchCriteria
+                draft.appliedSearchCriteria = appliedSearchCriteria
+                draft.hasUnappliedFilters = !!draft.config?.manualSearch
+                    && !isEqual(currentSearchCriteria, appliedSearchCriteria)
+            })
+            return
+        }
+
+        checkIfFiltersChanged(set, get)
     },
     updateConditions: (
         conditions: Partial<SearchUIConditions>,
         options?: SearchUIConditionsUpdateOptions,
     ) => {
         set((draft) => {
-            const {
-                criteria: incomingCriteria,
-                multigetCriteria: incomingMultigetCriteria,
-                ...rest
-            } = conditions
-
-            const prevCriteria = draft.criteria.slice()
-
-            Object.assign(draft, rest)
-
-            if (incomingCriteria !== undefined) {
-                const allowedCriteria = new Set([
-                    ...draft.predefinedCriteria,
-                    ...draft.possibleCriteria,
-                ])
-
-                const sanitizedIncoming = Array.from(new Set(
-                    incomingCriteria.filter(criterion => allowedCriteria.has(criterion)),
-                ))
-
-                const mergedCriteria = Array.from(new Set([
-                    ...draft.predefinedCriteria,
-                    ...sanitizedIncoming,
-                ]))
-
-                const removedCriteria = prevCriteria.filter(criterion => !mergedCriteria.includes(criterion))
-                removedCriteria.forEach(criterion => {
-                    clearCriterionReducer(draft, criterion)
-                })
-
-                const addedCriteria = mergedCriteria.filter(criterion => !prevCriteria.includes(criterion))
-
-                if (incomingMultigetCriteria === undefined) {
-                    addedCriteria.forEach(criterion => {
-                        addInitialMultigetCriterionReducer(draft, criterion)
-                    })
-                }
-
-                draft.criteria = mergedCriteria
-            }
-
-            if (incomingMultigetCriteria !== undefined) {
-                const sanitizedMultigetCriteria = sanitizeMultigetCriteria(
-                    incomingMultigetCriteria,
-                    draft.criteria,
-                )
-
-                const missingEntityTypes = draft.criteria
-                    .map(getLinkedEntityTypeByCriterion)
-                    .filter((entityType): entityType is LinkedEntityTypeEnum => entityType !== null)
-                    .filter(entityType => !sanitizedMultigetCriteria.some(item => item.entityType === entityType))
-
-                missingEntityTypes.forEach(entityType => {
-                    sanitizedMultigetCriteria.push(getInitialMultigetCriterion(entityType))
-                })
-
-                draft.multigetCriteria = sanitizedMultigetCriteria
-            }
+            applyConditionsReducer(draft, conditions)
 
             if (options?.resetTemplate) {
                 draft.template = null
+                draft.activeTemplateName = null
+                draft.skipLastTemplateAutoApply = true
             }
         })
         postUpdate(set, get, options)
@@ -263,6 +355,7 @@ export const getSearchUIFiltersActions = (
         set(draft => {
             Object.assign(draft, conditions)
             draft.template = template
+            draft.activeTemplateName = template?.name ?? null
         })
         syncCriterionAvailability(set, get)
 
@@ -274,6 +367,9 @@ export const getSearchUIFiltersActions = (
 
         set(draft => {
             draft.prevSearchCriteria = currentSearchCriteria
+            if (!hasUnappliedFilters) {
+                draft.appliedSearchCriteria = currentSearchCriteria
+            }
             draft.hasUnappliedFilters = hasUnappliedFilters
         })
     },
@@ -286,6 +382,7 @@ export const getSearchUIFiltersActions = (
                 ...getSearchUIInitialSearchCriteria(draft.defaults),
                 exactSearchLabel: draft.exactSearchLabels[0],
                 template: null,
+                activeTemplateName: null,
                 criteria: draft.predefinedCriteria,
             }
         })
@@ -327,6 +424,7 @@ export const getSearchUIFiltersActions = (
                 set((draft) => {
                     draft.templates.push(template)
                     draft.template = template
+                    draft.activeTemplateName = template.name
                 })
             })
             // .catch(raiseUIError)
@@ -344,6 +442,7 @@ export const getSearchUIFiltersActions = (
                     const index = draft.templates.findIndex(t => t.name === templateName)
                     draft.templates[index].searchConditions = template.searchConditions
                     draft.template = template
+                    draft.activeTemplateName = template.name
                 })
             })
             // .catch(raiseUIError)
@@ -366,6 +465,7 @@ export const getSearchUIFiltersActions = (
                     if (draft.template?.name === template.name) {
                         Object.assign(draft, getSearchUIInitialSearchCriteria(draft.defaults))
                         draft.template = null
+                        draft.activeTemplateName = null
                         draft.criteria = draft.predefinedCriteria
                     }
                 })
@@ -396,20 +496,41 @@ export const getSearchUIFiltersActions = (
             return {
                 ...draft,
                 template: template,
+                activeTemplateName: template.name,
                 ...conditions,
             }
         })
         postUpdate(set, get, options)
     },
     loadTemplates: () => {
-        get().defaults.getSearchTemplates(get().settingsContextName)
+        const settingsContextName = get().settingsContextName
+        const defaults = get().defaults
+
+        defaults.getSearchTemplates(settingsContextName)
             .then(templates => {
+                if (get().settingsContextName !== settingsContextName) {
+                    return
+                }
+
                 const normalizedTemplates = templates.map(normalizeSearchUITemplate)
                 set((draft) => {
                     draft.templates = normalizedTemplates
                 })
 
-                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + get().settingsContextName)
+                if (get().restoredFromRetention) {
+                    const activeTemplate = normalizedTemplates.find(t => t.name === get().activeTemplateName) ?? null
+                    set((draft) => {
+                        draft.template = activeTemplate
+                        draft.activeTemplateName = activeTemplate?.name ?? null
+                    })
+                    return
+                }
+
+                if (get().skipLastTemplateAutoApply) {
+                    return
+                }
+
+                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + settingsContextName)
                 const lastTemplate = normalizedTemplates.find(t => t.name === lastTemplateName)
                 if (lastTemplate) {
                     get().setTemplate(lastTemplate, { forceSearch: true })
@@ -630,6 +751,7 @@ export const getSearchUIFiltersActions = (
         const currentSearchCriteria = extractSearchCriteriaFromState(get())
         get().onFiltersUpdate(currentSearchCriteria)
         set((draft) => {
+            draft.appliedSearchCriteria = currentSearchCriteria
             draft.hasUnappliedFilters = false
         })
     },
@@ -1067,6 +1189,26 @@ const postUpdate = (
     checkIfFiltersChanged(set, get, options)
 }
 
+const normalizeRetainedDateRange = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+): void => {
+    const state = get()
+    if (!state.restoredFromRetention || state.dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
+        return
+    }
+
+    const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(state.criteria, state.config)
+    const normalizedDateRange = calculateNonExactDates(
+        state.dateRangeSpec,
+        getNonExactDateRangeTimeZone(state.config, timeSelectionEnabled),
+    )
+
+    set(draft => {
+        draft.dateRangeSpec = normalizedDateRange
+    })
+}
+
 const syncCriterionAvailability = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
@@ -1148,6 +1290,7 @@ const checkIfFiltersChanged = (
             get().onFiltersUpdate(currentSearchCriteria)
             set((draft) => {
                 draft.prevSearchCriteria = currentSearchCriteria
+                draft.appliedSearchCriteria = currentSearchCriteria
                 draft.hasUnappliedFilters = false
             })
         }

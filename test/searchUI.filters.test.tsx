@@ -4,8 +4,6 @@ import { render, screen, waitFor } from '@testing-library/react'
 import 'jest-canvas-mock'
 
 import { SearchUIFilters } from '../src/component/search-ui/filters/SearchUIFilters'
-import { getSearchUIFiltersInitialState } from '../src/component/search-ui/filters/state/initial'
-import { useSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -28,10 +26,6 @@ describe('SearchUIFilters search button', () => {
             {...props}
         />,
     )
-
-    beforeEach(() => {
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-    })
 
     it('renders Refresh in automatic search mode', async () => {
         renderFilters()

@@ -23,6 +23,17 @@ import {SearchUIDefaults} from '../../SearchUIProvider';
 
 export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 
+export type SearchUIRetentionSnapshot = {
+    searchConditions: SearchUIConditions
+    appliedSearchCriteria: SearchCriteria | null
+    activeTemplateName: string | null
+    hasUnappliedFilters: boolean
+    possibleCriteria: CriterionTypeEnum[]
+    predefinedCriteria: CriterionTypeEnum[]
+    exactSearchLabels: ExactCriterionSearchLabelEnum[]
+    manualSearch: boolean
+}
+
 export type SearchUIPrefetchedTransactionSessionStatuses = Map<TransactionSessionGroup, TransactionSessionStatus[]>
 
 export type SearchUIPrefetchedData = {
@@ -43,17 +54,22 @@ export type SearchUIClearCriteriaUndoSnapshot = SearchUIConditions & {
 }
 
 export type SearchUIFiltersState = SearchUIConditions & {
+    initialized: boolean
     defaults: SearchUIDefaults
     settingsContextName: string
     possibleCriteria: CriterionTypeEnum[]
     predefinedCriteria: CriterionTypeEnum[]
     exactSearchLabels: ExactCriterionSearchLabelEnum[]
     template: SearchUITemplate | null
+    activeTemplateName: string | null
     templates: SearchUITemplate[]
     justAddedCriterion: CriterionTypeEnum | null
     config?: SearchUIFiltersConfig
     prevSearchCriteria: SearchCriteria | null
+    appliedSearchCriteria: SearchCriteria | null
     hasUnappliedFilters: boolean
+    restoredFromRetention: boolean
+    skipLastTemplateAutoApply: boolean
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
     prefetchedData: SearchUIPrefetchedData
     prefetchedDataLoading: SearchUIPrefetchedDataLoading
@@ -61,7 +77,10 @@ export type SearchUIFiltersState = SearchUIConditions & {
 }
 
 export type SearchUIFiltersActions = {
-    setInitialState: (state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>) => void
+    setInitialState: (
+        state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
+        retainedSnapshot?: SearchUIRetentionSnapshot,
+    ) => void
     updateConditions: (
         conditions: Partial<SearchUIConditions>,
         options?: {

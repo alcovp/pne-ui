@@ -16,7 +16,11 @@ import {
 } from './types';
 import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
 import {useTranslation} from 'react-i18next';
-import {useSearchUIFiltersStore} from './state/store';
+import {
+    useSearchUIFiltersStore,
+    useSearchUIFiltersStoreApi,
+    useSearchUIFiltersStoreContext,
+} from './state/store';
 import {Box, Chip, IconButton, SxProps} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import isEqual from 'lodash/isEqual';
@@ -27,6 +31,8 @@ import {SearchUIDefaultsContext} from "../SearchUIProvider";
 import {createClearCriteriaUndoSnapshot} from './state/undo';
 import {isCriterionAvailable} from './criterionAvailability';
 import type { SearchUIDateOnlyTimeZone } from './dateRangeTimeZone';
+import {SearchUIFiltersStoreProvider} from './state/SearchUIFiltersStoreProvider';
+import {getRetainedSearchUIState} from './state/retention';
 
 type PendingClearCriteriaUndo = {
     snackbarId: string
@@ -138,6 +144,15 @@ type Props = {
  * @param props Свойства компонента.
  */
 export const SearchUIFilters = (props: Props) => {
+    return <SearchUIFiltersStoreProvider
+        key={props.settingsContextName}
+        settingsContextName={props.settingsContextName}
+    >
+        <SearchUIFiltersContent {...props}/>
+    </SearchUIFiltersStoreProvider>
+}
+
+export const SearchUIFiltersContent = (props: Props) => {
     const {t} = useTranslation();
     const {
         settingsContextName,
@@ -152,6 +167,10 @@ export const SearchUIFilters = (props: Props) => {
     } = props
 
     const defaults = useContext(SearchUIDefaultsContext)
+    const filtersStore = useSearchUIFiltersStoreApi()
+    const {instanceId} = useSearchUIFiltersStoreContext()
+    const hasExternalSearchConditions = searchConditions !== undefined
+        && Object.keys(searchConditions).length > 0
 
     const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
         ...new Set([
@@ -175,6 +194,7 @@ export const SearchUIFilters = (props: Props) => {
     const filtersState = useSearchUIFiltersStore(s => s)
 
     const [showFilters, setShowFilters] = useState(true)
+    const initializedRef = useRef(false)
     const pendingClearCriteriaUndoRef = useRef<PendingClearCriteriaUndo | null>(null)
 
     const clearPendingClearCriteriaUndo = (dismissSnackbar = true) => {
@@ -193,6 +213,11 @@ export const SearchUIFilters = (props: Props) => {
     }
 
     useEffect(() => {
+        if (initializedRef.current) {
+            return
+        }
+        initializedRef.current = true
+
         setInitialState({
             defaults: defaults,
             settingsContextName: settingsContextName,
@@ -203,25 +228,25 @@ export const SearchUIFilters = (props: Props) => {
             criteria: predefinedCriteria,
             config: config,
             onFiltersUpdate: onFiltersUpdate,
+            skipLastTemplateAutoApply: hasExternalSearchConditions,
             ...initialSearchConditions
-        })
-    }, [])
-
-    useEffect(() => {
+        }, getRetainedSearchUIState(settingsContextName, instanceId))
         loadTemplates()
+        // The keyed store provider remounts this subtree when the search context changes.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
-        if (searchConditions) {
+        if (hasExternalSearchConditions) {
             updateConditions(searchConditions, {
                 forceSearch: true,
                 resetTemplate: true,
             })
         }
-    }, [searchConditions])
+    }, [hasExternalSearchConditions, searchConditions, updateConditions])
 
     useEffect(() => {
-        const unsubscribe = useSearchUIFiltersStore.subscribe(state => {
+        const unsubscribe = filtersStore.subscribe(state => {
             const pending = pendingClearCriteriaUndoRef.current
             if (!pending) return
 
@@ -237,7 +262,7 @@ export const SearchUIFilters = (props: Props) => {
             clearPendingClearCriteriaUndo()
             unsubscribe()
         }
-    }, [])
+    }, [filtersStore])
 
     const someCriteriaAdded = criteria.length > 0
     const showFiltersCountChip = someCriteriaAdded && !showFilters
@@ -264,12 +289,12 @@ export const SearchUIFilters = (props: Props) => {
     const showAddFilterButton = !allCriteriaAdded
     const showMainActionsRow = showClearAllButton || showTemplatesMenu || showAddFilterButton
     const handleClearCriteria = () => {
-        const snapshotBeforeClear = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
+        const snapshotBeforeClear = createClearCriteriaUndoSnapshot(filtersStore.getState())
 
         clearPendingClearCriteriaUndo()
         clearCriteria()
 
-        const baseline = createClearCriteriaUndoSnapshot(useSearchUIFiltersStore.getState())
+        const baseline = createClearCriteriaUndoSnapshot(filtersStore.getState())
         const autoHideMs = 5000
         const snackbarId = overlayActions.showUndoSnackbar({
             message: t('react.searchUI.clearAll.cleared', {defaultValue: 'All filters cleared'}),

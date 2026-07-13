@@ -1,13 +1,12 @@
 import React, { Dispatch, SetStateAction, useMemo, useState } from 'react'
-import { SearchUIFilters, SearchUIFiltersConfig } from './filters/SearchUIFilters'
+import { SearchUIFiltersConfig, SearchUIFiltersContent } from './filters/SearchUIFilters'
 import { CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions } from './filters/types'
 import { Box, Divider, SxProps } from '@mui/material'
 import { GetPagedOrderedSortedListRequest, Order } from '../../common'
 import { PneTable, TableCreateHeaderType, TableDisplayOptions, useTable } from '../..'
-import { useSearchUIStore } from './state/store'
 import { UseTableParams } from '../table/useTable'
-import { useShallow } from 'zustand/react/shallow'
 import { useSearchUIFiltersStore } from './filters/state/store'
+import { SearchUIFiltersStoreProvider } from './filters/state/SearchUIFiltersStoreProvider'
 
 /**
  * Параметры запроса поиска, отправляемые в обработчик данных таблицы.
@@ -89,6 +88,15 @@ type Props<D extends object> = {
  * @param props Свойства компонента.
  */
 export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement => {
+    return <SearchUIFiltersStoreProvider
+        key={props.settingsContextName}
+        settingsContextName={props.settingsContextName}
+    >
+        <SearchUIContent {...props}/>
+    </SearchUIFiltersStoreProvider>
+}
+
+const SearchUIContent = <D extends object>(props: Props<D>): React.ReactElement => {
     const {
         settingsContextName,
         possibleCriteria,
@@ -104,13 +112,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
         config,
     } = props
 
-    const {
-        searchCriteria,
-        setSearchCriteria,
-    } = useSearchUIStore(useShallow((store) => ({
-        searchCriteria: store.searchCriteria,
-        setSearchCriteria: store.setSearchCriteria,
-    })))
+    const searchCriteria = useSearchUIFiltersStore(store => store.appliedSearchCriteria)
     const filtersSettingsContextName = useSearchUIFiltersStore(store => store.settingsContextName)
     const filtersContextReady = filtersSettingsContextName === settingsContextName
 
@@ -139,7 +141,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
         dataUseState: dataUseState,
         fetchDataExtraDeps: fetchDataExtraDeps,
         fetchData: ({ page, pageSize, order, sortIndex }) => {
-            if (!searchCriteria.initialized || !filtersContextReady) {
+            if (!searchCriteria?.initialized || !filtersContextReady) {
                 return Promise.resolve<D[]>([])
             }
 
@@ -155,14 +157,14 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
     })
 
     return <>
-        <SearchUIFilters
+        <SearchUIFiltersContent
             settingsContextName={settingsContextName}
             possibleCriteria={possibleCriteria}
             predefinedCriteria={predefinedCriteria}
             exactSearchLabels={exactSearchLabels}
             initialSearchConditions={initialSearchConditions}
             searchConditions={searchConditions}
-            onFiltersUpdate={setSearchCriteria}
+            onFiltersUpdate={ignoreAppliedSearchCriteria}
             config={config}
             searchLoading={loading}
         />
@@ -184,6 +186,10 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
             />
         </Box>
     </>
+}
+
+const ignoreAppliedSearchCriteria = (): void => {
+    // SearchUI reads the applied criteria from its instance-scoped filter store.
 }
 
 const initialDisplayOptions: TableDisplayOptions = {

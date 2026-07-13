@@ -23,7 +23,9 @@ Layers and directories
 Key flows
 ---------
 - SearchUI:
-  - Criteria live in the zustand store (`state/store.ts`) as `searchCriteria`.
+  - Each mounted SearchUI/SearchUIFilters owns an instance-scoped zustand store.
+  - Filter conditions and the last applied criteria are retained in memory by `settingsContextName` and restored after route remounts.
+  - Retained snapshots contain user search state only; callbacks, configuration, async data, and table results are recreated.
   - Filters render via `SearchUIFilters` and push updates into the store.
   - Table uses `PneTable` + `useTable`: criteria become request params via `createSearchParams`, then `searchData` is called.
   - `settingsContextName` is used as a key-prefix for persisted settings/context.

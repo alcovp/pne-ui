@@ -122,17 +122,22 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
 export const getSearchUIFiltersInitialState = (): SearchUIFiltersState => ({
     ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
 
+    initialized: false,
     defaults: initialSearchUIDefaults,
     settingsContextName: '',
     possibleCriteria: [],
     predefinedCriteria: [],
     exactSearchLabels: [],
     template: null,
+    activeTemplateName: null,
     templates: [],
     justAddedCriterion: null,
     config: undefined,
     prevSearchCriteria: null,
+    appliedSearchCriteria: null,
     hasUnappliedFilters: false,
+    restoredFromRetention: false,
+    skipLastTemplateAutoApply: false,
 
     onFiltersUpdate: () => {
         throw new Error('Function onFiltersUpdate is not provided')

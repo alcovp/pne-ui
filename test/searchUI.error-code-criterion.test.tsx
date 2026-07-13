@@ -3,9 +3,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import { ErrorCodeCriterion } from '../src/component/search-ui/filters/component/criterion/ErrorCodeCriterion'
-import { getSearchUIFiltersInitialState } from '../src/component/search-ui/filters/state/initial'
-import { useSearchUIFiltersStore } from '../src/component/search-ui/filters/state/store'
+import { SearchUIFilters } from '../src/component/search-ui/filters/SearchUIFilters'
+import { CriterionTypeEnum } from '../src/component/search-ui/filters/types'
 import { SearchUIDefaultsContext, initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProvider'
 
 jest.mock('react-i18next', () => ({
@@ -15,10 +14,6 @@ jest.mock('react-i18next', () => ({
 }))
 
 describe('ErrorCodeCriterion', () => {
-    beforeEach(() => {
-        useSearchUIFiltersStore.setState(getSearchUIFiltersInitialState())
-    })
-
     it('renders descriptions for duplicate-looking error codes', async () => {
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
         try {
@@ -34,7 +29,16 @@ describe('ErrorCodeCriterion', () => {
                         searchErrorCodes,
                     }}
                 >
-                    <ErrorCodeCriterion />
+                    <SearchUIFilters
+                        settingsContextName={'error-code-criterion-test'}
+                        possibleCriteria={[CriterionTypeEnum.ERROR_CODE]}
+                        predefinedCriteria={[CriterionTypeEnum.ERROR_CODE]}
+                        onFiltersUpdate={jest.fn()}
+                        config={{
+                            hideShowFiltersButton: true,
+                            hideTemplatesSelect: true,
+                        }}
+                    />
                 </SearchUIDefaultsContext.Provider>
             )
 
