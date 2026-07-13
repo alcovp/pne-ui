@@ -97,6 +97,7 @@ export type WidgetBoardReactGridLayoutOptions = {
     rowHeight?: number
     margin?: readonly [number, number]
     containerPadding?: readonly [number, number] | null
+    useCSSTransforms?: boolean
 }
 
 export type WidgetBoardProps = {

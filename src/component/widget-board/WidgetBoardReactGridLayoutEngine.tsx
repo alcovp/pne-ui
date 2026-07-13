@@ -30,10 +30,48 @@ type WidgetBoardReactGridLayoutEngineProps = {
     onItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange']
     renderItem: (item: BoardProps.Item<WidgetBoardItemData>) => React.ReactElement
     rowHeight: number
+    useCSSTransforms: boolean
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 const neutralColor = '#5E7594'
+
+type GridItemPixelPosition = {
+    top: number
+    left: number
+    width: number
+    height: number
+}
+
+const transformPositionStrategy = {
+    type: 'transform' as const,
+    scale: 1,
+    calcStyle: ({ top, left, width, height }: GridItemPixelPosition): React.CSSProperties => {
+        const translate = `translate(${left}px,${top}px)`
+
+        return {
+            transform: translate,
+            WebkitTransform: translate,
+            MozTransform: translate,
+            msTransform: translate,
+            width: `${width}px`,
+            height: `${height}px`,
+            position: 'absolute',
+        }
+    },
+}
+
+const absolutePositionStrategy = {
+    type: 'absolute' as const,
+    scale: 1,
+    calcStyle: ({ top, left, width, height }: GridItemPixelPosition): React.CSSProperties => ({
+        top: `${top}px`,
+        left: `${left}px`,
+        width: `${width}px`,
+        height: `${height}px`,
+        position: 'absolute',
+    }),
+}
 
 const getItemColumnSpan = (item: BoardProps.Item<WidgetBoardItemData>, columns: number) => {
     const minColumnSpan = item.definition?.minColumnSpan ?? 1
@@ -291,10 +329,12 @@ export const WidgetBoardReactGridLayoutEngine = ({
     onItemsChange,
     renderItem,
     rowHeight,
+    useCSSTransforms,
 }: WidgetBoardReactGridLayoutEngineProps) => {
     const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1280 })
     const layout = useMemo(() => toReactGridLayout(items, columns, interactionMode), [columns, interactionMode, items])
     const rowGap = margin[1] ?? 0
+    const positionStrategy = useCSSTransforms ? transformPositionStrategy : absolutePositionStrategy
 
     const handleLayoutCommit = useCallback(
         (nextLayout: Layout) => {
@@ -333,6 +373,7 @@ export const WidgetBoardReactGridLayoutEngine = ({
                         autoSize
                         width={width}
                         layout={layout}
+                        positionStrategy={positionStrategy}
                         gridConfig={{
                             cols: columns,
                             rowHeight,

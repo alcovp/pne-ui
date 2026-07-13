@@ -452,6 +452,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const reactGridLayoutRowHeight = activeLayoutConfig?.rowHeight ?? reactGridLayoutOptions?.rowHeight ?? 96
     const reactGridLayoutMargin = activeLayoutConfig?.margin ?? reactGridLayoutOptions?.margin ?? [0, 0]
     const reactGridLayoutContainerPadding = activeLayoutConfig?.containerPadding ?? reactGridLayoutOptions?.containerPadding ?? [0, 0]
+    const reactGridLayoutUseCSSTransforms = reactGridLayoutOptions?.useCSSTransforms ?? true
 
     const resolveItemRenderState = (item: BoardProps.Item<WidgetBoardItemData>) => {
         const widgetId = item.id as string
@@ -515,6 +516,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     onItemsChange={handleItemsChange}
                     renderItem={renderReactGridLayoutItem}
                     rowHeight={reactGridLayoutRowHeight}
+                    useCSSTransforms={reactGridLayoutUseCSSTransforms}
                 />
             ) : (
                 <WidgetBoardCloudscapeEngine
