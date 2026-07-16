@@ -212,6 +212,116 @@ export const UsageGuidelines: Story = {
             Если кнопка меняет действие по состоянию, вместе с действием меняется и стиль:
             например, основное Импортировать становится нейтральным Отменить во время выполнения.
         </Typography>
+
+        <Divider sx={{my: 3}}/>
+        <Typography component='h2' sx={{fontSize: 18, fontWeight: 700, lineHeight: '24px', mb: 2}}>
+            Длина подписи
+        </Typography>
+        <Box
+            component='ul'
+            sx={{
+                color: '#4E5D78',
+                fontSize: 14,
+                lineHeight: '20px',
+                m: 0,
+                pl: 2.5,
+                '& li + li': {mt: 1},
+            }}
+        >
+            <li>Целевой вид подписи кнопки — одна строка с коротким глаголом или глаголом и объектом.</li>
+            <li>
+                Если места недостаточно, сначала адаптируйте контейнер: выделите кнопке больше ширины,
+                перенесите целую кнопку или расположите группу действий вертикально.
+            </li>
+            <li>
+                Перенос подписи на две строки допустим как видимый запасной вариант для узкого экрана,
+                локализации и увеличения масштаба.
+            </li>
+            <li>
+                Не скрывайте подпись действия многоточием или ограничением количества строк и не заменяйте
+                скрытую часть всплывающей подсказкой: полная команда должна быть доступна без наведения
+                или долгого нажатия.
+            </li>
+            <li>
+                Три и более строк означают, что подпись стоит сократить или вынести пояснение в соседний текст.
+                До исправления такую подпись всё равно нужно показывать целиком.
+            </li>
+        </Box>
+    </Box>,
+}
+
+type LabelWrappingExampleProps = {
+    label: string
+    note: string
+    title: string
+    width: number
+}
+
+const LabelWrappingExample = ({label, note, title, width}: LabelWrappingExampleProps) => <Box>
+    <Typography sx={{fontSize: 14, fontWeight: 700, lineHeight: '20px', mb: 0.5}}>
+        {title}
+    </Typography>
+    <Typography sx={{color: '#697386', fontSize: 12, lineHeight: '18px', mb: 2}}>
+        {note}
+    </Typography>
+    <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, width}}>
+        {(['small', 'medium', 'large'] as const).map(size => <Box key={size}>
+            <Typography sx={{color: '#697386', fontSize: 12, lineHeight: '18px', mb: 0.5}}>
+                {size}
+            </Typography>
+            <PneButton pneStyle='contained' size={size} sx={{width: '100%'}}>
+                {label}
+            </PneButton>
+        </Box>)}
+    </Box>
+</Box>
+
+export const LabelWrapping: Story = {
+    parameters: {
+        layout: 'fullscreen',
+        docs: {
+            description: {
+                story: 'Проверка полной видимости подписи действия в контейнерах ограниченной ширины. Всплывающая подсказка и обрезка текста намеренно не используются.',
+            },
+        },
+    },
+    render: () => <Box
+        data-story-section='button-label-wrapping'
+        sx={{
+            backgroundColor: '#fff',
+            color: '#27364B',
+            fontFamily: 'Arial, sans-serif',
+            p: 4,
+        }}
+    >
+        <Typography component='h1' sx={{fontSize: 24, fontWeight: 700, lineHeight: '32px', mb: 1}}>
+            Длинные подписи PneButton
+        </Typography>
+        <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px', mb: 3, maxWidth: 760}}>
+            Одна строка остаётся целевым видом. Две строки — безопасный запасной вариант, если компоновка уже не может
+            выделить больше места. Пример с чрезмерной подписью показывает нежелательное состояние:
+            текст нужно переписать, но не обрезать программно.
+        </Typography>
+        <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 5}}>
+            <LabelWrappingExample
+                title='Целевой вид: одна строка'
+                note='Контейнер выделяет достаточно ширины.'
+                label='Сохранить изменения'
+                width={224}
+            />
+            <LabelWrappingExample
+                title='Запасной вариант: две строки'
+                note='Полная команда остаётся видимой.'
+                label='Отправить заявление на проверку'
+                width={220}
+            />
+            <LabelWrappingExample
+                title='Нужно переписать подпись'
+                note='Три строки и более не скрываем, но исправляем текст или компоновку.'
+                label='Скачать, подписать и отправить заявление на дополнительную проверку'
+                width={184}
+            />
+        </Box>
     </Box>,
 }
 

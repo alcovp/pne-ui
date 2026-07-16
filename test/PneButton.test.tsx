@@ -74,10 +74,10 @@ describe('PneButton', () => {
     })
 
     it.each([
-        {height: '28px', name: 'small', paddingBlock: '4px', paddingInline: '16px', size: 'small'},
-        {height: '32px', name: 'medium', paddingBlock: '6px', paddingInline: '20px', size: 'medium'},
-        {height: '40px', name: 'large', paddingBlock: '10px', paddingInline: '20px', size: 'large'},
-    ] as const)('applies Figma geometry for $name size', ({height, paddingBlock, paddingInline, size}) => {
+        {minHeight: '28px', name: 'small', paddingBlock: '4px', paddingInline: '16px', size: 'small'},
+        {minHeight: '32px', name: 'medium', paddingBlock: '6px', paddingInline: '20px', size: 'medium'},
+        {minHeight: '40px', name: 'large', paddingBlock: '10px', paddingInline: '20px', size: 'large'},
+    ] as const)('keeps $name text buttons auto-growing above their Figma minimum', ({minHeight, paddingBlock, paddingInline, size}) => {
         render(<PneButton size={size}>Button</PneButton>)
 
         const button = screen.getByRole('button', {name: 'Button'})
@@ -86,9 +86,9 @@ describe('PneButton', () => {
             'border-radius': '4px',
             'font-size': '14px',
             'font-weight': '400',
-            'height': height,
+            'height': 'auto',
             'line-height': '20px',
-            'min-height': height,
+            'min-height': minHeight,
             'min-width': '64px',
             'padding-bottom': paddingBlock,
             'padding-left': paddingInline,
@@ -99,17 +99,17 @@ describe('PneButton', () => {
     })
 
     it.each([
-        {height: '28px', name: 'small', paddingBlock: '3px', paddingInline: '15px', size: 'small'},
-        {height: '32px', name: 'medium', paddingBlock: '5px', paddingInline: '19px', size: 'medium'},
-        {height: '40px', name: 'large', paddingBlock: '9px', paddingInline: '19px', size: 'large'},
-    ] as const)('compensates outlined border for $name size', ({height, paddingBlock, paddingInline, size}) => {
+        {minHeight: '28px', name: 'small', paddingBlock: '3px', paddingInline: '15px', size: 'small'},
+        {minHeight: '32px', name: 'medium', paddingBlock: '5px', paddingInline: '19px', size: 'medium'},
+        {minHeight: '40px', name: 'large', paddingBlock: '9px', paddingInline: '19px', size: 'large'},
+    ] as const)('keeps outlined $name text buttons auto-growing while compensating their border', ({minHeight, paddingBlock, paddingInline, size}) => {
         render(<PneButton pneStyle='outlined' size={size}>Button</PneButton>)
 
         const button = screen.getByRole('button', {name: 'Button'})
 
         expectComputedStyle(button, {
-            'height': height,
-            'min-height': height,
+            'height': 'auto',
+            'min-height': minHeight,
             'min-width': '64px',
             'padding-bottom': paddingBlock,
             'padding-left': paddingInline,

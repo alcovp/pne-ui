@@ -172,7 +172,7 @@ const createButtonBaseSx = (
         fontSize: '14px',
         fontWeight: 400,
         gap: options.iconOnly ? 0 : `${config.gap}px`,
-        height: options.iconOnly ? `${iconOnlySize}px` : `${config.height}px`,
+        height: options.iconOnly ? `${iconOnlySize}px` : 'auto',
         lineHeight: '20px',
         minHeight: options.iconOnly ? `${iconOnlySize}px` : `${config.height}px`,
         minWidth: options.iconOnly ? `${iconOnlySize}px` : `${buttonMinWidth}px`,
