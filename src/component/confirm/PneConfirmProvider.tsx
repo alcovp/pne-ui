@@ -3,6 +3,7 @@ import { Box, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import PneButton from '../PneButton'
 import PneModal from '../PneModal'
+import PneModalActions from '../PneModalActions'
 
 export type PneConfirmOptions = {
     title?: string
@@ -105,6 +106,14 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
         <PneConfirmContext.Provider value={contextValue}>
             {children}
             <PneModal
+                actions={<PneModalActions
+                    secondary={<PneButton pneStyle='outlined' onClick={() => settle(false)}>
+                        {current?.cancelLabel}
+                    </PneButton>}
+                    primary={<PneButton pneStyle='contained' onClick={() => settle(true)}>
+                        {current?.confirmLabel}
+                    </PneButton>}
+                />}
                 open={Boolean(current)}
                 onClose={() => settle(false)}
                 title={current?.title}
@@ -116,14 +125,6 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
                             {current?.message}
                         </Typography>
                     </Box>
-                    <Stack direction='row' spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                        <PneButton pneStyle='outlined' onClick={() => settle(false)}>
-                            {current?.cancelLabel}
-                        </PneButton>
-                        <PneButton pneStyle='contained' onClick={() => settle(true)}>
-                            {current?.confirmLabel}
-                        </PneButton>
-                    </Stack>
                 </Stack>
             </PneModal>
         </PneConfirmContext.Provider>

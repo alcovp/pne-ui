@@ -8,6 +8,7 @@ import { alpha, type SxProps, type Theme } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import PneButton from '../PneButton'
 import PneModal from '../PneModal'
+import PneModalActions from '../PneModalActions'
 import PneTextField from '../PneTextField'
 import { useWidgetBoardScopeStore } from './WidgetBoardScope'
 import type { WidgetBoardInteractionMode } from './types'
@@ -236,6 +237,19 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
             </Menu>
 
             <PneModal
+                actions={<PneModalActions
+                    secondary={<PneButton pneStyle='outlined' size='small' onClick={closeSaveAsModal}>
+                        {t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })}
+                    </PneButton>}
+                    primary={<PneButton
+                        pneStyle='contained'
+                        size='small'
+                        onClick={handleSaveAs}
+                        disabled={!layoutName.trim()}
+                    >
+                        {t('pne.widgetBoard.layouts.save', { defaultValue: 'Save' })}
+                    </PneButton>}
+                />}
                 open={saveAsModalOpen}
                 onClose={closeSaveAsModal}
                 title={t('pne.widgetBoard.layouts.newTitle', { defaultValue: 'New layout' })}
@@ -255,14 +269,6 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                             </Typography>
                         </Box>
                     ) : null}
-                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                        <PneButton pneStyle='outlined' size='small' onClick={closeSaveAsModal}>
-                            {t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })}
-                        </PneButton>
-                        <PneButton pneStyle='contained' size='small' onClick={handleSaveAs} disabled={!layoutName.trim()}>
-                            {t('pne.widgetBoard.layouts.save', { defaultValue: 'Save' })}
-                        </PneButton>
-                    </Box>
                 </Stack>
             </PneModal>
         </Box>

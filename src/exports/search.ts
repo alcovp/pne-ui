@@ -29,6 +29,12 @@ export {
     DateRangeSpec,
 } from '../component/search-ui/filters/types'
 export { SearchUIProvider, type SearchUIDefaults } from '../component/search-ui/SearchUIProvider'
-export { MultigetSelect } from '../component/search-ui/multiget_select/MultigetSelect'
+export {
+    MultigetSelect,
+    MultigetSelectActions,
+    type MultigetSelectActionsProps,
+    type MultigetSelectProps,
+} from '../component/search-ui/multiget_select/MultigetSelect'
+export { MultigetSelectStoreProvider } from '../component/search-ui/multiget_select/state/IsolatedStoreProvider'
 export { SearchUITemplate } from '../component/search-ui/filters/types'
 export { getSearchUIInitialState } from '../component/search-ui/state/initial'

@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {TFunction, useTranslation} from 'react-i18next';
-import {Stack} from '@mui/material';
 import {
     AbstractEntitySelector,
     AbstractEntitySelectorProp,
@@ -9,6 +8,7 @@ import {
 } from './AbstractEntitySelector';
 import PneButton from '../PneButton';
 import PneModal from "../PneModal";
+import PneModalActions from '../PneModalActions';
 
 interface IProps<T extends AbstractEntitySelectorProp> {
     open: boolean;
@@ -79,39 +79,24 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         textRepresentation,
         textRepresentationValue,
         onChange: handleChange,
-        actionBlock: (
-            <Stack
-                direction='row'
-                sx={{
-                    marginTop: '16px',
-                    gap: 2,
-                }}
-            >
-                <PneButton
-                    variant='outlined'
-                    onClick={() => onClose()}
-                    fullWidth
-                >
-                    {t('cancel')}
-                </PneButton>
-                <PneButton
-                    variant='contained'
-                    onClick={() => {
-                        handleSave({
-                            mapped: localMappedList,
-                            unmapped: localUnMappedList
-                        });
-                    }}
-                    fullWidth
-                >
-                    {t('save')}
-                </PneButton>
-            </Stack>
-        ),
     };
 
     return (
         <PneModal
+            actions={<PneModalActions
+                secondary={<PneButton variant='outlined' onClick={onClose}>
+                    {t('cancel')}
+                </PneButton>}
+                primary={<PneButton
+                    variant='contained'
+                    onClick={() => handleSave({
+                        mapped: localMappedList,
+                        unmapped: localUnMappedList
+                    })}
+                >
+                    {t('save')}
+                </PneButton>}
+            />}
             open={open}
             onClose={onClose}
             title={title}

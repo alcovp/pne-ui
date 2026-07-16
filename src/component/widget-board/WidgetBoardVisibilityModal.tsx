@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import PneButton from '../PneButton'
 import { PneCheckbox } from '../PneCheckbox'
 import PneModal from '../PneModal'
+import PneModalActions from '../PneModalActions'
 import type { WidgetBoardVisibilityItem } from './widgetBoardFabStore'
 
 export type WidgetBoardVisibilityModalProps = {
@@ -25,7 +26,21 @@ export const WidgetBoardVisibilityModal: React.FC<WidgetBoardVisibilityModalProp
     const emptyLabel = t('pne.widgetBoard.visibility.empty', { defaultValue: 'No widgets available' })
 
     return (
-        <PneModal open={open} onClose={onClose} title={modalTitle}>
+        <PneModal
+            actions={<PneModalActions
+                primary={<PneButton
+                    pneStyle='text'
+                    size='small'
+                    onClick={onClose}
+                    sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
+                >
+                    {closeLabel}
+                </PneButton>}
+            />}
+            open={open}
+            onClose={onClose}
+            title={modalTitle}
+        >
             <Stack spacing={2}>
                 {items.length === 0 ? (
                     <Typography sx={{ fontSize: '14px', lineHeight: '20px', color: 'text.secondary' }}>{emptyLabel}</Typography>
@@ -71,16 +86,6 @@ export const WidgetBoardVisibilityModal: React.FC<WidgetBoardVisibilityModalProp
                         ))}
                     </Stack>
                 )}
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <PneButton
-                        pneStyle='text'
-                        size='small'
-                        onClick={onClose}
-                        sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
-                    >
-                        {closeLabel}
-                    </PneButton>
-                </Box>
             </Stack>
         </PneModal>
     )

@@ -1,9 +1,9 @@
-import React, {useContext, useState} from 'react';
+import React, {useContext, useId, useState} from 'react';
 import {Alert, Box, Collapse, Link} from '@mui/material';
 import {SxProps} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
-import {PneButton, PneModal, PneTextField, useModal} from '../../../../..';
+import {PneButton, PneModal, PneModalActions, PneTextField, useModal} from '../../../../..';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 
 interface IProps {
@@ -19,6 +19,7 @@ const SearchUITemplatePanel = (props: IProps) => {
 
     const {t} = useTranslation()
     const {open, handleOpen, handleClose} = useModal()
+    const createFormId = useId()
     const [templateName, setTemplateName] = useState(template?.name || '')
     const [showFeedback, setShowFeedback] = useState(false)
     const {
@@ -74,11 +75,15 @@ const SearchUITemplatePanel = (props: IProps) => {
             >{t('react.searchUI.template.update')}</Link> : null}
         </Box>
         <PneModal
+            actions={<PneModalActions
+                secondary={<PneButton pneStyle='outlined' onClick={handleClose}>{t('cancel')}</PneButton>}
+                primary={<PneButton type='submit' form={createFormId}>{t('create')}</PneButton>}
+            />}
             open={open}
             onClose={handleClose}
             title={t('react.searchUI.template.newModal.title')}
         >
-            <form onSubmit={handleCreate}>
+            <form id={createFormId} onSubmit={handleCreate}>
                 <PneTextField
                     value={templateName}
                     label={t('react.searchUI.template.name')}
@@ -92,10 +97,6 @@ const SearchUITemplatePanel = (props: IProps) => {
                         {t('react.searchUI.template.name.confirmRewrite')}
                     </Alert>
                 </Collapse>
-                <Box sx={buttonsBoxSx}>
-                    <PneButton pneStyle='outlined' onClick={handleClose}>{t('cancel')}</PneButton>
-                    <PneButton type={'submit'}>{t('create')}</PneButton>
-                </Box>
             </form>
         </PneModal>
     </>
@@ -113,11 +114,4 @@ const linkSx: SxProps = {
     textAlign: 'left',
     fontSize: '14px',
     lineHeight: '20px',
-}
-
-const buttonsBoxSx: SxProps = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: '16px',
 }

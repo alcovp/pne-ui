@@ -1,37 +1,58 @@
 import React from 'react';
-import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import Modal from "@mui/material/Modal";
+import Box, {BoxProps} from "@mui/material/Box";
+import IconButton, {IconButtonProps} from "@mui/material/IconButton";
+import Modal, {ModalProps} from "@mui/material/Modal";
 import Typography from "@mui/material/Typography";
 import {SxProps} from "@mui/material";
 import {styled} from "@mui/material/styles";
 import CloseIcon from '@mui/icons-material/Close';
 
-export interface IProps {
+export type PneModalContainerProps = Omit<BoxProps, 'children' | 'className' | 'sx'> & {
+    [key: `data-${string}`]: unknown
+}
+
+export type PneModalCloseButtonProps = Omit<IconButtonProps, 'onClick' | 'sx'> & {
+    [key: `data-${string}`]: unknown
+}
+
+export interface PneModalProps {
     open: boolean
     onClose: () => void
+    modalProps?: Omit<ModalProps, 'children' | 'onClose' | 'open'>
+    containerProps?: PneModalContainerProps
+    closeButtonProps?: PneModalCloseButtonProps
     containerSx?: SxProps
     title?: string
     subtitle?: string
     className?: string
+    actions?: React.ReactNode
+    overlay?: React.ReactNode
 }
 
-const PneModal = (props: React.PropsWithChildren<IProps>) => {
+export type IProps = PneModalProps
+
+const PneModal = (props: React.PropsWithChildren<PneModalProps>) => {
     const {
         open,
         onClose,
+        modalProps,
+        containerProps,
+        closeButtonProps,
         containerSx = {},
         title,
         className,
         children,
+        actions,
+        overlay,
     } = props;
 
     return <Modal
+        {...modalProps}
         open={open}
         onClose={onClose}
         aria-labelledby='modal-title'
     >
-        <Container className={className} sx={containerSx}>
+        <Container {...containerProps} className={className} sx={containerSx}>
             <Header>
                 <div>
                     <Typography
@@ -62,6 +83,7 @@ const PneModal = (props: React.PropsWithChildren<IProps>) => {
                     )}
                 </div>
                 <IconButton
+                    {...closeButtonProps}
                     sx={{
                         width: '40px',
                         height: '40px',
@@ -73,9 +95,21 @@ const PneModal = (props: React.PropsWithChildren<IProps>) => {
                     <CloseIcon fontSize={'small'}/>
                 </IconButton>
             </Header>
-            <Body>
-                {children}
-            </Body>
+            {children != null && (
+                <Body data-pne-modal-body='true'>
+                    {children}
+                </Body>
+            )}
+            {actions != null && (
+                <Footer data-pne-modal-footer='true'>
+                    {actions}
+                </Footer>
+            )}
+            {overlay != null && (
+                <OverlaySlot data-pne-modal-overlay='true'>
+                    {overlay}
+                </OverlaySlot>
+            )}
         </Container>
     </Modal>
 }
@@ -94,12 +128,15 @@ const Container = styled(Box)`
     border: none;
     border-radius: 4px;
     max-height: 98%;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     box-shadow: 0px -1px 12px rgba(0, 0, 0, 0.03), 0px 3px 3px rgba(0, 0, 0, 0.02), 0px 7px 6px rgba(0, 0, 0, 0.06), 0px 12px 10px rgba(0, 0, 3, 0.03), 0px 22px 18px rgba(0, 0, 0, 0.04), 0px 40px 33px rgba(0, 0, 0, 0.04), 0px 100px 80px rgba(0, 0, 0, 0.04);
 `;
 
 const Header = styled(Box)`
     display: flex;
+    flex: 0 0 auto;
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
@@ -108,5 +145,20 @@ const Header = styled(Box)`
 `;
 
 const Body = styled(Box)`
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
     padding: 16px 24px;
+`;
+
+const Footer = styled(Box)`
+    flex: 0 0 auto;
+    padding: 16px 24px;
+    border-top: 1px solid #F1F5FA;
+`;
+
+const OverlaySlot = styled(Box)`
+    position: absolute;
+    inset: 0;
+    z-index: 1;
 `;

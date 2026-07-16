@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react';
 import {CriterionTypeEnum, LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../../types';
 import {Box, Chip, Link, SxProps} from '@mui/material';
-import {MultigetSelect} from '../../../multiget_select/MultigetSelect';
+import {MultigetSelect, MultigetSelectActions} from '../../../multiget_select/MultigetSelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {PneModal, useModal} from '../../../../..';
 import {MultigetSelectStoreProvider} from "../../../multiget_select/state/IsolatedStoreProvider";
@@ -97,6 +97,13 @@ export const MultigetCriterionPanel = (props: IProps) => {
         </Link>
         <MultigetSelectStoreProvider>
             <PneModal
+                actions={(
+                    <MultigetSelectActions
+                        multigetCriterion={currentMultigetCriterion}
+                        onSave={changeCriterion}
+                        onCancel={handleClose}
+                    />
+                )}
                 open={open}
                 onClose={handleClose}
                 title={t('advancedSearch.addCriteria')}
@@ -107,6 +114,7 @@ export const MultigetCriterionPanel = (props: IProps) => {
                     linkedMultigetCriteria={linkedMultigetCriteria}
                     onSave={changeCriterion}
                     onCancel={handleClose}
+                    actionsPlacement='external'
                 />
             </PneModal>
         </MultigetSelectStoreProvider>

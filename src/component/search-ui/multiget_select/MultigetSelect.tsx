@@ -2,28 +2,35 @@ import React, {useContext, useEffect} from 'react'
 import {Alert, Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types'
 import {useTranslation} from 'react-i18next'
-import {AbstractEntity, PneButton, PneSwitch, PneTextField} from '../../..'
+import {AbstractEntity, PneButton, PneModalActions, PneSwitch, PneTextField} from '../../..'
 import {SearchUIDefaultsContext} from '../SearchUIProvider'
 import {useMultigetSelectStore} from './state/store'
 import {MultigetSearchLabel} from './state/type'
 import {MultigetSelectTable} from './MultigetSelectTable'
 // import {raiseUIError} from '../../../../error'; //TODO migration
 
-type Props = {
+export type MultigetSelectProps = {
     multigetCriterion: MultigetCriterion
     linkedMultigetCriteria: MultigetCriterion[]
     onSave: (criterion: MultigetCriterion) => void
     onCancel: () => void
+    actionsPlacement?: 'inline' | 'external'
+}
+
+export type MultigetSelectActionsProps = Pick<
+    MultigetSelectProps,
+    'multigetCriterion' | 'onCancel' | 'onSave'
+> & {
+    sx?: SxProps
 }
 
 export const MULTIGET_PAGE_SIZE = 10
 
-export const MultigetSelect = (props: Props) => {
+export const MultigetSelect = (props: MultigetSelectProps) => {
     const {
         multigetCriterion,
         linkedMultigetCriteria,
-        onSave,
-        onCancel,
+        actionsPlacement = 'inline',
     } = props
     const {t} = useTranslation()
     const {getMatchLinkedItems} = useContext(SearchUIDefaultsContext)
@@ -32,7 +39,6 @@ export const MultigetSelect = (props: Props) => {
     const onlyEnabledStatus = useMultigetSelectStore()(s => s.onlyEnabledStatus)
     const searchString = useMultigetSelectStore()(s => s.searchString)
     const searchLabel = useMultigetSelectStore()(s => s.searchLabel)
-    const selectedItems = useMultigetSelectStore()(s => s.selectedItems)
     const currentPage = useMultigetSelectStore()(s => s.currentPage)
     const setFilterType = useMultigetSelectStore()(s => s.setFilterType)
     const setOnlyEnabledStatus = useMultigetSelectStore()(s => s.setOnlyEnabledStatus)
@@ -85,44 +91,6 @@ export const MultigetSelect = (props: Props) => {
         onlyEnabledStatus,
         linkedMultigetCriteria,
     ])
-
-    const getSelectedItemsByFilterType = (): AbstractEntity[] => {
-        if (filterType === MultichoiceFilterTypeEnum.ALL) {
-            return []
-        } else {
-            return selectedItems
-        }
-    }
-
-    const getDeselectedItemsByFilterType = (): AbstractEntity[] => {
-        if (filterType === MultichoiceFilterTypeEnum.ALL) {
-            return selectedItems
-        } else {
-            return []
-        }
-    }
-
-    const getCurrentMultigetCriterion = (): MultigetCriterion => {
-        return {
-            entityType: multigetCriterion.entityType,
-            filterType: filterType,
-            searchString: /*searchStrings.join(',')*/ searchString,
-            selectedItems: getSelectedItemsByFilterType().map(e => e.id).join(','),
-            selectedItemNames: getSelectedItemsByFilterType().map(e => e.displayName).join(','),
-            deselectedItems: getDeselectedItemsByFilterType().map(e => e.id).join(','),
-            deselectedItemNames: getDeselectedItemsByFilterType().map(e => e.displayName).join(','),
-        }
-    }
-
-    const onSaveClick = () => {
-        setCurrentPage(1)
-        onSave(getCurrentMultigetCriterion())
-    }
-
-    const onCancelClick = () => {
-        setCurrentPage(1)
-        onCancel()
-    }
 
     const onExcludeClick = () => {
         setSelectedItems([])
@@ -220,13 +188,71 @@ export const MultigetSelect = (props: Props) => {
             <MultigetSelectTable/>
             <Divider/>
         </Box>
-        <Box sx={{display: 'flex', justifyContent: 'end', mt: '15px'}}>
-            <Box sx={{display: 'flex', gap: '20px'}}>
-                <PneButton pneStyle='outlined' onClick={onCancelClick}>{t('cancel')}</PneButton>
-                <PneButton onClick={onSaveClick}>{t('save')}</PneButton>
-            </Box>
-        </Box>
+        {actionsPlacement === 'inline' && (
+            <MultigetSelectActions
+                multigetCriterion={multigetCriterion}
+                onCancel={props.onCancel}
+                onSave={props.onSave}
+                sx={{mt: '15px'}}
+            />
+        )}
     </>
+}
+
+export const MultigetSelectActions = (props: MultigetSelectActionsProps) => {
+    const {
+        multigetCriterion,
+        onCancel,
+        onSave,
+        sx,
+    } = props
+    const {t} = useTranslation()
+    const filterType = useMultigetSelectStore()(s => s.filterType)
+    const searchString = useMultigetSelectStore()(s => s.searchString)
+    const selectedItems = useMultigetSelectStore()(s => s.selectedItems)
+    const setCurrentPage = useMultigetSelectStore()(s => s.setCurrentPage)
+
+    const getSelectedItemsByFilterType = (): AbstractEntity[] => {
+        return filterType === MultichoiceFilterTypeEnum.ALL ? [] : selectedItems
+    }
+
+    const getDeselectedItemsByFilterType = (): AbstractEntity[] => {
+        return filterType === MultichoiceFilterTypeEnum.ALL ? selectedItems : []
+    }
+
+    const getCurrentMultigetCriterion = (): MultigetCriterion => ({
+        entityType: multigetCriterion.entityType,
+        filterType,
+        searchString,
+        selectedItems: getSelectedItemsByFilterType().map(e => e.id).join(','),
+        selectedItemNames: getSelectedItemsByFilterType().map(e => e.displayName).join(','),
+        deselectedItems: getDeselectedItemsByFilterType().map(e => e.id).join(','),
+        deselectedItemNames: getDeselectedItemsByFilterType().map(e => e.displayName).join(','),
+    })
+
+    const onSaveClick = () => {
+        setCurrentPage(1)
+        onSave(getCurrentMultigetCriterion())
+    }
+
+    const onCancelClick = () => {
+        setCurrentPage(1)
+        onCancel()
+    }
+
+    return <PneModalActions
+        sx={sx}
+        secondary={(
+            <PneButton pneStyle='outlined' onClick={onCancelClick}>
+                {t('cancel')}
+            </PneButton>
+        )}
+        primary={(
+            <PneButton onClick={onSaveClick}>
+                {t('save')}
+            </PneButton>
+        )}
+    />
 }
 
 const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): AbstractEntity[] => {

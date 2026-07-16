@@ -88,6 +88,133 @@ export const EndIcon: Story = {
     },
 };
 
+type UsageGuidelineProps = {
+    title: string
+    api: string
+    description: string
+    example: React.ReactNode
+}
+
+const UsageGuideline = ({title, api, description, example}: UsageGuidelineProps) => <Box
+    sx={{
+        alignItems: 'center',
+        borderTop: '1px solid #EAECF5',
+        columnGap: 3,
+        display: 'grid',
+        gridTemplateColumns: '220px minmax(320px, 1fr) 180px',
+        minHeight: 88,
+        py: 2,
+    }}
+>
+    <Box>
+        <Typography sx={{fontSize: 14, fontWeight: 700, lineHeight: '20px'}}>{title}</Typography>
+        <Typography
+            component='code'
+            sx={{color: '#697386', fontFamily: 'monospace', fontSize: 12, lineHeight: '18px'}}
+        >
+            {api}
+        </Typography>
+    </Box>
+    <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px'}}>
+        {description}
+    </Typography>
+    <Box sx={{display: 'flex', justifyContent: 'flex-start'}}>{example}</Box>
+</Box>
+
+export const UsageGuidelines: Story = {
+    parameters: {
+        layout: 'fullscreen',
+        docs: {
+            description: {
+                story: 'Выбирайте стиль кнопки по последствиям действия и его месту в текущей группе действий.',
+            },
+        },
+    },
+    render: () => <Box
+        data-story-section='button-semantics'
+        sx={{
+            backgroundColor: '#fff',
+            color: '#27364B',
+            fontFamily: 'Arial, sans-serif',
+            p: 4,
+        }}
+    >
+        <Typography component='h1' sx={{fontSize: 24, fontWeight: 700, lineHeight: '32px', mb: 1}}>
+            Семантика кнопок
+        </Typography>
+        <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px', mb: 3}}>
+            Выбирайте стиль по последствиям и иерархии действия, а не только по тексту кнопки.
+            В каждой группе действий должна быть одна явно основная кнопка.
+        </Typography>
+
+        <UsageGuideline
+            title='Основное / contained'
+            api="pneStyle='contained'"
+            description='Главное действие на странице, в модальном окне или в группе: Сохранить, Создать, Подтвердить или Обработать.'
+            example={<PneButton pneStyle='contained'>Сохранить</PneButton>}
+        />
+        <UsageGuideline
+            title='Вторичное / outlined'
+            api="pneStyle='outlined'"
+            description='Безопасная альтернатива рядом с основной кнопкой: Отмена, Нет или Назад. Базовый вторичный стиль для групп действий.'
+            example={<PneButton pneStyle='outlined'>Отмена</PneButton>}
+        />
+        <UsageGuideline
+            title='Самостоятельное / neutral'
+            api="color='pneNeutral'"
+            description='Самостоятельная навигационная или служебная команда без парного основного действия: Назад или Сбросить фильтры.'
+            example={<PneButton color='pneNeutral'>Назад</PneButton>}
+        />
+        <UsageGuideline
+            title='Третичное / text'
+            api="pneStyle='text'"
+            description='Намеренно малозаметное действие, похожее на ссылку: одиночное Закрыть или необязательное Очистить.'
+            example={<PneButton pneStyle='text'>Закрыть</PneButton>}
+        />
+        <UsageGuideline
+            title='Осторожность / warning light'
+            api="color='pneWarningLight'"
+            description='Значимое, но не разрушительное действие, требующее внимания: например, остановка активного процесса.'
+            example={<PneButton color='pneWarningLight'>Остановить процесс</PneButton>}
+        />
+        <UsageGuideline
+            title='Разрушительное / error'
+            api="pneStyle='error'"
+            description='Разрушительное действие, которое необратимо либо сразу меняет сохранённое состояние: Удалить, Отозвать или Сбросить. Не используйте для обычного Сохранить, Отмены, Назад, Нет или локального удаления из ещё не сохранённого списка.'
+            example={<PneButton pneStyle='error'>Удалить</PneButton>}
+        />
+
+        <Divider sx={{my: 3}}/>
+        <Typography component='h2' sx={{fontSize: 18, fontWeight: 700, lineHeight: '24px', mb: 2}}>
+            Рекомендуемые группы действий
+        </Typography>
+        <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 4}}>
+            <Box>
+                <Typography sx={{color: '#697386', fontSize: 12, lineHeight: '18px', mb: 1}}>
+                    Обычное подтверждение
+                </Typography>
+                <Box sx={{display: 'flex', gap: 1}}>
+                    <PneButton pneStyle='outlined'>Отмена</PneButton>
+                    <PneButton pneStyle='contained'>Сохранить</PneButton>
+                </Box>
+            </Box>
+            <Box>
+                <Typography sx={{color: '#697386', fontSize: 12, lineHeight: '18px', mb: 1}}>
+                    Подтверждение удаления
+                </Typography>
+                <Box sx={{display: 'flex', gap: 1}}>
+                    <PneButton pneStyle='outlined'>Отмена</PneButton>
+                    <PneButton pneStyle='error'>Удалить</PneButton>
+                </Box>
+            </Box>
+        </Box>
+        <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px', mt: 3}}>
+            Если кнопка меняет действие по состоянию, вместе с действием меняется и стиль:
+            например, основное Импортировать становится нейтральным Отменить во время выполнения.
+        </Typography>
+    </Box>,
+}
+
 type ButtonMatrixVariant = 'contained' | 'outlined' | 'text'
 type ButtonMatrixSize = 'small' | 'medium' | 'large'
 type ButtonMatrixState = 'enable' | 'disabled' | 'hover' | 'pressed'

@@ -4,6 +4,7 @@ import { Box, IconButton, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { usePneConfirm } from '../confirm'
 import PneModal from '../PneModal'
+import PneModalActions from '../PneModalActions'
 import PneTextField from '../PneTextField'
 import PneButton from '../PneButton'
 
@@ -184,7 +185,30 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                 </Box>
             ) : null}
             {hasAdd ? (
-                <PneModal open={modalOpen} onClose={() => setModalOpen(false)} title={modalTitle}>
+                <PneModal
+                    actions={<PneModalActions
+                        secondary={<PneButton
+                            pneStyle='outlined'
+                            size='small'
+                            onClick={() => setModalOpen(false)}
+                            sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
+                        >
+                            {cancelLabel}
+                        </PneButton>}
+                        primary={<PneButton
+                            pneStyle='contained'
+                            size='small'
+                            onClick={handleSave}
+                            disabled={!name.trim()}
+                            sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
+                        >
+                            {saveLabel}
+                        </PneButton>}
+                    />}
+                    open={modalOpen}
+                    onClose={() => setModalOpen(false)}
+                    title={modalTitle}
+                >
                     <Stack spacing={2}>
                         <PneTextField
                             label={templateNameLabel}
@@ -202,25 +226,6 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                                 </Stack>
                             </Box>
                         ) : null}
-                        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                            <PneButton
-                                pneStyle='outlined'
-                                size='small'
-                                onClick={() => setModalOpen(false)}
-                                sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
-                            >
-                                {cancelLabel}
-                            </PneButton>
-                            <PneButton
-                                pneStyle='contained'
-                                size='small'
-                                onClick={handleSave}
-                                disabled={!name.trim()}
-                                sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
-                            >
-                                {saveLabel}
-                            </PneButton>
-                        </Box>
                     </Stack>
                 </PneModal>
             ) : null}
