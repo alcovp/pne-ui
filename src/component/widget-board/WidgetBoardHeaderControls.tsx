@@ -256,7 +256,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                         </Box>
                     ) : null}
                     <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                        <PneButton pneStyle='text' size='small' onClick={closeSaveAsModal}>
+                        <PneButton pneStyle='outlined' size='small' onClick={closeSaveAsModal}>
                             {t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })}
                         </PneButton>
                         <PneButton pneStyle='contained' size='small' onClick={handleSaveAs} disabled={!layoutName.trim()}>

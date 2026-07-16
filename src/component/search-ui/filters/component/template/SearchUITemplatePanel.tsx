@@ -93,7 +93,7 @@ const SearchUITemplatePanel = (props: IProps) => {
                     </Alert>
                 </Collapse>
                 <Box sx={buttonsBoxSx}>
-                    <PneButton color={'pneNeutral'} onClick={handleClose}>{t('cancel')}</PneButton>
+                    <PneButton pneStyle='outlined' onClick={handleClose}>{t('cancel')}</PneButton>
                     <PneButton type={'submit'}>{t('create')}</PneButton>
                 </Box>
             </form>

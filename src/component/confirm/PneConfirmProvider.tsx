@@ -117,7 +117,7 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
                         </Typography>
                     </Box>
                     <Stack direction='row' spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                        <PneButton pneStyle='text' color='pneNeutral' onClick={() => settle(false)}>
+                        <PneButton pneStyle='outlined' onClick={() => settle(false)}>
                             {current?.cancelLabel}
                         </PneButton>
                         <PneButton pneStyle='contained' onClick={() => settle(true)}>

@@ -204,7 +204,7 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                         ) : null}
                         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
                             <PneButton
-                                pneStyle='text'
+                                pneStyle='outlined'
                                 size='small'
                                 onClick={() => setModalOpen(false)}
                                 sx={{ height: 32, fontSize: '14px', lineHeight: '20px' }}
