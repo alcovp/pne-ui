@@ -5,7 +5,7 @@ import {PaginatorProps} from "./AbstractTable";
 import PneFirstPageIcon from "./PneFirstPageIcon";
 import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
-import {AutoTestAttribute} from "../AutoTestAttribute";
+import {createAutoTestAttributes} from "../AutoTestAttribute";
 // import {usePneTheme} from "../../usePneTheme";
 
 interface IPaginationActionsProps {
@@ -119,14 +119,14 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
                 throw new Error('Uncomment RowsPerPageOption type to do like this');
             }
             const selected = rowsPerPage === size;
-            return <AutoTestAttribute id={'page-size'} value={label} key={label}>
-                <IconButton
-                    sx={selected ? selectedButtonStyle : buttonStyle}
-                    onClick={() => handleChangePageSizeButtonClick(size)}
-                >
-                    {label}
-                </IconButton>
-            </AutoTestAttribute>
+            return <IconButton
+                key={label}
+                sx={selected ? selectedButtonStyle : buttonStyle}
+                onClick={() => handleChangePageSizeButtonClick(size)}
+                {...createAutoTestAttributes('page-size', label)}
+            >
+                {label}
+            </IconButton>
         })
     }
 
@@ -136,49 +136,48 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             width: '100%',
         }}
     >
-        <AutoTestAttribute id={'first-page'}>
-            <IconButton
-                sx={buttonStyle}
-                onClick={handleFirstPageButtonClick}
-                disabled={disableActions || page === 0}
-                aria-label="first page"
-            >
-                <PneFirstPageIcon disabled={disableActions || page === 0}/>
-            </IconButton>
-        </AutoTestAttribute>
-        <AutoTestAttribute id={'prev-page'}>
-            <IconButton
-                sx={buttonStyle}
-                onClick={handleBackButtonClick}
-                disabled={disableActions || page === 0}
-                aria-label="previous page"
-            >
-                <PnePreviousPageIcon disabled={disableActions || page === 0}/>
-            </IconButton>
-        </AutoTestAttribute>
-        <AutoTestAttribute id={'current-page'}>
-            <Icon sx={displayedRowsStyle}>{displayedRowsLabel}</Icon>
-        </AutoTestAttribute>
-        <AutoTestAttribute id={'next-page'}>
-            <IconButton
-                sx={buttonStyle}
-                onClick={handleNextButtonClick}
-                disabled={disableActions || !hasNext}
-                aria-label="next page"
-            >
-                <PneNextPageIcon disabled={disableActions || !hasNext}/>
-            </IconButton>
-        </AutoTestAttribute>
-        <AutoTestAttribute id={'page-sizes'} value={rowsPerPage}>
-            <Box
-                sx={{
-                    marginLeft: 'auto',
-                    order: 2,
-                }}
-            >
-                {populateRowsPerPageOptions()}
-            </Box>
-        </AutoTestAttribute>
+        <IconButton
+            sx={buttonStyle}
+            onClick={handleFirstPageButtonClick}
+            disabled={disableActions || page === 0}
+            aria-label="first page"
+            {...createAutoTestAttributes('first-page')}
+        >
+            <PneFirstPageIcon disabled={disableActions || page === 0}/>
+        </IconButton>
+        <IconButton
+            sx={buttonStyle}
+            onClick={handleBackButtonClick}
+            disabled={disableActions || page === 0}
+            aria-label="previous page"
+            {...createAutoTestAttributes('prev-page')}
+        >
+            <PnePreviousPageIcon disabled={disableActions || page === 0}/>
+        </IconButton>
+        <Icon
+            sx={displayedRowsStyle}
+            {...createAutoTestAttributes('current-page')}
+        >
+            {displayedRowsLabel}
+        </Icon>
+        <IconButton
+            sx={buttonStyle}
+            onClick={handleNextButtonClick}
+            disabled={disableActions || !hasNext}
+            aria-label="next page"
+            {...createAutoTestAttributes('next-page')}
+        >
+            <PneNextPageIcon disabled={disableActions || !hasNext}/>
+        </IconButton>
+        <Box
+            sx={{
+                marginLeft: 'auto',
+                order: 2,
+            }}
+            {...createAutoTestAttributes('page-sizes', rowsPerPage)}
+        >
+            {populateRowsPerPageOptions()}
+        </Box>
     </Box>
 }
 

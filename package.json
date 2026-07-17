@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "4.3.0-rc.0",
+    "version": "4.3.0-rc.1",
     "description": "",
     "repository": {
         "type": "git",
@@ -158,6 +158,5 @@
     },
     "readme": "ERROR: No README data found!",
     "homepage": "https://github.com/alcovp/pne-ui#readme",
-    "_id": "pne-ui@1.0.32",
     "packageManager": "yarn@4.2.2"
 }
