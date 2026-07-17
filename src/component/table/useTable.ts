@@ -3,8 +3,6 @@ import {PaginatorProps, RowsPerPageOption} from './AbstractTable';
 import {SxProps} from '@mui/material';
 import {ensure, Order} from "../../common/pne/type";
 import {TableDisplayOptions} from "./type";
-import {usePneTableStore} from "./state/store";
-import {useShallow} from 'zustand/react/shallow';
 
 const PAGE_SIZE_SETTING_NAME = 'page_size'
 const PAGE_NUMBER_SETTING_NAME = 'page_number'
@@ -59,14 +57,6 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         fetchDataExtraDeps,
         duplicatePagination,
     } = params;
-
-    const {
-        needToScrollToPagination,
-        setNeedToScrollToPagination,
-    } = usePneTableStore(useShallow((store) => ({
-        needToScrollToPagination: store.needToScrollToPagination,
-        setNeedToScrollToPagination: store.setNeedToScrollToPagination,
-    })))
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
     //     pageSize: 10,
@@ -167,14 +157,18 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     }
 
     const paginationRef = useRef<HTMLDivElement | null>(null)
+    const shouldScrollToPaginationRef = useRef(false)
+    const requestScrollToPagination = () => {
+        shouldScrollToPaginationRef.current = true
+    }
     const scrollToPagination = () => {
-        if (needToScrollToPagination) {
+        if (shouldScrollToPaginationRef.current) {
+            shouldScrollToPaginationRef.current = false
             setTimeout(() => {
                 if (paginationRef.current) {
                     paginationRef.current.scrollIntoView({behavior: "smooth", block: "end"})
                 }
             }, 100)
-            setNeedToScrollToPagination(false)
         }
     }
 
@@ -214,6 +208,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         activeActionSx: paginatorActiveActionSx,
         duplicatePagination: duplicatePagination,
         paginationRef: paginationRef,
+        requestScrollToPagination,
     };
 
     const afterDataFetch = (dataList: D[]) => {

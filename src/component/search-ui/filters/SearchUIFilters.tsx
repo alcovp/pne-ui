@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useId, useRef, useState} from 'react';
 import {
     SearchUIFiltersHeaderActions,
     SearchUIFiltersHeaderLeft,
@@ -34,6 +34,13 @@ import {isCriterionAvailable} from './criterionAvailability';
 import type { SearchUIDateOnlyTimeZone } from './dateRangeTimeZone';
 import {SearchUIFiltersStoreProvider} from './state/SearchUIFiltersStoreProvider';
 import {getRetainedSearchUIState} from './state/retention';
+import {createAutoTestAttributes} from '../../AutoTestAttribute';
+import {SearchUIAutoTestScopeProvider} from './AutoTestScope';
+
+const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
+const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
+const CLEAR_FILTERS_AUTOTEST_ID = 'clear-all';
+const RUN_SEARCH_AUTOTEST_ID = 'run-search';
 
 type PendingClearCriteriaUndo = {
     snackbarId: string
@@ -101,7 +108,12 @@ export type SearchUIFiltersConfig = {
 /**
  * Свойства компонента {@link SearchUIFilters}.
  */
-type Props = {
+export type SearchUIFiltersProps = {
+    /**
+     * Stable non-secret Selenium scope for this filters root and its portals.
+     * Defaults to settingsContextName; set it explicitly when multiple instances may render together.
+     */
+    autoTestId?: string
     /**
      * Имя контекста настроек, используемое для хранения пользовательских предпочтений.
      */
@@ -144,7 +156,7 @@ type Props = {
  * Панель фильтров поискового интерфейса с поддержкой шаблонов и динамических критериев.
  * @param props Свойства компонента.
  */
-export const SearchUIFilters = (props: Props) => {
+export const SearchUIFilters = (props: SearchUIFiltersProps) => {
     return <SearchUIFiltersStoreProvider
         key={props.settingsContextName}
         settingsContextName={props.settingsContextName}
@@ -153,9 +165,10 @@ export const SearchUIFilters = (props: Props) => {
     </SearchUIFiltersStoreProvider>
 }
 
-export const SearchUIFiltersContent = (props: Props) => {
+export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
     const {t} = useTranslation();
     const {
+        autoTestId = props.settingsContextName,
         settingsContextName,
         possibleCriteria = [],
         predefinedCriteria = [],
@@ -195,6 +208,7 @@ export const SearchUIFiltersContent = (props: Props) => {
     const filtersState = useSearchUIFiltersStore(s => s)
 
     const [showFilters, setShowFilters] = useState(true)
+    const filtersPanelId = useId()
     const initializedRef = useRef(false)
     const pendingClearCriteriaUndoRef = useRef<PendingClearCriteriaUndo | null>(null)
 
@@ -326,76 +340,87 @@ export const SearchUIFiltersContent = (props: Props) => {
         }
     }
 
-    return <Box sx={{px: '16px'}}>
-        <Box sx={headerSx}>
-            <Box sx={headerPrimaryRowSx}>
-                {hideShowFiltersButton ? null : <IconButton
-                    onClick={() => setShowFilters(prev => !prev)}
-                    size={'small'}
-                    color={'primary'}
-                >
-                    <ExpandMoreIcon
-                        fontSize={'small'}
-                        sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
-                    />
-                </IconButton>}
-                <Box sx={titleSx} component={'span'}>{t('react.searchUI.filters')}</Box>
-                {showFiltersCountChip ? <Chip
-                    size={'small'}
-                    color={'primary'}
-                    variant={'outlined'}
-                    label={criteria.length}
-                    sx={nowrapChipSx}
-                /> : null}
-            </Box>
-            <SearchUIFiltersHeaderActions>
-                {showMainActionsRow ? <SearchUIFiltersHeaderMainRow>
-                    <SearchUIFiltersHeaderLeft>
-                        {showClearAllButton ? <PneButton
-                            onClick={handleClearCriteria}
-                            color={'pneNeutral'}
+    return <SearchUIAutoTestScopeProvider scope={autoTestId}>
+        <Box
+            {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
+            sx={{px: '16px'}}
+        >
+            <Box sx={headerSx}>
+                <Box sx={headerPrimaryRowSx}>
+                    {hideShowFiltersButton ? null : <IconButton
+                        {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
+                        onClick={() => setShowFilters(prev => !prev)}
+                        size={'small'}
+                        color={'primary'}
+                        aria-label={t('react.searchUI.filters')}
+                        aria-controls={filtersPanelId}
+                        aria-expanded={showFilters}
+                    >
+                        <ExpandMoreIcon
+                            fontSize={'small'}
+                            sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
+                        />
+                    </IconButton>}
+                    <Box sx={titleSx} component={'span'}>{t('react.searchUI.filters')}</Box>
+                    {showFiltersCountChip ? <Chip
+                        size={'small'}
+                        color={'primary'}
+                        variant={'outlined'}
+                        label={criteria.length}
+                        sx={nowrapChipSx}
+                    /> : null}
+                </Box>
+                <SearchUIFiltersHeaderActions>
+                    {showMainActionsRow ? <SearchUIFiltersHeaderMainRow>
+                        <SearchUIFiltersHeaderLeft>
+                            {showClearAllButton ? <PneButton
+                                {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
+                                onClick={handleClearCriteria}
+                                color={'pneNeutral'}
+                                size={'small'}
+                                sx={nowrapButtonSx}
+                            >
+                                {t('clear.all')}
+                            </PneButton> : null}
+                        </SearchUIFiltersHeaderLeft>
+                        <SearchUIFiltersHeaderRight>
+                            {showTemplatesMenu ? <SearchUITemplatesMenu/> : null}
+                            {showAddFilterButton ? <SearchUIAddFilter
+                                options={criteriaOptions}
+                                onChange={criterion => {
+                                    setShowFilters(true)
+                                    addCriterion(criterion)
+                                }}
+                            /> : null}
+                        </SearchUIFiltersHeaderRight>
+                    </SearchUIFiltersHeaderMainRow> : null}
+                    <SearchUIFiltersHeaderSearch>
+                        <PneButton
+                            {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
+                            onClick={triggerSearch}
+                            color={'primary'}
                             size={'small'}
+                            variant={'contained'}
+                            disabled={searchLoading}
                             sx={nowrapButtonSx}
                         >
-                            {t('clear.all')}
-                        </PneButton> : null}
-                    </SearchUIFiltersHeaderLeft>
-                    <SearchUIFiltersHeaderRight>
-                        {showTemplatesMenu ? <SearchUITemplatesMenu/> : null}
-                        {showAddFilterButton ? <SearchUIAddFilter
-                            options={criteriaOptions}
-                            onChange={criterion => {
-                                setShowFilters(true)
-                                addCriterion(criterion)
-                            }}
-                        /> : null}
-                    </SearchUIFiltersHeaderRight>
-                </SearchUIFiltersHeaderMainRow> : null}
-                <SearchUIFiltersHeaderSearch>
-                    <PneButton
-                        onClick={triggerSearch}
-                        color={'primary'}
-                        size={'small'}
-                        variant={'contained'}
-                        disabled={searchLoading}
-                        sx={nowrapButtonSx}
-                    >
-                        {manualSearch
-                            ? t('react.searchUI.search')
-                            : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
-                    </PneButton>
-                </SearchUIFiltersHeaderSearch>
-            </SearchUIFiltersHeaderActions>
+                            {manualSearch
+                                ? t('react.searchUI.search')
+                                : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
+                        </PneButton>
+                    </SearchUIFiltersHeaderSearch>
+                </SearchUIFiltersHeaderActions>
+            </Box>
+            <Box id={filtersPanelId} hidden={!showFilters}>
+                {showFilters ? criteria.map((criterion) =>
+                    <CriterionContainer
+                        key={criterion}
+                        type={criterion}
+                    />
+                ) : null}
+            </Box>
         </Box>
-        {showFilters ? <Box>
-            {criteria.map((criterion) =>
-                <CriterionContainer
-                    key={criterion}
-                    type={criterion}
-                />
-            )}
-        </Box> : null}
-    </Box>
+    </SearchUIAutoTestScopeProvider>
 }
 
 const titleSx: SxProps = {

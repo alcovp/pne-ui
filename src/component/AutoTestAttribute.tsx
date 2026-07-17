@@ -1,57 +1,68 @@
-import React, {ReactElement} from 'react';
-import ReactIs from 'react-is';
+import React from 'react';
 
-const DATA_ATTRIBUTE_SUFFIX = 'autotest';
-const DATA_ATTRIBUTE_VALUE_SUFFIX = 'autotest-value';
-const TEST_ATTRIBUTE_NAME = `data-${DATA_ATTRIBUTE_SUFFIX}`;
-const TEST_ATTRIBUTE_VALUE_NAME = `data-${DATA_ATTRIBUTE_VALUE_SUFFIX}`;
+const TEST_ATTRIBUTE_NAME = 'data-autotest';
+const TEST_ATTRIBUTE_VALUE_NAME = 'data-autotest-value';
 
-interface IProps {
-    id: string
-    value?: valueType
+export type AutoTestValue = string | number | boolean
+
+export type AutoTestAttributes = {
+    [TEST_ATTRIBUTE_NAME]: string
+    [TEST_ATTRIBUTE_VALUE_NAME]?: AutoTestValue
 }
 
-type valueType = string | number | boolean
+export type AutoTestAttributeProps = React.PropsWithChildren<{
+    id: string
+    value?: AutoTestValue
+}>
 
-export const AutoTestAttribute = (props: React.PropsWithChildren<IProps>) => {
+/**
+ * Creates always-on, non-secret locator attributes for direct attachment to the
+ * DOM node or MUI slot that owns the tested interaction.
+ */
+export const createAutoTestAttributes = (
+    id: string,
+    value?: AutoTestValue,
+): AutoTestAttributes => value === undefined
+    ? {[TEST_ATTRIBUTE_NAME]: id}
+    : {
+        [TEST_ATTRIBUTE_NAME]: id,
+        [TEST_ATTRIBUTE_VALUE_NAME]: value,
+    }
+
+/**
+ * Compatibility API for existing consumers. Custom children must forward
+ * unknown DOM attributes. A Fragment child is wrapped in a div for legacy
+ * compatibility, so new library code should use createAutoTestAttributes on an
+ * existing DOM node or MUI slot instead.
+ */
+export const AutoTestAttribute = (props: AutoTestAttributeProps) => {
     const {
         id,
         value,
         children,
     } = props;
 
-    const isProduction = process.env.PUBLIC_AUTOTEST_ATTRIBUTES === 'false';
+    const attributes = createAutoTestAttributes(id, value);
 
     const withTestAttribute = (nodes: React.ReactNode): React.ReactNode => {
         const node = React.Children.only(nodes);
 
-        if (ReactIs.isFragment(node)) {
-            return React.createElement(
-                'div',
-                // @ts-expect-error TS2345
-                addValueAttributeIfPresent({[TEST_ATTRIBUTE_NAME]: id}, value),
-                node
-            );
-        } else if (ReactIs.isElement(node)) {
-            return React.cloneElement(
-                node as ReactElement,
-                // @ts-expect-error TS2345
-                addValueAttributeIfPresent({[TEST_ATTRIBUTE_NAME]: id}, value)
-            );
-        } else {
-            console.log('node');
+        if (!React.isValidElement<Record<string, unknown>>(node)) {
             return node;
         }
+
+        if (node.type === React.Fragment) {
+            return React.createElement(
+                'div',
+                attributes,
+                node
+            );
+        }
+
+        return React.cloneElement(node, attributes);
     }
 
     return <>
-        {isProduction ? children : withTestAttribute(children)}
+        {withTestAttribute(children)}
     </>
 };
-
-const addValueAttributeIfPresent = (
-    attributes: Record<string, valueType>,
-    value: valueType
-): Record<string, valueType> => {
-    return value !== undefined ? {...attributes, [TEST_ATTRIBUTE_VALUE_NAME]: value} : attributes;
-}

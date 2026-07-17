@@ -6,8 +6,6 @@ import PneFirstPageIcon from "./PneFirstPageIcon";
 import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
 import {AutoTestAttribute} from "../AutoTestAttribute";
-import {usePneTableStore} from "./state/store";
-import {useShallow} from 'zustand/react/shallow';
 // import {usePneTheme} from "../../usePneTheme";
 
 interface IPaginationActionsProps {
@@ -38,16 +36,11 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         rowsPerPageOptions,
         onPageSizeChange,
         displayedRowsLabel,
+        requestScrollToPagination,
         activeActionSx = {},
     } = paginator;
 
     // const theme = usePneTheme()
-
-    const {
-        setNeedToScrollToPagination,
-    } = usePneTableStore(useShallow((store) => ({
-        setNeedToScrollToPagination: store.setNeedToScrollToPagination,
-    })))
 
     const buttonStyle = {
         width: '40px',
@@ -90,29 +83,24 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
 
     const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         if (shouldRequestScroll) {
-            setNeedToScrollToPagination(true)
+            requestScrollToPagination?.()
         }
         onPageChange(event, 0);
     };
 
     const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         if (shouldRequestScroll) {
-            setNeedToScrollToPagination(true)
+            requestScrollToPagination?.()
         }
         onPageChange(event, page - 1);
     };
 
     const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         if (shouldRequestScroll) {
-            setNeedToScrollToPagination(true)
+            requestScrollToPagination?.()
         }
         onPageChange(event, page + 1);
     };
-
-    // const handleLastPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    //     setNeedToScrollToPagination(true)
-    //     onPageChange(event, Math.max(0, Math.ceil(count / rowsPerPage) - 1));
-    // };
 
     const handleChangePageSizeButtonClick = (size: number) => {
         onPageSizeChange(size);

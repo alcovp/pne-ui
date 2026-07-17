@@ -7,48 +7,105 @@ import PneSelect from '../../../../../dropdown/PneSelect';
 import {SearchUIDefaultsContext} from "../../../../SearchUIProvider";
 import {Country} from '../../../../../../common';
 import {useTranslation} from "react-i18next";
+import {createAutoTestAttributes} from '../../../../../AutoTestAttribute';
+import {
+    createSearchUIOwnedAutoTestAttributes,
+    useSearchUIAutoTestScope,
+} from '../../../AutoTestScope';
+
+const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input'
+const CRITERION_INPUT_OPTIONS_AUTOTEST_ID = 'criterion-input-options'
+const CRITERION_INPUT_OPTION_AUTOTEST_ID = 'criterion-input-option'
 
 export const OrdersSearchCountrySelect = () => {
     const {t} = useTranslation()
 
     const setOrderSearchCriterionValue = useSearchUIFiltersStore(s => s.setOrderSearchCriterionValue)
+    const ordersSearchValue = useSearchUIFiltersStore(s => s.ordersSearchValue)
 
     const [availableCountries, setAvailableCountries] = useState<Country[]>([])
-    const [country, setCountry] = useState<Country>()
+    const [loading, setLoading] = useState(true)
 
     const {getCountries} = useContext(SearchUIDefaultsContext)
+    const autoTestOwner = useSearchUIAutoTestScope()
 
     useEffect(() => {
+        let active = true
+
+        setLoading(true)
         getCountries()
             .then(response => {
-                setAvailableCountries(response)
+                if (active) {
+                    setAvailableCountries(response)
+                    setLoading(false)
+                }
             })
-            // .catch(raiseUIError)
-            .catch(console.error)
-    }, [])
+            .catch(error => {
+                if (active) {
+                    setAvailableCountries([])
+                    setLoading(false)
+                    console.error(error)
+                }
+            })
+
+        return () => {
+            active = false
+        }
+    }, [getCountries])
 
     const [open, setOpen] = useState(false)
+    const selectedCountry = availableCountries.find(country => (
+        String(country.id) === ordersSearchValue
+    ))
+    const disabled = loading || availableCountries.length === 0
+    const inputAriaLabel = t('react.searchUI.ordersSearch.value', {defaultValue: 'Order search value'})
+
+    useEffect(() => {
+        if (disabled) setOpen(false)
+    }, [disabled])
+
+    const openSelect = () => {
+        if (!disabled) setOpen(true)
+    }
 
     return <Box sx={{position: 'relative'}}>
         <Chip
-            onDelete={() => setOpen(true)}
+            onDelete={openSelect}
             deleteIcon={<ExpandMoreIcon/>}
-            label={country ? country.displayName : t('react.searchUI.countrySelectPlaceholder')}
+            label={selectedCountry?.displayName ?? t('react.searchUI.countrySelectPlaceholder')}
             size={'small'}
+            aria-hidden={true}
+            tabIndex={-1}
+            sx={{pointerEvents: 'none'}}
         />
         <PneSelect
+            disabled={disabled}
             open={open}
             onClose={() => setOpen(false)}
-            onOpen={() => setOpen(true)}
+            onOpen={openSelect}
             sx={selectUnderChipSx}
-            value={country}
+            value={(selectedCountry?.id ?? '') as unknown as Country}
             onChange={(value) => {
-                setCountry(value as Country)
-                if (value) {
-                    setOrderSearchCriterionValue((value as Country).id + '')
-                }
+                setOrderSearchCriterionValue(String((value as Country).id))
             }}
             options={availableCountries}
+            getOptionProps={option => createAutoTestAttributes(
+                CRITERION_INPUT_OPTION_AUTOTEST_ID,
+                option.value,
+            )}
+            MenuProps={{
+                slotProps: {
+                    list: createSearchUIOwnedAutoTestAttributes(
+                        CRITERION_INPUT_OPTIONS_AUTOTEST_ID,
+                        autoTestOwner,
+                    ),
+                },
+            }}
+            SelectDisplayProps={{
+                ...createAutoTestAttributes(CRITERION_INPUT_AUTOTEST_ID, selectedCountry?.id),
+                'aria-label': inputAriaLabel,
+                'aria-busy': loading,
+            }}
         />
     </Box>
 }

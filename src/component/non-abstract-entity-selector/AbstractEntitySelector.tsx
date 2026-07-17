@@ -5,7 +5,7 @@ import {Virtuoso} from 'react-virtuoso';
 import {TFunction, useTranslation} from 'react-i18next';
 
 import {AddedListWrapper, ColumnWrapper, Container, HeaderColumn, HeaderColumnWrapper,} from './styled';
-import ItemEntitySelector from './ItemEntitySelector';
+import ItemEntitySelector, {ItemEntitySelectorAttributes} from './ItemEntitySelector';
 import {
     AbstractEntity,
     assertObject,
@@ -19,6 +19,23 @@ import {
 import PneTextField from '../PneTextField';
 import PneButton from '../PneButton';
 import ClearIcon from '@mui/icons-material/Clear'
+
+export type AbstractEntitySelectorItemAttributes = ItemEntitySelectorAttributes
+
+export type AbstractEntitySelectorElementAttributes = React.AriaAttributes & {
+    id?: string
+    role?: React.AriaRole
+    [key: `data-${string}`]: unknown
+}
+
+export type AbstractEntitySelectorElements = {
+    searchInput?: AbstractEntitySelectorElementAttributes
+    searchClearButton?: AbstractEntitySelectorElementAttributes
+    availableColumn?: AbstractEntitySelectorElementAttributes
+    addAllButton?: AbstractEntitySelectorElementAttributes
+    addedColumn?: AbstractEntitySelectorElementAttributes
+    removeAllButton?: AbstractEntitySelectorElementAttributes
+}
 
 //TODO must be removed
 export type ProcessorPaymentApparatus = {
@@ -49,7 +66,14 @@ export interface IAbstractEntityOptions<T> {
     textRepresentationValue?: string
     onChange: (mappedList: T[], unMappedList: T[]) => void
     actionBlock?: React.ReactNode
+    getItemAttributes?: (
+        item: AbstractEntity,
+        list: AbstractEntitySelectorList,
+    ) => AbstractEntitySelectorItemAttributes
+    elementAttributes?: AbstractEntitySelectorElements
 }
+
+export type AbstractEntitySelectorList = 'AVAILABLE' | 'ADDED'
 
 export type AbstractEntitySelectorProp =
     string
@@ -112,6 +136,8 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         textRepresentationValue = '',
         onChange,
         actionBlock,
+        getItemAttributes,
+        elementAttributes,
     } = props;
 
     const {t} = useTranslation();
@@ -433,19 +459,25 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                         input: {
                             endAdornment: searchValue && (
                                 <InputAdornment position="end">
-                                    <IconButton onClick={e => setSearchValue('')} edge="end">
+                                    <IconButton
+                                        {...elementAttributes?.searchClearButton}
+                                        onClick={() => setSearchValue('')}
+                                        edge="end"
+                                        type='button'
+                                    >
                                         <ClearIcon />
                                     </IconButton>
                                 </InputAdornment>
                             ),
                         },
+                        htmlInput: elementAttributes?.searchInput,
                     }}
                     autoFocus={true}
                 />
             </Box>
             <DragDropContext onDragEnd={onDragEnd}>
                 <Container height={height}>
-                    <ColumnWrapper>
+                    <ColumnWrapper {...elementAttributes?.availableColumn}>
                         <AddedListWrapper>
                             <HeaderColumnWrapper>
                                 <HeaderColumn>
@@ -453,7 +485,9 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 </HeaderColumn>
                                 {disableMoving !== 'AVAILABLE' && (
                                     <PneButton
+                                        {...elementAttributes?.addAllButton}
                                         variant='text'
+                                        type='button'
                                         onClick={() => {
                                             handleSelectAll('AVAILABLE')
                                         }}
@@ -477,6 +511,10 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                             provided={provided}
                                             item={availableList[rubric.source.index]}
                                             name={renderOption(availableList[rubric.source.index].displayName)}
+                                            itemAttributes={getItemAttributes?.(
+                                                availableList[rubric.source.index],
+                                                'AVAILABLE',
+                                            )}
                                         />
                                     )
                                 }}
@@ -506,6 +544,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                                             provided={provided}
                                                             item={item}
                                                             name={renderOption(item.displayName)}
+                                                            itemAttributes={getItemAttributes?.(item, 'AVAILABLE')}
                                                         />
                                                     )}
                                                 </Draggable>
@@ -518,7 +557,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                             </Droppable>
                         </AddedListWrapper>
                     </ColumnWrapper>
-                    <ColumnWrapper>
+                    <ColumnWrapper {...elementAttributes?.addedColumn}>
                         <AddedListWrapper>
                             <HeaderColumnWrapper>
                                 <HeaderColumn>
@@ -526,7 +565,9 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 </HeaderColumn>
                                 {disableMoving !== 'ADDED' && (
                                     <PneButton
+                                        {...elementAttributes?.removeAllButton}
                                         variant='text'
+                                        type='button'
                                         onClick={() => {
                                             handleSelectAll('ADDED')
                                         }}
@@ -548,6 +589,10 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                             provided={provided}
                                             item={addedList[rubric.source.index]}
                                             name={renderOption(addedList[rubric.source.index].displayName)}
+                                            itemAttributes={getItemAttributes?.(
+                                                addedList[rubric.source.index],
+                                                'ADDED',
+                                            )}
                                         />
                                     )
                                 }}
@@ -575,6 +620,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                                             provided={provided}
                                                             item={item}
                                                             name={renderOption(item.displayName)}
+                                                            itemAttributes={getItemAttributes?.(item, 'ADDED')}
                                                         />
                                                     )}
                                                 </Draggable>

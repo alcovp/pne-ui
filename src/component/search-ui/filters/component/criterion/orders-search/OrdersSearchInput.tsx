@@ -7,6 +7,9 @@ import {OrdersSearchLabelsConfig} from "../../../state/actions";
 import {AmountMaskInput} from "./AmountMaskInput";
 import {Card6And4MaskInput} from "./Card6And4MaskInput";
 import {OrdersSearchCountrySelect} from "./OrdersSearchCountrySelect";
+import {createAutoTestAttributes} from '../../../../../AutoTestAttribute';
+
+const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input'
 
 export const OrdersSearchInput = () => {
 
@@ -17,6 +20,11 @@ export const OrdersSearchInput = () => {
     const setOrderSearchCriterionValue = useSearchUIFiltersStore(s => s.setOrderSearchCriterionValue)
 
     const inputType = OrdersSearchLabelsConfig[ordersSearchLabel]
+    const inputAriaLabel = t('react.searchUI.ordersSearch.value', {defaultValue: 'Order search value'})
+    const nativeInputProps = {
+        ...createAutoTestAttributes(CRITERION_INPUT_AUTOTEST_ID),
+        'aria-label': inputAriaLabel,
+    }
 
     const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
         let newValue = event.target.value
@@ -52,6 +60,7 @@ export const OrdersSearchInput = () => {
                         input: {
                             disableUnderline: true,
                         },
+                        htmlInput: nativeInputProps,
                     }}
                 />
             case 'amount':
@@ -67,6 +76,7 @@ export const OrdersSearchInput = () => {
                             disableUnderline: true,
                             inputComponent: AmountMaskInput,
                         },
+                        htmlInput: nativeInputProps,
                     }}
                 />
             case 'ip':
@@ -81,6 +91,7 @@ export const OrdersSearchInput = () => {
                         input: {
                             disableUnderline: true,
                         },
+                        htmlInput: nativeInputProps,
                     }}
                 />
             case 'card6and4':
@@ -96,6 +107,7 @@ export const OrdersSearchInput = () => {
                             disableUnderline: true,
                             inputComponent: Card6And4MaskInput,
                         },
+                        htmlInput: nativeInputProps,
                     }}
                 />
             case 'country':

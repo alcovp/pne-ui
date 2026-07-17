@@ -162,4 +162,4 @@ export const StyledListItemButton = styled(ListItemButton)(() => ({
     overflow: 'hidden',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
-}));
+})) as typeof ListItemButton;

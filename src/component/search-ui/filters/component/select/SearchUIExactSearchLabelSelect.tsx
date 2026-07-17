@@ -5,6 +5,15 @@ import {useTranslation} from 'react-i18next';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {selectUnderChipSx} from './style';
 import {PneSelect} from '../../../../..';
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import {
+    createSearchUIOwnedAutoTestAttributes,
+    useSearchUIAutoTestScope,
+} from '../../AutoTestScope';
+
+const CRITERION_LABEL_AUTOTEST_ID = 'criterion-label';
+const CRITERION_LABEL_OPTIONS_AUTOTEST_ID = 'criterion-label-options';
+const CRITERION_LABEL_OPTION_AUTOTEST_ID = 'criterion-label-option';
 
 interface IProps {
     value: ExactCriterionSearchLabelEnum,
@@ -13,13 +22,16 @@ interface IProps {
 }
 
 const SearchUIExactSearchLabelSelect = (props: IProps) => {
+    const {t} = useTranslation()
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.ExactCriterionSearchLabelEnum'})
+    const autoTestOwner = useSearchUIAutoTestScope()
     const {
         value,
         onChange,
         options,
     } = props
     const [open, setOpen] = useState(false)
+    const exactSearchLabel = t('react.searchUI.exactSearch.label', {defaultValue: 'Exact search field'})
 
     return <Box sx={{position: 'relative'}}>
         <Chip
@@ -27,6 +39,9 @@ const SearchUIExactSearchLabelSelect = (props: IProps) => {
             deleteIcon={<ExpandMoreIcon/>}
             label={optionRenderer(value)}
             size={'small'}
+            aria-hidden={true}
+            tabIndex={-1}
+            sx={{pointerEvents: 'none'}}
         />
         <PneSelect
             open={open}
@@ -37,6 +52,22 @@ const SearchUIExactSearchLabelSelect = (props: IProps) => {
             value={value}
             onChange={(value) => onChange(value as ExactCriterionSearchLabelEnum)}
             options={options}
+            getOptionProps={option => createAutoTestAttributes(
+                CRITERION_LABEL_OPTION_AUTOTEST_ID,
+                option.value,
+            )}
+            MenuProps={{
+                slotProps: {
+                    list: createSearchUIOwnedAutoTestAttributes(
+                        CRITERION_LABEL_OPTIONS_AUTOTEST_ID,
+                        autoTestOwner,
+                    ),
+                },
+            }}
+            SelectDisplayProps={{
+                ...createAutoTestAttributes(CRITERION_LABEL_AUTOTEST_ID, value),
+                'aria-label': exactSearchLabel,
+            }}
         />
     </Box>
 }

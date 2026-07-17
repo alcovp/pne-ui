@@ -6,6 +6,16 @@ import {useSearchUIFiltersStore} from '../../state/store';
 import {PneModal, useModal} from '../../../../..';
 import {MultigetSelectStoreProvider} from "../../../multiget_select/state/IsolatedStoreProvider";
 import {useTranslation} from "react-i18next";
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import {
+    createSearchUIOwnedAutoTestAttributes,
+    useSearchUIAutoTestScope,
+} from '../../AutoTestScope';
+
+const CRITERION_MULTIGET_TRIGGER_AUTOTEST_ID = 'criterion-multiget-trigger'
+const CRITERION_MULTIGET_VALUE_AUTOTEST_ID = 'criterion-multiget-value'
+const CRITERION_MULTIGET_PANEL_AUTOTEST_ID = 'criterion-multiget-panel'
+const CRITERION_MULTIGET_CLOSE_AUTOTEST_ID = 'criterion-multiget-close'
 
 interface IProps {
     criterionType: CriterionTypeEnum
@@ -18,6 +28,8 @@ export const MultigetCriterionPanel = (props: IProps) => {
         entityType,
     } = props
     const {t} = useTranslation()
+    const autoTestOwner = useSearchUIAutoTestScope()
+    const panelId = React.useId()
 
     const {open, handleOpen, handleClose: closeModal} = useModal()
 
@@ -34,6 +46,11 @@ export const MultigetCriterionPanel = (props: IProps) => {
         )
     }
     const linkedMultigetCriteria = multigetCriteria.filter(c => c.entityType !== entityType)
+    const criterionLabel = t('react.CriterionTypeEnum.' + criterionType)
+    const triggerLabel = `${t('react.searchUI.multiget.edit', {
+        defaultValue: 'Edit filter',
+    })}: ${criterionLabel}`
+    const modalTitle = t('advancedSearch.addCriteria')
 
     useEffect(() => {
         if (justAddedCriterion === criterionType) {
@@ -51,10 +68,22 @@ export const MultigetCriterionPanel = (props: IProps) => {
         setJustAddedCriterion(null)
         closeModal()
     }
-    const getItemNamesChips = (commaSeparated: string) => {
-        return <>{commaSeparated.split(',').map(name =>
-            <Chip label={name} key={name} size={'small'}/>
-        )}</>
+    const getItemNamesChips = (commaSeparatedIds: string, commaSeparatedNames: string) => {
+        const ids = commaSeparatedIds.split(',')
+
+        return <>{commaSeparatedNames.split(',').map((name, index) => {
+            const id = Number.parseInt(ids[index], 10)
+            const autoTestAttributes = Number.isNaN(id)
+                ? {}
+                : createAutoTestAttributes(CRITERION_MULTIGET_VALUE_AUTOTEST_ID, id)
+
+            return <Chip
+                {...autoTestAttributes}
+                label={name}
+                key={Number.isNaN(id) ? `${name}-${index}` : id}
+                size={'small'}
+            />
+        })}</>
     }
 
     const getLinkChildren = () => {
@@ -63,7 +92,10 @@ export const MultigetCriterionPanel = (props: IProps) => {
                 if (currentMultigetCriterion.deselectedItemNames) {
                     return <Box sx={chipsSx}>
                         <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.allExcluding')}</Box>
-                        {getItemNamesChips(currentMultigetCriterion.deselectedItemNames)}
+                        {getItemNamesChips(
+                            currentMultigetCriterion.deselectedItems,
+                            currentMultigetCriterion.deselectedItemNames,
+                        )}
                     </Box>
                 } else {
                     return <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.all')}</Box>
@@ -71,7 +103,10 @@ export const MultigetCriterionPanel = (props: IProps) => {
             case MultichoiceFilterTypeEnum.NONE:
                 if (currentMultigetCriterion.selectedItemNames) {
                     return <Box sx={chipsSx}>
-                        {getItemNamesChips(currentMultigetCriterion.selectedItemNames)}
+                        {getItemNamesChips(
+                            currentMultigetCriterion.selectedItems,
+                            currentMultigetCriterion.selectedItemNames,
+                        )}
                     </Box>
                 } else {
                     return <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.none')}</Box>
@@ -88,9 +123,18 @@ export const MultigetCriterionPanel = (props: IProps) => {
 
     return <>
         <Link
+            {...createAutoTestAttributes(
+                CRITERION_MULTIGET_TRIGGER_AUTOTEST_ID,
+                currentMultigetCriterion.filterType,
+            )}
             onClick={handleOpen}
             component="button"
+            type="button"
             underline="hover"
+            aria-label={triggerLabel}
+            aria-controls={open ? panelId : undefined}
+            aria-expanded={open}
+            aria-haspopup="dialog"
             sx={linkSx}
         >
             {getLinkChildren()}
@@ -106,8 +150,22 @@ export const MultigetCriterionPanel = (props: IProps) => {
                 )}
                 open={open}
                 onClose={handleClose}
-                title={t('advancedSearch.addCriteria')}
+                title={modalTitle}
                 containerSx={modalContainerSx}
+                containerProps={{
+                    ...createSearchUIOwnedAutoTestAttributes(
+                        CRITERION_MULTIGET_PANEL_AUTOTEST_ID,
+                        autoTestOwner,
+                    ),
+                    id: panelId,
+                    role: 'dialog',
+                    'aria-label': modalTitle,
+                    'aria-modal': true,
+                }}
+                closeButtonProps={{
+                    ...createAutoTestAttributes(CRITERION_MULTIGET_CLOSE_AUTOTEST_ID),
+                    'aria-label': t('close', {defaultValue: 'Close'}),
+                }}
             >
                 <MultigetSelect
                     multigetCriterion={currentMultigetCriterion}

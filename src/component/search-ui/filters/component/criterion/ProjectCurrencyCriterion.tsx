@@ -5,13 +5,28 @@ import {useTranslation} from 'react-i18next';
 import Typography from '@mui/material/Typography';
 import {selectUnderChipSx} from '../select/style';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {AbstractEntity, PneCheckbox, PneSelect, ensure} from '../../../../..';
+import {AbstractEntity, PneCheckbox, PneSelect} from '../../../../..';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import {
+    createSearchUIOwnedAutoTestAttributes,
+    useSearchUIAutoTestScope,
+} from '../../AutoTestScope';
+
+const CRITERION_PROJECT_CURRENCY_AUTOTEST_ID = 'criterion-project-currency'
+const CRITERION_PROJECT_CURRENCY_OPTIONS_AUTOTEST_ID = 'criterion-project-currency-options'
+const CRITERION_PROJECT_CURRENCY_OPTION_AUTOTEST_ID = 'criterion-project-currency-option'
+const CRITERION_PROJECT_CURRENCY_CONVERT_AUTOTEST_ID = 'criterion-project-currency-convert'
 
 export const ProjectCurrencyCriterion = () => {
     const {t} = useTranslation()
     const [availableCurrencies, setAvailableCurrencies] = useState<AbstractEntity[]>([])
-    const searchUIDefaults = useContext(SearchUIDefaultsContext)
+    const [loading, setLoading] = useState(true)
+    const {
+        getDefaultCurrency,
+        getProjectAvailableCurrencies,
+    } = useContext(SearchUIDefaultsContext)
+    const autoTestOwner = useSearchUIAutoTestScope()
 
     const currency = useSearchUIFiltersStore(s => s.projectCurrency.currency)
     const convertToUserCurrency = useSearchUIFiltersStore(s => s.projectCurrency.convertToUserCurrency)
@@ -23,47 +38,96 @@ export const ProjectCurrencyCriterion = () => {
     const [open, setOpen] = useState(false)
 
     useEffect(() => {
-        setProjectCurrencyCriterionCurrency(searchUIDefaults.getDefaultCurrency())
-    }, [])
+        let active = true
 
-    useEffect(() => {
-        searchUIDefaults.getProjectAvailableCurrencies({
+        setLoading(true)
+        getProjectAvailableCurrencies({
             searchConditions: criteria,
             multigetCriteria: multigetCriteria,
         })
             .then(response => {
-                setAvailableCurrencies(response.map(choice => ({
-                    id: choice.choiceId,
-                    displayName: choice.displayName
-                })))
+                if (active) {
+                    setAvailableCurrencies(response.map(choice => ({
+                        id: choice.choiceId,
+                        displayName: choice.displayName,
+                    })))
+                    setLoading(false)
+                }
             })
-            // .catch(raiseUIError)
-            .catch(console.error)
-    }, [])
+            .catch(error => {
+                if (active) {
+                    setAvailableCurrencies([])
+                    setLoading(false)
+                    console.error(error)
+                }
+            })
+
+        return () => {
+            active = false
+        }
+    }, [criteria, getProjectAvailableCurrencies, multigetCriteria])
+
+    const selectedCurrency = availableCurrencies.find(option => option.id === currency.id)
+    const disabled = loading || availableCurrencies.length === 0
+    const currencyAriaLabel = t('react.searchUI.projectCurrency', {
+        defaultValue: 'Project currency',
+    })
+
+    useEffect(() => {
+        if (disabled) setOpen(false)
+    }, [disabled])
+
+    const openSelect = () => {
+        if (!disabled) setOpen(true)
+    }
 
     const getConvertToUserCurrencyLabel = () => {
         return t('performanceReport.convertAllTo')
             + ' '
             + t('performanceReport.userCurrency')
-            + ` (${searchUIDefaults.getDefaultCurrency().displayName})`
+            + ` (${getDefaultCurrency().displayName})`
     }
 
     return <Box sx={containerSx}>
         <Box sx={{position: 'relative'}}>
             <Chip
-                onDelete={() => setOpen(true)}
+                onDelete={openSelect}
                 deleteIcon={<ExpandMoreIcon/>}
                 label={currency.displayName}
                 size={'small'}
+                aria-hidden={true}
+                tabIndex={-1}
+                sx={{pointerEvents: 'none'}}
             />
             <PneSelect
+                disabled={disabled}
                 open={open}
                 onClose={() => setOpen(false)}
-                onOpen={() => setOpen(true)}
+                onOpen={openSelect}
                 sx={selectUnderChipSx}
-                value={currency}
+                value={(selectedCurrency?.id ?? '') as unknown as AbstractEntity}
                 onChange={(value) => setProjectCurrencyCriterionCurrency(value as AbstractEntity)}
                 options={availableCurrencies}
+                getOptionProps={option => createAutoTestAttributes(
+                    CRITERION_PROJECT_CURRENCY_OPTION_AUTOTEST_ID,
+                    option.value,
+                )}
+                MenuProps={{
+                    slotProps: {
+                        list: createSearchUIOwnedAutoTestAttributes(
+                            CRITERION_PROJECT_CURRENCY_OPTIONS_AUTOTEST_ID,
+                            autoTestOwner,
+                        ),
+                    },
+                }}
+                SelectDisplayProps={{
+                    ...createAutoTestAttributes(
+                        CRITERION_PROJECT_CURRENCY_AUTOTEST_ID,
+                        currency.id,
+                    ),
+                    'aria-label': currencyAriaLabel,
+                    'aria-busy': loading,
+                }}
             />
         </Box>
         <FormGroup>
@@ -77,6 +141,11 @@ export const ProjectCurrencyCriterion = () => {
                     <PneCheckbox
                         checked={convertToUserCurrency}
                         onChange={e => setProjectCurrencyCriterionConvertFlag(e.target.checked)}
+                        slotProps={{
+                            input: createAutoTestAttributes(
+                                CRITERION_PROJECT_CURRENCY_CONVERT_AUTOTEST_ID,
+                            ),
+                        }}
                     />
                 }
             />

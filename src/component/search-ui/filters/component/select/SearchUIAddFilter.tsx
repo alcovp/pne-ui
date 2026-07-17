@@ -4,6 +4,11 @@ import {Box, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {PneButton, PneSelect} from '../../../../..';
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import {useSearchUIAutoTestScope} from '../../AutoTestScope';
+
+const ADD_FILTER_AUTOTEST_ID = 'add-filter';
+const ADD_FILTER_OPTIONS_AUTOTEST_ID = 'add-filter-options';
 
 type Props = {
     onChange: (value: CriterionTypeEnum) => void
@@ -13,6 +18,7 @@ type Props = {
 const SearchUIAddFilter = (props: Props) => {
     const {t} = useTranslation()
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.CriterionTypeEnum'})
+    const autoTestScope = useSearchUIAutoTestScope()?.scope
     const {
         onChange,
         options,
@@ -21,11 +27,12 @@ const SearchUIAddFilter = (props: Props) => {
 
     return <Box sx={relativeContainerSx}>
         <PneButton
-            onClick={() => setOpen(true)}
             size={'small'}
             color={'pneNeutral'}
             endIcon={<ExpandMoreIcon/>}
             sx={addFilterButtonSx}
+            aria-hidden={true}
+            tabIndex={-1}
         >{t('react.searchUI.addCriterion')}</PneButton>
         <PneSelect
             open={open}
@@ -36,6 +43,15 @@ const SearchUIAddFilter = (props: Props) => {
             sx={selectSx}
             value={''}
             getOptionLabel={opt => optionRenderer(opt.label)}
+            MenuProps={{
+                slotProps: {
+                    list: createAutoTestAttributes(ADD_FILTER_OPTIONS_AUTOTEST_ID, autoTestScope),
+                },
+            }}
+            SelectDisplayProps={{
+                ...createAutoTestAttributes(ADD_FILTER_AUTOTEST_ID),
+                'aria-label': t('react.searchUI.addCriterion'),
+            }}
         />
     </Box>
 }
@@ -49,6 +65,7 @@ const relativeContainerSx: SxProps = {
 const addFilterButtonSx: SxProps = {
     whiteSpace: 'nowrap',
     px: '12px',
+    pointerEvents: 'none',
     '& .MuiButton-endIcon': {
         ml: '8px',
     },

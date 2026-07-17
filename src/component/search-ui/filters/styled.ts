@@ -71,12 +71,18 @@ export const SearchUIFiltersHeaderSearch = styled('div')`
     }
 `;
 
-export const SearchUIFiltersCriterionHeaderButton = styled('div')`
+export const SearchUIFiltersCriterionHeaderButton = styled('button')`
     display: flex;
     align-items: center;
+    justify-content: center;
+    appearance: none;
+    background: transparent;
+    border: 0;
+    box-sizing: border-box;
     padding: 4px;
-    height: 16px;
-    width: 16px;
+    height: 24px;
+    width: 24px;
     cursor: pointer;
+    font: inherit;
     stroke: #809eae;
 `;

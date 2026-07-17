@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useId, useState} from 'react';
 import {Box, Divider, IconButton, Popover} from '@mui/material';
 import SearchUITemplatePanel from './SearchUITemplatePanel';
 import {SxProps} from '@mui/material/styles';
@@ -9,9 +9,19 @@ import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {SearchUITemplate} from "../../types";
 import {PneButton} from '../../../../..';
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import {useSearchUIAutoTestScope} from '../../AutoTestScope';
+
+const TEMPLATES_AUTOTEST_ID = 'templates';
+const TEMPLATES_PANEL_AUTOTEST_ID = 'templates-panel';
+const TEMPLATE_ITEM_AUTOTEST_ID = 'template-item';
+const SELECT_TEMPLATE_AUTOTEST_ID = 'select-template';
+const REMOVE_TEMPLATE_AUTOTEST_ID = 'remove-template';
 
 const SearchUITemplatesMenu = () => {
     const {t} = useTranslation();
+    const autoTestScope = useSearchUIAutoTestScope()?.scope
+    const templatesPanelId = useId()
 
     const removeTemplate = useSearchUIFiltersStore(s => s.removeTemplate)
     const setTemplate = useSearchUIFiltersStore(s => s.setTemplate)
@@ -19,6 +29,8 @@ const SearchUITemplatesMenu = () => {
     const template = useSearchUIFiltersStore(s => s.template)
 
     const placeholder = template?.name || t('react.searchUI.template');
+    const selectTemplateLabel = t('react.searchUI.template.select', {defaultValue: 'Use template'})
+    const removeTemplateLabel = t('react.searchUI.template.remove', {defaultValue: 'Remove template'})
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
     const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
@@ -39,12 +51,16 @@ const SearchUITemplatesMenu = () => {
 
     return <>
         <PneButton
+            {...createAutoTestAttributes(TEMPLATES_AUTOTEST_ID)}
             onClick={handleOpen}
             size={'small'}
             color={'pneNeutral'}
             endIcon={<ExpandMoreIcon/>}
             sx={templateTriggerSx}
             title={placeholder}
+            aria-controls={open ? templatesPanelId : undefined}
+            aria-expanded={open}
+            aria-haspopup={'dialog'}
         >
             <Box sx={templateTriggerLabelSx} component="span">{placeholder}</Box>
         </PneButton>
@@ -56,22 +72,40 @@ const SearchUITemplatesMenu = () => {
                 vertical: 'bottom',
                 horizontal: 'left',
             }}
-            slotProps={{paper: {sx: menuPaperSx}}}
+            slotProps={{paper: {
+                ...createAutoTestAttributes(TEMPLATES_PANEL_AUTOTEST_ID, autoTestScope),
+                id: templatesPanelId,
+                role: 'dialog',
+                'aria-label': t('react.searchUI.template'),
+                'aria-modal': true,
+                sx: menuPaperSx,
+            }}}
         >
             <Box sx={menuContainerSx}>
                 <SearchUITemplatePanel onSave={handleClose}/>
                 {templates.length > 0 ? <Divider sx={{m: '7px 0', borderColor: '#F1F5F1'}}/> : null}
-                {templates.map((template, index) =>
-                    <Box sx={templateRowSx} component={'p'} key={index}>
+                {templates.map((template) =>
+                    <Box
+                        {...createAutoTestAttributes(TEMPLATE_ITEM_AUTOTEST_ID)}
+                        sx={templateRowSx}
+                        component={'p'}
+                        key={template.name}
+                    >
                         <Box
+                            {...createAutoTestAttributes(SELECT_TEMPLATE_AUTOTEST_ID)}
                             sx={templateNameSx}
-                            component={'span'}
+                            component={'button'}
+                            type={'button'}
                             onClick={() => handleSetTemplate(template)}
                             title={template.name}
+                            aria-label={`${selectTemplateLabel}: ${template.name}`}
                         >{template.name}</Box>
                         <IconButton
+                            {...createAutoTestAttributes(REMOVE_TEMPLATE_AUTOTEST_ID)}
                             onClick={() => handleRemoveTemplate(template)}
                             color={'primary'}
+                            type={'button'}
+                            aria-label={`${removeTemplateLabel}: ${template.name}`}
                         >
                             <CloseIcon fontSize={'small'}/>
                         </IconButton>
@@ -110,10 +144,16 @@ const templateRowSx: SxProps = {
 }
 
 const templateNameSx: SxProps = {
+    appearance: 'none',
+    background: 'transparent',
+    border: 0,
+    padding: 0,
     display: 'flex',
     flex: '1 1 auto',
     minWidth: 0,
     cursor: 'pointer',
+    color: 'inherit',
+    font: 'inherit',
     fontSize: '14px',
     lineHeight: '20px',
     whiteSpace: 'nowrap',

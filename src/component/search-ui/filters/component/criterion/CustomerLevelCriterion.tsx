@@ -6,6 +6,10 @@ import { getConcreteCustomerLevelMerchantId } from '../../customerLevelDependenc
 import { useSearchUIFiltersStore } from '../../state/store'
 import SearchUIAbstractEntityChipSelect from '../select/SearchUIAbstractEntityChipSelect'
 
+const CRITERION_CUSTOMER_LEVEL_AUTOTEST_ID = 'criterion-customer-level'
+const CRITERION_CUSTOMER_LEVEL_OPTIONS_AUTOTEST_ID = 'criterion-customer-level-options'
+const CRITERION_CUSTOMER_LEVEL_OPTION_AUTOTEST_ID = 'criterion-customer-level-option'
+
 export const CustomerLevelCriterion = () => {
     const { t } = useTranslation()
     const { getCustomerLevels } = useContext(SearchUIDefaultsContext)
@@ -25,12 +29,14 @@ export const CustomerLevelCriterion = () => {
 
     const [availableLevels, setAvailableLevels] = useState<CustomerLevel[]>([])
     const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null)
+    const [failedRequestKey, setFailedRequestKey] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
         if (merchantId === null || requestKey === null) {
             setAvailableLevels([])
             setLoadedRequestKey(null)
+            setFailedRequestKey(null)
             setLoading(false)
             return
         }
@@ -38,6 +44,7 @@ export const CustomerLevelCriterion = () => {
         let active = true
         setAvailableLevels([])
         setLoadedRequestKey(null)
+        setFailedRequestKey(null)
         setLoading(true)
 
         getCustomerLevels({ merchantId, currencyIds })
@@ -47,6 +54,7 @@ export const CustomerLevelCriterion = () => {
                 }
                 setAvailableLevels(levels)
                 setLoadedRequestKey(requestKey)
+                setFailedRequestKey(null)
                 setLoading(false)
             })
             .catch(error => {
@@ -55,7 +63,8 @@ export const CustomerLevelCriterion = () => {
                 }
                 console.error(error)
                 setAvailableLevels([])
-                setLoadedRequestKey(requestKey)
+                setLoadedRequestKey(null)
+                setFailedRequestKey(requestKey)
                 setLoading(false)
             })
 
@@ -80,8 +89,13 @@ export const CustomerLevelCriterion = () => {
     }, [availableLevels, customerLevel, loadedRequestKey, requestKey, setCustomerLevel])
 
     const merchantSelected = merchantId !== null
+    const loadFailed = requestKey !== null && failedRequestKey === requestKey
+    const requestLoading = merchantSelected
+        && requestKey !== null
+        && (loading || (loadedRequestKey !== requestKey && !loadFailed))
     const noCustomerLevelsAvailable = merchantSelected
-        && !loading
+        && !requestLoading
+        && !loadFailed
         && loadedRequestKey === requestKey
         && availableLevels.length === 0
     const selectMerchantPlaceholder = t('react.searchUI.customerLevel.selectMerchant', {
@@ -100,10 +114,16 @@ export const CustomerLevelCriterion = () => {
         value={customerLevel}
         options={availableLevels}
         onChange={setCustomerLevel}
-        disabled={!merchantSelected || loading || noCustomerLevelsAvailable}
+        disabled={!merchantSelected || requestLoading || loadFailed || noCustomerLevelsAvailable}
+        loading={requestLoading}
         placeholder={placeholder}
         ariaLabel={t('react.CriterionTypeEnum.CUSTOMER_LEVEL', {
             defaultValue: 'Customer level',
         })}
+        autoTest={{
+            controlId: CRITERION_CUSTOMER_LEVEL_AUTOTEST_ID,
+            optionsId: CRITERION_CUSTOMER_LEVEL_OPTIONS_AUTOTEST_ID,
+            optionId: CRITERION_CUSTOMER_LEVEL_OPTION_AUTOTEST_ID,
+        }}
     />
 }

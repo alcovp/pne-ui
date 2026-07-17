@@ -7,7 +7,13 @@ import {SearchUIDefaultsContext} from '../SearchUIProvider'
 import {useMultigetSelectStore} from './state/store'
 import {MultigetSearchLabel} from './state/type'
 import {MultigetSelectTable} from './MultigetSelectTable'
+import {createAutoTestAttributes} from '../../AutoTestAttribute'
 // import {raiseUIError} from '../../../../error'; //TODO migration
+
+const CRITERION_MULTIGET_MODE_AUTOTEST_ID = 'criterion-multiget-mode'
+const CRITERION_MULTIGET_ONLY_ENABLED_AUTOTEST_ID = 'criterion-multiget-only-enabled'
+const CRITERION_MULTIGET_SEARCH_AUTOTEST_ID = 'criterion-multiget-search'
+const CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID = 'criterion-multiget-search-label'
 
 export type MultigetSelectProps = {
     multigetCriterion: MultigetCriterion
@@ -137,14 +143,31 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                     // color={'pneAccentuated'}
                     sx={mainToggleGroupSx}
                 >
-                    <ToggleButton value={'NONE'} sx={toggleSx}>{t('react.searchUI.include')}</ToggleButton>
-                    <ToggleButton value={'ALL'} sx={toggleSx}>{t('react.searchUI.exclude')}</ToggleButton>
+                    <ToggleButton
+                        {...createAutoTestAttributes(
+                            CRITERION_MULTIGET_MODE_AUTOTEST_ID,
+                            MultichoiceFilterTypeEnum.NONE,
+                        )}
+                        value={MultichoiceFilterTypeEnum.NONE}
+                        sx={toggleSx}
+                    >{t('react.searchUI.include')}</ToggleButton>
+                    <ToggleButton
+                        {...createAutoTestAttributes(
+                            CRITERION_MULTIGET_MODE_AUTOTEST_ID,
+                            MultichoiceFilterTypeEnum.ALL,
+                        )}
+                        value={MultichoiceFilterTypeEnum.ALL}
+                        sx={toggleSx}
+                    >{t('react.searchUI.exclude')}</ToggleButton>
                 </ToggleButtonGroup>
                 {statusMakesSense ? <FormControlLabel
                     label={t('react.searchUI.onlyEnabledStatus')}
                     control={<PneSwitch
                         checked={onlyEnabledStatus}
                         onChange={e => setOnlyEnabledStatus(e.target.checked)}
+                        slotProps={{
+                            input: createAutoTestAttributes(CRITERION_MULTIGET_ONLY_ENABLED_AUTOTEST_ID),
+                        }}
                     />}
                 /> : null}
             </Box>
@@ -155,6 +178,12 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                     onChange={onSearchChange}
                     placeholder={t('search')}
                     fullWidth
+                    slotProps={{
+                        htmlInput: {
+                            ...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_AUTOTEST_ID),
+                            'aria-label': t('search'),
+                        },
+                    }}
                 />
                 {showGateSearchLabels ? <ToggleButtonGroup
                     value={searchLabel}
@@ -168,14 +197,20 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                     size="small"
                 >
                     <ToggleButton
+                        {...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID, 'all')}
                         value={'all' satisfies MultigetSearchLabel}
                         sx={toggleSx}
                     >{t('react.searchUI.all')}</ToggleButton>
                     <ToggleButton
+                        {...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID, 'mid')}
                         value={'mid' satisfies MultigetSearchLabel}
                         sx={toggleSx}
                     >{t('MID')}</ToggleButton>
                     <ToggleButton
+                        {...createAutoTestAttributes(
+                            CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID,
+                            'descriptor',
+                        )}
                         value={'descriptor' satisfies MultigetSearchLabel}
                         sx={toggleSx}
                     >{t('react.searchUI.descriptor')}</ToggleButton>

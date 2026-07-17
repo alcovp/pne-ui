@@ -29,6 +29,132 @@ yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^7 @mui/sys
 - `react-dom@^18 || ^19`
 - `react-i18next@^11`
 
+## Якоря для автотестов
+
+Для нового кода добавляйте якорь непосредственно на существующий DOM-элемент или нужный MUI slot через
+`createAutoTestAttributes`. Helper не создаёт дополнительный wrapper и возвращает стабильные
+`data-autotest` и, при наличии значения, `data-autotest-value`:
+
+```tsx
+import { createAutoTestAttributes } from 'pne-ui'
+
+export const OrdersTable = () => (
+    <section {...createAutoTestAttributes('orders-table', 'active')}>
+        {/* content */}
+    </section>
+)
+```
+
+Атрибуты присутствуют во всех build modes. `undefined` не добавляет `data-autotest-value`, а `''`, `0` и
+`false` сохраняются как явные значения. Используйте только стабильные несекретные идентификаторы; состояние
+`disabled`, `checked`, `selected` и похожие состояния проверяйте через нативные DOM/ARIA-свойства.
+
+`AutoTestAttribute` остаётся compatibility API для существующего кода. Он принимает ровно одного React child:
+
+- DOM-элемент получает атрибуты без дополнительного узла;
+- custom component обязан передать неизвестные DOM props на нужный элемент;
+- React Fragment временно оборачивается в `div` для обратной совместимости.
+
+Поэтому во внутренней реализации новых компонентов библиотеки используйте `createAutoTestAttributes`, а не
+wrapper-компонент.
+
+### PneTable
+
+Передавайте `autoTestId` для каждой логической таблицы; если на странице их несколько, значения обязаны быть
+уникальными. Существующий внешний root получает `data-autotest="table"` и переданный ID в
+`data-autotest-value`. `tableAriaLabel` или `tableAriaLabelledBy` независимо задают пользовательское имя
+semantic `<table>` для role-запросов.
+
+```tsx
+<PneTable<Order>
+    autoTestId="orders"
+    tableAriaLabel="Orders"
+    data={orders}
+    createRow={order => (
+        <PneTableRow
+            key={order.id}
+            {...createAutoTestAttributes('row', order.id)}
+        >
+            <PneTableCell {...createAutoTestAttributes('cell', 'status')}>
+                {order.statusLabel}
+            </PneTableCell>
+        </PneTableRow>
+    )}
+    /* остальные props */
+/>
+```
+
+Идентичность строк и колонок принадлежит caller-коду в `createRow`/`createTableHeader`: используйте
+стабильные domain ID и column keys. Библиотека намеренно не выводит их из array index, переведённого текста,
+DOM-позиции или пользовательских/секретных данных. Для sortable header передавайте те же `sortOptions` и
+`sortIndex` в `PneHeaderTableCell`; MUI выставит `aria-sort` только на активном `<th>`.
+
+Внутренний контракт таблицы:
+
+- пагинации: `data-autotest="pagination"` со значением `top` или `bottom`; action IDs ищутся внутри этого scope;
+- загрузка: `aria-busy` на semantic table;
+- пустой результат: существующая строка `data-autotest="empty-state"`;
+- disabled/checked/selected состояния: только нативные DOM/ARIA-свойства, без test-only копий.
+
+### SearchUI и SearchUIFilters
+
+Передавайте стабильный несекретный `autoTestId` как Selenium scope поискового интерфейса. Если prop не задан,
+используется `settingsContextName`. Для нескольких одновременно отображаемых `SearchUI` или самостоятельных
+`SearchUIFilters` задавайте разные явные значения, даже если компоненты намеренно используют один
+`settingsContextName` для состояния.
+
+`SearchUI` не получает общего test-only root: фильтры и результаты имеют отдельные anchors с одним значением
+scope. Таблица ищется от document/page scope, а не внутри `search-filters`:
+
+- `data-autotest="search-filters"` / `data-autotest-value="<scope>"` — панель фильтров;
+- `data-autotest="table"` / `data-autotest-value="<scope>"` — таблица результатов;
+- `data-autotest="criterion"` / `data-autotest-value="<raw CriterionTypeEnum>"` — существующий root критерия.
+
+Например, очистку критерия `STATUS` в поиске заказов можно найти обычным CSS locator:
+
+```css
+[data-autotest="search-filters"][data-autotest-value="orders"] [data-autotest="criterion"][data-autotest-value="STATUS"] [data-autotest="clear-criterion"]
+```
+
+Общие действия внутри `search-filters/<scope>`:
+
+- `toggle-filters` — native button; состояние панели находится в `aria-expanded`, связь с панелью — в
+  `aria-controls`;
+- `clear-all` и `run-search` — реальные кнопки; доступность запуска поиска проверяется через native `disabled`
+  (`run-search` одинаков для режимов Search и Refresh);
+- `templates` — native button с `aria-expanded` и open-state `aria-controls`;
+- `add-filter` — реально кликаемый MUI `role="combobox"`, а не декоративная кнопка над ним; состояние и связь с
+  listbox находятся в `aria-expanded` и open-state `aria-controls`;
+- `clear-criterion` и `remove-criterion` — native `button type="button"` внутри соответствующего
+  `criterion/<raw type>`; remove отсутствует у non-removable predefined-критерия.
+
+Часть roots/actions условна: критерий, `clear-all`, `remove-criterion`, templates и add-filter могут отсутствовать
+из-за `config` или текущего состояния. Такое отсутствие является состоянием UI, а не ошибкой locator contract.
+
+Popover и modal рендерятся через React portal вне `search-filters`, поэтому Selenium должен искать их отдельно
+по тому же owner scope:
+
+```css
+[data-autotest="templates-panel"][data-autotest-value="orders"]
+[data-autotest="add-filter-options"][data-autotest-value="orders"]
+[data-autotest="template-editor"][data-autotest-value="orders"]
+```
+
+`templates-panel` и `template-editor` имеют dialog semantics, а `add-filter-options` — native MUI listbox.
+Generated IDs из `aria-controls` не хардкодируйте: при необходимости считывайте ID у trigger во время теста;
+стабильным owner locator остаётся `data-autotest` + scope. Строки сохранённых шаблонов отмечены одинаковым
+`template-item` без value; внутри используются `select-template` и `remove-template`. Имя шаблона остаётся
+видимым пользовательским значением и доступным именем, но намеренно не попадает в `data-autotest-value`.
+Icon-only закрытие editor имеет `close-template-editor`; поле имени, Create и Cancel остаются стандартными
+required textbox/text buttons и ищутся по role/name внутри scoped editor.
+
+Обычные inputs, text buttons, options, checkboxes и switches ищите по native role/name и проверяйте их native/ARIA
+state. Не используйте MUI classes, SVG/path, DOM depth, array index, переведённый текст как технический ID или
+сгенерированный `aria-controls` ID.
+
+Полная Selenium-документация, включая матрицу всех 31 критериев, detached portals, date pickers, grouping,
+transaction session status и все девять multiget-панелей: [docs/selenium-locators.md](docs/selenium-locators.md).
+
 ## OverlayHost
 
 Компоненты, которые используют `overlayActions` напрямую или косвенно, требуют смонтированный
@@ -497,6 +623,39 @@ export const FabDemo = () => (
 Поведение по размерам:
 - Ширина > `mobileBreakpoint`: стек FAB над триггером + меню (все action-пункты дублируются в меню).
 - Ширина <= `mobileBreakpoint`: только триггер + меню, стек FAB скрыт.
+
+## Публикация пакета
+
+Перед публикацией выполните `yarn npmLogin`. Release-команды проверяют npm-сессию, запускают тесты, линтер, сборку и
+`npm pack --dry-run` перед `npm publish`.
+
+Стабильные версии публикуются под npm dist-tag `latest`:
+
+| Команда | Результат |
+| --- | --- |
+| `yarn release` / `yarn release:patch` | Для стабильной версии поднять patch; для RC снять `-rc.N`. Затем опубликовать. Это команда по умолчанию, если отдельный bump был забыт. |
+| `yarn release:minor` | Поднять minor и опубликовать. |
+| `yarn release:major` | Поднять major и опубликовать. |
+| `yarn release:stable` | Снять текущий `-rc.N` и опубликовать стабильную версию; для уже стабильной версии работает как patch release. |
+| `yarn release:current` / `yarn publish:stable` | Опубликовать уже выставленную стабильную версию без изменения номера. |
+
+RC-версии публикуются под dist-tag `next`, поэтому не заменяют стабильную версию для обычной установки:
+
+| Команда | Результат |
+| --- | --- |
+| `yarn release:rc:current` | Опубликовать уже выставленную RC-версию без изменения номера. |
+| `yarn release:rc:next` | Например, `4.3.0-rc.0` → `4.3.0-rc.1`, затем опубликовать. |
+| `yarn release:rc:patch` | Начать следующую patch RC-линейку и опубликовать. |
+| `yarn release:rc:minor` | Начать следующую minor RC-линейку и опубликовать. |
+| `yarn release:rc:major` | Начать следующую major RC-линейку и опубликовать. |
+
+Версию можно изменить отдельно, без публикации: `yarn version:patch`, `yarn version:minor`, `yarn version:major`,
+`yarn version:rc:patch`, `yarn version:rc:minor`, `yarn version:rc:major` или `yarn version:rc:next`. После ручного bump
+используйте `yarn publish:stable` либо `yarn publish:rc`; команда должна соответствовать типу версии в `package.json`.
+Повторный запуск составной `release:*`-команды поднимет версию ещё раз.
+
+Если публикация завершилась ошибкой уже после bump, исправьте причину и повторите только `yarn publish:stable` или
+`yarn publish:rc`. Скрипты меняют `package.json`, но не создают git commit и tag — их следует оформить отдельно.
 
 [npm-url]: https://www.npmjs.com/package/pne-ui
 

@@ -1,10 +1,23 @@
+import CheckBoxIcon from '@mui/icons-material/CheckBox'
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank'
+import {Chip, SxProps} from '@mui/material'
 import React, {useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Chip, SxProps} from '@mui/material'
-import {Country, PneAutocomplete, PneCheckbox} from '../../../../..'
+import {Country, PneAutocomplete} from '../../../../..'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {
+    createSearchUIOwnedAutoTestAttributes,
+    useSearchUIAutoTestScope,
+} from '../../AutoTestScope'
 import {CountryAllableCollection} from '../../types'
 
 const ALL_OPTION_ID = -1
+const ALL_AUTOTEST_VALUE = 'all'
+const CRITERION_COLLECTION_AUTOTEST_ID = 'criterion-collection'
+const CRITERION_COLLECTION_PANEL_AUTOTEST_ID = 'criterion-collection-panel'
+const CRITERION_COLLECTION_OPTIONS_AUTOTEST_ID = 'criterion-collection-options'
+const CRITERION_COLLECTION_OPTION_AUTOTEST_ID = 'criterion-collection-option'
+const CRITERION_COLLECTION_VALUE_AUTOTEST_ID = 'criterion-collection-value'
 
 type Props = {
     value: CountryAllableCollection
@@ -19,67 +32,118 @@ const SearchUICountriesSelect = (props: Props) => {
         onChange,
         options,
     } = props
+    const autoTestOwner = useSearchUIAutoTestScope()
+    const criterionAriaLabel = autoTestOwner?.criterionType === undefined
+        ? t('react.searchUI.values', {defaultValue: 'Filter values'})
+        : t(`react.CriterionTypeEnum.${autoTestOwner.criterionType}`)
+    const allOptionLabel = t('react.searchUI.all')
 
     const allOption = useMemo<Country>(() => ({
         id: ALL_OPTION_ID,
-        displayName: t('react.searchUI.all'),
+        displayName: allOptionLabel,
         theCode: '',
         theCode3: '',
-    }), [t])
+    }), [allOptionLabel])
 
     const optionsWithAll = useMemo<Country[]>(() => [allOption, ...options], [allOption, options])
 
     const selectedEntities = value.entities ?? []
-    const isSelectAllChecked = value.all || selectedEntities.length === 0 || selectedEntities.length === options.length
 
-    const onOptionChange = (optionValue: readonly Country[]) => {
-        if (optionValue.length === 0
-            || (optionValue.length === 1 && optionValue[0].id === ALL_OPTION_ID)) {
+    const onOptionChange = (
+        selectedOptions: readonly Country[],
+        changedOption?: Country,
+    ) => {
+        if (changedOption?.id === ALL_OPTION_ID) {
+            if (!value.all) {
+                onChange({
+                    all: true,
+                    entities: [],
+                })
+            }
+            return
+        }
+
+        const selectedCountries = selectedOptions.filter(option => option.id !== ALL_OPTION_ID)
+
+        if (selectedCountries.length === 0) {
             onChange({
                 all: true,
                 entities: [],
             })
-        } else {
-            onChange({
-                all: false,
-                entities: optionValue.filter(v => v.id !== ALL_OPTION_ID),
-            })
+            return
         }
+
+        onChange({
+            all: false,
+            entities: selectedCountries,
+        })
     }
 
-    const onSelectAllOptionClick = (selected: boolean) => {
-        if (!selected) {
-            onChange({
-                all: true,
-                entities: [],
-            })
-        }
-    }
+    const getAutoTestValue = (option: Country) => (
+        option.id === ALL_OPTION_ID ? ALL_AUTOTEST_VALUE : option.id
+    )
 
     return <PneAutocomplete
-        value={isSelectAllChecked ? [allOption] : selectedEntities}
+        value={value.all ? [allOption] : selectedEntities}
         options={optionsWithAll}
-        onChange={(e, optionValue) => onOptionChange(optionValue as Country[])}
+        onChange={(_event, selectedOptions, _reason, details) => onOptionChange(
+            selectedOptions as Country[],
+            details?.option,
+        )}
         sx={selectSx}
         multiple
+        htmlInputProps={{
+            ...createAutoTestAttributes(CRITERION_COLLECTION_AUTOTEST_ID),
+            'aria-label': criterionAriaLabel,
+        }}
+        slotProps={{
+            paper: createSearchUIOwnedAutoTestAttributes(
+                CRITERION_COLLECTION_PANEL_AUTOTEST_ID,
+                autoTestOwner,
+            ),
+            listbox: {
+                ...createSearchUIOwnedAutoTestAttributes(
+                    CRITERION_COLLECTION_OPTIONS_AUTOTEST_ID,
+                    autoTestOwner,
+                ),
+                'aria-label': criterionAriaLabel,
+                'aria-labelledby': undefined,
+            },
+        }}
         renderOption={(autocompleteProps, option, {selected}) => {
-            if (option.id === ALL_OPTION_ID) {
-                return <li {...autocompleteProps} onClick={() => onSelectAllOptionClick(selected)}>
-                    <PneCheckbox checked={selected} disabled={selected}/>
-                    {option.displayName}
-                </li>
-            } else {
-                return <li {...autocompleteProps}>
-                    {option.displayName}
-                </li>
-            }
+            const {key, ...optionProps} = autocompleteProps
+            const AllIcon = selected ? CheckBoxIcon : CheckBoxOutlineBlankIcon
+
+            return <li
+                {...optionProps}
+                {...createAutoTestAttributes(
+                    CRITERION_COLLECTION_OPTION_AUTOTEST_ID,
+                    getAutoTestValue(option),
+                )}
+                key={key}
+            >
+                {option.id === ALL_OPTION_ID
+                    ? <AllIcon
+                        aria-hidden={true}
+                        fontSize={'small'}
+                        sx={{mr: 1, pointerEvents: 'none'}}
+                    />
+                    : null}
+                {option.displayName}
+            </li>
         }}
         renderValue={(tagValue, getItemProps) =>
             tagValue.map((option, index) => {
-                const {key, onDelete, ...tagProps} = getItemProps({index})
+                const {key: _itemKey, onDelete, ...tagProps} = getItemProps({index})
+                const autoTestValue = getAutoTestValue(option)
+
                 return <Chip
                     {...tagProps}
-                    key={key}
+                    {...createAutoTestAttributes(
+                        CRITERION_COLLECTION_VALUE_AUTOTEST_ID,
+                        autoTestValue,
+                    )}
+                    key={autoTestValue}
                     label={option.displayName}
                     size={'small'}
                     onDelete={option.id === ALL_OPTION_ID ? undefined : onDelete}

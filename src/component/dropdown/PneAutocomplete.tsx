@@ -11,7 +11,11 @@ import {
 import {PneTextField} from "../../index";
 import {usePneFieldControlProps} from '../PneFieldContext';
 
-export interface IProps<
+export interface PneAutocompleteHtmlInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    [attribute: `data-${string}`]: string | number | boolean | undefined
+}
+
+export interface PneAutocompleteProps<
     T extends PneDropdownChoice,
     Multiple extends boolean | undefined = undefined,
     DisableClearable extends boolean | undefined = undefined,
@@ -23,14 +27,23 @@ export interface IProps<
     helperText?: string
     placeholder?: string
     required?: boolean
+    /** Props merged onto the actual native text input. Autocomplete event handlers remain library-owned. */
+    htmlInputProps?: PneAutocompleteHtmlInputProps
 }
+
+export type IProps<
+    T extends PneDropdownChoice,
+    Multiple extends boolean | undefined = undefined,
+    DisableClearable extends boolean | undefined = undefined,
+    FreeSolo extends boolean | undefined = undefined,
+> = PneAutocompleteProps<T, Multiple, DisableClearable, FreeSolo>
 
 const PneAutocomplete = <
     T extends PneDropdownChoice,
     Multiple extends boolean | undefined = false,
     DisableClearable extends boolean | undefined = false,
     FreeSolo extends boolean | undefined = false,
->(props: IProps<
+>(props: PneAutocompleteProps<
     T,
     Multiple,
     DisableClearable,
@@ -48,6 +61,7 @@ const PneAutocomplete = <
         sx,
         placeholder,
         required,
+        htmlInputProps,
         ...rest
     } = props
 
@@ -79,6 +93,13 @@ const PneAutocomplete = <
                 error={controlProps.error ?? false}
                 helperText={helperText}
                 required={controlProps.required}
+                slotProps={{
+                    ...params.slotProps,
+                    htmlInput: {
+                        ...htmlInputProps,
+                        ...params.slotProps.htmlInput,
+                    },
+                }}
             />
         }}
         size={size}

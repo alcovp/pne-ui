@@ -19,7 +19,12 @@ export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListReques
  * Свойства компонента {@link SearchUI}.
  * @template D Тип строки данных, возвращаемых запросом поиска и отображаемых в таблице.
  */
-type Props<D extends object> = {
+export type SearchUIProps<D extends object> = {
+    /**
+     * Stable non-secret Selenium scope shared by the filters and results table.
+     * Defaults to settingsContextName; set it explicitly when multiple instances may render together.
+     */
+    autoTestId?: string
     /**
      * Имя контекста настроек, под которым таблица и фильтры сохраняют состояние пользователя.
      */
@@ -87,7 +92,7 @@ type Props<D extends object> = {
  * @template D Тип строки данных, отображаемых в таблице.
  * @param props Свойства компонента.
  */
-export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement => {
+export const SearchUI = <D extends object>(props: SearchUIProps<D>): React.ReactElement => {
     return <SearchUIFiltersStoreProvider
         key={props.settingsContextName}
         settingsContextName={props.settingsContextName}
@@ -96,8 +101,9 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
     </SearchUIFiltersStoreProvider>
 }
 
-const SearchUIContent = <D extends object>(props: Props<D>): React.ReactElement => {
+const SearchUIContent = <D extends object>(props: SearchUIProps<D>): React.ReactElement => {
     const {
+        autoTestId = props.settingsContextName,
         settingsContextName,
         possibleCriteria,
         predefinedCriteria,
@@ -158,6 +164,7 @@ const SearchUIContent = <D extends object>(props: Props<D>): React.ReactElement 
 
     return <>
         <SearchUIFiltersContent
+            autoTestId={autoTestId}
             settingsContextName={settingsContextName}
             possibleCriteria={possibleCriteria}
             predefinedCriteria={predefinedCriteria}
@@ -171,6 +178,7 @@ const SearchUIContent = <D extends object>(props: Props<D>): React.ReactElement 
         <Divider/>
         <Box sx={tableBoxSx}>
             <PneTable
+                autoTestId={autoTestId}
                 data={data}
                 createTableHeader={createTableHeader}
                 sortOptions={{

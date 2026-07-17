@@ -10,6 +10,10 @@ import {
 import {PneTextField} from "../../index";
 import {usePneFieldControlProps} from '../PneFieldContext';
 
+export interface PneAsyncAutocompleteHtmlInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+    [attribute: `data-${string}`]: string | number | boolean | undefined
+}
+
 export interface PneAsyncAutocompleteProps<
     T extends PneDropdownChoice,
     Multiple extends boolean | undefined = undefined,
@@ -25,6 +29,8 @@ export interface PneAsyncAutocompleteProps<
     placeholder?: string
     required?: boolean
     onSearchError?: (reason: any) => void
+    /** Props merged onto the actual native text input. Autocomplete event handlers remain library-owned. */
+    htmlInputProps?: PneAsyncAutocompleteHtmlInputProps
 }
 
 const PneAsyncAutocomplete = <
@@ -51,6 +57,7 @@ const PneAsyncAutocomplete = <
         placeholder,
         required,
         onSearchError,
+        htmlInputProps,
         ...rest
     } = props
 
@@ -62,7 +69,7 @@ const PneAsyncAutocomplete = <
     const [open, setOpen] = useState(false)
     const [options, setOptions] = useState<readonly T[]>([])
     const [loading, setLoading] = useState(false)
-    const [inputValue, setInputValue] = useState('')
+    const [searchString, setSearchString] = useState('')
     const generatedId = useId()
     const requestIdRef = useRef(0)
     const controlProps = usePneFieldControlProps({
@@ -87,7 +94,7 @@ const PneAsyncAutocomplete = <
 
         setOptions([])
         setLoading(true)
-        searchChoices({searchString: inputValue})
+        searchChoices({searchString})
             .then((result) => {
                 if (!active || requestIdRef.current !== requestId) {
                     return
@@ -113,7 +120,7 @@ const PneAsyncAutocomplete = <
         return () => {
             active = false
         }
-    }, [open, inputValue, onSearchError, searchChoices])
+    }, [onSearchError, open, searchChoices, searchString])
 
     return <Autocomplete
         disabled={controlProps.disabled}
@@ -128,8 +135,7 @@ const PneAsyncAutocomplete = <
         options={options}
         loading={loading}
         filterOptions={(x) => x}
-        inputValue={inputValue}
-        onInputChange={(e, value) => setInputValue(value)}
+        onInputChange={(e, value) => setSearchString(value)}
         renderInput={(params) => (
             <PneTextField
                 {...params}
@@ -146,6 +152,11 @@ const PneAsyncAutocomplete = <
                                 {params.slotProps.input.endAdornment}
                             </>
                         ),
+                    },
+                    htmlInput: {
+                        ...htmlInputProps,
+                        ...params.slotProps.htmlInput,
+                        'aria-busy': loading,
                     },
                 }}
                 error={controlProps.error ?? false}

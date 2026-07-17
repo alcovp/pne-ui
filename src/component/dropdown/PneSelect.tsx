@@ -5,11 +5,16 @@ import {assertObject, ensure, exhaustiveCheck, SelectOption} from '../../common/
 import {isAbstractEntity, isIAutoCompleteChoice} from '../../common/paynet/type'
 import {usePneFieldControlProps} from '../PneFieldContext'
 
+export interface PneSelectOptionProps extends React.HTMLAttributes<HTMLLIElement> {
+    [attribute: `data-${string}`]: string | number | boolean | undefined
+}
+
 export interface IProps<T extends PneDropdownChoice, >
     extends Omit<SelectProps<T>, 'children' | 'onChange' | 'placeholder' | 'variant'> {
     options: readonly T[]
     onChange: (option: T) => void
     getOptionLabel?: (option: SelectOption) => ReactNode
+    getOptionProps?: (option: SelectOption) => PneSelectOptionProps
     placeholder?: ReactNode
     variant?: SelectVariants
     disableMenuItem?: (option: SelectOption) => boolean
@@ -25,6 +30,7 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
         onChange,
         size = 'small',
         getOptionLabel = createDefaultOptionLabel,
+        getOptionProps,
         variant = 'outlined',
         disableMenuItem,
         label,
@@ -107,14 +113,18 @@ const PneSelect = forwardRef(<T extends PneDropdownChoice, >(
             renderValue={renderValue ?? (shouldRenderPlaceholder ? renderSelectedValue : undefined)}
             {...rest}
         >
-            {optionsPresent ? mappedOptions.map(option =>
-                <MenuItem
+            {optionsPresent ? options.map(choice => {
+                const option = mapChoiceToSelectOption(choice)
+
+                return <MenuItem
+                    {...getOptionProps?.(option)}
                     disabled={disableMenuItem ? disableMenuItem(option) : false}
                     key={option.value}
                     value={option.value}
                 >
                     {getOptionLabel(option)}
-                </MenuItem>) : null}
+                </MenuItem>
+            }) : null}
         </Select>
     </FormControl>
 })

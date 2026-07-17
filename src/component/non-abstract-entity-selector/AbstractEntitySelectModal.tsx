@@ -7,7 +7,10 @@ import {
     IMappedUnmappedList
 } from './AbstractEntitySelector';
 import PneButton from '../PneButton';
-import PneModal from "../PneModal";
+import PneModal, {
+    PneModalCloseButtonProps,
+    PneModalContainerProps,
+} from "../PneModal";
 import PneModalActions from '../PneModalActions';
 
 interface IProps<T extends AbstractEntitySelectorProp> {
@@ -23,7 +26,11 @@ interface IProps<T extends AbstractEntitySelectorProp> {
     allowNewlyAddedRemoval?: boolean;
     optionRenderer?: TFunction;
     textRepresentation?: 'ID' | 'NAME' | undefined;
-    textRepresentationValue?: string
+    textRepresentationValue?: string;
+    containerProps?: PneModalContainerProps;
+    closeButtonProps?: PneModalCloseButtonProps;
+    getItemAttributes?: IAbstractEntityOptions<T>['getItemAttributes'];
+    elementAttributes?: IAbstractEntityOptions<T>['elementAttributes'];
 }
 
 export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(props: IProps<T>) => {
@@ -40,7 +47,11 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         allowNewlyAddedRemoval,
         optionRenderer,
         textRepresentation,
-        textRepresentationValue
+        textRepresentationValue,
+        containerProps,
+        closeButtonProps,
+        getItemAttributes,
+        elementAttributes,
     } = props;
 
     const {t} = useTranslation();
@@ -79,6 +90,8 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         textRepresentation,
         textRepresentationValue,
         onChange: handleChange,
+        getItemAttributes,
+        elementAttributes,
     };
 
     return (
@@ -101,6 +114,8 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
             onClose={onClose}
             title={title}
             subtitle={subTitle}
+            containerProps={containerProps}
+            closeButtonProps={closeButtonProps}
             containerSx={{
                 width: {
                     xs: 'clamp(360px, calc(100vw - 32px), 600px)',

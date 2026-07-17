@@ -14,6 +14,11 @@ import PneTablePaginationActions from './PneTablePaginationActions';
 import {Order} from "../../common/pne/type";
 import {useTranslation} from "react-i18next";
 import useDelayedLoading from "./useDelayedLoading";
+import {createAutoTestAttributes} from '../AutoTestAttribute';
+
+const TABLE_AUTOTEST_ID = 'table';
+const TABLE_EMPTY_STATE_AUTOTEST_ID = 'empty-state';
+const TABLE_PAGINATION_AUTOTEST_ID = 'pagination';
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
@@ -30,11 +35,14 @@ export type PaginatorProps = {
     disableActions: boolean
     displayedRowsLabel: string
     paginationRef: MutableRefObject<HTMLDivElement | null>
+    requestScrollToPagination?: () => void
     activeActionSx?: SxProps
     duplicatePagination?: boolean
 }
 
 export type TableProps<D> = {
+    /** Stable, non-secret instance identifier; required for unambiguous multiple-table scopes. */
+    autoTestId?: string
     data: D[]
     createRow: (
         rowData: D,
@@ -48,6 +56,10 @@ export type TableProps<D> = {
     loading?: boolean
     stickyHeader?: boolean
     showNothingIsFoundRow?: boolean
+    /** Accessible name forwarded to the semantic table independently from autoTestId. */
+    tableAriaLabel?: string
+    /** ID reference used to name the semantic table independently from autoTestId. */
+    tableAriaLabelledBy?: string
     tableSx?: SxProps
     boxSx?: SxProps
     noRowsMessage?: string
@@ -73,6 +85,7 @@ const AbstractTable = <D, >(
 ) => {
     const {
         data,
+        autoTestId,
         createTableHeader,
         sortOptions,
         createRow,
@@ -81,6 +94,8 @@ const AbstractTable = <D, >(
         loading = false,
         stickyHeader = false,
         showNothingIsFoundRow = true,
+        tableAriaLabel,
+        tableAriaLabelledBy,
         tableSx = {},
         boxSx = {},
         noRowsMessage,
@@ -135,6 +150,7 @@ const AbstractTable = <D, >(
         }
 
         return <PneTablePagination
+            {...createAutoTestAttributes(TABLE_PAGINATION_AUTOTEST_ID, position)}
             ref={position === 'bottom' ? paginator.paginationRef : undefined}
             count={-1}
             /*
@@ -143,9 +159,6 @@ const AbstractTable = <D, >(
             component={'div'}
             labelDisplayedRows={() => null}
             labelRowsPerPage={null}
-            nextIconButtonProps={{
-                disabled: !paginator.hasNext,
-            }}
             rowsPerPageOptions={paginator.rowsPerPageOptions}
             rowsPerPage={paginator.rowsPerPage}
             page={paginator.page}
@@ -198,10 +211,20 @@ const AbstractTable = <D, >(
         return <Skeleton variant="rounded" width={width} height={skeletonItemHeight} />;
     };
 
-    return <Box sx={{...boxSx}} ref={containerRef}>
+    return <Box
+        {...createAutoTestAttributes(TABLE_AUTOTEST_ID, autoTestId)}
+        sx={{...boxSx}}
+        ref={containerRef}
+    >
         {paginator && paginator.duplicatePagination && getPneTablePagination('top')}
         <TableContainer ref={tableContainerRef}>
-            <Table stickyHeader={stickyHeader} sx={{...tableSx, ...(skeletonTableHeight ? {height: skeletonTableHeight} : {})}}>
+            <Table
+                aria-busy={showSkeleton}
+                aria-label={tableAriaLabel}
+                aria-labelledby={tableAriaLabelledBy}
+                stickyHeader={stickyHeader}
+                sx={{...tableSx, ...(skeletonTableHeight ? {height: skeletonTableHeight} : {})}}
+            >
                 {showSkeleton && lastColumnWidthsRef.current.length > 0 && (
                     <colgroup>
                         {lastColumnWidthsRef.current.map((width, i) => (
@@ -236,7 +259,10 @@ const AbstractTable = <D, >(
                         <>
                             {visibleRows.map(createRow)}
                             {visibleRows.length === 0 && showNothingIsFoundRow && (
-                                <PneTableRow hover={false}>
+                                <PneTableRow
+                                    {...createAutoTestAttributes(TABLE_EMPTY_STATE_AUTOTEST_ID)}
+                                    hover={false}
+                                >
                                     <PneTableCell colSpan={columnCount}>
                                         {noRowsMessage || t('advancedSearch.noRows')}
                                     </PneTableCell>

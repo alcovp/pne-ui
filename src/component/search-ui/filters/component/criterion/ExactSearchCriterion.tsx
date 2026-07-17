@@ -5,6 +5,9 @@ import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {PneTextField} from '../../../../..';
 import { filtersInputSx } from './style';
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+
+const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input';
 
 export const ExactSearchCriterion = () => {
 
@@ -15,6 +18,7 @@ export const ExactSearchCriterion = () => {
     const exactSearchLabels = useSearchUIFiltersStore(s => s.exactSearchLabels)
     const setExactCriterionSearchLabel = useSearchUIFiltersStore(s => s.setExactCriterionSearchLabel)
     const setExactCriterionSearchValue = useSearchUIFiltersStore(s => s.setExactCriterionSearchValue)
+    const exactSearchValueLabel = t('react.searchUI.exactSearch.value', {defaultValue: 'Exact search value'})
 
     return <Box sx={centerSx}>
         <PneTextField
@@ -27,6 +31,10 @@ export const ExactSearchCriterion = () => {
             slotProps={{
                 input: {
                     disableUnderline: true,
+                },
+                htmlInput: {
+                    ...createAutoTestAttributes(CRITERION_INPUT_AUTOTEST_ID),
+                    'aria-label': exactSearchValueLabel,
                 },
             }}
         />

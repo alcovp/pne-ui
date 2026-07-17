@@ -15,15 +15,35 @@ import {
     createDateOnlyPickerValue,
     resolveDateOnlyTimeZone,
 } from '../../dateRangeTimeZone'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {useTranslation} from 'react-i18next'
+import {
+    createSearchUIOwnedAutoTestAttributes,
+    useSearchUIAutoTestScope,
+} from '../../AutoTestScope'
 
 type Props = {
     showOrdersDateType?: boolean
 }
 
 const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
+const CRITERION_BEFORE_COUNT_AUTOTEST_ID = 'criterion-before-count'
+const CRITERION_DATE_RANGE_AUTOTEST_ID = 'criterion-date-range'
+const CRITERION_DATE_RANGE_PICKER_TOGGLE_AUTOTEST_ID = 'criterion-date-range-picker-toggle'
+const CRITERION_DATE_RANGE_PICKER_AUTOTEST_ID = 'criterion-date-range-picker'
+const CRITERION_DATE_OPTION_AUTOTEST_ID = 'criterion-date-option'
+const CRITERION_TIME_OPTION_AUTOTEST_ID = 'criterion-time-option'
+const CRITERION_DATE_TIME_FROM_AUTOTEST_ID = 'criterion-date-time-from'
+const CRITERION_DATE_TIME_TO_AUTOTEST_ID = 'criterion-date-time-to'
+const CRITERION_DATE_TIME_FROM_PICKER_TOGGLE_AUTOTEST_ID = 'criterion-date-time-from-picker-toggle'
+const CRITERION_DATE_TIME_TO_PICKER_TOGGLE_AUTOTEST_ID = 'criterion-date-time-to-picker-toggle'
+const CRITERION_DATE_TIME_FROM_PICKER_AUTOTEST_ID = 'criterion-date-time-from-picker'
+const CRITERION_DATE_TIME_TO_PICKER_AUTOTEST_ID = 'criterion-date-time-to-picker'
 
 export const DateRangeCriterion = (props: Props) => {
+    const {t} = useTranslation()
     const { showOrdersDateType } = props
+    const autoTestOwner = useSearchUIAutoTestScope()
 
     const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
     const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
@@ -53,6 +73,46 @@ export const DateRangeCriterion = (props: Props) => {
         || dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
     const withInputNear = exactDates || daysOrHoursBefore
     const enableTimeSelection = !!showOrdersDateType || timeSelectionEnabledInConfig
+    const beforeCountAriaLabel = dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
+        ? t('react.searchUI.dateRange.hoursBefore', {defaultValue: 'Number of hours before'})
+        : t('react.searchUI.dateRange.daysBefore', {defaultValue: 'Number of days before'})
+    const exactDateRangeAriaLabel = t('react.searchUI.dateRange.exactRange', {
+        defaultValue: 'Exact date range',
+    })
+    const exactDateRangePickerAriaLabel = t('react.searchUI.dateRange.exactCalendar', {
+        defaultValue: 'Exact date range calendar',
+    })
+    const exactDateRangePickerAttributes = {
+        ...createSearchUIOwnedAutoTestAttributes(
+            CRITERION_DATE_RANGE_PICKER_AUTOTEST_ID,
+            autoTestOwner,
+        ),
+        'aria-label': exactDateRangePickerAriaLabel,
+    }
+    const exactDateTimeFromAriaLabel = t('react.searchUI.dateRange.exactDateTimeFrom', {
+        defaultValue: 'Exact date and time from',
+    })
+    const exactDateTimeToAriaLabel = t('react.searchUI.dateRange.exactDateTimeTo', {
+        defaultValue: 'Exact date and time to',
+    })
+    const exactDateTimeFromPickerAttributes = {
+        ...createSearchUIOwnedAutoTestAttributes(
+            CRITERION_DATE_TIME_FROM_PICKER_AUTOTEST_ID,
+            autoTestOwner,
+        ),
+        'aria-label': t('react.searchUI.dateRange.exactDateTimeFromPicker', {
+            defaultValue: 'Exact start date and time picker',
+        }),
+    }
+    const exactDateTimeToPickerAttributes = {
+        ...createSearchUIOwnedAutoTestAttributes(
+            CRITERION_DATE_TIME_TO_PICKER_AUTOTEST_ID,
+            autoTestOwner,
+        ),
+        'aria-label': t('react.searchUI.dateRange.exactDateTimeToPicker', {
+            defaultValue: 'Exact end date and time picker',
+        }),
+    }
 
     const createExactDate = (date: Dayjs | null): Date | null => {
         if (!date) {
@@ -130,16 +190,47 @@ export const DateRangeCriterion = (props: Props) => {
                                         seconds: 1,
                                     }}
                                     slotProps={{
+                                        day: ownerState => ({
+                                            ...createAutoTestAttributes(
+                                                CRITERION_DATE_OPTION_AUTOTEST_ID,
+                                                ownerState.day.format('YYYY-MM-DD'),
+                                            ),
+                                            role: 'gridcell',
+                                        }),
+                                        digitalClockItem: {
+                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                            role: 'option',
+                                        },
+                                        digitalClockSectionItem: {
+                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                            role: 'option',
+                                        },
+                                        mobilePaper: exactDateTimeFromPickerAttributes,
+                                        openPickerButton: {
+                                            ...createAutoTestAttributes(
+                                                CRITERION_DATE_TIME_FROM_PICKER_TOGGLE_AUTOTEST_ID,
+                                            ),
+                                            type: 'button',
+                                        },
+                                        popper: {
+                                            ...exactDateTimeFromPickerAttributes,
+                                            placement: 'auto',
+                                        },
                                         textField: {
                                             size: 'small',
                                             sx: stackDateTimePickers ? dateTimePickerFullWidthInputSx : filtersInputSx,
                                             variant: 'filled',
                                             slotProps: {
                                                 htmlInput: { placeholder: DATE_TIME_FORMAT },
-                                                input: { disableUnderline: true },
+                                                input: {
+                                                    ...createAutoTestAttributes(
+                                                        CRITERION_DATE_TIME_FROM_AUTOTEST_ID,
+                                                    ),
+                                                    'aria-label': exactDateTimeFromAriaLabel,
+                                                    disableUnderline: true,
+                                                },
                                             },
                                         },
-                                        popper: { placement: 'auto' },
                                     }}
                                 />
                                 <DateTimePicker
@@ -153,16 +244,47 @@ export const DateRangeCriterion = (props: Props) => {
                                         seconds: 1,
                                     }}
                                     slotProps={{
+                                        day: ownerState => ({
+                                            ...createAutoTestAttributes(
+                                                CRITERION_DATE_OPTION_AUTOTEST_ID,
+                                                ownerState.day.format('YYYY-MM-DD'),
+                                            ),
+                                            role: 'gridcell',
+                                        }),
+                                        digitalClockItem: {
+                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                            role: 'option',
+                                        },
+                                        digitalClockSectionItem: {
+                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                            role: 'option',
+                                        },
+                                        mobilePaper: exactDateTimeToPickerAttributes,
+                                        openPickerButton: {
+                                            ...createAutoTestAttributes(
+                                                CRITERION_DATE_TIME_TO_PICKER_TOGGLE_AUTOTEST_ID,
+                                            ),
+                                            type: 'button',
+                                        },
+                                        popper: {
+                                            ...exactDateTimeToPickerAttributes,
+                                            placement: 'auto',
+                                        },
                                         textField: {
                                             size: 'small',
                                             sx: stackDateTimePickers ? dateTimePickerFullWidthInputSx : filtersInputSx,
                                             variant: 'filled',
                                             slotProps: {
                                                 htmlInput: { placeholder: DATE_TIME_FORMAT },
-                                                input: { disableUnderline: true },
+                                                input: {
+                                                    ...createAutoTestAttributes(
+                                                        CRITERION_DATE_TIME_TO_AUTOTEST_ID,
+                                                    ),
+                                                    'aria-label': exactDateTimeToAriaLabel,
+                                                    disableUnderline: true,
+                                                },
                                             },
                                         },
-                                        popper: { placement: 'auto' },
                                     }}
                                 />
                             </Box>
@@ -171,7 +293,34 @@ export const DateRangeCriterion = (props: Props) => {
                                 value={dateRange}
                                 onChange={handleSetDateRange}
                                 slotProps={{
-                                    popper: { placement: 'auto' },
+                                    day: ownerState => ({
+                                        ...createAutoTestAttributes(
+                                            CRITERION_DATE_OPTION_AUTOTEST_ID,
+                                            ownerState.day.format('YYYY-MM-DD'),
+                                        ),
+                                        role: 'gridcell',
+                                    }),
+                                    mobilePaper: exactDateRangePickerAttributes,
+                                    openPickerButton: {
+                                        ...createAutoTestAttributes(
+                                            CRITERION_DATE_RANGE_PICKER_TOGGLE_AUTOTEST_ID,
+                                        ),
+                                        type: 'button',
+                                    },
+                                    popper: {
+                                        ...exactDateRangePickerAttributes,
+                                        placement: 'auto',
+                                    },
+                                    textField: {
+                                        slotProps: {
+                                            input: {
+                                                ...createAutoTestAttributes(
+                                                    CRITERION_DATE_RANGE_AUTOTEST_ID,
+                                                ),
+                                                'aria-label': exactDateRangeAriaLabel,
+                                            },
+                                        },
+                                    },
                                 }}
                             />}
                     </LocalizationProvider>
@@ -180,7 +329,11 @@ export const DateRangeCriterion = (props: Props) => {
                         onChange={changeBeforeCount}
                         type={'number'}
                         slotProps={{
-                            htmlInput: { min: 1 },
+                            htmlInput: {
+                                ...createAutoTestAttributes(CRITERION_BEFORE_COUNT_AUTOTEST_ID),
+                                'aria-label': beforeCountAriaLabel,
+                                min: 1,
+                            },
                             input: { disableUnderline: true },
                         }}
                         sx={{

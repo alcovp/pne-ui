@@ -1,10 +1,12 @@
 export {
     SearchUI,
     type SearchParams,
+    type SearchUIProps,
 } from '../component/search-ui/SearchUI'
 export {
     SearchUIFilters,
     type SearchUIFiltersConfig,
+    type SearchUIFiltersProps,
     type DateRangeCriterionConfig,
 } from '../component/search-ui/filters/SearchUIFilters'
 export {

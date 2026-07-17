@@ -3,7 +3,18 @@ import { Box, Chip } from '@mui/material'
 import React, { ReactNode, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AbstractEntity, PneSelect } from '../../../../..'
+import { createAutoTestAttributes } from '../../../../AutoTestAttribute'
+import {
+    createSearchUIOwnedAutoTestAttributes,
+    useSearchUIAutoTestScope,
+} from '../../AutoTestScope'
 import { selectUnderChipSx } from './style'
+
+interface AutoTestContract {
+    controlId: string
+    optionsId: string
+    optionId: string
+}
 
 interface IProps {
     value: AbstractEntity | null
@@ -11,7 +22,9 @@ interface IProps {
     options: readonly AbstractEntity[]
     placeholder?: ReactNode
     disabled?: boolean
+    loading?: boolean
     ariaLabel?: string
+    autoTest?: AutoTestContract
 }
 
 const SearchUIAbstractEntityChipSelect = (props: IProps) => {
@@ -22,9 +35,15 @@ const SearchUIAbstractEntityChipSelect = (props: IProps) => {
         options,
         placeholder = t('react.chooseOne'),
         disabled = false,
+        loading,
         ariaLabel,
+        autoTest,
     } = props
     const [open, setOpen] = useState(false)
+    const autoTestOwner = useSearchUIAutoTestScope()
+    const selectedOption = value === null
+        ? undefined
+        : options.find(option => option.id === value.id)
 
     useEffect(() => {
         if (disabled) {
@@ -51,19 +70,43 @@ const SearchUIAbstractEntityChipSelect = (props: IProps) => {
             deleteIcon={<ExpandMoreIcon/>}
             label={value?.displayName ?? placeholder}
             size={'small'}
-            sx={{ maxWidth: '100%' }}
+            aria-hidden={autoTest ? true : undefined}
+            tabIndex={autoTest ? -1 : undefined}
+            sx={{
+                maxWidth: '100%',
+                pointerEvents: autoTest ? 'none' : undefined,
+            }}
         />
         <PneSelect
             disabled={disabled}
-            inputProps={ariaLabel ? { 'aria-label': ariaLabel } : undefined}
             open={open}
             onClose={() => setOpen(false)}
             onOpen={openSelect}
             sx={selectUnderChipSx}
             getOptionLabel={option => option.label}
-            value={(value?.id ?? '') as unknown as AbstractEntity}
+            value={(selectedOption?.id ?? '') as unknown as AbstractEntity}
             onChange={value => onChange(value as AbstractEntity)}
             options={options}
+            getOptionProps={autoTest
+                ? option => createAutoTestAttributes(autoTest.optionId, option.value)
+                : undefined}
+            MenuProps={autoTest
+                ? {
+                    slotProps: {
+                        list: createSearchUIOwnedAutoTestAttributes(
+                            autoTest.optionsId,
+                            autoTestOwner,
+                        ),
+                    },
+                }
+                : undefined}
+            SelectDisplayProps={{
+                ...(autoTest
+                    ? createAutoTestAttributes(autoTest.controlId, value?.id)
+                    : {}),
+                ...(ariaLabel ? {'aria-label': ariaLabel} : {}),
+                'aria-busy': loading,
+            }}
         />
     </Box>
 }

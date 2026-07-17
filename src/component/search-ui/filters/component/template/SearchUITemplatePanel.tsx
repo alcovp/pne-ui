@@ -5,6 +5,11 @@ import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {PneButton, PneModal, PneModalActions, PneTextField, useModal} from '../../../../..';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import {useSearchUIAutoTestScope} from '../../AutoTestScope';
+
+const TEMPLATE_EDITOR_AUTOTEST_ID = 'template-editor';
+const CLOSE_TEMPLATE_EDITOR_AUTOTEST_ID = 'close-template-editor';
 
 interface IProps {
     onSave: () => void
@@ -18,14 +23,17 @@ const SearchUITemplatePanel = (props: IProps) => {
     const settingsContextName = useSearchUIFiltersStore(s => s.settingsContextName)
 
     const {t} = useTranslation()
+    const autoTestScope = useSearchUIAutoTestScope()?.scope
     const {open, handleOpen, handleClose} = useModal()
     const createFormId = useId()
+    const templateEditorId = useId()
     const [templateName, setTemplateName] = useState(template?.name || '')
     const [showFeedback, setShowFeedback] = useState(false)
     const {
         onSave
     } = props
     const {searchTemplateExists} = useContext(SearchUIDefaultsContext)
+    const templateEditorTitle = t('react.searchUI.template.newModal.title')
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const name = event.target.value
@@ -63,25 +71,48 @@ const SearchUITemplatePanel = (props: IProps) => {
             <Link
                 sx={linkSx}
                 component="button"
+                type={'button'}
                 underline="hover"
                 onClick={handleOpen}
+                aria-controls={open ? templateEditorId : undefined}
+                aria-expanded={open}
+                aria-haspopup={'dialog'}
             >{t('react.searchUI.template.create')}
             </Link>
             {template ? <Link
                 sx={linkSx}
                 component="button"
+                type={'button'}
                 underline="hover"
                 onClick={handleUpdate}
             >{t('react.searchUI.template.update')}</Link> : null}
         </Box>
         <PneModal
             actions={<PneModalActions
-                secondary={<PneButton pneStyle='outlined' onClick={handleClose}>{t('cancel')}</PneButton>}
-                primary={<PneButton type='submit' form={createFormId}>{t('create')}</PneButton>}
+                secondary={<PneButton
+                    type={'button'}
+                    pneStyle='outlined'
+                    onClick={handleClose}
+                >{t('cancel')}</PneButton>}
+                primary={<PneButton
+                    type='submit'
+                    form={createFormId}
+                >{t('create')}</PneButton>}
             />}
             open={open}
             onClose={handleClose}
-            title={t('react.searchUI.template.newModal.title')}
+            title={templateEditorTitle}
+            containerProps={{
+                ...createAutoTestAttributes(TEMPLATE_EDITOR_AUTOTEST_ID, autoTestScope),
+                id: templateEditorId,
+                role: 'dialog',
+                'aria-label': templateEditorTitle,
+                'aria-modal': true,
+            }}
+            closeButtonProps={{
+                ...createAutoTestAttributes(CLOSE_TEMPLATE_EDITOR_AUTOTEST_ID),
+                'aria-label': t('close', {defaultValue: 'Close'}),
+            }}
         >
             <form id={createFormId} onSubmit={handleCreate}>
                 <PneTextField

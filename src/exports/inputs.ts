@@ -2,8 +2,15 @@ export { default as PneTextField } from '../component/PneTextField'
 export { default as PneField } from '../component/PneField'
 export type { PneFieldProps } from '../component/PneField'
 export { default as PneAutocomplete } from '../component/dropdown/PneAutocomplete'
+export type {
+    PneAutocompleteHtmlInputProps,
+    PneAutocompleteProps,
+} from '../component/dropdown/PneAutocomplete'
 export { default as PneAsyncAutocomplete } from '../component/dropdown/PneAsyncAutocomplete'
-export type { PneAsyncAutocompleteProps } from '../component/dropdown/PneAsyncAutocomplete'
+export type {
+    PneAsyncAutocompleteHtmlInputProps,
+    PneAsyncAutocompleteProps,
+} from '../component/dropdown/PneAsyncAutocomplete'
 export { default as PneSelect } from '../component/dropdown/PneSelect'
 export { PneDropdownChoice } from '../common/paynet/dropdown'
 

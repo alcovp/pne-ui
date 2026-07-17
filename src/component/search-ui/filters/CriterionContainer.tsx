@@ -26,6 +26,10 @@ import { OrdersSearchCriterion } from './component/criterion/orders-search/Order
 import { ProcessorLogEntryTypesCriterion } from './component/criterion/ProcessorLogEntryTypesCriterion'
 import { ErrorCodeCriterion } from './component/criterion/ErrorCodeCriterion'
 import { CustomerLevelCriterion } from './component/criterion/CustomerLevelCriterion'
+import {createAutoTestAttributes} from '../../AutoTestAttribute'
+import {SearchUICriterionAutoTestScopeProvider} from './AutoTestScope'
+
+const CRITERION_AUTOTEST_ID = 'criterion'
 
 interface IProps {
     type: CriterionTypeEnum
@@ -134,17 +138,22 @@ export const CriterionContainer = (props: IProps) => {
         throw new Error('Can\'t be')
     }
 
-    return <Box sx={criterionSx}>
-        <Box sx={criterionLeftWrapperSx}>
-            <CriterionLeft criterionType={type}/>
+    return <SearchUICriterionAutoTestScopeProvider criterionType={type}>
+        <Box
+            {...createAutoTestAttributes(CRITERION_AUTOTEST_ID, type)}
+            sx={criterionSx}
+        >
+            <Box sx={criterionLeftWrapperSx}>
+                <CriterionLeft criterionType={type}/>
+            </Box>
+            <Box sx={criterionContentWrapperSx}>
+                {renderCriterion()}
+            </Box>
+            <Box sx={criterionRightWrapperSx}>
+                <CriterionRight criterionType={type}/>
+            </Box>
         </Box>
-        <Box sx={criterionContentWrapperSx}>
-            {renderCriterion()}
-        </Box>
-        <Box sx={criterionRightWrapperSx}>
-            <CriterionRight criterionType={type}/>
-        </Box>
-    </Box>
+    </SearchUICriterionAutoTestScopeProvider>
 }
 
 const criterionSx: SxProps = {

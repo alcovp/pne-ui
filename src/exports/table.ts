@@ -4,6 +4,7 @@ export type { UseTableParams } from '../component/table/useTable'
 
 export { default as PneTableRow } from '../component/table/PneTableRow'
 export { default as PneHeaderTableCell } from '../component/table/PneHeaderTableCell'
+export type { PneHeaderTableCellProps } from '../component/table/PneHeaderTableCell'
 export { default as PneTableCell } from '../component/table/PneTableCell'
 export { default as PneTableControlCell } from '../component/table/PneTableControlCell'
 export { default as PneTableSortLabel } from '../component/table/PneTableSortLabel'
