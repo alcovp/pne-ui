@@ -671,22 +671,77 @@ export const TableViewsMobile360: Story = {
         const topPagination = canvasElement.querySelector<HTMLElement>(
             '[data-autotest="pagination"][data-autotest-value="top"]',
         )
+        const actionBand = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="pagination-actions"]',
+        )
+        const navigation = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="page-navigation"]',
+        )
+        const paginationToolbar = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="pagination-toolbar"]',
+        )
+        const pageSizes = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="page-sizes"]',
+        )
         const settingsAction = canvasElement.querySelector<HTMLElement>(
             'button[aria-label="View settings"]',
         )
 
-        if (!topControls || !topPagination || !viewSelector || !settingsAction) {
+        if (
+            !topControls
+            || !topPagination
+            || !actionBand
+            || !navigation
+            || !paginationToolbar
+            || !pageSizes
+            || !viewSelector
+            || !settingsAction
+        ) {
             throw new Error('Responsive table controls are missing from the 360px story')
         }
 
         for (const [name, element] of [
             ['top controls', topControls],
             ['top pagination', topPagination],
+            ['pagination actions', actionBand],
             ['view selector', viewSelector],
         ] as const) {
             if (element.scrollWidth > element.clientWidth) {
                 throw new Error(`${name} overflow at the supported 360px viewport`)
             }
+        }
+
+        if (actionBand.dataset.autotestValue !== 'toolbar-stacked') {
+            throw new Error('The 360px layout must keep View above one pagination row')
+        }
+
+        if (
+            actionBand.children[0] !== paginationToolbar
+            || actionBand.children[1] !== navigation
+            || actionBand.children[2] !== pageSizes
+        ) {
+            throw new Error('DOM and keyboard order must follow the two visual rows at 360px')
+        }
+
+        const actionBandRect = actionBand.getBoundingClientRect()
+        const navigationRect = navigation.getBoundingClientRect()
+        const toolbarRect = paginationToolbar.getBoundingClientRect()
+        const pageSizesRect = pageSizes.getBoundingClientRect()
+
+        if (toolbarRect.top >= navigationRect.top) {
+            throw new Error('View controls must occupy the first row at 360px')
+        }
+
+        if (Math.abs(toolbarRect.right - actionBandRect.right) > 1) {
+            throw new Error('View controls must be right-aligned at 360px')
+        }
+
+        if (Math.abs(navigationRect.top - pageSizesRect.top) > 1) {
+            throw new Error('Navigation and page sizes must share the second row at 360px')
+        }
+
+        if (navigationRect.right > pageSizesRect.left) {
+            throw new Error('Pagination groups must not overlap at 360px')
         }
 
         const settingsRect = settingsAction.getBoundingClientRect()

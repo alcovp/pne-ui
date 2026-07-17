@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {render, screen, within} from '@testing-library/react'
+import {act, render, screen, within} from '@testing-library/react'
 
 import {
     PneHeaderTableCell,
@@ -10,6 +10,7 @@ import {
     type TableCreateHeaderType,
     type TableSortOptions,
 } from '../src'
+import {resolvePneTablePaginationActionsLayout} from '../src/component/table/PneTablePaginationActions'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({t: (key: string) => key}),
@@ -72,6 +73,152 @@ const createPaginator = (duplicatePagination: boolean): PaginatorProps => ({
     displayedRowsLabel: '1 - 1',
     paginationRef: {current: null},
     duplicatePagination,
+})
+
+describe('responsive pagination action layout', () => {
+    const baseWidths = {
+        hasToolbar: true,
+        navigationMinimumWidth: 160,
+        navigationPreferredWidth: 200,
+        pageSizesWidth: 120,
+        toolbarPreferredWidth: 240,
+    }
+
+    it('keeps all controls inline when their preferred widths fit', () => {
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 584,
+        })).toBe('inline')
+    })
+
+    it('places the toolbar above a pagination row when only pagination fits', () => {
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 328,
+        })).toBe('toolbar-stacked')
+    })
+
+    it('splits pagination only when its minimum width does not fit', () => {
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 280,
+        })).toBe('pagination-stacked')
+    })
+
+    it('does not reserve a toolbar row when no toolbar exists', () => {
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 328,
+            hasToolbar: false,
+            toolbarPreferredWidth: 0,
+        })).toBe('inline')
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 280,
+            hasToolbar: false,
+            toolbarPreferredWidth: 0,
+        })).toBe('pagination-stacked')
+    })
+
+    it('reacts to measured width changes while keeping DOM order aligned with visual order', () => {
+        const resizeObserverDescriptor = Object.getOwnPropertyDescriptor(window, 'ResizeObserver')
+        const resizeObservers: ResizeObserverMock[] = []
+
+        class ResizeObserverMock {
+            readonly observedElements: Element[] = []
+            readonly callback: ResizeObserverCallback
+
+            constructor(callback: ResizeObserverCallback) {
+                this.callback = callback
+                resizeObservers.push(this)
+            }
+
+            observe = jest.fn((element: Element) => {
+                this.observedElements.push(element)
+            })
+            unobserve = jest.fn()
+            disconnect = jest.fn()
+        }
+
+        Object.defineProperty(window, 'ResizeObserver', {
+            configurable: true,
+            value: ResizeObserverMock,
+        })
+
+        try {
+            const {container} = render(createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    paginator: createPaginator(true),
+                    toolbar: <button type='button'>Orders view</button>,
+                },
+            ))
+            const actionBand = container.querySelector(
+                '[data-autotest="pagination-actions"]',
+            ) as HTMLElement
+            const navigation = actionBand.querySelector(
+                '[data-autotest="page-navigation"]',
+            ) as HTMLElement
+            const toolbar = actionBand.querySelector(
+                '[data-autotest="pagination-toolbar"]',
+            ) as HTMLElement
+            const pageSizes = actionBand.querySelector(
+                '[data-autotest="page-sizes"]',
+            ) as HTMLElement
+            const currentPage = actionBand.querySelector(
+                '[data-autotest="current-page"]',
+            ) as HTMLElement
+            let availableWidth = 328
+            let measuredPageSizesWidth = 120
+
+            Object.defineProperties(actionBand, {
+                clientWidth: {configurable: true, get: () => availableWidth},
+            })
+            Object.defineProperties(currentPage, {
+                scrollWidth: {configurable: true, get: () => 80},
+            })
+            Object.defineProperties(toolbar, {
+                scrollWidth: {configurable: true, get: () => 240},
+            })
+            Object.defineProperties(pageSizes, {
+                scrollWidth: {configurable: true, get: () => measuredPageSizesWidth},
+            })
+            const topObserver = resizeObservers.find(observer => (
+                observer.observedElements.includes(actionBand)
+            ))
+
+            const triggerResize = () => act(() => {
+                topObserver?.callback([], topObserver as unknown as ResizeObserver)
+            })
+
+            triggerResize()
+
+            expect(actionBand.dataset.autotestValue).toBe('toolbar-stacked')
+            expect(Array.from(actionBand.children)).toEqual([toolbar, navigation, pageSizes])
+
+            availableWidth = 700
+            triggerResize()
+
+            expect(actionBand.dataset.autotestValue).toBe('inline')
+            expect(Array.from(actionBand.children)).toEqual([navigation, toolbar, pageSizes])
+            expect(actionBand.querySelector('[data-autotest="pagination-toolbar"]')).toBe(toolbar)
+
+            measuredPageSizesWidth = 360
+            availableWidth = 328
+            triggerResize()
+
+            expect(actionBand.dataset.autotestValue).toBe('pagination-stacked')
+            expect(Array.from(actionBand.children)).toEqual([toolbar, navigation, pageSizes])
+            expect(window.getComputedStyle(pageSizes).flexWrap).toBe('wrap')
+        } finally {
+            if (resizeObserverDescriptor) {
+                Object.defineProperty(window, 'ResizeObserver', resizeObserverDescriptor)
+            } else {
+                Reflect.deleteProperty(window, 'ResizeObserver')
+            }
+        }
+    })
 })
 
 describe('PneTable autotest scope', () => {
@@ -166,21 +313,29 @@ describe('PneTable autotest scope', () => {
         const pageSizes = topPagination.querySelector(
             '[data-autotest="page-sizes"]',
         ) as HTMLElement
-        const navigation = within(topPagination)
-            .getByRole('button', {name: 'first page'})
-            .parentElement as HTMLElement
+        const navigation = topPagination.querySelector(
+            '[data-autotest="page-navigation"]',
+        ) as HTMLElement
+        const paginationToolbar = topPagination.querySelector(
+            '[data-autotest="pagination-toolbar"]',
+        ) as HTMLElement
         const actionBand = navigation.parentElement as HTMLElement
-        const endBand = pageSizes.parentElement as HTMLElement
 
         expect(toolbar).not.toBeNull()
         expect(topControls.getAttribute('data-autotest')).toBe('table-top-controls')
         expect(within(toolbar).getByRole('button', {name: 'Orders view'})).toBeTruthy()
         expect(bottomPagination.querySelector('[data-autotest="table-toolbar"]')).toBeNull()
-        expect(Array.from(actionBand.children)).toEqual([navigation, endBand])
-        expect(Array.from(endBand.children)).toEqual([toolbar, pageSizes])
-        expect(window.getComputedStyle(actionBand).flexWrap).toBe('wrap')
-        expect(window.getComputedStyle(endBand).flexWrap).toBe('wrap')
-        expect(window.getComputedStyle(endBand).marginLeft).toBe('auto')
+        expect(Array.from(actionBand.children)).toEqual([
+            navigation,
+            paginationToolbar,
+            pageSizes,
+        ])
+        expect(Array.from(paginationToolbar.children)).toEqual([toolbar])
+        expect(actionBand.getAttribute('data-autotest')).toBe('pagination-actions')
+        expect(actionBand.getAttribute('data-autotest-value')).toBe('inline')
+        expect(window.getComputedStyle(actionBand).display).toBe('grid')
+        expect(window.getComputedStyle(paginationToolbar).justifySelf).toBe('end')
+        expect(window.getComputedStyle(pageSizes).justifySelf).toBe('end')
     })
 
     it('separates top and bottom pagination within one table scope', () => {
