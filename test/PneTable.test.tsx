@@ -23,11 +23,13 @@ type Row = {
 type TableOptions = {
     createTableHeader?: TableCreateHeaderType
     loading?: boolean
+    loadingKey?: string | number
     noRowsMessage?: string
     paginator?: PaginatorProps
     tableAriaLabel?: string
     tableAriaLabelledBy?: string
     sortOptions?: TableSortOptions
+    toolbar?: React.ReactNode
 }
 
 const createTable = (
@@ -39,11 +41,13 @@ const createTable = (
         autoTestId={autoTestId}
         data={row ? [row] : []}
         loading={options.loading}
+        loadingKey={options.loadingKey}
         noRowsMessage={options.noRowsMessage}
         paginator={options.paginator}
         sortOptions={options.sortOptions}
         tableAriaLabel={options.tableAriaLabel}
         tableAriaLabelledBy={options.tableAriaLabelledBy}
+        toolbar={options.toolbar}
         createTableHeader={options.createTableHeader ?? (() => (
             <tr>
                 <th>Name</th>
@@ -106,6 +110,77 @@ describe('PneTable autotest scope', () => {
 
         expect(tableScope).not.toBeNull()
         expect(tableScope?.hasAttribute('data-autotest-value')).toBe(false)
+    })
+
+    it('renders caller controls at the right edge when top pagination is absent', () => {
+        const {container} = render(<>
+            {createTable('orders', {id: 'order-1', label: 'Order'}, {
+                toolbar: <button type='button'>Orders view</button>,
+            })}
+            {createTable('transactions', {id: 'transaction-1', label: 'Transaction'})}
+        </>)
+
+        const ordersScope = container.querySelector(
+            '[data-autotest="table"][data-autotest-value="orders"]',
+        )
+        const transactionsScope = container.querySelector(
+            '[data-autotest="table"][data-autotest-value="transactions"]',
+        )
+        const toolbar = ordersScope?.querySelector('[data-autotest="table-toolbar"]')
+        const topControls = toolbar?.parentElement
+
+        expect(toolbar).not.toBeNull()
+        expect(within(toolbar as HTMLElement).getByRole('button', {name: 'Orders view'})).toBeTruthy()
+        expect(topControls?.getAttribute('data-autotest')).toBe('table-top-controls')
+        expect(topControls?.nextElementSibling?.tagName).toBe('DIV')
+        expect(ordersScope?.querySelector(
+            '[data-autotest="pagination"][data-autotest-value="top"]',
+        )).toBeNull()
+        expect(window.getComputedStyle(toolbar as HTMLElement).justifyContent).toBe('flex-end')
+        expect(transactionsScope?.querySelector('[data-autotest="table-toolbar"]')).toBeNull()
+    })
+
+    it('merges caller controls into the responsive top pagination action band', () => {
+        const {container} = render(createTable(
+            'orders',
+            {id: 'order-1', label: 'Order'},
+            {
+                paginator: createPaginator(true),
+                toolbar: <button type='button'>Orders view</button>,
+            },
+        ))
+
+        const tableScope = container.querySelector(
+            '[data-autotest="table"][data-autotest-value="orders"]',
+        ) as HTMLElement
+        const topPagination = tableScope.querySelector(
+            '[data-autotest="pagination"][data-autotest-value="top"]',
+        ) as HTMLElement
+        const topControls = topPagination.parentElement as HTMLElement
+        const bottomPagination = tableScope.querySelector(
+            '[data-autotest="pagination"][data-autotest-value="bottom"]',
+        ) as HTMLElement
+        const toolbar = topPagination.querySelector(
+            '[data-autotest="table-toolbar"]',
+        ) as HTMLElement
+        const pageSizes = topPagination.querySelector(
+            '[data-autotest="page-sizes"]',
+        ) as HTMLElement
+        const navigation = within(topPagination)
+            .getByRole('button', {name: 'first page'})
+            .parentElement as HTMLElement
+        const actionBand = navigation.parentElement as HTMLElement
+        const endBand = pageSizes.parentElement as HTMLElement
+
+        expect(toolbar).not.toBeNull()
+        expect(topControls.getAttribute('data-autotest')).toBe('table-top-controls')
+        expect(within(toolbar).getByRole('button', {name: 'Orders view'})).toBeTruthy()
+        expect(bottomPagination.querySelector('[data-autotest="table-toolbar"]')).toBeNull()
+        expect(Array.from(actionBand.children)).toEqual([navigation, endBand])
+        expect(Array.from(endBand.children)).toEqual([toolbar, pageSizes])
+        expect(window.getComputedStyle(actionBand).flexWrap).toBe('wrap')
+        expect(window.getComputedStyle(endBand).flexWrap).toBe('wrap')
+        expect(window.getComputedStyle(endBand).marginLeft).toBe('auto')
     })
 
     it('separates top and bottom pagination within one table scope', () => {
@@ -196,6 +271,32 @@ describe('PneTable autotest scope', () => {
         expect(
             screen.getByRole('table', {name: 'Transactions'}).getAttribute('aria-busy'),
         ).toBe('false')
+    })
+
+    it('shows structural loading immediately when the loading identity changes', () => {
+        const view = render(createTable('orders', null, {
+            loading: false,
+            loadingKey: 'summary',
+            tableAriaLabel: 'Orders',
+        }))
+
+        expect(view.container.querySelector('[data-autotest="empty-state"]')).not.toBeNull()
+
+        view.rerender(createTable('orders', null, {
+            loading: false,
+            loadingKey: 'operations',
+            tableAriaLabel: 'Orders',
+        }))
+        expect(view.container.querySelector('[data-autotest="empty-state"]')).not.toBeNull()
+
+        view.rerender(createTable('orders', null, {
+            loading: true,
+            loadingKey: 'operations',
+            tableAriaLabel: 'Orders',
+        }))
+
+        expect(screen.getByRole('table', {name: 'Orders'}).getAttribute('aria-busy')).toBe('true')
+        expect(view.container.querySelector('[data-autotest="empty-state"]')).toBeNull()
     })
 
     it('marks the existing empty-result row within its table scope', () => {

@@ -1,7 +1,12 @@
 export {
     SearchUI,
     type SearchParams,
+    type SearchUIDataSource,
     type SearchUIProps,
+    type SearchUITableRowFactory,
+    type SearchUIView,
+    type SearchUIViewSort,
+    type SearchUIViewsConfig,
 } from '../component/search-ui/SearchUI'
 export {
     SearchUIFilters,

@@ -12,7 +12,11 @@ import {
     TransactionSessionGroup,
 } from '../index'
 import React, { useMemo, useState } from 'react'
-import { SearchParams, SearchUI } from '../component/search-ui/SearchUI'
+import {
+    SearchParams,
+    SearchUI,
+    SearchUIView,
+} from '../component/search-ui/SearchUI'
 import { SearchUIFiltersConfig } from '../component/search-ui/filters/SearchUIFilters'
 import {
     CriterionTypeEnum,
@@ -25,6 +29,8 @@ import {
 } from '../component/search-ui/filters/types'
 import { Meta, StoryObj } from '@storybook/react-webpack5'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import { Box, IconButton, Tooltip } from '@mui/material'
 
 type DataType = AbstractEntity
 
@@ -255,6 +261,111 @@ class Service {
         return dataSlice
     }
 
+}
+
+type TableViewStoryId = 'summary' | 'operations' | 'risk'
+
+type TableViewStoryRow = {
+    id: string
+    primary: string
+    secondary: string
+}
+
+const tableViewStoryRows: Record<TableViewStoryId, TableViewStoryRow[]> = {
+    summary: [
+        {id: 'SUM-101', primary: 'Northwind', secondary: 'Ready'},
+        {id: 'SUM-102', primary: 'Contoso', secondary: 'Review'},
+    ],
+    operations: [
+        {id: 'OPS-201', primary: 'Settlement', secondary: 'Completed'},
+        {id: 'OPS-202', primary: 'Payout', secondary: 'Processing'},
+    ],
+    risk: [
+        {id: 'RSK-301', primary: 'Velocity alert', secondary: 'High'},
+        {id: 'RSK-302', primary: 'Manual review', secondary: 'Medium'},
+    ],
+}
+
+const createTableViewHeader = (primaryLabel: string, secondaryLabel: string) => () => (
+    <PneTableRow>
+        <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{primaryLabel}</PneHeaderTableCell>
+        <PneHeaderTableCell>{secondaryLabel}</PneHeaderTableCell>
+    </PneTableRow>
+)
+
+const createTableViewRow = (row: TableViewStoryRow) => (
+    <PneTableRow key={row.id}>
+        <PneTableCell>{row.id}</PneTableCell>
+        <PneTableCell>{row.primary}</PneTableCell>
+        <PneTableCell>{row.secondary}</PneTableCell>
+    </PneTableRow>
+)
+
+const tableViewSettingsAction = <Tooltip title='View settings'>
+    <IconButton
+        aria-label='View settings'
+        size='small'
+        sx={{borderRadius: '4px', height: '40px', padding: '8px', width: '40px'}}
+    >
+        <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
+    </IconButton>
+</Tooltip>
+
+const tableViewStoryViews: readonly SearchUIView<TableViewStoryRow, TableViewStoryId>[] = [
+    {
+        id: 'summary',
+        label: 'Summary',
+        searchData: async () => tableViewStoryRows.summary,
+        createTableHeader: createTableViewHeader('Account', 'State'),
+        createTableRow: createTableViewRow,
+        actions: tableViewSettingsAction,
+        sortOnActivate: {sortColumnIndex: 1, sortAsc: true},
+    },
+    {
+        id: 'operations',
+        label: 'Operations',
+        searchData: async () => tableViewStoryRows.operations,
+        createTableHeader: createTableViewHeader('Operation', 'Status'),
+        createTableRow: createTableViewRow,
+        actions: tableViewSettingsAction,
+        sortOnActivate: {sortColumnIndex: 2, sortAsc: false},
+    },
+    {
+        id: 'risk',
+        label: 'Risk',
+        searchData: async () => tableViewStoryRows.risk,
+        createTableHeader: createTableViewHeader('Signal', 'Severity'),
+        createTableRow: createTableViewRow,
+        actions: tableViewSettingsAction,
+    },
+]
+
+const TableViewsWrap = ({duplicatePagination = true}: {duplicatePagination?: boolean}) => {
+    const [value, setValue] = useState<TableViewStoryId>('summary')
+
+    return <Box data-story-section='pne-ui-search-ui-table-views' sx={{backgroundColor: '#fff'}}>
+        <SearchUI<TableViewStoryRow, TableViewStoryId>
+            autoTestId='storybook-search-ui-table-views'
+            config={{
+                hideShowFiltersButton: true,
+                hideTemplatesSelect: true,
+            }}
+            possibleCriteria={[]}
+            settingsContextName='storybook-search-ui-table-views'
+            tableParams={{
+                duplicatePagination,
+                rowsPerPageOptions: [5, 10, 25],
+                displayOptions: {pageSize: 5},
+            }}
+            tableViews={{
+                'aria-label': 'Results view',
+                onChange: setValue,
+                value,
+                views: tableViewStoryViews,
+            }}
+        />
+    </Box>
 }
 
 const HookWrap = (props: HookWrapProps) => {
@@ -536,6 +647,54 @@ type Story = StoryObj<typeof HookWrap>
 
 export const Default: Story = {
     args: {},
+}
+
+export const TableViews: Story = {
+    render: () => <TableViewsWrap/>,
+}
+
+export const TableViewsBottomPaginationOnly: Story = {
+    render: () => <TableViewsWrap duplicatePagination={false}/>,
+}
+
+export const TableViewsMobile360: Story = {
+    parameters: {
+        viewport: {defaultViewport: 'mobile360'},
+    },
+    play: ({canvasElement}) => {
+        const topControls = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-top-controls"]',
+        )
+        const viewSelector = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-views"]',
+        )
+        const topPagination = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="pagination"][data-autotest-value="top"]',
+        )
+        const settingsAction = canvasElement.querySelector<HTMLElement>(
+            'button[aria-label="View settings"]',
+        )
+
+        if (!topControls || !topPagination || !viewSelector || !settingsAction) {
+            throw new Error('Responsive table controls are missing from the 360px story')
+        }
+
+        for (const [name, element] of [
+            ['top controls', topControls],
+            ['top pagination', topPagination],
+            ['view selector', viewSelector],
+        ] as const) {
+            if (element.scrollWidth > element.clientWidth) {
+                throw new Error(`${name} overflow at the supported 360px viewport`)
+            }
+        }
+
+        const settingsRect = settingsAction.getBoundingClientRect()
+        if (settingsRect.width !== 40 || settingsRect.height !== 40) {
+            throw new Error('View settings must match the 40x40px pagination controls at 360px')
+        }
+    },
+    render: () => <TableViewsWrap/>,
 }
 
 export const AllFilters: Story = {

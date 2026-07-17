@@ -8,6 +8,7 @@ const PAGE_SIZE_SETTING_NAME = 'page_size'
 const PAGE_NUMBER_SETTING_NAME = 'page_number'
 const SORT_INDEX_SETTING_NAME = 'sort_index'
 const SORT_ORDER_ASC_SETTING_NAME = 'sort_asc'
+const UNRESOLVED_DATA_KEY = Symbol('unresolved-table-data')
 
 type FetchDataArgs = {
     page: number,
@@ -27,6 +28,10 @@ export type UseTableParams<D> = {
     dataUseState?: [D[], Dispatch<SetStateAction<D[]>>]
     fetchData?: (args: FetchDataArgs) => Promise<D[]>,
     fetchDataExtraDeps?: unknown[]
+    /** Stable identity whose change resets page/sort and invalidates rows from the previous identity. */
+    resetKey?: string | number
+    /** Sort defaults applied when resetKey changes, or an explicit request to keep the current sort. */
+    resetDisplayOptions?: 'preserve' | Pick<TableDisplayOptions, 'sortColumnIndex' | 'sortAsc'>
 }
 
 interface IUseTableResult<D> {
@@ -56,6 +61,8 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         fetchData,
         fetchDataExtraDeps,
         duplicatePagination,
+        resetKey,
+        resetDisplayOptions,
     } = params;
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
@@ -67,7 +74,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     if (displayOptions?.pageSize && rowsPerPageOptions.includes(displayOptions?.pageSize)) {
         initialPageSize = displayOptions?.pageSize
     }
-    let initialSortIndex = displayOptions?.sortColumnIndex || 1
+    let initialSortIndex = displayOptions?.sortColumnIndex ?? 1
     let initialSortOrder: Order = 'asc'
     if (typeof displayOptions?.sortAsc !== 'undefined') {
         initialSortOrder = displayOptions.sortAsc ? 'asc' : 'desc'
@@ -97,6 +104,14 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         }
     }
 
+    if (resetKey !== undefined) {
+        initialPageNumber = 0
+        if (resetDisplayOptions && resetDisplayOptions !== 'preserve') {
+            initialSortIndex = resetDisplayOptions.sortColumnIndex
+            initialSortOrder = resetDisplayOptions.sortAsc ? 'asc' : 'desc'
+        }
+    }
+
     const [pageNumber, setPageNumber] = useState(initialPageNumber)
     const [pageSize, setPageSize] = useState(initialPageSize)
     const [hasNext, setHasNext] = useState(false)
@@ -105,8 +120,39 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const [data, setData] = useState<D[]>([])
     const [sortIndex, setSortIndex] = useState<number>(initialSortIndex)
     const [order, setOrder] = useState<Order>(initialSortOrder)
+    const [activeResetKey, setActiveResetKey] = useState(resetKey)
+    const [dataResetKey, setDataResetKey] = useState<unknown>(
+        resetKey === undefined || !fetchData ? resetKey : UNRESOLVED_DATA_KEY,
+    )
+
+    const preserveSortOnReset = resetDisplayOptions === 'preserve'
+    const resetSortIndex = preserveSortOnReset
+        ? sortIndex
+        : resetDisplayOptions?.sortColumnIndex ?? initialSortIndex
+    const resetSortOrder: Order = preserveSortOnReset
+        ? order
+        : resetDisplayOptions?.sortAsc === undefined
+            ? initialSortOrder
+            : resetDisplayOptions.sortAsc ? 'asc' : 'desc'
+
+    if (!Object.is(activeResetKey, resetKey)) {
+        setActiveResetKey(resetKey)
+        setDataResetKey(fetchData ? UNRESOLVED_DATA_KEY : resetKey)
+        setPageNumber(0)
+        setHasNext(false)
+        setDisableActions(false)
+        setLoading(!!fetchData)
+        if (!preserveSortOnReset) {
+            setSortIndex(resetSortIndex)
+            setOrder(resetSortOrder)
+        }
+    }
 
     const getData = (): D[] => {
+        if (!Object.is(dataResetKey, resetKey)) {
+            return []
+        }
+
         return dataUseState ? dataUseState[0] : data
     }
 
@@ -158,17 +204,41 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 
     const paginationRef = useRef<HTMLDivElement | null>(null)
     const shouldScrollToPaginationRef = useRef(false)
+    const paginationScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+    useEffect(() => {
+        shouldScrollToPaginationRef.current = false
+        if (paginationScrollTimeoutRef.current) {
+            clearTimeout(paginationScrollTimeoutRef.current)
+            paginationScrollTimeoutRef.current = null
+        }
+
+        return () => {
+            if (paginationScrollTimeoutRef.current) {
+                clearTimeout(paginationScrollTimeoutRef.current)
+                paginationScrollTimeoutRef.current = null
+            }
+        }
+    }, [resetKey])
+
     const requestScrollToPagination = () => {
         shouldScrollToPaginationRef.current = true
     }
     const scrollToPagination = () => {
         if (shouldScrollToPaginationRef.current) {
             shouldScrollToPaginationRef.current = false
-            setTimeout(() => {
+            if (paginationScrollTimeoutRef.current) {
+                clearTimeout(paginationScrollTimeoutRef.current)
+            }
+            const timeoutId = setTimeout(() => {
+                if (paginationScrollTimeoutRef.current === timeoutId) {
+                    paginationScrollTimeoutRef.current = null
+                }
                 if (paginationRef.current) {
                     paginationRef.current.scrollIntoView({behavior: "smooth", block: "end"})
                 }
             }, 100)
+            paginationScrollTimeoutRef.current = timeoutId
         }
     }
 
@@ -213,19 +283,27 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 
     const afterDataFetch = (dataList: D[]) => {
         getSetData()(dataList.slice(0, pageSize))
+        setDataResetKey(resetKey)
         wrapSetHasNext(dataList.length === pageSize + 1)
         setLoading(false)
         scrollToPagination()
     }
 
-    const fetchDataDeps: unknown[] = [pageNumber, pageSize, order, sortIndex]
+    const fetchDataDeps: unknown[] = [pageNumber, pageSize, order, sortIndex, resetKey]
     if (fetchDataExtraDeps) {
         fetchDataDeps.push(...fetchDataExtraDeps)
     }
 
     const shouldSkipFetchDate = useRef(false)
+    const requestSequenceRef = useRef(0)
     useEffect(() => {
+        if (!fetchData) {
+            return
+        }
+
         let mounted = true
+        const requestId = ++requestSequenceRef.current
+        const isLatestRequest = () => mounted && requestId === requestSequenceRef.current
 
         if (shouldSkipFetchDate.current) {
             shouldSkipFetchDate.current = false
@@ -234,35 +312,46 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 
         setLoading(true)
 
-        const asyncFetchData = async (args: FetchDataArgs) => {
-            if (fetchData) {
-                try {
-                    let data = await fetchData(args)
+        if (!Object.is(dataResetKey, resetKey)) {
+            getSetData()([])
+            if (settingsContextName) {
+                sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, '0')
+                sessionStorage.setItem(settingsContextName + SORT_INDEX_SETTING_NAME, resetSortIndex.toString())
+                sessionStorage.setItem(settingsContextName + SORT_ORDER_ASC_SETTING_NAME, resetSortOrder)
+            }
+        }
 
-                    /**
-                     * Если получаем пустой массив, то проверим, первая ли это страница. Если нет, то, вероятно,
-                     * с новыми параметрами поиска сервер отдает меньший массив данных, и нам нужно сбросить страницу
-                     * на первую
-                     * Это нужно только для того, чтобы не было промежуточного отображения 'no rows' между этими
-                     * двумя запросами, в случае, когда первый раз получили пустой массив
-                     */
-                    if (data.length === 0 && args.page > 0) {
-                        // пробуем получить первую страницу данных с новыми параметрами поиска
-                        data = await fetchData({...args, page: 0})
-                        // надо предотвратить следующую перерисовку из-за измененного pageNumber
-                        if (mounted) {
-                            shouldSkipFetchDate.current = true
-                            setPageNumber(0)
-                        }
+        const asyncFetchData = async (args: FetchDataArgs) => {
+            try {
+                let data = await fetchData(args)
+                if (!isLatestRequest()) {
+                    return
+                }
+
+                /**
+                 * Если получаем пустой массив, то проверим, первая ли это страница. Если нет, то, вероятно,
+                 * с новыми параметрами поиска сервер отдает меньший массив данных, и нам нужно сбросить страницу
+                 * на первую
+                 * Это нужно только для того, чтобы не было промежуточного отображения 'no rows' между этими
+                 * двумя запросами, в случае, когда первый раз получили пустой массив
+                 */
+                if (data.length === 0 && args.page > 0) {
+                    // пробуем получить первую страницу данных с новыми параметрами поиска
+                    data = await fetchData({...args, page: 0})
+                    if (!isLatestRequest()) {
+                        return
                     }
-                    if (mounted) {
-                        afterDataFetch(data)
-                    }
-                } catch (err) {
+                    // надо предотвратить следующую перерисовку из-за измененного pageNumber
+                    shouldSkipFetchDate.current = true
+                    setPageNumber(0)
+                }
+                if (isLatestRequest()) {
+                    afterDataFetch(data)
+                }
+            } catch (err) {
+                if (isLatestRequest()) {
                     console.error(err)
-                    if (mounted) {
-                        setLoading(false)
-                    }
+                    setLoading(false)
                 }
             }
         }
@@ -286,13 +375,27 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         }
 
         useEffect(() => {
+            let mounted = true
+            const requestId = ++requestSequenceRef.current
+            const isLatestRequest = () => mounted && requestId === requestSequenceRef.current
+
             setLoading(true)
             getter()
-                .then(afterDataFetch)
-                .catch((err) => {
-                    console.error(err)
-                    setLoading(false)
+                .then(dataList => {
+                    if (isLatestRequest()) {
+                        afterDataFetch(dataList)
+                    }
                 })
+                .catch((err) => {
+                    if (isLatestRequest()) {
+                        console.error(err)
+                        setLoading(false)
+                    }
+                })
+
+            return () => {
+                mounted = false
+            }
         }, fetchDataDeps)
     }
 

@@ -6,6 +6,10 @@ import PneFirstPageIcon from "./PneFirstPageIcon";
 import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
 import {createAutoTestAttributes} from "../AutoTestAttribute";
+import {
+    TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
+    TABLE_CONTROL_TEXT_COLOR,
+} from "./tableControlColors";
 // import {usePneTheme} from "../../usePneTheme";
 
 interface IPaginationActionsProps {
@@ -18,6 +22,7 @@ interface IPaginationActionsProps {
     ) => void
     paginator: PaginatorProps
     shouldRequestScroll: boolean
+    toolbar?: React.ReactNode
 }
 
 const PneTablePaginationActions = (props: IPaginationActionsProps) => {
@@ -28,6 +33,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         onPageChange,
         paginator,
         shouldRequestScroll,
+        toolbar,
     } = props;
 
     const {
@@ -50,16 +56,16 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         fontSize: '12px',
         lineHeight: '16px',
         //TODO тут цвет из темы - основной
-        color: '#809EAE',
+        color: TABLE_CONTROL_TEXT_COLOR,
         '&:hover': {
-            background: '#F1F5FA',
+            background: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
             ...activeActionSx
         },
     }
 
     const selectedButtonStyle = {
         ...buttonStyle,
-        background: '#F1F5FA',
+        background: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
         ...activeActionSx
     }
 
@@ -69,15 +75,19 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         alignItems: 'center',
         padding: '0 8px',
         width: 'auto',
+        maxWidth: '120px',
         minWidth: '15px',
         height: '40px',
+        overflow: 'hidden',
         borderRadius: '4px',
-        background: '#F1F5FA',
+        background: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
         fontWeight: 700,
         fontSize: '12px',
         lineHeight: '16px',
         //TODO тут цвет из темы - основной
-        color: '#809EAE',
+        color: TABLE_CONTROL_TEXT_COLOR,
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
         ...activeActionSx
     }
 
@@ -130,53 +140,75 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         })
     }
 
+    const hasToolbar = toolbar !== undefined
+        && toolbar !== null
+        && typeof toolbar !== 'boolean'
+
     return <Box
         sx={{
+            alignItems: 'center',
+            columnGap: '8px',
             display: 'flex',
+            flexWrap: 'wrap',
+            rowGap: '8px',
             width: '100%',
         }}
     >
-        <IconButton
-            sx={buttonStyle}
-            onClick={handleFirstPageButtonClick}
-            disabled={disableActions || page === 0}
-            aria-label="first page"
-            {...createAutoTestAttributes('first-page')}
-        >
-            <PneFirstPageIcon disabled={disableActions || page === 0}/>
-        </IconButton>
-        <IconButton
-            sx={buttonStyle}
-            onClick={handleBackButtonClick}
-            disabled={disableActions || page === 0}
-            aria-label="previous page"
-            {...createAutoTestAttributes('prev-page')}
-        >
-            <PnePreviousPageIcon disabled={disableActions || page === 0}/>
-        </IconButton>
-        <Icon
-            sx={displayedRowsStyle}
-            {...createAutoTestAttributes('current-page')}
-        >
-            {displayedRowsLabel}
-        </Icon>
-        <IconButton
-            sx={buttonStyle}
-            onClick={handleNextButtonClick}
-            disabled={disableActions || !hasNext}
-            aria-label="next page"
-            {...createAutoTestAttributes('next-page')}
-        >
-            <PneNextPageIcon disabled={disableActions || !hasNext}/>
-        </IconButton>
+        <Box sx={{display: 'flex', flexShrink: 0}}>
+            <IconButton
+                sx={buttonStyle}
+                onClick={handleFirstPageButtonClick}
+                disabled={disableActions || page === 0}
+                aria-label="first page"
+                {...createAutoTestAttributes('first-page')}
+            >
+                <PneFirstPageIcon disabled={disableActions || page === 0}/>
+            </IconButton>
+            <IconButton
+                sx={buttonStyle}
+                onClick={handleBackButtonClick}
+                disabled={disableActions || page === 0}
+                aria-label="previous page"
+                {...createAutoTestAttributes('prev-page')}
+            >
+                <PnePreviousPageIcon disabled={disableActions || page === 0}/>
+            </IconButton>
+            <Icon
+                sx={displayedRowsStyle}
+                {...createAutoTestAttributes('current-page')}
+            >
+                {displayedRowsLabel}
+            </Icon>
+            <IconButton
+                sx={buttonStyle}
+                onClick={handleNextButtonClick}
+                disabled={disableActions || !hasNext}
+                aria-label="next page"
+                {...createAutoTestAttributes('next-page')}
+            >
+                <PneNextPageIcon disabled={disableActions || !hasNext}/>
+            </IconButton>
+        </Box>
         <Box
             sx={{
+                alignItems: 'center',
+                display: 'flex',
+                flex: '0 1 auto',
+                flexWrap: 'wrap',
+                gap: hasToolbar ? '8px' : 0,
+                justifyContent: 'flex-end',
                 marginLeft: 'auto',
-                order: 2,
+                maxWidth: '100%',
+                minWidth: 0,
             }}
-            {...createAutoTestAttributes('page-sizes', rowsPerPage)}
         >
-            {populateRowsPerPageOptions()}
+            {hasToolbar ? toolbar : null}
+            <Box
+                sx={{display: 'flex', flexShrink: 0}}
+                {...createAutoTestAttributes('page-sizes', rowsPerPage)}
+            >
+                {populateRowsPerPageOptions()}
+            </Box>
         </Box>
     </Box>
 }

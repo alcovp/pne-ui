@@ -1,4 +1,9 @@
 export { default as PneTable } from '../component/table/PneTable'
+export {
+    PneTableViewSelector,
+    type PneTableViewOption,
+    type PneTableViewSelectorProps,
+} from '../component/table/PneTableViewSelector'
 export { default as useTable } from '../component/table/useTable'
 export type { UseTableParams } from '../component/table/useTable'
 

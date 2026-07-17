@@ -19,6 +19,8 @@ import {createAutoTestAttributes} from '../AutoTestAttribute';
 const TABLE_AUTOTEST_ID = 'table';
 const TABLE_EMPTY_STATE_AUTOTEST_ID = 'empty-state';
 const TABLE_PAGINATION_AUTOTEST_ID = 'pagination';
+const TABLE_TOP_CONTROLS_AUTOTEST_ID = 'table-top-controls';
+const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar';
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
@@ -54,6 +56,8 @@ export type TableProps<D> = {
     lastRow?: React.ReactElement
     paginator?: PaginatorProps
     loading?: boolean
+    /** Identity that makes a structural loading transition visible immediately without remounting controls. */
+    loadingKey?: string | number
     stickyHeader?: boolean
     showNothingIsFoundRow?: boolean
     /** Accessible name forwarded to the semantic table independently from autoTestId. */
@@ -64,6 +68,9 @@ export type TableProps<D> = {
     boxSx?: SxProps
     noRowsMessage?: string
     skeletonRowHeight?: number
+    /** Optional controls rendered in the responsive top band, before page-size controls when top pagination exists. */
+    toolbar?: React.ReactNode
+    toolbarSx?: SxProps
 }
 
 export type TableSortOptions = {
@@ -92,6 +99,7 @@ const AbstractTable = <D, >(
         lastRow = null,
         paginator,
         loading = false,
+        loadingKey,
         stickyHeader = false,
         showNothingIsFoundRow = true,
         tableAriaLabel,
@@ -100,11 +108,13 @@ const AbstractTable = <D, >(
         boxSx = {},
         noRowsMessage,
         skeletonRowHeight,
+        toolbar,
+        toolbarSx,
     } = props
 
     const {t} = useTranslation()
 
-    const showSkeleton = useDelayedLoading(loading);
+    const showSkeleton = useDelayedLoading(loading, loadingKey);
 
     const containerRef = useRef<HTMLElement>(null);
     const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -144,7 +154,10 @@ const AbstractTable = <D, >(
         }
     });
 
-    const getPneTablePagination = (position: 'top' | 'bottom') => {
+    const getPneTablePagination = (
+        position: 'top' | 'bottom',
+        topToolbar?: React.ReactNode,
+    ) => {
         if (!paginator) {
             return null
         }
@@ -167,6 +180,7 @@ const AbstractTable = <D, >(
                 {...props}
                 paginator={paginator}
                 shouldRequestScroll={position === 'bottom'}
+                toolbar={position === 'top' ? topToolbar : undefined}
             />}
         />;
     }
@@ -196,6 +210,29 @@ const AbstractTable = <D, >(
     const skeletonTableHeight = showSkeleton && actualSkeletonRowHeight && lastHeaderHeightRef.current > 0
         ? lastHeaderHeightRef.current + actualSkeletonRowHeight * skeletonRowCount
         : undefined;
+    const hasToolbar = toolbar !== undefined
+        && toolbar !== null
+        && typeof toolbar !== 'boolean'
+    const createTableToolbar = (insidePagination: boolean) => <Box
+        {...createAutoTestAttributes(TABLE_TOOLBAR_AUTOTEST_ID)}
+        sx={[
+            {
+                alignItems: 'center',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                maxWidth: '100%',
+                minWidth: 0,
+            },
+            insidePagination
+                ? {flex: '0 1 auto'}
+                : {marginBottom: '6px', marginTop: '6px', minHeight: '40px'},
+            ...(Array.isArray(toolbarSx) ? toolbarSx : [toolbarSx]),
+        ]}
+    >
+        {toolbar}
+    </Box>
+    const hasTopPagination = Boolean(paginator?.duplicatePagination)
+    const hasTopControls = hasToolbar || hasTopPagination
 
     const SKELETON_COL_HIDDEN = 30;
     const SKELETON_COL_NARROW = 120;
@@ -216,7 +253,14 @@ const AbstractTable = <D, >(
         sx={{...boxSx}}
         ref={containerRef}
     >
-        {paginator && paginator.duplicatePagination && getPneTablePagination('top')}
+        {hasTopControls ? <Box
+            {...createAutoTestAttributes(TABLE_TOP_CONTROLS_AUTOTEST_ID)}
+            sx={{minWidth: 0, width: '100%'}}
+        >
+            {hasTopPagination
+                ? getPneTablePagination('top', hasToolbar ? createTableToolbar(true) : undefined)
+                : createTableToolbar(false)}
+        </Box> : null}
         <TableContainer ref={tableContainerRef}>
             <Table
                 aria-busy={showSkeleton}
