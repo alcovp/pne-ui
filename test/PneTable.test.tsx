@@ -87,8 +87,12 @@ describe('responsive pagination action layout', () => {
     it('keeps all controls inline when their preferred widths fit', () => {
         expect(resolvePneTablePaginationActionsLayout({
             ...baseWidths,
-            availableWidth: 584,
+            availableWidth: 576,
         })).toBe('inline')
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 575,
+        })).toBe('toolbar-stacked')
     })
 
     it('places the toolbar above a pagination row when only pagination fits', () => {
@@ -146,7 +150,7 @@ describe('responsive pagination action layout', () => {
         })
 
         try {
-            const {container} = render(createTable(
+            const {container, rerender} = render(createTable(
                 'orders',
                 {id: 'order-1', label: 'Order'},
                 {
@@ -163,6 +167,8 @@ describe('responsive pagination action layout', () => {
             const toolbar = actionBand.querySelector(
                 '[data-autotest="pagination-toolbar"]',
             ) as HTMLElement
+            const tableToolbar = toolbar.firstElementChild as HTMLElement
+            const toolbarControl = tableToolbar.firstElementChild as HTMLElement
             const pageSizes = actionBand.querySelector(
                 '[data-autotest="page-sizes"]',
             ) as HTMLElement
@@ -179,6 +185,12 @@ describe('responsive pagination action layout', () => {
                 scrollWidth: {configurable: true, get: () => 80},
             })
             Object.defineProperties(toolbar, {
+                scrollWidth: {configurable: true, get: () => availableWidth},
+            })
+            Object.defineProperties(tableToolbar, {
+                scrollWidth: {configurable: true, get: () => availableWidth},
+            })
+            Object.defineProperties(toolbarControl, {
                 scrollWidth: {configurable: true, get: () => 240},
             })
             Object.defineProperties(pageSizes, {
@@ -196,6 +208,7 @@ describe('responsive pagination action layout', () => {
 
             expect(actionBand.dataset.autotestValue).toBe('toolbar-stacked')
             expect(Array.from(actionBand.children)).toEqual([toolbar, navigation, pageSizes])
+            expect(window.getComputedStyle(toolbar).width).toBe('100%')
 
             availableWidth = 700
             triggerResize()
@@ -211,6 +224,20 @@ describe('responsive pagination action layout', () => {
             expect(actionBand.dataset.autotestValue).toBe('pagination-stacked')
             expect(Array.from(actionBand.children)).toEqual([toolbar, navigation, pageSizes])
             expect(window.getComputedStyle(pageSizes).flexWrap).toBe('wrap')
+
+            rerender(createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    paginator: createPaginator(true),
+                    toolbar: <div data-testid='replacement-toolbar'>Selection controls</div>,
+                },
+            ))
+            const replacementToolbar = screen.getByTestId('replacement-toolbar')
+
+            expect(resizeObservers.some(observer => (
+                observer.observedElements.includes(replacementToolbar)
+            ))).toBe(true)
         } finally {
             if (resizeObserverDescriptor) {
                 Object.defineProperty(window, 'ResizeObserver', resizeObserverDescriptor)
@@ -334,8 +361,26 @@ describe('PneTable autotest scope', () => {
         expect(actionBand.getAttribute('data-autotest')).toBe('pagination-actions')
         expect(actionBand.getAttribute('data-autotest-value')).toBe('inline')
         expect(window.getComputedStyle(actionBand).display).toBe('grid')
-        expect(window.getComputedStyle(paginationToolbar).justifySelf).toBe('end')
+        expect(window.getComputedStyle(paginationToolbar).justifySelf).toBe('stretch')
+        expect(window.getComputedStyle(paginationToolbar).width).toBe('100%')
         expect(window.getComputedStyle(pageSizes).justifySelf).toBe('end')
+    })
+
+    it('wraps primitive toolbar content in an element that can be measured', () => {
+        const {container} = render(createTable(
+            'orders',
+            {id: 'order-1', label: 'Order'},
+            {
+                paginator: createPaginator(true),
+                toolbar: 'Orders controls',
+            },
+        ))
+        const toolbar = container.querySelector(
+            '[data-autotest="table-toolbar"]',
+        ) as HTMLElement
+
+        expect(toolbar.firstElementChild).not.toBeNull()
+        expect(toolbar.firstElementChild?.textContent).toBe('Orders controls')
     })
 
     it('separates top and bottom pagination within one table scope', () => {

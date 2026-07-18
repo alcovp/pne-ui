@@ -213,24 +213,42 @@ const AbstractTable = <D, >(
     const hasToolbar = toolbar !== undefined
         && toolbar !== null
         && typeof toolbar !== 'boolean'
-    const createTableToolbar = (insidePagination: boolean) => <Box
-        {...createAutoTestAttributes(TABLE_TOOLBAR_AUTOTEST_ID)}
-        sx={[
-            {
-                alignItems: 'center',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                maxWidth: '100%',
-                minWidth: 0,
-            },
-            insidePagination
-                ? {flex: '0 1 auto'}
-                : {marginBottom: '6px', marginTop: '6px', minHeight: '40px'},
-            ...(Array.isArray(toolbarSx) ? toolbarSx : [toolbarSx]),
-        ]}
-    >
-        {toolbar}
-    </Box>
+    const createTableToolbar = (insidePagination: boolean) => {
+        const toolbarContent = React.isValidElement(toolbar)
+            && toolbar.type !== React.Fragment
+            ? toolbar
+            : <Box
+                sx={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    maxWidth: '100%',
+                    minWidth: 0,
+                    width: 'max-content',
+                }}
+            >
+                {toolbar}
+            </Box>
+
+        return <Box
+            {...createAutoTestAttributes(TABLE_TOOLBAR_AUTOTEST_ID)}
+            sx={[
+                {
+                    alignItems: 'center',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    maxWidth: '100%',
+                    minWidth: 0,
+                    width: '100%',
+                },
+                insidePagination
+                    ? {flex: '1 1 auto'}
+                    : {marginBottom: '6px', marginTop: '6px', minHeight: '40px'},
+                ...(Array.isArray(toolbarSx) ? toolbarSx : [toolbarSx]),
+            ]}
+        >
+            {toolbarContent}
+        </Box>
+    }
     const hasTopPagination = Boolean(paginator?.duplicatePagination)
     const hasTopControls = hasToolbar || hasTopPagination
 

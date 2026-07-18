@@ -96,6 +96,146 @@ DOM-позиции или пользовательских/секретных д
 - пустой результат: существующая строка `data-autotest="empty-state"`;
 - disabled/checked/selected состояния: только нативные DOM/ARIA-свойства, без test-only копий.
 
+#### Выбор строк
+
+`useTableSelection` хранит выбор в одной из двух взаимоисключающих форм:
+
+- `explicit` — явно выбранные стабильные ID;
+- `allMatching` — все selectable-строки текущей применённой выдачи, кроме `excludedIds`.
+
+Header checkbox управляет только загруженной страницей. Выбор всей выдачи является отдельным действием:
+consumer получает точное число selectable-результатов от своего API и передаёт его в
+`selectAllMatching(matchingCount)`. `matchingCount`, `excludedIds`, `isRowSelectable` и backend query обязаны
+описывать один и тот же applied-result scope. Сериализацию `Set` и domain request выполняйте только на границе
+приложения.
+
+```tsx
+const selection = useTableSelection({
+    rows: orders,
+    getRowId: order => order.id,
+    maxSelected: 20_000,
+    scopeKey: appliedSearchFingerprint,
+})
+
+<PneTable<Order>
+    autoTestId="orders"
+    tableAriaLabel="Orders"
+    data={orders}
+    createTableHeader={() => <PneTableRow>
+        <PneTableSelectionHeaderCell
+            aria-label="Select current page"
+            state={selection.pageState}
+            disabled={selection.interactionDisabled || selection.pageSelectableCount === 0}
+            onChange={selection.setPageSelected}
+        />
+        {/* business headers */}
+    </PneTableRow>}
+    createRow={order => <PneTableRow
+        key={order.id}
+        selected={selection.isRowSelected(order)}
+        aria-selected={selection.isRowSelected(order)}
+    >
+        <PneTableSelectionCell
+            aria-label={`Select order ${order.id}`}
+            checked={selection.isRowSelected(order)}
+            disabled={selection.interactionDisabled || !selection.isRowSelectable(order)}
+            onChange={checked => selection.setRowSelected(order, checked)}
+        />
+        {/* business cells */}
+    </PneTableRow>}
+    toolbar={<PneTableToolbar
+        aria-label="Table controls"
+        contextual={<PneTableSelectionControls
+            summary={`${selection.selectedCount} selected`}
+            actions={consumerOwnedBulkActions}
+            status={consumerOwnedLimitWarning}
+        />}
+        persistent={optionalViewSelector}
+    />}
+    /* остальные props */
+/>
+```
+
+`maxSelected` отклоняет всю row/page/all-matching операцию атомарно: возвращённый
+`TableSelectionUpdate.limitExceeded` равен `true`, а модель не меняется. Смена primitive `scopeKey` очищает
+выбор; pagination, sort и refresh не должны входить в этот ключ. В controlled-режиме consumer обязан принять
+scope-reset и вернуть canonical empty-модель `{mode: 'explicit', selectedIds: new Set()}`.
+
+`PneTableToolbar` объединяет contextual selection controls и persistent View controls в существующей верхней
+полосе таблицы. Он измеряет фактическое содержимое и сохраняет DOM/keyboard-порядок Selection → View →
+Pagination при переходе на несколько строк, включая поддерживаемую ширину viewport 360px.
+
+#### Выбор строк в SearchUI
+
+`SearchUI.tableSelection` добавляет тот же controller к consumer-owned header/row factories и автоматически
+связывает его scope с применёнными критериями поиска. Draft-фильтры manual search, page, page size, sort и
+value-equivalent refresh сохраняют выбор. Новые применённые критерии очищают его. При настроенных Views в scope
+по умолчанию входит фактически выбранный View; `preserveAcrossViews` включайте только для Views с одинаковой
+семантикой строк и совместимыми ID.
+
+```tsx
+<SearchUI<Order, OrderViewId, number>
+    /* search props */
+    tableSelection={{
+        selection,
+        onSelectionChange: setSelection,
+        getRowId: order => order.id,
+        maxSelected: knownClientLimit,
+        resolveAllMatchingCount: async ({appliedSearchCriteria, viewId}) => {
+            const summary = await getSelectionSummary(appliedSearchCriteria, viewId)
+            if (summary.limitExceeded) {
+                showConsumerOwnedLimitWarning(summary.selectionLimit)
+                throw new Error('Selection limit exceeded')
+            }
+            return summary.matchingCount
+        },
+        renderControls: ({selection: controller}) => (
+            <PneTableSelectionControls
+                summary={`${controller.selectedCount} selected`}
+                actions={<button
+                    disabled={controller.interactionDisabled}
+                    onClick={() => controller.selectAllMatchingResults?.().catch(handleSelectionError)}
+                >
+                    Select all results
+                </button>}
+                status={controller.selectingAllMatching ? 'Selecting…' : selectionStatus}
+            />
+        ),
+        toolbarAriaLabel: 'Order table controls',
+    }}
+    createTableHeader={(params, context) => {
+        const controller = context?.selection
+        if (!controller) throw new Error('Table selection context is required')
+        return <>{/* explicit selection cell + headers */}</>
+    }}
+    createTableRow={(row, index, data, setData, context) => {
+        const controller = context?.selection
+        if (!controller) throw new Error('Table selection context is required')
+        return <>{/* explicit selection cell + business cells */}</>
+    }}
+/>
+```
+
+Factory context optional только для source compatibility с прежними прямыми вызовами фабрик; сам `SearchUI`
+всегда передаёт context, а `selection` присутствует при настроенном `tableSelection`. Selection-aware consumer
+всё равно должен сделать явный guard/assertion, чтобы его callback оставался корректным вне вызова из `SearchUI`.
+
+`resolveAllMatchingCount` получает snapshot применённых критериев и resolved View. На один SearchUI допускается
+один in-flight запрос: повторный вызов возвращает тот же Promise, controller временно блокирует selection, а
+ответ применяется только к той же occurrence scope. Старые ответы после `A → B → A`, unmount, смены
+`maxSelected` или consumer `disabled` игнорируются. Активная ошибка возвращается caller-коду, после чего controller
+снова доступен. Same-scope refresh/pagination/sort не отменяют запрос. Уже начатый запрос детерминированно
+завершается тем resolver, с которым он был запущен: замена callback действует со следующего запроса, а удаление
+resolver отменяет pending work.
+
+Если backend возвращает typed summary, consumer должен обработать server `limitExceeded` до возврата count.
+`maxSelected` — синхронный client-side guard, а не замена повторной серверной проверке при batch operation.
+
+Selection не записывается в SearchUI retention/profile/browser storage. Uncontrolled selection исчезает при
+remount. В controlled-режиме lifetime принадлежит consumer: если state намеренно расположен выше размонтируемого
+экрана, consumer сам должен очистить его при navigation/remount. Строковое представление applied scope остаётся
+в памяти библиотеки и не выводится в DOM/storage.
+
 ### SearchUI и SearchUIFilters
 
 Передавайте стабильный несекретный `autoTestId` как Selenium scope поискового интерфейса. Если prop не задан,
@@ -267,6 +407,10 @@ assertEquals("true", enabled.getAttribute("aria-pressed"));
 |---|---|---|
 | Верхняя пагинация | `[data-autotest="pagination"][data-autotest-value="top"]` | Native button `disabled`; `current-page` внутри |
 | Нижняя пагинация | `[data-autotest="pagination"][data-autotest-value="bottom"]` | Native button `disabled`; `current-page` внутри |
+| Общая полоса контролов | `[data-autotest="table-control-bar"]` | `data-autotest-value="inline|stacked"` |
+| Выбор текущей страницы | `input[data-autotest="page-selection"]` | Native `checked`, `disabled`, `aria-checked="mixed"` |
+| Выбор строки | `input[data-autotest="row-selection"]` | Native `checked`, `disabled`; consumer может задать `autoTestId`/`autoTestValue` |
+| Selection summary/actions/status | `[data-autotest="selection-summary"]`, `[data-autotest="selection-actions"]`, `[data-autotest="selection-status"]` | Summary является polite live status |
 | Пустой результат | `[data-autotest="empty-state"]` | Наличие существующей empty row |
 | Загрузка | Semantic `table` | `aria-busy="true|false"` |
 | Активная сортировка | `th[aria-sort="ascending"], th[aria-sort="descending"]` | Значение `aria-sort` |

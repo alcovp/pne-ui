@@ -1,20 +1,45 @@
-import React, { Dispatch, SetStateAction, useMemo, useState } from 'react'
+import React, {
+    Dispatch,
+    SetStateAction,
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react'
 import { SearchUIFiltersConfig, SearchUIFiltersContent } from './filters/SearchUIFilters'
 import { CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions } from './filters/types'
 import { Box, Divider, SxProps } from '@mui/material'
 import { GetPagedOrderedSortedListRequest, Order } from '../../common'
 import {
     PneTable,
+    PneTableToolbar,
     PneTableViewOption,
     PneTableViewSelector,
     PneTableViewSelectorProps,
-    TableCreateHeaderType,
+    ITableCreateHeaderParams,
+    TableRowId,
+    TableSelectionUpdate,
     TableDisplayOptions,
+    UseTableSelectionParams,
     useTable,
+    useTableSelection,
 } from '../..'
 import { UseTableParams } from '../table/useTable'
 import { useSearchUIFiltersStore } from './filters/state/store'
 import { SearchUIFiltersStoreProvider } from './filters/state/SearchUIFiltersStoreProvider'
+import {
+    createSearchUITableSelectionScopeKey,
+    SearchUITableFactoryContext,
+    SearchUITableSelectionConfig,
+    SearchUITableSelectionController,
+    SearchUITableSelectionScope,
+} from './SearchUITableSelection'
+
+const useSearchUISelectionLayoutEffect = typeof window === 'undefined'
+    ? useEffect
+    : useLayoutEffect
 
 /**
  * Параметры запроса поиска, отправляемые в обработчик данных таблицы.
@@ -27,7 +52,11 @@ export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListReques
  * Свойства компонента {@link SearchUI}.
  * @template D Тип строки данных, возвращаемых запросом поиска и отображаемых в таблице.
  */
-type SearchUICommonProps<D extends object> = {
+type SearchUICommonProps<
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+> = {
     /**
      * Stable non-secret Selenium scope shared by the filters and results table.
      * Defaults to settingsContextName; set it explicitly when multiple instances may render together.
@@ -72,15 +101,33 @@ type SearchUICommonProps<D extends object> = {
      * Конфигурация виджета фильтров.
      */
     config?: SearchUIFiltersConfig
+    /** Optional transient selection controller for the current applied result set. */
+    tableSelection?: SearchUITableSelectionConfig<D, TKey, TViewId>
 }
 
 export type SearchUIDataSource<D extends object> = (searchParams: SearchParams) => Promise<D[]>
 
-export type SearchUITableRowFactory<D extends object> = (
+export type SearchUITableHeaderFactory<
+    D extends object,
+    TKey extends TableRowId = TableRowId,
+    TViewId extends string = string,
+> = (
+    headerParams: ITableCreateHeaderParams,
+    /** Optional so previously exported factories remain directly callable with one argument. */
+    context?: SearchUITableFactoryContext<D, TKey, TViewId>,
+) => React.ReactElement
+
+export type SearchUITableRowFactory<
+    D extends object,
+    TKey extends TableRowId = TableRowId,
+    TViewId extends string = string,
+> = (
     rowData: D,
     index: number,
     data: D[],
     setData: Dispatch<SetStateAction<D[]>>,
+    /** Optional so previously exported factories remain directly callable with four arguments. */
+    context?: SearchUITableFactoryContext<D, TKey, TViewId>,
 ) => React.ReactElement
 
 export type SearchUIViewSort = 'preserve' | {
@@ -88,13 +135,17 @@ export type SearchUIViewSort = 'preserve' | {
     sortAsc: boolean
 }
 
-export type SearchUIView<D extends object, TViewId extends string = string> = PneTableViewOption<TViewId> & {
+export type SearchUIView<
+    D extends object,
+    TViewId extends string = string,
+    TKey extends TableRowId = TableRowId,
+> = PneTableViewOption<TViewId> & {
     /** Data source used only while this view is selected. */
     searchData: SearchUIDataSource<D>
     /** Header rendered only while this view is selected. */
-    createTableHeader: TableCreateHeaderType
+    createTableHeader: SearchUITableHeaderFactory<D, TKey, TViewId>
     /** Row renderer used only while this view is selected. */
-    createTableRow: SearchUITableRowFactory<D>
+    createTableRow: SearchUITableRowFactory<D, TKey, TViewId>
     /** Optional consumer-owned actions rendered while this view is selected. */
     actions?: React.ReactNode
     /** Defaults to the common safe sort; preserving another view's sort must be explicit. */
@@ -114,26 +165,38 @@ type SearchUIViewsBaseConfig<TViewId extends string> = Omit<
     'actions' | 'aria-label' | 'aria-labelledby' | 'views'
 >
 
-export type SearchUIViewsConfig<D extends object, TViewId extends string = string> =
+export type SearchUIViewsConfig<
+    D extends object,
+    TViewId extends string = string,
+    TKey extends TableRowId = TableRowId,
+> =
     SearchUIViewsBaseConfig<TViewId> & SearchUIViewsAccessibleName & {
-    views: readonly SearchUIView<D, TViewId>[]
+    views: readonly SearchUIView<D, TViewId, TKey>[]
     /** Optional compatibility/layout wrapper around the library-owned selector. */
     renderViewSelector?: (selector: React.ReactElement) => React.ReactNode
 }
 
-type SearchUILegacyTableProps<D extends object> = {
+type SearchUILegacyTableProps<
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+> = {
     tableViews?: never
     /** Function that loads rows for the current search and table state. */
     searchData: SearchUIDataSource<D>
     /** Table header factory. */
-    createTableHeader: TableCreateHeaderType
+    createTableHeader: SearchUITableHeaderFactory<D, TKey, TViewId>
     /** Table row factory. */
-    createTableRow: SearchUITableRowFactory<D>
+    createTableRow: SearchUITableRowFactory<D, TKey, TViewId>
 }
 
-type SearchUIViewTableProps<D extends object, TViewId extends string> = {
+type SearchUIViewTableProps<
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+> = {
     /** Controlled generic table-view configuration. */
-    tableViews: SearchUIViewsConfig<D, TViewId>
+    tableViews: SearchUIViewsConfig<D, TViewId, TKey>
     searchData?: never
     createTableHeader?: never
     createTableRow?: never
@@ -142,8 +205,9 @@ type SearchUIViewTableProps<D extends object, TViewId extends string> = {
 export type SearchUIProps<
     D extends object,
     TViewId extends string = string,
-> = SearchUICommonProps<D> & (
-    SearchUILegacyTableProps<D> | SearchUIViewTableProps<D, TViewId>
+    TKey extends TableRowId = TableRowId,
+> = SearchUICommonProps<D, TViewId, TKey> & (
+    SearchUILegacyTableProps<D, TViewId, TKey> | SearchUIViewTableProps<D, TViewId, TKey>
 )
 
 /**
@@ -151,9 +215,13 @@ export type SearchUIProps<
  * @template D Тип строки данных, отображаемых в таблице.
  * @param props Свойства компонента.
  */
-export const SearchUI = <D extends object, TViewId extends string = string>(
-    props: SearchUIProps<D, TViewId>,
-): React.ReactElement => {
+export const SearchUI = <
+    D extends object,
+    TViewId extends string = string,
+    TKey extends TableRowId = TableRowId,
+>(
+        props: SearchUIProps<D, TViewId, TKey>,
+    ): React.ReactElement => {
     return <SearchUIFiltersStoreProvider
         key={props.settingsContextName}
         settingsContextName={props.settingsContextName}
@@ -162,9 +230,13 @@ export const SearchUI = <D extends object, TViewId extends string = string>(
     </SearchUIFiltersStoreProvider>
 }
 
-const SearchUIContent = <D extends object, TViewId extends string = string>(
-    props: SearchUIProps<D, TViewId>,
-): React.ReactElement => {
+const SearchUIContent = <
+    D extends object,
+    TViewId extends string = string,
+    TKey extends TableRowId = TableRowId,
+>(
+        props: SearchUIProps<D, TViewId, TKey>,
+    ): React.ReactElement => {
     const {
         autoTestId = props.settingsContextName,
         settingsContextName,
@@ -176,6 +248,7 @@ const SearchUIContent = <D extends object, TViewId extends string = string>(
         tableParams,
         dataUseState,
         config,
+        tableSelection,
     } = props
     const resolvedTable = resolveSearchUITable(props)
 
@@ -253,6 +326,56 @@ const SearchUIContent = <D extends object, TViewId extends string = string>(
         )
         : undefined
 
+    const renderTable = (
+        selection: SearchUITableSelectionController<D, TKey, TViewId> | undefined,
+        toolbar: React.ReactNode,
+    ) => {
+        const factoryContext: SearchUITableFactoryContext<D, TKey, TViewId> = {
+            appliedSearchCriteria: searchCriteria,
+            selection,
+            viewId: resolvedTable.viewId,
+        }
+
+        return <PneTable
+            autoTestId={autoTestId}
+            data={data}
+            createTableHeader={headerParams => resolvedTable.createTableHeader(
+                headerParams,
+                factoryContext,
+            )}
+            sortOptions={{
+                order,
+                setOrder,
+                sortIndex,
+                setSortIndex,
+                onSortChange,
+            }}
+            createRow={(item, index, arr) => resolvedTable.createTableRow(
+                item,
+                index,
+                arr,
+                setData,
+                factoryContext,
+            )}
+            paginator={paginator}
+            loading={loading}
+            loadingKey={resolvedTable.viewId}
+            toolbar={toolbar}
+        />
+    }
+
+    const table = tableSelection
+        ? <SearchUISelectableTable
+            appliedSearchCriteria={searchCriteria}
+            config={tableSelection}
+            data={data}
+            loading={loading}
+            persistentControls={tableViewSelector}
+            renderTable={renderTable}
+            viewId={resolvedTable.viewId}
+        />
+        : renderTable(undefined, tableViewSelector)
+
     return <>
         <SearchUIFiltersContent
             autoTestId={autoTestId}
@@ -268,39 +391,311 @@ const SearchUIContent = <D extends object, TViewId extends string = string>(
         />
         <Divider/>
         <Box sx={tableBoxSx}>
-            <PneTable
-                autoTestId={autoTestId}
-                data={data}
-                createTableHeader={resolvedTable.createTableHeader}
-                sortOptions={{
-                    order,
-                    setOrder,
-                    sortIndex,
-                    setSortIndex,
-                    onSortChange,
-                }}
-                createRow={(item, index, arr) => resolvedTable.createTableRow(item, index, arr, setData)}
-                paginator={paginator}
-                loading={loading}
-                loadingKey={resolvedTable.viewId}
-                toolbar={tableViewSelector}
-            />
+            {table}
         </Box>
     </>
 }
 
-type ResolvedSearchUITable<D extends object, TViewId extends string> = {
+type SearchUISelectableTableProps<
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+> = {
+    appliedSearchCriteria: SearchCriteria | null
+    config: SearchUITableSelectionConfig<D, TKey, TViewId>
+    data: D[]
+    loading: boolean
+    persistentControls?: React.ReactNode
+    renderTable: (
+        selection: SearchUITableSelectionController<D, TKey, TViewId>,
+        toolbar: React.ReactNode,
+    ) => React.ReactElement
+    viewId?: TViewId
+}
+
+const SearchUISelectableTable = <
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+>(props: SearchUISelectableTableProps<D, TViewId, TKey>) => {
+    const {
+        appliedSearchCriteria,
+        config,
+        data,
+        loading,
+        persistentControls,
+        renderTable,
+        viewId,
+    } = props
+    const scopeKey = createSearchUITableSelectionScopeKey(
+        appliedSearchCriteria,
+        viewId,
+        config.preserveAcrossViews ?? false,
+    )
+    const scope = useMemo<SearchUITableSelectionScope<TViewId>>(() => ({
+        appliedSearchCriteria,
+        scopeKey,
+        viewId,
+    }), [appliedSearchCriteria, scopeKey, viewId])
+    const [selectingAllMatching, setSelectingAllMatching] = useState(false)
+    const requestSequenceRef = useRef(0)
+    const requestPendingRef = useRef(false)
+    const requestPromiseRef = useRef<Promise<TableSelectionUpdate<TKey>> | null>(null)
+    const mountedRef = useRef(false)
+    const previousScopeKeyRef = useRef(scopeKey)
+    const previousMaxSelectedRef = useRef(config.maxSelected)
+    const previousConfiguredDisabledRef = useRef(config.disabled ?? false)
+    const previousResolverEnabledRef = useRef(config.resolveAllMatchingCount !== undefined)
+    const resolverRef = useRef(config.resolveAllMatchingCount)
+    const scopeOccurrenceRef = useRef(0)
+    const [scopeOccurrence, setScopeOccurrence] = useState(0)
+    const allMatchingAllowedRef = useRef(
+        appliedSearchCriteria !== null && !config.disabled,
+    )
+    const selectionInteractionsAllowedRef = useRef(
+        appliedSearchCriteria !== null && !config.disabled && !loading,
+    )
+
+    useSearchUISelectionLayoutEffect(() => {
+        mountedRef.current = true
+
+        return () => {
+            mountedRef.current = false
+            requestSequenceRef.current += 1
+            requestPendingRef.current = false
+            requestPromiseRef.current = null
+        }
+    }, [])
+
+    useSearchUISelectionLayoutEffect(() => {
+        allMatchingAllowedRef.current = appliedSearchCriteria !== null && !config.disabled
+        selectionInteractionsAllowedRef.current = allMatchingAllowedRef.current && !loading
+        resolverRef.current = config.resolveAllMatchingCount
+    }, [appliedSearchCriteria, config.disabled, config.resolveAllMatchingCount, loading])
+
+    useSearchUISelectionLayoutEffect(() => {
+        if (Object.is(previousScopeKeyRef.current, scopeKey)) {
+            return
+        }
+
+        previousScopeKeyRef.current = scopeKey
+        const nextScopeOccurrence = scopeOccurrenceRef.current + 1
+        scopeOccurrenceRef.current = nextScopeOccurrence
+        setScopeOccurrence(nextScopeOccurrence)
+        requestSequenceRef.current += 1
+        requestPendingRef.current = false
+        requestPromiseRef.current = null
+        setSelectingAllMatching(false)
+    }, [scopeKey])
+
+    useSearchUISelectionLayoutEffect(() => {
+        const configuredDisabled = config.disabled ?? false
+        const maxSelectedChanged = !Object.is(
+            previousMaxSelectedRef.current,
+            config.maxSelected,
+        )
+        const becameDisabled = configuredDisabled && !previousConfiguredDisabledRef.current
+        const resolverEnabled = config.resolveAllMatchingCount !== undefined
+        const resolverRemoved = previousResolverEnabledRef.current && !resolverEnabled
+        previousMaxSelectedRef.current = config.maxSelected
+        previousConfiguredDisabledRef.current = configuredDisabled
+        previousResolverEnabledRef.current = resolverEnabled
+
+        if (!maxSelectedChanged && !becameDisabled && !resolverRemoved) {
+            return
+        }
+
+        requestSequenceRef.current += 1
+        requestPendingRef.current = false
+        requestPromiseRef.current = null
+        setSelectingAllMatching(false)
+    }, [config.disabled, config.maxSelected, config.resolveAllMatchingCount])
+
+    const selectionParams = createSearchUITableSelectionParams(
+        config,
+        data,
+        scopeKey,
+        appliedSearchCriteria === null,
+    )
+    const tableSelection = useTableSelection(selectionParams)
+    const tableSelectionRef = useRef(tableSelection)
+
+    useSearchUISelectionLayoutEffect(() => {
+        tableSelectionRef.current = tableSelection
+    }, [tableSelection])
+
+    const createBlockedUpdate = useCallback((): TableSelectionUpdate<TKey> => ({
+        selection: tableSelectionRef.current.selection,
+        changed: false,
+        limitExceeded: false,
+    }), [])
+
+    const selectAllMatchingResults = useCallback((): Promise<TableSelectionUpdate<TKey>> => {
+        const resolver = resolverRef.current
+        const currentSelection = tableSelectionRef.current
+        if (!mountedRef.current
+            || scopeOccurrenceRef.current !== scopeOccurrence
+            || !resolver
+            || !selectionInteractionsAllowedRef.current) {
+            return Promise.resolve(createBlockedUpdate())
+        }
+        if (requestPendingRef.current && requestPromiseRef.current) {
+            return requestPromiseRef.current
+        }
+        if (currentSelection.interactionDisabled) {
+            return Promise.resolve(createBlockedUpdate())
+        }
+
+        const requestSequence = requestSequenceRef.current + 1
+        requestSequenceRef.current = requestSequence
+        requestPendingRef.current = true
+        setSelectingAllMatching(true)
+        const requestScope = scope
+        const runRequest = async (): Promise<TableSelectionUpdate<TKey>> => {
+            try {
+                await Promise.resolve()
+                if (!mountedRef.current
+                    || requestSequenceRef.current !== requestSequence
+                    || !allMatchingAllowedRef.current
+                    || !resolverRef.current) {
+                    return createBlockedUpdate()
+                }
+
+                const matchingCount = await resolver(requestScope)
+                if (!mountedRef.current
+                    || requestSequenceRef.current !== requestSequence
+                    || !allMatchingAllowedRef.current
+                    || !resolverRef.current) {
+                    return createBlockedUpdate()
+                }
+
+                return tableSelectionRef.current.selectAllMatching(matchingCount)
+            } catch (error) {
+                if (!mountedRef.current || requestSequenceRef.current !== requestSequence) {
+                    return createBlockedUpdate()
+                }
+                throw error
+            } finally {
+                if (mountedRef.current && requestSequenceRef.current === requestSequence) {
+                    requestPendingRef.current = false
+                    requestPromiseRef.current = null
+                    setSelectingAllMatching(false)
+                }
+            }
+        }
+
+        const requestPromise = runRequest()
+        requestPromiseRef.current = requestPromise
+        return requestPromise
+    }, [createBlockedUpdate, scope, scopeOccurrence])
+
+    const selection: SearchUITableSelectionController<D, TKey, TViewId> = {
+        ...tableSelection,
+        clear: () => !mountedRef.current
+            || requestPendingRef.current
+            || scopeOccurrenceRef.current !== scopeOccurrence
+            || !selectionInteractionsAllowedRef.current
+            ? createBlockedUpdate()
+            : tableSelectionRef.current.clear(),
+        interactionDisabled: tableSelection.interactionDisabled || loading || selectingAllMatching,
+        selectAllMatching: matchingCount => !mountedRef.current
+            || requestPendingRef.current
+            || scopeOccurrenceRef.current !== scopeOccurrence
+            || !selectionInteractionsAllowedRef.current
+            ? createBlockedUpdate()
+            : tableSelectionRef.current.selectAllMatching(matchingCount),
+        setPageSelected: selected => !mountedRef.current
+            || requestPendingRef.current
+            || scopeOccurrenceRef.current !== scopeOccurrence
+            || !selectionInteractionsAllowedRef.current
+            ? createBlockedUpdate()
+            : tableSelectionRef.current.setPageSelected(selected),
+        setRowSelected: (row, selected) => !mountedRef.current
+            || requestPendingRef.current
+            || scopeOccurrenceRef.current !== scopeOccurrence
+            || !selectionInteractionsAllowedRef.current
+            ? createBlockedUpdate()
+            : tableSelectionRef.current.setRowSelected(row, selected),
+        scope,
+        selectingAllMatching,
+        selectAllMatchingResults: config.resolveAllMatchingCount
+            ? selectAllMatchingResults
+            : undefined,
+    }
+    const contextualControls = config.renderControls({
+        appliedSearchCriteria,
+        selection,
+        viewId,
+    })
+    const toolbar = config.toolbarAriaLabel !== undefined
+        ? <PneTableToolbar
+            aria-label={config.toolbarAriaLabel}
+            contextual={contextualControls}
+            persistent={persistentControls}
+        />
+        : <PneTableToolbar
+            aria-labelledby={config.toolbarAriaLabelledBy as string}
+            contextual={contextualControls}
+            persistent={persistentControls}
+        />
+
+    return renderTable(selection, toolbar)
+}
+
+const createSearchUITableSelectionParams = <
+    D extends object,
+    TKey extends TableRowId,
+    TViewId extends string,
+>(
+        config: SearchUITableSelectionConfig<D, TKey, TViewId>,
+        rows: D[],
+        scopeKey: string,
+        interactionsUnavailable: boolean,
+    ): UseTableSelectionParams<D, TKey> => {
+    const common = {
+        disabled: config.disabled || interactionsUnavailable,
+        getRowId: config.getRowId,
+        isRowSelectable: config.isRowSelectable,
+        maxSelected: config.maxSelected,
+        rows,
+        scopeKey,
+    }
+
+    if (config.selection !== undefined) {
+        return {
+            ...common,
+            onSelectionChange: config.onSelectionChange,
+            selection: config.selection,
+        }
+    }
+
+    return {
+        ...common,
+        defaultSelection: config.defaultSelection,
+        onSelectionChange: config.onSelectionChange,
+    }
+}
+
+type ResolvedSearchUITable<
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+> = {
     searchData: SearchUIDataSource<D>
-    createTableHeader: TableCreateHeaderType
-    createTableRow: SearchUITableRowFactory<D>
+    createTableHeader: SearchUITableHeaderFactory<D, TKey, TViewId>
+    createTableRow: SearchUITableRowFactory<D, TKey, TViewId>
     actions?: React.ReactNode
     sortOnActivate?: SearchUIViewSort
     viewId?: TViewId
 }
 
-const resolveSearchUITable = <D extends object, TViewId extends string>(
-    props: SearchUIProps<D, TViewId>,
-): ResolvedSearchUITable<D, TViewId> => {
+const resolveSearchUITable = <
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+>(
+        props: SearchUIProps<D, TViewId, TKey>,
+    ): ResolvedSearchUITable<D, TViewId, TKey> => {
     if (!props.tableViews) {
         return {
             searchData: props.searchData,
@@ -339,12 +734,16 @@ const resolveSearchUITable = <D extends object, TViewId extends string>(
     }
 }
 
-const createTableViewSelector = <D extends object, TViewId extends string>(
-    config: SearchUIViewsConfig<D, TViewId>,
-    value: TViewId,
-    actions: React.ReactNode,
-    searchUIAutoTestId: string,
-): React.ReactElement => {
+const createTableViewSelector = <
+    D extends object,
+    TViewId extends string,
+    TKey extends TableRowId,
+>(
+        config: SearchUIViewsConfig<D, TViewId, TKey>,
+        value: TViewId,
+        actions: React.ReactNode,
+        searchUIAutoTestId: string,
+    ): React.ReactElement => {
     const {
         'aria-label': ariaLabel,
         'aria-labelledby': ariaLabelledBy,

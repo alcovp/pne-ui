@@ -44,6 +44,37 @@ const CONTROL_GAP = 8
 const DISPLAYED_ROWS_MAX_WIDTH = 120
 const FIXED_NAVIGATION_CONTROLS = 3
 
+const measurePreferredWidth = (element: HTMLElement, ownerDocument: Document): number => {
+    const renderedWidth = Math.max(
+        element.scrollWidth,
+        element.getBoundingClientRect().width,
+    )
+    const clone = element.cloneNode(true) as HTMLElement
+    Object.assign(clone.style, {
+        height: 'auto',
+        left: '-100000px',
+        maxWidth: 'none',
+        minWidth: '0',
+        pointerEvents: 'none',
+        position: 'fixed',
+        top: '0',
+        visibility: 'hidden',
+        width: 'max-content',
+    })
+    clone.setAttribute('aria-hidden', 'true')
+    ownerDocument.body.appendChild(clone)
+
+    try {
+        return Math.max(
+            renderedWidth,
+            clone.scrollWidth,
+            clone.getBoundingClientRect().width,
+        )
+    } finally {
+        clone.remove()
+    }
+}
+
 /**
  * Chooses the smallest layout that keeps each control group on an intentional row.
  * Widths are measured from the rendered content, so consumers are not tied to a
@@ -69,7 +100,6 @@ export const resolvePneTablePaginationActionsLayout = ({
     }
 
     const allControlsFit = navigationPreferredWidth
-        + CONTROL_GAP
         + CONTROL_GAP
         + toolbarPreferredWidth
         + CONTROL_GAP
@@ -215,6 +245,12 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const hasToolbar = toolbar !== undefined
         && toolbar !== null
         && typeof toolbar !== 'boolean'
+    const toolbarElementType = React.isValidElement(toolbar)
+        ? toolbar.type
+        : typeof toolbar
+    const toolbarElementKey = React.isValidElement(toolbar)
+        ? toolbar.key
+        : null
 
     useResponsiveLayoutEffect(() => {
         const root = rootRef.current
@@ -275,13 +311,13 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             )
             const toolbarElement = toolbarRef.current
             const toolbarContent = toolbarElement?.firstElementChild as HTMLElement | null
-            const toolbarPreferredWidth = toolbarElement
-                ? Math.max(
-                    toolbarElement.scrollWidth,
-                    toolbarElement.getBoundingClientRect().width,
-                    toolbarContent?.scrollWidth ?? 0,
-                    toolbarContent?.getBoundingClientRect().width ?? 0,
-                )
+            const toolbarControlContents = toolbarContent
+                ? Array.from(toolbarContent.children) as HTMLElement[]
+                : []
+            const toolbarPreferredWidth = toolbarControlContents.length > 0
+                ? toolbarControlContents.reduce((width, element) => (
+                    width + measurePreferredWidth(element, root.ownerDocument)
+                ), 0)
                 : 0
             const nextLayout = resolvePneTablePaginationActionsLayout({
                 availableWidth,
@@ -308,6 +344,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
                 navigationRef.current,
                 currentPageRef.current,
                 toolbarRef.current,
+                toolbarRef.current?.firstElementChild,
+                ...Array.from(toolbarRef.current?.firstElementChild?.children ?? []),
                 pageSizesRef.current,
             ]
 
@@ -322,12 +360,12 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
 
         ownerWindow.addEventListener('resize', measureLayout)
         return () => ownerWindow.removeEventListener('resize', measureLayout)
-    }, [hasToolbar, rowsPerPageOptions.length])
+    }, [hasToolbar, rowsPerPageOptions.length, toolbarElementKey, toolbarElementType])
 
     const rootGridStyle = layout === 'inline'
         ? {
             gridTemplateColumns: hasToolbar
-                ? 'max-content minmax(0, 1fr) max-content max-content'
+                ? 'max-content minmax(0, 1fr) max-content'
                 : 'minmax(0, 1fr) max-content',
             gridTemplateRows: 'auto',
         }
@@ -348,11 +386,11 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             : {gridColumn: '1', gridRow: hasToolbar ? '2' : '1'}
 
     const toolbarGridStyle = layout === 'inline'
-        ? {gridColumn: '3', gridRow: '1'}
-        : {gridColumn: '1 / -1', gridRow: '1'}
+        ? {gridColumn: '2', gridRow: '1', justifySelf: 'stretch', width: '100%'}
+        : {gridColumn: '1 / -1', gridRow: '1', justifySelf: 'stretch', width: '100%'}
 
     const pageSizesGridStyle = layout === 'inline'
-        ? {gridColumn: hasToolbar ? '4' : '2', gridRow: '1'}
+        ? {gridColumn: hasToolbar ? '3' : '2', gridRow: '1'}
         : layout === 'toolbar-stacked'
             ? {gridColumn: '2', gridRow: '2'}
             : {gridColumn: '1', gridRow: hasToolbar ? '3' : '2'}
@@ -413,7 +451,6 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             alignItems: 'center',
             display: 'flex',
             justifyContent: 'flex-end',
-            justifySelf: 'end',
             maxWidth: '100%',
             minWidth: 0,
             ...toolbarGridStyle,

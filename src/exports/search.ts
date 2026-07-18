@@ -3,11 +3,20 @@ export {
     type SearchParams,
     type SearchUIDataSource,
     type SearchUIProps,
+    type SearchUITableHeaderFactory,
     type SearchUITableRowFactory,
     type SearchUIView,
     type SearchUIViewSort,
     type SearchUIViewsConfig,
 } from '../component/search-ui/SearchUI'
+export type {
+    SearchUITableFactoryContext,
+    SearchUITableSelectionConfig,
+    SearchUITableSelectionController,
+    SearchUITableSelectionRenderContext,
+    SearchUITableSelectionScope,
+    SearchUITableSelectionScopeContext,
+} from '../component/search-ui/SearchUITableSelection'
 export {
     SearchUIFilters,
     type SearchUIFiltersConfig,

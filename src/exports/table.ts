@@ -4,6 +4,39 @@ export {
     type PneTableViewOption,
     type PneTableViewSelectorProps,
 } from '../component/table/PneTableViewSelector'
+export { default as PneTableToolbar } from '../component/table/PneTableToolbar'
+export type { PneTableToolbarProps } from '../component/table/PneTableToolbar'
+export { default as PneTableSelectionControls } from '../component/table/PneTableSelectionControls'
+export type { PneTableSelectionControlsProps } from '../component/table/PneTableSelectionControls'
+export { default as PneTableSelectionCell } from '../component/table/PneTableSelectionCell'
+export type {
+    PneTableSelectionCellProps,
+    SelectionCheckboxAccessibleName,
+} from '../component/table/PneTableSelectionCell'
+export { default as PneTableSelectionHeaderCell } from '../component/table/PneTableSelectionHeaderCell'
+export type { PneTableSelectionHeaderCellProps } from '../component/table/PneTableSelectionHeaderCell'
+export {
+    clearTableSelection,
+    createEmptyTableSelection,
+    getTableSelectionCount,
+    getTableSelectionPageState,
+    isTableRowSelected,
+    selectAllMatchingTableRows,
+    setTablePageSelected,
+    setTableRowSelected,
+    type TableRowId,
+    type TableSelectionModel,
+    type TableSelectionPageState,
+    type TableSelectionUpdate,
+} from '../component/table/tableSelection'
+export { default as useTableSelection } from '../component/table/useTableSelection'
+export type {
+    TableSelectionChangeDetails,
+    TableSelectionChangeReason,
+    TableSelectionScopeKey,
+    UseTableSelectionParams,
+    UseTableSelectionResult,
+} from '../component/table/useTableSelection'
 export { default as useTable } from '../component/table/useTable'
 export type { UseTableParams } from '../component/table/useTable'
 
