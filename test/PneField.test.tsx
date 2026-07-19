@@ -122,6 +122,7 @@ describe('PneField', () => {
 
         expect(input.hasAttribute('disabled')).toBe(true)
         expect(input.getAttribute('aria-invalid')).toBe('true')
+        expect(input.getAttribute('aria-required')).toBe('true')
         expect(input.hasAttribute('required')).toBe(false)
     })
 
@@ -135,6 +136,7 @@ describe('PneField', () => {
 
         const input = screen.getByLabelText(/Report file name/)
 
+        expect(input.getAttribute('aria-required')).toBe('true')
         expect(input.hasAttribute('required')).toBe(false)
     })
 

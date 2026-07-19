@@ -48,6 +48,33 @@ yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9 @mui/sys
 Компонент сохраняет polymorphic MUI-контракт для `component` и `href`; типы DOM props, событий и `ref`
 выводятся из фактического root element. Это поведение рассчитано на React 19 ref-as-prop.
 
+## PneTextField
+
+`PneTextField` сохраняет API MUI `TextField` и по умолчанию использует `size="small"`. Его `ref` указывает на
+root `HTMLDivElement`; в text/multiline-режимах для focus, selection и интеграции с form-библиотеками передавайте
+`inputRef`, который получает нативный `input` или `textarea`. В режиме `select` и при custom input slots семантика
+`inputRef` остаётся контрактом MUI. В text/multiline-режимах нативные атрибуты (`maxLength`, `min`, `inputMode`) и
+привязанные к input test/ARIA anchors передавайте через object или functional `slotProps.htmlInput`; для
+интерактивного combobox в режиме `select` используйте `slotProps.select.SelectDisplayProps`. Обычные `data-*`
+props самого `PneTextField` остаются на root. Компонент сохраняет результат slot callback и объединяет consumer
+`aria-describedby` со связью собственного или внешнего helper text.
+
+В композиции с `PneField` текстовое поле получает control ID, `disabled`, `error`, `fullWidth`, helper-связь и
+`aria-required`. `required` внешнего `PneField` намеренно не включает нативный атрибут `required`: если нужна
+browser constraint validation, передайте `required` непосредственно в `PneTextField`.
+
+```tsx
+const { ref, ...field } = controllerField
+
+<PneField label="Customer reference" required helperText={error?.message}>
+    <PneTextField
+        {...field}
+        inputRef={ref}
+        slotProps={{htmlInput: {maxLength: 64}}}
+    />
+</PneField>
+```
+
 ## Якоря для автотестов
 
 Для нового кода добавляйте якорь непосредственно на существующий DOM-элемент или нужный MUI slot через

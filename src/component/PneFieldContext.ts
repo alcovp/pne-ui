@@ -7,6 +7,7 @@ export interface PneFieldContextValue {
     fullWidth?: boolean
     helperTextId?: string
     labelId?: string
+    required?: boolean
 }
 
 export interface PneFieldControlProps {
@@ -19,6 +20,7 @@ export interface PneFieldControlProps {
 }
 
 export interface ResolvedPneFieldControlProps extends PneFieldControlProps {
+    ariaRequired?: boolean
     labelId?: string
 }
 
@@ -33,6 +35,9 @@ export const usePneFieldControlProps = (
 
     return {
         ariaDescribedBy: mergeAriaDescribedBy(props.ariaDescribedBy, fieldContext?.helperTextId),
+        ariaRequired: props.required !== true && fieldContext?.required
+            ? true
+            : undefined,
         disabled: props.disabled ?? fieldContext?.disabled,
         error: props.error ?? fieldContext?.error,
         fullWidth: props.fullWidth ?? fieldContext?.fullWidth,

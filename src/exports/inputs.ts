@@ -1,4 +1,5 @@
 export { default as PneTextField } from '../component/PneTextField'
+export type { PneTextFieldProps } from '../component/PneTextField'
 export { default as PneField } from '../component/PneField'
 export type { PneFieldProps } from '../component/PneField'
 export { default as PneAutocomplete } from '../component/dropdown/PneAutocomplete'
