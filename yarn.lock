@@ -10415,8 +10415,8 @@ __metadata:
     "@mui/system": ^9
     "@mui/x-date-pickers-pro": ^9
     i18next: ">=21 <26"
-    react: ^18 || ^19
-    react-dom: ^18 || ^19
+    react: ^19
+    react-dom: ^19
     react-i18next: ">=11 <17"
   languageName: unknown
   linkType: soft

@@ -84,7 +84,7 @@ const SelectionTableStory = ({
             </PneButton>
             {showBulkActions ? <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
                 <Typography>Operations with selected rows</Typography>
-                <PneButton pneStyle='secondary' sx={{minHeight: '40px'}}>
+                <PneButton pneStyle='outlined' sx={{minHeight: '40px'}}>
                     Actions
                 </PneButton>
             </Box> : null}

@@ -25,7 +25,7 @@
         "build:cjs": "tsc --module commonjs --outDir cjs",
         "lint": "eslint \"{**/*,*}.{js,ts,jsx,tsx}\"",
         "test": "jest --config jestconfig.json --maxWorkers=2",
-        "check": "yarn test && yarn lint",
+        "check": "yarn test && yarn lint && yarn typecheck:contracts && yarn typecheck:stories",
         "prepare": "yarn build",
         "prepublishOnly": "yarn check",
         "npmLogin": "npm login --registry=https://registry.npmjs.org/",
@@ -53,7 +53,9 @@
         "start": "webpack && webpack-dev-server --mode development",
         "storybook": "storybook dev -p 6006",
         "build-storybook": "storybook build",
-        "chromatic": "npx chromatic"
+        "chromatic": "npx chromatic",
+        "typecheck:contracts": "yarn build:esm && tsc --project tsconfig.contracts.json",
+        "typecheck:stories": "tsc --project tsconfig.stories.json"
     },
     "sideEffects": false,
     "keywords": [
@@ -82,8 +84,8 @@
         "@mui/system": "^9",
         "@mui/x-date-pickers-pro": "^9",
         "i18next": ">=21 <26",
-        "react": "^18 || ^19",
-        "react-dom": "^18 || ^19",
+        "react": "^19",
+        "react-dom": "^19",
         "react-i18next": ">=11 <17"
     },
     "devDependencies": {

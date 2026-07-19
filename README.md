@@ -10,24 +10,43 @@
 Установите `pne-ui` вместе с peer-зависимостями:
 
 ```bash
-yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^7 @mui/system@^7 @mui/x-date-pickers-pro@^7 @mui/icons-material@^7 i18next@^23 react@^18 react-dom@^18 react-i18next@^11
+yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9 @mui/system@^9 @mui/x-date-pickers-pro@^9 @mui/icons-material@^9 i18next@^23 react@^19 react-dom@^19 react-i18next@^11
 ```
 
-Подбирайте версии React и React DOM (`^18` или `^19`) в зависимости от вашего приложения.  
-Пакеты MUI поддерживают `^6` и `^7`, установите major-версию, которая совпадает с версией хост-приложения.
+`pne-ui` требует React 19 и MUI 9. React 18 и предыдущие major-версии MUI не входят в поддерживаемый peer contract.
 
 Необходимые peer-зависимости и минимальные версии:
 
 - `@emotion/react@^11`
 - `@emotion/styled@^11`
-- `@mui/material@^6 || ^7`
-- `@mui/system@^6 || ^7`
-- `@mui/x-date-pickers-pro@^6 || ^7`
-- `@mui/icons-material@^6 || ^7`
+- `@mui/material@^9`
+- `@mui/system@^9`
+- `@mui/x-date-pickers-pro@^9`
+- `@mui/icons-material@^9`
 - `i18next@^23`
-- `react@^18 || ^19`
-- `react-dom@^18 || ^19`
+- `react@^19`
+- `react-dom@^19`
 - `react-i18next@^11`
+
+## PneButton
+
+`pneStyle` — единственный публичный способ выбрать PNE-вариант кнопки. Низкоуровневые MUI props `variant` и
+`color` намеренно исключены из TypeScript API, чтобы они не конфликтовали с design-system preset.
+
+| `pneStyle` | Эквивалент прежнего MUI API |
+|---|---|
+| `contained` или prop не задан | `variant="contained" color="primary"` |
+| `outlined` | `variant="outlined" color="primary"` |
+| `error` | `variant="outlined" color="error"` |
+| `text` | `variant="text" color="primary"` |
+| `neutral` | `variant="contained" color="pneNeutral"` |
+| `neutralText` | `variant="text" color="pneNeutral"` |
+| `primaryLight` | `variant="contained" color="pnePrimaryLight"` |
+| `warning` | `variant="contained" color="pneWarningLight"` |
+| `white` | `variant="contained" color="pneWhite"` |
+
+Компонент сохраняет polymorphic MUI-контракт для `component` и `href`; типы DOM props, событий и `ref`
+выводятся из фактического root element. Это поведение рассчитано на React 19 ref-as-prop.
 
 ## Якоря для автотестов
 

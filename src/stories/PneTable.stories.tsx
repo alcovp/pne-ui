@@ -90,7 +90,7 @@ const HookWrap = () => {
                     <PneTableControlCell onClick={(event) => event.stopPropagation()}>
                         <PneButton
                             size="small"
-                            onClick={(event) => {
+                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                                 event.stopPropagation()
                                 alert('Control clicked: ' + rowData.id)
                             }}
@@ -221,7 +221,7 @@ const SlowLoadingWithControlsWrap = () => {
                     <PneTableControlCell>
                         <Box sx={{display: 'flex', flexDirection: 'column', gap: '4px', py: '4px'}}>
                             <PneButton size="small">{'Edit'}</PneButton>
-                            <PneButton size="small" color="error">{'Delete'}</PneButton>
+                            <PneButton size="small" pneStyle="error">{'Delete'}</PneButton>
                         </Box>
                     </PneTableControlCell>
                     <PneTableCell>

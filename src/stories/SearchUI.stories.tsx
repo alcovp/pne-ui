@@ -544,7 +544,7 @@ const TableSelectionViewsWrap = () => {
                             </PneButton>
                             <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
                                 <Box>Операции с выбранным</Box>
-                                <PneButton pneStyle='secondary' sx={{minHeight: '40px'}}>
+                                <PneButton pneStyle='outlined' sx={{minHeight: '40px'}}>
                                     Действия
                                 </PneButton>
                             </Box>
@@ -782,8 +782,7 @@ const HookWrap = (props: HookWrapProps) => {
             {showVisaButton ? (
                 <div style={{ marginBottom: 16 }}>
                     <PneButton
-                        variant={'contained'}
-                        color={'primary'}
+                        pneStyle='contained'
                         size={'small'}
                         onClick={onAddVisaCardType}
                     >

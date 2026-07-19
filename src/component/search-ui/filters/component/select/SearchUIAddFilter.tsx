@@ -28,7 +28,7 @@ const SearchUIAddFilter = (props: Props) => {
     return <Box sx={relativeContainerSx}>
         <PneButton
             size={'small'}
-            color={'pneNeutral'}
+            pneStyle='neutral'
             endIcon={<ExpandMoreIcon/>}
             sx={addFilterButtonSx}
             aria-hidden={true}

@@ -36,7 +36,7 @@ Key flows
 Working with the public API
 ---------------------------
 - Exports are grouped via `src/index.ts` and the sub-barrels in `src/exports/`. When adding/renaming components, update exports and stories accordingly.
-- Peer dependencies target React 18/19 and MUI 6/7 — keep compatibility in mind.
+- Peer dependencies target React 19 and MUI 9. Earlier majors are outside the supported contract.
 
 Navigation tips
 ---------------

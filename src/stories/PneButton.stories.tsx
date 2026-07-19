@@ -49,28 +49,28 @@ export const Primary: Story = {
 export const Neutral: Story = {
     args: {
         ...Default.args,
-        color: "pneNeutral",
+        pneStyle: 'neutral',
     },
 };
 
 export const White: Story = {
     args: {
         ...Default.args,
-        color: "pneWhite",
+        pneStyle: 'white',
     },
 };
 
 export const PrimaryLight: Story = {
     args: {
         ...Default.args,
-        color: "pnePrimaryLight",
+        pneStyle: 'primaryLight',
     },
 };
 
 export const WarningLight: Story = {
     args: {
         ...Default.args,
-        color: "pneWarningLight",
+        pneStyle: 'warning',
     },
 };
 
@@ -161,9 +161,9 @@ export const UsageGuidelines: Story = {
         />
         <UsageGuideline
             title='Самостоятельное / neutral'
-            api="color='pneNeutral'"
+            api="pneStyle='neutral'"
             description='Самостоятельная навигационная или служебная команда без парного основного действия: Назад или Сбросить фильтры.'
-            example={<PneButton color='pneNeutral'>Назад</PneButton>}
+            example={<PneButton pneStyle='neutral'>Назад</PneButton>}
         />
         <UsageGuideline
             title='Третичное / text'
@@ -173,9 +173,9 @@ export const UsageGuidelines: Story = {
         />
         <UsageGuideline
             title='Осторожность / warning light'
-            api="color='pneWarningLight'"
+            api="pneStyle='warning'"
             description='Значимое, но не разрушительное действие, требующее внимания: например, остановка активного процесса.'
-            example={<PneButton color='pneWarningLight'>Остановить процесс</PneButton>}
+            example={<PneButton pneStyle='warning'>Остановить процесс</PneButton>}
         />
         <UsageGuideline
             title='Разрушительное / error'
@@ -590,6 +590,6 @@ export const Analysis: StoryObj = {
         <Divider/>
         <PneButton {...args} pneStyle={'contained'} startIcon={<RepairedFillIcon/>}>RepairedIcon</PneButton>
         <Divider/>
-        <PneButton {...args} pneStyle={undefined} color={'pneNeutral'}>pneNeutral</PneButton>
+        <PneButton {...args} pneStyle='neutral'>neutral</PneButton>
     </Box>,
 }

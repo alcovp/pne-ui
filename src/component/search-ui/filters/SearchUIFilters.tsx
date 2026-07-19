@@ -376,7 +376,7 @@ export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
                             {showClearAllButton ? <PneButton
                                 {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
                                 onClick={handleClearCriteria}
-                                color={'pneNeutral'}
+                                pneStyle='neutral'
                                 size={'small'}
                                 sx={nowrapButtonSx}
                             >
@@ -398,9 +398,8 @@ export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
                         <PneButton
                             {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
                             onClick={triggerSearch}
-                            color={'primary'}
+                            pneStyle='contained'
                             size={'small'}
-                            variant={'contained'}
                             disabled={searchLoading}
                             sx={nowrapButtonSx}
                         >

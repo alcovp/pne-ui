@@ -1,11 +1,53 @@
-import {Button, ButtonProps} from '@mui/material'
+import {Button} from '@mui/material'
+import type {ButtonProps, ButtonTypeMap} from '@mui/material/Button'
+import type {OverridableComponent, OverrideProps} from '@mui/material/OverridableComponent'
 import {alpha} from '@mui/material/styles'
 import type {SxProps, Theme} from '@mui/material/styles'
 import type {SystemStyleObject} from '@mui/system'
 import * as React from 'react'
 
-export type PneButtonStyle = 'contained' | 'outlined' | 'error' | 'text'
-type PneButtonSize = 'small' | 'medium' | 'large'
+export type PneButtonStyle =
+    | 'contained'
+    | 'outlined'
+    | 'error'
+    | 'text'
+    | 'neutral'
+    | 'neutralText'
+    | 'primaryLight'
+    | 'warning'
+    | 'white'
+
+export type PneButtonSize = 'small' | 'medium' | 'large'
+
+type PneButtonOwnProps = {
+    /** Canonical PNE appearance preset. */
+    pneStyle?: PneButtonStyle
+    /** PNE buttons intentionally support only the three design-system sizes. */
+    size?: PneButtonSize
+    /** Use `pneStyle`; raw MUI colors are not part of the PneButton contract. */
+    color?: never
+    /** Use `pneStyle`; raw MUI variants are not part of the PneButton contract. */
+    variant?: never
+}
+
+type PneButtonTypeMap<
+    AdditionalProps = {},
+    RootComponent extends React.ElementType = 'button',
+> = {
+    props: Omit<ButtonTypeMap<PneButtonOwnProps & AdditionalProps, RootComponent>['props'], 'href'>
+    defaultComponent: RootComponent
+}
+
+export type PneButtonProps<
+    RootComponent extends React.ElementType = 'button',
+    AdditionalProps = {},
+> = OverrideProps<PneButtonTypeMap<AdditionalProps, RootComponent>, RootComponent> & {
+    component?: RootComponent
+}
+
+type PneButtonComponent = ((
+    props: {href: string} & OverrideProps<PneButtonTypeMap, 'a'>,
+) => React.JSX.Element) & OverridableComponent<PneButtonTypeMap>
 
 type ButtonSizeConfig = {
     height: number
@@ -19,6 +61,23 @@ type ButtonSizeConfig = {
 
 const buttonMinWidth = 64
 const outlinedBorderWidth = 1
+
+type ResolvedButtonStyle = {
+    color: NonNullable<ButtonProps['color']>
+    variant: NonNullable<ButtonProps['variant']>
+}
+
+const buttonStyleConfig: Record<PneButtonStyle, ResolvedButtonStyle> = {
+    contained: {color: 'primary', variant: 'contained'},
+    outlined: {color: 'primary', variant: 'outlined'},
+    error: {color: 'error', variant: 'outlined'},
+    text: {color: 'primary', variant: 'text'},
+    neutral: {color: 'pneNeutral', variant: 'contained'},
+    neutralText: {color: 'pneNeutral', variant: 'text'},
+    primaryLight: {color: 'pnePrimaryLight', variant: 'contained'},
+    warning: {color: 'pneWarningLight', variant: 'contained'},
+    white: {color: 'pneWhite', variant: 'contained'},
+}
 
 const buttonSizeConfig: Record<PneButtonSize, ButtonSizeConfig> = {
     small: {
@@ -55,8 +114,8 @@ const isPneButtonSize = (size: ButtonProps['size']): size is PneButtonSize => {
 }
 
 // https://mui.com/material-ui/guides/typescript/#complications-with-the-component-prop
-const PneButton = <C extends React.ElementType>(
-    props: ButtonProps<C, { component?: C }> & {pneStyle?: PneButtonStyle}
+const PneButtonImplementation = <C extends React.ElementType = 'button'>(
+    props: PneButtonProps<C, {component?: C}>,
 ) => {
     const {
         sx,
@@ -72,34 +131,11 @@ const PneButton = <C extends React.ElementType>(
 
     const resolvedSize = isPneButtonSize(size) ? size : 'large'
 
-    let finalVariant: ButtonProps['variant'] = 'contained'
-    let finalColor: ButtonProps['color'] = 'primary'
-
-    if (pneStyle) {
-        switch (pneStyle) {
-            case 'contained':
-                finalVariant = 'contained'
-                finalColor = 'primary'
-                break
-            case 'outlined':
-                finalVariant = 'outlined'
-                finalColor = 'primary'
-                break
-            case 'error':
-                finalVariant = 'outlined'
-                finalColor = 'error'
-                break
-            case 'text':
-                finalVariant = 'text'
-                finalColor = 'primary'
-                break
-            default:
-                console.warn(`Unknown pneStyle: ${pneStyle}`)
-        }
-    } else {
-        finalVariant = variant || finalVariant
-        finalColor = color || finalColor
+    if (variant !== undefined || color !== undefined) {
+        console.warn('PneButton ignores variant/color; use the canonical pneStyle prop')
     }
+
+    const resolvedStyle = resolveButtonStyle(pneStyle)
 
     const hasStartIcon = Boolean(startIcon)
     const hasEndIcon = Boolean(endIcon)
@@ -108,20 +144,20 @@ const PneButton = <C extends React.ElementType>(
 
     const _sx: SxProps<Theme> = [
         createButtonSx({
-            color: finalColor,
+            color: resolvedStyle.color,
             hasEndIcon,
             hasStartIcon,
             iconOnly,
             size: resolvedSize,
-            variant: finalVariant,
+            variant: resolvedStyle.variant,
         }),
         ...(Array.isArray(sx) ? sx : [sx])
     ]
 
     return <Button
         sx={_sx}
-        variant={finalVariant}
-        color={finalColor}
+        variant={resolvedStyle.variant}
+        color={resolvedStyle.color}
         size={resolvedSize}
         startIcon={startIcon}
         endIcon={endIcon}
@@ -130,6 +166,22 @@ const PneButton = <C extends React.ElementType>(
         {children}
     </Button>
 }
+
+const resolveButtonStyle = (pneStyle: PneButtonStyle | undefined): ResolvedButtonStyle => {
+    if (pneStyle === undefined) {
+        return buttonStyleConfig.contained
+    }
+
+    const resolvedStyle = buttonStyleConfig[pneStyle]
+    if (resolvedStyle !== undefined) {
+        return resolvedStyle
+    }
+
+    console.warn(`Unknown pneStyle: ${String(pneStyle)}`)
+    return buttonStyleConfig.contained
+}
+
+const PneButton = PneButtonImplementation as PneButtonComponent
 
 const createButtonSx = (
     options: {

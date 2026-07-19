@@ -6,7 +6,7 @@ This file gives Codex a quick-start cheat sheet: tools, commands, and where to l
 Fast facts
 ----------
 - Package manager: Yarn 4.2.2 (berry; repo ships `.yarn/`). Use `yarn`, not `npm`.
-- Node target: 18+ (works with TS 5.4 and MUI 7).
+- Node target: 18+ (current toolchain: TypeScript 6, React 19, MUI 9).
 - Sources live in `src/`, tests in `test/`. Built outputs `cjs/`, `esm/`, `storybook-static/` are generated — do not edit.
 
 Core commands
@@ -15,6 +15,8 @@ Core commands
 - Lint: `yarn lint`
 - Tests: `yarn test` (ts-jest, see `jestconfig.json`, env `jsdom`)
 - Build library: `yarn build` (esm + cjs)
+- Type-check public contracts: `yarn typecheck:contracts`
+- Type-check stories: `yarn typecheck:stories`
 - Storybook: `yarn storybook` (dev) / `yarn build-storybook`
 
 Search and edits
@@ -25,7 +27,7 @@ Search and edits
 
 Before changing things
 ----------------------
-- Keep peer compatibility: React 18/19 and MUI 6/7.
+- Keep peer compatibility: React 19 and MUI 9.
 - If you touch public API, update exports in `src/index.ts` (and the grouped barrels in `src/exports/`) and adjust stories if needed.
 - Prefer running `yarn lint` and `yarn test` after changes; for UI-heavy work, `yarn build-storybook` is helpful when possible.
 

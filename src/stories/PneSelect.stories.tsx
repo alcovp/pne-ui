@@ -20,16 +20,22 @@ export const Placeholder: Story = {
 
 const DefaultSelectStory = () => {
     const [value, setValue] = useState('UTF-8')
+    const handleChange = (option: string | {displayName: string}) => setValue(
+        typeof option === 'string' ? option : option.displayName,
+    )
 
     return <PneSelect
         options={['UTF-8', 'ANSI']}
         value={value}
-        onChange={setValue}
+        onChange={handleChange}
     />
 }
 
 const PlaceholderSelectStory = () => {
     const [value, setValue] = useState('')
+    const handleChange = (option: string | {displayName: string}) => setValue(
+        typeof option === 'string' ? option : option.displayName,
+    )
 
     return <Stack
         spacing={2}
@@ -41,7 +47,7 @@ const PlaceholderSelectStory = () => {
             options={['Email', 'SFTP']}
             placeholder='Please select'
             value={value}
-            onChange={setValue}
+            onChange={handleChange}
         />
         <PneField
             label='Message server'
@@ -51,7 +57,7 @@ const PlaceholderSelectStory = () => {
                 options={['Email', 'SFTP']}
                 placeholder='Please select'
                 value={value}
-                onChange={setValue}
+                onChange={handleChange}
             />
         </PneField>
     </Stack>

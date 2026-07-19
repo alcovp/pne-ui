@@ -116,7 +116,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
             <PneButton
                 aria-haspopup='menu'
                 aria-expanded={layoutMenuOpen ? 'true' : undefined}
-                color='pneNeutral'
+                pneStyle='neutral'
                 size='small'
                 startIcon={<BookmarkBorderOutlinedIcon sx={buttonIconSx} />}
                 endIcon={<KeyboardArrowDownIcon sx={buttonIconSx} />}
@@ -150,7 +150,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                 </>
             ) : (
                 <PneButton
-                    color='pneNeutral'
+                    pneStyle='neutral'
                     size='small'
                     startIcon={<EditOutlinedIcon sx={buttonIconSx} />}
                     onClick={() => onInteractionModeChange('edit')}

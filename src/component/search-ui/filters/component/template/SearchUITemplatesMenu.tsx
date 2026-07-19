@@ -54,7 +54,7 @@ const SearchUITemplatesMenu = () => {
             {...createAutoTestAttributes(TEMPLATES_AUTOTEST_ID)}
             onClick={handleOpen}
             size={'small'}
-            color={'pneNeutral'}
+            pneStyle='neutral'
             endIcon={<ExpandMoreIcon/>}
             sx={templateTriggerSx}
             title={placeholder}

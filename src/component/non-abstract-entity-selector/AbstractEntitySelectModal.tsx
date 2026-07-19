@@ -97,11 +97,11 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
     return (
         <PneModal
             actions={<PneModalActions
-                secondary={<PneButton variant='outlined' onClick={onClose}>
+                secondary={<PneButton pneStyle='outlined' onClick={onClose}>
                     {t('cancel')}
                 </PneButton>}
                 primary={<PneButton
-                    variant='contained'
+                    pneStyle='contained'
                     onClick={() => handleSave({
                         mapped: localMappedList,
                         unmapped: localUnMappedList

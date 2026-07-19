@@ -74,7 +74,7 @@ export const overlayActions = {
             action: React.createElement(
                 PneButton,
                 {
-                    variant: 'text',
+                    pneStyle: 'text',
                     size: 'small',
                     startIcon: React.createElement(UndoIcon, { fontSize: 'inherit' }),
                     onClick: () => {

@@ -220,7 +220,7 @@ const HeavyWidgetContent = ({ seed, title, level }: { seed: number; title: strin
                 {title}
             </Typography>
             {tags.length > 0 && (
-                <Stack direction='row' spacing={0.5} useFlexGap flexWrap='wrap'>
+                <Stack direction='row' spacing={0.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
                     {tags.map(tag => (
                         <Chip key={tag} label={tag} size='small' />
                     ))}
@@ -278,7 +278,7 @@ const heavyWidgets: WidgetDefinition[] = heavyWidgetIds.map((id, index) => ({
     render: () => <HeavyWidgetContent seed={index} title={`Widget ${index + 1}`} level={index + 1} />,
 }))
 
-const heavyLayout = {
+const heavyLayout: Pick<WidgetBoardLayoutOption, 'layoutByBreakpoint'> = {
     layoutByBreakpoint: {
         12: {
             columns: 12,
@@ -463,7 +463,11 @@ const BoardWithLayoutsContent = () => {
 
     return (
         <Box sx={{ p: 2 }}>
-            <Stack spacing={2} direction={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'flex-start' }}>
+            <Stack
+                spacing={2}
+                direction={{ xs: 'column', md: 'row' }}
+                sx={{ alignItems: { xs: 'stretch', md: 'flex-start' } }}
+            >
                 <Box sx={{ minWidth: 260 }}>
                     <WidgetLayoutsPanel {...panelProps} />
                     <Stack spacing={1} sx={{ mt: 2 }}>

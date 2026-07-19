@@ -486,7 +486,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 {disableMoving !== 'AVAILABLE' && (
                                     <PneButton
                                         {...elementAttributes?.addAllButton}
-                                        variant='text'
+                                        pneStyle='text'
                                         type='button'
                                         onClick={() => {
                                             handleSelectAll('AVAILABLE')
@@ -566,7 +566,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 {disableMoving !== 'ADDED' && (
                                     <PneButton
                                         {...elementAttributes?.removeAllButton}
-                                        variant='text'
+                                        pneStyle='text'
                                         type='button'
                                         onClick={() => {
                                             handleSelectAll('ADDED')
