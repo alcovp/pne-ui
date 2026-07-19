@@ -82,4 +82,23 @@ describe('overlayActions.showUndoSnackbar', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('overlayActions.showInfo() was called without a mounted <OverlayHost />'))
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Mount exactly one <OverlayHost /> near the application root.'))
     })
+
+    it('ignores a duplicate explicit id while the first snackbar is pending', () => {
+        overlayActions.showInfo({
+            id: 'deduplicated',
+            message: 'Original message',
+        })
+        overlayActions.showError({
+            id: 'deduplicated',
+            message: 'Replacement message',
+        })
+
+        expect(useOverlayStore.getState().snackbars).toEqual([
+            expect.objectContaining({
+                id: 'deduplicated',
+                message: 'Original message',
+                variant: 'info',
+            }),
+        ])
+    })
 })

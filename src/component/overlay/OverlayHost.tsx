@@ -1,15 +1,21 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Alert, Snackbar, type SnackbarOrigin } from '@mui/material'
+import { Alert, Box, Portal, Snackbar, type SnackbarOrigin } from '@mui/material'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 import { useOverlayStore } from './overlayStore'
 import type { PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
-import { Box } from '@mui/material'
 import { PermanentOverlayContext } from './PermanentOverlayContext'
 import { registerOverlayHost } from './overlayRuntime'
 
-type OverlayHostProps = {
+export type OverlayPortalContainer = Element
+
+export type OverlayHostProps = {
     anchorOrigin?: SnackbarOrigin
     maxSnack?: number
+    /**
+     * Portal target for snackbar stacks and permanent overlays. Defaults to `document.body`.
+     * Pass `null` to render overlays in place (for example, in a non-DOM harness).
+     */
+    container?: OverlayPortalContainer | (() => OverlayPortalContainer | null) | null
     children?: React.ReactNode
 }
 
@@ -174,6 +180,7 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
 export function OverlayHost({
     anchorOrigin = { vertical: 'bottom', horizontal: 'left' },
     maxSnack = 10,
+    container,
     children,
 }: OverlayHostProps) {
     const snackbars = useOverlayStore(state => state.snackbars)
@@ -212,6 +219,20 @@ export function OverlayHost({
         [registerPermanentOverlay, unregisterPermanentOverlay],
     )
 
+    React.useEffect(() => {
+        if (typeof maxSnack !== 'number' || maxSnack <= 0 || snackbars.length <= maxSnack) {
+            return
+        }
+
+        snackbars
+            .slice(0, snackbars.length - maxSnack)
+            .forEach(snackbar => {
+                if (snackbar.id) {
+                    removeSnackbar(snackbar.id)
+                }
+            })
+    }, [maxSnack, removeSnackbar, snackbars])
+
     const visibleSnackbars = useMemo(() => {
         if (typeof maxSnack === 'number' && maxSnack > 0 && snackbars.length > maxSnack) {
             return snackbars.slice(snackbars.length - maxSnack)
@@ -247,9 +268,10 @@ export function OverlayHost({
                 return (
                     <Box
                         key={entry.slot}
+                        data-pne-overlay-slot={entry.slot}
                         sx={{
                             position: 'fixed',
-                            zIndex: entry.zIndex ?? 1300,
+                            zIndex: entry.zIndex ?? (theme => theme.zIndex.modal),
                             [vertical]: offset,
                             [horizontal]: offset,
                         }}
@@ -263,9 +285,8 @@ export function OverlayHost({
 
     React.useEffect(() => registerOverlayHost(), [])
 
-    return (
-        <PermanentOverlayContext.Provider value={contextValue}>
-            {children}
+    const overlayContent = (
+        <>
             {groupedSnackbars.map(group => {
                 const { anchor, items } = group
                 const horizontalStyles =
@@ -283,9 +304,10 @@ export function OverlayHost({
                 return (
                     <Box
                         key={`${anchor.vertical}-${anchor.horizontal}`}
+                        data-pne-overlay-stack={`${anchor.vertical}-${anchor.horizontal}`}
                         sx={{
                             position: 'fixed',
-                            zIndex: 1400,
+                            zIndex: theme => theme.zIndex.snackbar,
                             display: 'flex',
                             gap: `${STACK_GAP}px`,
                             pointerEvents: 'none',
@@ -305,6 +327,17 @@ export function OverlayHost({
                 )
             })}
             {permanentContent}
+        </>
+    )
+
+    return (
+        <PermanentOverlayContext.Provider value={contextValue}>
+            {children}
+            {container === null ? overlayContent : (
+                <Portal container={container}>
+                    {overlayContent}
+                </Portal>
+            )}
         </PermanentOverlayContext.Provider>
     )
 }

@@ -17,17 +17,31 @@ const makeId = () => {
 export const useOverlayStore = create<OverlayState>(set => ({
     snackbars: [],
     enqueueSnackbar: snackbar =>
-        set(state => ({
-            snackbars: [
-                ...state.snackbars,
-                {
-                    id: snackbar.id ?? makeId(),
-                    variant: snackbar.variant ?? 'info',
-                    autoHideMs: snackbar.autoHideMs ?? (snackbar.variant === 'error' ? undefined : defaultAutoHideMs),
-                    ...snackbar,
-                },
-            ],
-        })),
+        set(state => {
+            const id = snackbar.id ?? makeId()
+            if (state.snackbars.some(current => current.id === id)) {
+                return state
+            }
+
+            const hasExplicitAutoHideMs = Object.prototype.hasOwnProperty.call(snackbar, 'autoHideMs')
+            const variant = snackbar.variant ?? 'info'
+
+            return {
+                snackbars: [
+                    ...state.snackbars,
+                    {
+                        ...snackbar,
+                        id,
+                        variant,
+                        autoHideMs: hasExplicitAutoHideMs
+                            ? snackbar.autoHideMs
+                            : variant === 'error'
+                                ? undefined
+                                : defaultAutoHideMs,
+                    },
+                ],
+            }
+        }),
     removeSnackbar: id => set(state => ({ snackbars: state.snackbars.filter(snack => snack.id !== id) })),
     clearSnackbars: () => set({ snackbars: [] }),
 }))

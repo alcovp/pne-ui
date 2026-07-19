@@ -956,9 +956,64 @@ export const App = () => (
 ```
 
 Важные правила интеграции:
+
 - если `overlayActions.*` вызываются без смонтированного `OverlayHost`, библиотека пишет явный `console.error`, а snackbar не будет виден пользователю;
 - если в DOM смонтировано больше одного `OverlayHost`, библиотека пишет явный `console.error`, потому что такая конфигурация дублирует snackbar-ы и может рассинхронизировать их таймеры;
 - `OverlayHost` должен подключаться в приложении-хосте, а не внутри отдельных виджетов библиотеки.
+- stacks и permanent overlays по умолчанию уходят одним React portal в `document.body`, не добавляя overlay-wrapper в DOM приложения; для изолированного harness можно передать `container` (или `null` для inline render);
+- `maxSnack` является жёсткой границей: при переполнении самые старые snackbar удаляются, а не остаются скрытой очередью;
+- повторный enqueue с тем же явным `id` игнорируется, пока первый snackbar присутствует. Для замены сначала вызовите `removeSnackbar(id)`.
+
+## PneConfirmProvider
+
+Компоненты вызывают подтверждение через Promise API `usePneConfirm`. Подключайте
+`PneConfirmProvider` ровно один раз рядом с корнем приложения и вызывайте исходное действие только после
+результата `true`:
+
+```tsx
+import { PneConfirmProvider, usePneConfirm } from 'pne-ui'
+
+const DeleteButton = () => {
+    const { confirm } = usePneConfirm()
+
+    const handleDelete = async () => {
+        const accepted = await confirm({
+            danger: true,
+            title: 'Delete item?',
+            message: 'This action cannot be undone.',
+            confirmLabel: 'Delete',
+        })
+
+        if (accepted) {
+            await deleteItem()
+        }
+    }
+
+    return <button onClick={handleDelete}>Delete</button>
+}
+
+export const App = () => (
+    <PneConfirmProvider>
+        <ApplicationRoutes />
+    </PneConfirmProvider>
+)
+```
+
+`danger: true` задаёт destructive/error оформление primary action. Для dismissible acknowledgement-flow без
+Cancel используйте `showCancel: false`: Close, Escape и backdrop по-прежнему возвращают `false`. Параллельные
+вызовы обслуживаются по FIFO; повторное событие от action предыдущего dialog не подтверждает следующий запрос.
+При размонтировании provider текущий и ожидающие Promise завершаются значением `false`.
+
+Поддерживаемые Selenium-якоря размещены на существующих интерактивных/смысловых DOM nodes без
+дополнительных wrapper-элементов:
+
+| Якорь | Назначение |
+|-------|------------|
+| `alert.container` | контейнер confirm modal |
+| `alert.message` | содержимое сообщения |
+| `alert.button.close` | кнопка закрытия |
+| `alert.button.cancel` | cancel action; отсутствует при `showCancel: false` |
+| `alert.button.submit` | confirm action |
 
 ## Интеграция SearchUI
 
@@ -1362,6 +1417,8 @@ const AppShell = () => (
 - Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo`, `showSnackbar` или `showUndoSnackbar`.
 - `showUndoSnackbar` возвращает `id` snackbar и добавляет встроенную action-кнопку `Undo` (или ваш `undoLabel`).
 - Любой snackbar с конечным `autoHideMs` показывает progress bar вверху карточки; если `autoHideMs` не задан, progress bar не рендерится.
+- По умолчанию UI рендерится portal-ом в `document.body`; `container` позволяет задать другой `Element` или callback (в том числе через `ref.current`). Layer берётся из `theme.zIndex.snackbar`/`theme.zIndex.modal`.
+- `maxSnack` удаляет самые старые overflow entries. Явный `id` дедуплицирует pending snackbar по правилу first-wins.
 - `PermanentOverlay` можно размещать на любом уровне дерева под хостом; последний зарегистрированный в слоте заменяет предыдущий.
 - Слоты фиксированы четырьмя углами; сместить позицию можно через `offset`/`zIndex` пропы на `PermanentOverlay`.
 

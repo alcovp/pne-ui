@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useId} from 'react';
 import Box, {BoxProps} from "@mui/material/Box";
 import IconButton, {IconButtonProps} from "@mui/material/IconButton";
 import Modal, {ModalProps} from "@mui/material/Modal";
@@ -46,13 +46,23 @@ const PneModal = (props: React.PropsWithChildren<PneModalProps>) => {
         overlay,
     } = props;
 
+    const titleId = useId();
+    const subtitleId = useId();
+
     return <Modal
         {...modalProps}
         open={open}
         onClose={onClose}
-        aria-labelledby='modal-title'
     >
-        <Container {...containerProps} className={className} sx={containerSx}>
+        <Container
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={props.subtitle ? subtitleId : undefined}
+            {...containerProps}
+            className={className}
+            sx={containerSx}
+        >
             <Header>
                 <div>
                     <Typography
@@ -63,7 +73,7 @@ const PneModal = (props: React.PropsWithChildren<PneModalProps>) => {
                             lineHeight: '24px',
                         }}
                         component='h3'
-                        id={'modal-title'}
+                        id={titleId}
                     >
                         {title}
                     </Typography>
@@ -76,13 +86,14 @@ const PneModal = (props: React.PropsWithChildren<PneModalProps>) => {
                                 lineHeight: '12px',
                                 letterSpacing: '0.15px',
                             }}
-                            id={'modal-subtitle'}
+                            id={subtitleId}
                         >
                             {props.subtitle}
                         </Typography>
                     )}
                 </div>
                 <IconButton
+                    aria-label='Close'
                     {...closeButtonProps}
                     sx={{
                         width: '40px',

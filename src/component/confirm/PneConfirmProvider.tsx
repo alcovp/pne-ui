@@ -4,12 +4,17 @@ import { useTranslation } from 'react-i18next'
 import PneButton from '../PneButton'
 import PneModal from '../PneModal'
 import PneModalActions from '../PneModalActions'
+import { createAutoTestAttributes } from '../AutoTestAttribute'
 
 export type PneConfirmOptions = {
     title?: string
     message: React.ReactNode
     confirmLabel?: string
     cancelLabel?: string
+    /** Use the destructive/error visual treatment for the confirm action. */
+    danger?: boolean
+    /** Set to false for acknowledgement flows that intentionally have no cancel action. */
+    showCancel?: boolean
 }
 
 export type PneConfirmProviderProps = {
@@ -18,10 +23,13 @@ export type PneConfirmProviderProps = {
 }
 
 type PendingConfirm = {
+    requestId: number
     title: string
     message: React.ReactNode
     confirmLabel: string
     cancelLabel: string
+    danger: boolean
+    showCancel: boolean
     resolve: (accepted: boolean) => void
 }
 
@@ -41,6 +49,7 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
     const { t } = useTranslation()
     const queueRef = useRef<PendingConfirm[]>([])
     const currentRef = useRef<PendingConfirm | null>(null)
+    const requestIdRef = useRef(0)
     const [current, setCurrent] = useState<PendingConfirm | null>(null)
 
     const fallbackStrings = useMemo(
@@ -59,9 +68,8 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
     }, [])
 
     const settle = useCallback(
-        (accepted: boolean) => {
-            const pending = currentRef.current
-            if (!pending) return
+        (pending: PendingConfirm | null, accepted: boolean) => {
+            if (!pending || currentRef.current !== pending) return
             pending.resolve(accepted)
             showNext()
         },
@@ -72,10 +80,13 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
         (options: PneConfirmOptions) =>
             new Promise<boolean>(resolve => {
                 const pending: PendingConfirm = {
+                    requestId: ++requestIdRef.current,
                     title: normalizeTitle(options.title) ?? normalizeTitle(defaultOptions?.title) ?? fallbackStrings.title,
                     message: options.message,
                     confirmLabel: options.confirmLabel ?? defaultOptions?.confirmLabel ?? fallbackStrings.confirmLabel,
                     cancelLabel: options.cancelLabel ?? defaultOptions?.cancelLabel ?? fallbackStrings.cancelLabel,
+                    danger: options.danger ?? defaultOptions?.danger ?? false,
+                    showCancel: options.showCancel ?? defaultOptions?.showCancel ?? true,
                     resolve,
                 }
 
@@ -87,7 +98,7 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
                 currentRef.current = pending
                 setCurrent(pending)
             }),
-        [defaultOptions?.cancelLabel, defaultOptions?.confirmLabel, defaultOptions?.title, fallbackStrings.cancelLabel, fallbackStrings.confirmLabel, fallbackStrings.title],
+        [defaultOptions?.cancelLabel, defaultOptions?.confirmLabel, defaultOptions?.danger, defaultOptions?.showCancel, defaultOptions?.title, fallbackStrings.cancelLabel, fallbackStrings.confirmLabel, fallbackStrings.title],
     )
 
     useEffect(
@@ -107,20 +118,32 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
             {children}
             <PneModal
                 actions={<PneModalActions
-                    secondary={<PneButton pneStyle='outlined' onClick={() => settle(false)}>
-                        {current?.cancelLabel}
-                    </PneButton>}
-                    primary={<PneButton pneStyle='contained' onClick={() => settle(true)}>
+                    secondary={current?.showCancel ? <PneButton
+                        key={`confirm-cancel-${current.requestId}`}
+                        {...createAutoTestAttributes('alert.button.cancel')}
+                        pneStyle='outlined'
+                        onClick={() => settle(current, false)}
+                    >
+                        {current.cancelLabel}
+                    </PneButton> : undefined}
+                    primary={<PneButton
+                        key={`confirm-submit-${current?.requestId ?? 'closed'}`}
+                        {...createAutoTestAttributes('alert.button.submit')}
+                        pneStyle={current?.danger ? 'error' : 'contained'}
+                        onClick={() => settle(current, true)}
+                    >
                         {current?.confirmLabel}
                     </PneButton>}
                 />}
+                closeButtonProps={createAutoTestAttributes('alert.button.close')}
+                containerProps={createAutoTestAttributes('alert.container')}
                 open={Boolean(current)}
-                onClose={() => settle(false)}
+                onClose={() => settle(current, false)}
                 title={current?.title}
                 containerSx={{ maxWidth: 560, width: 'calc(100% - 32px)', minWidth: 0 }}
             >
                 <Stack spacing={3}>
-                    <Box>
+                    <Box {...createAutoTestAttributes('alert.message')}>
                         <Typography sx={{ fontSize: '14px', lineHeight: '20px', color: '#4E5D78' }}>
                             {current?.message}
                         </Typography>

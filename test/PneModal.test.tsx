@@ -127,8 +127,9 @@ describe('PneModal', () => {
         )
 
         expect(document.querySelector('[data-pne-modal-body]')).toBeNull()
-        expect(screen.getByTestId('modal-container')).not.toBeNull()
-        expect(screen.getByTestId('modal-close')).not.toBeNull()
+        expect(screen.getByRole('dialog', {name: 'Information'})).toBe(screen.getByTestId('modal-container'))
+        expect(screen.getByTestId('modal-container').getAttribute('aria-modal')).toBe('true')
+        expect(screen.getByTestId('modal-close').getAttribute('aria-label')).toBe('Close')
         expect(screen.getByRole('button', {name: 'OK'})).not.toBeNull()
     })
 

@@ -1,10 +1,11 @@
 import * as React from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { createTheme, ThemeProvider } from '@mui/material'
 
 import { OverlayHost, overlayActions, useOverlayStore } from '../src'
 import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRuntime'
 
-describe('OverlayHost snackbar progress', () => {
+describe('OverlayHost', () => {
     let consoleErrorSpy: jest.SpyInstance
 
     beforeEach(() => {
@@ -109,5 +110,131 @@ describe('OverlayHost snackbar progress', () => {
 
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('mounted <OverlayHost /> instances'))
         expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('OverlayHost is a singleton'))
+    })
+
+    it('portals overlay stacks to document.body without adding a wrapper to the application tree', async () => {
+        render(
+            <div data-testid='application-root'>
+                <OverlayHost>
+                    <span>Application content</span>
+                </OverlayHost>
+            </div>,
+        )
+
+        act(() => {
+            overlayActions.showError({
+                id: 'body-portal',
+                message: 'Rendered in body',
+            })
+        })
+
+        const message = await screen.findByText('Rendered in body')
+        const stack = message.closest('[data-pne-overlay-stack]')
+
+        expect(stack).not.toBeNull()
+        expect(stack?.parentElement).toBe(document.body)
+        expect(screen.getByTestId('application-root').contains(message)).toBe(false)
+    })
+
+    it('supports a custom portal target', async () => {
+        const portalTarget = document.createElement('div')
+        document.body.appendChild(portalTarget)
+
+        const view = render(<OverlayHost container={portalTarget} />)
+
+        act(() => {
+            overlayActions.showInfo({
+                id: 'custom-portal',
+                message: 'Rendered in a custom target',
+                autoHideMs: undefined,
+            })
+        })
+
+        const message = await screen.findByText('Rendered in a custom target')
+        expect(portalTarget.contains(message)).toBe(true)
+
+        view.unmount()
+        portalTarget.remove()
+    })
+
+    it('resolves a callback portal target after its ref is mounted', async () => {
+        const RefTargetHost = () => {
+            const targetRef = React.useRef<HTMLDivElement>(null)
+
+            return (
+                <>
+                    <div data-testid='ref-portal-target' ref={targetRef} />
+                    <OverlayHost container={() => targetRef.current} />
+                </>
+            )
+        }
+
+        render(<RefTargetHost />)
+
+        act(() => {
+            overlayActions.showInfo({
+                id: 'ref-portal',
+                message: 'Rendered after ref commit',
+                autoHideMs: undefined,
+            })
+        })
+
+        const message = await screen.findByText('Rendered after ref commit')
+        expect(screen.getByTestId('ref-portal-target').contains(message)).toBe(true)
+    })
+
+    it('uses the application theme snackbar layer through the portal', async () => {
+        const theme = createTheme()
+        theme.zIndex.snackbar = 4321
+
+        render(
+            <ThemeProvider theme={theme}>
+                <OverlayHost />
+            </ThemeProvider>,
+        )
+
+        act(() => {
+            overlayActions.showWarning({
+                id: 'themed-layer',
+                message: 'Theme-aware layer',
+                autoHideMs: undefined,
+            })
+        })
+
+        const message = await screen.findByText('Theme-aware layer')
+        const stack = message.closest('[data-pne-overlay-stack]')
+
+        expect(stack).not.toBeNull()
+        expect(window.getComputedStyle(stack!).zIndex).toBe('4321')
+    })
+
+    it('evicts overflow instead of retaining hidden snackbars that can reappear', async () => {
+        render(<OverlayHost maxSnack={2} />)
+
+        act(() => {
+            overlayActions.showError({ id: 'overflow-1', message: 'First error' })
+            overlayActions.showError({ id: 'overflow-2', message: 'Second error' })
+            overlayActions.showError({ id: 'overflow-3', message: 'Third error' })
+        })
+
+        expect(await screen.findByText('Second error')).toBeTruthy()
+        expect(screen.getByText('Third error')).toBeTruthy()
+
+        await waitFor(() => {
+            expect(useOverlayStore.getState().snackbars.map(snackbar => snackbar.id)).toEqual([
+                'overflow-2',
+                'overflow-3',
+            ])
+        })
+
+        act(() => {
+            overlayActions.removeSnackbar('overflow-3')
+        })
+
+        await waitFor(() => {
+            expect(screen.queryByText('Third error')).toBeNull()
+        })
+        expect(screen.getByText('Second error')).toBeTruthy()
+        expect(screen.queryByText('First error')).toBeNull()
     })
 })
