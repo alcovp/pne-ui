@@ -49,6 +49,76 @@ major-версии MUI не входят в поддерживаемый peer co
 Компонент сохраняет polymorphic MUI-контракт для `component` и `href`; типы DOM props, событий и `ref`
 выводятся из фактического root element. Это поведение рассчитано на React 19 ref-as-prop.
 
+## PneField
+
+`PneField` задаёт общий семантический контракт для одного поля: label, helper text, error/disabled/required state и
+их ARIA-связи с единственным логическим control или control group. `PneTextField`, `PneSelect`,
+`PneAutocomplete`, `PneAsyncAutocomplete`, `PneCheckbox` и `PneSwitch` читают этот контракт автоматически.
+Внутри `PneField` должен быть ровно один логический control; для группы передавайте один group component, а не
+несколько соседних controls. `PneField` не принимает ID произвольной layout-обёртки за ID самого control.
+
+`id` принадлежит root `FormControl` и служит namespace для сгенерированных ID. `controlId` принадлежит самому
+интерактивному control и используется в `label[for]`; эти ID должны различаться. Указанный на child `id` не
+переопределяет field-owned ID, поэтому при миграции переносите его в `controlId`. Prop `htmlFor` оставлен только
+как deprecated alias `controlId` и не должен использоваться в новом коде. ID обрезаются по краям; пустые ID и
+ID с внутренними пробельными символами считаются невалидными, игнорируются и заменяются сгенерированными.
+
+```tsx
+<PneField
+    id="delivery-field"
+    controlId="delivery-control"
+    label="Delivery server"
+    helperText="Select one server"
+    slotProps={{
+        label: {id: "delivery-label", "data-autotest": "delivery-label"},
+        helperText: {id: "delivery-help", "data-autotest": "delivery-help"},
+    }}
+>
+    <PneSelect options={servers} value={server} onChange={setServer}/>
+</PneField>
+```
+
+Для произвольного control используйте render prop и передайте результат `getControlProps` на фактический
+focusable control или group root. Adapter сохраняет дополнительные props, объединяет consumer
+`aria-labelledby`/`aria-describedby` с ID label/helper text и дедуплицирует ссылки. Явный `aria-label`
+остаётся самостоятельным naming override и не смешивается с `aria-labelledby`. При disabled field adapter
+возвращает одновременно `disabled` и `aria-disabled`; это сохраняет нативную/MUI блокировку и корректно
+описывает composite control с group-role.
+
+```tsx
+<PneField label="Period" helperText="Choose a unit" error={Boolean(error)} required>
+    {({getControlProps, fullWidth}) => (
+        <ToggleButtonGroup
+            {...getControlProps({"aria-describedby": "period-format"})}
+            exclusive
+            sx={{width: fullWidth ? "100%" : "auto"}}
+            value={period}
+            onChange={(_event, value) => setPeriod(value)}
+        >
+            <ToggleButton value="day">Day</ToggleButton>
+            <ToggleButton value="week">Week</ToggleButton>
+        </ToggleButtonGroup>
+    )}
+</PneField>
+```
+
+Если adapter нужен внутри отдельного descendant component, вызовите `usePneFieldControl()` там; вне
+`PneField` hook возвращает `undefined`. Render prop предпочтительнее для прямой композиции, потому что явно
+показывает место применения DOM-контракта.
+
+`PneField` владеет ID и связями label/helper text. Значения `true` у field-level `disabled`, `error` и
+`required` нельзя ослабить props дочернего control; его дополнительные ARIA ID при этом не теряются. Явный
+`fullWidth` у встроенного PNE control может переопределить field default. `required` на `PneField` добавляет
+asterisk и `aria-required`, но намеренно не устанавливает нативный `required`: browser constraint validation
+включается только `required` на самом input/select/checkbox/switch.
+
+`slotProps.label` и `slotProps.helperText` предназначены для `id`, `className`, `sx`, `ref`, ARIA и `data-*`
+соответствующих slots. Старые `labelSx` и `helperTextSx` deprecated. Split-state props MUI FormControl
+(`color`, `focused`, `hiddenLabel`, `size`, `variant`) не входят в публичный API `PneField`; внешний вид control
+настраивается на самом control, а label/helper — через `slotProps`. Root остаётся polymorphic через `component`,
+и тип `ref` выводится из выбранного root element. `margin` остаётся исключительно layout-prop root
+`FormControl` и не передаётся дочернему control.
+
 ## PneTextField
 
 `PneTextField` сохраняет API MUI `TextField` и по умолчанию использует `size="small"`. Его `ref` указывает на

@@ -28,6 +28,8 @@ const validCreateElement = React.createElement(PneTextField, {
 const validContracts = <>
     <PneTextField
         {...props}
+        aria-invalid='grammar'
+        aria-labelledby='report-context'
         inputRef={inputRef}
         onChange={event => {
             const value: string = event.target.value
@@ -36,7 +38,9 @@ const validContracts = <>
         ref={rootRef}
         slotProps={{
             htmlInput: ownerState => ({
+                'aria-invalid': ownerState.error ? true : 'spelling',
                 'aria-label': String(ownerState.label),
+                'aria-labelledby': 'functional-input-context',
                 inputMode: 'text',
             }),
         }}

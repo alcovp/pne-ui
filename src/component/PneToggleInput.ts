@@ -8,7 +8,9 @@ type ToggleInputSlotProps = Record<string, unknown> & {
 }
 
 interface ComposeToggleInputSlotPropsOptions {
+    controlId?: string
     describedBy?: string
+    forceDisabled?: boolean
     forceInvalid?: boolean
     forceRequired?: boolean
     inputAriaProps: React.AriaAttributes
@@ -56,6 +58,10 @@ export const composeToggleInputSlotProps = <OwnerState, >(
         )
         const topLevelAriaProps = options.inputAriaProps as unknown as Record<string, unknown>
         const externalOnClick = externalProps.onClick
+        const effectiveAriaLabel = {
+            ...topLevelAriaProps,
+            ...externalProps,
+        }['aria-label']
         const mergedRef = mergeRefs(
             options.internalInputRef,
             options.inputRef,
@@ -71,13 +77,18 @@ export const composeToggleInputSlotProps = <OwnerState, >(
                 )),
                 options.describedBy,
             ),
-            'aria-labelledby': mergeAriaDescribedBy(
-                getString(topLevelAriaProps['aria-labelledby']),
-                ...resolvedExternalProps.map(slotProps => (
-                    getString(slotProps['aria-labelledby'])
-                )),
-                options.labelId,
-            ),
+            'aria-disabled': options.forceDisabled
+                ? true
+                : externalProps['aria-disabled'] ?? topLevelAriaProps['aria-disabled'],
+            'aria-labelledby': isNonBlankString(effectiveAriaLabel)
+                ? undefined
+                : mergeAriaDescribedBy(
+                    getString(topLevelAriaProps['aria-labelledby']),
+                    ...resolvedExternalProps.map(slotProps => (
+                        getString(slotProps['aria-labelledby'])
+                    )),
+                    options.labelId,
+                ),
             'aria-invalid': options.forceInvalid
                 ? true
                 : externalProps['aria-invalid'] ?? topLevelAriaProps['aria-invalid'],
@@ -87,6 +98,8 @@ export const composeToggleInputSlotProps = <OwnerState, >(
             'aria-required': options.forceRequired
                 ? true
                 : externalProps['aria-required'] ?? topLevelAriaProps['aria-required'],
+            ...(options.controlId ? {id: options.controlId} : {}),
+            ...(options.forceDisabled ? {disabled: true} : {}),
         }
 
         if (options.indeterminate) {
@@ -158,6 +171,10 @@ const resolveInputSlotProps = <OwnerState, >(
 
 const getString = (value: unknown): string | undefined => {
     return typeof value === 'string' ? value : undefined
+}
+
+const isNonBlankString = (value: unknown): value is string => {
+    return typeof value === 'string' && value.trim() !== ''
 }
 
 const isObject = (value: unknown): value is Record<string, unknown> => {

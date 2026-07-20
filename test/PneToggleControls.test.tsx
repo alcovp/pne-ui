@@ -164,6 +164,24 @@ describe('PneCheckbox', () => {
         expect(input.required).toBe(false)
     })
 
+    it('lets an explicit top-level accessible name override PneField labels', () => {
+        render(<>
+            <span id='ignored-checkbox-label'>Ignored checkbox label</span>
+            <PneField label='Field checkbox name'>
+                <PneCheckbox
+                    aria-label='Explicit checkbox name'
+                    slotProps={{
+                        input: {'aria-labelledby': 'ignored-checkbox-label'},
+                    }}
+                />
+            </PneField>
+        </>)
+
+        const input = screen.getByRole('checkbox', {name: 'Explicit checkbox name'})
+
+        expect(input.hasAttribute('aria-labelledby')).toBe(false)
+    })
+
     it('composes theme input defaults with a functional consumer slot', () => {
         const themeInputRef = React.createRef<HTMLInputElement>()
         const consumerInputRef = React.createRef<HTMLInputElement>()
@@ -233,13 +251,23 @@ describe('PneCheckbox', () => {
     })
 
     it('inherits disabled state from PneField', () => {
-        render(<PneField disabled label='Archived report'>
-            <PneCheckbox/>
+        render(<PneField controlId='archived-report' disabled label='Archived report'>
+            <PneCheckbox
+                slotProps={{
+                    input: {
+                        'aria-disabled': false,
+                        disabled: false,
+                        id: 'ignored-checkbox-id',
+                    },
+                }}
+            />
         </PneField>)
 
         const input = screen.getByRole('checkbox', {name: 'Archived report'}) as HTMLInputElement
 
+        expect(input.id).toBe('archived-report')
         expect(input.disabled).toBe(true)
+        expect(input.getAttribute('aria-disabled')).toBe('true')
     })
 
     it('keeps native form value, required validation, and reset behavior', () => {
@@ -330,6 +358,64 @@ describe('PneSwitch', () => {
         expect(getDescriptionIds(input)).toEqual([helper.id])
         expect(input.getAttribute('aria-invalid')).toBe('true')
         expect(input.getAttribute('aria-required')).toBe('true')
+    })
+
+    it('lets an explicit functional-slot name override PneField labels', () => {
+        const inputSlot = jest.fn((_ownerState: SwitchOwnerState) => ({
+            'aria-label': 'Explicit switch name',
+            'aria-labelledby': 'ignored-switch-label',
+        }))
+
+        render(<>
+            <span id='ignored-switch-label'>Ignored switch label</span>
+            <PneField label='Field switch name'>
+                <PneSwitch
+                    aria-labelledby='also-ignored-switch-label'
+                    slotProps={{input: inputSlot}}
+                />
+            </PneField>
+        </>)
+
+        const input = screen.getByRole('switch', {name: 'Explicit switch name'})
+
+        expect(inputSlot).toHaveBeenCalledTimes(1)
+        expect(input.hasAttribute('aria-labelledby')).toBe(false)
+    })
+
+    it('keeps field identity and disabled state over theme and functional input slots', () => {
+        const inputSlot = jest.fn((_ownerState: SwitchOwnerState) => ({
+            'aria-disabled': false,
+            disabled: false,
+            id: 'consumer-switch-id',
+        }))
+        const theme = createTheme()
+        theme.components = {
+            ...theme.components,
+            MuiSwitch: {
+                defaultProps: {
+                    slotProps: {
+                        input: {
+                            'aria-disabled': false,
+                            disabled: false,
+                            id: 'theme-switch-id',
+                        },
+                    },
+                },
+            },
+        }
+
+        render(<ThemeProvider theme={theme}>
+            <PneField controlId='field-switch-id' disabled label='Locked updates'>
+                <PneSwitch slotProps={{input: inputSlot}}/>
+            </PneField>
+        </ThemeProvider>)
+
+        const input = screen.getByRole('switch', {name: 'Locked updates'}) as HTMLInputElement
+
+        expect(inputSlot).toHaveBeenCalledTimes(1)
+        expect(input.id).toBe('field-switch-id')
+        expect(input.disabled).toBe(true)
+        expect(input.getAttribute('aria-disabled')).toBe('true')
     })
 
     it('preserves theme input defaults under a functional consumer slot', () => {

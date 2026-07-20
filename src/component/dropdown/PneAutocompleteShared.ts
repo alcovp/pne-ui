@@ -111,15 +111,13 @@ export const resolveAutocompleteListboxName = ({
         return {'aria-label': htmlInputProps['aria-label']}
     }
 
-    if (htmlInputProps?.['aria-labelledby']) {
-        return {'aria-labelledby': htmlInputProps['aria-labelledby']}
-    }
+    const ownerLabelId = hasTextFieldLabel ? `${inputId}-label` : controlLabelId
+    const ariaLabelledBy = mergeAriaDescribedBy(
+        ownerLabelId,
+        htmlInputProps?.['aria-labelledby'],
+    )
 
-    if (hasTextFieldLabel) {
-        return {'aria-labelledby': `${inputId}-label`}
-    }
-
-    return controlLabelId ? {'aria-labelledby': controlLabelId} : {}
+    return ariaLabelledBy ? {'aria-labelledby': ariaLabelledBy} : {}
 }
 
 export const withAutocompleteListboxName = <
@@ -210,11 +208,16 @@ export const mergeAutocompleteHtmlInputProps = <T extends object>(
         getString(muiInputRecord['aria-describedby']),
         safeInputProps['aria-describedby'],
     )
+    const ariaLabelledBy = mergeAriaDescribedBy(
+        getString(muiInputRecord['aria-labelledby']),
+        safeInputProps['aria-labelledby'],
+    )
 
     return {
         ...muiInputRecord,
         ...safeInputProps,
         ...(ariaDescribedBy ? {'aria-describedby': ariaDescribedBy} : {}),
+        ...(ariaLabelledBy ? {'aria-labelledby': ariaLabelledBy} : {}),
     } as T & PneAutocompleteHtmlInputProps
 }
 

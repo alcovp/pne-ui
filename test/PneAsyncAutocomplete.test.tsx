@@ -7,6 +7,7 @@ import 'jest-canvas-mock'
 import PneAsyncAutocomplete, {
     PneLoadOptions,
 } from '../src/component/dropdown/PneAsyncAutocomplete'
+import {PneField} from '../src'
 import type {AutoCompleteChoice} from '../src/common/paynet/type'
 
 type Deferred<T> = {
@@ -51,6 +52,36 @@ describe('PneAsyncAutocomplete', () => {
             signal: expect.any(AbortSignal),
         })
         expect(screen.getByRole('listbox', {name: 'Remote account'})).toBeTruthy()
+    })
+
+    it('merges PneField and consumer names without losing error semantics', async () => {
+        const loadOptions = jest.fn(async () => [choice(1, 'First result')])
+
+        render(<>
+            <span id='remote-account-context'>Consumer context</span>
+            <PneField error id='remote-account-field' label='Remote account'>
+                <PneAsyncAutocomplete<AutoCompleteChoice>
+                    defaultOpen
+                    disablePortal
+                    htmlInputProps={{'aria-labelledby': 'remote-account-context'}}
+                    loadOptions={loadOptions}
+                />
+            </PneField>
+        </>)
+
+        expect(await screen.findByRole('option', {name: 'First result'})).toBeTruthy()
+        const input = screen.getByRole('combobox', {
+            name: 'Remote account Consumer context',
+        })
+
+        expect(input.getAttribute('aria-labelledby')?.split(/\s+/)).toEqual([
+            'remote-account-field-label',
+            'remote-account-context',
+        ])
+        expect(input.getAttribute('aria-invalid')).toBe('true')
+        expect(screen.getByRole('listbox', {
+            name: 'Remote account Consumer context',
+        })).toBeTruthy()
     })
 
     it('aborts superseded requests and ignores their late results', async () => {

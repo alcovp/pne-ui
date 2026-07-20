@@ -55,7 +55,8 @@ const safeInputProps: PneAutocompleteHtmlInputProps = {
 }
 
 const primitiveAutocomplete = <PneAutocomplete
-    htmlInputProps={{'aria-label': 'Retries'}}
+    error
+    htmlInputProps={{'aria-label': 'Retries', 'aria-labelledby': 'retry-context'}}
     onChange={(_event, value) => {
         const retryCount: number | null = value
         void retryCount

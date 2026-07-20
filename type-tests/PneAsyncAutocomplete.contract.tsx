@@ -81,8 +81,10 @@ const inferredChoice = <PneAsyncAutocomplete
 />
 
 const customObject = <PneAsyncAutocomplete
+    error
     getOptionKey={region => region.code}
     getOptionLabel={region => region.title}
+    htmlInputProps={{'aria-labelledby': 'region-context'}}
     loadOptions={regionLoader}
     onLoadError={(error, context) => {
         const unknownError: unknown = error

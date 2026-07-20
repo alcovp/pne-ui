@@ -58,7 +58,9 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
     const inputSlotProps = composeToggleInputSlotProps<SwitchOwnerState>(
         [defaultInputSlotProps, consumerInputSlotProps],
         {
+            controlId: controlProps.id ?? id,
             describedBy: controlProps.ariaDescribedBy,
+            forceDisabled: controlProps.disabled === true || disabled === true,
             forceInvalid: controlProps.error,
             forceRequired: controlProps.ariaRequired,
             inputAriaProps,

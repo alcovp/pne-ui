@@ -1,14 +1,22 @@
 import * as React from 'react'
 import {fireEvent, render, screen} from '@testing-library/react'
+import {ToggleButton, ToggleButtonGroup} from '@mui/material'
 
 import 'jest-canvas-mock'
 
-import {PneField, PneSelect, PneTextField} from '../src'
+import {PneField, PneSelect, PneTextField, usePneFieldControl} from '../src'
+
+const FieldAwareInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+    const field = usePneFieldControl()
+    const controlProps = field?.getControlProps(props) ?? props
+
+    return <input {...controlProps}/>
+}
 
 describe('PneField', () => {
     it('renders the external label and child control', () => {
-        render(<PneField label='Report file name'>
-            <PneTextField id='report-file-name'/>
+        render(<PneField controlId='report-file-name' label='Report file name'>
+            <PneTextField/>
         </PneField>)
 
         expect(screen.getByText('Report file name')).toBeTruthy()
@@ -247,6 +255,173 @@ describe('PneField', () => {
         ])
         expect(select.id).toBe('message-server-field-control')
         expect(selectFormControl?.classList.contains('MuiFormControl-fullWidth')).toBe(false)
+    })
+
+    it('provides DOM-ready render bindings to a generic control group', () => {
+        const labelRef = React.createRef<HTMLLabelElement>()
+        const helperTextRef = React.createRef<HTMLParagraphElement>()
+
+        render(<>
+            <div id='custom-period-help'>Custom help</div>
+            <PneField
+                controlId='period-control'
+                disabled
+                error
+                helperText='Choose one period'
+                label='Period'
+                required
+                slotProps={{
+                    helperText: {
+                        'aria-live': 'polite',
+                        'data-slot': 'helper',
+                        id: 'period-help',
+                        ref: helperTextRef,
+                    },
+                    label: {
+                        'data-slot': 'label',
+                        id: 'period-label',
+                        ref: labelRef,
+                    },
+                }}
+            >
+                {field => <ToggleButtonGroup
+                    {...field.getControlProps({
+                        'aria-describedby': 'custom-period-help',
+                        'aria-disabled': false,
+                        'aria-invalid': false,
+                        disabled: false,
+                    })}
+                    exclusive
+                    value='weeks'
+                >
+                    <ToggleButton value='days'>Days</ToggleButton>
+                    <ToggleButton value='weeks'>Weeks</ToggleButton>
+                </ToggleButtonGroup>}
+            </PneField>
+        </>)
+
+        const group = screen.getByRole('group', {name: 'Period'})
+
+        expect(group.id).toBe('period-control')
+        expect(group.getAttribute('aria-describedby')).toBe('custom-period-help period-help')
+        expect(group.getAttribute('aria-disabled')).toBe('true')
+        expect(group.getAttribute('aria-invalid')).toBe('true')
+        expect(group.getAttribute('aria-required')).toBe('true')
+        expect(screen.getAllByRole('button').every(button => button.hasAttribute('disabled'))).toBe(true)
+        expect(labelRef.current?.dataset.slot).toBe('label')
+        expect(helperTextRef.current?.dataset.slot).toBe('helper')
+        expect(helperTextRef.current?.getAttribute('aria-live')).toBe('polite')
+    })
+
+    it('exports reusable field bindings without injecting native required', () => {
+        render(<>
+            <div id='existing-input-help'>Existing help</div>
+            <div id='supplemental-input-label'>Supplemental name</div>
+            <PneField
+                controlId='custom-input'
+                disabled
+                error
+                helperText='Field help'
+                id='custom-field'
+                label='Account'
+                required
+            >
+                <FieldAwareInput
+                    aria-describedby='existing-input-help'
+                    aria-labelledby='supplemental-input-label'
+                />
+            </PneField>
+        </>)
+
+        const input = screen.getByRole('textbox', {
+            name: 'Account Supplemental name',
+        }) as HTMLInputElement
+
+        expect(input.id).toBe('custom-input')
+        expect(input.disabled).toBe(true)
+        expect(input.hasAttribute('required')).toBe(false)
+        expect(input.getAttribute('aria-invalid')).toBe('true')
+        expect(input.getAttribute('aria-required')).toBe('true')
+        expect(input.getAttribute('aria-describedby')).toBe(
+            'existing-input-help custom-field-helper-text',
+        )
+    })
+
+    it('keeps an explicit aria-label as the generic control naming override', () => {
+        render(<PneField label='Field-owned name'>
+            {field => <div
+                {...field.getControlProps({
+                    'aria-label': 'Explicit group name',
+                    'aria-labelledby': 'ignored-label-reference',
+                    role: 'group',
+                })}
+            />}
+        </PneField>)
+
+        const group = screen.getByRole('group', {name: 'Explicit group name'})
+
+        expect(group.hasAttribute('aria-labelledby')).toBe(false)
+    })
+
+    it('keeps the field-owned control ID when a child provides a conflicting ID', () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+
+        render(<PneField controlId='expected-control' label='Report file name'>
+            <PneTextField id='unexpected-control'/>
+        </PneField>)
+
+        expect(screen.getByRole('textbox', {name: 'Report file name'}).id).toBe('expected-control')
+        expect(warn).toHaveBeenCalledWith(expect.stringContaining('Move the ID to PneField controlId'))
+
+        warn.mockRestore()
+    })
+
+    it('does not mistake a wrapper ID for the nested control ID', () => {
+        const {container} = render(<PneField id='field-root' label='Report file name'>
+            <div id='layout-wrapper'>
+                <PneTextField/>
+            </div>
+        </PneField>)
+
+        const input = screen.getByRole('textbox', {name: 'Report file name'})
+
+        expect(container.querySelector('.MuiFormControl-root')?.id).toBe('field-root')
+        expect(screen.getByText('Report file name').getAttribute('for')).toBe('field-root-control')
+        expect(document.getElementById('layout-wrapper')).toBeTruthy()
+        expect(input.id).toBe('field-root-control')
+    })
+
+    it('rejects multiple direct logical controls from untyped callers', () => {
+        const children = [
+            <PneTextField key='first'/>,
+            <PneTextField key='second'/>,
+        ] as unknown as React.ReactElement
+
+        expect(() => render(<PneField>{children}</PneField>)).toThrow(
+            'PneField expects exactly one logical control or group.',
+        )
+    })
+
+    it('renders numeric label and helper content', () => {
+        render(<PneField helperText={0} label={0}>
+            {field => <input {...field.getControlProps()}/>}
+        </PneField>)
+
+        const input = screen.getByRole('textbox', {name: '0'})
+        const helperTextId = input.getAttribute('aria-describedby')
+
+        expect(helperTextId).toBeTruthy()
+        expect(document.getElementById(helperTextId!)?.textContent).toBe('0')
+    })
+
+    it('keeps a polymorphic root and ref contract', () => {
+        const rootRef = React.createRef<HTMLFieldSetElement>()
+
+        render(<PneField component='fieldset' ref={rootRef}>
+            <input aria-label='Standalone control'/>
+        </PneField>)
+
+        expect(rootRef.current?.tagName).toBe('FIELDSET')
     })
 
     it('does not inject input props into generic children', () => {

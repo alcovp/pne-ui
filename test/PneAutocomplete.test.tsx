@@ -184,6 +184,35 @@ describe('PneAutocomplete', () => {
         ]))
     })
 
+    it('merges PneField and consumer names on the input and listbox', () => {
+        render(<>
+            <span id='delivery-context'>Consumer context</span>
+            <PneField error id='delivery-field' label='External delivery label'>
+                <PneAutocomplete
+                    htmlInputProps={{'aria-labelledby': 'delivery-context'}}
+                    options={['Email', 'SFTP']}
+                    value={null}
+                    onChange={() => undefined}
+                />
+            </PneField>
+        </>)
+
+        const input = screen.getByRole('combobox', {
+            name: 'External delivery label Consumer context',
+        })
+
+        expect(input.getAttribute('aria-labelledby')?.split(/\s+/)).toEqual([
+            'delivery-field-label',
+            'delivery-context',
+        ])
+        expect(input.getAttribute('aria-invalid')).toBe('true')
+
+        openAutocomplete(input)
+        expect(screen.getByRole('listbox', {
+            name: 'External delivery label Consumer context',
+        })).toBeTruthy()
+    })
+
     it('gives the listbox the TextField label as its accessible name', () => {
         render(<PneAutocomplete
             label='Delivery channel'

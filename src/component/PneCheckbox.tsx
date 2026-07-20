@@ -60,7 +60,9 @@ export const PneCheckbox = forwardRef<HTMLSpanElement, PneCheckboxProps>((props,
     const inputSlotProps = composeToggleInputSlotProps<CheckboxOwnerState>(
         [defaultInputSlotProps, consumerInputSlotProps],
         {
+            controlId: controlProps.id ?? id,
             describedBy: controlProps.ariaDescribedBy,
+            forceDisabled: controlProps.disabled === true || disabled === true,
             forceInvalid: controlProps.error,
             forceRequired: controlProps.ariaRequired,
             inputAriaProps,

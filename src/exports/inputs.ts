@@ -1,7 +1,19 @@
 export { default as PneTextField } from '../component/PneTextField'
 export type { PneTextFieldProps } from '../component/PneTextField'
 export { default as PneField } from '../component/PneField'
-export type { PneFieldProps } from '../component/PneField'
+export type {
+    PneFieldChildren,
+    PneFieldHelperTextSlotProps,
+    PneFieldLabelSlotProps,
+    PneFieldProps,
+    PneFieldSlotProps,
+} from '../component/PneField'
+export {usePneFieldControl} from '../component/PneFieldContext'
+export type {
+    PneFieldControlAdapter,
+    PneFieldControlDomProps,
+    ResolvedPneFieldControlDomProps,
+} from '../component/PneFieldContext'
 export { default as PneAutocomplete } from '../component/dropdown/PneAutocomplete'
 export type {
     PneAutocompleteBuiltInProps,

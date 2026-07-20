@@ -330,6 +330,11 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
 ) => {
     const {
         'aria-describedby': ariaDescribedBy,
+        'aria-disabled': ariaDisabled,
+        'aria-invalid': ariaInvalid,
+        'aria-label': ariaLabel,
+        'aria-labelledby': ariaLabelledBy,
+        'aria-required': ariaRequired,
         children: _children,
         defaultValue: _defaultValue,
         disabled,
@@ -382,6 +387,9 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
     const selectedKey = resolveSelectedKey(value, resolveOptionKey, optionsByKey)
     const controlProps = usePneFieldControlProps({
         ariaDescribedBy,
+        ariaInvalid,
+        ariaLabelledBy,
+        ariaRequired,
         disabled,
         error,
         fullWidth,
@@ -389,7 +397,12 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         required,
     })
     const internalLabelId = labelIdProp ?? generatedLabelId
-    const resolvedLabelId = hasLabel ? internalLabelId : labelIdProp ?? controlProps.labelId
+    const listenerLabelId = hasLabel
+        ? internalLabelId
+        : controlProps.labelId ?? labelIdProp
+    const supplementalLabelId = !hasLabel && controlProps.labelId
+        ? labelIdProp
+        : undefined
     const mergedAriaDescribedBy = mergeAriaDescribedBy(
         controlProps.ariaDescribedBy,
         SelectDisplayProps?.['aria-describedby'],
@@ -419,29 +432,51 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         ...selectDisplayProps
     } = SelectDisplayProps ?? {}
     const displayId = controlProps.id ?? displayIdProp
-    const mergedAriaLabelledBy = mergeAriaDescribedBy(
-        resolvedLabelId,
-        displayId,
-        displayAriaLabelledBy,
-    )
     const safeSelectDisplayProps = sanitizeManagedProps(
         selectDisplayProps,
         managedSelectDisplayProps,
     )
+    const resolvedAriaLabel = SelectDisplayProps?.['aria-label'] ?? ariaLabel
+    const hasExplicitAriaLabel = typeof resolvedAriaLabel === 'string'
+        && resolvedAriaLabel.trim() !== ''
+    const mergedAriaLabelledBy = hasExplicitAriaLabel
+        ? undefined
+        : mergeAriaDescribedBy(
+            listenerLabelId,
+            supplementalLabelId,
+            controlProps.ariaLabelledBy,
+            displayId,
+            displayAriaLabelledBy,
+        )
     const resolvedSelectDisplayProps = {
         ...safeSelectDisplayProps,
         ...(displayId ? {id: displayId} : {}),
+        ...(resolvedAriaLabel !== undefined ? {'aria-label': resolvedAriaLabel} : {}),
         ...(mergedAriaDescribedBy
             ? {'aria-describedby': mergedAriaDescribedBy}
             : {}),
         ...(mergedAriaLabelledBy
             ? {'aria-labelledby': mergedAriaLabelledBy}
+            : hasExplicitAriaLabel
+                ? {'aria-labelledby': undefined}
+                : {}),
+        ...(displayAriaDisabled !== undefined
+            || ariaDisabled !== undefined
+            || controlProps.disabled !== undefined
+            ? {
+                'aria-disabled': controlProps.disabled === true
+                    ? true
+                    : displayAriaDisabled ?? ariaDisabled,
+            }
             : {}),
-        ...(displayAriaDisabled !== undefined || controlProps.disabled !== undefined
-            ? {'aria-disabled': controlProps.disabled === true ? true : displayAriaDisabled}
-            : {}),
-        ...(displayAriaInvalid !== undefined || controlProps.error !== undefined
-            ? {'aria-invalid': controlProps.error === true ? true : displayAriaInvalid}
+        ...(displayAriaInvalid !== undefined
+            || controlProps.ariaInvalid !== undefined
+            || controlProps.error !== undefined
+            ? {
+                'aria-invalid': controlProps.error === true
+                    ? true
+                    : displayAriaInvalid ?? controlProps.ariaInvalid,
+            }
             : {}),
         ...(displayAriaRequired !== undefined
             || controlProps.required !== undefined
@@ -449,7 +484,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
             ? {
                 'aria-required': controlProps.required === true || controlProps.ariaRequired === true
                     ? true
-                    : displayAriaRequired,
+                    : displayAriaRequired ?? controlProps.ariaRequired,
             }
             : {}),
     }
@@ -501,7 +536,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
             aria-describedby={mergedAriaDescribedBy}
             displayEmpty={displayEmpty ?? shouldRenderValue}
             id={controlProps.id}
-            labelId={resolvedLabelId}
+            labelId={listenerLabelId}
             onChange={handleChange}
             size={size}
             variant={variant}

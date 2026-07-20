@@ -3,7 +3,12 @@ import {fireEvent, render, screen} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {createAutoTestAttributes, PneSelect, type PneSelectPrimitiveProps} from '../src'
+import {
+    createAutoTestAttributes,
+    PneField,
+    PneSelect,
+    type PneSelectPrimitiveProps,
+} from '../src'
 
 describe('PneSelect', () => {
     it('renders placeholder text for an empty value without a floating label', () => {
@@ -19,6 +24,117 @@ describe('PneSelect', () => {
 
         expect(screen.getByText('Please select')).toBeTruthy()
         expect(rootRef.current?.tagName).toBe('DIV')
+    })
+
+    it('places standalone aria-disabled on the semantic combobox', () => {
+        render(<PneSelect
+            aria-disabled
+            options={['Email', 'SFTP']}
+            value='Email'
+            onChange={() => undefined}
+        />)
+
+        expect(screen.getByRole('combobox').getAttribute('aria-disabled')).toBe('true')
+    })
+
+    it('composes top-level managed ARIA with PneField semantics', () => {
+        render(<>
+            <span id='external-select-label'>External name</span>
+            <span id='consumer-select-label'>Consumer label</span>
+            <span id='external-select-help'>External help</span>
+            <PneField
+                disabled
+                helperText='Field help'
+                id='delivery-field'
+                label='Delivery channel'
+            >
+                <PneSelect
+                    aria-describedby='external-select-help'
+                    aria-disabled={false}
+                    aria-invalid='grammar'
+                    aria-labelledby='external-select-label'
+                    aria-required
+                    labelId='consumer-select-label'
+                    options={['Email', 'SFTP']}
+                    value='Email'
+                    onChange={() => undefined}
+                />
+            </PneField>
+        </>)
+
+        const select = screen.getByRole('combobox')
+
+        expect(select.getAttribute('aria-labelledby')?.split(/\s+/)).toEqual([
+            'delivery-field-label',
+            'consumer-select-label',
+            'external-select-label',
+            'delivery-field-control',
+        ])
+        expect(select.getAttribute('aria-describedby')?.split(/\s+/)).toEqual([
+            'external-select-help',
+            'delivery-field-helper-text',
+        ])
+        expect(select.getAttribute('aria-disabled')).toBe('true')
+        expect(select.getAttribute('aria-invalid')).toBe('grammar')
+        expect(select.getAttribute('aria-required')).toBe('true')
+    })
+
+    it('lets explicit top-level and display names override generated labels', () => {
+        render(<>
+            <PneField id='top-level-name' label='First field name'>
+                <PneSelect
+                    aria-label='Explicit top-level name'
+                    aria-labelledby='ignored-top-level-label'
+                    options={['Email', 'SFTP']}
+                    value='Email'
+                    onChange={() => undefined}
+                />
+            </PneField>
+            <PneField id='display-name' label='Second field name'>
+                <PneSelect
+                    aria-label='Ignored top-level name'
+                    options={['Email', 'SFTP']}
+                    SelectDisplayProps={{
+                        'aria-label': 'Explicit display name',
+                        'aria-labelledby': 'ignored-display-label',
+                    }}
+                    value='SFTP'
+                    onChange={() => undefined}
+                />
+            </PneField>
+        </>)
+
+        const topLevelNamed = screen.getByRole('combobox', {name: 'Explicit top-level name'})
+        const displayNamed = screen.getByRole('combobox', {name: 'Explicit display name'})
+
+        expect(topLevelNamed.hasAttribute('aria-labelledby')).toBe(false)
+        expect(displayNamed.hasAttribute('aria-labelledby')).toBe(false)
+
+        fireEvent.click(screen.getByText('First field name'))
+        expect(document.activeElement).toBe(topLevelNamed)
+        fireEvent.click(screen.getByText('Second field name'))
+        expect(document.activeElement).toBe(displayNamed)
+    })
+
+    it('keeps the PneField label as focus owner when a consumer labelId is merged', () => {
+        render(<>
+            <span id='consumer-label-id'>Consumer name</span>
+            <PneField id='listener-field' label='Field owner'>
+                <PneSelect
+                    labelId='consumer-label-id'
+                    options={['Email', 'SFTP']}
+                    value='Email'
+                    onChange={() => undefined}
+                />
+            </PneField>
+        </>)
+
+        const select = screen.getByRole('combobox', {
+            name: 'Field owner Consumer name',
+        })
+
+        fireEvent.click(screen.getByText('Field owner'))
+        expect(document.activeElement).toBe(select)
     })
 
     it('forwards caller-owned attributes to each semantic option', () => {
