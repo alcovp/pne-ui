@@ -39,10 +39,10 @@ const SearchUIAddFilter = (props: Props) => {
             onClose={() => setOpen(false)}
             onOpen={() => setOpen(true)}
             options={options}
-            onChange={(value) => onChange(value as CriterionTypeEnum)}
+            onChange={onChange}
             sx={selectSx}
-            value={''}
-            getOptionLabel={opt => optionRenderer(opt.label)}
+            value={null}
+            getOptionLabel={optionRenderer}
             MenuProps={{
                 slotProps: {
                     list: createAutoTestAttributes(ADD_FILTER_OPTIONS_AUTOTEST_ID, autoTestScope),

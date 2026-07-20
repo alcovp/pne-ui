@@ -48,13 +48,13 @@ const SearchUIExactSearchLabelSelect = (props: IProps) => {
             onClose={() => setOpen(false)}
             onOpen={() => setOpen(true)}
             sx={selectUnderChipSx}
-            getOptionLabel={opt => optionRenderer(opt.label)}
+            getOptionLabel={optionRenderer}
             value={value}
-            onChange={(value) => onChange(value as ExactCriterionSearchLabelEnum)}
+            onChange={onChange}
             options={options}
             getOptionProps={option => createAutoTestAttributes(
                 CRITERION_LABEL_OPTION_AUTOTEST_ID,
-                option.value,
+                option,
             )}
             MenuProps={{
                 slotProps: {

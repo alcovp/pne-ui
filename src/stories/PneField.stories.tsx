@@ -57,7 +57,7 @@ export const Controls: Story = {
             <PneSelect
                 options={deliveryServers.slice(1)}
                 placeholder='Please select'
-                value=''
+                value={null}
                 onChange={() => undefined}
             />
         </PneField>

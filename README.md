@@ -75,6 +75,64 @@ const { ref, ...field } = controllerField
 </PneField>
 ```
 
+## PneSelect
+
+`PneSelect` — controlled single-select для произвольного типа option. `value` имеет тип `T | null`, а `onChange`
+получает выбранный `T`. Для строк и чисел key и label выводятся автоматически; объектам нужны явные
+`getOptionKey` и `getOptionLabel`. Все option callbacks получают исходный объект, поэтому дополнительные поля не
+нужно переносить во вспомогательную форму `{value, label}`.
+
+`getOptionLabel` всегда возвращает plain `string`: он служит также accessible name для option. Rich JSX
+передавайте отдельно через `renderOption`, сохраняя в `getOptionLabel` текстовый эквивалент.
+
+Для HOC сначала зафиксируйте generic явным публичным props-типом: стандартный `ComponentProps<typeof PneSelect>`
+не может представить сразу primitive и object overloads без потери точности.
+
+```tsx
+const RegionSelect = (props: PneSelectObjectProps<Region, string>) => <PneSelect {...props}/>
+const MemoRegionSelect = memo(RegionSelect)
+```
+
+```tsx
+type Region = {
+    code: string
+    disabled: boolean
+    title: string
+}
+
+const [region, setRegion] = useState<Region | null>(null)
+
+<PneSelect
+    options={regions}
+    value={region}
+    onChange={setRegion}
+    getOptionKey={option => option.code}
+    getOptionLabel={option => option.title}
+    getOptionDisabled={option => option.disabled}
+    getOptionProps={option => ({'data-region': option.code})}
+    placeholder="Please select"
+/>
+```
+
+Компонент намеренно не публикует MUI-режимы `native`, `multiple`, `defaultValue`, custom input и input/slot escape
+hatches: его контракт controlled, single и non-native. `ref` указывает на корневой `HTMLDivElement` внутреннего
+MUI Select; `sx` и `fullWidth` применяются к внешнему FormControl. Для композиции
+label/helper/error/required/fullWidth оборачивайте select в `PneField`.
+`SelectDisplayProps` и `MenuProps` сохраняют styling/data/ARIA-настройки, но не позволяют заменить управляемые
+combobox/listbox roles, keyboard/pointer handlers, identity или open/close lifecycle.
+`getOptionProps` предназначен для неинтерактивных DOM-метаданных, ARIA, styling и `data-*`; содержимое option
+задавайте через `renderOption`, disabled-состояние — через `getOptionDisabled`, а выбор обрабатывайте в `onChange`.
+
+`null` обозначает только пустое состояние и не может входить в `options`; `undefined` также не является option.
+Ключи сериализуются в строки, поэтому после сериализации они должны быть уникальны; например, `1` и `"1"`
+конфликтуют. Пустая строка зарезервирована для `null`. Если key текущего `value` отсутствует в `options`, select
+показывает empty/placeholder state без MUI `out-of-range` warning и снова отображает значение после появления
+совпадающей option.
+
+При миграции object options передавайте в `value` сам выбранный объект или `null`, а не замаскированный через cast
+numeric/string ID. `getOptionLabel`, `getOptionProps`, `getOptionDisabled`, `renderOption` и `renderValue` теперь
+работают с исходным `T`, а не с нормализованным `{value, label}`.
+
 ## Якоря для автотестов
 
 Для нового кода добавляйте якорь непосредственно на существующий DOM-элемент или нужный MUI slot через

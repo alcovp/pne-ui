@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {ORDER_DATE_TYPES, OrderDate} from '../../types';
+import {ORDER_DATE_TYPES} from '../../types';
 import {Box, Chip, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
@@ -55,13 +55,13 @@ export const SearchUIOrderDateTypeSelect = () => {
             onClose={() => setOpen(false)}
             onOpen={() => setOpen(true)}
             sx={selectSx}
-            getOptionLabel={opt => optionRenderer(opt.label)}
+            getOptionLabel={optionRenderer}
             value={orderDateType}
-            onChange={orderDateType => setDateRangeCriterionOrderDateType(orderDateType as OrderDate)}
+            onChange={setDateRangeCriterionOrderDateType}
             options={ORDER_DATE_TYPES}
             getOptionProps={option => createAutoTestAttributes(
                 CRITERION_ORDER_DATE_TYPE_OPTION_AUTOTEST_ID,
-                option.value,
+                option,
             )}
             MenuProps={{
                 slotProps: {

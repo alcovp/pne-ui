@@ -83,12 +83,13 @@ const SearchUIAbstractEntityChipSelect = (props: IProps) => {
             onClose={() => setOpen(false)}
             onOpen={openSelect}
             sx={selectUnderChipSx}
-            getOptionLabel={option => option.label}
-            value={(selectedOption?.id ?? '') as unknown as AbstractEntity}
-            onChange={value => onChange(value as AbstractEntity)}
+            getOptionKey={option => option.id}
+            getOptionLabel={option => option.displayName}
+            value={selectedOption ?? null}
+            onChange={onChange}
             options={options}
             getOptionProps={autoTest
-                ? option => createAutoTestAttributes(autoTest.optionId, option.value)
+                ? option => createAutoTestAttributes(autoTest.optionId, option.id)
                 : undefined}
             MenuProps={autoTest
                 ? {

@@ -84,13 +84,13 @@ const SearchUIDateRangeSpecTypeSelect = () => {
             onClose={() => setOpen(false)}
             onOpen={() => setOpen(true)}
             sx={selectSx}
-            getOptionLabel={opt => optionRenderer(opt.label)}
+            getOptionLabel={optionRenderer}
             value={dateRangeSpec.dateRangeSpecType}
-            onChange={dateRangeSpec => handleSetDateRangeSpecType(dateRangeSpec as DateRangeSpecType)}
+            onChange={handleSetDateRangeSpecType}
             options={availableSpecTypes}
             getOptionProps={option => createAutoTestAttributes(
                 CRITERION_RANGE_SPEC_OPTION_AUTOTEST_ID,
-                option.value,
+                option,
             )}
             MenuProps={{
                 slotProps: {

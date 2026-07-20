@@ -84,14 +84,16 @@ export const OrdersSearchCountrySelect = () => {
             onClose={() => setOpen(false)}
             onOpen={openSelect}
             sx={selectUnderChipSx}
-            value={(selectedCountry?.id ?? '') as unknown as Country}
-            onChange={(value) => {
-                setOrderSearchCriterionValue(String((value as Country).id))
+            value={selectedCountry ?? null}
+            onChange={country => {
+                setOrderSearchCriterionValue(String(country.id))
             }}
             options={availableCountries}
+            getOptionKey={country => country.id}
+            getOptionLabel={country => country.displayName}
             getOptionProps={option => createAutoTestAttributes(
                 CRITERION_INPUT_OPTION_AUTOTEST_ID,
-                option.value,
+                option.id,
             )}
             MenuProps={{
                 slotProps: {

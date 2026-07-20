@@ -166,7 +166,7 @@ describe('PneField', () => {
             <PneSelect
                 options={['Email', 'SFTP']}
                 placeholder='Please select'
-                value=''
+                value={null}
                 onChange={() => undefined}
             />
         </PneField>)
@@ -187,7 +187,7 @@ describe('PneField', () => {
             <PneSelect
                 options={['Email', 'SFTP']}
                 placeholder='Please select'
-                value=''
+                value={null}
                 onChange={() => undefined}
             />
         </PneField>)
@@ -196,6 +196,57 @@ describe('PneField', () => {
         const helperText = screen.getByText('Required')
 
         expect(select.getAttribute('aria-describedby')).toBe(helperText.id)
+    })
+
+    it('composes external field state and caller ARIA with PneSelect', () => {
+        render(<>
+            <div id='custom-select-help'>Custom help</div>
+            <div id='display-select-help'>Display help</div>
+            <div id='replacement-select-label'>Replacement label</div>
+            <PneField
+                disabled
+                error
+                fullWidth={false}
+                helperText='Required'
+                id='message-server-field'
+                label='Message server'
+                required
+            >
+                <PneSelect
+                    aria-describedby='custom-select-help'
+                    options={['Email', 'SFTP']}
+                    placeholder='Please select'
+                    SelectDisplayProps={{
+                        'aria-describedby': 'display-select-help',
+                        'aria-disabled': 'false',
+                        'aria-invalid': 'false',
+                        'aria-labelledby': 'replacement-select-label',
+                        'aria-required': 'false',
+                        id: 'replacement-select-id',
+                    }}
+                    value={null}
+                    onChange={() => undefined}
+                />
+            </PneField>
+        </>)
+
+        const select = screen.getByRole('combobox', {name: /Message server/})
+        const helperText = screen.getByText('Required')
+        const selectFormControl = select.closest('.MuiFormControl-root')
+
+        expect(select.getAttribute('aria-describedby')).toBe(
+            `custom-select-help ${helperText.id} display-select-help`,
+        )
+        expect(select.getAttribute('aria-disabled')).toBe('true')
+        expect(select.getAttribute('aria-invalid')).toBe('true')
+        expect(select.getAttribute('aria-required')).toBe('true')
+        expect(select.getAttribute('aria-labelledby')?.split(' ')).toEqual([
+            'message-server-field-label',
+            'message-server-field-control',
+            'replacement-select-label',
+        ])
+        expect(select.id).toBe('message-server-field-control')
+        expect(selectFormControl?.classList.contains('MuiFormControl-fullWidth')).toBe(false)
     })
 
     it('does not inject input props into generic children', () => {

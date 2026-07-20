@@ -78,7 +78,7 @@ export const TransactionSessionStatusCriterion = () => {
     const modalTitle = t('react.searchUI.addSessionStatusTitle')
     const groupValue = groupOptions.includes(transactionSessionStatusGroup)
         ? transactionSessionStatusGroup
-        : ''
+        : null
 
     return <>
         <Box
@@ -143,13 +143,13 @@ export const TransactionSessionStatusCriterion = () => {
             <Box sx={modalContentSx}>
                 <PneSelect
                     value={groupValue}
-                    onChange={value => changeGroup(value as TransactionSessionGroup)}
+                    onChange={changeGroup}
                     options={groupOptions}
                     label={groupLabel}
                     disabled={loading || groupOptions.length === 0}
                     getOptionProps={option => createAutoTestAttributes(
                         CRITERION_TRANSACTION_SESSION_STATUS_GROUP_OPTION_AUTOTEST_ID,
-                        option.value,
+                        option,
                     )}
                     MenuProps={{
                         slotProps: {

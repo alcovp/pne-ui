@@ -105,12 +105,14 @@ export const ProjectCurrencyCriterion = () => {
                 onClose={() => setOpen(false)}
                 onOpen={openSelect}
                 sx={selectUnderChipSx}
-                value={(selectedCurrency?.id ?? '') as unknown as AbstractEntity}
-                onChange={(value) => setProjectCurrencyCriterionCurrency(value as AbstractEntity)}
+                value={selectedCurrency ?? null}
+                onChange={setProjectCurrencyCriterionCurrency}
                 options={availableCurrencies}
+                getOptionKey={option => option.id}
+                getOptionLabel={option => option.displayName}
                 getOptionProps={option => createAutoTestAttributes(
                     CRITERION_PROJECT_CURRENCY_OPTION_AUTOTEST_ID,
-                    option.value,
+                    option.id,
                 )}
                 MenuProps={{
                     slotProps: {

@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {GROUPING_DATE_TYPES, GroupingDateType} from '../../types';
+import {GROUPING_DATE_TYPES} from '../../types';
 import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
@@ -44,13 +44,13 @@ const SearchUIGroupingDateTypeSelect = () => {
             onClose={() => setOpen(false)}
             onOpen={() => setOpen(true)}
             sx={selectUnderChipSx}
-            getOptionLabel={opt => optionRenderer(opt.label)}
+            getOptionLabel={optionRenderer}
             value={dateType}
-            onChange={(value) => setGroupingCriterionDateType(value as GroupingDateType)}
+            onChange={setGroupingCriterionDateType}
             options={GROUPING_DATE_TYPES}
             getOptionProps={option => createAutoTestAttributes(
                 CRITERION_GROUPING_DATE_TYPE_OPTION_AUTOTEST_ID,
-                option.value,
+                option,
             )}
             MenuProps={{
                 slotProps: {

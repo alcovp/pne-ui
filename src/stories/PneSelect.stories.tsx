@@ -10,6 +10,15 @@ export default {
 
 type Story = StoryObj<typeof PneSelect>
 
+const encodings = ['UTF-8', 'ANSI'] as const
+const deliveryServers = ['Email', 'SFTP'] as const
+const regions = [
+    {code: 'eu', disabled: false, title: 'Europe'},
+    {code: 'apac', disabled: true, title: 'Asia Pacific'},
+] as const
+
+type Region = (typeof regions)[number]
+
 export const Default: Story = {
     render: () => <DefaultSelectStory/>,
 }
@@ -18,24 +27,22 @@ export const Placeholder: Story = {
     render: () => <PlaceholderSelectStory/>,
 }
 
+export const ObjectOptions: Story = {
+    render: () => <ObjectOptionsSelectStory/>,
+}
+
 const DefaultSelectStory = () => {
-    const [value, setValue] = useState('UTF-8')
-    const handleChange = (option: string | {displayName: string}) => setValue(
-        typeof option === 'string' ? option : option.displayName,
-    )
+    const [value, setValue] = useState<(typeof encodings)[number]>('UTF-8')
 
     return <PneSelect
-        options={['UTF-8', 'ANSI']}
+        options={encodings}
         value={value}
-        onChange={handleChange}
+        onChange={setValue}
     />
 }
 
 const PlaceholderSelectStory = () => {
-    const [value, setValue] = useState('')
-    const handleChange = (option: string | {displayName: string}) => setValue(
-        typeof option === 'string' ? option : option.displayName,
-    )
+    const [value, setValue] = useState<(typeof deliveryServers)[number] | null>(null)
 
     return <Stack
         spacing={2}
@@ -44,21 +51,35 @@ const PlaceholderSelectStory = () => {
         }}
     >
         <PneSelect
-            options={['Email', 'SFTP']}
+            options={deliveryServers}
             placeholder='Please select'
             value={value}
-            onChange={handleChange}
+            onChange={setValue}
         />
         <PneField
             label='Message server'
             required
         >
             <PneSelect
-                options={['Email', 'SFTP']}
+                options={deliveryServers}
                 placeholder='Please select'
                 value={value}
-                onChange={handleChange}
+                onChange={setValue}
             />
         </PneField>
     </Stack>
+}
+
+const ObjectOptionsSelectStory = () => {
+    const [value, setValue] = useState<Region | null>({...regions[0]})
+
+    return <PneSelect
+        options={regions}
+        value={value}
+        onChange={setValue}
+        getOptionKey={option => option.code}
+        getOptionLabel={option => option.title}
+        getOptionDisabled={option => option.disabled}
+        getOptionProps={option => ({'data-region': option.code})}
+    />
 }

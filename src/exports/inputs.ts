@@ -13,6 +13,17 @@ export type {
     PneAsyncAutocompleteProps,
 } from '../component/dropdown/PneAsyncAutocomplete'
 export { default as PneSelect } from '../component/dropdown/PneSelect'
+export type {
+    PneSelectKey,
+    PneSelectDisplayProps,
+    PneSelectMenuListProps,
+    PneSelectMenuPaperProps,
+    PneSelectMenuProps,
+    PneSelectObjectProps,
+    PneSelectOptionProps,
+    PneSelectPrimitiveProps,
+    PneSelectProps,
+} from '../component/dropdown/PneSelect'
 export { PneDropdownChoice } from '../common/paynet/dropdown'
 
 export { PneCheckbox } from '../component/PneCheckbox'
