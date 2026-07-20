@@ -101,4 +101,30 @@ describe('overlayActions.showUndoSnackbar', () => {
             }),
         ])
     })
+
+    it('keeps ordinary errors persistent and transient errors timed', () => {
+        overlayActions.showTransientError({
+            id: 'transient-error',
+            message: 'Temporary failure',
+        })
+        overlayActions.showError({
+            id: 'persistent-error',
+            message: 'Persistent failure',
+        })
+
+        expect(useOverlayStore.getState().snackbars).toEqual([
+            expect.objectContaining({
+                id: 'transient-error',
+                message: 'Temporary failure',
+                variant: 'error',
+                autoHideMs: 5000,
+            }),
+            expect.objectContaining({
+                id: 'persistent-error',
+                message: 'Persistent failure',
+                variant: 'error',
+                autoHideMs: undefined,
+            }),
+        ])
+    })
 })

@@ -58,6 +58,15 @@ export const overlayActions = {
     },
     showSuccess: showWithVariant('success'),
     showError: showWithVariant('error'),
+    /** Shows an error snackbar that auto-hides after the standard 5000 ms transient timeout. */
+    showTransientError: (snackbar: Omit<SnackbarOptions, 'variant' | 'autoHideMs'>) => {
+        reportMissingOverlayHost('showTransientError')
+        useOverlayStore.getState().enqueueSnackbar({
+            ...snackbar,
+            variant: 'error',
+            autoHideMs: defaultAutoHideMs,
+        })
+    },
     showWarning: showWithVariant('warning'),
     showInfo: showWithVariant('info'),
     /**

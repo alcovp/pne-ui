@@ -22,11 +22,11 @@ const ConfirmTrigger = ({
     options,
 }: {
     onResult: (accepted: boolean) => void
-    options: PneConfirmOptions
+    options?: PneConfirmOptions
 }) => {
     const { confirm } = usePneConfirm()
 
-    return <button onClick={() => void confirm(options).then(onResult)}>
+    return <button onClick={() => void (options ? confirm(options) : confirm()).then(onResult)}>
         Open confirm
     </button>
 }
@@ -76,6 +76,25 @@ describe('PneConfirmProvider', () => {
     })
 
     it.each([
+        ['omitted', undefined],
+        ['empty', { message: '' }],
+    ] as const)('omits the modal body when the message is %s', async (_case, options) => {
+        render(
+            <PneConfirmProvider>
+                <ConfirmTrigger onResult={jest.fn()} options={options} />
+            </PneConfirmProvider>,
+        )
+
+        fireEvent.click(screen.getByRole('button', { name: 'Open confirm' }))
+
+        expect(await screen.findByRole('dialog', { name: 'Confirm action' })).toBeTruthy()
+        expect(document.querySelector("[data-autotest='alert.message']")).toBeNull()
+        expect(document.querySelector("[data-pne-modal-body='true']")).toBeNull()
+        expect(autoTestNode('alert.button.cancel').textContent).toBe('Cancel')
+        expect(autoTestNode('alert.button.submit').textContent).toBe('Yes')
+    })
+
+    it.each([
         ['cancel', 'alert.button.cancel'],
         ['close', 'alert.button.close'],
     ])('resolves false from the %s action', async (_action, autoTestId) => {
@@ -122,24 +141,121 @@ describe('PneConfirmProvider', () => {
         }
 
         render(
-            <PneConfirmProvider defaultOptions={{ danger: true, showCancel: false }}>
+            <PneConfirmProvider
+                defaultOptions={{
+                    title: 'Default title',
+                    confirmLabel: 'Proceed',
+                    cancelLabel: 'Back',
+                    danger: true,
+                    showCancel: false,
+                }}
+            >
                 <CaptureConfirm />
             </PneConfirmProvider>,
         )
 
         act(() => {
             void confirm({ message: 'Inherited defaults' })
-            void confirm({ danger: false, message: 'Explicit overrides', showCancel: true })
+            void confirm({
+                title: 'Override title',
+                message: 'Explicit overrides',
+                confirmLabel: 'Accept',
+                cancelLabel: 'Dismiss',
+                danger: false,
+                showCancel: true,
+            })
         })
 
         expect(await screen.findByText('Inherited defaults')).toBeTruthy()
+        expect(screen.getByRole('dialog', { name: 'Default title' })).toBeTruthy()
         expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').textContent).toBe('Proceed')
         expect(document.querySelector("[data-autotest='alert.button.cancel']")).toBeNull()
         fireEvent.click(autoTestNode('alert.button.submit'))
 
         expect(await screen.findByText('Explicit overrides')).toBeTruthy()
+        expect(screen.getByRole('dialog', { name: 'Override title' })).toBeTruthy()
         expect(autoTestNode('alert.button.submit').className).not.toContain('MuiButton-colorError')
-        expect(autoTestNode('alert.button.cancel')).toBeTruthy()
+        expect(autoTestNode('alert.button.submit').textContent).toBe('Accept')
+        expect(autoTestNode('alert.button.cancel').textContent).toBe('Dismiss')
+    })
+
+    it('serves destructive and delete presets through the shared queue', async () => {
+        let confirmDestructive: ReturnType<typeof usePneConfirm>['confirmDestructive'] = async () => false
+        let confirmDelete: ReturnType<typeof usePneConfirm>['confirmDelete'] = async () => false
+        const CaptureConfirm = () => {
+            ({ confirmDestructive, confirmDelete } = usePneConfirm())
+            return null
+        }
+
+        render(
+            <PneConfirmProvider>
+                <CaptureConfirm />
+            </PneConfirmProvider>,
+        )
+
+        let destructiveResult: Promise<boolean>
+        let deleteResult: Promise<boolean>
+        act(() => {
+            destructiveResult = confirmDestructive({
+                message: 'Destructive action',
+                confirmLabel: 'Proceed',
+            })
+            deleteResult = confirmDelete({ message: 'Delete item' })
+        })
+
+        expect(await screen.findByText('Destructive action')).toBeTruthy()
+        expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').textContent).toBe('Proceed')
+        fireEvent.click(autoTestNode('alert.button.submit'))
+        await expect(destructiveResult!).resolves.toBe(true)
+
+        expect(await screen.findByText('Delete item')).toBeTruthy()
+        expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').textContent).toBe('Delete')
+        fireEvent.click(autoTestNode('alert.button.cancel'))
+        await expect(deleteResult!).resolves.toBe(false)
+    })
+
+    it('merges delete defaults over common defaults and under per-call options', async () => {
+        let confirmDelete: ReturnType<typeof usePneConfirm>['confirmDelete'] = async () => false
+        const CaptureConfirm = () => {
+            confirmDelete = usePneConfirm().confirmDelete
+            return null
+        }
+
+        render(
+            <PneConfirmProvider
+                defaultOptions={{
+                    title: 'Common title',
+                    confirmLabel: 'Common confirm',
+                    cancelLabel: 'Common cancel',
+                    showCancel: false,
+                }}
+                deleteOptions={{
+                    title: 'Delete title',
+                    confirmLabel: 'Remove',
+                    cancelLabel: 'Delete cancel',
+                    showCancel: true,
+                }}
+            >
+                <CaptureConfirm />
+            </PneConfirmProvider>,
+        )
+
+        act(() => {
+            void confirmDelete({
+                title: 'Call title',
+                message: 'Delete configured item',
+                cancelLabel: 'Call cancel',
+            })
+        })
+
+        expect(await screen.findByText('Delete configured item')).toBeTruthy()
+        expect(screen.getByRole('dialog', { name: 'Call title' })).toBeTruthy()
+        expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').textContent).toBe('Remove')
+        expect(autoTestNode('alert.button.cancel').textContent).toBe('Call cancel')
     })
 
     it('serves concurrent requests in FIFO order', async () => {

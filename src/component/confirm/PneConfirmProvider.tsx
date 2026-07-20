@@ -8,7 +8,7 @@ import { createAutoTestAttributes } from '../AutoTestAttribute'
 
 export type PneConfirmOptions = {
     title?: string
-    message: React.ReactNode
+    message?: React.ReactNode
     confirmLabel?: string
     cancelLabel?: string
     /** Use the destructive/error visual treatment for the confirm action. */
@@ -17,15 +17,20 @@ export type PneConfirmOptions = {
     showCancel?: boolean
 }
 
+export type PneConfirmDestructiveOptions = Omit<PneConfirmOptions, 'danger'>
+export type PneConfirmDeleteOptions = Omit<PneConfirmOptions, 'danger' | 'confirmLabel'>
+export type PneConfirmDeleteDefaultOptions = Omit<PneConfirmOptions, 'message' | 'danger'>
+
 export type PneConfirmProviderProps = {
     children: React.ReactNode
     defaultOptions?: Partial<Omit<PneConfirmOptions, 'message'>>
+    deleteOptions?: PneConfirmDeleteDefaultOptions
 }
 
 type PendingConfirm = {
     requestId: number
     title: string
-    message: React.ReactNode
+    message?: React.ReactNode
     confirmLabel: string
     cancelLabel: string
     danger: boolean
@@ -33,8 +38,10 @@ type PendingConfirm = {
     resolve: (accepted: boolean) => void
 }
 
-type PneConfirmContextValue = {
-    confirm: (options: PneConfirmOptions) => Promise<boolean>
+export type PneConfirmContextValue = {
+    confirm: (options?: PneConfirmOptions) => Promise<boolean>
+    confirmDestructive: (options?: PneConfirmDestructiveOptions) => Promise<boolean>
+    confirmDelete: (options?: PneConfirmDeleteOptions) => Promise<boolean>
 }
 
 const PneConfirmContext = createContext<PneConfirmContextValue | null>(null)
@@ -44,8 +51,12 @@ const normalizeTitle = (title?: string): string | undefined => {
     if (!title) return undefined
     return title.trim().length > 0 ? title : undefined
 }
+const hasMessage = (message: React.ReactNode): boolean => {
+    if (typeof message === 'string') return message.trim().length > 0
+    return React.Children.toArray(message).length > 0
+}
 
-export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProviderProps) => {
+export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: PneConfirmProviderProps) => {
     const { t } = useTranslation()
     const queueRef = useRef<PendingConfirm[]>([])
     const currentRef = useRef<PendingConfirm | null>(null)
@@ -54,9 +65,10 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
 
     const fallbackStrings = useMemo(
         () => ({
-            title: t('react.confirm-alert.title.confirm-action', { defaultValue: 'Confirm action' }),
-            confirmLabel: t('react.confirm-alert.yes', { defaultValue: 'Yes' }),
-            cancelLabel: t('react.confirm-alert.no.cancel', { defaultValue: 'Cancel' }),
+            title: t('pne.confirm.title', { defaultValue: 'Confirm action' }),
+            confirmLabel: t('pne.confirm.confirm', { defaultValue: 'Yes' }),
+            cancelLabel: t('pne.confirm.cancel', { defaultValue: 'Cancel' }),
+            deleteLabel: t('pne.confirm.delete', { defaultValue: 'Delete' }),
         }),
         [t],
     )
@@ -77,7 +89,7 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
     )
 
     const confirm = useCallback(
-        (options: PneConfirmOptions) =>
+        (options: PneConfirmOptions = {}) =>
             new Promise<boolean>(resolve => {
                 const pending: PendingConfirm = {
                     requestId: ++requestIdRef.current,
@@ -101,6 +113,23 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
         [defaultOptions?.cancelLabel, defaultOptions?.confirmLabel, defaultOptions?.danger, defaultOptions?.showCancel, defaultOptions?.title, fallbackStrings.cancelLabel, fallbackStrings.confirmLabel, fallbackStrings.title],
     )
 
+    const confirmDestructive = useCallback(
+        (options: PneConfirmDestructiveOptions = {}) => confirm({ ...options, danger: true }),
+        [confirm],
+    )
+
+    const confirmDelete = useCallback(
+        (options: PneConfirmDeleteOptions = {}) => confirm({
+            title: normalizeTitle(options.title) ?? normalizeTitle(deleteOptions?.title),
+            message: options.message,
+            confirmLabel: deleteOptions?.confirmLabel ?? fallbackStrings.deleteLabel,
+            cancelLabel: options.cancelLabel ?? deleteOptions?.cancelLabel,
+            danger: true,
+            showCancel: options.showCancel ?? deleteOptions?.showCancel,
+        }),
+        [confirm, deleteOptions?.cancelLabel, deleteOptions?.confirmLabel, deleteOptions?.showCancel, deleteOptions?.title, fallbackStrings.deleteLabel],
+    )
+
     useEffect(
         () => () => {
             currentRef.current?.resolve(false)
@@ -111,7 +140,10 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
         [],
     )
 
-    const contextValue = useMemo<PneConfirmContextValue>(() => ({ confirm }), [confirm])
+    const contextValue = useMemo<PneConfirmContextValue>(
+        () => ({ confirm, confirmDestructive, confirmDelete }),
+        [confirm, confirmDelete, confirmDestructive],
+    )
 
     return (
         <PneConfirmContext.Provider value={contextValue}>
@@ -142,13 +174,15 @@ export const PneConfirmProvider = ({ children, defaultOptions }: PneConfirmProvi
                 title={current?.title}
                 containerSx={{ maxWidth: 560, width: 'calc(100% - 32px)', minWidth: 0 }}
             >
-                <Stack spacing={3}>
-                    <Box {...createAutoTestAttributes('alert.message')}>
-                        <Typography sx={{ fontSize: '14px', lineHeight: '20px', color: '#4E5D78' }}>
-                            {current?.message}
-                        </Typography>
-                    </Box>
-                </Stack>
+                {current && hasMessage(current.message) ? (
+                    <Stack spacing={3}>
+                        <Box {...createAutoTestAttributes('alert.message')}>
+                            <Typography sx={{ fontSize: '14px', lineHeight: '20px', color: '#4E5D78' }}>
+                                {current.message}
+                            </Typography>
+                        </Box>
+                    </Stack>
+                ) : null}
             </PneModal>
         </PneConfirmContext.Provider>
     )
