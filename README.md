@@ -133,6 +133,92 @@ combobox/listbox roles, keyboard/pointer handlers, identity или open/close li
 numeric/string ID. `getOptionLabel`, `getOptionProps`, `getOptionDisabled`, `renderOption` и `renderValue` теперь
 работают с исходным `T`, а не с нормализованным `{value, label}`.
 
+## PneAutocomplete
+
+`PneAutocomplete` сохраняет MUI-контракт single/multiple, `disableClearable` и `freeSolo`, но не ограничивает
+данные Paynet DTO. Для строк, чисел и структур `{id, displayName}` / `{choiceId, displayName}` key, label и
+сравнение выводятся автоматически. `id` и `choiceId` могут быть строками или числами; восстановленный из API
+объект считается выбранным по key, а не по ссылке. Значения разных форм (например, freeSolo-строка и объект)
+всегда считаются различными и не приводят к исключению.
+
+Для произвольного объекта обязательны `getOptionKey` и `getOptionLabel`. Явный key также становится default
+правилом сравнения, если caller не передал `isOptionEqualToValue`:
+
+```tsx
+type Region = {code: string; title: string; disabled: boolean}
+
+<PneAutocomplete
+    options={regions}
+    value={selectedRegion}
+    onChange={(_event, value) => setSelectedRegion(value)}
+    getOptionKey={region => region.code}
+    getOptionLabel={region => region.title}
+    getOptionDisabled={region => region.disabled}
+    label="Region"
+/>
+```
+
+Обычный `ref` указывает на фиксированный root `HTMLDivElement`, `inputRef` — на нативный `HTMLInputElement`.
+`htmlInputProps` принимает только безопасные native metadata: `data-*`, name/ARIA и ограниченный набор
+текстовых input-атрибутов. Lifecycle handlers, `value`, `id`, `role`, `disabled`, `readOnly` и другие управляемые
+свойства задаются через API Autocomplete. Имя input автоматически переносится на portal listbox; это работает
+для собственного `label`, внешнего `PneField`, `aria-label` и `aria-labelledby`.
+
+## PneAsyncAutocomplete
+
+`PneAsyncAutocomplete` владеет remote options, loading и отключением локальной MUI-фильтрации. Loader получает
+plain query и контекст запроса:
+
+```tsx
+<PneAsyncAutocomplete
+    value={merchant}
+    onChange={(_event, value) => setMerchant(value)}
+    loadOptions={(query, {signal}) => api.searchMerchants({query, signal})}
+    reloadKey={manager?.id}
+    minQueryLength={2}
+    onLoadError={(error, {query, reason}) => reportAutocompleteError(error, query, reason)}
+    label="Merchant"
+/>
+```
+
+```ts
+type PneLoadOptions<T> = (
+    query: string,
+    context: {
+        signal: AbortSignal
+        reason: 'open' | 'input' | 'clear' | 'reload'
+    },
+) => Promise<readonly T[]>
+```
+
+Новый запрос отменяет предыдущий через `AbortSignal` и дополнительно защищён request ID на случай, если loader
+игнорирует signal. Закрытие и unmount также отменяют активный запрос. Sync throw и rejected Promise переходят в
+одно error-состояние; `AbortError` не вызывает `onLoadError`. `loadErrorText`, `minQueryLengthText`, MUI
+`loadingText` и `noOptionsText` разделяют error/min-query/loading/empty состояния и объявляются assistive
+technology. `keepPreviousOptions` по умолчанию выключен.
+
+`open` и `inputValue` поддерживают controlled и uncontrolled режимы с исходными MUI callbacks/reasons.
+Изменение identity `loadOptions` не перезапускает открытый поиск: для реальной зависимости результата от
+manager/status/currency передавайте стабильный primitive `reloadKey`.
+
+Компонент намеренно не делает debounce и вызывает loader сразу для `open`, пользовательского `input`, `clear`
+и изменения `reloadKey`. Если сервисный метод уже обёрнут React/service debounce-декоратором, дополнительного
+слоя в компоненте нет и конфликтовать с ним нечему.
+
+Breaking migration со старого API выполняется напрямую:
+
+```tsx
+// было
+<PneAsyncAutocomplete searchChoices={({searchString}) => search(searchString ?? '')}/>
+
+// стало
+<PneAsyncAutocomplete loadOptions={query => search(query)}/>
+```
+
+`searchChoices` и `onSearchError` удалены; используйте `loadOptions` и `onLoadError`. Props `options`, `loading`
+и `filterOptions` также не входят в async API, потому что ими владеет компонент. Debounce в эту миграцию не
+входит.
+
 ## Якоря для автотестов
 
 Для нового кода добавляйте якорь непосредственно на существующий DOM-элемент или нужный MUI slot через

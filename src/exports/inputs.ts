@@ -4,13 +4,21 @@ export { default as PneField } from '../component/PneField'
 export type { PneFieldProps } from '../component/PneField'
 export { default as PneAutocomplete } from '../component/dropdown/PneAutocomplete'
 export type {
+    PneAutocompleteBuiltInProps,
+    PneAutocompleteCustomProps,
     PneAutocompleteHtmlInputProps,
     PneAutocompleteProps,
 } from '../component/dropdown/PneAutocomplete'
 export { default as PneAsyncAutocomplete } from '../component/dropdown/PneAsyncAutocomplete'
 export type {
+    PneAsyncAutocompleteBuiltInProps,
+    PneAsyncAutocompleteCustomProps,
     PneAsyncAutocompleteHtmlInputProps,
+    PneAsyncAutocompleteLoadContext,
+    PneAsyncAutocompleteLoadErrorContext,
+    PneAsyncAutocompleteLoadReason,
     PneAsyncAutocompleteProps,
+    PneLoadOptions,
 } from '../component/dropdown/PneAsyncAutocomplete'
 export { default as PneSelect } from '../component/dropdown/PneSelect'
 export type {
@@ -24,7 +32,14 @@ export type {
     PneSelectPrimitiveProps,
     PneSelectProps,
 } from '../component/dropdown/PneSelect'
-export { PneDropdownChoice } from '../common/paynet/dropdown'
+export type {
+    PneAutocompleteChoiceOption,
+    PneAutocompleteIdOption,
+    PneAutocompleteKey,
+    PneAutocompleteOption,
+    PneBuiltInAutocompleteOption,
+    PneDropdownChoice,
+} from '../common/paynet/dropdown'
 
 export { PneCheckbox } from '../component/PneCheckbox'
 export { PneLabeledCheckbox } from '../component/PneLabeledCheckbox'

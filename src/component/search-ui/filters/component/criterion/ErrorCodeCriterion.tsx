@@ -30,7 +30,7 @@ export const ErrorCodeCriterion = () => {
     return <PneAsyncAutocomplete<AutoCompleteChoice>
         value={errorCode}
         onChange={(e, value) => setErrorCode(value)}
-        searchChoices={searchErrorCodes}
+        loadOptions={query => searchErrorCodes({searchString: query})}
         htmlInputProps={{
             ...createAutoTestAttributes(CRITERION_ERROR_CODE_AUTOTEST_ID, errorCode?.choiceId),
             'aria-label': inputAriaLabel,

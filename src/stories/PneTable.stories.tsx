@@ -50,7 +50,7 @@ const HookWrap = () => {
 
     return <Box sx={{background: '#FFFFFF'}}>
         <PneAsyncAutocomplete
-            searchChoices={() => {
+            loadOptions={() => {
                 return getList(1, 10, 10)
             }}
         />

@@ -1,72 +1,121 @@
-import {assertObject, exhaustiveCheck,} from '../pne';
-import {AutocompleteFreeSoloValueMapping, SxProps} from '@mui/material';
-import {AbstractEntity, AutoCompleteChoice, isAbstractEntity, isIAutoCompleteChoice} from "./type";
+import type {
+    AutocompleteFreeSoloValueMapping,
+    SxProps,
+} from '@mui/material'
+import type {AbstractEntity, AutoCompleteChoice} from './type'
 
+export type PneAutocompleteKey = string | number
+
+export type PneAutocompleteIdOption = {
+    id: PneAutocompleteKey
+    displayName: string
+}
+
+export type PneAutocompleteChoiceOption = {
+    choiceId: PneAutocompleteKey
+    displayName: string
+}
+
+export type PneBuiltInAutocompleteOption =
+    | string
+    | number
+    | PneAutocompleteIdOption
+    | PneAutocompleteChoiceOption
+
+/** Any non-nullish value can be an option when object-specific adapters are supplied. */
+export type PneAutocompleteOption = NonNullable<unknown>
+
+/** Legacy domain union retained for source compatibility. */
 export type PneDropdownChoice = AutoCompleteChoice | AbstractEntity | string
 
-export const getOptionLabel = <T extends PneDropdownChoice, FreeSolo>(
-    option: T | AutocompleteFreeSoloValueMapping<FreeSolo>
-) => {
+type BuiltInOptionOrFreeSolo<
+    T extends PneBuiltInAutocompleteOption,
+    FreeSolo extends boolean | undefined,
+> = T | AutocompleteFreeSoloValueMapping<FreeSolo>
+
+type BuiltInIdentity = {
+    key: PneAutocompleteKey
+    kind: 'choiceId' | 'id' | 'number' | 'string'
+}
+
+export const getOptionLabel = <
+    T extends PneBuiltInAutocompleteOption,
+    FreeSolo extends boolean | undefined = false,
+>(option: BuiltInOptionOrFreeSolo<T, FreeSolo>): string => {
     if (typeof option === 'string') {
         return option
     }
 
-    assertObject(option)
-    if (isIAutoCompleteChoice(option)) {
-        return option.displayName
-    } else if (isAbstractEntity(option)) {
+    if (typeof option === 'number') {
+        return String(option)
+    }
+
+    if (isRecord(option) && typeof option.displayName === 'string') {
         return option.displayName
     }
 
-    exhaustiveCheck(option)
-
-    throw new TypeError('Incompatible types of option:\n'
-        + JSON.stringify(option, null, 4)
-    )
+    throw new TypeError('Unsupported autocomplete option. Supply getOptionLabel for custom options.')
 }
 
-export const getOptionKey = <T extends PneDropdownChoice, FreeSolo>(
-    option: T | AutocompleteFreeSoloValueMapping<FreeSolo>
-) => {
+export const getOptionKey = <
+    T extends PneBuiltInAutocompleteOption,
+    FreeSolo extends boolean | undefined = false,
+>(option: BuiltInOptionOrFreeSolo<T, FreeSolo>): PneAutocompleteKey => {
+    const identity = getBuiltInIdentity(option)
+
+    if (identity) {
+        return identity.key
+    }
+
+    throw new TypeError('Unsupported autocomplete option. Supply getOptionKey for custom options.')
+}
+
+/**
+ * Default equality for the built-in option shapes. It is intentionally total:
+ * incompatible option kinds and malformed runtime values compare as unequal.
+ */
+export const isOptionEqualToValue = <T extends PneBuiltInAutocompleteOption>(
+    option: T,
+    value: unknown,
+): boolean => {
+    const optionIdentity = getBuiltInIdentity(option)
+    const valueIdentity = getBuiltInIdentity(value)
+
+    return optionIdentity !== undefined
+        && valueIdentity !== undefined
+        && optionIdentity.kind === valueIdentity.kind
+        && optionIdentity.key === valueIdentity.key
+}
+
+const getBuiltInIdentity = (option: unknown): BuiltInIdentity | undefined => {
     if (typeof option === 'string') {
-        return option
+        return {key: option, kind: 'string'}
     }
 
-    assertObject(option)
-    if (isIAutoCompleteChoice(option)) {
-        return option.choiceId
-    } else if (isAbstractEntity(option)) {
-        return option.id
+    if (typeof option === 'number') {
+        return {key: option, kind: 'number'}
     }
 
-    exhaustiveCheck(option)
+    if (!isRecord(option) || typeof option.displayName !== 'string') {
+        return undefined
+    }
 
-    throw new TypeError('Incompatible types of option:\n'
-        + JSON.stringify(option, null, 4)
-    )
+    if (isAutocompleteKey(option.choiceId)) {
+        return {key: option.choiceId, kind: 'choiceId'}
+    }
+
+    if (isAutocompleteKey(option.id)) {
+        return {key: option.id, kind: 'id'}
+    }
+
+    return undefined
 }
 
-export const isOptionEqualToValue = <T extends PneDropdownChoice>(option: T, value: T) => {
-    if (typeof option === 'string' && typeof value === 'string') {
-        return option === value
-    }
+const isRecord = (value: unknown): value is Record<PropertyKey, unknown> =>
+    typeof value === 'object' && value !== null
 
-    assertObject(option)
-    assertObject(value)
-    if (isIAutoCompleteChoice(option) && isIAutoCompleteChoice(value)) {
-        return option.choiceId === value.choiceId
-    } else if (isAbstractEntity(option) && isAbstractEntity(value)) {
-        return option.id === value.id
-    }
-
-    // TODO why it doesn't work?
-    // exhaustiveCheck(option, value)
-
-    throw new TypeError('Incompatible types of option and value:\n'
-        + JSON.stringify(option, null, 4) + '\n'
-        + JSON.stringify(value, null, 4)
-    )
-}
+const isAutocompleteKey = (value: unknown): value is PneAutocompleteKey =>
+    typeof value === 'string' || typeof value === 'number'
 
 export const dropDownSx: SxProps = {
     '& .MuiButtonBase-root.MuiChip-root': {
