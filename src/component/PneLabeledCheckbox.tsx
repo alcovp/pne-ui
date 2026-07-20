@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react'
+import React, {forwardRef, useId} from 'react'
 import {
     FormControl,
     FormControlLabel,
@@ -10,10 +10,10 @@ import {
     FormHelperTextProps,
     SxProps,
 } from '@mui/material'
-import { CheckboxProps } from '@mui/material/Checkbox'
-import { PneCheckbox } from './PneCheckbox'
+import {mergeAriaDescribedBy} from './PneFieldContext'
+import {PneCheckbox, PneCheckboxProps} from './PneCheckbox'
 
-export type PneLabeledCheckboxProps = CheckboxProps & {
+export interface PneLabeledCheckboxProps extends PneCheckboxProps {
     label?: React.ReactNode
     helperText?: React.ReactNode
     error?: boolean
@@ -24,8 +24,10 @@ export type PneLabeledCheckboxProps = CheckboxProps & {
     helperTextProps?: FormHelperTextProps
 }
 
-export const PneLabeledCheckbox = forwardRef<HTMLButtonElement, PneLabeledCheckboxProps>((props, ref) => {
+export const PneLabeledCheckbox = forwardRef<HTMLSpanElement, PneLabeledCheckboxProps>((props, ref) => {
     const {
+        'aria-describedby': ariaDescribedBy,
+        'aria-invalid': ariaInvalid,
         label,
         helperText,
         error = false,
@@ -37,6 +39,11 @@ export const PneLabeledCheckbox = forwardRef<HTMLButtonElement, PneLabeledCheckb
         sx,
         ...rest
     } = props
+    const generatedId = useId()
+    const hasHelperText = helperText !== undefined && helperText !== null
+    const helperTextId = hasHelperText
+        ? helperTextProps?.id ?? `${generatedId}-helper-text`
+        : undefined
 
     return (
         <FormControl
@@ -49,6 +56,8 @@ export const PneLabeledCheckbox = forwardRef<HTMLButtonElement, PneLabeledCheckb
                     control={
                         <PneCheckbox
                             {...rest}
+                            aria-describedby={mergeAriaDescribedBy(ariaDescribedBy, helperTextId)}
+                            aria-invalid={error ? true : ariaInvalid}
                             sx={sx}
                             ref={ref}
                         />
@@ -57,8 +66,8 @@ export const PneLabeledCheckbox = forwardRef<HTMLButtonElement, PneLabeledCheckb
                     {...formControlLabelProps}
                 />
             </FormGroup>
-            {helperText && (
-                <FormHelperText {...helperTextProps}>{helperText}</FormHelperText>
+            {hasHelperText && (
+                <FormHelperText {...helperTextProps} id={helperTextId}>{helperText}</FormHelperText>
             )}
         </FormControl>
     )

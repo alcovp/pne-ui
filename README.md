@@ -10,19 +10,20 @@
 Установите `pne-ui` вместе с peer-зависимостями:
 
 ```bash
-yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9 @mui/system@^9 @mui/x-date-pickers-pro@^9 @mui/icons-material@^9 i18next@^23 react@^19 react-dom@^19 react-i18next@^11
+yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9.0.1 @mui/system@^9.0.1 @mui/x-date-pickers-pro@^9 @mui/icons-material@^9.0.1 i18next@^23 react@^19 react-dom@^19 react-i18next@^11
 ```
 
-`pne-ui` требует React 19 и MUI 9. React 18 и предыдущие major-версии MUI не входят в поддерживаемый peer contract.
+`pne-ui` требует React 19 и MUI 9.0.1 или новее в пределах major 9. React 18, MUI 9.0.0 и предыдущие
+major-версии MUI не входят в поддерживаемый peer contract.
 
 Необходимые peer-зависимости и минимальные версии:
 
 - `@emotion/react@^11`
 - `@emotion/styled@^11`
-- `@mui/material@^9`
-- `@mui/system@^9`
+- `@mui/material@>=9.0.1 <10`
+- `@mui/system@>=9.0.1 <10`
 - `@mui/x-date-pickers-pro@^9`
-- `@mui/icons-material@^9`
+- `@mui/icons-material@>=9.0.1 <10`
 - `i18next@^23`
 - `react@^19`
 - `react-dom@^19`
@@ -71,6 +72,36 @@ const { ref, ...field } = controllerField
         {...field}
         inputRef={ref}
         slotProps={{htmlInput: {maxLength: 64}}}
+    />
+</PneField>
+```
+
+## PneCheckbox, PneSwitch и PneLabeledCheckbox
+
+`PneCheckbox` и `PneSwitch` сохраняют MUI-контракт `checked` / `defaultChecked` / `onChange`, а также нативные
+`name`, `value`, `required` и `disabled`. Основной `ref` указывает на фактический root `HTMLSpanElement`; для
+focus, form-библиотек и доступа к нативным свойствам используйте `inputRef: Ref<HTMLInputElement>`. Верхнеуровневые
+`aria-*` применяются к нативному input, а `data-*`, включая существующие `data-autotest`, остаются на root.
+Object и functional `slotProps.input` сохраняются и объединяются с обоими refs и управляемой семантикой.
+Это же объединение применяется к `MuiCheckbox` / `MuiSwitch` theme `defaultProps`, включая их input slots.
+
+`PneSwitch` всегда сохраняет `role="switch"`. `PneCheckbox indeterminate` синхронизирует одновременно
+`input.indeterminate` и mixed accessibility state. `readOnly` у обоих компонентов действительно блокирует
+pointer, label и keyboard activation, но не делает input disabled: он остаётся focusable и участвует в
+`FormData`; состояние также объявляется через `aria-readonly`.
+
+Внешний `PneField` передаёт control ID, label/helper-связь, `disabled`, `error` и `aria-required`. Как и у
+`PneTextField`, `required` на `PneField` не включает browser constraint validation; для неё задайте `required`
+самому checkbox или switch. `PneLabeledCheckbox` добавляет локальные `label`, `helperText` и `error`, генерирует
+ID helper text, сохраняет явный `helperTextProps.id` и объединяет все `aria-describedby`.
+
+```tsx
+<PneField label="Notifications" helperText={error?.message} error={Boolean(error)} required>
+    <PneSwitch
+        checked={enabled}
+        inputRef={controllerRef}
+        name="notifications"
+        onChange={(_event, checked) => setEnabled(checked)}
     />
 </PneField>
 ```

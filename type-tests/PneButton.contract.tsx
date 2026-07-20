@@ -75,8 +75,8 @@ const wrongDefaultRef = <PneButton ref={anchorRef}/>
 // @ts-expect-error The `href` shorthand changes the root ref to an HTMLAnchorElement.
 const wrongHrefRef = <PneButton href='/reports' ref={buttonRef}/>
 
-// @ts-expect-error Native button type does not include presentation values.
-const invalidNativeType = <PneButton type='text'/>
+// @ts-expect-error MUI ButtonBase accepts string values only for `type`.
+const invalidNativeType = <PneButton type={{}}/>
 
 // @ts-expect-error Raw MUI appearance props are intentionally not public.
 const rawVariant = <PneButton variant='contained'/>

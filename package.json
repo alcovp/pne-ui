@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "4.3.0-rc.12",
+    "version": "4.3.0-rc.13",
     "description": "",
     "repository": {
         "type": "git",
@@ -79,9 +79,9 @@
     "peerDependencies": {
         "@emotion/react": "^11",
         "@emotion/styled": "^11",
-        "@mui/icons-material": "^9",
-        "@mui/material": "^9",
-        "@mui/system": "^9",
+        "@mui/icons-material": ">=9.0.1 <10",
+        "@mui/material": ">=9.0.1 <10",
+        "@mui/system": ">=9.0.1 <10",
         "@mui/x-date-pickers-pro": "^9",
         "i18next": ">=21 <26",
         "react": "^19",
@@ -101,9 +101,9 @@
         "@emotion/react": "11.14.0",
         "@emotion/styled": "11.14.1",
         "@eslint/js": "9.39.4",
-        "@mui/icons-material": "9.0.0",
-        "@mui/material": "9.0.0",
-        "@mui/system": "9.0.0",
+        "@mui/icons-material": "9.0.1",
+        "@mui/material": "9.0.1",
+        "@mui/system": "9.0.1",
         "@mui/x-date-pickers-pro": "9.0.4",
         "@simbathesailor/use-what-changed": "2.0.0",
         "@storybook/addon-docs": "10.3.6",

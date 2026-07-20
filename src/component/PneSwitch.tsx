@@ -1,34 +1,125 @@
-import React, {forwardRef, Ref} from 'react'
+import React, {forwardRef, useMemo} from 'react'
 import {Switch, SwitchProps} from '@mui/material'
+import type {SwitchOwnerState} from '@mui/material/Switch'
+import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
 import {alpha} from '@mui/material/styles'
+import {useTheme} from '@mui/material/styles'
 import type {SxProps, Theme} from '@mui/material/styles'
+import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
+import {usePneFieldControlProps} from './PneFieldContext'
+import {composeToggleInputSlotProps, moveAriaPropsToInput} from './PneToggleInput'
 
 export type PneSwitchSize = NonNullable<SwitchProps['size']>
 
-export type PneSwitchProps = SwitchProps
+export interface PneSwitchProps extends SwitchProps {
+    inputRef?: React.Ref<HTMLInputElement>
+}
 
-const PneSwitch = forwardRef((
-    props: PneSwitchProps,
-    ref: Ref<HTMLButtonElement>,
-) => {
+type SwitchInputSlotProps = NonNullable<NonNullable<SwitchProps['slotProps']>['input']>
+
+const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
+    const propsWithDefaultSize: PneSwitchProps = props.size === undefined
+        ? {...props, size: 'medium'}
+        : props
+    const theme = useTheme()
+    const consumerInputSlotProps = props.slotProps?.input
+    const defaultInputSlotProps = theme.components?.MuiSwitch?.defaultProps?.slotProps?.input
+    const themedProps = useDefaultProps({
+        name: 'MuiSwitch',
+        props: {
+            ...propsWithDefaultSize,
+            slotProps: {
+                ...propsWithDefaultSize.slotProps,
+                // See PneCheckbox: MUI cannot merge a theme input object with a
+                // functional consumer slot without replacing the function.
+                input: {},
+            },
+        },
+    })
+    const componentsWithoutSwitchDefaults = useComponentsWithoutSwitchDefaults()
     const {
+        disabled,
+        id,
+        inputRef,
+        readOnly = false,
+        required,
         sx,
         size = 'medium',
+        slotProps,
         ...rest
-    } = props
+    } = themedProps
+    const {inputAriaProps, rootProps} = moveAriaPropsToInput(rest)
+    const controlProps = usePneFieldControlProps({
+        ariaDescribedBy: inputAriaProps['aria-describedby'],
+        disabled: props.disabled,
+        id: props.id,
+        required: props.required,
+    })
+    const inputSlotProps = composeToggleInputSlotProps<SwitchOwnerState>(
+        [defaultInputSlotProps, consumerInputSlotProps],
+        {
+            describedBy: controlProps.ariaDescribedBy,
+            forceInvalid: controlProps.error,
+            forceRequired: controlProps.ariaRequired,
+            inputAriaProps,
+            inputRef,
+            labelId: controlProps.labelId,
+            mergeClassNameAndStyle: theme.components?.mergeClassNameAndStyle,
+            readOnly,
+            role: 'switch',
+        },
+    ) as SwitchInputSlotProps
 
     const _sx: SxProps<Theme> = [
         switchSxBySize[size],
         ...(Array.isArray(sx) ? sx : [sx]),
     ]
+    // MUI types still expose the SwitchBase ref as a button although its
+    // runtime root is a span. Keep the corrected public ref at the PNE edge.
+    const muiRootRef = ref as React.Ref<HTMLButtonElement>
 
-    return <Switch
-        sx={_sx}
-        size={size}
-        {...rest}
-        ref={ref}
-    />
+    return <DefaultPropsProvider value={componentsWithoutSwitchDefaults}>
+        <Switch
+            {...rootProps}
+            disabled={controlProps.disabled ?? disabled}
+            id={controlProps.id ?? id}
+            readOnly={readOnly}
+            ref={muiRootRef}
+            required={controlProps.required ?? required}
+            size={size}
+            slotProps={{
+                ...slotProps,
+                input: inputSlotProps,
+            }}
+            sx={_sx}
+        />
+    </DefaultPropsProvider>
 })
+
+PneSwitch.displayName = 'PneSwitch'
+
+const useComponentsWithoutSwitchDefaults = () => {
+    const theme = useTheme()
+
+    return useMemo(() => {
+        const components = theme.components
+        const switchConfig = components?.MuiSwitch
+
+        if (!switchConfig?.defaultProps) {
+            return components ?? {}
+        }
+
+        const switchConfigWithoutDefaults = {...switchConfig}
+        Reflect.deleteProperty(switchConfigWithoutDefaults, 'defaultProps')
+
+        return {
+            ...components,
+            MuiSwitch: Object.keys(switchConfigWithoutDefaults).length > 0
+                ? switchConfigWithoutDefaults
+                : undefined,
+        }
+    }, [theme.components])
+}
 
 const createSwitchSx = (
     config: {

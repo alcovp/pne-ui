@@ -147,6 +147,7 @@ const renderSwitchPreview = (
     size: SwitchSize,
     checked: boolean,
 ) => <PneSwitch
+    aria-label={`${size} ${state} switch, ${checked ? 'on' : 'off'}`}
     checked={checked}
     disabled={state === 'disable'}
     readOnly
@@ -156,6 +157,7 @@ const renderSwitchPreview = (
 
 export const Default: Story = {
     args: {
+        'aria-label': 'Example switch',
         size: 'small',
         disabled: false,
     },
