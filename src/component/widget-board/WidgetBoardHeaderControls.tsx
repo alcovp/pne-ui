@@ -250,6 +250,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                         {t('pne.widgetBoard.layouts.save', { defaultValue: 'Save' })}
                     </PneButton>}
                 />}
+                closeLabel={t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })}
                 open={saveAsModalOpen}
                 onClose={closeSaveAsModal}
                 title={t('pne.widgetBoard.layouts.newTitle', { defaultValue: 'New layout' })}

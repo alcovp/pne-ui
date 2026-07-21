@@ -4,4 +4,3 @@ export type {
     PneButtonSize,
     PneButtonStyle,
 } from '../component/PneButton'
-export { PneButtonGroup } from '../component/PneButtonGroup'

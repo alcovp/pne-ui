@@ -37,6 +37,7 @@ export const WidgetBoardVisibilityModal: React.FC<WidgetBoardVisibilityModalProp
                     {closeLabel}
                 </PneButton>}
             />}
+            closeLabel={closeLabel}
             open={open}
             onClose={onClose}
             title={modalTitle}

@@ -53,6 +53,7 @@ const ModalStoryHarness = ({
         </PneButton>
         <PneModal
             actions={renderActions(close)}
+            closeLabel='Закрыть'
             containerSx={containerSx}
             onClose={close}
             open={open}

@@ -152,19 +152,16 @@ export const MultigetCriterionPanel = (props: IProps) => {
                 onClose={handleClose}
                 title={modalTitle}
                 containerSx={modalContainerSx}
-                containerProps={{
-                    ...createSearchUIOwnedAutoTestAttributes(
-                        CRITERION_MULTIGET_PANEL_AUTOTEST_ID,
-                        autoTestOwner,
-                    ),
-                    id: panelId,
-                    role: 'dialog',
-                    'aria-label': modalTitle,
-                    'aria-modal': true,
-                }}
-                closeButtonProps={{
-                    ...createAutoTestAttributes(CRITERION_MULTIGET_CLOSE_AUTOTEST_ID),
-                    'aria-label': t('close', {defaultValue: 'Close'}),
+                closeLabel={t('close', {defaultValue: 'Close'})}
+                slotProps={{
+                    container: {
+                        ...createSearchUIOwnedAutoTestAttributes(
+                            CRITERION_MULTIGET_PANEL_AUTOTEST_ID,
+                            autoTestOwner,
+                        ),
+                        id: panelId,
+                    },
+                    closeButton: createAutoTestAttributes(CRITERION_MULTIGET_CLOSE_AUTOTEST_ID),
                 }}
             >
                 <MultigetSelect

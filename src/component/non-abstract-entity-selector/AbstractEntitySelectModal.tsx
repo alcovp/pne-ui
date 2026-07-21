@@ -29,6 +29,7 @@ interface IProps<T extends AbstractEntitySelectorProp> {
     textRepresentationValue?: string;
     containerProps?: PneModalContainerProps;
     closeButtonProps?: PneModalCloseButtonProps;
+    closeLabel?: string;
     getItemAttributes?: IAbstractEntityOptions<T>['getItemAttributes'];
     elementAttributes?: IAbstractEntityOptions<T>['elementAttributes'];
 }
@@ -50,6 +51,7 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         textRepresentationValue,
         containerProps,
         closeButtonProps,
+        closeLabel,
         getItemAttributes,
         elementAttributes,
     } = props;
@@ -114,8 +116,11 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
             onClose={onClose}
             title={title}
             subtitle={subTitle}
-            containerProps={containerProps}
-            closeButtonProps={closeButtonProps}
+            closeLabel={closeLabel}
+            slotProps={{
+                container: containerProps,
+                closeButton: closeButtonProps,
+            }}
             containerSx={{
                 width: {
                     xs: 'clamp(360px, calc(100vw - 32px), 600px)',

@@ -167,11 +167,14 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                         {current?.confirmLabel}
                     </PneButton>}
                 />}
-                closeButtonProps={createAutoTestAttributes('alert.button.close')}
-                containerProps={createAutoTestAttributes('alert.container')}
+                closeLabel={current?.cancelLabel ?? fallbackStrings.cancelLabel}
                 open={Boolean(current)}
                 onClose={() => settle(current, false)}
-                title={current?.title}
+                slotProps={{
+                    closeButton: createAutoTestAttributes('alert.button.close'),
+                    container: createAutoTestAttributes('alert.container'),
+                }}
+                title={current?.title ?? fallbackStrings.title}
                 containerSx={{ maxWidth: 560, width: 'calc(100% - 32px)', minWidth: 0 }}
             >
                 {current && hasMessage(current.message) ? (

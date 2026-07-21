@@ -49,6 +49,9 @@ major-версии MUI не входят в поддерживаемый peer co
 Компонент сохраняет polymorphic MUI-контракт для `component` и `href`; типы DOM props, событий и `ref`
 выводятся из фактического root element. Это поведение рассчитано на React 19 ref-as-prop.
 
+`PneButtonGroup` удалён из публичного API. Для группировки используйте `ButtonGroup` напрямую из
+`@mui/material`; расстояние между независимыми действиями задавайте на layout-контейнере.
+
 ## PneField
 
 `PneField` задаёт общий семантический контракт для одного поля: label, helper text, error/disabled/required state и
@@ -175,6 +178,59 @@ ID helper text, сохраняет явный `helperTextProps.id` и объед
     />
 </PneField>
 ```
+
+## PneModal и PneModalActions
+
+`PneModal` владеет структурой dialog, focus trap и ARIA-связями. Передайте видимый `title`; для модалок без
+визуального заголовка используйте `ariaLabel`. Если компонент внутри `title` сам возвращает `null`, передайте
+`title={null}` и `ariaLabel` явно: содержимое произвольного React-компонента нельзя определить до его рендера.
+`title` и `subtitle` принимают `ReactNode`. `ref` указывает на
+`HTMLDivElement` с `role="dialog"`. Структурные `role`, `aria-modal`, `aria-labelledby` и `aria-describedby`
+нельзя переопределить через container slot; дополнительное описание подключается через `ariaDescribedBy`.
+
+`onClose(event, reason)` различает `closeButtonClick`, `escapeKeyDown` и `backdropClick`. Существующие callbacks
+без аргументов остаются совместимыми. `closeLabel` необязателен и по умолчанию равен `Close`; передавайте перевод
+только там, где он доступен consumer-у. `hideCloseButton` скрывает icon button без дополнительных обязательных
+props.
+
+```tsx
+<PneModal
+    actions={<PneModalActions
+        secondary={<PneButton pneStyle="outlined">Cancel</PneButton>}
+        primary={<PneButton>Save</PneButton>}
+    />}
+    closeLabel="Close"
+    onClose={(_event, reason) => {
+        if (reason !== "backdropClick") setOpen(false)
+    }}
+    open={open}
+    title={<span>Edit account</span>}
+    slotProps={{
+        container: {"data-autotest": "account-dialog"},
+        title: {component: "h2"},
+    }}
+>
+    Account form
+</PneModal>
+```
+
+`blockingOverlay` предназначен для loading-состояния всей модалки. Пока slot присутствует, dialog получает
+`aria-busy`, header/body/footer становятся inert, focus остаётся на границе dialog, а Escape, backdrop и close
+button не вызывают `onClose`. После снятия overlay прежний focused control восстанавливается, если он всё ещё
+существует. Старый `overlay` оставлен как deprecated alias.
+
+Внутренние части настраиваются через `slotProps`, но их element type, owned content и dialog semantics остаются
+фиксированными. `modalProps` содержит только безопасные настройки MUI root и не позволяет подменять root/backdrop
+slots. Прежние `containerProps` и `closeButtonProps` оставлены deprecated на период миграции.
+
+Частые тестовые маркеры `data-*` передаются прямо в `PneModal` и попадают на семантический dialog container:
+`<PneModal data-testattribute="edit-modal" ... />`. Для них не требуется обёртка `slotProps.container`;
+этот slot остаётся для остальных безопасных атрибутов и `sx` контейнера.
+
+`PneModalActions` сохраняет одни и те же keyed action nodes, но синхронизирует DOM/focus order с layout:
+`leading → secondary → primary` на desktop и `primary → secondary → leading` на экране до 480 px. При смене
+breakpoint существующие controls только перемещаются внутри дерева, не перемонтируются и не теряют focus/state.
+Root фиксирован как `div`, поддерживает `ref`, `sx`, обычные HTML/ARIA/data attributes.
 
 ## PneSelect
 

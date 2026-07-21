@@ -102,16 +102,13 @@ const SearchUITemplatePanel = (props: IProps) => {
             open={open}
             onClose={handleClose}
             title={templateEditorTitle}
-            containerProps={{
-                ...createAutoTestAttributes(TEMPLATE_EDITOR_AUTOTEST_ID, autoTestScope),
-                id: templateEditorId,
-                role: 'dialog',
-                'aria-label': templateEditorTitle,
-                'aria-modal': true,
-            }}
-            closeButtonProps={{
-                ...createAutoTestAttributes(CLOSE_TEMPLATE_EDITOR_AUTOTEST_ID),
-                'aria-label': t('close', {defaultValue: 'Close'}),
+            closeLabel={t('close', {defaultValue: 'Close'})}
+            slotProps={{
+                container: {
+                    ...createAutoTestAttributes(TEMPLATE_EDITOR_AUTOTEST_ID, autoTestScope),
+                    id: templateEditorId,
+                },
+                closeButton: createAutoTestAttributes(CLOSE_TEMPLATE_EDITOR_AUTOTEST_ID),
             }}
         >
             <form id={createFormId} onSubmit={handleCreate}>

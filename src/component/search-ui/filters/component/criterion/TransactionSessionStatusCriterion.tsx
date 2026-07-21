@@ -125,19 +125,16 @@ export const TransactionSessionStatusCriterion = () => {
             onClose={handleClose}
             title={modalTitle}
             containerSx={modalContainerSx}
-            containerProps={{
-                ...createSearchUIOwnedAutoTestAttributes(
-                    CRITERION_TRANSACTION_SESSION_STATUS_PANEL_AUTOTEST_ID,
-                    autoTestOwner,
-                ),
-                id: panelId,
-                role: 'dialog',
-                'aria-label': modalTitle,
-                'aria-modal': true,
-                'aria-busy': loading,
-            }}
-            closeButtonProps={{
-                'aria-label': t('close', {defaultValue: 'Close'}),
+            closeLabel={t('close', {defaultValue: 'Close'})}
+            slotProps={{
+                container: {
+                    ...createSearchUIOwnedAutoTestAttributes(
+                        CRITERION_TRANSACTION_SESSION_STATUS_PANEL_AUTOTEST_ID,
+                        autoTestOwner,
+                    ),
+                    id: panelId,
+                    'aria-busy': loading,
+                },
             }}
         >
             <Box sx={modalContentSx}>

@@ -49,7 +49,7 @@ describe('PneConfirmProvider', () => {
         expect(container.contains(autoTestNode('alert.container'))).toBe(false)
         expect(screen.getByRole('dialog', { name: 'Delete item' })).toBe(autoTestNode('alert.container'))
         expect(autoTestNode('alert.message').textContent).toBe('This cannot be undone')
-        expect(autoTestNode('alert.button.close').getAttribute('aria-label')).toBe('Close')
+        expect(autoTestNode('alert.button.close').getAttribute('aria-label')).toBe('Cancel')
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Cancel')
         expect(autoTestNode('alert.button.submit').textContent).toBe('Yes')
     })

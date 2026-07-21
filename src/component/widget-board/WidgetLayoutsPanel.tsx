@@ -205,6 +205,7 @@ export const WidgetLayoutsPanel: React.FC<WidgetLayoutsPanelProps> = ({
                             {saveLabel}
                         </PneButton>}
                     />}
+                    closeLabel={cancelLabel}
                     open={modalOpen}
                     onClose={() => setModalOpen(false)}
                     title={modalTitle}

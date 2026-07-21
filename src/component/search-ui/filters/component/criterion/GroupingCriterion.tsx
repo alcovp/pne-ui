@@ -94,13 +94,8 @@ export const GroupingCriterion = () => {
                     autoTestOwner,
                 ),
                 id: groupsDialogId,
-                role: 'dialog',
-                'aria-label': modalTitle,
-                'aria-modal': true,
             }}
-            closeButtonProps={{
-                'aria-label': t('close', {defaultValue: 'Close'}),
-            }}
+            closeLabel={t('close', {defaultValue: 'Close'})}
             getItemAttributes={(item, list) => ({
                 ...createAutoTestAttributes(
                     CRITERION_GROUPING_OPTION_AUTOTEST_ID,

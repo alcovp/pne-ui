@@ -6,6 +6,8 @@ import {
     type PneButtonSize,
     type PneButtonStyle,
 } from 'pne-ui'
+// @ts-expect-error PneButtonGroup was removed; use MUI ButtonGroup directly.
+import {PneButtonGroup} from 'pne-ui'
 
 const styles: PneButtonStyle[] = [
     'contained',
@@ -95,6 +97,7 @@ const unknownProp = <PneButton inventedProp/>
 
 void validContracts
 void validDefaultCreateElement
+void PneButtonGroup
 void missingComponent
 void missingCustomRootProp
 void wrongDefaultRef
