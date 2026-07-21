@@ -34,8 +34,10 @@ const selectionCellSx: SxProps<Theme> = {
 }
 
 export const selectionCheckboxSx: SxProps<Theme> = {
-    height: '40px',
-    width: '40px',
+    boxSizing: 'border-box',
+    height: '36px',
+    padding: '8px',
+    width: '36px',
 }
 
 const PneTableSelectionCell = (props: PneTableSelectionCellProps) => {

@@ -3,6 +3,48 @@ import {fireEvent, render, screen} from '@testing-library/react'
 import {PneTableSelectionCell, PneTableSelectionHeaderCell} from '../src'
 
 describe('PneTable selection cells', () => {
+    it('keeps row and header selection controls within compact table geometry', () => {
+        render(
+            <table>
+                <thead>
+                    <tr>
+                        <PneTableSelectionHeaderCell
+                            aria-label='Select this page'
+                            onChange={jest.fn()}
+                            state='none'
+                        />
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <PneTableSelectionCell
+                            aria-label='Select gate 42'
+                            checked={false}
+                            onChange={jest.fn()}
+                        />
+                    </tr>
+                </tbody>
+            </table>,
+        )
+
+        const checkboxes = screen.getAllByRole('checkbox')
+
+        checkboxes.forEach(checkbox => {
+            const cell = checkbox.closest('th, td') as HTMLElement
+            const root = checkbox.closest('.MuiCheckbox-root') as HTMLElement
+            const cellStyle = getComputedStyle(cell)
+            const rootStyle = getComputedStyle(root)
+
+            expect(cellStyle.padding).toBe('0px')
+            expect(cellStyle.width).toBe('40px')
+            expect(root.classList.contains('MuiCheckbox-sizeSmall')).toBe(true)
+            expect(rootStyle.boxSizing).toBe('border-box')
+            expect(rootStyle.height).toBe('36px')
+            expect(rootStyle.padding).toBe('8px')
+            expect(rootStyle.width).toBe('36px')
+        })
+    })
+
     it('renders native checked and indeterminate page states', () => {
         const {rerender} = render(
             <table>

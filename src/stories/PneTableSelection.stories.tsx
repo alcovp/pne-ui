@@ -118,6 +118,7 @@ const SelectionTableStory = ({
             autoTestId='selection-story'
             createRow={row => <PneTableRow
                 aria-selected={selection.isRowSelected(row)}
+                data-story-selection-row
                 key={row.id}
                 selected={selection.isRowSelected(row)}
             >
@@ -130,7 +131,7 @@ const SelectionTableStory = ({
                 <PneTableCell>{row.id}</PneTableCell>
                 <PneTableCell>{row.name}</PneTableCell>
             </PneTableRow>}
-            createTableHeader={() => <PneTableRow>
+            createTableHeader={() => <PneTableRow data-story-selection-header-row>
                 <PneTableSelectionHeaderCell
                     aria-label='Select current page'
                     disabled={selection.interactionDisabled || selection.pageSelectableCount === 0}
@@ -175,6 +176,56 @@ type Story = StoryObj<typeof meta>
 export const ExplicitSelection: Story = {
     args: {
         initialSelection: {mode: 'explicit', selectedIds: new Set([1, 3])},
+    },
+}
+
+export const CompactSelectionCells: Story = {
+    args: {
+        initialSelection: {mode: 'explicit', selectedIds: new Set([1, 3])},
+    },
+    play: ({canvasElement}) => {
+        const selectionInputs = canvasElement.querySelectorAll<HTMLInputElement>(
+            'input[data-autotest="row-selection"], input[data-autotest="page-selection"]',
+        )
+        const bodyRows = canvasElement.querySelectorAll<HTMLElement>(
+            '[data-story-selection-row]',
+        )
+
+        if (selectionInputs.length !== storyRows.length + 1 || bodyRows.length !== storyRows.length) {
+            throw new Error('Compact selection geometry fixture is incomplete')
+        }
+
+        selectionInputs.forEach(input => {
+            const cell = input.closest<HTMLElement>('th, td')
+            const root = input.closest<HTMLElement>('.MuiCheckbox-root')
+            const icon = root?.querySelector<SVGSVGElement>('.MuiSvgIcon-root')
+
+            if (!cell || !root || !icon) {
+                throw new Error('Selection cell must render a checkbox root and icon')
+            }
+
+            const cellStyle = getComputedStyle(cell)
+            const rootRect = root.getBoundingClientRect()
+            const iconRect = icon.getBoundingClientRect()
+
+            if (cellStyle.padding !== '0px' || cellStyle.width !== '40px') {
+                throw new Error('Selection table cell must retain its compact 40px/p0 geometry')
+            }
+            if (rootRect.width !== 36 || rootRect.height !== 36) {
+                throw new Error('Selection checkbox root must remain 36x36px')
+            }
+            if (iconRect.width !== 20 || iconRect.height !== 20) {
+                throw new Error('Selection checkbox icon must remain 20x20px')
+            }
+        })
+
+        bodyRows.forEach(row => {
+            // The normal 8px-padded text cells round to about 37px in Chromium.
+            // A 40px checkbox root must therefore fail this regression fixture.
+            if (row.getBoundingClientRect().height > 38) {
+                throw new Error('A selection checkbox must not expand its normal table row')
+            }
+        })
     },
 }
 
