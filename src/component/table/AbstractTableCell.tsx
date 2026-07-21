@@ -1,8 +1,12 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {TableCell, TableCellProps} from '@mui/material';
 
-const AbstractTableCell = (props: TableCellProps) => {
-    return <TableCell {...props}/>
-}
+export type AbstractTableCellProps = Omit<TableCellProps, 'ref'>
+
+const AbstractTableCell = forwardRef<HTMLTableCellElement, AbstractTableCellProps>((props, ref) => {
+    return <TableCell ref={ref} {...props}/>
+})
+
+AbstractTableCell.displayName = 'AbstractTableCell'
 
 export default AbstractTableCell;

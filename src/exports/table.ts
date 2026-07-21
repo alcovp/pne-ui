@@ -13,6 +13,12 @@ export type {
     PneTableSelectionCellProps,
     SelectionCheckboxAccessibleName,
 } from '../component/table/PneTableSelectionCell'
+export { default as PneTableSwitchCell } from '../component/table/PneTableSwitchCell'
+export type {
+    PneTableSwitchCellProps,
+    PneTableSwitchControlProps,
+    TableSwitchAccessibleName,
+} from '../component/table/PneTableSwitchCell'
 export { default as PneTableSelectionHeaderCell } from '../component/table/PneTableSelectionHeaderCell'
 export type { PneTableSelectionHeaderCellProps } from '../component/table/PneTableSelectionHeaderCell'
 export {
@@ -44,7 +50,9 @@ export { default as PneTableRow } from '../component/table/PneTableRow'
 export { default as PneHeaderTableCell } from '../component/table/PneHeaderTableCell'
 export type { PneHeaderTableCellProps } from '../component/table/PneHeaderTableCell'
 export { default as PneTableCell } from '../component/table/PneTableCell'
+export type { PneTableCellProps } from '../component/table/PneTableCell'
 export { default as PneTableControlCell } from '../component/table/PneTableControlCell'
+export type { PneTableControlCellProps } from '../component/table/PneTableControlCell'
 export { default as PneTableSortLabel } from '../component/table/PneTableSortLabel'
 
 export { default as AbstractTable } from '../component/table/AbstractTable'

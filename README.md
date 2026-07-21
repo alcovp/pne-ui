@@ -179,6 +179,33 @@ ID helper text, сохраняет явный `helperTextProps.id` и объед
 </PneField>
 ```
 
+## PneTableSwitchCell
+
+Для status-колонки `PneTable` используйте `PneTableSwitchCell`: он размещает `PneSwitch size="small"` в
+компактной ячейке шириной `40px` без vertical padding и не передаёт click в интерактивную строку. Один из
+`aria-label` / `aria-labelledby` обязателен. Интерактивному варианту нужен `onChange(checked, event)`;
+display-only вариант задаётся через `readOnly` без пустого callback.
+
+Props самой ячейки передаются напрямую, а props переключателя — через `switchProps`. В частности, `id`,
+`inputRef`, `name`, `slotProps` и существующие верхнеуровневые `PneSwitch` `data-*` селекторы относятся к
+`switchProps`; селектор сохраняется на том же Switch DOM anchor, что и при прямом использовании `PneSwitch`,
+но это не обязательно внешний wrapper. Размер, controlled state и accessible name принадлежат
+`PneTableSwitchCell`. `autoTestId` создаёт отдельный locator на нативном input и имеет приоритет над одноимённым
+атрибутом в `switchProps.slotProps.input`, не удаляя верхнеуровневый `PneSwitch` locator из `switchProps`.
+
+```tsx
+<PneTableSwitchCell
+    aria-label="Enable endpoint"
+    checked={enabled}
+    onChange={setEnabled}
+    switchProps={{
+        inputRef: controllerRef,
+        name: "enabled",
+        "data-autotest": "endpoint-status",
+    }}
+/>
+```
+
 ## PneModal и PneModalActions
 
 `PneModal` владеет структурой dialog, focus trap и ARIA-связями. Передайте видимый `title`; для модалок без

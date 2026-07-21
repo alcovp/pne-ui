@@ -1,23 +1,26 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {SxProps} from '@mui/material/styles';
 import AbstractTableCell from './AbstractTableCell';
 import {TableCellProps} from '@mui/material';
 import {usePneTheme} from '../../usePneTheme';
 
-const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
+export type PneTableCellProps = Omit<TableCellProps, 'ref'> & { selected?: boolean }
+
+const PneTableCell = forwardRef<HTMLTableCellElement, PneTableCellProps>((props, ref) => {
     const theme = usePneTheme()
 
     const {
         sx,
         onClick,
         children,
+        selected,
         ...rest
     } = props;
 
     const _sx: SxProps = [
         {
             padding: '8px',
-            background: props.selected ? theme.palette.action.selected : 'inherit',
+            background: selected ? theme.palette.action.selected : 'inherit',
             border: 'none',
             color: '#4E5D78',
             position: 'relative',
@@ -25,7 +28,9 @@ const PneTableCell = (props: TableCellProps & { selected?: boolean }) => {
         ...(Array.isArray(sx) ? sx : [sx])
     ]
 
-    return <AbstractTableCell sx={_sx} onClick={onClick} {...rest}>{children}</AbstractTableCell>
-}
+    return <AbstractTableCell ref={ref} sx={_sx} onClick={onClick} {...rest}>{children}</AbstractTableCell>
+})
+
+PneTableCell.displayName = 'PneTableCell'
 
 export default PneTableCell;

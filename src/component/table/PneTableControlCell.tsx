@@ -1,9 +1,11 @@
-import React from 'react';
+import React, {forwardRef} from 'react';
 import {SxProps} from '@mui/material/styles';
 import {TableCellProps} from '@mui/material';
 import PneTableCell from './PneTableCell';
 
-const PneTableControlCell = (props: TableCellProps & { selected?: boolean }) => {
+export type PneTableControlCellProps = Omit<TableCellProps, 'ref'> & { selected?: boolean }
+
+const PneTableControlCell = forwardRef<HTMLTableCellElement, PneTableControlCellProps>((props, ref) => {
     const {
         sx,
         ...rest
@@ -17,7 +19,9 @@ const PneTableControlCell = (props: TableCellProps & { selected?: boolean }) => 
         ...(Array.isArray(sx) ? sx : [sx]),
     ];
 
-    return <PneTableCell sx={_sx} {...rest}/>
-}
+    return <PneTableCell ref={ref} sx={_sx} {...rest}/>
+})
+
+PneTableControlCell.displayName = 'PneTableControlCell'
 
 export default PneTableControlCell;

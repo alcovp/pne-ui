@@ -16,7 +16,7 @@ export type SelectionCheckboxAccessibleName =
 
 export type PneTableSelectionCellProps = Omit<
     TableCellProps,
-    'aria-label' | 'aria-labelledby' | 'children' | 'onChange' | 'onClick'
+    'aria-label' | 'aria-labelledby' | 'children' | 'onChange' | 'onClick' | 'ref'
 > & SelectionCheckboxAccessibleName & {
     checked: boolean
     disabled?: boolean
