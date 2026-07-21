@@ -10,14 +10,11 @@ export type PneTableSelectionControlsProps = Omit<
     summary: React.ReactNode
     /** Consumer-owned Select All, Clear, and domain bulk actions. */
     actions?: React.ReactNode
-    /** Optional full-width warning or informational content. */
-    status?: React.ReactNode
 }
 
 const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
     const {
         actions,
-        status,
         summary,
         sx,
         ...rootProps
@@ -68,17 +65,6 @@ const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
             }}
         >
             {actions}
-        </Box> : null}
-        {status !== undefined && status !== null && typeof status !== 'boolean' ? <Box
-            {...createAutoTestAttributes('selection-status')}
-            sx={{
-                flex: '1 0 100%',
-                maxWidth: '100%',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-            }}
-        >
-            {status}
         </Box> : null}
     </Box>
 }

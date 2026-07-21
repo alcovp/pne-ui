@@ -329,6 +329,7 @@ const SearchUIContent = <
     const renderTable = (
         selection: SearchUITableSelectionController<D, TKey, TViewId> | undefined,
         toolbar: React.ReactNode,
+        feedback?: React.ReactNode,
     ) => {
         const factoryContext: SearchUITableFactoryContext<D, TKey, TViewId> = {
             appliedSearchCriteria: searchCriteria,
@@ -361,6 +362,7 @@ const SearchUIContent = <
             loading={loading}
             loadingKey={resolvedTable.viewId}
             toolbar={toolbar}
+            feedback={feedback}
         />
     }
 
@@ -409,6 +411,7 @@ type SearchUISelectableTableProps<
     renderTable: (
         selection: SearchUITableSelectionController<D, TKey, TViewId>,
         toolbar: React.ReactNode,
+        feedback?: React.ReactNode,
     ) => React.ReactElement
     viewId?: TViewId
 }
@@ -622,11 +625,13 @@ const SearchUISelectableTable = <
             ? selectAllMatchingResults
             : undefined,
     }
-    const contextualControls = config.renderControls({
+    const renderContext = {
         appliedSearchCriteria,
         selection,
         viewId,
-    })
+    }
+    const contextualControls = config.renderControls(renderContext)
+    const feedback = config.renderFeedback?.(renderContext)
     const toolbar = config.toolbarAriaLabel !== undefined
         ? <PneTableToolbar
             aria-label={config.toolbarAriaLabel}
@@ -639,7 +644,7 @@ const SearchUISelectableTable = <
             persistent={persistentControls}
         />
 
-    return renderTable(selection, toolbar)
+    return renderTable(selection, toolbar, feedback)
 }
 
 const createSearchUITableSelectionParams = <

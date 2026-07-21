@@ -72,6 +72,11 @@ const SelectionHarness = ({
                 summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
             />
         ),
+        renderFeedback: ({selection: controller}) => (
+            <div data-testid={`${instanceId}-selection-feedback`}>
+                {controller.selectedCount} selected feedback
+            </div>
+        ),
         selection,
         toolbarAriaLabel: 'Gate table controls',
     }
@@ -312,14 +317,29 @@ describe('SearchUI table selection', () => {
     })
 
     it('shares one controller across controls, header, and rows', async () => {
-        render(<SelectionHarness searchData={jest.fn().mockResolvedValue(rows)}/>)
+        const {container} = render(
+            <SelectionHarness searchData={jest.fn().mockResolvedValue(rows)}/>,
+        )
 
         const firstRowCheckbox = await screen.findByRole('checkbox', {name: 'Select Gate 1'})
         await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
         const controls = screen.getByRole('group', {name: 'Gate table controls'})
+        const feedback = container.querySelector(
+            '[data-autotest="table-feedback"]',
+        ) as HTMLElement
+        const topControls = container.querySelector(
+            '[data-autotest="table-top-controls"]',
+        ) as HTMLElement
+
+        expect(feedback).not.toBeNull()
+        expect(feedback.nextElementSibling).toBe(topControls)
+        expect(topControls.contains(feedback)).toBe(false)
+        expect(controls.contains(feedback)).toBe(false)
+        expect(within(feedback).getByText('0 selected feedback')).toBeTruthy()
 
         fireEvent.click(firstRowCheckbox)
         expect(within(controls).getByText('1 selected (explicit)')).toBeTruthy()
+        expect(within(feedback).getByText('1 selected feedback')).toBeTruthy()
         expect((firstRowCheckbox as HTMLInputElement).checked).toBe(true)
         expect(firstRowCheckbox.closest('tr')?.getAttribute('aria-selected')).toBe('true')
 

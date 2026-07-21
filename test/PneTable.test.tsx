@@ -23,6 +23,7 @@ type Row = {
 
 type TableOptions = {
     createTableHeader?: TableCreateHeaderType
+    feedback?: React.ReactNode
     loading?: boolean
     loadingKey?: string | number
     noRowsMessage?: string
@@ -41,6 +42,7 @@ const createTable = (
     <PneTable<Row>
         autoTestId={autoTestId}
         data={row ? [row] : []}
+        feedback={options.feedback}
         loading={options.loading}
         loadingKey={options.loadingKey}
         noRowsMessage={options.noRowsMessage}
@@ -364,6 +366,72 @@ describe('PneTable autotest scope', () => {
         expect(window.getComputedStyle(paginationToolbar).justifySelf).toBe('stretch')
         expect(window.getComputedStyle(paginationToolbar).width).toBe('100%')
         expect(window.getComputedStyle(pageSizes).justifySelf).toBe('end')
+    })
+
+    it('renders full-width feedback above and independently from top controls and pagination', () => {
+        const {container} = render(createTable(
+            'orders',
+            {id: 'order-1', label: 'Order'},
+            {
+                feedback: <div role='alert'>A deliberately long table feedback message</div>,
+                paginator: createPaginator(true),
+                toolbar: <button type='button'>Orders view</button>,
+            },
+        ))
+
+        const tableScope = container.querySelector(
+            '[data-autotest="table"][data-autotest-value="orders"]',
+        ) as HTMLElement
+        const feedback = tableScope.querySelector(
+            ':scope > [data-autotest="table-feedback"]',
+        ) as HTMLElement
+        const topControls = tableScope.querySelector(
+            ':scope > [data-autotest="table-top-controls"]',
+        ) as HTMLElement
+        const topPagination = topControls.querySelector(
+            '[data-autotest="pagination"][data-autotest-value="top"]',
+        ) as HTMLElement
+        const bottomPagination = tableScope.querySelector(
+            '[data-autotest="pagination"][data-autotest-value="bottom"]',
+        ) as HTMLElement
+        const actionBand = topPagination.querySelector(
+            '[data-autotest="pagination-actions"]',
+        ) as HTMLElement
+
+        expect(feedback).not.toBeNull()
+        expect(feedback.nextElementSibling).toBe(topControls)
+        expect(topControls.contains(feedback)).toBe(false)
+        expect(topPagination.contains(feedback)).toBe(false)
+        expect(bottomPagination.contains(feedback)).toBe(false)
+        expect(window.getComputedStyle(feedback).width).toBe('100%')
+        expect(actionBand.dataset.autotestValue).toBe('inline')
+        expect(within(feedback).getByRole('alert').textContent).toBe(
+            'A deliberately long table feedback message',
+        )
+    })
+
+    it('keeps feedback above the table when only bottom pagination exists', () => {
+        const {container} = render(createTable(
+            'orders',
+            {id: 'order-1', label: 'Order'},
+            {
+                feedback: 'Orders feedback',
+                paginator: createPaginator(false),
+            },
+        ))
+        const tableScope = container.querySelector(
+            '[data-autotest="table"][data-autotest-value="orders"]',
+        ) as HTMLElement
+        const feedback = tableScope.querySelector(
+            ':scope > [data-autotest="table-feedback"]',
+        ) as HTMLElement
+        const tableContainer = feedback.nextElementSibling as HTMLElement
+        const paginations = tableScope.querySelectorAll('[data-autotest="pagination"]')
+
+        expect(tableScope.querySelector('[data-autotest="table-top-controls"]')).toBeNull()
+        expect(tableContainer.querySelector('table')).not.toBeNull()
+        expect(paginations).toHaveLength(1)
+        expect(paginations[0].getAttribute('data-autotest-value')).toBe('bottom')
     })
 
     it('wraps primitive toolbar content in an element that can be measured', () => {

@@ -1,6 +1,6 @@
 import React, {useRef, useState} from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import {Box, IconButton, Tooltip, Typography} from '@mui/material'
+import {Alert, Box, IconButton, Tooltip, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
 import {
     PneButton,
@@ -89,11 +89,14 @@ const SelectionTableStory = ({
                 </PneButton>
             </Box> : null}
         </>}
-        status={limitVisible
-            ? <Typography role='alert'>Selection is limited to {maxSelected} rows. Narrow the filters and try again.</Typography>
-            : undefined}
         summary={<Typography>{selection.selectedCount} rows selected</Typography>}
     />
+    const selectionFeedback = limitVisible
+        ? <Alert severity='warning'>
+            <Typography>Selection is limited to {maxSelected} rows.</Typography>
+            <Typography>Narrow the filters and try again before selecting all matching results.</Typography>
+        </Alert>
+        : undefined
     const viewSelector = showViews ? <PneTableViewSelector<StoryView>
         aria-label='Results view'
         actions={<Tooltip title='View settings'>
@@ -142,6 +145,7 @@ const SelectionTableStory = ({
                 <PneHeaderTableCell>Name</PneHeaderTableCell>
             </PneTableRow>}
             data={storyRows}
+            feedback={selectionFeedback}
             paginator={{
                 rowsPerPageOptions: [5, 10, 25],
                 rowsPerPage: 5,
@@ -247,6 +251,33 @@ export const LimitWarning: Story = {
         maxSelected: 5,
         showLimitStatus: true,
     },
+    play: ({canvasElement}) => {
+        const feedback = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-feedback"]',
+        )
+        const topControls = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-top-controls"]',
+        )
+        const actionBand = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="pagination-actions"]',
+        )
+
+        if (!feedback || !topControls || !actionBand) {
+            throw new Error('Full-width selection feedback fixture is incomplete')
+        }
+        if (feedback.nextElementSibling !== topControls) {
+            throw new Error('Selection feedback must precede the complete top-control band')
+        }
+        if (feedback.closest('[data-autotest="pagination"]')) {
+            throw new Error('Selection feedback must not be nested inside pagination')
+        }
+        if (Math.abs(feedback.getBoundingClientRect().width - topControls.getBoundingClientRect().width) > 1) {
+            throw new Error('Selection feedback must span the full table-control width')
+        }
+        if (actionBand.dataset.autotestValue !== 'inline') {
+            throw new Error('Desktop pagination must stay inline regardless of feedback height')
+        }
+    },
 }
 
 export const SelectionOnlyMobile360: Story = {
@@ -265,11 +296,17 @@ export const SelectionOnlyMobile360: Story = {
         const selectionControls = canvasElement.querySelector<HTMLElement>(
             '[data-autotest="selection-controls"]',
         )
+        const feedback = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-feedback"]',
+        )
+        const topControls = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-top-controls"]',
+        )
         const persistent = canvasElement.querySelector<HTMLElement>(
             '[data-autotest="table-persistent-controls"]',
         )
 
-        if (!actionBand || !selectionControls) {
+        if (!actionBand || !selectionControls || !feedback || !topControls) {
             throw new Error('Selection-only controls are missing from the 360px story')
         }
         if (persistent) {
@@ -283,6 +320,15 @@ export const SelectionOnlyMobile360: Story = {
         }
         if (selectionControls.scrollWidth > selectionControls.clientWidth) {
             throw new Error('Selection-only controls overflow at the supported 360px viewport')
+        }
+        if (feedback.nextElementSibling !== topControls) {
+            throw new Error('Mobile feedback must precede Selection and Pagination')
+        }
+        if (feedback.scrollWidth > feedback.clientWidth) {
+            throw new Error('Mobile feedback overflows the supported 360px viewport')
+        }
+        if (feedback.getBoundingClientRect().top >= selectionControls.getBoundingClientRect().top) {
+            throw new Error('Mobile visual order must begin with Feedback')
         }
     },
 }

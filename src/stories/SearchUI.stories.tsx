@@ -34,7 +34,7 @@ import {
 import { Meta, StoryObj } from '@storybook/react-webpack5'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import { Box, IconButton, Tooltip } from '@mui/material'
+import { Alert, Box, IconButton, Tooltip } from '@mui/material'
 
 type DataType = AbstractEntity
 
@@ -549,10 +549,13 @@ const TableSelectionViewsWrap = () => {
                                 </PneButton>
                             </Box>
                         </>}
-                        status={controller.selectingAllMatching ? 'Selecting all results…' : undefined}
                         summary={`Выбрано шлюзов: ${controller.selectedCount}`}
                     />
                 ),
+                renderFeedback: ({selection: controller}) => <Alert severity='info'>
+                    Selection feedback. Total items: {controller.selectedCount}. The feedback remains
+                    full-width even when this message wraps onto another line.
+                </Alert>,
                 resolveAllMatchingCount: async ({viewId}) => (
                     viewId ? tableViewStoryRows[viewId].length : 0
                 ),
@@ -865,6 +868,9 @@ export const TableSelectionAndViewsMobile360: Story = {
         const topControls = canvasElement.querySelector<HTMLElement>(
             '[data-autotest="table-top-controls"]',
         )
+        const feedback = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-feedback"]',
+        )
         const actionBand = canvasElement.querySelector<HTMLElement>(
             '[data-autotest="pagination-actions"]',
         )
@@ -893,7 +899,8 @@ export const TableSelectionAndViewsMobile360: Story = {
             '[data-autotest="page-sizes"]',
         )
 
-        if (!topControls
+        if (!feedback
+            || !topControls
             || !actionBand
             || !paginationToolbar
             || !tableControlBar
@@ -907,6 +914,7 @@ export const TableSelectionAndViewsMobile360: Story = {
         }
 
         for (const [name, element] of [
+            ['feedback', feedback],
             ['top controls', topControls],
             ['pagination actions', actionBand],
             ['table control bar', tableControlBar],
@@ -924,6 +932,9 @@ export const TableSelectionAndViewsMobile360: Story = {
         if (tableControlBar.dataset.autotestValue !== 'stacked') {
             throw new Error('SearchUI Selection and View must use separate rows at 360px')
         }
+        if (feedback.nextElementSibling !== topControls) {
+            throw new Error('SearchUI feedback must precede Selection, View, and Pagination')
+        }
         if (
             actionBand.children[0] !== paginationToolbar
             || actionBand.children[1] !== navigation
@@ -938,11 +949,14 @@ export const TableSelectionAndViewsMobile360: Story = {
             throw new Error('SearchUI Selection must precede View in DOM and keyboard order')
         }
 
+        const feedbackRect = feedback.getBoundingClientRect()
         const contextualRect = contextual.getBoundingClientRect()
         const persistentRect = persistent.getBoundingClientRect()
         const navigationRect = navigation.getBoundingClientRect()
-        if (contextualRect.top >= persistentRect.top || persistentRect.top >= navigationRect.top) {
-            throw new Error('SearchUI mobile rows are not Selection, View, Pagination')
+        if (feedbackRect.top >= contextualRect.top
+            || contextualRect.top >= persistentRect.top
+            || persistentRect.top >= navigationRect.top) {
+            throw new Error('SearchUI mobile rows are not Feedback, Selection, View, Pagination')
         }
     },
     render: () => <TableSelectionViewsWrap/>,

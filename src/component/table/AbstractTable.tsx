@@ -19,6 +19,7 @@ import {createAutoTestAttributes} from '../AutoTestAttribute';
 const TABLE_AUTOTEST_ID = 'table';
 const TABLE_EMPTY_STATE_AUTOTEST_ID = 'empty-state';
 const TABLE_PAGINATION_AUTOTEST_ID = 'pagination';
+const TABLE_FEEDBACK_AUTOTEST_ID = 'table-feedback';
 const TABLE_TOP_CONTROLS_AUTOTEST_ID = 'table-top-controls';
 const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar';
 
@@ -71,6 +72,8 @@ export type TableProps<D> = {
     /** Optional controls rendered in the responsive top band, before page-size controls when top pagination exists. */
     toolbar?: React.ReactNode
     toolbarSx?: SxProps
+    /** Optional full-width feedback rendered above, and independently from, the responsive top controls. */
+    feedback?: React.ReactNode
 }
 
 export type TableSortOptions = {
@@ -110,6 +113,7 @@ const AbstractTable = <D, >(
         skeletonRowHeight,
         toolbar,
         toolbarSx,
+        feedback,
     } = props
 
     const {t} = useTranslation()
@@ -213,6 +217,9 @@ const AbstractTable = <D, >(
     const hasToolbar = toolbar !== undefined
         && toolbar !== null
         && typeof toolbar !== 'boolean'
+    const hasFeedback = feedback !== undefined
+        && feedback !== null
+        && typeof feedback !== 'boolean'
     const createTableToolbar = (insidePagination: boolean) => {
         const toolbarContent = React.isValidElement(toolbar)
             && toolbar.type !== React.Fragment
@@ -271,13 +278,26 @@ const AbstractTable = <D, >(
         sx={{...boxSx}}
         ref={containerRef}
     >
+        {hasFeedback ? <Box
+            {...createAutoTestAttributes(TABLE_FEEDBACK_AUTOTEST_ID)}
+            sx={{
+                boxSizing: 'border-box',
+                marginBottom: '8px',
+                maxWidth: '100%',
+                minWidth: 0,
+                overflowWrap: 'anywhere',
+                width: '100%',
+            }}
+        >
+            {feedback}
+        </Box> : null}
         {hasTopControls ? <Box
             {...createAutoTestAttributes(TABLE_TOP_CONTROLS_AUTOTEST_ID)}
             sx={{minWidth: 0, width: '100%'}}
         >
             {hasTopPagination
                 ? getPneTablePagination('top', hasToolbar ? createTableToolbar(true) : undefined)
-                : createTableToolbar(false)}
+                : hasToolbar ? createTableToolbar(false) : null}
         </Box> : null}
         <TableContainer ref={tableContainerRef}>
             <Table

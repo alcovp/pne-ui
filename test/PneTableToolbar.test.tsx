@@ -109,18 +109,15 @@ describe('PneTableToolbar', () => {
         }
     })
 
-    it('renders localized selection summary, actions, and full-width status', () => {
-        const {container} = render(
+    it('renders localized selection summary and actions', () => {
+        render(
             <PneTableSelectionControls
                 actions={<button type='button'>Clear</button>}
-                status={<div>Selection limit reached</div>}
                 summary='3 rows selected'
             />,
         )
 
         expect(screen.getByRole('status').textContent).toBe('3 rows selected')
         expect(screen.getByRole('button', {name: 'Clear'})).not.toBeNull()
-        expect(container.querySelector('[data-autotest="selection-status"]')?.textContent)
-            .toBe('Selection limit reached')
     })
 })

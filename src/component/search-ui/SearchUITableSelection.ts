@@ -88,8 +88,12 @@ type SearchUITableSelectionBaseConfig<
     resolveAllMatchingCount?: (
         scope: SearchUITableSelectionScope<TViewId>,
     ) => Promise<number>
-    /** Consumer-owned, localized summary, status, and bulk actions. */
+    /** Consumer-owned, localized summary and bulk actions rendered in the responsive toolbar. */
     renderControls: (
+        context: SearchUITableSelectionRenderContext<D, TKey, TViewId>,
+    ) => React.ReactNode
+    /** Consumer-owned feedback rendered full-width above the table toolbar and top pagination. */
+    renderFeedback?: (
         context: SearchUITableSelectionRenderContext<D, TKey, TViewId>,
     ) => React.ReactNode
 }

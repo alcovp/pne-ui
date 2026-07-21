@@ -132,10 +132,12 @@ const AsyncSelectionHarness = ({
             renderControls: ({selection: controller}) => {
                 controllerRef.current = controller
                 return <PneTableSelectionControls
-                    status={controller.selectingAllMatching ? 'Selecting all results' : undefined}
                     summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
                 />
             },
+            renderFeedback: ({selection: controller}) => controller.selectingAllMatching
+                ? 'Selecting all results'
+                : undefined,
             resolveAllMatchingCount,
             selection: selectionOverride ?? selection,
             toolbarAriaLabel: 'Gate table controls',
@@ -202,10 +204,12 @@ const AsyncViewsHarness = ({
             renderControls: ({selection: controller}) => {
                 controllerRef.current = controller
                 return <PneTableSelectionControls
-                    status={controller.selectingAllMatching ? 'Selecting all results' : undefined}
                     summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
                 />
             },
+            renderFeedback: ({selection: controller}) => controller.selectingAllMatching
+                ? 'Selecting all results'
+                : undefined,
             resolveAllMatchingCount,
             selection,
             toolbarAriaLabel: 'Gate table controls',
@@ -270,7 +274,12 @@ describe('SearchUI asynchronous all-matching selection', () => {
         await waitFor(() => expect(resolver).toHaveBeenCalledTimes(1))
         expect(controllerRef.current?.selectingAllMatching).toBe(true)
         expect(controllerRef.current?.interactionDisabled).toBe(true)
-        expect(screen.getByText('Selecting all results')).toBeTruthy()
+        const feedback = screen.getByText('Selecting all results').closest(
+            '[data-autotest="table-feedback"]',
+        ) as HTMLElement
+        expect(feedback).not.toBeNull()
+        expect(feedback.closest('[data-autotest="table-top-controls"]')).toBeNull()
+        expect(feedback.closest('[data-autotest="pagination-actions"]')).toBeNull()
 
         let result!: TableSelectionUpdate<number>
         await act(async () => {
@@ -280,6 +289,7 @@ describe('SearchUI asynchronous all-matching selection', () => {
 
         expect(result.changed).toBe(true)
         expect(controllerRef.current?.selectingAllMatching).toBe(false)
+        expect(screen.queryByText('Selecting all results')).toBeNull()
         expect(screen.getByText('2 selected (allMatching)')).toBeTruthy()
         expect(onSelectionChange).toHaveBeenCalledTimes(1)
         expect(onSelectionChange).toHaveBeenCalledWith(
