@@ -65,7 +65,7 @@ const preview = {
             },
         },
         viewport: {
-            viewports: {
+            options: {
                 ...MINIMAL_VIEWPORTS,
                 ...customViewports,
             },

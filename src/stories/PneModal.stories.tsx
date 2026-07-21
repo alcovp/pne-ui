@@ -1,7 +1,7 @@
 import * as React from "react";
 import {Box, Typography} from "@mui/material";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
-import {userEvent, within} from "storybook/test";
+import {expect, userEvent, within} from "storybook/test";
 import {PneButton, PneModal, PneModalActions} from "../index";
 
 export default {
@@ -35,6 +35,15 @@ const ModalContent = ({section, title, description}: ModalContentProps) => <Box
     <Typography sx={{color: "text.secondary", fontSize: 14, lineHeight: "20px"}}>
         {description}
     </Typography>
+</Box>
+
+const LongModalContent = () => <Box sx={{display: "grid", gap: 2}}>
+    {Array.from({length: 16}, (_, index) => <ModalContent
+        key={index}
+        section={`mobile-scroll-section-${index + 1}`}
+        title={`Раздел ${index + 1}`}
+        description='Длинный контент проверяет, что на узком экране прокручивается только тело модалки, а панель действий остаётся на месте.'
+    />)}
 </Box>
 
 const ModalStoryHarness = ({
@@ -169,5 +178,81 @@ export const ResponsiveLongLabels: Story = {
             title='Адаптивная группа действий'
             description='Сценарий проверяет узкий экран, длинный перевод и увеличенную длину подписей кнопок.'
         />
+    </ModalStoryHarness>,
+};
+
+export const MobileLongScroll: Story = {
+    globals: {
+        viewport: {
+            value: "mobile360",
+            isRotated: false,
+        },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: "Регрессия мобильного скролла: длинное тело доходит до последнего раздела, а footer остаётся неподвижным.",
+            },
+        },
+    },
+    play: async context => {
+        await openModal(context);
+
+        const iframeDocument = context.canvasElement.ownerDocument;
+        const iframeWindow = iframeDocument.defaultView!;
+        const documentCanvas = within(iframeDocument.body);
+        const dialog = await documentCanvas.findByRole("dialog", {name: "Длинная мобильная модалка"});
+        const container = dialog.closest<HTMLElement>('[data-pne-modal-container="true"]')!;
+        const body = dialog.querySelector<HTMLElement>('[data-pne-modal-body="true"]')!;
+        const footer = dialog.querySelector<HTMLElement>('[data-pne-modal-footer="true"]')!;
+        const lastSection = dialog.querySelector<HTMLElement>('[data-story-section="mobile-scroll-section-16"]')!;
+        const viewportWidth = iframeWindow.innerWidth;
+        const viewportHeight = iframeWindow.innerHeight;
+        const expectFullyInViewport = (element: HTMLElement) => {
+            const rect = element.getBoundingClientRect();
+
+            expect(rect.top).toBeGreaterThanOrEqual(-1);
+            expect(rect.left).toBeGreaterThanOrEqual(-1);
+            expect(rect.right).toBeLessThanOrEqual(viewportWidth + 1);
+            expect(rect.bottom).toBeLessThanOrEqual(viewportHeight + 1);
+        };
+
+        expect(viewportWidth).toBe(360);
+        expect(viewportHeight).toBe(780);
+        expect(container).toBe(dialog);
+        expectFullyInViewport(dialog);
+        expectFullyInViewport(container);
+        expectFullyInViewport(footer);
+        expect(body.getBoundingClientRect().bottom)
+            .toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1);
+
+        const footerTopBeforeScroll = footer.getBoundingClientRect().top;
+
+        expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+
+        body.scrollTop = body.scrollHeight;
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()));
+
+        expect(body.scrollTop).toBeGreaterThan(0);
+        expect(body.scrollTop).toBeGreaterThanOrEqual(body.scrollHeight - body.clientHeight - 1);
+        expect(Math.abs(footer.getBoundingClientRect().top - footerTopBeforeScroll)).toBeLessThanOrEqual(1);
+        expect(body.getBoundingClientRect().bottom)
+            .toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1);
+        expectFullyInViewport(dialog);
+        expectFullyInViewport(container);
+        expectFullyInViewport(footer);
+        expect(lastSection.getBoundingClientRect().bottom)
+            .toBeLessThanOrEqual(body.getBoundingClientRect().bottom + 1);
+    },
+    render: () => <ModalStoryHarness
+        containerSx={{width: 640}}
+        renderActions={close => <PneModalActions
+            secondary={<PneButton pneStyle='outlined' onClick={close}>Отмена</PneButton>}
+            primary={<PneButton pneStyle='contained' onClick={close}>Сохранить</PneButton>}
+        />}
+        subtitle='16 разделов'
+        title='Длинная мобильная модалка'
+    >
+        <LongModalContent/>
     </ModalStoryHarness>,
 };

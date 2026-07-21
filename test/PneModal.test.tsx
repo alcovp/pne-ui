@@ -31,6 +31,20 @@ describe('PneModal', () => {
         expect(window.getComputedStyle(modalContainer!).display).toBe('flex')
         expect(window.getComputedStyle(modalContainer!).overflow).toBe('hidden')
         expect(window.getComputedStyle(body!).overflowY).toBe('auto')
+        const generatedBodyClass = Array.from(body!.classList)
+            .find(className => className.startsWith('css-'))
+        const bodyTouchScrollingRule = Array.from(document.styleSheets)
+            .flatMap(styleSheet => Array.from(styleSheet.cssRules))
+            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+            .find(rule => (
+                generatedBodyClass !== undefined
+                && rule.selectorText.includes(`.${generatedBodyClass}`)
+                && body!.matches(rule.selectorText)
+                && rule.style.getPropertyValue('-webkit-overflow-scrolling') === 'touch'
+            ))
+
+        expect(generatedBodyClass).toBeDefined()
+        expect(bodyTouchScrollingRule).toBeDefined()
         expect(window.getComputedStyle(body!).minHeight).toBe('0')
         expect(window.getComputedStyle(footer!).flexShrink).toBe('0')
         expect(window.getComputedStyle(footer!).borderTopWidth).toBe('1px')

@@ -661,6 +661,7 @@ const Body = styled(Box)`
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 16px 24px;
 `
 

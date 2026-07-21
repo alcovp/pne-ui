@@ -32,6 +32,7 @@ import {
     TransactionSessionStatuses,
 } from '../component/search-ui/filters/types'
 import { Meta, StoryObj } from '@storybook/react-webpack5'
+import { expect, userEvent, waitFor } from 'storybook/test'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Alert, Box, IconButton, Tooltip } from '@mui/material'
@@ -1067,6 +1068,118 @@ export const AllFilters: Story = {
         showVisaButton: false,
         initialSearchConditions: allFiltersInitialSearchConditions,
     },
+}
+
+export const MultigetModalMobileScroll: Story = {
+    args: {
+        possibleCriteria: [CriterionTypeEnum.GATE],
+        predefinedCriteria: [CriterionTypeEnum.GATE],
+        showVisaButton: false,
+        settingsContextName: 'storybook-multiget-mobile-scroll',
+        initialSearchConditions: {
+            multigetCriteria: [{
+                entityType: LinkedEntityTypeEnum.GATE,
+                filterType: MultichoiceFilterTypeEnum.NONE,
+                searchString: '',
+                selectedItems: allFiltersGateSelectedIds,
+                selectedItemNames: allFiltersGateSelectedNames,
+                deselectedItems: '',
+                deselectedItemNames: '',
+            }],
+        },
+    },
+    globals: {
+        viewport: {
+            value: 'mobile360',
+            isRotated: false,
+        },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: 'Gate Multiget modal: the scrollable body reaches its final divider while the dialog and footer remain visible and fixed.',
+            },
+        },
+    },
+    play: async ({ canvasElement }) => {
+        const iframeDocument = canvasElement.ownerDocument
+        const iframeWindow = iframeDocument.defaultView!
+        const verification = canvasElement.querySelector<HTMLElement>(
+            '[data-story-verification="pending"]',
+        )!
+        const trigger = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLButtonElement>(
+                'button[data-autotest="criterion-multiget-trigger"]',
+            )
+
+            expect(element).not.toBeNull()
+            return element as HTMLButtonElement
+        })
+
+        expect(iframeWindow.innerWidth).toBe(360)
+        expect(iframeWindow.innerHeight).toBe(780)
+        expect(trigger.getAttribute('aria-expanded')).toBe('false')
+
+        await userEvent.click(trigger)
+
+        const dialog = await waitFor(() => {
+            const element = iframeDocument.querySelector<HTMLElement>(
+                '[role="dialog"][data-autotest="criterion-multiget-panel"]',
+            )
+
+            expect(element).not.toBeNull()
+            return element as HTMLElement
+        })
+        const body = dialog.querySelector<HTMLElement>('[data-pne-modal-body="true"]')!
+        const footer = dialog.querySelector<HTMLElement>('[data-pne-modal-footer="true"]')!
+        const available = dialog.querySelector<HTMLElement>(
+            '[data-autotest="criterion-multiget-available"]',
+        )!
+        const contentEnd = body.firstElementChild?.lastElementChild as HTMLElement
+        const viewportWidth = iframeWindow.innerWidth
+        const viewportHeight = iframeWindow.innerHeight
+        const expectFullyInViewport = (element: HTMLElement) => {
+            const rect = element.getBoundingClientRect()
+
+            expect(rect.top).toBeGreaterThanOrEqual(-1)
+            expect(rect.left).toBeGreaterThanOrEqual(-1)
+            expect(rect.right).toBeLessThanOrEqual(viewportWidth + 1)
+            expect(rect.bottom).toBeLessThanOrEqual(viewportHeight + 1)
+        }
+
+        await waitFor(() => expect(available.getAttribute('aria-busy')).toBe('false'))
+
+        expect(trigger.getAttribute('aria-expanded')).toBe('true')
+        expect(iframeWindow.getComputedStyle(body).overflowY).toBe('auto')
+        expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
+        expect(contentEnd.tagName).toBe('HR')
+        expectFullyInViewport(dialog)
+        expectFullyInViewport(footer)
+        expect(body.getBoundingClientRect().bottom)
+            .toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1)
+
+        const footerTopBeforeScroll = footer.getBoundingClientRect().top
+
+        body.scrollTop = body.scrollHeight
+        await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+
+        expect(body.scrollTop).toBeGreaterThanOrEqual(body.scrollHeight - body.clientHeight - 1)
+        expect(contentEnd.getBoundingClientRect().top)
+            .toBeGreaterThanOrEqual(body.getBoundingClientRect().top - 1)
+        expect(contentEnd.getBoundingClientRect().bottom)
+            .toBeLessThanOrEqual(body.getBoundingClientRect().bottom + 1)
+        expect(Math.abs(footer.getBoundingClientRect().top - footerTopBeforeScroll))
+            .toBeLessThanOrEqual(1)
+        expect(body.getBoundingClientRect().bottom)
+            .toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1)
+        expectFullyInViewport(dialog)
+        expectFullyInViewport(footer)
+
+        verification.dataset.storyVerification = 'passed'
+    },
+    render: args => <Box data-story-verification='pending'>
+        <HookWrap {...args}/>
+    </Box>,
 }
 
 export const ManualSearch: Story = {
