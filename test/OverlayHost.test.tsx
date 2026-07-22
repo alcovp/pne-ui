@@ -58,6 +58,50 @@ describe('OverlayHost', () => {
         })
     })
 
+    it('keeps the existing Grow exit mounted while smoothly collapsing its stack space', async () => {
+        const theme = createTheme()
+        theme.transitions.duration.leavingScreen = 400
+        render(
+            <ThemeProvider theme={theme}>
+                <OverlayHost container={null} />
+            </ThemeProvider>,
+        )
+
+        act(() => {
+            overlayActions.showError({
+                id: 'animated-exit',
+                message: 'Closing with motion',
+                autoHideMs: undefined,
+            })
+        })
+
+        const message = await screen.findByText('Closing with motion')
+        const snackbar = screen.getByTestId('overlay-snackbar-animated-exit')
+        const stack = message.closest<HTMLElement>('[data-pne-overlay-stack]')!
+        const stackItem = message.closest<HTMLElement>('[data-pne-overlay-stack-item]')!
+
+        expect(window.getComputedStyle(stack).gap).toBe('0px')
+        expect(window.getComputedStyle(stack).bottom).toBe('12px')
+        expect(window.getComputedStyle(stackItem).paddingBottom).toBe('12px')
+
+        act(() => {
+            overlayActions.removeSnackbar('animated-exit')
+        })
+
+        expect(useOverlayStore.getState().snackbars).toHaveLength(0)
+        expect(screen.getByText('Closing with motion')).toBeTruthy()
+        expect(window.getComputedStyle(snackbar).pointerEvents).toBe('none')
+
+        await act(async () => {
+            await new Promise(resolve => window.setTimeout(resolve, 250))
+        })
+        expect(screen.getByText('Closing with motion')).toBeTruthy()
+
+        await waitFor(() => {
+            expect(screen.queryByText('Closing with motion')).toBeNull()
+        })
+    })
+
     it('aligns the severity icon and stretches only the built-in close target', async () => {
         render(<OverlayHost container={null} />)
 
@@ -152,6 +196,129 @@ describe('OverlayHost', () => {
         await waitFor(() => {
             expect(screen.queryByText('Hover me')).toBeNull()
         })
+    })
+
+    it('resumes auto-close only after both hover and focus have left', async () => {
+        jest.useFakeTimers()
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showInfo({
+                id: 'hover-focus-info',
+                message: 'Keep me paused',
+                autoHideMs: 1000,
+            })
+        })
+
+        const snackbar = await screen.findByTestId('overlay-snackbar-hover-focus-info')
+        const closeButton = screen.getByRole('button', { name: 'Close' })
+
+        act(() => {
+            jest.advanceTimersByTime(400)
+        })
+        fireEvent.mouseEnter(snackbar)
+        fireEvent.focus(closeButton)
+        fireEvent.mouseLeave(snackbar)
+
+        act(() => {
+            jest.advanceTimersByTime(1000)
+        })
+        expect(screen.getByText('Keep me paused')).toBeTruthy()
+
+        fireEvent.blur(closeButton, { relatedTarget: null })
+        act(() => {
+            jest.advanceTimersByTime(600)
+        })
+        act(() => {
+            jest.advanceTimersByTime(250)
+        })
+
+        expect(screen.queryByText('Keep me paused')).toBeNull()
+    })
+
+    it('disables transitions and the moving timeout progress for reduced motion', async () => {
+        const originalMatchMedia = window.matchMedia
+        Object.defineProperty(window, 'matchMedia', {
+            configurable: true,
+            value: jest.fn().mockImplementation((query: string) => ({
+                matches: query === '(prefers-reduced-motion: reduce)',
+                media: query,
+                onchange: null,
+                addEventListener: jest.fn(),
+                removeEventListener: jest.fn(),
+                addListener: jest.fn(),
+                removeListener: jest.fn(),
+                dispatchEvent: jest.fn(),
+            })),
+        })
+
+        try {
+            render(<OverlayHost container={null} />)
+            act(() => {
+                overlayActions.showSuccess({
+                    id: 'reduced-motion-success',
+                    message: 'Saved without motion',
+                    autoHideMs: 2500,
+                })
+            })
+
+            expect(await screen.findByText('Saved without motion')).toBeTruthy()
+            expect(screen.queryByTestId('overlay-snackbar-progress')).toBeNull()
+
+            act(() => {
+                overlayActions.removeSnackbar('reduced-motion-success')
+            })
+            await waitFor(() => {
+                expect(screen.queryByText('Saved without motion')).toBeNull()
+            })
+        } finally {
+            Object.defineProperty(window, 'matchMedia', {
+                configurable: true,
+                value: originalMatchMedia,
+            })
+        }
+    })
+
+    it('treats a removed and immediately re-enqueued id as a fresh snackbar instance', async () => {
+        jest.useFakeTimers()
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showInfo({
+                id: 'reused-id',
+                message: 'First generation',
+                autoHideMs: 1000,
+            })
+        })
+
+        expect(await screen.findByText('First generation')).toBeTruthy()
+        const firstSnackbar = screen.getByTestId('overlay-snackbar-reused-id')
+        act(() => {
+            jest.advanceTimersByTime(400)
+            overlayActions.removeSnackbar('reused-id')
+            overlayActions.showInfo({
+                id: 'reused-id',
+                message: 'Second generation',
+                autoHideMs: 1000,
+            })
+        })
+
+        expect(await screen.findByText('Second generation')).toBeTruthy()
+        expect(screen.getByTestId('overlay-snackbar-reused-id')).not.toBe(firstSnackbar)
+        expect(screen.queryByText('First generation')).toBeNull()
+
+        act(() => {
+            jest.advanceTimersByTime(700)
+        })
+        expect(screen.getByText('Second generation')).toBeTruthy()
+
+        act(() => {
+            jest.advanceTimersByTime(300)
+        })
+        act(() => {
+            jest.advanceTimersByTime(250)
+        })
+        expect(screen.queryByText('Second generation')).toBeNull()
     })
 
     it('logs an explicit error when more than one OverlayHost is mounted', async () => {

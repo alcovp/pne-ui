@@ -149,6 +149,7 @@ describe('structured overlay errors', () => {
 
     afterEach(() => {
         jest.useRealTimers()
+        window.getSelection()?.removeAllRanges()
         consoleErrorSpy.mockRestore()
     })
 
@@ -370,6 +371,7 @@ describe('structured overlay errors', () => {
         expect(copyControl.getAttribute('role')).toBe('button')
         expect(copyControl.tabIndex).toBe(0)
         expect(window.getComputedStyle(copyControl).display).toBe('inline')
+        expect(window.getComputedStyle(copyControl).userSelect).toBe('text')
         expect(window.getComputedStyle(errorId).textDecoration).toBe('underline')
         expect(window.getComputedStyle(errorId).overflowWrap).toBe('anywhere')
         expect(window.getComputedStyle(errorId).wordBreak).toBe('break-all')
@@ -398,6 +400,91 @@ describe('structured overlay errors', () => {
         expect(copyButton.querySelector('[data-name="error-id-copy-icon"]')).not.toBeNull()
     })
 
+    it('keeps the inline error id selectable as part of the complete error message', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'selectable-error-id',
+                    messageId: 'react.unexpected.exception.message',
+                },
+            })
+        })
+
+        const copyControl = await screen.findByRole('button', { name: 'Copy error ID: selectable-error-id' })
+        const message = document.querySelector<HTMLElement>('[data-name="error-message"]')!
+        const selection = window.getSelection()!
+        const range = document.createRange()
+        range.selectNodeContents(message)
+        selection.removeAllRanges()
+        selection.addRange(range)
+
+        expect(window.getComputedStyle(copyControl).userSelect).toBe('text')
+        expect(selection.toString()).toContain('error id selectable-error-id')
+    })
+
+    it('copies the error id on an ordinary click and on Enter or Space', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'activation-error-id',
+                    messageId: 'react.unexpected.exception.message',
+                },
+            })
+        })
+
+        const copyControl = await screen.findByRole('button', { name: 'Copy error ID: activation-error-id' })
+
+        fireEvent.click(copyControl, { detail: 1 })
+        await waitFor(() => expect(clipboardWriteText).toHaveBeenCalledTimes(1))
+
+        fireEvent.keyDown(copyControl, { key: 'Enter', code: 'Enter' })
+        await waitFor(() => expect(clipboardWriteText).toHaveBeenCalledTimes(2))
+
+        fireEvent.keyDown(copyControl, { key: ' ', code: 'Space' })
+        fireEvent.keyUp(copyControl, { key: ' ', code: 'Space' })
+        await waitFor(() => expect(clipboardWriteText).toHaveBeenCalledTimes(3))
+        expect(clipboardWriteText).toHaveBeenNthCalledWith(1, 'activation-error-id')
+        expect(clipboardWriteText).toHaveBeenNthCalledWith(2, 'activation-error-id')
+        expect(clipboardWriteText).toHaveBeenNthCalledWith(3, 'activation-error-id')
+    })
+
+    it('does not copy after selecting or dragging the error id with the mouse', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'dragged-error-id',
+                    messageId: 'react.unexpected.exception.message',
+                },
+            })
+        })
+
+        const copyControl = await screen.findByRole('button', { name: 'Copy error ID: dragged-error-id' })
+        const errorId = document.querySelector<HTMLElement>('[data-name="error-id-value"]')!
+        const selection = window.getSelection()!
+        const range = document.createRange()
+        range.selectNodeContents(errorId)
+        selection.removeAllRanges()
+        selection.addRange(range)
+
+        fireEvent.click(copyControl, { detail: 1 })
+        expect(clipboardWriteText).not.toHaveBeenCalled()
+
+        selection.removeAllRanges()
+        fireEvent.mouseDown(copyControl, { button: 0, clientX: 10, clientY: 10 })
+        fireEvent.mouseMove(copyControl, { buttons: 1, clientX: 20, clientY: 10 })
+        fireEvent.mouseUp(copyControl, { button: 0, clientX: 20, clientY: 10 })
+        fireEvent.click(copyControl, { detail: 1 })
+
+        expect(clipboardWriteText).not.toHaveBeenCalled()
+        expect(copyControl.getAttribute('data-copy-state')).toBe('idle')
+    })
+
     it('ignores a delayed clipboard completion after the error is removed', async () => {
         let resolveCopy!: () => void
         clipboardWriteText.mockReturnValue(new Promise<void>(resolve => {
@@ -421,6 +508,10 @@ describe('structured overlay errors', () => {
         act(() => {
             overlayActions.clearSnackbars()
         })
+        await act(async () => {
+            await new Promise(resolve => window.setTimeout(resolve, 250))
+        })
+        expect(copyButton.isConnected).toBe(false)
         await act(async () => {
             resolveCopy()
             await Promise.resolve()

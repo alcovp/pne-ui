@@ -18,6 +18,7 @@ const DETAILS_PREVIEW_MAX_CHARACTERS = 300
 const DETAILS_PREVIEW_MAX_LINES = 3
 const ERROR_ID_PLACEHOLDER = '{errorId}'
 const COPY_FEEDBACK_DURATION_MS = 2000
+const TEXT_SELECTION_DRAG_THRESHOLD_PX = 3
 const ERROR_BODY_TEXT_SX = {
     fontSize: 14,
     lineHeight: '20px',
@@ -72,11 +73,30 @@ const copyTextToClipboard = async (text: string): Promise<boolean> => {
     }
 }
 
+const hasTextSelectionWithin = (element: HTMLElement): boolean => {
+    if (typeof window === 'undefined' || typeof window.getSelection !== 'function') return false
+
+    const selection = window.getSelection()
+    if (!selection || selection.isCollapsed || selection.rangeCount === 0) return false
+
+    for (let index = 0; index < selection.rangeCount; index += 1) {
+        try {
+            if (selection.getRangeAt(index).intersectsNode(element)) return true
+        } catch {
+            // Ignore stale ranges whose nodes were removed between pointerup and click.
+        }
+    }
+
+    return false
+}
+
 const CopyableErrorId = ({ errorId }: { errorId: string }) => {
     const { t } = useTranslation()
     const [copied, setCopied] = React.useState(false)
     const mounted = React.useRef(true)
     const resetTimer = React.useRef<number | undefined>(undefined)
+    const pointerDownPosition = React.useRef<{ x: number; y: number } | null>(null)
+    const pointerDragged = React.useRef(false)
     const copyLabel = String(t('pne.error.copyErrorId', { defaultValue: 'Copy error ID' }))
     const copiedLabel = String(t('pne.error.errorIdCopied', { defaultValue: 'Error ID copied' }))
 
@@ -96,6 +116,39 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
         resetTimer.current = window.setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS)
     }
 
+    const handleMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
+        if (event.button !== 0) return
+
+        pointerDownPosition.current = { x: event.clientX, y: event.clientY }
+        pointerDragged.current = false
+    }
+
+    const handleMouseMove = (event: React.MouseEvent<HTMLSpanElement>) => {
+        const start = pointerDownPosition.current
+        if (!start || (event.buttons & 1) === 0) return
+
+        if (
+            Math.abs(event.clientX - start.x) >= TEXT_SELECTION_DRAG_THRESHOLD_PX
+            || Math.abs(event.clientY - start.y) >= TEXT_SELECTION_DRAG_THRESHOLD_PX
+        ) {
+            pointerDragged.current = true
+        }
+    }
+
+    const handleActivate = (
+        event: React.MouseEvent<HTMLSpanElement> | React.KeyboardEvent<HTMLSpanElement>,
+    ) => {
+        const keyboardActivation = event.type === 'keydown' || event.type === 'keyup' || event.detail === 0
+        const suppressPointerCopy = !keyboardActivation
+            && (pointerDragged.current || hasTextSelectionWithin(event.currentTarget))
+
+        pointerDownPosition.current = null
+        pointerDragged.current = false
+
+        if (suppressPointerCopy) return
+        void handleCopy()
+    }
+
     return (
         <ButtonBase
             aria-label={copied ? copiedLabel : `${copyLabel}: ${errorId}`}
@@ -104,7 +157,12 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
             data-copy-state={copied ? 'copied' : 'idle'}
             data-name='copy-error-id'
             disableRipple
-            onClick={() => void handleCopy()}
+            onClick={handleActivate}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={() => {
+                pointerDownPosition.current = null
+            }}
             title={copied ? copiedLabel : copyLabel}
             sx={{
                 borderRadius: 0.5,
@@ -114,6 +172,7 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
                 lineHeight: 'inherit',
                 mx: 0.25,
                 px: 0.25,
+                userSelect: 'text',
                 verticalAlign: 'baseline',
                 '&:hover': {
                     bgcolor: 'action.hover',

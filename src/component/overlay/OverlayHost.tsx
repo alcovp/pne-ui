@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Alert, Box, Portal, Snackbar, type SnackbarOrigin } from '@mui/material'
+import { Alert, Box, Collapse, Portal, Snackbar, type SnackbarOrigin, useMediaQuery } from '@mui/material'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 import { useOverlayStore } from './overlayStore'
 import type { PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
@@ -53,12 +53,26 @@ export type OverlayHostProps = {
 
 type ManagedSnackbarProps = {
     anchor: SnackbarOrigin
+    onExited: () => void
+    open: boolean
     onRemove: (id: string) => void
+    prefersReducedMotion: boolean
     snack: SnackbarOptions
+}
+
+type KeyedSnackbar = SnackbarOptions & { id: string }
+
+type PresentedSnackbar = {
+    collapseExited: boolean
+    growExited: boolean
+    open: boolean
+    presentationKey: number
+    snack: KeyedSnackbar
 }
 
 const STACK_GAP = 12
 const STACK_OFFSET = 24
+const STACK_REFLOW_DURATION_MS = 200
 const PERMANENT_OFFSET = 24
 
 const clearTimer = (timer: ReturnType<typeof setInterval> | ReturnType<typeof setTimeout> | null) => {
@@ -67,13 +81,22 @@ const clearTimer = (timer: ReturnType<typeof setInterval> | ReturnType<typeof se
     }
 }
 
-const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
+const ManagedSnackbar = ({
+    anchor,
+    onExited,
+    open,
+    onRemove,
+    prefersReducedMotion,
+    snack,
+}: ManagedSnackbarProps) => {
     const autoHideMs = typeof snack.autoHideMs === 'number' && snack.autoHideMs > 0 ? snack.autoHideMs : null
     const [remainingMs, setRemainingMs] = useState<number | null>(autoHideMs)
     const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
     const intervalRef = React.useRef<ReturnType<typeof setInterval> | null>(null)
     const startedAtRef = React.useRef<number | null>(null)
     const remainingRef = React.useRef<number | null>(autoHideMs)
+    const focusWithinRef = React.useRef(false)
+    const hoveredRef = React.useRef(false)
 
     const remove = useCallback(() => {
         if (snack.id) {
@@ -98,7 +121,7 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
     }, [])
 
     const startTimer = useCallback((duration: number) => {
-        if (autoHideMs == null) {
+        if (!open || autoHideMs == null) {
             return
         }
 
@@ -118,8 +141,10 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
             remove()
         }, duration)
 
-        intervalRef.current = setInterval(syncRemaining, 50)
-    }, [autoHideMs, remove, stopTimer, syncRemaining])
+        if (!prefersReducedMotion) {
+            intervalRef.current = setInterval(syncRemaining, 50)
+        }
+    }, [autoHideMs, open, prefersReducedMotion, remove, stopTimer, syncRemaining])
 
     const pauseTimer = useCallback(() => {
         if (autoHideMs == null || startedAtRef.current == null || remainingRef.current == null) {
@@ -142,14 +167,20 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
         startTimer(remainingRef.current ?? autoHideMs)
     }, [autoHideMs, startTimer])
 
+    const resumeTimerIfIdle = useCallback(() => {
+        if (!focusWithinRef.current && !hoveredRef.current) {
+            resumeTimer()
+        }
+    }, [resumeTimer])
+
     React.useEffect(() => {
-        if (autoHideMs == null) {
+        if (!open || autoHideMs == null) {
             return undefined
         }
 
         startTimer(autoHideMs)
         return stopTimer
-    }, [autoHideMs, startTimer, stopTimer])
+    }, [autoHideMs, open, startTimer, stopTimer])
 
     const progressScale = autoHideMs != null && remainingMs != null
         ? Math.max(Math.min(remainingMs / autoHideMs, 1), 0)
@@ -157,21 +188,39 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
 
     return (
         <Snackbar
-            open
+            open={open}
             anchorOrigin={anchor}
             data-testid={snack.id ? `overlay-snackbar-${snack.id}` : 'overlay-snackbar'}
             onClose={(_event, reason) => {
                 if (reason === 'clickaway') return
                 remove()
             }}
-            onMouseEnter={pauseTimer}
-            onMouseLeave={resumeTimer}
-            onFocus={pauseTimer}
-            onBlur={resumeTimer}
+            onMouseEnter={() => {
+                hoveredRef.current = true
+                pauseTimer()
+            }}
+            onMouseLeave={() => {
+                hoveredRef.current = false
+                resumeTimerIfIdle()
+            }}
+            onFocus={() => {
+                focusWithinRef.current = true
+                pauseTimer()
+            }}
+            onBlur={event => {
+                if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) {
+                    return
+                }
+
+                focusWithinRef.current = false
+                resumeTimerIfIdle()
+            }}
+            slotProps={{ transition: { onExited } }}
+            transitionDuration={prefersReducedMotion ? 0 : undefined}
             sx={{
                 position: 'static',
                 transform: 'none',
-                pointerEvents: 'auto',
+                pointerEvents: open ? 'auto' : 'none',
                 minWidth: 'min(288px, calc(100vw - 32px))',
                 maxWidth: 'calc(100vw - 32px)',
                 width: 'fit-content',
@@ -219,7 +268,7 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
                     }),
                 }}
             >
-                {progressScale != null ? (
+                {progressScale != null && !prefersReducedMotion ? (
                     <Box
                         data-testid='overlay-snackbar-progress'
                         sx={{
@@ -257,6 +306,7 @@ export function OverlayHost({
     const snackbars = useOverlayStore(state => state.snackbars)
     const removeSnackbar = useOverlayStore(state => state.removeSnackbar)
     const breakpoint = useBreakpoint()
+    const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
     const [permanentOverlays, setPermanentOverlays] = useState<Map<PermanentOverlaySlot, PermanentOverlayInstance>>(
         () => new Map(),
@@ -311,21 +361,81 @@ export function OverlayHost({
         return snackbars
     }, [maxSnack, snackbars])
 
+    const keyedVisibleSnackbars = useMemo(
+        () => visibleSnackbars.filter((snackbar): snackbar is KeyedSnackbar => typeof snackbar.id === 'string'),
+        [visibleSnackbars],
+    )
+
+    const [presentedSnackbars, setPresentedSnackbars] = useState<PresentedSnackbar[]>([])
+    const presentationKeyRef = React.useRef(0)
+
+    React.useEffect(() => {
+        setPresentedSnackbars(current => {
+            const visibleById = new Map(keyedVisibleSnackbars.map(snackbar => [snackbar.id, snackbar]))
+            const next = current.map(presented => {
+                const currentSnack = visibleById.get(presented.snack.id)
+                if (!currentSnack) {
+                    return presented.open ? { ...presented, open: false } : presented
+                }
+
+                visibleById.delete(presented.snack.id)
+                if (!presented.open || currentSnack !== presented.snack) {
+                    presentationKeyRef.current += 1
+                    return {
+                        collapseExited: false,
+                        growExited: false,
+                        open: true,
+                        presentationKey: presentationKeyRef.current,
+                        snack: currentSnack,
+                    }
+                }
+
+                return presented
+            })
+
+            visibleById.forEach(snack => {
+                presentationKeyRef.current += 1
+                next.push({
+                    collapseExited: false,
+                    growExited: false,
+                    open: true,
+                    presentationKey: presentationKeyRef.current,
+                    snack,
+                })
+            })
+            return next
+        })
+    }, [keyedVisibleSnackbars])
+
+    const completeSnackbarExitPart = useCallback((presentationKey: number, part: 'collapse' | 'grow') => {
+        setPresentedSnackbars(current => current.flatMap(presented => {
+            if (presented.presentationKey !== presentationKey || presented.open) return [presented]
+
+            const next = {
+                ...presented,
+                collapseExited: part === 'collapse' ? true : presented.collapseExited,
+                growExited: part === 'grow' ? true : presented.growExited,
+            }
+
+            return next.collapseExited && next.growExited ? [] : [next]
+        }))
+    }, [])
+
     const groupedSnackbars = useMemo(() => {
-        const groups: Array<{ anchor: SnackbarOrigin; items: typeof visibleSnackbars }> = []
-        const map = new Map<string, { anchor: SnackbarOrigin; items: typeof visibleSnackbars }>()
-        visibleSnackbars.forEach(snack => {
-            const anchor = snack.anchorOrigin ?? anchorOrigin
+        const groups: Array<{ anchor: SnackbarOrigin; items: PresentedSnackbar[] }> = []
+        const map = new Map<string, { anchor: SnackbarOrigin; items: PresentedSnackbar[] }>()
+        presentedSnackbars.forEach(presented => {
+            const anchor = presented.snack.anchorOrigin ?? anchorOrigin
             const key = `${anchor.vertical}-${anchor.horizontal}`
             if (!map.has(key)) {
-                const group = { anchor, items: [] as typeof visibleSnackbars }
+                const group = { anchor, items: [] as PresentedSnackbar[] }
                 map.set(key, group)
                 groups.push(group)
             }
-            map.get(key)!.items.push(snack)
+            map.get(key)!.items.push(presented)
         })
         return groups
-    }, [anchorOrigin, visibleSnackbars])
+    }, [anchorOrigin, presentedSnackbars])
 
     const permanentContent = useMemo(() => {
         const entries = Array.from(permanentOverlays.values())
@@ -374,7 +484,11 @@ export function OverlayHost({
                 const verticalStyles =
                     anchor.vertical === 'top'
                         ? { top: STACK_OFFSET, bottom: 'auto', flexDirection: 'column-reverse' as const }
-                        : { bottom: STACK_OFFSET, top: 'auto', flexDirection: 'column-reverse' as const }
+                        : {
+                            bottom: STACK_OFFSET - STACK_GAP,
+                            top: 'auto',
+                            flexDirection: 'column-reverse' as const,
+                        }
 
                 return (
                     <Box
@@ -384,20 +498,33 @@ export function OverlayHost({
                             position: 'fixed',
                             zIndex: theme => theme.zIndex.snackbar,
                             display: 'flex',
-                            gap: `${STACK_GAP}px`,
+                            gap: 0,
                             pointerEvents: 'none',
                             ...horizontalStyles,
                             ...verticalStyles,
                         }}
                     >
-                        {items.map(snack => snack.id ? (
-                            <ManagedSnackbar
-                                key={snack.id}
-                                anchor={anchor}
-                                onRemove={removeSnackbar}
-                                snack={snack}
-                            />
-                        ) : null)}
+                        {items.map(({ open, presentationKey, snack }) => (
+                            <Collapse
+                                key={presentationKey}
+                                appear={false}
+                                enter={false}
+                                in={open}
+                                onExited={() => completeSnackbarExitPart(presentationKey, 'collapse')}
+                                timeout={prefersReducedMotion ? 0 : STACK_REFLOW_DURATION_MS}
+                            >
+                                <Box data-pne-overlay-stack-item sx={{ pb: `${STACK_GAP}px` }}>
+                                    <ManagedSnackbar
+                                        anchor={anchor}
+                                        onExited={() => completeSnackbarExitPart(presentationKey, 'grow')}
+                                        open={open}
+                                        onRemove={removeSnackbar}
+                                        prefersReducedMotion={prefersReducedMotion}
+                                        snack={snack}
+                                    />
+                                </Box>
+                            </Collapse>
+                        ))}
                     </Box>
                 )
             })}
