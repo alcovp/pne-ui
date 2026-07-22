@@ -1,8 +1,14 @@
 import * as React from 'react'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { createTheme, ThemeProvider } from '@mui/material'
+import { AlertTitle, Box, createTheme, ThemeProvider } from '@mui/material'
 
-import { OverlayHost, overlayActions, useOverlayStore } from '../src'
+import {
+    OverlayHost,
+    overlayActions,
+    PAYNET_LEFT_MENU_OVERLAY_OFFSET,
+    useOverlayStore,
+} from '../src'
+import { createResponsiveLeftOffsetStyles } from '../src/component/overlay/OverlayHost'
 import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRuntime'
 
 describe('OverlayHost', () => {
@@ -50,6 +56,58 @@ describe('OverlayHost', () => {
         await waitFor(() => {
             expect(screen.queryByTestId('overlay-snackbar-progress')).toBeNull()
         })
+    })
+
+    it('aligns the severity icon and stretches only the built-in close target', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showInfo({
+                id: 'close-chrome',
+                autoHideMs: undefined,
+                message: (
+                    <Box>
+                        <AlertTitle>Information</AlertTitle>
+                        A general notification.
+                    </Box>
+                ),
+            })
+        })
+
+        const title = await screen.findByText('Information')
+        const alert = title.closest('.MuiAlert-root')!
+        const icon = alert.querySelector<HTMLElement>('.MuiAlert-icon')!
+        const closeButton = screen.getByRole('button', { name: 'Close' })
+        const closeAction = closeButton.closest<HTMLElement>('.MuiAlert-action')!
+
+        expect(window.getComputedStyle(icon).paddingTop).toBe('7px')
+        expect(window.getComputedStyle(closeAction).marginTop).toBe('-6px')
+        expect(window.getComputedStyle(closeAction).marginBottom).toBe('-6px')
+        expect(window.getComputedStyle(closeAction).marginRight).toBe('-16px')
+        expect(window.getComputedStyle(closeAction).paddingLeft).toBe('8px')
+        expect(window.getComputedStyle(closeButton).borderRadius).toBe('0')
+        expect(window.getComputedStyle(closeButton).paddingTop).toBe('15px')
+        expect(window.getComputedStyle(closeButton).paddingLeft).toBe('13px')
+        expect(window.getComputedStyle(closeButton).paddingRight).toBe('13px')
+        expect(window.getComputedStyle(closeButton).paddingBottom).toBe('0px')
+
+        act(() => {
+            overlayActions.clearSnackbars()
+            overlayActions.showUndoSnackbar({
+                id: 'unchanged-undo-chrome',
+                message: 'Filters cleared',
+                autoHideMs: undefined,
+                onUndo: jest.fn(),
+            })
+        })
+
+        const undoButton = await screen.findByRole('button', { name: 'Undo' })
+        const undoAction = undoButton.closest<HTMLElement>('.MuiAlert-action')!
+
+        expect(window.getComputedStyle(undoAction).marginTop).not.toBe('-6px')
+        expect(window.getComputedStyle(undoAction).marginRight).not.toBe('-16px')
+        expect(window.getComputedStyle(undoAction).paddingTop).toBe('4px')
+        expect(window.getComputedStyle(undoButton).borderRadius).not.toBe('0')
     })
 
     it('pauses auto-close on hover and resumes with the exact remaining time', async () => {
@@ -206,6 +264,38 @@ describe('OverlayHost', () => {
 
         expect(stack).not.toBeNull()
         expect(window.getComputedStyle(stack!).zIndex).toBe('4321')
+    })
+
+    it('supports an explicit final offset for left-anchored stacks', async () => {
+        render(<OverlayHost container={null} leftOffset={72} />)
+
+        act(() => {
+            overlayActions.showError({
+                id: 'custom-left-offset',
+                message: 'Offset from navigation',
+            })
+        })
+
+        const message = await screen.findByText('Offset from navigation')
+        const stack = message.closest('[data-pne-overlay-stack]')
+
+        expect(stack).not.toBeNull()
+        expect(window.getComputedStyle(stack!).left).toBe('72px')
+    })
+
+    it('exports the opt-in Paynet menu offset boundaries', () => {
+        expect(PAYNET_LEFT_MENU_OVERLAY_OFFSET).toEqual({
+            default: 16,
+            breakpoints: [
+                { minWidth: 1080, offset: 64 },
+                { minWidth: 1600, offset: 272 },
+            ],
+        })
+        expect(createResponsiveLeftOffsetStyles(PAYNET_LEFT_MENU_OVERLAY_OFFSET)).toEqual({
+            left: 16,
+            '@media (min-width: 1080px)': { left: 64 },
+            '@media (min-width: 1600px)': { left: 272 },
+        })
     })
 
     it('evicts overflow instead of retaining hidden snackbars that can reappear', async () => {

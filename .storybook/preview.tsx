@@ -53,6 +53,41 @@ const customViewports = {
             height: '960px',
         },
     },
+    menuBoundary1079: {
+        name: 'Menu boundary 1079px',
+        styles: {
+            width: '1079px',
+            height: '720px',
+        },
+    },
+    menuBoundary1080: {
+        name: 'Menu boundary 1080px',
+        styles: {
+            width: '1080px',
+            height: '720px',
+        },
+    },
+    menuBoundary1599: {
+        name: 'Menu boundary 1599px',
+        styles: {
+            width: '1599px',
+            height: '900px',
+        },
+    },
+    menuBoundary1600: {
+        name: 'Menu boundary 1600px',
+        styles: {
+            width: '1600px',
+            height: '900px',
+        },
+    },
+    menuWide1920: {
+        name: 'Wide menu 1920px',
+        styles: {
+            width: '1920px',
+            height: '900px',
+        },
+    },
 }
 
 const preview = {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 import {
     normalizePaynetError,
@@ -11,10 +11,12 @@ import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRun
 
 const translations: Record<string, string> = {
     'react.unexpected.exception.title': 'Error',
-    'react.unexpected.exception.message': 'Unexpected error {errorId}',
+    'react.unexpected.exception.message': 'Unexpected error occurred. Please contact our support and provide them the error id {errorId}',
     'duplicate-key.unq_login': 'This login already exists',
     'literal.message.key': 'This translation must not be used',
 }
+
+const clipboardWriteText = jest.fn<Promise<void>, [string]>()
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -137,13 +139,20 @@ describe('structured overlay errors', () => {
         resetOverlayRuntimeForTests()
         useOverlayStore.getState().clearSnackbars()
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+        clipboardWriteText.mockReset()
+        clipboardWriteText.mockResolvedValue(undefined)
+        Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: { writeText: clipboardWriteText },
+        })
     })
 
     afterEach(() => {
+        jest.useRealTimers()
         consoleErrorSpy.mockRestore()
     })
 
-    it('renders translated message and validation text with metadata and visible details', async () => {
+    it('renders translated message, validation text and details without exposing technical metadata visually', async () => {
         render(<OverlayHost container={null} />)
 
         act(() => {
@@ -159,14 +168,122 @@ describe('structured overlay errors', () => {
             })
         })
 
-        expect(await screen.findByText('Unexpected error validation-7')).toBeTruthy()
+        await waitFor(() => {
+            expect(document.querySelector('[data-name="error-message"]')?.textContent)
+                .toBe('Unexpected error occurred. Please contact our support and provide them the error id validation-7')
+        })
         expect(screen.getByText('This login already exists')).toBeTruthy()
-        expect(document.querySelector('[data-name="error-type"]')?.textContent)
-            .toBe('Type: VALIDATION_ERROR')
-        expect(document.querySelector('[data-name="error-status"]')?.textContent)
-            .toBe('Status: 422')
-        expect(document.querySelector('[data-name="error-details"]')?.textContent)
-            .toBe('Visible details\nsecond line')
+        expect(screen.getByRole('button', { name: 'Copy error ID: validation-7' })).toBeTruthy()
+        expect(document.querySelector('[data-name="error-type"]')).toBeNull()
+        expect(document.querySelector('[data-name="error-status"]')).toBeNull()
+        expect(screen.queryByText('Details')).toBeNull()
+        const message = document.querySelector<HTMLElement>('[data-name="error-message"]')!
+        const details = document.querySelector<HTMLElement>('[data-name="error-details"]')!
+        const detailsSection = document.querySelector<HTMLElement>('[data-name="error-details-section"]')!
+        expect(details.textContent).toBe('Visible details\nsecond line')
+        expect(details.tagName).toBe('DIV')
+        expect(window.getComputedStyle(detailsSection).borderTopStyle).toBe('solid')
+        expect(window.getComputedStyle(detailsSection).borderTopWidth).toBe('1px')
+        expect(window.getComputedStyle(details).fontFamily)
+            .toBe(window.getComputedStyle(message).fontFamily)
+        expect(window.getComputedStyle(details).fontSize)
+            .toBe(window.getComputedStyle(message).fontSize)
+        expect(window.getComputedStyle(details).lineHeight)
+            .toBe(window.getComputedStyle(message).lineHeight)
+    })
+
+    it('keeps a preview of long details inline and opens the complete diagnostic in a dialog', async () => {
+        const details = Array.from(
+            { length: 10 },
+            (_, index) => `at com.payneteasy.processing.Step${index + 1}.run(Step${index + 1}.java:42)`,
+        ).join('\n')
+
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'long-details-1',
+                    message: 'Processing failed',
+                    details,
+                },
+            })
+        })
+
+        expect(await screen.findByText('Processing failed')).toBeTruthy()
+        const inlineDetails = document.querySelector('[data-name="error-details"]')
+        expect(inlineDetails?.textContent).toContain('Step1.run')
+        expect(inlineDetails?.textContent).not.toContain('Step10.run')
+
+        fireEvent.click(screen.getByRole('button', { name: 'Show full details' }))
+
+        expect(await screen.findByRole('dialog', { name: 'Details' })).toBeTruthy()
+        const dialogDetails = document.querySelector<HTMLElement>('[data-name="error-details-dialog"]')!
+        expect(dialogDetails.textContent).toBe(details)
+        const dialogDetailsStyle = window.getComputedStyle(dialogDetails)
+        expect(dialogDetails.tagName).toBe('PRE')
+        expect(dialogDetailsStyle.fontFamily).toContain('ui-monospace')
+        expect(dialogDetailsStyle.fontSize).toBe('12px')
+        expect(dialogDetailsStyle.lineHeight).toBe('18px')
+        expect(dialogDetailsStyle.borderTopWidth).toBe('1px')
+        expect(dialogDetailsStyle.borderTopStyle).toBe('solid')
+        expect(dialogDetailsStyle.whiteSpace).toBe('pre')
+
+        fireEvent.click(screen.getByRole('button', { name: 'Close details' }))
+        await waitFor(() => {
+            expect(screen.queryByRole('dialog', { name: 'Details' })).toBeNull()
+        })
+    })
+
+    it('keeps an ordinary multiline diagnostic fully visible inline', async () => {
+        const details = [
+            'Processor: Acquirer A',
+            'Response code: 05',
+            'Response text: Do not honor',
+            'Retryable: false',
+            'Route: primary',
+        ].join('\n')
+
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'ordinary-details-1',
+                    message: 'Transaction declined',
+                    details,
+                },
+            })
+        })
+
+        expect(await screen.findByText('Transaction declined')).toBeTruthy()
+        expect(document.querySelector('[data-name="error-details"]')?.textContent).toBe(details)
+        expect(screen.queryByRole('button', { name: 'Show full details' })).toBeNull()
+    })
+
+    it('keeps the full-details dialog in a custom OverlayHost portal target', async () => {
+        const portalTarget = document.createElement('div')
+        document.body.appendChild(portalTarget)
+        const details = Array.from({ length: 10 }, (_, index) => `Stack frame ${index + 1}`).join('\n')
+        const view = render(<OverlayHost container={portalTarget} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'custom-portal-details',
+                    message: 'Custom portal failure',
+                    details,
+                },
+            })
+        })
+
+        fireEvent.click(await screen.findByRole('button', { name: 'Show full details' }))
+
+        const dialog = await screen.findByRole('dialog', { name: 'Details' })
+        expect(portalTarget.contains(dialog)).toBe(true)
+
+        view.unmount()
+        portalTarget.remove()
     })
 
     it('uses translated errorI18N once when messageId has no translation', async () => {
@@ -188,6 +305,37 @@ describe('structured overlay errors', () => {
         expect(document.querySelector('[data-name="error-validation-message"]')).toBeNull()
     })
 
+    it('falls back cleanly when a message requires an error id that is absent', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: { messageId: 'react.unexpected.exception.message' },
+            })
+        })
+
+        expect(await screen.findByText('Internal server error')).toBeTruthy()
+        expect(document.body.textContent).not.toContain('{errorId}')
+        expect(document.querySelector('[data-name="copy-error-id"]')).toBeNull()
+    })
+
+    it('does not invent a separate error id when a literal message has no placeholder', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'literal-without-placeholder',
+                    message: 'Processing failed',
+                },
+            })
+        })
+
+        expect(await screen.findByText('Processing failed')).toBeTruthy()
+        expect(document.querySelector('[data-name="copy-error-id"]')).toBeNull()
+        expect(document.body.textContent).not.toContain('literal-without-placeholder')
+    })
+
     it('renders Error.message as a literal instead of treating it as an i18n key', async () => {
         render(<OverlayHost container={null} />)
 
@@ -199,7 +347,7 @@ describe('structured overlay errors', () => {
         expect(screen.queryByText('This translation must not be used')).toBeNull()
     })
 
-    it('substitutes the error id in a translated message without rendering a duplicate id row', async () => {
+    it('renders the translated error id inline and copies it with temporary success feedback', async () => {
         render(<OverlayHost container={null} />)
 
         act(() => {
@@ -211,8 +359,75 @@ describe('structured overlay errors', () => {
             })
         })
 
-        expect(await screen.findByText('Unexpected error substituted-9')).toBeTruthy()
+        await waitFor(() => {
+            expect(document.querySelector('[data-name="error-message"]')?.textContent)
+                .toBe('Unexpected error occurred. Please contact our support and provide them the error id substituted-9')
+        })
         expect(document.querySelector('[data-name="error-id"]')).toBeNull()
+        const errorId = document.querySelector<HTMLElement>('[data-name="error-id-value"]')!
+        const copyControl = document.querySelector<HTMLElement>('[data-name="copy-error-id"]')!
+        expect(copyControl.tagName).toBe('SPAN')
+        expect(copyControl.getAttribute('role')).toBe('button')
+        expect(copyControl.tabIndex).toBe(0)
+        expect(window.getComputedStyle(copyControl).display).toBe('inline')
+        expect(window.getComputedStyle(errorId).textDecoration).toBe('underline')
+        expect(window.getComputedStyle(errorId).overflowWrap).toBe('anywhere')
+        expect(window.getComputedStyle(errorId).wordBreak).toBe('break-all')
+        expect(window.getComputedStyle(
+            document.querySelector<HTMLElement>('[data-name="error-id-tail"]')!,
+        ).whiteSpace).toBe('nowrap')
+
+        jest.useFakeTimers()
+        const copyButton = screen.getByRole('button', { name: 'Copy error ID: substituted-9' })
+        fireEvent.keyDown(copyButton, { key: 'Enter' })
+
+        await act(async () => {
+            await Promise.resolve()
+        })
+
+        expect(clipboardWriteText).toHaveBeenCalledWith('substituted-9')
+        expect(copyButton.getAttribute('data-copy-state')).toBe('copied')
+        expect(copyButton.getAttribute('aria-label')).toBe('Error ID copied')
+        expect(copyButton.querySelector('[data-name="error-id-copied-icon"]')).not.toBeNull()
+
+        act(() => {
+            jest.advanceTimersByTime(2000)
+        })
+
+        expect(copyButton.getAttribute('data-copy-state')).toBe('idle')
+        expect(copyButton.querySelector('[data-name="error-id-copy-icon"]')).not.toBeNull()
+    })
+
+    it('ignores a delayed clipboard completion after the error is removed', async () => {
+        let resolveCopy!: () => void
+        clipboardWriteText.mockReturnValue(new Promise<void>(resolve => {
+            resolveCopy = resolve
+        }))
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'delayed-copy',
+                    messageId: 'react.unexpected.exception.message',
+                },
+            })
+        })
+
+        const copyButton = await screen.findByRole('button', { name: 'Copy error ID: delayed-copy' })
+        const setTimeoutSpy = jest.spyOn(window, 'setTimeout')
+        fireEvent.click(copyButton)
+
+        act(() => {
+            overlayActions.clearSnackbars()
+        })
+        await act(async () => {
+            resolveCopy()
+            await Promise.resolve()
+        })
+
+        expect(setTimeoutSpy).not.toHaveBeenCalledWith(expect.any(Function), 2000)
+        setTimeoutSpy.mockRestore()
     })
 
     it('deduplicates concurrent reports by backend error id', async () => {

@@ -4,13 +4,45 @@ import { useBreakpoint } from '../responsive/useBreakpoint'
 import { useOverlayStore } from './overlayStore'
 import type { PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
 import { PermanentOverlayContext } from './PermanentOverlayContext'
+import { OverlayPortalContainerContext } from './OverlayPortalContainerContext'
 import { registerOverlayHost } from './overlayRuntime'
 
 export type OverlayPortalContainer = Element
 
+export type OverlayHostResponsiveOffset = {
+    /** Edge offset used below the first responsive step. */
+    default: number
+    /** Ordered min-width steps. Later matching steps take precedence. */
+    breakpoints?: ReadonlyArray<{
+        minWidth: number
+        offset: number
+    }>
+}
+
+/**
+ * Final left coordinates matching the adaptive Paynet menu shell:
+ * no reserved menu below 1080px, a collapsed rail below 1600px,
+ * and the full menu from 1600px. The 16px visual gap matches the
+ * previous React error panel.
+ */
+export const PAYNET_LEFT_MENU_OVERLAY_OFFSET = {
+    default: 16,
+    breakpoints: [
+        { minWidth: 1080, offset: 64 },
+        { minWidth: 1600, offset: 272 },
+    ],
+} as const satisfies OverlayHostResponsiveOffset
+
 export type OverlayHostProps = {
     anchorOrigin?: SnackbarOrigin
     maxSnack?: number
+    /**
+     * Final viewport coordinate for left-anchored snackbar stacks.
+     * Defaults to 24px. Use `PAYNET_LEFT_MENU_OVERLAY_OFFSET` when the
+     * adaptive Paynet left menu is present; applications without that menu
+     * should leave this unset.
+     */
+    leftOffset?: number | OverlayHostResponsiveOffset
     /**
      * Portal target for snackbar stacks and permanent overlays. Defaults to `document.body`.
      * Pass `null` to render overlays in place (for example, in a non-DOM harness).
@@ -136,7 +168,14 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
             onMouseLeave={resumeTimer}
             onFocus={pauseTimer}
             onBlur={resumeTimer}
-            sx={{ position: 'static', transform: 'none', pointerEvents: 'auto', minWidth: 288 }}
+            sx={{
+                position: 'static',
+                transform: 'none',
+                pointerEvents: 'auto',
+                minWidth: 'min(288px, calc(100vw - 32px))',
+                maxWidth: 'calc(100vw - 32px)',
+                width: 'fit-content',
+            }}
         >
             <Alert
                 elevation={1}
@@ -144,9 +183,40 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
                 severity={snack.variant ?? 'info'}
                 action={snack.action}
                 sx={{
+                    boxSizing: 'border-box',
                     position: 'relative',
                     overflow: 'hidden',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
+                    maxWidth: '100%',
+                    width: '100%',
+                    '& .MuiAlert-message': {
+                        minWidth: 0,
+                    },
+                    ...(snack.action != null ? {
+                        '& .MuiAlert-action': {
+                            alignItems: 'flex-start',
+                        },
+                    } : {
+                        '& .MuiAlert-action': {
+                            alignItems: 'stretch',
+                            alignSelf: 'stretch',
+                            mb: '-6px',
+                            mr: '-16px',
+                            mt: '-6px',
+                            pb: 0,
+                            pl: '8px',
+                            pt: 0,
+                        },
+                        '& .MuiAlert-action .MuiIconButton-root': {
+                            alignItems: 'flex-start',
+                            alignSelf: 'stretch',
+                            borderRadius: 0,
+                            pb: 0,
+                            pl: '13px',
+                            pr: '13px',
+                            pt: '15px',
+                        },
+                    }),
                 }}
             >
                 {progressScale != null ? (
@@ -180,6 +250,7 @@ const ManagedSnackbar = ({ anchor, onRemove, snack }: ManagedSnackbarProps) => {
 export function OverlayHost({
     anchorOrigin = { vertical: 'bottom', horizontal: 'left' },
     maxSnack = 10,
+    leftOffset = STACK_OFFSET,
     container,
     children,
 }: OverlayHostProps) {
@@ -291,7 +362,11 @@ export function OverlayHost({
                 const { anchor, items } = group
                 const horizontalStyles =
                     anchor.horizontal === 'left'
-                        ? { left: STACK_OFFSET, right: 'auto', transform: 'none' }
+                        ? {
+                            ...createResponsiveLeftOffsetStyles(leftOffset),
+                            right: 'auto',
+                            transform: 'none',
+                        }
                         : anchor.horizontal === 'right'
                             ? { right: STACK_OFFSET, left: 'auto', transform: 'none' }
                             : { left: '50%', transform: 'translateX(-50%)' }
@@ -331,15 +406,34 @@ export function OverlayHost({
     )
 
     return (
-        <PermanentOverlayContext.Provider value={contextValue}>
-            {children}
-            {container === null ? overlayContent : (
-                <Portal container={container}>
-                    {overlayContent}
-                </Portal>
-            )}
-        </PermanentOverlayContext.Provider>
+        <OverlayPortalContainerContext.Provider value={container}>
+            <PermanentOverlayContext.Provider value={contextValue}>
+                {children}
+                {container === null ? overlayContent : (
+                    <Portal container={container}>
+                        {overlayContent}
+                    </Portal>
+                )}
+            </PermanentOverlayContext.Provider>
+        </OverlayPortalContainerContext.Provider>
     )
 }
 
 export default OverlayHost
+
+export const createResponsiveLeftOffsetStyles = (
+    offset: number | OverlayHostResponsiveOffset,
+): Record<string, unknown> => {
+    if (typeof offset === 'number') {
+        return { left: offset }
+    }
+
+    const styles: Record<string, unknown> = { left: offset.default }
+    const breakpoints = [...(offset.breakpoints ?? [])].sort((a, b) => a.minWidth - b.minWidth)
+
+    breakpoints.forEach(step => {
+        styles[`@media (min-width: ${step.minWidth}px)`] = { left: step.offset }
+    })
+
+    return styles
+}
