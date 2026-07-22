@@ -2,8 +2,16 @@ import React from 'react'
 import UndoIcon from '@mui/icons-material/Undo'
 import PneButton from '../PneButton'
 import { create } from 'zustand'
-import type { OverlayState, SnackbarOptions, SnackbarVariant, UndoSnackbarOptions } from './types'
+import type {
+    ErrorSnackbarOptions,
+    OverlayState,
+    SnackbarOptions,
+    SnackbarVariant,
+    UndoSnackbarOptions,
+} from './types'
 import { reportMissingOverlayHost } from './overlayRuntime'
+import { normalizePaynetError } from './paynetError'
+import { PaynetErrorContent } from './PaynetErrorContent'
 
 const defaultAutoHideMs = 5000
 
@@ -51,13 +59,34 @@ const showWithVariant = (variant: SnackbarVariant) => (snackbar: Omit<SnackbarOp
     useOverlayStore.getState().enqueueSnackbar({ ...snackbar, variant })
 }
 
+const showError = (snackbar: ErrorSnackbarOptions): void => {
+    if ('error' in snackbar) {
+        const { error, ...options } = snackbar
+        void normalizePaynetError(error).then(normalized => {
+            if (!normalized) return
+
+            reportMissingOverlayHost('showError')
+            useOverlayStore.getState().enqueueSnackbar({
+                ...options,
+                id: options.id ?? normalized.notificationId,
+                message: React.createElement(PaynetErrorContent, { error: normalized }),
+                variant: 'error',
+            })
+        })
+        return
+    }
+
+    reportMissingOverlayHost('showError')
+    useOverlayStore.getState().enqueueSnackbar({ ...snackbar, variant: 'error' })
+}
+
 export const overlayActions = {
     showSnackbar: (snackbar: SnackbarOptions) => {
         reportMissingOverlayHost('showSnackbar')
         useOverlayStore.getState().enqueueSnackbar(snackbar)
     },
     showSuccess: showWithVariant('success'),
-    showError: showWithVariant('error'),
+    showError,
     /** Shows an error snackbar that auto-hides after the standard 5000 ms transient timeout. */
     showTransientError: (snackbar: Omit<SnackbarOptions, 'variant' | 'autoHideMs'>) => {
         reportMissingOverlayHost('showTransientError')

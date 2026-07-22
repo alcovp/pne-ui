@@ -1796,6 +1796,7 @@ const AppShell = () => (
 ```
 
 - Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo`, `showSnackbar` или `showUndoSnackbar`.
+- `showError` принимает как готовый UI-текст (`{ message }`), так и исходную Paynet/transport ошибку (`{ error }`). Во втором случае библиотека сама разворачивает Paynet v1, Axios/Fetch/Blob payload, переводит `messageId`, показывает `errorId`, `errorI18N` и доступный пользователю `details`.
 - `showUndoSnackbar` возвращает `id` snackbar и добавляет встроенную action-кнопку `Undo` (или ваш `undoLabel`).
 - Любой snackbar с конечным `autoHideMs` показывает progress bar вверху карточки; если `autoHideMs` не задан, progress bar не рендерится.
 - По умолчанию UI рендерится portal-ом в `document.body`; `container` позволяет задать другой `Element` или callback (в том числе через `ref.current`). Layer берётся из `theme.zIndex.snackbar`/`theme.zIndex.modal`.

@@ -32,6 +32,19 @@ const OverlayDemo = () => {
             </OverlayHost>
             <Stack direction='row' spacing={2}>
                 <button onClick={() => overlayActions.showError({ message: 'Something went wrong' })}>Show error</button>
+                <button
+                    onClick={() => overlayActions.showError({
+                        error: {
+                            errorId: 'storybook-error-42',
+                            messageId: 'react.unexpected.exception.message',
+                            details: 'Backend details are shown only when the server includes them.',
+                            errorType: 'SERVER_ERROR',
+                            status: 500,
+                        },
+                    })}
+                >
+                    Show Paynet error
+                </button>
                 <button onClick={() => overlayActions.showSuccess({ message: 'Saved successfully' })}>Show success</button>
                 <button
                     onClick={() =>

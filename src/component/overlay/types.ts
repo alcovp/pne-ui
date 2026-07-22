@@ -16,6 +16,47 @@ export type SnackbarOptions = {
     anchorOrigin?: SnackbarOrigin
 }
 
+/** Error envelope returned by Paynet v1 endpoints. */
+export type PaynetErrorResponse = {
+    errorId?: string | null
+    messageId?: string | null
+    details?: unknown
+    errorType?: string | null
+    errorI18N?: string | null
+}
+
+/**
+ * Transport-independent error data used by the shared error presentation.
+ * `notificationId` is an internal overlay identity and is deliberately separate
+ * from the backend-provided `errorId`.
+ */
+export type NormalizedPaynetError = {
+    notificationId: string
+    errorId?: string
+    messageId?: string
+    message?: string
+    details?: string
+    errorType?: string
+    errorI18N?: string
+    httpStatus?: number
+}
+
+export type MessageErrorSnackbarOptions = Omit<SnackbarOptions, 'variant'> & {
+    error?: never
+}
+
+/**
+ * Shows a normalized Paynet error without requiring callers to unwrap a
+ * transport-specific error first. The raw value may be a Paynet response,
+ * Axios-like error/response, Blob, JSON string, Promise, or ordinary Error.
+ */
+export type StructuredErrorSnackbarOptions = Omit<SnackbarOptions, 'variant' | 'message'> & {
+    error: unknown
+    message?: never
+}
+
+export type ErrorSnackbarOptions = MessageErrorSnackbarOptions | StructuredErrorSnackbarOptions
+
 /**
  * Options for a snackbar with a built-in undo action.
  * `OverlayHost` renders the same timed-progress indicator as for any other timed snackbar.
