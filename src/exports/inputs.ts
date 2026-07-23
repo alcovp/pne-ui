@@ -58,4 +58,8 @@ export type { PneCheckboxProps } from '../component/PneCheckbox'
 export { PneLabeledCheckbox } from '../component/PneLabeledCheckbox'
 export type { PneLabeledCheckboxProps } from '../component/PneLabeledCheckbox'
 export { default as PneSwitch } from '../component/PneSwitch'
-export type { PneSwitchProps, PneSwitchSize } from '../component/PneSwitch'
+export type {
+    PneSwitchChangeHandler,
+    PneSwitchProps,
+    PneSwitchSize,
+} from '../component/PneSwitch'

@@ -1,7 +1,18 @@
 import React from 'react'
 import type {SwitchOwnerState} from '@mui/material/Switch'
-import {fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {PneTableControlCell, PneTableSwitchCell} from '../src'
+
+const createDeferred = <T,>() => {
+    let resolve!: (value: T) => void
+    let reject!: (reason?: unknown) => void
+    const promise = new Promise<T>((innerResolve, innerReject) => {
+        resolve = innerResolve
+        reject = innerReject
+    })
+
+    return {promise, reject, resolve}
+}
 
 describe('PneTableSwitchCell', () => {
     it('renders a compact small switch while preserving cell and root customization', () => {
@@ -91,6 +102,45 @@ describe('PneTableSwitchCell', () => {
         expect(onChange).toHaveBeenCalledTimes(1)
         expect(onChange).toHaveBeenCalledWith(true, expect.any(Object))
         expect(onRowClick).not.toHaveBeenCalled()
+    })
+
+    it('forwards async mutation lifecycle to its PneSwitch', async () => {
+        const request = createDeferred<void>()
+        const onChange = jest.fn(() => request.promise)
+
+        render(
+            <table>
+                <tbody>
+                    <tr>
+                        <PneTableSwitchCell
+                            aria-label='Async gate'
+                            checked={false}
+                            onChange={onChange}
+                        />
+                    </tr>
+                </tbody>
+            </table>,
+        )
+
+        const input = screen.getByRole('switch', {name: 'Async gate'}) as HTMLInputElement
+
+        fireEvent.click(input)
+
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBe('true')
+        expect(input.getAttribute('aria-disabled')).toBe('true')
+
+        fireEvent.click(input)
+        expect(onChange).toHaveBeenCalledTimes(1)
+
+        await act(async () => {
+            request.reject(new Error('Server rejected the update'))
+            await request.promise.catch(() => undefined)
+        })
+
+        expect(input.checked).toBe(false)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+        expect(input.getAttribute('aria-disabled')).toBeNull()
     })
 
     it('forwards disabled state and keeps a read-only status immutable', async () => {

@@ -48,7 +48,9 @@ type PneTableSwitchCellBaseProps = Omit<
 
 type InteractiveTableSwitchCellProps = {
     readOnly?: false
-    onChange: (checked: boolean, event: ChangeEvent<HTMLInputElement>) => void
+    onChange:
+        | ((checked: boolean, event: ChangeEvent<HTMLInputElement>) => void)
+        | ((checked: boolean, event: ChangeEvent<HTMLInputElement>) => PromiseLike<unknown>)
 }
 
 type ReadOnlyTableSwitchCellProps = {
@@ -119,7 +121,7 @@ const PneTableSwitchCell = forwardRef<HTMLTableCellElement, PneTableSwitchCellPr
             disabled={disabled}
             onChange={(event, nextChecked) => {
                 if (!disabled && !readOnly) {
-                    onChange?.(nextChecked, event)
+                    return onChange?.(nextChecked, event)
                 }
             }}
             readOnly={readOnly}

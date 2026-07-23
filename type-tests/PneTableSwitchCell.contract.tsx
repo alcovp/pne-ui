@@ -33,6 +33,19 @@ const interactiveProps: PneTableSwitchCellProps = {
     },
     switchProps,
 }
+const asyncInteractiveProps: PneTableSwitchCellProps = {
+    'aria-label': 'Enable async gate',
+    checked: false,
+    onChange: async (checked, event) => {
+        const nextChecked: boolean = checked
+        const input: HTMLInputElement = event.currentTarget
+        await Promise.resolve()
+        void nextChecked
+        void input
+    },
+}
+type TableSwitchChangeResult = ReturnType<NonNullable<PneTableSwitchCellProps['onChange']>>
+const asyncTableSwitchResult: TableSwitchChangeResult = Promise.resolve()
 
 const validContracts = <>
     <table>
@@ -44,6 +57,7 @@ const validContracts = <>
                     ref={cellRef}
                     switchRef={switchRef}
                 />
+                <PneTableSwitchCell {...asyncInteractiveProps}/>
                 <PneTableSwitchCell
                     aria-labelledby='status-column'
                     checked
@@ -116,6 +130,7 @@ const wrongSwitchInputRef = <PneTableSwitchCell
 />
 
 void validContracts
+void asyncTableSwitchResult
 void missingAccessibleName
 void ambiguousAccessibleName
 void missingInteractiveHandler

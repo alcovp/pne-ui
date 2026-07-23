@@ -6,6 +6,7 @@ import {
     PneLabeledCheckbox,
     type PneLabeledCheckboxProps,
     PneSwitch,
+    type PneSwitchChangeHandler,
     type PneSwitchProps,
 } from 'pne-ui'
 
@@ -33,6 +34,15 @@ const labeledProps: PneLabeledCheckboxProps = {
     helperText: 'Selection help',
     label: 'Select all',
 }
+const asyncSwitchChange: PneSwitchChangeHandler = async (event, checked) => {
+    const input: HTMLInputElement = event.currentTarget
+    const nextChecked: boolean = checked
+    await Promise.resolve()
+    void input
+    void nextChecked
+}
+const expressionSwitchChange: PneSwitchChangeHandler = (_event, checked) => [checked].push(checked)
+const asyncSwitchResult: ReturnType<PneSwitchChangeHandler> = Promise.resolve()
 
 const validCreateElements = [
     React.createElement(PneCheckbox, {...checkboxProps, ref: rootRef}),
@@ -60,6 +70,7 @@ const validContracts = <>
     />
     <PneSwitch
         {...switchProps}
+        onChange={asyncSwitchChange}
         ref={rootRef}
         slotProps={{
             input: ownerState => ({
@@ -96,6 +107,8 @@ const unknownSwitchProp = <PneSwitch inventedProp/>
 
 void validCreateElements
 void validContracts
+void expressionSwitchChange
+void asyncSwitchResult
 void wrongCheckboxRootRef
 void wrongSwitchRootRef
 void wrongLabeledRootRef

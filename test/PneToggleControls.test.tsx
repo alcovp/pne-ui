@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react'
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
 import type {CheckboxOwnerState} from '@mui/material/Checkbox'
 import type {SwitchOwnerState} from '@mui/material/Switch'
 import {createTheme, ThemeProvider} from '@mui/material/styles'
@@ -13,6 +13,24 @@ import {
 
 const getDescriptionIds = (control: HTMLElement): string[] => {
     return control.getAttribute('aria-describedby')?.split(/\s+/).filter(Boolean) ?? []
+}
+
+type Deferred<T> = {
+    promise: Promise<T>
+    resolve: (value: T) => void
+    reject: (reason?: unknown) => void
+}
+
+const createDeferred = <T,>(): Deferred<T> => {
+    let resolve!: (value: T) => void
+    let reject!: (reason?: unknown) => void
+
+    const promise = new Promise<T>((innerResolve, innerReject) => {
+        resolve = innerResolve
+        reject = innerReject
+    })
+
+    return {promise, reject, resolve}
 }
 
 type CustomInputProps = React.ComponentPropsWithoutRef<'input'> & {ownerState?: unknown}
@@ -418,7 +436,7 @@ describe('PneSwitch', () => {
         expect(input.getAttribute('aria-disabled')).toBe('true')
     })
 
-    it('preserves theme input defaults under a functional consumer slot', () => {
+    it('preserves theme input defaults under a functional consumer slot', async () => {
         const themeInputRef = React.createRef<HTMLInputElement>()
         const consumerInputRef = React.createRef<HTMLInputElement>()
         const inputRef = React.createRef<HTMLInputElement>()
@@ -472,8 +490,413 @@ describe('PneSwitch', () => {
 
         fireEvent.click(input)
 
-        expect(input.checked).toBe(true)
+        await waitFor(() => expect(input.checked).toBe(true))
         expect(onChange).not.toHaveBeenCalled()
+    })
+
+    it('shows a controlled async change immediately and locks repeat activation', async () => {
+        const request = createDeferred<void>()
+        const onChange = jest.fn()
+
+        const ControlledSwitch = () => {
+            const [checked, setChecked] = React.useState(false)
+
+            return <PneSwitch
+                aria-label='Remote updates'
+                checked={checked}
+                onChange={(event, nextChecked) => {
+                    onChange(event, nextChecked)
+                    return request.promise.then(() => setChecked(nextChecked))
+                }}
+            />
+        }
+
+        render(<ControlledSwitch/>)
+
+        const input = screen.getByRole('switch', {name: 'Remote updates'}) as HTMLInputElement
+
+        act(() => input.focus())
+        fireEvent.click(input)
+
+        expect(input.checked).toBe(true)
+        expect(input.disabled).toBe(false)
+        expect(input.getAttribute('aria-busy')).toBe('true')
+        expect(input.getAttribute('aria-disabled')).toBe('true')
+        expect(document.activeElement).toBe(input)
+        expect(onChange).toHaveBeenCalledTimes(1)
+        expect(onChange).toHaveBeenCalledWith(expect.anything(), true)
+
+        fireEvent.click(input)
+        expect(onChange).toHaveBeenCalledTimes(1)
+
+        await act(async () => {
+            request.resolve()
+            await request.promise
+        })
+
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+        expect(input.getAttribute('aria-disabled')).toBeNull()
+    })
+
+    it('guards a reentrant activation before an async callback returns', async () => {
+        const request = createDeferred<void>()
+        const onChange = jest.fn((event: React.ChangeEvent<HTMLInputElement>) => {
+            fireEvent.click(event.currentTarget)
+            return request.promise
+        })
+
+        render(<PneSwitch
+            aria-label='Reentrant updates'
+            checked={false}
+            onChange={onChange}
+        />)
+
+        const input = screen.getByRole('switch', {name: 'Reentrant updates'}) as HTMLInputElement
+
+        fireEvent.click(input)
+
+        expect(onChange).toHaveBeenCalledTimes(1)
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBe('true')
+
+        await act(async () => {
+            request.reject(new Error('Server rejected the update'))
+            await request.promise.catch(() => undefined)
+        })
+
+        expect(input.checked).toBe(false)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+    })
+
+    it('rolls a rejected controlled async change back and handles the rejection', async () => {
+        const request = createDeferred<void>()
+
+        render(<PneSwitch
+            aria-label='Rejected updates'
+            checked={false}
+            onChange={() => request.promise}
+        />)
+
+        const input = screen.getByRole('switch', {name: 'Rejected updates'}) as HTMLInputElement
+
+        fireEvent.click(input)
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBe('true')
+
+        await act(async () => {
+            request.reject(new Error('Server rejected the update'))
+            await request.promise.catch(() => undefined)
+        })
+
+        expect(input.checked).toBe(false)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+        expect(input.getAttribute('aria-disabled')).toBeNull()
+    })
+
+    it('commits and rolls back async changes with defaultChecked usage', async () => {
+        const acceptedRequest = createDeferred<void>()
+        const rejectedRequest = createDeferred<void>()
+        const onChange = jest.fn()
+            .mockImplementationOnce(() => acceptedRequest.promise)
+            .mockImplementationOnce(() => rejectedRequest.promise)
+
+        render(<PneSwitch
+            aria-label='Uncontrolled updates'
+            defaultChecked={false}
+            onChange={onChange}
+        />)
+
+        const input = screen.getByRole('switch', {name: 'Uncontrolled updates'}) as HTMLInputElement
+
+        fireEvent.click(input)
+        expect(input.checked).toBe(true)
+
+        await act(async () => {
+            acceptedRequest.resolve()
+            await acceptedRequest.promise
+        })
+
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+
+        fireEvent.click(input)
+        expect(input.checked).toBe(false)
+
+        await act(async () => {
+            rejectedRequest.reject(new Error('Server rejected the update'))
+            await rejectedRequest.promise.catch(() => undefined)
+        })
+
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+    })
+
+    it('keeps synchronous controlled and native form reset behavior unchanged', async () => {
+        const changes: boolean[] = []
+        const controlledChange = jest.fn()
+        const formRef = React.createRef<HTMLFormElement>()
+
+        const view = render(<PneSwitch
+            aria-label='Controlled sync switch'
+            checked={false}
+            onChange={controlledChange}
+        />)
+        const controlledInput = screen.getByRole('switch', {
+            name: 'Controlled sync switch',
+        }) as HTMLInputElement
+
+        fireEvent.click(controlledInput)
+
+        expect(controlledInput.checked).toBe(false)
+        expect(controlledInput.getAttribute('aria-busy')).toBeNull()
+        expect(controlledChange).toHaveBeenCalledWith(expect.anything(), true)
+
+        view.unmount()
+        render(<form ref={formRef}>
+            <PneSwitch
+                aria-label='Resettable sync switch'
+                defaultChecked
+                name='updates'
+                onChange={(_event, nextChecked) => changes.push(nextChecked)}
+                value='enabled'
+            />
+        </form>)
+
+        const resettableInput = screen.getByRole('switch', {
+            name: 'Resettable sync switch',
+        }) as HTMLInputElement
+
+        fireEvent.click(resettableInput)
+        expect(resettableInput.checked).toBe(false)
+        expect(changes).toEqual([false])
+        expect(new FormData(formRef.current ?? undefined).has('updates')).toBe(false)
+
+        await act(async () => {
+            formRef.current?.reset()
+            await Promise.resolve()
+        })
+
+        expect(resettableInput.checked).toBe(true)
+        expect(new FormData(formRef.current ?? undefined).get('updates')).toBe('enabled')
+    })
+
+    it('lets a native form reset invalidate an in-flight visual transaction', async () => {
+        const request = createDeferred<void>()
+        const formRef = React.createRef<HTMLFormElement>()
+
+        render(<form ref={formRef}>
+            <PneSwitch
+                aria-label='Reset pending switch'
+                defaultChecked={false}
+                onChange={() => request.promise}
+            />
+        </form>)
+
+        const input = screen.getByRole('switch', {
+            name: 'Reset pending switch',
+        }) as HTMLInputElement
+
+        fireEvent.click(input)
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBe('true')
+
+        await act(async () => {
+            formRef.current?.reset()
+            await Promise.resolve()
+        })
+
+        expect(input.checked).toBe(false)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+        expect(input.getAttribute('aria-disabled')).toBeNull()
+
+        await act(async () => {
+            request.resolve()
+            await request.promise
+        })
+
+        expect(input.checked).toBe(false)
+    })
+
+    it('honors a canceled form reset for idle and pending switches', async () => {
+        const request = createDeferred<void>()
+        const formRef = React.createRef<HTMLFormElement>()
+
+        render(<form
+            onReset={event => event.preventDefault()}
+            ref={formRef}
+        >
+            <PneSwitch
+                aria-label='Canceled idle reset'
+                defaultChecked
+            />
+            <PneSwitch
+                aria-label='Canceled pending reset'
+                defaultChecked={false}
+                onChange={() => request.promise}
+            />
+        </form>)
+
+        const idleInput = screen.getByRole('switch', {
+            name: 'Canceled idle reset',
+        }) as HTMLInputElement
+        const pendingInput = screen.getByRole('switch', {
+            name: 'Canceled pending reset',
+        }) as HTMLInputElement
+
+        fireEvent.click(idleInput)
+        fireEvent.click(pendingInput)
+        expect(idleInput.checked).toBe(false)
+        expect(pendingInput.checked).toBe(true)
+        expect(pendingInput.getAttribute('aria-busy')).toBe('true')
+
+        await act(async () => {
+            formRef.current?.reset()
+            await Promise.resolve()
+        })
+
+        expect(idleInput.checked).toBe(false)
+        expect(pendingInput.checked).toBe(true)
+        expect(pendingInput.getAttribute('aria-busy')).toBe('true')
+
+        await act(async () => {
+            request.resolve()
+            await request.promise
+        })
+
+        expect(pendingInput.checked).toBe(true)
+        expect(pendingInput.getAttribute('aria-busy')).toBeNull()
+    })
+
+    it('tracks a changed native form association without remounting', async () => {
+        const renderSwitch = (formId: string) => <>
+            <form id='updates-form-a'/>
+            <form id='updates-form-b'/>
+            <PneSwitch
+                aria-label='Reassociated switch'
+                defaultChecked
+                slotProps={{input: {form: formId}}}
+            />
+        </>
+        const view = render(renderSwitch('updates-form-a'))
+        const input = screen.getByRole('switch', {
+            name: 'Reassociated switch',
+        }) as HTMLInputElement
+
+        fireEvent.click(input)
+        expect(input.checked).toBe(false)
+
+        view.rerender(renderSwitch('updates-form-b'))
+
+        await act(async () => {
+            (document.getElementById('updates-form-a') as HTMLFormElement).reset()
+            await Promise.resolve()
+        })
+        expect(input.checked).toBe(false)
+
+        await act(async () => {
+            (document.getElementById('updates-form-b') as HTMLFormElement).reset()
+            await Promise.resolve()
+        })
+        expect(input.checked).toBe(true)
+    })
+
+    it('settles while React Activity temporarily disconnects effects', async () => {
+        const request = createDeferred<void>()
+        const renderActivity = (mode: 'hidden' | 'visible') => <React.Activity mode={mode}>
+            <PneSwitch
+                aria-label='Activity switch'
+                defaultChecked={false}
+                onChange={() => request.promise}
+            />
+        </React.Activity>
+        const view = render(renderActivity('visible'))
+        const input = screen.getByRole('switch', {name: 'Activity switch'}) as HTMLInputElement
+
+        fireEvent.click(input)
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBe('true')
+
+        view.rerender(renderActivity('hidden'))
+
+        await act(async () => {
+            request.resolve()
+            await request.promise
+        })
+
+        view.rerender(renderActivity('visible'))
+
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+        expect(input.getAttribute('aria-disabled')).toBeNull()
+    })
+
+    it('honors a form reset while React Activity is hidden', async () => {
+        const request = createDeferred<void>()
+        const formRef = React.createRef<HTMLFormElement>()
+        const renderActivity = (mode: 'hidden' | 'visible') => <form ref={formRef}>
+            <React.Activity mode={mode}>
+                <PneSwitch
+                    aria-label='Hidden reset switch'
+                    defaultChecked={false}
+                    onChange={() => request.promise}
+                />
+            </React.Activity>
+        </form>
+        const view = render(renderActivity('visible'))
+        const input = screen.getByRole('switch', {
+            name: 'Hidden reset switch',
+        }) as HTMLInputElement
+
+        fireEvent.click(input)
+        expect(input.checked).toBe(true)
+        expect(input.getAttribute('aria-busy')).toBe('true')
+
+        view.rerender(renderActivity('hidden'))
+
+        await act(async () => {
+            formRef.current?.reset()
+            await Promise.resolve()
+        })
+
+        view.rerender(renderActivity('visible'))
+
+        expect(input.checked).toBe(false)
+        expect(input.getAttribute('aria-busy')).toBeNull()
+        expect(input.getAttribute('aria-disabled')).toBeNull()
+
+        await act(async () => {
+            request.resolve()
+            await request.promise
+        })
+
+        expect(input.checked).toBe(false)
+    })
+
+    it('releases a form reset listener when hidden Activity is unmounted', async () => {
+        const formRef = React.createRef<HTMLFormElement>()
+        const renderActivity = (mounted: boolean, mode: 'hidden' | 'visible') => <form ref={formRef}>
+            {mounted && <React.Activity mode={mode}>
+                <PneSwitch aria-label='Hidden unmount switch' defaultChecked/>
+            </React.Activity>}
+        </form>
+        const view = render(renderActivity(true, 'visible'))
+        const form = formRef.current!
+        const removeEventListener = jest.spyOn(form, 'removeEventListener')
+
+        view.rerender(renderActivity(true, 'hidden'))
+        await act(async () => Promise.resolve())
+
+        expect(removeEventListener).not.toHaveBeenCalledWith('reset', expect.any(Function))
+
+        view.rerender(renderActivity(false, 'hidden'))
+
+        await waitFor(() => expect(removeEventListener).toHaveBeenCalledWith(
+            'reset',
+            expect.any(Function),
+        ))
+
+        removeEventListener.mockRestore()
     })
 })
 
@@ -511,7 +934,7 @@ describe('read-only toggle controls', () => {
         expect(onChange).not.toHaveBeenCalled()
     })
 
-    it('prevents direct activation of a read-only switch', () => {
+    it('prevents direct activation of a read-only switch', async () => {
         const onChange = jest.fn()
 
         render(<PneSwitch
@@ -525,9 +948,33 @@ describe('read-only toggle controls', () => {
 
         fireEvent.click(input)
 
-        expect(input.checked).toBe(false)
+        await waitFor(() => expect(input.checked).toBe(false))
         expect(input.getAttribute('aria-readonly')).toBe('true')
         expect(onChange).not.toHaveBeenCalled()
+    })
+
+    it('restores the latest controlled value after a read-only click', async () => {
+        const ReadOnlySwitch = () => {
+            const [checked, setChecked] = React.useState(false)
+
+            return <PneSwitch
+                aria-label='Externally updated read-only switch'
+                checked={checked}
+                onClick={() => setChecked(true)}
+                readOnly
+            />
+        }
+
+        render(<ReadOnlySwitch/>)
+
+        const input = screen.getByRole('switch', {
+            name: 'Externally updated read-only switch',
+        }) as HTMLInputElement
+
+        fireEvent.click(input)
+
+        await waitFor(() => expect(input.checked).toBe(true))
+        expect(input.closest('.MuiSwitch-switchBase')?.classList.contains('Mui-checked')).toBe(true)
     })
 })
 
