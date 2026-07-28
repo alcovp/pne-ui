@@ -114,7 +114,7 @@ describe('WidgetBoard React Grid Layout constraints', () => {
             },
         ]
 
-        expect(toReactGridLayout(items, 12, 'edit', 'grid')[0]).toMatchObject({
+        expect(toReactGridLayout(items, 12, 'edit')[0]).toMatchObject({
             i: 'payment',
             x: 2,
             w: 4,
@@ -137,53 +137,4 @@ describe('WidgetBoard React Grid Layout constraints', () => {
         })
     })
 
-    it('uses full-width synthetic rows in order-only edit and reorders without changing geometry', () => {
-        const items: BoardProps.Item<WidgetBoardItemData>[] = [
-            {
-                id: 'a',
-                columnSpan: 3,
-                rowSpan: 7,
-                columnOffset: { 6: 1 },
-                data: { id: 'a', title: 'A' },
-            },
-            {
-                id: 'b',
-                columnSpan: 2,
-                rowSpan: 11,
-                columnOffset: { 6: 4 },
-                data: { id: 'b', title: 'B' },
-            },
-        ]
-
-        expect(toReactGridLayout(items, 6, 'edit', 'order-only')).toEqual([
-            expect.objectContaining({
-                i: 'a',
-                x: 0,
-                y: 0,
-                w: 6,
-                h: 1,
-                minW: 6,
-                maxW: 6,
-                minH: 1,
-                maxH: 1,
-                isDraggable: true,
-                isResizable: false,
-            }),
-            expect.objectContaining({ i: 'b', x: 0, y: 1, w: 6, h: 1 }),
-        ])
-
-        const reordered = toBoardItems(
-            [
-                { i: 'a', x: 0, y: 1, w: 6, h: 1 },
-                { i: 'b', x: 0, y: 0, w: 6, h: 1 },
-            ],
-            items,
-            6,
-            true,
-        )
-
-        expect(reordered).toEqual([items[1], items[0]])
-        expect(reordered[0]).toBe(items[1])
-        expect(reordered[1]).toBe(items[0])
-    })
 })

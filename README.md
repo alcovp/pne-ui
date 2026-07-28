@@ -1664,8 +1664,9 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 - `widgets`: список `{ id, title, render }` — содержимое виджетов.
 - `layoutByBreakpoint`: базовый пресет для дефолтного лейаута.
 - `breakpoints`: семантические брейкпоинты `{ id, minWidth, editBehavior? }`. Значение
-  `editBehavior: 'order-only'` превращает edit-mode в полноширинный draggable-список без содержимого
-  и resize; остальные брейкпоинты по умолчанию используют обычный grid-editor.
+  `editBehavior: 'order-only'` превращает edit-mode в полноширинный draggable-список без resize.
+  В этом режиме тела виджетов не монтируются и их `render`-функции не вызываются; остальные брейкпоинты
+  по умолчанию используют обычный grid-editor.
 - `loadLayouts(): Promise<{ options; selectedId? } | null>`: обязательная функция загрузки пользовательских схем (вызывается при маунте). `WidgetBoard` сам добавляет и блокирует встроенный `default`-лейаут.
 - `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (вызывается при select/add/delete и автосохранении изменений в выбранном пользовательском лейауте).
 

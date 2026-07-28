@@ -12,7 +12,6 @@ import { WidgetBoardItem } from './WidgetBoardItem'
 import {
     WidgetBoardReactGridLayoutEngine,
     WidgetBoardReactGridLayoutItem,
-    type WidgetBoardReactGridLayoutRenderContext,
 } from './WidgetBoardReactGridLayoutEngine'
 import { buildWidgetBoardBreakpoints, useWidgetBoardBreakpoint } from './widgetBoardBreakpoints'
 import {
@@ -590,10 +589,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         )
     }
 
-    const renderReactGridLayoutItem = (
-        item: BoardProps.Item<WidgetBoardItemData>,
-        context: WidgetBoardReactGridLayoutRenderContext,
-    ) => {
+    const renderReactGridLayoutItem = (item: BoardProps.Item<WidgetBoardItemData>) => {
         const renderState = resolveItemRenderState(item)
         if (!renderState) return <></>
 
@@ -603,13 +599,9 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 definition={renderState.definition}
                 heightMode={renderState.heightMode}
                 isCollapsed={renderState.isCollapsed}
-                editBehavior={currentEditBehavior}
                 interactionMode={interactionMode}
-                itemCount={context.itemCount}
                 onContentRef={handleContentRef}
                 onHide={hideItem}
-                onMove={context.onMove}
-                position={context.position}
             />
         )
     }
