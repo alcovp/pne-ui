@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { BreakpointLayoutConfig, WidgetBoardLayoutOption } from './types'
-import { buildLayoutOptions, getLayoutConfigForWidth } from './widgetBoardLayoutUtils'
+import { buildLayoutOptions, getLayoutConfigForBreakpoint } from './widgetBoardLayoutUtils'
 
 type UseWidgetBoardLayoutSourceParams = {
     layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>
+    breakpointIds: readonly string[]
+    currentBreakpointKey: string
 }
 
-export const useWidgetBoardLayoutSource = ({ layoutByBreakpoint }: UseWidgetBoardLayoutSourceParams) => {
+export const useWidgetBoardLayoutSource = ({
+    layoutByBreakpoint,
+    breakpointIds,
+    currentBreakpointKey,
+}: UseWidgetBoardLayoutSourceParams) => {
     const { t } = useTranslation()
     const defaultOption = useMemo<WidgetBoardLayoutOption>(
         () => ({
@@ -18,7 +24,10 @@ export const useWidgetBoardLayoutSource = ({ layoutByBreakpoint }: UseWidgetBoar
         [layoutByBreakpoint, t],
     )
 
-    const initialOptions = useMemo(() => buildLayoutOptions(undefined, defaultOption), [defaultOption])
+    const initialOptions = useMemo(
+        () => buildLayoutOptions(undefined, defaultOption, breakpointIds),
+        [breakpointIds, defaultOption],
+    )
     const [layoutOptions, setLayoutOptions] = useState<WidgetBoardLayoutOption[]>(initialOptions)
     const [selectedLayoutId, setSelectedLayoutId] = useState<string | undefined>(initialOptions[0]?.id)
     const selectedLayoutRef = useRef<string | undefined>(initialOptions[0]?.id)
@@ -44,19 +53,9 @@ export const useWidgetBoardLayoutSource = ({ layoutByBreakpoint }: UseWidgetBoar
         () => layoutOptionsMap.get(selectedLayoutId ?? '')?.layoutByBreakpoint ?? defaultOption.layoutByBreakpoint,
     )
 
-    const breakpoints = useMemo(() => Object.keys(layoutSource).map(Number).sort((a, b) => a - b), [layoutSource])
-
-    const [layoutPreset, setLayoutPreset] = useState(() =>
-        getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource, breakpoints),
-    )
-
-    useEffect(() => {
-        setLayoutPreset(getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, layoutSource, breakpoints))
-    }, [breakpoints, layoutSource])
-
-    const currentBreakpointKey = useMemo(
-        () => String(layoutPreset.breakpoint ?? breakpoints[0]),
-        [breakpoints, layoutPreset.breakpoint],
+    const layoutPreset = useMemo(
+        () => getLayoutConfigForBreakpoint(currentBreakpointKey, layoutSource),
+        [currentBreakpointKey, layoutSource],
     )
 
     useEffect(() => {
@@ -75,7 +74,7 @@ export const useWidgetBoardLayoutSource = ({ layoutByBreakpoint }: UseWidgetBoar
     }, [defaultOption.id, defaultOption.layoutByBreakpoint, layoutOptionsMap, selectedLayoutId])
 
     return {
-        breakpoints,
+        breakpoints: breakpointIds,
         currentBreakpointKey,
         defaultOption,
         layoutOptions,
@@ -88,7 +87,6 @@ export const useWidgetBoardLayoutSource = ({ layoutByBreakpoint }: UseWidgetBoar
         selectedLayoutId,
         selectedLayoutRef,
         setLayoutOptions,
-        setLayoutPreset,
         setLayoutSource,
         setSelectedLayoutId,
     }

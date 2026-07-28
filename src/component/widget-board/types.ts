@@ -12,6 +12,13 @@ export type WidgetLayoutSnapshot = {
 
 export type WidgetLayoutMemory = Record<string, Record<WidgetId, WidgetLayoutSnapshot>>
 
+export type WidgetBoardBreakpoint = {
+    id: string
+    minWidth: number
+}
+
+export type WidgetBoardBreakpointSource = 'viewport' | 'container'
+
 export type WidgetLayoutSize = {
     columnSpan: number
     rowSpan: number
@@ -50,6 +57,7 @@ export type BreakpointLayoutConfig = {
     rowHeight?: number
     margin?: readonly [number, number]
     containerPadding?: readonly [number, number] | null
+    widgetOrder?: WidgetId[]
     widgets: Record<WidgetId, WidgetLayoutConfig>
 }
 
@@ -59,6 +67,7 @@ export type WidgetDefinition = {
     render: () => React.ReactNode
     settingsActions?: React.ReactNode
     contentFullHeight?: boolean
+    minWidthPx?: number
 }
 
 export type WidgetBoardItemData = {
@@ -110,4 +119,6 @@ export type WidgetBoardProps = {
     engine?: WidgetBoardEngine
     interactionMode?: WidgetBoardInteractionMode
     reactGridLayoutOptions?: WidgetBoardReactGridLayoutOptions
+    breakpoints?: readonly WidgetBoardBreakpoint[]
+    breakpointSource?: WidgetBoardBreakpointSource
 }

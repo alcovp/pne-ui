@@ -27,6 +27,7 @@ type WidgetBoardReactGridLayoutEngineProps = {
     isLoadingLayouts: boolean
     items: BoardProps.Item<WidgetBoardItemData>[]
     margin: readonly [number, number]
+    minWidthPxByWidgetId: Partial<Record<string, number>>
     onItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange']
     renderItem: (item: BoardProps.Item<WidgetBoardItemData>) => React.ReactElement
     rowHeight: number
@@ -41,6 +42,67 @@ type GridItemPixelPosition = {
     left: number
     width: number
     height: number
+}
+
+export const getResizeMinColumnSpan = ({
+    columns,
+    containerPadding,
+    containerWidth,
+    margin,
+    minWidthPx,
+}: {
+    columns: number
+    containerPadding: readonly [number, number] | null
+    containerWidth: number
+    margin: readonly [number, number]
+    minWidthPx: number
+}) => {
+    if (!Number.isFinite(minWidthPx) || minWidthPx <= 0 || columns <= 1) return 1
+    const effectivePadding = containerPadding ?? margin
+    const columnWidth =
+        (containerWidth - margin[0] * (columns - 1) - effectivePadding[0] * 2) /
+        columns
+    if (!Number.isFinite(columnWidth) || columnWidth <= 0) return columns
+
+    for (let span = 1; span <= columns; span += 1) {
+        const width = columnWidth * span + margin[0] * (span - 1)
+        if (width >= minWidthPx) return span
+    }
+    return columns
+}
+
+export const applyUserResizeMinWidths = ({
+    columns,
+    containerPadding,
+    containerWidth,
+    interactionMode,
+    layout,
+    margin,
+    minWidthPxByWidgetId,
+}: {
+    columns: number
+    containerPadding: readonly [number, number] | null
+    containerWidth: number
+    interactionMode: WidgetBoardInteractionMode
+    layout: Layout
+    margin: readonly [number, number]
+    minWidthPxByWidgetId: Partial<Record<string, number>>
+}): Layout => {
+    if (interactionMode !== 'edit') return layout
+
+    return layout.map(item => {
+        const minWidthPx = minWidthPxByWidgetId[item.i]
+        if (minWidthPx === undefined) return item
+        const pixelMinW = getResizeMinColumnSpan({
+            columns,
+            containerPadding,
+            containerWidth,
+            margin,
+            minWidthPx,
+        })
+        const minW = Math.min(columns, Math.max(item.minW ?? 1, pixelMinW))
+        return minW === item.minW ? item : { ...item, minW }
+    })
 }
 
 const transformPositionStrategy = {
@@ -326,13 +388,34 @@ export const WidgetBoardReactGridLayoutEngine = ({
     isLoadingLayouts,
     items,
     margin,
+    minWidthPxByWidgetId,
     onItemsChange,
     renderItem,
     rowHeight,
     useCSSTransforms,
 }: WidgetBoardReactGridLayoutEngineProps) => {
     const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1280 })
-    const layout = useMemo(() => toReactGridLayout(items, columns, interactionMode), [columns, interactionMode, items])
+    const layout = useMemo(
+        () =>
+            applyUserResizeMinWidths({
+                columns,
+                containerPadding,
+                containerWidth: width,
+                interactionMode,
+                layout: toReactGridLayout(items, columns, interactionMode),
+                margin,
+                minWidthPxByWidgetId,
+            }),
+        [
+            columns,
+            containerPadding,
+            interactionMode,
+            items,
+            margin,
+            minWidthPxByWidgetId,
+            width,
+        ],
+    )
     const rowGap = margin[1] ?? 0
     const positionStrategy = useCSSTransforms ? transformPositionStrategy : absolutePositionStrategy
 

@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState } from 'react'
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 import { buildPresetFromState } from './layoutPersistence'
 import { useWidgetBoardAutosize } from './useWidgetBoardAutosize'
@@ -10,10 +10,11 @@ import { useWidgetBoardStateActions } from './useWidgetBoardStateActions'
 import { WidgetBoardCloudscapeEngine } from './WidgetBoardCloudscapeEngine'
 import { WidgetBoardItem } from './WidgetBoardItem'
 import { WidgetBoardReactGridLayoutEngine, WidgetBoardReactGridLayoutItem } from './WidgetBoardReactGridLayoutEngine'
+import { buildWidgetBoardBreakpoints, useWidgetBoardBreakpoint } from './widgetBoardBreakpoints'
 import {
     buildDefaultState,
     buildLayoutOptions,
-    getLayoutConfigForWidth,
+    getLayoutConfigForBreakpoint,
     layoutOptionsEqual,
     withLayout,
     type WidgetDefinitionWithLayout,
@@ -143,14 +144,33 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         engine = DEFAULT_WIDGET_BOARD_ENGINE,
         interactionMode = DEFAULT_WIDGET_BOARD_INTERACTION_MODE,
         reactGridLayoutOptions,
+        breakpoints: configuredBreakpoints,
+        breakpointSource = 'viewport',
     },
     ref,
 ) {
     const [isLoadingLayouts, setIsLoadingLayouts] = useState(true)
     const scopeFabStore = useWidgetBoardScopeStore()
+    const resolvedBreakpoints = useMemo(
+        () => buildWidgetBoardBreakpoints(layoutByBreakpoint, configuredBreakpoints),
+        [configuredBreakpoints, layoutByBreakpoint],
+    )
+    const breakpointIds = useMemo(
+        () => resolvedBreakpoints.map(breakpoint => breakpoint.id),
+        [resolvedBreakpoints],
+    )
+    const {
+        activeBreakpoint,
+        containerRef: breakpointContainerRef,
+    } = useWidgetBoardBreakpoint({
+        breakpoints: resolvedBreakpoints,
+        source: breakpointSource,
+    })
+    const currentBreakpointKey = activeBreakpoint.id
+    const currentBreakpointKeyRef = useRef(currentBreakpointKey)
+    currentBreakpointKeyRef.current = currentBreakpointKey
     const {
         breakpoints,
-        currentBreakpointKey,
         defaultOption,
         layoutOptions,
         layoutOptionsMap,
@@ -162,10 +182,16 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         selectedLayoutId,
         selectedLayoutRef,
         setLayoutOptions,
-        setLayoutPreset,
         setLayoutSource,
         setSelectedLayoutId,
-    } = useWidgetBoardLayoutSource({ layoutByBreakpoint })
+    } = useWidgetBoardLayoutSource({
+        layoutByBreakpoint,
+        breakpointIds,
+        currentBreakpointKey,
+    })
+    const breakpointsRef = useRef(breakpoints)
+    breakpointsRef.current = breakpoints
+    const breakpointIdsKey = breakpoints.join('\u0000')
 
     useEffect(() => {
         let cancelled = false
@@ -175,7 +201,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         loadLayouts()
             .then(result => {
                 if (cancelled || loadRequestIdRef.current !== requestId || !result?.options) return
-                const nextOptions = buildLayoutOptions(result.options, defaultOption)
+                const activeBreakpoints = breakpointsRef.current
+                const nextOptions = buildLayoutOptions(result.options, defaultOption, activeBreakpoints)
                 setLayoutOptions(prev => (layoutOptionsEqual(prev, nextOptions) ? prev : nextOptions))
                 lockedLayoutIdRef.current = defaultOption.id
 
@@ -190,18 +217,20 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
 
                 const nextOptionsMap = new Map(nextOptions.map(option => [option.id, option]))
                 const nextLayoutSource = nextOptionsMap.get(nextSelected ?? '')?.layoutByBreakpoint ?? defaultOption.layoutByBreakpoint
-                const nextBreakpoints = Object.keys(nextLayoutSource)
-                    .map(Number)
-                    .sort((a, b) => a - b)
-                const nextPreset = getLayoutConfigForWidth(typeof window !== 'undefined' ? window.innerWidth : undefined, nextLayoutSource, nextBreakpoints)
-                const nextBreakpointKey = String(nextPreset.breakpoint ?? nextBreakpoints[0])
-                const fallbackForNext = nextLayoutSource[nextBreakpoints[0]] ?? Object.values(nextLayoutSource)[0] ?? { widgets: {} }
+                const activeBreakpointKey = currentBreakpointKeyRef.current
+                const nextPreset = getLayoutConfigForBreakpoint(activeBreakpointKey, nextLayoutSource)
+                const nextBreakpointKey = String(nextPreset.breakpoint ?? activeBreakpoints[0])
+                const fallbackForNext = nextLayoutSource[activeBreakpoints[0]] ?? Object.values(nextLayoutSource)[0] ?? { widgets: {} }
                 const nextDefinitions = withLayout(widgets, nextPreset.layout ?? fallbackForNext)
 
                 layoutSourceOwnerIdRef.current = nextSelected ?? defaultOption.id
                 setLayoutSource(prev => (prev === nextLayoutSource ? prev : nextLayoutSource))
-                setLayoutPreset(nextPreset)
                 setLayoutState(buildDefaultState(nextDefinitions, nextBreakpointKey))
+                setLayoutStateContext({
+                    breakpointKey: nextBreakpointKey,
+                    layoutId: nextSelected ?? defaultOption.id,
+                    widgets,
+                })
 
                 if (nextSelected && nextSelected !== currentSelected) {
                     setSelectedLayoutId(nextSelected)
@@ -222,13 +251,15 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         }
     }, [
         defaultOption,
+        breakpointIdsKey,
+        breakpointsRef,
+        currentBreakpointKeyRef,
         layoutSourceOwnerIdRef,
         loadLayouts,
         loadRequestIdRef,
         lockedLayoutIdRef,
         selectedLayoutRef,
         setLayoutOptions,
-        setLayoutPreset,
         setLayoutSource,
         setSelectedLayoutId,
         widgets,
@@ -268,6 +299,11 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const effectiveSelectedLayoutId = selectedLayoutId ?? defaultOption.id
 
     const [layoutState, setLayoutState] = useState<WidgetBoardState>(() => buildDefaultState(definitionsWithLayout, currentBreakpointKey))
+    const [layoutStateContext, setLayoutStateContext] = useState(() => ({
+        breakpointKey: currentBreakpointKey,
+        layoutId: effectiveSelectedLayoutId,
+        widgets,
+    }))
     const isInteractionLocked = useWidgetBoardInteractionLock()
     const interactionState = useMemo(() => ({ isInteractionLocked }), [isInteractionLocked])
     const { boardRootRef, handleContentRef, measuredRowsRef, remeasureAll } = useWidgetBoardAutosize({
@@ -279,11 +315,59 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutPresetBreakpoint: layoutPreset.breakpoint,
         setLayoutState,
     })
+    const handleBoardRootRef = useCallback(
+        (node: HTMLDivElement | null) => {
+            boardRootRef.current = node
+            breakpointContainerRef(node)
+        },
+        [boardRootRef, breakpointContainerRef],
+    )
+    const layoutResetContextRef = useRef<{
+        breakpointKey: string
+        layoutId: string
+        layoutSource?: Record<number | string, BreakpointLayoutConfig>
+        ownerId?: string
+        widgets: WidgetBoardProps['widgets']
+    } | null>(null)
+    const layoutSourceOwnerId = layoutSourceOwnerIdRef.current
 
     useEffect(() => {
+        if (layoutSourceOwnerId !== effectiveSelectedLayoutId) return
+        const previous = layoutResetContextRef.current
+        const isDefaultLayout = effectiveSelectedLayoutId === defaultOption.id
+        const shouldReset =
+            !previous ||
+            previous.breakpointKey !== currentBreakpointKey ||
+            previous.layoutId !== effectiveSelectedLayoutId ||
+            previous.ownerId !== layoutSourceOwnerId ||
+            previous.widgets !== widgets ||
+            (isDefaultLayout && previous.layoutSource !== layoutSource)
+        if (!shouldReset) return
+
+        layoutResetContextRef.current = {
+            breakpointKey: currentBreakpointKey,
+            layoutId: effectiveSelectedLayoutId,
+            layoutSource: isDefaultLayout ? layoutSource : undefined,
+            ownerId: layoutSourceOwnerId,
+            widgets,
+        }
         measuredRowsRef.current = {}
         setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey))
-    }, [currentBreakpointKey, definitionsWithLayout, measuredRowsRef])
+        setLayoutStateContext({
+            breakpointKey: currentBreakpointKey,
+            layoutId: effectiveSelectedLayoutId,
+            widgets,
+        })
+    }, [
+        currentBreakpointKey,
+        defaultOption.id,
+        definitionsWithLayout,
+        effectiveSelectedLayoutId,
+        layoutSource,
+        layoutSourceOwnerId,
+        measuredRowsRef,
+        widgets,
+    ])
 
     useEffect(() => {
         if (typeof window === 'undefined') return
@@ -291,7 +375,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         const run = () => {
             frameId = null
             remeasureAll()
-            setLayoutPreset(getLayoutConfigForWidth(window.innerWidth, layoutSource, breakpoints))
         }
         const handleResize = () => {
             if (frameId !== null) return
@@ -304,12 +387,17 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 window.cancelAnimationFrame(frameId)
             }
         }
-    }, [breakpoints, layoutSource, remeasureAll, setLayoutPreset])
+    }, [remeasureAll])
 
     const buildCurrentPreset = useCallback(
         () => buildPresetFromState(layoutState, layoutSource, breakpoints, currentBreakpointKey),
         [breakpoints, currentBreakpointKey, layoutSource, layoutState],
     )
+    const isLayoutStateCurrent =
+        layoutStateContext.breakpointKey === currentBreakpointKey &&
+        layoutStateContext.layoutId === effectiveSelectedLayoutId &&
+        layoutStateContext.widgets === widgets &&
+        layoutSourceOwnerIdRef.current === effectiveSelectedLayoutId
 
     const { handleItemsChange, hideItem, setWidgetVisibility, resetLayout, restoreHidden, toggleCollapse } = useWidgetBoardStateActions({
         currentBreakpointKey,
@@ -411,6 +499,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     useWidgetBoardLayoutActions({
         buildCurrentPreset,
         defaultLayoutId: defaultOption.id,
+        isLayoutStateCurrent,
         isLoadingLayouts,
         layoutOptions,
         layoutOptionsMap,
@@ -425,6 +514,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         onRestoreHidden: restoreHidden,
         selectedLayoutId,
         setLayoutOptions,
+        setLayoutSource,
         setSelectedLayoutId,
     })
 
@@ -445,6 +535,15 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const visibleItems = useMemo(
         () => layoutState.items.filter(item => definitionsMap.has(item.id as string)),
         [layoutState.items, definitionsMap],
+    )
+    const minWidthPxByWidgetId = useMemo(
+        () =>
+            Object.fromEntries(
+                definitionsWithLayout
+                    .filter(definition => definition.minWidthPx !== undefined)
+                    .map(definition => [definition.id, definition.minWidthPx]),
+            ) as Partial<Record<string, number>>,
+        [definitionsWithLayout],
     )
 
     const activeLayoutConfig = layoutPreset.layout ?? fallbackLayoutConfig
@@ -506,13 +605,14 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         <WidgetBoardInteractionContext.Provider value={interactionState}>
             {engine === 'react-grid-layout' ? (
                 <WidgetBoardReactGridLayoutEngine
-                    boardRootRef={boardRootRef}
+                    boardRootRef={handleBoardRootRef}
                     columns={reactGridLayoutColumns}
                     containerPadding={reactGridLayoutContainerPadding}
                     interactionMode={interactionMode}
                     isLoadingLayouts={isLoadingLayouts}
                     items={visibleItems}
                     margin={reactGridLayoutMargin}
+                    minWidthPxByWidgetId={minWidthPxByWidgetId}
                     onItemsChange={handleItemsChange}
                     renderItem={renderReactGridLayoutItem}
                     rowHeight={reactGridLayoutRowHeight}
@@ -520,7 +620,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 />
             ) : (
                 <WidgetBoardCloudscapeEngine
-                    boardRootRef={boardRootRef}
+                    boardRootRef={handleBoardRootRef}
                     items={visibleItems}
                     isLoadingLayouts={isLoadingLayouts}
                     onItemsChange={handleItemsChange}

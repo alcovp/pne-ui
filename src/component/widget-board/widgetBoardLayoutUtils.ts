@@ -44,10 +44,23 @@ export const createLayoutId = () => {
 }
 
 export const withLayout = (definitions: WidgetDefinition[], layout: BreakpointLayoutConfig): WidgetDefinitionWithLayout[] =>
-    definitions.map(definition => ({
-        ...definition,
-        layout: layout.widgets[definition.id] ?? fallbackLayout,
-    }))
+    definitions
+        .map((definition, index) => ({
+            definition: {
+                ...definition,
+                layout: layout.widgets[definition.id] ?? fallbackLayout,
+            },
+            index,
+        }))
+        .sort((left, right) => {
+            if (!layout.widgetOrder?.length) return left.index - right.index
+            const leftOrder = layout.widgetOrder.indexOf(left.definition.id)
+            const rightOrder = layout.widgetOrder.indexOf(right.definition.id)
+            const normalizedLeftOrder = leftOrder < 0 ? layout.widgetOrder.length + left.index : leftOrder
+            const normalizedRightOrder = rightOrder < 0 ? layout.widgetOrder.length + right.index : rightOrder
+            return normalizedLeftOrder - normalizedRightOrder || left.index - right.index
+        })
+        .map(({ definition }) => definition)
 
 export const toBoardItem = (
     definition: WidgetDefinitionWithLayout,
@@ -106,12 +119,25 @@ export const buildDefaultState = (definitions: WidgetDefinitionWithLayout[], bre
     const items = definitions.filter(def => !hidden.includes(def.id)).map(def => toBoardItem(def))
     const collapsedItems = applyCollapsedState(items, collapsed, definitionsMap, sizeMemory)
 
+    const hiddenSnapshots = Object.fromEntries(
+        definitions
+            .map((definition, order) => ({ definition, order }))
+            .filter(({ definition }) => hidden.includes(definition.id))
+            .map(({ definition, order }) => [
+                definition.id,
+                {
+                    ...definition.layout.defaultSize,
+                    order,
+                },
+            ]),
+    )
+
     return {
         items: collapsedItems,
         hidden,
         collapsed,
         sizeMemory,
-        layoutMemory: {},
+        layoutMemory: hidden.length > 0 ? { [breakpointKey]: hiddenSnapshots } : {},
         heightModeMemory,
     }
 }
@@ -156,15 +182,122 @@ export const getLayoutConfigForWidth = (
     return { breakpoint, layout: layoutMap[breakpoint] }
 }
 
+export const getLayoutConfigForBreakpoint = (
+    breakpoint: number | string,
+    layoutMap: Record<number | string, BreakpointLayoutConfig>,
+) => ({
+    breakpoint,
+    layout:
+        layoutMap[breakpoint] ??
+        layoutMap[String(breakpoint)] ??
+        layoutMap[Number(breakpoint)] ??
+        Object.values(layoutMap)[0],
+})
+
+const normalizeWidgetOrder = (order: readonly string[] | undefined, widgetIds: readonly string[]) => {
+    if (!order) return undefined
+    const widgetIdSet = new Set(widgetIds)
+    const seen = new Set<string>()
+    const normalized: string[] = []
+    order.forEach(id => {
+        if (!widgetIdSet.has(id) || seen.has(id)) return
+        seen.add(id)
+        normalized.push(id)
+    })
+    widgetIds.forEach(id => {
+        if (!seen.has(id)) {
+            seen.add(id)
+            normalized.push(id)
+        }
+    })
+    return normalized
+}
+
+const normalizeWidgetLayout = (
+    saved: WidgetLayoutConfig | undefined,
+    base: WidgetLayoutConfig | undefined,
+): WidgetLayoutConfig => {
+    const resolvedBase = base ?? fallbackLayout
+    if (!saved) {
+        return {
+            ...resolvedBase,
+            defaultSize: { ...resolvedBase.defaultSize },
+            limits: resolvedBase.limits ? { ...resolvedBase.limits } : undefined,
+            initialState: resolvedBase.initialState ? { ...resolvedBase.initialState } : undefined,
+        }
+    }
+
+    return {
+        ...resolvedBase,
+        ...saved,
+        defaultSize: {
+            ...resolvedBase.defaultSize,
+            ...saved.defaultSize,
+        },
+        limits: resolvedBase.limits ? { ...resolvedBase.limits } : undefined,
+        initialState: (resolvedBase.initialState || saved.initialState) && {
+            ...resolvedBase.initialState,
+            ...saved.initialState,
+        },
+        heightMode: saved.heightMode ?? resolvedBase.heightMode,
+    }
+}
+
+export const normalizeLayoutByBreakpoint = (
+    savedLayoutByBreakpoint: Record<number | string, BreakpointLayoutConfig> | undefined,
+    defaultLayoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
+    breakpointIds: readonly (number | string)[] = Object.keys(defaultLayoutByBreakpoint),
+): Record<number | string, BreakpointLayoutConfig> => {
+    const normalized: Record<number | string, BreakpointLayoutConfig> = {}
+    const fallbackBase = Object.values(defaultLayoutByBreakpoint)[0]
+
+    breakpointIds.forEach(breakpointId => {
+        const base =
+            defaultLayoutByBreakpoint[breakpointId] ??
+            defaultLayoutByBreakpoint[String(breakpointId)] ??
+            fallbackBase
+        const saved =
+            savedLayoutByBreakpoint?.[breakpointId] ??
+            savedLayoutByBreakpoint?.[String(breakpointId)]
+        if (!base && !saved) return
+
+        const widgetIds = Object.keys(base?.widgets ?? saved?.widgets ?? {})
+        const widgets = Object.fromEntries(
+            widgetIds.map(id => [
+                id,
+                normalizeWidgetLayout(saved?.widgets[id], base?.widgets[id]),
+            ]),
+        )
+        const selectedOrder = saved?.widgetOrder ?? base?.widgetOrder
+
+        normalized[breakpointId] = {
+            ...base,
+            columns: base?.columns,
+            rowHeight: base?.rowHeight,
+            margin: base?.margin,
+            containerPadding: base?.containerPadding,
+            widgetOrder: normalizeWidgetOrder(selectedOrder, widgetIds),
+            widgets,
+        }
+    })
+
+    return normalized
+}
+
 export const buildLayoutOptions = (
     options: WidgetBoardLayoutOption[] | undefined,
     fallback: WidgetBoardLayoutOption,
+    breakpointIds: readonly (number | string)[] = Object.keys(fallback.layoutByBreakpoint),
 ): WidgetBoardLayoutOption[] => {
     const normalizedOptions = (options ?? [])
         .filter(option => option.id !== fallback.id)
         .map(option => ({
             ...option,
-            layoutByBreakpoint: option.layoutByBreakpoint ?? fallback.layoutByBreakpoint,
+            layoutByBreakpoint: normalizeLayoutByBreakpoint(
+                option.layoutByBreakpoint,
+                fallback.layoutByBreakpoint,
+                breakpointIds,
+            ),
         }))
 
     return [fallback, ...normalizedOptions]

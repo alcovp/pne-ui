@@ -9,6 +9,7 @@ type UseWidgetBoardLayoutActionsParams = {
     buildCurrentPreset: () => Record<number | string, BreakpointLayoutConfig>
     defaultLayoutId: string
     isLoadingLayouts: boolean
+    isLayoutStateCurrent: boolean
     layoutOptions: WidgetBoardLayoutOption[]
     layoutOptionsMap: Map<string, WidgetBoardLayoutOption>
     layoutSourceOwnerIdRef: MutableRefObject<string | undefined>
@@ -22,6 +23,7 @@ type UseWidgetBoardLayoutActionsParams = {
     onRestoreHidden: () => void
     selectedLayoutId: string | undefined
     setLayoutOptions: Dispatch<SetStateAction<WidgetBoardLayoutOption[]>>
+    setLayoutSource: Dispatch<SetStateAction<Record<number | string, BreakpointLayoutConfig>>>
     setSelectedLayoutId: Dispatch<SetStateAction<string | undefined>>
 }
 
@@ -29,6 +31,7 @@ export const useWidgetBoardLayoutActions = ({
     buildCurrentPreset,
     defaultLayoutId,
     isLoadingLayouts,
+    isLayoutStateCurrent,
     layoutOptions,
     layoutOptionsMap,
     layoutSourceOwnerIdRef,
@@ -42,18 +45,21 @@ export const useWidgetBoardLayoutActions = ({
     onRestoreHidden,
     selectedLayoutId,
     setLayoutOptions,
+    setLayoutSource,
     setSelectedLayoutId,
 }: UseWidgetBoardLayoutActionsParams) => {
     const { t } = useTranslation()
     const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const persistQueueRef = useRef<Promise<void>>(Promise.resolve())
 
-    useEffect(() => {
-        return () => {
-            if (autosaveTimeoutRef.current) {
-                clearTimeout(autosaveTimeoutRef.current)
-            }
+    const cancelPendingAutosave = useCallback(() => {
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current)
+            autosaveTimeoutRef.current = null
         }
     }, [])
+
+    useEffect(() => cancelPendingAutosave, [cancelPendingAutosave])
 
     const ensureSelected = useCallback(
         (options: WidgetBoardLayoutOption[], candidate?: string) => {
@@ -65,9 +71,12 @@ export const useWidgetBoardLayoutActions = ({
 
     const persistLayouts = useCallback(
         (options: WidgetBoardLayoutOption[], nextSelectedId?: string) => {
-            Promise.resolve(saveLayouts(options, nextSelectedId)).catch(error => {
-                console.warn('Failed to save widget layouts', error)
-            })
+            persistQueueRef.current = persistQueueRef.current
+                .catch(() => undefined)
+                .then(() => saveLayouts(options, nextSelectedId))
+                .catch(error => {
+                    console.warn('Failed to save widget layouts', error)
+                })
         },
         [saveLayouts],
     )
@@ -75,14 +84,23 @@ export const useWidgetBoardLayoutActions = ({
     const selectLayout = useCallback(
         (id: string) => {
             if (!id || id === selectedLayoutId || !layoutOptionsMap.has(id)) return
+            cancelPendingAutosave()
             setSelectedLayoutId(id)
             persistLayouts(layoutOptions, id)
         },
-        [layoutOptions, layoutOptionsMap, persistLayouts, selectedLayoutId, setSelectedLayoutId],
+        [
+            cancelPendingAutosave,
+            layoutOptions,
+            layoutOptionsMap,
+            persistLayouts,
+            selectedLayoutId,
+            setSelectedLayoutId,
+        ],
     )
 
     const addLayout = useCallback(
         (name: string) => {
+            cancelPendingAutosave()
             const layoutByBreakpoint = buildCurrentPreset()
             const option: WidgetBoardLayoutOption = {
                 id: createLayoutId(),
@@ -94,24 +112,43 @@ export const useWidgetBoardLayoutActions = ({
             setSelectedLayoutId(option.id)
             persistLayouts(nextOptions, option.id)
         },
-        [buildCurrentPreset, layoutOptions, persistLayouts, setLayoutOptions, setSelectedLayoutId, t],
+        [
+            buildCurrentPreset,
+            cancelPendingAutosave,
+            layoutOptions,
+            persistLayouts,
+            setLayoutOptions,
+            setSelectedLayoutId,
+            t,
+        ],
     )
 
     const deleteLayout = useCallback(
         (id: string) => {
             if (!layoutOptionsMap.has(id)) return
             if (lockedLayoutIdRef.current && id === lockedLayoutIdRef.current) return
+            cancelPendingAutosave()
             const nextOptions = layoutOptions.filter(option => option.id !== id)
             const nextSelected = id === selectedLayoutId ? ensureSelected(nextOptions) : selectedLayoutId
             setLayoutOptions(nextOptions)
             setSelectedLayoutId(nextSelected)
             persistLayouts(nextOptions, nextSelected)
         },
-        [ensureSelected, layoutOptions, layoutOptionsMap, lockedLayoutIdRef, persistLayouts, selectedLayoutId, setLayoutOptions, setSelectedLayoutId],
+        [
+            cancelPendingAutosave,
+            ensureSelected,
+            layoutOptions,
+            layoutOptionsMap,
+            lockedLayoutIdRef,
+            persistLayouts,
+            selectedLayoutId,
+            setLayoutOptions,
+            setSelectedLayoutId,
+        ],
     )
 
     useEffect(() => {
-        if (isLoadingLayouts) return
+        if (isLoadingLayouts || !isLayoutStateCurrent) return
 
         const expectedOwnerId = selectedLayoutId ?? defaultLayoutId
         if (layoutSourceOwnerIdRef.current !== expectedOwnerId) return
@@ -129,9 +166,10 @@ export const useWidgetBoardLayoutActions = ({
 
         const nextOptions = layoutOptions.map(option => (option.id === selectedLayoutId ? { ...option, layoutByBreakpoint: nextPreset } : option))
         setLayoutOptions(nextOptions)
+        setLayoutSource(previous => (previous === nextPreset ? previous : nextPreset))
 
         if (autosaveTimeoutRef.current) {
-            clearTimeout(autosaveTimeoutRef.current)
+            cancelPendingAutosave()
         }
         autosaveTimeoutRef.current = setTimeout(() => {
             persistLayouts(nextOptions, selectedLayoutId)
@@ -139,7 +177,9 @@ export const useWidgetBoardLayoutActions = ({
         }, 350)
     }, [
         buildCurrentPreset,
+        cancelPendingAutosave,
         defaultLayoutId,
+        isLayoutStateCurrent,
         isLoadingLayouts,
         layoutOptions,
         layoutOptionsMap,
@@ -148,6 +188,7 @@ export const useWidgetBoardLayoutActions = ({
         persistLayouts,
         selectedLayoutId,
         setLayoutOptions,
+        setLayoutSource,
     ])
 
     const addInfo = useMemo(() => {
