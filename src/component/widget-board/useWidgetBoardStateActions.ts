@@ -1,8 +1,8 @@
 import { useCallback } from 'react'
-import type { MutableRefObject, SetStateAction } from 'react'
+import type { SetStateAction } from 'react'
 import type { Dispatch } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
-import type { WidgetBoardItemData, WidgetBoardState, WidgetHeightMode, WidgetHeightModeMemory, WidgetLayoutSnapshot } from './types'
+import type { WidgetBoardItemData, WidgetBoardState, WidgetLayoutSnapshot } from './types'
 import {
     buildDefaultState,
     COLLAPSED_ROW_SPAN,
@@ -18,8 +18,6 @@ type UseWidgetBoardStateActionsParams = {
     definitionsMap: Map<string, WidgetDefinitionWithLayout>
     definitionsWithLayout: WidgetDefinitionWithLayout[]
     isDefaultLayoutSelected: boolean
-    lockedHeightModeByWidgetId: Partial<Record<string, boolean>>
-    measuredRowsRef: MutableRefObject<Record<string, number>>
     setLayoutState: Dispatch<SetStateAction<WidgetBoardState>>
 }
 
@@ -29,8 +27,6 @@ export const useWidgetBoardStateActions = ({
     definitionsMap,
     definitionsWithLayout,
     isDefaultLayoutSelected,
-    lockedHeightModeByWidgetId,
-    measuredRowsRef,
     setLayoutState,
 }: UseWidgetBoardStateActionsParams) => {
     const setWidgetVisibility = useCallback(
@@ -144,10 +140,6 @@ export const useWidgetBoardStateActions = ({
                 hidden: nextHidden,
                 collapsed: nextCollapsed,
                 layoutMemory: nextLayoutMemory,
-                heightModeMemory: {
-                    ...prev.heightModeMemory,
-                    [currentBreakpointKey]: nextState.heightModeMemory[currentBreakpointKey] ?? {},
-                },
             }
         })
     }, [currentBreakpointKey, defaultDefinitionsMap, definitionsMap, definitionsWithLayout, isDefaultLayoutSelected, setLayoutState])
@@ -155,10 +147,6 @@ export const useWidgetBoardStateActions = ({
     const handleItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange'] = useCallback(
         ({ detail }) => {
             setLayoutState(prev => {
-                const nextHeightModeMemory: WidgetHeightModeMemory = { ...prev.heightModeMemory }
-                const nextHeightModeById: Partial<Record<string, WidgetHeightMode>> = {
-                    ...(nextHeightModeMemory[currentBreakpointKey] ?? {}),
-                }
                 const prevItemsById = new Map<string, BoardProps.Item<WidgetBoardItemData>>(
                     prev.items.map(item => [item.id as string, item]),
                 )
@@ -170,27 +158,12 @@ export const useWidgetBoardStateActions = ({
 
                         const defaultSize = definition.layout.defaultSize
                         const isCollapsed = prev.collapsed.includes(widgetId)
-                        const columnSpan = item.columnSpan ?? defaultSize.columnSpan
-                        const rowSpan = isCollapsed ? COLLAPSED_ROW_SPAN : (item.rowSpan ?? defaultSize.rowSpan)
-                        const columnOffset = item.columnOffset ?? defaultSize.columnOffset
-
                         const prevItem = prevItemsById.get(widgetId)
-                        const prevRowSpan = prevItem?.rowSpan ?? defaultSize.rowSpan
-                        const nextRowSpan = rowSpan
-                        const isHeightModeLocked = Boolean(lockedHeightModeByWidgetId[widgetId])
-
-                        if (!isCollapsed && prevRowSpan !== nextRowSpan) {
-                            const requiredRows = measuredRowsRef.current[widgetId]
-                            if (requiredRows) {
-                                if (nextRowSpan < requiredRows) {
-                                    nextHeightModeById[widgetId] = 'fixed'
-                                } else if (!isHeightModeLocked) {
-                                    nextHeightModeById[widgetId] = 'auto'
-                                }
-                            } else if (!isHeightModeLocked && nextRowSpan > prevRowSpan) {
-                                nextHeightModeById[widgetId] = 'auto'
-                            }
-                        }
+                        const columnSpan = item.columnSpan ?? defaultSize.columnSpan
+                        const rowSpan = isCollapsed
+                            ? COLLAPSED_ROW_SPAN
+                            : (prevItem?.rowSpan ?? defaultSize.rowSpan)
+                        const columnOffset = item.columnOffset ?? defaultSize.columnOffset
 
                         const data =
                             prevItem?.data && prevItem.data.title === definition.title
@@ -228,11 +201,10 @@ export const useWidgetBoardStateActions = ({
                     })
                     .filter(Boolean) as BoardProps.Item<WidgetBoardItemData>[]
 
-                nextHeightModeMemory[currentBreakpointKey] = nextHeightModeById
-                return { ...prev, items: nextItems, heightModeMemory: nextHeightModeMemory }
+                return { ...prev, items: nextItems }
             })
         },
-        [currentBreakpointKey, definitionsMap, lockedHeightModeByWidgetId, measuredRowsRef, setLayoutState],
+        [definitionsMap, setLayoutState],
     )
 
     const toggleCollapse = useCallback(

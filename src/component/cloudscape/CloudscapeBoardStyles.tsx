@@ -3,13 +3,17 @@ import React from 'react'
 
 type CloudscapeBoardStylesProps = {
     hideNavigationArrows?: boolean
+    hideResizers?: boolean
 }
 
 /**
  * Global CSS overrides for Cloudscape Board containers to flatten chrome
  * and trim padding on small screens. Keeps arrows hidden by default.
  */
-export function CloudscapeBoardStyles({ hideNavigationArrows = true }: CloudscapeBoardStylesProps) {
+export function CloudscapeBoardStyles({
+    hideNavigationArrows = true,
+    hideResizers = false,
+}: CloudscapeBoardStylesProps) {
     const boardGridSelector = '[data-pne-widget-board="true"] [class*="awsui_grid_"][class*="awsui_columns-"]'
     const navigationStyles = hideNavigationArrows
         ? {
@@ -17,6 +21,15 @@ export function CloudscapeBoardStyles({ hideNavigationArrows = true }: Cloudscap
                 display: 'none !important',
                 visibility: 'hidden !important',
                 opacity: '0 !important',
+                pointerEvents: 'none !important',
+            },
+        }
+        : {}
+    const resizerStyles = hideResizers
+        ? {
+            '[data-pne-widget-board="true"] [data-height-mode] > [class*="awsui_resizer_"]': {
+                display: 'none !important',
+                visibility: 'hidden !important',
                 pointerEvents: 'none !important',
             },
         }
@@ -76,6 +89,7 @@ export function CloudscapeBoardStyles({ hideNavigationArrows = true }: Cloudscap
                     gap: '16px !important',
                 },
                 ...navigationStyles,
+                ...resizerStyles,
                 '@media (max-width: 600px)': {
                     '[data-awsui-board]': {
                         paddingLeft: '0 !important',

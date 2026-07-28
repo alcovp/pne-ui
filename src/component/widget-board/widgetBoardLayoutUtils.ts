@@ -5,8 +5,6 @@ import type {
     WidgetBoardLayoutOption,
     WidgetBoardState,
     WidgetDefinition,
-    WidgetHeightMode,
-    WidgetHeightModeMemory,
     WidgetLayoutConfig,
     WidgetLayoutMemory,
     WidgetLayoutSnapshot,
@@ -111,10 +109,6 @@ export const buildDefaultState = (definitions: WidgetDefinitionWithLayout[], bre
     const collapsed = definitions.filter(def => def.layout.initialState?.isCollapsed).map(def => def.id)
     const sizeMemory: Partial<Record<string, number>> = {}
     const definitionsMap = new Map<string, WidgetDefinitionWithLayout>(definitions.map(def => [def.id, def]))
-    const heightModeById: Partial<Record<string, WidgetHeightMode>> = Object.fromEntries(
-        definitions.map(def => [def.id, def.layout.heightMode ?? 'auto']),
-    )
-    const heightModeMemory: WidgetHeightModeMemory = { [breakpointKey]: heightModeById }
 
     const items = definitions.filter(def => !hidden.includes(def.id)).map(def => toBoardItem(def))
     const collapsedItems = applyCollapsedState(items, collapsed, definitionsMap, sizeMemory)
@@ -138,7 +132,6 @@ export const buildDefaultState = (definitions: WidgetDefinitionWithLayout[], bre
         collapsed,
         sizeMemory,
         layoutMemory: hidden.length > 0 ? { [breakpointKey]: hiddenSnapshots } : {},
-        heightModeMemory,
     }
 }
 
@@ -233,13 +226,14 @@ const normalizeWidgetLayout = (
         defaultSize: {
             ...resolvedBase.defaultSize,
             ...saved.defaultSize,
+            rowSpan: resolvedBase.defaultSize.rowSpan,
         },
         limits: resolvedBase.limits ? { ...resolvedBase.limits } : undefined,
         initialState: (resolvedBase.initialState || saved.initialState) && {
             ...resolvedBase.initialState,
             ...saved.initialState,
         },
-        heightMode: saved.heightMode ?? resolvedBase.heightMode,
+        heightMode: resolvedBase.heightMode,
     }
 }
 

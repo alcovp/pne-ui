@@ -8,7 +8,7 @@ import {
 import type { WidgetBoardBreakpoint } from '../src/component/widget-board/types'
 
 const semanticBreakpoints: readonly WidgetBoardBreakpoint[] = [
-    { id: 'narrow', minWidth: 0 },
+    { id: 'narrow', minWidth: 0, editBehavior: 'order-only' },
     { id: 'compact', minWidth: 640 },
     { id: 'wide', minWidth: 1024 },
 ]
@@ -30,6 +30,7 @@ describe('WidgetBoard breakpoints', () => {
 
     it('resolves semantic breakpoint ids by their ordered minimum widths', () => {
         expect(resolveWidgetBoardBreakpoint(undefined, semanticBreakpoints).id).toBe('narrow')
+        expect(resolveWidgetBoardBreakpoint(639, semanticBreakpoints).editBehavior).toBe('order-only')
         expect(resolveWidgetBoardBreakpoint(639, semanticBreakpoints).id).toBe('narrow')
         expect(resolveWidgetBoardBreakpoint(640, semanticBreakpoints).id).toBe('compact')
         expect(resolveWidgetBoardBreakpoint(1600, semanticBreakpoints).id).toBe('wide')

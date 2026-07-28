@@ -50,7 +50,7 @@ const defaultLayouts: Record<string, BreakpointLayoutConfig> = {
 }
 
 describe('WidgetBoard layout normalization', () => {
-    it('layers user-owned saved fields over code-owned engine geometry and limits', () => {
+    it('layers user-owned width and state over code-owned engine geometry, height, and limits', () => {
         const normalized = normalizeLayoutByBreakpoint(
             {
                 narrow: {
@@ -92,12 +92,12 @@ describe('WidgetBoard layout normalization', () => {
         expect(normalized.narrow.widgets.a).toEqual({
             defaultSize: {
                 columnSpan: 1,
-                rowSpan: 7,
+                rowSpan: 3,
                 columnOffset: { 2: 1 },
             },
             limits: { minColumnSpan: 2, minRowSpan: 2 },
             initialState: { isHidden: true, isCollapsed: true },
-            heightMode: 'fixed',
+            heightMode: 'auto',
         })
         expect(normalized.narrow.widgets.b).toEqual(defaultLayouts.narrow.widgets.b)
         expect(normalized.wide).toEqual(defaultLayouts.wide)
@@ -170,7 +170,7 @@ describe('WidgetBoard layout normalization', () => {
             containerPadding: undefined,
         })
         expect(normalized.compact.widgets.a).toEqual({
-            defaultSize: { columnSpan: 1, rowSpan: 7 },
+            defaultSize: { columnSpan: 1, rowSpan: 3 },
             limits: undefined,
             initialState: undefined,
             heightMode: undefined,
@@ -228,7 +228,7 @@ describe('WidgetBoard per-breakpoint persistence', () => {
         },
     }
 
-    it('updates only the active band and persists its hidden, collapsed, size, and order state', () => {
+    it('updates only the active band and persists width, offset, visibility, collapse, and order', () => {
         const state: WidgetBoardState = {
             items: [
                 {
@@ -259,13 +259,6 @@ describe('WidgetBoard per-breakpoint persistence', () => {
                     },
                 },
             },
-            heightModeMemory: {
-                narrow: {
-                    a: 'fixed',
-                    b: 'fixed',
-                    c: 'auto',
-                },
-            },
         }
 
         const result = buildPresetFromState(
@@ -280,7 +273,7 @@ describe('WidgetBoard per-breakpoint persistence', () => {
         expect(result.narrow.widgets.a).toMatchObject({
             defaultSize: {
                 columnSpan: 1,
-                rowSpan: 8,
+                rowSpan: 4,
                 columnOffset: { 3: 2 },
             },
             initialState: { isCollapsed: true, isHidden: false },
@@ -289,11 +282,19 @@ describe('WidgetBoard per-breakpoint persistence', () => {
         expect(result.narrow.widgets.b).toMatchObject({
             defaultSize: {
                 columnSpan: 1,
-                rowSpan: 7,
+                rowSpan: 4,
                 columnOffset: { 3: 1 },
             },
             initialState: { isCollapsed: false, isHidden: true },
             heightMode: 'fixed',
+        })
+        expect(result.narrow.widgets.c).toMatchObject({
+            defaultSize: {
+                columnSpan: 2,
+                rowSpan: 4,
+                columnOffset: { 3: 0 },
+            },
+            initialState: { isCollapsed: false, isHidden: false },
         })
     })
 

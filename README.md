@@ -1663,8 +1663,16 @@ color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), о
 Основные пропсы:
 - `widgets`: список `{ id, title, render }` — содержимое виджетов.
 - `layoutByBreakpoint`: базовый пресет для дефолтного лейаута.
+- `breakpoints`: семантические брейкпоинты `{ id, minWidth, editBehavior? }`. Значение
+  `editBehavior: 'order-only'` превращает edit-mode в полноширинный draggable-список без содержимого
+  и resize; остальные брейкпоинты по умолчанию используют обычный grid-editor.
 - `loadLayouts(): Promise<{ options; selectedId? } | null>`: обязательная функция загрузки пользовательских схем (вызывается при маунте). `WidgetBoard` сам добавляет и блокирует встроенный `default`-лейаут.
 - `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (вызывается при select/add/delete и автосохранении изменений в выбранном пользовательском лейауте).
+
+В grid-editor пользователь меняет только ширину и положение виджета. Высота всегда вычисляется из содержимого
+autosize-механизмом: runtime-значение `rowSpan` не сохраняется в пользовательский лейаут и не превращается в
+фиксированную высоту после resize. `heightMode: 'fixed'` остаётся только code-owned opt-out для специальных
+виджетов, которым фиксированная высота задана самим приложением.
 
 Панель `WidgetLayoutsPanel` — презентационный компонент. Передавайте `items/selectedId/onSelect/onAdd/onDelete`
 и прочие данные из scoped store (`useWidgetBoardScopeStore`).
@@ -1711,13 +1719,18 @@ const widgets: WidgetDefinition[] = [
 ]
 
 const baseLayoutByBreakpoint = {
-    12: {
+    narrow: {
+        columns: 1,
         widgets: {
-            traffic: { defaultSize: { columnSpan: 6, rowSpan: 2 } },
-            sales: { defaultSize: { columnSpan: 6, rowSpan: 2 } },
+            traffic: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
+            sales: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
         },
     },
 }
+
+const boardBreakpoints = [
+    { id: 'narrow', minWidth: 0, editBehavior: 'order-only' },
+] as const
 
 // Загрузка/сохранение пресетов
 const loadLayouts = async (): Promise<{ options: WidgetBoardLayoutOption[]; selectedId?: string }> => {
@@ -1751,6 +1764,7 @@ const DashboardContent = () => {
                     <WidgetBoard
                         widgets={widgets}
                         layoutByBreakpoint={baseLayoutByBreakpoint}
+                        breakpoints={boardBreakpoints}
                         loadLayouts={loadLayouts}
                         saveLayouts={saveLayouts}
                     />

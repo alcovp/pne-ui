@@ -41,8 +41,6 @@ export const buildPresetFromState = (
 
     const hiddenSet = new Set<string>(state.hidden)
     const collapsedSet = new Set<string>(state.collapsed)
-    const sizeMemory = state.sizeMemory ?? {}
-    const heightModeMemory = state.heightModeMemory ?? {}
     const layoutMemory = state.layoutMemory ?? {}
     const itemMap = new Map<string, (typeof state.items)[number]>(state.items.map(item => [item.id as string, item]))
 
@@ -63,7 +61,6 @@ export const buildPresetFromState = (
 
         const widgets: Record<string, WidgetLayoutConfig> = {}
         const memoryForBreakpoint = layoutMemory[String(breakpoint)] ?? {}
-        const heightModeForBreakpoint = heightModeMemory[String(breakpoint)] ?? {}
         const managedWidgetIds = new Set([
             ...itemMap.keys(),
             ...hiddenSet,
@@ -86,17 +83,11 @@ export const buildPresetFromState = (
             const rememberedSnapshot = memoryForBreakpoint[id]
             const isHidden = hiddenSet.has(id) || !item
             const isCollapsed = collapsedSet.has(id)
-            const heightMode = heightModeForBreakpoint[id] ?? baseConfig.heightMode
-            const isFixedHeight = heightMode === 'fixed'
-            const rememberedSize =
-                isFixedHeight
-                    ? sizeMemory[id] ?? item?.rowSpan ?? rememberedSnapshot?.rowSpan ?? baseConfig.defaultSize.rowSpan
-                    : baseConfig.defaultSize.rowSpan
 
             widgets[id] = {
                 defaultSize: {
                     columnSpan: item?.columnSpan ?? rememberedSnapshot?.columnSpan ?? baseConfig.defaultSize.columnSpan,
-                    rowSpan: rememberedSize,
+                    rowSpan: baseConfig.defaultSize.rowSpan,
                     columnOffset: item?.columnOffset ?? rememberedSnapshot?.columnOffset ?? baseConfig.defaultSize.columnOffset,
                 },
                 limits: baseConfig.limits,
@@ -105,7 +96,7 @@ export const buildPresetFromState = (
                     isHidden,
                     isCollapsed,
                 },
-                heightMode,
+                heightMode: baseConfig.heightMode,
             }
         })
 

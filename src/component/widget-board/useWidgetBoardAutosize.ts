@@ -7,20 +7,18 @@ const AUTOSIZE_PIXEL_TOLERANCE = 1
 
 type UseWidgetBoardAutosizeParams = {
     autoHeightEnabled: boolean
-    lockedHeightModeByWidgetId: Partial<Record<string, boolean>>
     definitionsMap: Map<string, WidgetDefinitionWithLayout>
-    currentBreakpointKey: string
     isInteractionLocked: boolean
+    isSuspended: boolean
     layoutPresetBreakpoint: number | string | undefined
     setLayoutState: Dispatch<SetStateAction<WidgetBoardState>>
 }
 
 export const useWidgetBoardAutosize = ({
     autoHeightEnabled,
-    lockedHeightModeByWidgetId,
     definitionsMap,
-    currentBreakpointKey,
     isInteractionLocked,
+    isSuspended,
     layoutPresetBreakpoint,
     setLayoutState,
 }: UseWidgetBoardAutosizeParams) => {
@@ -28,7 +26,6 @@ export const useWidgetBoardAutosize = ({
     const gridMetricsRef = useRef<{ rowHeight: number; rowGap: number } | null>(null)
     const contentRefs = useRef<Map<string, HTMLDivElement>>(new Map())
     const resizeObserverRef = useRef<ResizeObserver | null>(null)
-    const measuredRowsRef = useRef<Record<string, number>>({})
 
     const parseCssNumber = useCallback((value: string | null) => {
         if (!value) return Number.NaN
@@ -133,11 +130,8 @@ export const useWidgetBoardAutosize = ({
             setLayoutState(prev => {
                 const definition = definitionsMap.get(widgetId)
                 if (!definition) return prev
-                if (lockedHeightModeByWidgetId[widgetId]) return prev
+                if (definition.layout.heightMode === 'fixed') return prev
                 if (prev.collapsed.includes(widgetId)) return prev
-
-                const heightMode = prev.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
-                if (heightMode !== 'auto') return prev
 
                 const index = prev.items.findIndex(item => item.id === widgetId)
                 if (index < 0) return prev
@@ -152,19 +146,19 @@ export const useWidgetBoardAutosize = ({
                 return { ...prev, items: nextItems }
             })
         },
-        [currentBreakpointKey, definitionsMap, lockedHeightModeByWidgetId, setLayoutState],
+        [definitionsMap, setLayoutState],
     )
 
     const handleContentResize = useCallback(
         (widgetId: string, contentElement: HTMLDivElement) => {
             if (!autoHeightEnabled) return
             if (isInteractionLocked) return
+            if (isSuspended) return
             const requiredRows = computeRequiredRows(contentElement)
             if (!requiredRows) return
-            measuredRowsRef.current[widgetId] = requiredRows
             applyAutoSize(widgetId, requiredRows)
         },
-        [applyAutoSize, autoHeightEnabled, computeRequiredRows, isInteractionLocked],
+        [applyAutoSize, autoHeightEnabled, computeRequiredRows, isInteractionLocked, isSuspended],
     )
 
     const handleContentRef = useCallback(
@@ -185,7 +179,6 @@ export const useWidgetBoardAutosize = ({
 
             map.set(widgetId, node)
             if (!autoHeightEnabled) {
-                delete measuredRowsRef.current[widgetId]
                 return
             }
             if (observer) {
@@ -199,11 +192,12 @@ export const useWidgetBoardAutosize = ({
     const remeasureAll = useCallback(() => {
         if (!autoHeightEnabled) return
         if (isInteractionLocked) return
+        if (isSuspended) return
         updateGridMetrics()
         contentRefs.current.forEach((element, widgetId) => {
             handleContentResize(widgetId, element)
         })
-    }, [autoHeightEnabled, handleContentResize, isInteractionLocked, updateGridMetrics])
+    }, [autoHeightEnabled, handleContentResize, isInteractionLocked, isSuspended, updateGridMetrics])
 
     useEffect(() => {
         if (!autoHeightEnabled) return
@@ -239,19 +233,12 @@ export const useWidgetBoardAutosize = ({
     }, [autoHeightEnabled, handleContentResize])
 
     useEffect(() => {
-        if (!autoHeightEnabled) {
-            measuredRowsRef.current = {}
-        }
-    }, [autoHeightEnabled])
-
-    useEffect(() => {
         remeasureAll()
     }, [layoutPresetBreakpoint, remeasureAll])
 
     return {
         boardRootRef,
         handleContentRef,
-        measuredRowsRef,
         remeasureAll,
     }
 }

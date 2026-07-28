@@ -1,41 +1,65 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
+import ArrowDownwardRoundedIcon from '@mui/icons-material/ArrowDownwardRounded'
+import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import OpenWithRoundedIcon from '@mui/icons-material/OpenWithRounded'
 import { Box, IconButton, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import ReactGridLayout, { noCompactor, useContainerWidth, type Layout, type LayoutItem } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
-import type { WidgetBoardInteractionMode, WidgetBoardItemData, WidgetHeightMode } from './types'
+import type {
+    WidgetBoardEditBehavior,
+    WidgetBoardInteractionMode,
+    WidgetBoardItemData,
+    WidgetHeightMode,
+} from './types'
 import type { WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
+
+type WidgetBoardOrderMoveDirection = -1 | 1
+
+export type WidgetBoardReactGridLayoutRenderContext = {
+    itemCount: number
+    position: number
+    onMove: (widgetId: string, direction: WidgetBoardOrderMoveDirection) => void
+}
 
 type WidgetBoardReactGridLayoutItemProps = {
     item: BoardProps.Item<WidgetBoardItemData>
     definition: WidgetDefinitionWithLayout
+    editBehavior: WidgetBoardEditBehavior
     heightMode: WidgetHeightMode
     isCollapsed: boolean
     interactionMode: WidgetBoardInteractionMode
+    itemCount: number
     onContentRef: (widgetId: string, node: HTMLDivElement | null) => void
     onHide: (widgetId: string) => void
+    onMove: (widgetId: string, direction: WidgetBoardOrderMoveDirection) => void
+    position: number
 }
 
 type WidgetBoardReactGridLayoutEngineProps = {
     boardRootRef: React.Ref<HTMLDivElement>
     columns: number
     containerPadding: readonly [number, number] | null
+    editBehavior: WidgetBoardEditBehavior
     interactionMode: WidgetBoardInteractionMode
     isLoadingLayouts: boolean
     items: BoardProps.Item<WidgetBoardItemData>[]
     margin: readonly [number, number]
     minWidthPxByWidgetId: Partial<Record<string, number>>
     onItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange']
-    renderItem: (item: BoardProps.Item<WidgetBoardItemData>) => React.ReactElement
+    renderItem: (
+        item: BoardProps.Item<WidgetBoardItemData>,
+        context: WidgetBoardReactGridLayoutRenderContext,
+    ) => React.ReactElement
     rowHeight: number
     useCSSTransforms: boolean
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 const neutralColor = '#5E7594'
+const ORDER_ONLY_ROW_HEIGHT = 48
 
 type GridItemPixelPosition = {
     top: number
@@ -180,11 +204,29 @@ const getColumnOffset = (item: BoardProps.Item<WidgetBoardItemData>, columns: nu
     return 0
 }
 
-const toReactGridLayout = (
+export const toReactGridLayout = (
     items: BoardProps.Item<WidgetBoardItemData>[],
     columns: number,
     interactionMode: WidgetBoardInteractionMode,
+    editBehavior: WidgetBoardEditBehavior = 'grid',
 ): Layout => {
+    if (interactionMode === 'edit' && editBehavior === 'order-only') {
+        return items.map((item, index) => ({
+            i: item.id as string,
+            x: 0,
+            y: index,
+            w: columns,
+            h: 1,
+            minW: columns,
+            maxW: columns,
+            minH: 1,
+            maxH: 1,
+            static: false,
+            isDraggable: true,
+            isResizable: false,
+        }))
+    }
+
     const columnHeights = Array(columns).fill(0)
     let currentColumnOffset = 0
 
@@ -211,7 +253,8 @@ const toReactGridLayout = (
             w: width,
             h: height,
             minW: item.definition?.minColumnSpan,
-            minH: item.definition?.minRowSpan,
+            minH: height,
+            maxH: height,
             static: interactionMode === 'view',
             isDraggable: interactionMode === 'edit',
             isResizable: interactionMode === 'edit',
@@ -219,24 +262,27 @@ const toReactGridLayout = (
     })
 }
 
-const toBoardItems = (
+export const toBoardItems = (
     layout: Layout,
     sourceItems: BoardProps.Item<WidgetBoardItemData>[],
     columns: number,
+    preserveGeometry = false,
 ): BoardProps.Item<WidgetBoardItemData>[] => {
     const itemMap = new Map(sourceItems.map(item => [item.id as string, item]))
+    const sourceOrder = new Map(sourceItems.map((item, index) => [item.id as string, index]))
 
     return [...layout]
         .filter(item => itemMap.has(item.i))
-        .sort((a, b) => a.y - b.y || a.x - b.x)
+        .sort((a, b) => a.y - b.y || a.x - b.x || (sourceOrder.get(a.i) ?? 0) - (sourceOrder.get(b.i) ?? 0))
         .map(layoutItem => {
             const sourceItem = itemMap.get(layoutItem.i)
             if (!sourceItem) return null
+            if (preserveGeometry) return sourceItem
 
             return {
                 ...sourceItem,
                 columnSpan: layoutItem.w,
-                rowSpan: layoutItem.h,
+                rowSpan: sourceItem.rowSpan,
                 columnOffset: {
                     ...sourceItem.columnOffset,
                     [columns]: layoutItem.x,
@@ -261,19 +307,28 @@ const boardItemsEqual = (a: BoardProps.Item<WidgetBoardItemData>[], b: BoardProp
 export const WidgetBoardReactGridLayoutItem = ({
     item,
     definition,
+    editBehavior,
     heightMode,
     isCollapsed,
     interactionMode,
+    itemCount,
     onContentRef,
     onHide,
+    onMove,
+    position,
 }: WidgetBoardReactGridLayoutItemProps) => {
     const widgetId = item.id as string
     const contentOverflow = definition.contentFullHeight ? 'hidden' : heightMode === 'fixed' ? 'auto' : 'hidden'
-    const showControls = interactionMode === 'edit'
+    const isOrderOnlyEdit = interactionMode === 'edit' && editBehavior === 'order-only'
+    const showEditControls = interactionMode === 'edit'
+    const showGridEditControls = showEditControls && !isOrderOnlyEdit
+    const dragHandleClassName = isOrderOnlyEdit ? undefined : 'pne-widget-board-rgl-drag-handle'
 
     return (
         <Box
             data-pne-widget-board-rgl-item='true'
+            data-pne-widget-board-item-id={widgetId}
+            data-pne-widget-board-order-only-item={isOrderOnlyEdit ? 'true' : undefined}
             sx={{
                 height: '100%',
                 boxSizing: 'border-box',
@@ -287,18 +342,20 @@ export const WidgetBoardReactGridLayoutItem = ({
             }}
         >
             <Box
-                className='pne-widget-board-rgl-drag-handle'
+                className={dragHandleClassName}
                 sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    height: 32,
-                    minHeight: 32,
+                    height: isOrderOnlyEdit ? ORDER_ONLY_ROW_HEIGHT : 32,
+                    minHeight: isOrderOnlyEdit ? ORDER_ONLY_ROW_HEIGHT : 32,
                     px: 1.5,
                     pr: 0.25,
                     py: 0,
                     boxSizing: 'border-box',
                     bgcolor: theme => alpha(theme.palette.primary.main, 0.06),
-                    cursor: showControls ? 'move' : 'default',
+                    borderBottom: isOrderOnlyEdit ? '1px solid' : 0,
+                    borderColor: isOrderOnlyEdit ? 'divider' : undefined,
+                    cursor: showGridEditControls ? 'move' : 'default',
                 }}
             >
                 <Typography
@@ -318,17 +375,40 @@ export const WidgetBoardReactGridLayoutItem = ({
                         gap: 1,
                     }}
                 >
-                    {showControls ? (
-                        <OpenWithRoundedIcon
-                            aria-hidden
-                            sx={{ fontSize: 16, color: neutralColor, flex: '0 0 auto' }}
-                        />
+                    {showEditControls ? (
+                        isOrderOnlyEdit ? (
+                            <Box
+                                component='span'
+                                className='pne-widget-board-rgl-drag-handle'
+                                title={`Drag ${definition.title} to reorder`}
+                                sx={{
+                                    alignItems: 'center',
+                                    cursor: 'grab',
+                                    display: 'flex',
+                                    flex: '0 0 auto',
+                                    justifyContent: 'center',
+                                    minHeight: 44,
+                                    minWidth: 44,
+                                    touchAction: 'none',
+                                }}
+                            >
+                                <OpenWithRoundedIcon
+                                    aria-hidden
+                                    sx={{ fontSize: 18, color: neutralColor }}
+                                />
+                            </Box>
+                        ) : (
+                            <OpenWithRoundedIcon
+                                aria-hidden
+                                sx={{ fontSize: 16, color: neutralColor, flex: '0 0 auto' }}
+                            />
+                        )
                     ) : null}
                     <Box component='span' sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {definition.title}
                     </Box>
                 </Typography>
-                {definition.settingsActions ? (
+                {!isOrderOnlyEdit && definition.settingsActions ? (
                     <Box
                         className='pne-widget-board-rgl-control'
                         sx={{
@@ -342,10 +422,32 @@ export const WidgetBoardReactGridLayoutItem = ({
                         {definition.settingsActions}
                     </Box>
                 ) : null}
-                {showControls ? (
+                {isOrderOnlyEdit ? (
+                    <Box className='pne-widget-board-rgl-control' sx={{ display: 'flex', flex: '0 0 auto' }}>
+                        <IconButton
+                            aria-label={`Move ${definition.title} up`}
+                            disabled={position === 0}
+                            onClick={() => onMove(widgetId, -1)}
+                            size='small'
+                            sx={{ color: neutralColor }}
+                        >
+                            <ArrowUpwardRoundedIcon fontSize='small' />
+                        </IconButton>
+                        <IconButton
+                            aria-label={`Move ${definition.title} down`}
+                            disabled={position === itemCount - 1}
+                            onClick={() => onMove(widgetId, 1)}
+                            size='small'
+                            sx={{ color: neutralColor }}
+                        >
+                            <ArrowDownwardRoundedIcon fontSize='small' />
+                        </IconButton>
+                    </Box>
+                ) : null}
+                {showGridEditControls ? (
                     <Box className='pne-widget-board-rgl-control' sx={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
                         <IconButton
-                            aria-label='Remove widget'
+                            aria-label={`Remove ${definition.title}`}
                             onClick={() => onHide(widgetId)}
                             size='small'
                             sx={{ color: neutralColor }}
@@ -358,7 +460,14 @@ export const WidgetBoardReactGridLayoutItem = ({
             {!isCollapsed ? (
                 <Box
                     data-pne-widget-board-content-body='true'
-                    sx={{ flex: '1 1 auto', minHeight: 0, boxSizing: 'border-box', overflow: contentOverflow }}
+                    aria-hidden={isOrderOnlyEdit || undefined}
+                    sx={{
+                        flex: '1 1 auto',
+                        minHeight: 0,
+                        boxSizing: 'border-box',
+                        display: isOrderOnlyEdit ? 'none' : undefined,
+                        overflow: contentOverflow,
+                    }}
                 >
                     <Box
                         ref={(node: HTMLDivElement | null) => onContentRef(widgetId, node)}
@@ -384,6 +493,7 @@ export const WidgetBoardReactGridLayoutEngine = ({
     boardRootRef,
     columns,
     containerPadding,
+    editBehavior,
     interactionMode,
     isLoadingLayouts,
     items,
@@ -395,21 +505,29 @@ export const WidgetBoardReactGridLayoutEngine = ({
     useCSSTransforms,
 }: WidgetBoardReactGridLayoutEngineProps) => {
     const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1280 })
+    const [orderAnnouncement, setOrderAnnouncement] = useState('')
+    const isOrderOnlyEdit = interactionMode === 'edit' && editBehavior === 'order-only'
     const layout = useMemo(
-        () =>
-            applyUserResizeMinWidths({
+        () => {
+            const baseLayout = toReactGridLayout(items, columns, interactionMode, editBehavior)
+            if (isOrderOnlyEdit) return baseLayout
+
+            return applyUserResizeMinWidths({
                 columns,
                 containerPadding,
                 containerWidth: width,
                 interactionMode,
-                layout: toReactGridLayout(items, columns, interactionMode),
+                layout: baseLayout,
                 margin,
                 minWidthPxByWidgetId,
-            }),
+            })
+        },
         [
             columns,
             containerPadding,
+            editBehavior,
             interactionMode,
+            isOrderOnlyEdit,
             items,
             margin,
             minWidthPxByWidgetId,
@@ -417,13 +535,11 @@ export const WidgetBoardReactGridLayoutEngine = ({
         ],
     )
     const rowGap = margin[1] ?? 0
+    const effectiveRowHeight = isOrderOnlyEdit ? ORDER_ONLY_ROW_HEIGHT : rowHeight
     const positionStrategy = useCSSTransforms ? transformPositionStrategy : absolutePositionStrategy
 
-    const handleLayoutCommit = useCallback(
-        (nextLayout: Layout) => {
-            const nextItems = toBoardItems(nextLayout, items, columns)
-            if (boardItemsEqual(nextItems, items, columns)) return
-
+    const emitItemsChange = useCallback(
+        (nextItems: BoardProps.Item<WidgetBoardItemData>[]) => {
             const event = {
                 detail: {
                     items: nextItems,
@@ -432,12 +548,58 @@ export const WidgetBoardReactGridLayoutEngine = ({
 
             onItemsChange(event)
         },
-        [columns, items, onItemsChange],
+        [onItemsChange],
+    )
+
+    const handleLayoutCommit = useCallback(
+        (
+            nextLayout: Layout,
+            _oldItem: LayoutItem | null,
+            changedItem: LayoutItem | null,
+        ) => {
+            const nextItems = toBoardItems(nextLayout, items, columns, isOrderOnlyEdit)
+            if (boardItemsEqual(nextItems, items, columns)) return
+
+            emitItemsChange(nextItems)
+            if (isOrderOnlyEdit) {
+                const movedItem =
+                    (changedItem
+                        ? nextItems.find(item => item.id === changedItem.i)
+                        : undefined) ??
+                    nextItems.find((item, index) => item.id !== items[index]?.id)
+                if (movedItem) {
+                    const nextPosition = nextItems.findIndex(item => item.id === movedItem.id) + 1
+                    setOrderAnnouncement(
+                        `${movedItem.data.title} moved to position ${nextPosition} of ${nextItems.length}`,
+                    )
+                }
+            }
+        },
+        [columns, emitItemsChange, isOrderOnlyEdit, items],
+    )
+
+    const handleMove = useCallback(
+        (widgetId: string, direction: WidgetBoardOrderMoveDirection) => {
+            const currentIndex = items.findIndex(item => item.id === widgetId)
+            const nextIndex = currentIndex + direction
+            if (currentIndex < 0 || nextIndex < 0 || nextIndex >= items.length) return
+
+            const nextItems = [...items]
+            const [movedItem] = nextItems.splice(currentIndex, 1)
+            nextItems.splice(nextIndex, 0, movedItem)
+            emitItemsChange(nextItems)
+            setOrderAnnouncement(
+                `${movedItem.data.title} moved to position ${nextIndex + 1} of ${nextItems.length}`,
+            )
+        },
+        [emitItemsChange, items],
     )
 
     return (
         <Box
             data-pne-widget-board='true'
+            data-pne-widget-board-edit-behavior={interactionMode === 'edit' ? editBehavior : undefined}
+            data-pne-widget-board-order-editor={isOrderOnlyEdit ? 'true' : undefined}
             ref={boardRootRef}
             sx={{
                 '--pne-widget-board-row-height': `${rowHeight}px`,
@@ -452,39 +614,72 @@ export const WidgetBoardReactGridLayoutEngine = ({
                 {isLoadingLayouts ? (
                     <Box sx={{ p: 2, color: 'text.secondary' }}>Loading widgets...</Box>
                 ) : mounted ? (
-                    <ReactGridLayout
-                        autoSize
-                        width={width}
-                        layout={layout}
-                        positionStrategy={positionStrategy}
-                        gridConfig={{
-                            cols: columns,
-                            rowHeight,
-                            margin,
-                            containerPadding,
-                            maxRows: Number.POSITIVE_INFINITY,
-                        }}
-                        dragConfig={{
-                            enabled: interactionMode === 'edit',
-                            handle: '.pne-widget-board-rgl-drag-handle',
-                            cancel: '.pne-widget-board-rgl-control',
-                        }}
-                        resizeConfig={{
-                            enabled: interactionMode === 'edit',
-                            handles: interactionMode === 'edit' ? ['se'] : [],
-                        }}
-                        compactor={noCompactor}
-                        onDragStop={handleLayoutCommit}
-                        onResizeStop={handleLayoutCommit}
+                    <Box
+                        aria-label={isOrderOnlyEdit ? 'Widget order' : undefined}
+                        role={isOrderOnlyEdit ? 'list' : undefined}
                     >
-                        {items.map(item => (
-                            <div key={item.id} style={{ height: '100%' }}>
-                                {renderItem(item)}
-                            </div>
-                        ))}
-                    </ReactGridLayout>
+                        <ReactGridLayout
+                            autoSize
+                            width={width}
+                            layout={layout}
+                            positionStrategy={positionStrategy}
+                            gridConfig={{
+                                cols: columns,
+                                rowHeight: effectiveRowHeight,
+                                margin,
+                                containerPadding,
+                                maxRows: Number.POSITIVE_INFINITY,
+                            }}
+                            dragConfig={{
+                                enabled: interactionMode === 'edit',
+                                handle: '.pne-widget-board-rgl-drag-handle',
+                                cancel: '.pne-widget-board-rgl-control',
+                            }}
+                            resizeConfig={{
+                                enabled: interactionMode === 'edit' && editBehavior === 'grid',
+                                handles: interactionMode === 'edit' && editBehavior === 'grid' ? ['e', 'w'] : [],
+                            }}
+                            compactor={noCompactor}
+                            onDragStop={handleLayoutCommit}
+                            onResizeStop={handleLayoutCommit}
+                        >
+                            {items.map((item, index) => (
+                                <div
+                                    key={item.id}
+                                    aria-posinset={isOrderOnlyEdit ? index + 1 : undefined}
+                                    aria-setsize={isOrderOnlyEdit ? items.length : undefined}
+                                    role={isOrderOnlyEdit ? 'listitem' : undefined}
+                                    style={{ height: '100%' }}
+                                >
+                                    {renderItem(item, {
+                                        itemCount: items.length,
+                                        position: index,
+                                        onMove: handleMove,
+                                    })}
+                                </div>
+                            ))}
+                        </ReactGridLayout>
+                    </Box>
                 ) : null}
             </Box>
+            {isOrderOnlyEdit ? (
+                <Box
+                    aria-live='polite'
+                    sx={{
+                        border: 0,
+                        clip: 'rect(0 0 0 0)',
+                        height: 1,
+                        margin: -1,
+                        overflow: 'hidden',
+                        padding: 0,
+                        position: 'absolute',
+                        whiteSpace: 'nowrap',
+                        width: 1,
+                    }}
+                >
+                    {orderAnnouncement}
+                </Box>
+            ) : null}
         </Box>
     )
 }

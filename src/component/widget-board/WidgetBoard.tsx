@@ -9,7 +9,11 @@ import { useWidgetBoardScopeStore } from './WidgetBoardScope'
 import { useWidgetBoardStateActions } from './useWidgetBoardStateActions'
 import { WidgetBoardCloudscapeEngine } from './WidgetBoardCloudscapeEngine'
 import { WidgetBoardItem } from './WidgetBoardItem'
-import { WidgetBoardReactGridLayoutEngine, WidgetBoardReactGridLayoutItem } from './WidgetBoardReactGridLayoutEngine'
+import {
+    WidgetBoardReactGridLayoutEngine,
+    WidgetBoardReactGridLayoutItem,
+    type WidgetBoardReactGridLayoutRenderContext,
+} from './WidgetBoardReactGridLayoutEngine'
 import { buildWidgetBoardBreakpoints, useWidgetBoardBreakpoint } from './widgetBoardBreakpoints'
 import {
     buildDefaultState,
@@ -22,13 +26,14 @@ import {
 import type {
     BreakpointLayoutConfig,
     WidgetBoardActionsState,
+    WidgetBoardEditBehavior,
     WidgetBoardItemData,
     WidgetBoardProps,
-    WidgetLayoutConfig,
-    WidgetBoardState,
     WidgetBoardEngine,
-    WidgetHeightMode,
     WidgetBoardInteractionMode,
+    WidgetBoardState,
+    WidgetHeightMode,
+    WidgetLayoutConfig,
 } from './types'
 
 const resolveLayoutForBreakpoint = (
@@ -42,19 +47,25 @@ const resolveLayoutForBreakpoint = (
 
 const normalizeHeightMode = (value: WidgetLayoutConfig['heightMode']) => value ?? 'auto'
 const stringifyColumnOffset = (value: WidgetLayoutConfig['defaultSize']['columnOffset']) => JSON.stringify(value ?? null)
+const resolveCompleteWidgetOrder = (layout: BreakpointLayoutConfig) => {
+    const widgetIds = Object.keys(layout.widgets)
+    const widgetIdSet = new Set(widgetIds)
+    const seen = new Set<string>()
+    const order: string[] = []
+    const configuredOrder = layout.widgetOrder ?? widgetIds
 
-const getFixedHeightModeLocks = (
-    layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
-    breakpointKey: number | string,
-): Partial<Record<string, boolean>> => {
-    const layout = resolveLayoutForBreakpoint(layoutByBreakpoint, breakpointKey)
-    if (!layout) return {}
+    configuredOrder.forEach(widgetId => {
+        if (!widgetIdSet.has(widgetId) || seen.has(widgetId)) return
+        seen.add(widgetId)
+        order.push(widgetId)
+    })
+    widgetIds.forEach(widgetId => {
+        if (seen.has(widgetId)) return
+        seen.add(widgetId)
+        order.push(widgetId)
+    })
 
-    return Object.fromEntries(
-        Object.entries(layout.widgets)
-            .filter(([, widget]) => normalizeHeightMode(widget.heightMode) === 'fixed')
-            .map(([id]) => [id, true]),
-    )
+    return order
 }
 
 type LayoutDiffOptions = {
@@ -83,11 +94,6 @@ const isSameWidgetLayout = (
         return false
     }
 
-    // For auto-height widgets rowSpan is runtime-derived by autosize and should not mark layout as user-modified.
-    if (currentHeightMode === 'fixed' && currentSize.rowSpan !== baseSize.rowSpan) {
-        return false
-    }
-
     if (!ignoreHiddenState && Boolean(current.initialState?.isHidden) !== Boolean(base.initialState?.isHidden)) return false
     if (Boolean(current.initialState?.isCollapsed) !== Boolean(base.initialState?.isCollapsed)) return false
 
@@ -100,6 +106,15 @@ const differsFromBaseLayout = (
     { hiddenWidgetIds, ignoreHiddenState = false }: LayoutDiffOptions = {},
 ) => {
     if (!current || !base) return false
+
+    const currentOrder = resolveCompleteWidgetOrder(current)
+    const baseOrder = resolveCompleteWidgetOrder(base)
+    if (
+        currentOrder.length !== baseOrder.length ||
+        currentOrder.some((widgetId, index) => widgetId !== baseOrder[index])
+    ) {
+        return true
+    }
 
     const hiddenSet = hiddenWidgetIds ? new Set(hiddenWidgetIds) : null
     const widgetIds = new Set([...Object.keys(current.widgets), ...Object.keys(base.widgets)])
@@ -167,6 +182,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         source: breakpointSource,
     })
     const currentBreakpointKey = activeBreakpoint.id
+    const currentEditBehavior: WidgetBoardEditBehavior =
+        interactionMode === 'edit'
+            ? (activeBreakpoint.editBehavior ?? 'grid')
+            : 'grid'
     const currentBreakpointKeyRef = useRef(currentBreakpointKey)
     currentBreakpointKeyRef.current = currentBreakpointKey
     const {
@@ -265,11 +284,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         widgets,
     ])
 
-    const lockedHeightModeByWidgetId = useMemo(
-        () => getFixedHeightModeLocks(layoutByBreakpoint, currentBreakpointKey),
-        [currentBreakpointKey, layoutByBreakpoint],
-    )
-
     const fallbackLayoutConfig = useMemo(() => {
         const firstKey = breakpoints[0]
         return layoutSource[firstKey] ?? Object.values(layoutSource)[0]
@@ -306,15 +320,20 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     }))
     const isInteractionLocked = useWidgetBoardInteractionLock()
     const interactionState = useMemo(() => ({ isInteractionLocked }), [isInteractionLocked])
-    const { boardRootRef, handleContentRef, measuredRowsRef, remeasureAll } = useWidgetBoardAutosize({
+    const { boardRootRef, handleContentRef, remeasureAll } = useWidgetBoardAutosize({
         autoHeightEnabled,
-        lockedHeightModeByWidgetId,
         definitionsMap,
-        currentBreakpointKey,
         isInteractionLocked,
+        isSuspended: currentEditBehavior === 'order-only',
         layoutPresetBreakpoint: layoutPreset.breakpoint,
         setLayoutState,
     })
+
+    useEffect(() => {
+        if (currentEditBehavior === 'order-only') return
+        const frameId = requestAnimationFrame(remeasureAll)
+        return () => cancelAnimationFrame(frameId)
+    }, [currentEditBehavior, remeasureAll])
     const handleBoardRootRef = useCallback(
         (node: HTMLDivElement | null) => {
             boardRootRef.current = node
@@ -351,7 +370,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             ownerId: layoutSourceOwnerId,
             widgets,
         }
-        measuredRowsRef.current = {}
         setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey))
         setLayoutStateContext({
             breakpointKey: currentBreakpointKey,
@@ -365,7 +383,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         effectiveSelectedLayoutId,
         layoutSource,
         layoutSourceOwnerId,
-        measuredRowsRef,
         widgets,
     ])
 
@@ -405,8 +422,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         definitionsMap,
         definitionsWithLayout,
         isDefaultLayoutSelected: effectiveSelectedLayoutId === defaultOption.id,
-        lockedHeightModeByWidgetId,
-        measuredRowsRef,
         setLayoutState,
     })
 
@@ -432,15 +447,13 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             const hasDifferentVisibleWidgets =
                 visibleItems.length !== defaultVisibleIds.length || defaultVisibleIds.some(id => !visibleItemIdSet.has(id))
 
-            const hasDifferentOrder = !hasHiddenWidgets && defaultVisibleIds.some((id, index) => visibleItems[index]?.id !== id)
+            const hasDifferentOrder = defaultVisibleIds.some((id, index) => visibleItems[index]?.id !== id)
 
             if (hasDifferentVisibleWidgets || hasDifferentOrder) {
                 canResetLayout = true
             } else {
                 const visibleItemsMap = new Map(visibleItems.map(item => [item.id as string, item]))
                 const collapsedSet = new Set(layoutState.collapsed)
-                const heightModeById = layoutState.heightModeMemory[currentBreakpointKey] ?? {}
-
                 canResetLayout = defaultVisibleIds.some(id => {
                     const item = visibleItemsMap.get(id)
                     const currentDefinition = definitionsMap.get(id)
@@ -450,11 +463,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     const defaultSize = defaultDefinition.layout.defaultSize
                     if (item.columnSpan !== defaultSize.columnSpan) return true
                     if (!hasHiddenWidgets && stringifyColumnOffset(item.columnOffset) !== stringifyColumnOffset(defaultSize.columnOffset)) return true
-
-                    const currentHeightMode = normalizeHeightMode(heightModeById[id] ?? currentDefinition.layout.heightMode)
-                    const defaultHeightMode = normalizeHeightMode(defaultDefinition.layout.heightMode)
-                    if (currentHeightMode !== defaultHeightMode) return true
-                    if (currentHeightMode === 'fixed' && item.rowSpan !== defaultSize.rowSpan) return true
 
                     const isCollapsed = collapsedSet.has(id)
                     const defaultIsCollapsed = Boolean(defaultDefinition.layout.initialState?.isCollapsed)
@@ -482,7 +490,6 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         definitionsMap,
         effectiveSelectedLayoutId,
         layoutState.collapsed,
-        layoutState.heightModeMemory,
         layoutState.hidden,
         layoutState.items,
     ])
@@ -559,8 +566,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         if (!definition) return null
 
         const isCollapsed = layoutState.collapsed.includes(widgetId)
-        const isHeightModeLocked = Boolean(lockedHeightModeByWidgetId[widgetId])
-        const baseHeightMode = isHeightModeLocked ? 'fixed' : layoutState.heightModeMemory[currentBreakpointKey]?.[widgetId] ?? definition.layout.heightMode ?? 'auto'
+        const baseHeightMode = definition.layout.heightMode ?? 'auto'
         const heightMode: WidgetHeightMode = autoHeightEnabled ? baseHeightMode : 'fixed'
 
         return { definition, heightMode, isCollapsed }
@@ -584,7 +590,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         )
     }
 
-    const renderReactGridLayoutItem = (item: BoardProps.Item<WidgetBoardItemData>) => {
+    const renderReactGridLayoutItem = (
+        item: BoardProps.Item<WidgetBoardItemData>,
+        context: WidgetBoardReactGridLayoutRenderContext,
+    ) => {
         const renderState = resolveItemRenderState(item)
         if (!renderState) return <></>
 
@@ -594,9 +603,13 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 definition={renderState.definition}
                 heightMode={renderState.heightMode}
                 isCollapsed={renderState.isCollapsed}
+                editBehavior={currentEditBehavior}
                 interactionMode={interactionMode}
+                itemCount={context.itemCount}
                 onContentRef={handleContentRef}
                 onHide={hideItem}
+                onMove={context.onMove}
+                position={context.position}
             />
         )
     }
@@ -608,6 +621,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     boardRootRef={handleBoardRootRef}
                     columns={reactGridLayoutColumns}
                     containerPadding={reactGridLayoutContainerPadding}
+                    editBehavior={currentEditBehavior}
                     interactionMode={interactionMode}
                     isLoadingLayouts={isLoadingLayouts}
                     items={visibleItems}

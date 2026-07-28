@@ -15,6 +15,7 @@ export type WidgetLayoutMemory = Record<string, Record<WidgetId, WidgetLayoutSna
 export type WidgetBoardBreakpoint = {
     id: string
     minWidth: number
+    editBehavior?: WidgetBoardEditBehavior
 }
 
 export type WidgetBoardBreakpointSource = 'viewport' | 'container'
@@ -31,7 +32,7 @@ export type WidgetLayoutLimits = {
 }
 
 export type WidgetHeightMode = 'auto' | 'fixed'
-export type WidgetHeightModeMemory = Record<string, Partial<Record<WidgetId, WidgetHeightMode>>>
+export type WidgetBoardEditBehavior = 'grid' | 'order-only'
 
 /**
  * React Grid Layout is the default engine. `cloudscape` is retained only as an explicit
@@ -81,7 +82,6 @@ export type WidgetBoardState = {
     collapsed: WidgetId[]
     sizeMemory: Partial<Record<WidgetId, number>>
     layoutMemory: WidgetLayoutMemory
-    heightModeMemory: WidgetHeightModeMemory
 }
 
 export type WidgetBoardLayoutOption = WidgetLayoutOption & {

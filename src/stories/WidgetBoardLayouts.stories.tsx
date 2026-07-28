@@ -344,7 +344,17 @@ const BoardWithLightWidget = () => {
     )
 }
 
-const BoardWithReactGridLayout = ({ interactionMode }: { interactionMode: WidgetBoardInteractionMode }) => {
+const orderOnlyBreakpoints = [
+    { id: '12', minWidth: 0, editBehavior: 'order-only' },
+] as const
+
+const BoardWithReactGridLayout = ({
+    interactionMode,
+    orderOnly = false,
+}: {
+    interactionMode: WidgetBoardInteractionMode
+    orderOnly?: boolean
+}) => {
     const loadLayouts = React.useCallback(async () => ({ options: [{ id: 'default', name: 'RGL', layoutByBreakpoint: heavyLayout.layoutByBreakpoint }] }), [])
     const saveLayouts = React.useCallback(async () => undefined, [])
 
@@ -356,6 +366,7 @@ const BoardWithReactGridLayout = ({ interactionMode }: { interactionMode: Widget
                     interactionMode={interactionMode}
                     widgets={heavyWidgets}
                     layoutByBreakpoint={heavyLayout.layoutByBreakpoint}
+                    breakpoints={orderOnly ? orderOnlyBreakpoints : undefined}
                     loadLayouts={loadLayouts}
                     saveLayouts={saveLayouts}
                     reactGridLayoutOptions={{
@@ -555,6 +566,10 @@ export const ReactGridLayoutViewMode: StoryObj<typeof BoardWithLayouts> = {
 
 export const ReactGridLayoutEditMode: StoryObj<typeof BoardWithLayouts> = {
     render: () => <BoardWithReactGridLayout interactionMode='edit' />,
+}
+
+export const ReactGridLayoutOrderOnlyEditMode: StoryObj<typeof BoardWithLayouts> = {
+    render: () => <BoardWithReactGridLayout interactionMode='edit' orderOnly />,
 }
 
 export const ReactGridLayoutHeaderControls: StoryObj<typeof BoardWithLayouts> = {

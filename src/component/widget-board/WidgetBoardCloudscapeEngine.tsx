@@ -40,7 +40,7 @@ export const WidgetBoardCloudscapeEngine = ({
 
     return (
         <CloudscapeThemeProvider>
-            <CloudscapeBoardStyles hideNavigationArrows />
+            <CloudscapeBoardStyles hideNavigationArrows hideResizers />
             <Box data-pne-widget-board='true' ref={boardRootRef} sx={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {isLoadingLayouts ? <WidgetBoardSkeleton /> : boardElement}
             </Box>
