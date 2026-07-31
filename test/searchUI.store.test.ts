@@ -11,6 +11,7 @@ import {
 } from '../src/component/search-ui/filters/types'
 import type { SearchUIRetentionSnapshot } from '../src/component/search-ui/filters/state/type'
 import {
+    applyDateOnlyTimeZone,
     createDateOnlyPickerDate,
     createDateOnlyPickerValue,
 } from '../src/component/search-ui/filters/dateRangeTimeZone'
@@ -44,6 +45,10 @@ describe('SearchUIFilters Zustand store', () => {
             onFiltersUpdate: () => {
             },
         })
+    })
+
+    afterEach(() => {
+        jest.useRealTimers()
     })
 
     it('adds criterion', () => {
@@ -563,6 +568,109 @@ describe('SearchUIFilters Zustand store', () => {
         expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
             cardTypes: [visaCard.id],
         }))
+    })
+
+    it('normalizes external DAYS_BEFORE conditions and recalculates them on repeated Search', () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(new Date('2026-07-15T12:00:00.000Z'))
+
+        const onFiltersUpdate = jest.fn()
+        const staleDateRangeSpec: DateRangeSpec = {
+            dateRangeSpecType: 'DAYS_BEFORE',
+            dateFrom: new Date('2020-01-01T00:00:00.000Z'),
+            dateTo: new Date('2020-01-31T00:00:00.000Z'),
+            beforeCount: 30,
+        }
+
+        store.setState(getSearchUIFiltersInitialState())
+        store.getState().setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+            predefinedCriteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+            criteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+            config: {
+                manualSearch: true,
+            },
+        })
+        onFiltersUpdate.mockClear()
+
+        store.getState().updateConditions({
+            dateRangeSpec: staleDateRangeSpec,
+        }, {
+            forceSearch: true,
+        })
+
+        const firstDateFrom = applyDateOnlyTimeZone(
+            dayjs().startOf('day').subtract(30, 'day'),
+            'Europe/Moscow',
+        ).toDate()
+        const firstDateTo = applyDateOnlyTimeZone(
+            dayjs().startOf('day').add(1, 'day'),
+            'Europe/Moscow',
+        ).toDate()
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: firstDateFrom,
+            dateTo: firstDateTo,
+        }))
+
+        jest.setSystemTime(new Date('2026-07-16T12:00:00.000Z'))
+        store.getState().triggerSearch()
+
+        const nextDateFrom = applyDateOnlyTimeZone(
+            dayjs().startOf('day').subtract(30, 'day'),
+            'Europe/Moscow',
+        ).toDate()
+        const nextDateTo = applyDateOnlyTimeZone(
+            dayjs().startOf('day').add(1, 'day'),
+            'Europe/Moscow',
+        ).toDate()
+        const state = store.getState()
+
+        expect(onFiltersUpdate).toHaveBeenCalledTimes(2)
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: nextDateFrom,
+            dateTo: nextDateTo,
+        }))
+        expect(nextDateFrom).not.toEqual(firstDateFrom)
+        expect(nextDateTo).not.toEqual(firstDateTo)
+        expect(state.dateRangeSpec.dateFrom).toEqual(nextDateFrom)
+        expect(state.dateRangeSpec.dateTo).toEqual(nextDateTo)
+        expect(state.prevSearchCriteria).toEqual(expect.objectContaining({
+            dateFrom: nextDateFrom,
+            dateTo: nextDateTo,
+        }))
+        expect(state.appliedSearchCriteria).toEqual(expect.objectContaining({
+            dateFrom: nextDateFrom,
+            dateTo: nextDateTo,
+        }))
+        expect(state.hasUnappliedFilters).toBe(false)
+    })
+
+    it('does not reinterpret DATE_INDEPENDENT service dates', () => {
+        const onFiltersUpdate = jest.fn()
+        const dateRangeSpec: DateRangeSpec = {
+            dateRangeSpecType: 'DATE_INDEPENDENT',
+            dateFrom: new Date('2020-01-01T00:00:00.000Z'),
+            dateTo: new Date('2020-01-31T00:00:00.000Z'),
+            beforeCount: 0,
+        }
+
+        store.setState(getSearchUIFiltersInitialState())
+        store.getState().setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            config: {
+                manualSearch: true,
+            },
+        })
+
+        store.getState().updateConditions({dateRangeSpec}, {forceSearch: true})
+        store.getState().triggerSearch()
+
+        expect(store.getState().dateRangeSpec).toEqual(dateRangeSpec)
     })
 
     it('keeps legacy browser-local timezone for date-only EXACTLY dates by default', () => {

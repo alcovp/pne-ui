@@ -381,6 +381,9 @@ export const getSearchUIFiltersActions = (
                 draft.skipLastTemplateAutoApply = true
             }
         })
+        if (conditions.dateRangeSpec) {
+            normalizeRelativeDateRange(set, get)
+        }
         postUpdate(set, get, options)
     },
     restoreClearCriteriaSnapshot: snapshot => {
@@ -816,9 +819,11 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get)
     },
     triggerSearch: () => {
+        normalizeRelativeDateRange(set, get)
         const currentSearchCriteria = extractSearchCriteriaFromState(get())
         get().onFiltersUpdate(currentSearchCriteria)
         set((draft) => {
+            draft.prevSearchCriteria = currentSearchCriteria
             draft.appliedSearchCriteria = currentSearchCriteria
             draft.hasUnappliedFilters = false
         })
@@ -1267,16 +1272,42 @@ const normalizeRetainedDateRange = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
     get: ZustandStoreGet<SearchUIFiltersStore>,
 ): void => {
-    const state = get()
-    if (!state.restoredFromRetention || state.dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
+    if (!get().restoredFromRetention || get().dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
         return
     }
 
+    normalizeCalculatedDateRange(set, get)
+}
+
+const normalizeRelativeDateRange = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+): void => {
+    const state = get()
+    if (
+        state.dateRangeSpec.dateRangeSpecType === 'EXACTLY'
+        || state.dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT'
+    ) {
+        return
+    }
+
+    normalizeCalculatedDateRange(set, get)
+}
+
+const normalizeCalculatedDateRange = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+): void => {
+    const state = get()
     const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(state.criteria, state.config)
     const normalizedDateRange = calculateNonExactDates(
         state.dateRangeSpec,
         getNonExactDateRangeTimeZone(state.config, timeSelectionEnabled),
     )
+
+    if (isEqual(state.dateRangeSpec, normalizedDateRange)) {
+        return
+    }
 
     set(draft => {
         draft.dateRangeSpec = normalizedDateRange
