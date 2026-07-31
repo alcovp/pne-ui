@@ -29,6 +29,46 @@ major-версии MUI не входят в поддерживаемый peer co
 - `react-dom@^19`
 - `react-i18next@^11`
 
+## PneBreadcrumbs
+
+`PneBreadcrumbs` — общий визуальный компонент хлебных крошек для host-приложения и микрофронтов. Он не
+зависит от роутера, i18next, меню или permissions: consumer передаёт уже локализованные `label`, формирует
+доступные ему элементы и при необходимости подключает bridge-aware ссылку через `linkComponent`.
+Такой link adapter должен принимать `href`, передавать `className` и прочие DOM props и через `forwardRef`
+возвращать ref фактического `<a>` — это нужно для клавиатурного фокуса в overflow-меню.
+
+Элементы имеют стабильный `id` и один из трёх взаимоисключающих типов: `link` с `href`, `action` с `onClick`
+или неинтерактивный `text`. Последний `text` автоматически получает `aria-current="page"`. При нехватке места
+середина цепочки сворачивается в доступное меню, а `ResizeObserver` следит только за собственным контейнером
+компонента. Для корректного измерения родитель должен разрешать сжатие через `min-width: 0`.
+
+```tsx
+<PneBreadcrumbs
+    ariaLabel={t("navigation.breadcrumbs")}
+    moreLabel={t("navigation.more")}
+    linkComponent={PneLink}
+    items={[
+        {
+            id: "orders",
+            label: t("main.nav.orders"),
+            icon: <PneOrdersIcon/>,
+            type: "text",
+        },
+        {
+            id: "orders-search",
+            label: t("sidebar.menu.orders"),
+            href: "/paynet-ui/react-orders",
+            type: "link",
+        },
+        {
+            id: `order-${orderId}`,
+            label: `${t("orders.order.history.order")} ${orderId}`,
+            type: "text",
+        },
+    ]}
+/>
+```
+
 ## PneButton
 
 `pneStyle` — единственный публичный способ выбрать PNE-вариант кнопки. Низкоуровневые MUI props `variant` и
