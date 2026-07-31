@@ -237,6 +237,53 @@ describe('SearchUIFilters Zustand store', () => {
         expect(getSearchTemplates).toHaveBeenCalledWith('ctx')
     })
 
+    it('keeps the legacy resolved relative range in user templates and recalculates it on apply', () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(new Date('2026-07-15T12:00:00.000Z'))
+
+        const legacyDateRangeSpec: DateRangeSpec = {
+            dateRangeSpecType: 'DAYS_BEFORE',
+            dateFrom: new Date('2020-01-01T00:00:00.000Z'),
+            dateTo: new Date('2020-01-31T00:00:00.000Z'),
+            beforeCount: 30,
+        }
+        const template: SearchUITemplate = {
+            name: 'legacy-relative-range',
+            searchConditions: {
+                ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                criteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+                dateRangeSpec: legacyDateRangeSpec,
+            },
+        }
+
+        store.setState({
+            possibleCriteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+            onFiltersUpdate: jest.fn(),
+        })
+        store.getState().setTemplate(template)
+
+        const firstResolvedDateFrom = store.getState().dateRangeSpec.dateFrom
+        expect(firstResolvedDateFrom).not.toEqual(legacyDateRangeSpec.dateFrom)
+        expect(store.getState().dateRangeSpec.dateRangeSpecType).toBe('DAYS_BEFORE')
+        expect(store.getState().dateRangeSpec.beforeCount).toBe(30)
+        expect(template.searchConditions.dateRangeSpec).toBe(legacyDateRangeSpec)
+        expect(template.searchConditions.dateRangeSpec).toEqual({
+            dateRangeSpecType: 'DAYS_BEFORE',
+            dateFrom: new Date('2020-01-01T00:00:00.000Z'),
+            dateTo: new Date('2020-01-31T00:00:00.000Z'),
+            beforeCount: 30,
+        })
+
+        jest.setSystemTime(new Date('2026-07-16T12:00:00.000Z'))
+        store.getState().triggerSearch()
+
+        expect(store.getState().dateRangeSpec.dateFrom).not.toEqual(firstResolvedDateFrom)
+        expect(template.searchConditions.dateRangeSpec).toBe(legacyDateRangeSpec)
+        expect(template.searchConditions.dateRangeSpec.dateFrom).toEqual(
+            new Date('2020-01-01T00:00:00.000Z'),
+        )
+    })
+
     it('normalizes loaded templates with legacy empty multiget criteria', async () => {
         const template: SearchUITemplate = {
             name: 'migrated',
@@ -646,6 +693,41 @@ describe('SearchUIFilters Zustand store', () => {
             dateTo: nextDateTo,
         }))
         expect(state.hasUnappliedFilters).toBe(false)
+    })
+
+    it('resolves an explicitly declarative initial relative range before the first search', () => {
+        jest.useFakeTimers()
+        jest.setSystemTime(new Date('2026-07-15T12:00:00.000Z'))
+
+        const onFiltersUpdate = jest.fn()
+        store.setState(getSearchUIFiltersInitialState())
+        store.getState().setInitialState({
+            defaults: initialSearchUIDefaults,
+            settingsContextName: 'ctx',
+            onFiltersUpdate,
+            possibleCriteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+            predefinedCriteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+            criteria: [CriterionTypeEnum.DATE_RANGE_ORDERS],
+            dateRangeSpec: {
+                dateRangeSpecType: 'DAYS_BEFORE',
+                dateFrom: null,
+                dateTo: null,
+                beforeCount: 30,
+            },
+        }, undefined, {
+            normalizeInitialDateRange: true,
+        })
+
+        expect(store.getState().dateRangeSpec).toMatchObject({
+            dateRangeSpecType: 'DAYS_BEFORE',
+            beforeCount: 30,
+        })
+        expect(store.getState().dateRangeSpec.dateFrom).toBeInstanceOf(Date)
+        expect(store.getState().dateRangeSpec.dateTo).toBeInstanceOf(Date)
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: store.getState().dateRangeSpec.dateFrom,
+            dateTo: store.getState().dateRangeSpec.dateTo,
+        }))
     })
 
     it('does not reinterpret DATE_INDEPENDENT service dates', () => {

@@ -19,7 +19,7 @@ import {
     LinkedEntityTypeEnum,
     MultichoiceFilterTypeEnum,
     MultigetCriterion,
-    SearchUIConditions,
+    SearchUIConditionsInput,
     TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../component/search-ui/filters/types'
@@ -36,7 +36,7 @@ type HookWrapProps = {
     config?: SearchUIFiltersConfig
     showVisaButton?: boolean
     settingsContextName?: string
-    initialSearchConditions?: Partial<SearchUIConditions>
+    initialSearchConditions?: Partial<Omit<SearchUIConditionsInput, 'criteria'>>
     transactionSessionStatusesScenario?: TransactionSessionStatusesScenario
 }
 
@@ -195,7 +195,7 @@ const allFiltersGateSelection = mockGateEntities.slice(0, 10)
 const allFiltersGateSelectedIds = allFiltersGateSelection.map(item => item.id).join(',')
 const allFiltersGateSelectedNames = allFiltersGateSelection.map(item => item.displayName).join(',')
 
-const allFiltersInitialSearchConditions: Partial<SearchUIConditions> = {
+const allFiltersInitialSearchConditions: Partial<Omit<SearchUIConditionsInput, 'criteria'>> = {
     multigetCriteria: allFiltersStoryPredefinedCriteria
         .map(createInitialMultigetCriterion)
         .filter((criterion): criterion is MultigetCriterion => criterion !== null)
@@ -284,7 +284,7 @@ const HookWrap = (props: HookWrapProps) => {
             return base
         }
 
-        const override: Partial<SearchUIConditions> = {
+        const override: Partial<Omit<SearchUIConditionsInput, 'criteria'>> = {
             ...initialSearchConditionsOverride,
         }
 
@@ -306,7 +306,7 @@ const HookWrap = (props: HookWrapProps) => {
     }, [initialMultigetCriteria, initialSearchConditionsOverride])
 
     const [data, setData] = useState<DataType[]>([])
-    const [searchConditions, setSearchConditions] = useState<Partial<SearchUIConditions>>({})
+    const [searchConditions, setSearchConditions] = useState<Partial<SearchUIConditionsInput>>({})
 
     const visaCardType = useMemo<AbstractEntity>(() => ({
         id: 1,

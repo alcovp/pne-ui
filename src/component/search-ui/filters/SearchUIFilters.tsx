@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {
     SearchUIFiltersHeaderActions,
     SearchUIFiltersHeaderLeft,
@@ -13,7 +13,7 @@ import {
     ExactCriterionSearchLabelEnum,
     SearchCriteria,
     SearchUICriterionAvailabilityRule,
-    SearchUIConditions,
+    SearchUIConditionsInput,
 } from './types';
 import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
 import {useTranslation} from 'react-i18next';
@@ -34,6 +34,7 @@ import {isCriterionAvailable} from './criterionAvailability';
 import type { SearchUIDateOnlyTimeZone } from './dateRangeTimeZone';
 import {SearchUIFiltersStoreProvider} from './state/SearchUIFiltersStoreProvider';
 import {getRetainedSearchUIState} from './state/retention';
+import {toSearchUIConditionsState} from './publicConditions';
 
 type PendingClearCriteriaUndo = {
     snackbarId: string
@@ -101,7 +102,7 @@ export type SearchUIFiltersConfig = {
 /**
  * Свойства компонента {@link SearchUIFilters}.
  */
-type Props = {
+export type SearchUIFiltersProps = {
     /**
      * Имя контекста настроек, используемое для хранения пользовательских предпочтений.
      */
@@ -121,11 +122,11 @@ type Props = {
     /**
      * Первоначальное состояние фильтров (кроме перечня критериев).
      */
-    initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    initialSearchConditions?: Partial<Omit<SearchUIConditionsInput, 'criteria'>>
     /**
      * Внешнее состояние фильтра, синхронизируемое со стором.
      */
-    searchConditions?: Partial<SearchUIConditions>
+    searchConditions?: Partial<SearchUIConditionsInput>
     /**
      * Колбэк, вызываемый при изменении условий поиска.
      */
@@ -144,7 +145,7 @@ type Props = {
  * Панель фильтров поискового интерфейса с поддержкой шаблонов и динамических критериев.
  * @param props Свойства компонента.
  */
-export const SearchUIFilters = (props: Props) => {
+export const SearchUIFilters = (props: SearchUIFiltersProps) => {
     return <SearchUIFiltersStoreProvider
         key={props.settingsContextName}
         settingsContextName={props.settingsContextName}
@@ -153,7 +154,7 @@ export const SearchUIFilters = (props: Props) => {
     </SearchUIFiltersStoreProvider>
 }
 
-export const SearchUIFiltersContent = (props: Props) => {
+export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
     const {t} = useTranslation();
     const {
         settingsContextName,
@@ -172,6 +173,16 @@ export const SearchUIFiltersContent = (props: Props) => {
     const {instanceId} = useSearchUIFiltersStoreContext()
     const hasExternalSearchConditions = searchConditions !== undefined
         && Object.keys(searchConditions).length > 0
+    const initialSearchConditionsState = useMemo(() => toSearchUIConditionsState(
+        initialSearchConditions,
+        'initialSearchConditions',
+        false,
+    ), [initialSearchConditions])
+    const searchConditionsState = useMemo(() => toSearchUIConditionsState(
+        searchConditions,
+        'searchConditions',
+        true,
+    ), [searchConditions])
 
     const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
         ...new Set([
@@ -230,21 +241,23 @@ export const SearchUIFiltersContent = (props: Props) => {
             config: config,
             onFiltersUpdate: onFiltersUpdate,
             skipLastTemplateAutoApply: hasExternalSearchConditions,
-            ...initialSearchConditions
-        }, getRetainedSearchUIState(settingsContextName, instanceId))
+            ...initialSearchConditionsState
+        }, getRetainedSearchUIState(settingsContextName, instanceId), {
+            normalizeInitialDateRange: initialSearchConditionsState?.dateRangeSpec !== undefined,
+        })
         loadTemplates()
         // The keyed store provider remounts this subtree when the search context changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
-        if (hasExternalSearchConditions) {
-            updateConditions(searchConditions, {
+        if (hasExternalSearchConditions && searchConditionsState) {
+            updateConditions(searchConditionsState, {
                 forceSearch: true,
                 resetTemplate: true,
             })
         }
-    }, [hasExternalSearchConditions, searchConditions, updateConditions])
+    }, [hasExternalSearchConditions, searchConditionsState, updateConditions])
 
     useEffect(() => {
         const unsubscribe = filtersStore.subscribe(state => {

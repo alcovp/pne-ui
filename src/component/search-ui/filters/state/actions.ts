@@ -316,6 +316,9 @@ export const getSearchUIFiltersActions = (
     setInitialState: (
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
+        options?: {
+            normalizeInitialDateRange?: boolean
+        },
     ) => {
         set((draft) => {
             const initialState = {
@@ -344,6 +347,9 @@ export const getSearchUIFiltersActions = (
 
         syncCriterionAvailability(set, get)
         normalizeRetainedDateRange(set, get)
+        if (!get().restoredFromRetention && options?.normalizeInitialDateRange) {
+            normalizeRelativeDateRange(set, get)
+        }
         ensureTransactionSessionStatusesPrefetched(set, get)
 
         if (get().restoredFromRetention && retainedSnapshot && retainedDraftSearchCriteria) {

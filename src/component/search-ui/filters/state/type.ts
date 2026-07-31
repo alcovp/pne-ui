@@ -80,6 +80,9 @@ export type SearchUIFiltersActions = {
     setInitialState: (
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
+        options?: {
+            normalizeInitialDateRange?: boolean
+        },
     ) => void
     updateConditions: (
         conditions: Partial<SearchUIConditions>,

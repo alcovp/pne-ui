@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "4.2.3",
+    "version": "4.2.4",
     "description": "",
     "repository": {
         "type": "git",
@@ -25,7 +25,8 @@
         "build:cjs": "tsc --module commonjs --outDir cjs",
         "lint": "eslint \"{**/*,*}.{js,ts,jsx,tsx}\"",
         "test": "jest --config jestconfig.json --maxWorkers=2",
-        "check": "yarn test && yarn lint",
+        "typecheck:api": "tsc -p tsconfig.type-tests.json --pretty false",
+        "check": "yarn typecheck:api && yarn test && yarn lint",
         "prepare": "yarn build",
         "prepublishOnly": "yarn check",
         "npmLogin": "npm login --registry=https://registry.npmjs.org/",

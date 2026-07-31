@@ -1,6 +1,11 @@
 import React, { Dispatch, SetStateAction, useMemo, useState } from 'react'
 import { SearchUIFiltersConfig, SearchUIFiltersContent } from './filters/SearchUIFilters'
-import { CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions } from './filters/types'
+import {
+    CriterionTypeEnum,
+    ExactCriterionSearchLabelEnum,
+    SearchCriteria,
+    SearchUIConditionsInput,
+} from './filters/types'
 import { Box, Divider, SxProps } from '@mui/material'
 import { GetPagedOrderedSortedListRequest, Order } from '../../common'
 import { PneTable, TableCreateHeaderType, TableDisplayOptions, useTable } from '../..'
@@ -19,7 +24,7 @@ export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListReques
  * Свойства компонента {@link SearchUI}.
  * @template D Тип строки данных, возвращаемых запросом поиска и отображаемых в таблице.
  */
-type Props<D extends object> = {
+export type SearchUIProps<D extends object> = {
     /**
      * Имя контекста настроек, под которым таблица и фильтры сохраняют состояние пользователя.
      */
@@ -39,11 +44,11 @@ type Props<D extends object> = {
     /**
      * Начальные значения условий фильтрации, кроме списка критериев.
      */
-    initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    initialSearchConditions?: Partial<Omit<SearchUIConditionsInput, 'criteria'>>
     /**
      * Внешнее управление состоянием фильтров. При изменении значения происходит синхронизация стора.
      */
-    searchConditions?: Partial<SearchUIConditions>
+    searchConditions?: Partial<SearchUIConditionsInput>
     /**
      * Функция загрузки данных по текущим параметрам поиска.
      */
@@ -87,7 +92,7 @@ type Props<D extends object> = {
  * @template D Тип строки данных, отображаемых в таблице.
  * @param props Свойства компонента.
  */
-export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement => {
+export const SearchUI = <D extends object>(props: SearchUIProps<D>): React.ReactElement => {
     return <SearchUIFiltersStoreProvider
         key={props.settingsContextName}
         settingsContextName={props.settingsContextName}
@@ -96,7 +101,7 @@ export const SearchUI = <D extends object>(props: Props<D>): React.ReactElement 
     </SearchUIFiltersStoreProvider>
 }
 
-const SearchUIContent = <D extends object>(props: Props<D>): React.ReactElement => {
+const SearchUIContent = <D extends object>(props: SearchUIProps<D>): React.ReactElement => {
     const {
         settingsContextName,
         possibleCriteria,

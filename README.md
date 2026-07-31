@@ -206,12 +206,12 @@ const config = {
 `dateTo` оставлять `SearchUI`:
 
 ```tsx
+import {SearchUIDateRangeSpec} from 'pne-ui'
+
 const last30Days = {
     dateRangeSpecType: 'DAYS_BEFORE',
-    dateFrom: null,
-    dateTo: null,
     beforeCount: 30,
-}
+} satisfies SearchUIDateRangeSpec
 ```
 
 `SearchUI` пересчитывает такой диапазон при применении внешних `searchConditions`,
@@ -220,6 +220,13 @@ Search. Поэтому не вычисляйте относительные да
 иначе сохранённый `dateTo` со временем превращается в устаревшую верхнюю границу.
 Для `EXACTLY`, напротив, `dateFrom` и `dateTo` задаются явно и не пересчитываются;
 `DATE_INDEPENDENT` конкретного диапазона вообще не имеет.
+
+Публичные props `SearchUI` и `SearchUIFilters` проверяют эту форму и на этапе
+компиляции, и в runtime. Поэтому относительные пресеты не принимают `dateFrom` /
+`dateTo`, `EXACTLY` требует обе даты и не принимает `beforeCount`, а
+`DAYS_BEFORE` / `HOURS_BEFORE` требуют положительный целый `beforeCount`.
+Формат уже сохранённых пользовательских шаблонов не меняется: он остаётся
+обратно совместимым внутренним resolved-state форматом.
 
 ### Автоматическое восстановление состояния
 
