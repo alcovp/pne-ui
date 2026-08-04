@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Box, MenuItem, Select, SelectChangeEvent, styled, Typography} from '@mui/material';
 import {selectUnderChipSx} from "./style";
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -6,6 +6,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {useSearchUIFiltersStore} from "../../state/store";
 import {OrderSearchLabel} from "../../types";
 import {useTranslation} from "react-i18next";
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider';
 
 interface GroupConfig {
     id: string
@@ -15,6 +16,11 @@ interface GroupConfig {
         label: string
     }[]
 }
+
+const CMS_ORDER_SEARCH_LABELS: ReadonlySet<OrderSearchLabel> = new Set([
+    'customer_id',
+    'merchant_customer_identifier',
+])
 
 const GROUPS: GroupConfig[] = [
     {
@@ -119,6 +125,8 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
 
     const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
     const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
+    const {showCMSOrderSearchLabels} = useContext(SearchUIDefaultsContext)
+    const cmsOrderSearchLabelsVisible = showCMSOrderSearchLabels()
 
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() => {
         const stored = localStorage.getItem(EXPANDED_GROUPS_STORAGE_KEY)
@@ -189,17 +197,25 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                     {isExpanded ? <ExpandLessIcon fontSize="small"/> : <ExpandMoreIcon fontSize="small"/>}
                 </Box>
             </MenuItem>,
-            ...group.items.map(item => (
-                <MenuItem
-                    key={`${group.id}-${item.value}`}
-                    value={item.value}
-                    sx={{pl: 4, display: isExpanded ? 'block' : 'none'}}
-                >
-                    {t(item.label)}
-                </MenuItem>
-            ))
+            ...group.items
+                .filter(item => cmsOrderSearchLabelsVisible || !CMS_ORDER_SEARCH_LABELS.has(item.value))
+                .map(item => (
+                    <MenuItem
+                        key={`${group.id}-${item.value}`}
+                        value={item.value}
+                        sx={{pl: 4, display: isExpanded ? 'block' : 'none'}}
+                    >
+                        {t(item.label)}
+                    </MenuItem>
+                ))
         ]
     })
+
+    const hiddenSelectedItem = !cmsOrderSearchLabelsVisible
+        && CMS_ORDER_SEARCH_LABELS.has(ordersSearchLabel)
+        ? GROUPS.flatMap(group => group.items)
+            .find(item => item.value === ordersSearchLabel)
+        : undefined
 
     return <Select
         value={ordersSearchLabel}
@@ -213,6 +229,13 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
         sx={selectUnderChipSx}
         {...props}
     >
+        {hiddenSelectedItem && <MenuItem
+            aria-hidden
+            value={hiddenSelectedItem.value}
+            sx={{display: 'none'}}
+        >
+            {t(hiddenSelectedItem.label)}
+        </MenuItem>}
         {menuItems}
     </Select>
 }
