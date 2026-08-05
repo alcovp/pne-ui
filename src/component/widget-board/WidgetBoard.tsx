@@ -22,17 +22,18 @@ import {
     withLayout,
     type WidgetDefinitionWithLayout,
 } from './widgetBoardLayoutUtils'
-import type {
-    BreakpointLayoutConfig,
-    WidgetBoardActionsState,
-    WidgetBoardEditBehavior,
-    WidgetBoardItemData,
-    WidgetBoardProps,
-    WidgetBoardEngine,
-    WidgetBoardInteractionMode,
-    WidgetBoardState,
-    WidgetHeightMode,
-    WidgetLayoutConfig,
+import {
+    DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING,
+    type BreakpointLayoutConfig,
+    type WidgetBoardActionsState,
+    type WidgetBoardEditBehavior,
+    type WidgetBoardItemData,
+    type WidgetBoardProps,
+    type WidgetBoardEngine,
+    type WidgetBoardInteractionMode,
+    type WidgetBoardState,
+    type WidgetHeightMode,
+    type WidgetLayoutConfig,
 } from './types'
 
 const resolveLayoutForBreakpoint = (
@@ -558,6 +559,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const reactGridLayoutMargin = activeLayoutConfig?.margin ?? reactGridLayoutOptions?.margin ?? [0, 0]
     const reactGridLayoutContainerPadding = activeLayoutConfig?.containerPadding ?? reactGridLayoutOptions?.containerPadding ?? [0, 0]
     const reactGridLayoutUseCSSTransforms = reactGridLayoutOptions?.useCSSTransforms ?? true
+    const reactGridLayoutCompaction =
+        reactGridLayoutOptions?.compaction ?? DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING.compaction
+    const reactGridLayoutCollisionBehavior =
+        reactGridLayoutOptions?.collisionBehavior ?? DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING.collisionBehavior
 
     const resolveItemRenderState = (item: BoardProps.Item<WidgetBoardItemData>) => {
         const widgetId = item.id as string
@@ -611,7 +616,9 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             {engine === 'react-grid-layout' ? (
                 <WidgetBoardReactGridLayoutEngine
                     boardRootRef={handleBoardRootRef}
+                    collisionBehavior={reactGridLayoutCollisionBehavior}
                     columns={reactGridLayoutColumns}
+                    compaction={reactGridLayoutCompaction}
                     containerPadding={reactGridLayoutContainerPadding}
                     editBehavior={currentEditBehavior}
                     interactionMode={interactionMode}

@@ -40,6 +40,18 @@ export type WidgetBoardEditBehavior = 'grid' | 'order-only'
  */
 export type WidgetBoardEngine = 'react-grid-layout' | 'cloudscape'
 export type WidgetBoardInteractionMode = 'view' | 'edit'
+export type WidgetBoardReactGridLayoutCompaction = 'none' | 'vertical'
+export type WidgetBoardReactGridLayoutCollisionBehavior = 'push' | 'prevent'
+
+export type WidgetBoardReactGridLayoutTuning = {
+    compaction: WidgetBoardReactGridLayoutCompaction
+    collisionBehavior: WidgetBoardReactGridLayoutCollisionBehavior
+}
+
+export const DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING: WidgetBoardReactGridLayoutTuning = {
+    compaction: 'vertical',
+    collisionBehavior: 'push',
+}
 
 export type WidgetLayoutInitialState = {
     isHidden?: boolean
@@ -107,6 +119,10 @@ export type WidgetBoardReactGridLayoutOptions = {
     margin?: readonly [number, number]
     containerPadding?: readonly [number, number] | null
     useCSSTransforms?: boolean
+    /** `none` preserves free gaps; `vertical` pulls widgets upward after a move. */
+    compaction?: WidgetBoardReactGridLayoutCompaction
+    /** `push` moves an occupied widget away; `prevent` blocks dropping onto it. */
+    collisionBehavior?: WidgetBoardReactGridLayoutCollisionBehavior
 }
 
 export type WidgetBoardProps = {

@@ -16,6 +16,8 @@ import type { WidgetBoardInteractionMode } from './types'
 export type WidgetBoardHeaderControlsProps = {
     interactionMode: WidgetBoardInteractionMode
     onInteractionModeChange: (mode: WidgetBoardInteractionMode) => void
+    /** Optional controls rendered immediately after Cancel while the board is being edited. */
+    editActions?: React.ReactNode
     className?: string
     sx?: SxProps<Theme>
 }
@@ -50,6 +52,7 @@ const buttonIconSx: SxProps<Theme> = {
 export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps> = ({
     interactionMode,
     onInteractionModeChange,
+    editActions,
     className,
     sx,
 }) => {
@@ -147,6 +150,15 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                     >
                         {t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })}
                     </PneButton>
+                    {editActions ? (
+                        <Box
+                            data-pne-widget-board-header-edit-actions='true'
+                            sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}
+                        >
+                            <Divider orientation='vertical' flexItem sx={{ mx: 0.5 }} />
+                            {editActions}
+                        </Box>
+                    ) : null}
                 </>
             ) : (
                 <PneButton

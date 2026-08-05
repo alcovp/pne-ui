@@ -1,16 +1,28 @@
 import React, { useCallback, useMemo } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
+import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
+import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import OpenWithRoundedIcon from '@mui/icons-material/OpenWithRounded'
 import { Box, IconButton, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
-import ReactGridLayout, { noCompactor, useContainerWidth, type Layout, type LayoutItem } from 'react-grid-layout'
+import ReactGridLayout, {
+    getCompactor,
+    useContainerWidth,
+    type Compactor,
+    type Layout,
+    type LayoutItem,
+    type ResizeHandleAxis,
+} from 'react-grid-layout'
+import { useTranslation } from 'react-i18next'
 import 'react-grid-layout/css/styles.css'
 import { WidgetBoardOrderEditor } from './WidgetBoardOrderEditor'
 import type {
     WidgetBoardEditBehavior,
     WidgetBoardInteractionMode,
     WidgetBoardItemData,
+    WidgetBoardReactGridLayoutCollisionBehavior,
+    WidgetBoardReactGridLayoutCompaction,
     WidgetHeightMode,
 } from './types'
 import type { WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
@@ -27,7 +39,9 @@ type WidgetBoardReactGridLayoutItemProps = {
 
 type WidgetBoardReactGridLayoutEngineProps = {
     boardRootRef: React.Ref<HTMLDivElement>
+    collisionBehavior: WidgetBoardReactGridLayoutCollisionBehavior
     columns: number
+    compaction: WidgetBoardReactGridLayoutCompaction
     containerPadding: readonly [number, number] | null
     editBehavior: WidgetBoardEditBehavior
     interactionMode: WidgetBoardInteractionMode
@@ -43,12 +57,25 @@ type WidgetBoardReactGridLayoutEngineProps = {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 const neutralColor = '#5E7594'
+const widgetHeaderHeight = 32
+const resizeRailInset = 4
+const resizeRailWidth = 32
 type GridItemPixelPosition = {
     top: number
     left: number
     width: number
     height: number
 }
+
+export const resolveReactGridLayoutCompactor = (
+    compaction: WidgetBoardReactGridLayoutCompaction,
+    collisionBehavior: WidgetBoardReactGridLayoutCollisionBehavior,
+): Compactor =>
+    getCompactor(
+        compaction === 'vertical' ? 'vertical' : null,
+        false,
+        collisionBehavior === 'prevent',
+    )
 
 export const getResizeMinColumnSpan = ({
     columns,
@@ -397,7 +424,9 @@ export const WidgetBoardReactGridLayoutItem = ({
 
 const WidgetBoardReactGridLayoutGrid = ({
     boardRootRef,
+    collisionBehavior,
     columns,
+    compaction,
     containerPadding,
     editBehavior,
     interactionMode,
@@ -410,6 +439,7 @@ const WidgetBoardReactGridLayoutGrid = ({
     rowHeight,
     useCSSTransforms,
 }: WidgetBoardReactGridLayoutEngineProps) => {
+    const { t } = useTranslation()
     const { width, containerRef, mounted } = useContainerWidth({ initialWidth: 1280 })
     const layout = useMemo(
         () =>
@@ -434,6 +464,30 @@ const WidgetBoardReactGridLayoutGrid = ({
     )
     const rowGap = margin[1] ?? 0
     const positionStrategy = useCSSTransforms ? transformPositionStrategy : absolutePositionStrategy
+    const compactor = useMemo(
+        () => resolveReactGridLayoutCompactor(compaction, collisionBehavior),
+        [collisionBehavior, compaction],
+    )
+    const resizeWidthLabel = t('pne.widgetBoard.rgl.resizeWidth', {
+        defaultValue: 'Drag to resize widget width',
+    })
+    const renderResizeHandle = useCallback(
+        (axis: ResizeHandleAxis, ref: React.Ref<HTMLElement>) => (
+            <span
+                ref={ref as React.Ref<HTMLSpanElement>}
+                className='react-resizable-handle pne-widget-board-rgl-resize-handle'
+                data-pne-widget-board-resize-handle={axis}
+                title={resizeWidthLabel}
+            >
+                {axis === 'w' ? (
+                    <ChevronLeftRoundedIcon aria-hidden />
+                ) : (
+                    <ChevronRightRoundedIcon aria-hidden />
+                )}
+            </span>
+        ),
+        [resizeWidthLabel],
+    )
 
     const emitItemsChange = useCallback(
         (nextItems: BoardProps.Item<WidgetBoardItemData>[]) => {
@@ -466,6 +520,8 @@ const WidgetBoardReactGridLayoutGrid = ({
         <Box
             data-pne-widget-board='true'
             data-pne-widget-board-edit-behavior={interactionMode === 'edit' ? editBehavior : undefined}
+            data-pne-widget-board-rgl-collision-behavior={collisionBehavior}
+            data-pne-widget-board-rgl-compaction={compaction}
             ref={boardRootRef}
             sx={{
                 '--pne-widget-board-row-height': `${rowHeight}px`,
@@ -474,6 +530,80 @@ const WidgetBoardReactGridLayoutGrid = ({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 0,
+                '& .react-grid-item.react-grid-placeholder': {
+                    bgcolor: theme => alpha(theme.palette.primary.main, 0.08),
+                    border: 0,
+                    boxShadow: 'none',
+                    outline: 'none',
+                    opacity: 1,
+                    borderRadius: '4px',
+                    pointerEvents: 'none',
+                    boxSizing: 'border-box',
+                },
+                '& .react-grid-item > .react-resizable-handle.pne-widget-board-rgl-resize-handle': {
+                    position: 'absolute',
+                    top: `${widgetHeaderHeight}px`,
+                    bottom: 0,
+                    width: `${resizeRailWidth}px`,
+                    height: 'auto',
+                    m: 0,
+                    p: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    boxSizing: 'border-box',
+                    borderRadius: '4px',
+                    backgroundImage: 'none',
+                    backgroundPosition: 'initial',
+                    backgroundRepeat: 'no-repeat',
+                    bgcolor: alpha(neutralColor, 0.04),
+                    color: neutralColor,
+                    cursor: 'ew-resize',
+                    opacity: 1,
+                    transform: 'none',
+                    touchAction: 'none',
+                    zIndex: 2,
+                    transition: theme => theme.transitions.create(['background-color', 'color'], {
+                        duration: theme.transitions.duration.shorter,
+                    }),
+                    '&:hover': {
+                        bgcolor: theme => alpha(theme.palette.primary.main, 0.08),
+                        color: 'primary.main',
+                    },
+                    '&:active': {
+                        bgcolor: theme => alpha(theme.palette.primary.main, 0.14),
+                        color: 'primary.main',
+                    },
+                    '& > svg': {
+                        width: 24,
+                        height: 24,
+                        p: '2px',
+                        boxSizing: 'border-box',
+                        borderRadius: '4px',
+                        bgcolor: '#fff',
+                        boxShadow: `inset 0 0 0 1px ${alpha(neutralColor, 0.16)}`,
+                        fontSize: 20,
+                        color: 'inherit',
+                        pointerEvents: 'none',
+                    },
+                    '&:hover > svg, &:active > svg': {
+                        boxShadow: theme => `inset 0 0 0 1px ${alpha(theme.palette.primary.main, 0.28)}`,
+                    },
+                    '&::after': {
+                        content: 'none',
+                        display: 'none',
+                        width: 0,
+                        height: 0,
+                        border: 0,
+                    },
+                },
+                '& .react-grid-item > [data-pne-widget-board-resize-handle="w"]': {
+                    left: `${resizeRailInset}px`,
+                },
+                '& .react-grid-item > [data-pne-widget-board-resize-handle="e"]': {
+                    right: `${resizeRailInset}px`,
+                },
             }}
         >
             <Box ref={containerRef} sx={{ width: '100%' }}>
@@ -501,8 +631,9 @@ const WidgetBoardReactGridLayoutGrid = ({
                             resizeConfig={{
                                 enabled: interactionMode === 'edit',
                                 handles: interactionMode === 'edit' ? ['e', 'w'] : [],
+                                handleComponent: renderResizeHandle,
                             }}
-                            compactor={noCompactor}
+                            compactor={compactor}
                             onDragStop={handleLayoutCommit}
                             onResizeStop={handleLayoutCommit}
                         >

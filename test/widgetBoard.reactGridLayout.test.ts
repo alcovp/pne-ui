@@ -2,13 +2,49 @@ import type { Layout } from 'react-grid-layout'
 import {
     applyUserResizeMinWidths,
     getResizeMinColumnSpan,
+    resolveReactGridLayoutCompactor,
     toBoardItems,
     toReactGridLayout,
 } from '../src/component/widget-board/WidgetBoardReactGridLayoutEngine'
-import type { WidgetBoardItemData } from '../src/component/widget-board/types'
+import {
+    DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING,
+    type WidgetBoardItemData,
+    type WidgetBoardReactGridLayoutCollisionBehavior,
+    type WidgetBoardReactGridLayoutCompaction,
+} from '../src/component/widget-board/types'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 
 describe('WidgetBoard React Grid Layout constraints', () => {
+    it('uses vertical compaction with push behavior as the public default', () => {
+        expect(DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING).toEqual({
+            compaction: 'vertical',
+            collisionBehavior: 'push',
+        })
+    })
+
+    it.each([
+        { compaction: 'none', collisionBehavior: 'push', type: null, preventCollision: undefined },
+        { compaction: 'vertical', collisionBehavior: 'push', type: 'vertical', preventCollision: undefined },
+        { compaction: 'none', collisionBehavior: 'prevent', type: null, preventCollision: true },
+        { compaction: 'vertical', collisionBehavior: 'prevent', type: 'vertical', preventCollision: true },
+    ] satisfies Array<{
+        compaction: WidgetBoardReactGridLayoutCompaction
+        collisionBehavior: WidgetBoardReactGridLayoutCollisionBehavior
+        type: 'vertical' | null
+        preventCollision: true | undefined
+    }>)('maps $compaction + $collisionBehavior to the matching RGL compactor', ({
+        compaction,
+        collisionBehavior,
+        type,
+        preventCollision,
+    }) => {
+        const compactor = resolveReactGridLayoutCompactor(compaction, collisionBehavior)
+
+        expect(compactor.type).toBe(type)
+        expect(compactor.preventCollision).toBe(preventCollision)
+        expect(compactor.allowOverlap).toBe(false)
+    })
+
     it('converts a pixel minimum to grid units using the measured grid geometry', () => {
         expect(
             getResizeMinColumnSpan({

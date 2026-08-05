@@ -1,11 +1,14 @@
 import React from 'react'
 import { Box, Button, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import type { PneFabAction, PneFabItem, WidgetBoardInteractionMode, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetDefinition } from '../index'
+import { expect, fireEvent, waitFor } from 'storybook/test'
+import type { PneFabAction, PneFabItem, WidgetBoardInteractionMode, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetBoardReactGridLayoutTuning, WidgetDefinition } from '../index'
 import {
+    DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING,
     PneButton,
     WidgetBoardVisibilityModal,
     WidgetBoardHeaderControls,
+    WidgetBoardReactGridLayoutTuningControls,
     WidgetLayoutsPanel,
     WidgetBoard,
     WidgetBoardScopeProvider,
@@ -381,8 +384,15 @@ const BoardWithReactGridLayout = ({
     )
 }
 
-const BoardWithHeaderControlsContent = () => {
-    const [interactionMode, setInteractionMode] = React.useState<WidgetBoardInteractionMode>('view')
+const BoardWithHeaderControlsContent = ({
+    initialInteractionMode = 'view',
+}: {
+    initialInteractionMode?: WidgetBoardInteractionMode
+}) => {
+    const [interactionMode, setInteractionMode] = React.useState<WidgetBoardInteractionMode>(initialInteractionMode)
+    const [tuning, setTuning] = React.useState<WidgetBoardReactGridLayoutTuning>(
+        DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING,
+    )
 
     const loadLayouts = React.useCallback(async () => {
         return mockOrderHistoryLayoutsApi.getOrderHistoryLayoutSettings()
@@ -406,6 +416,12 @@ const BoardWithHeaderControlsContent = () => {
                     <WidgetBoardHeaderControls
                         interactionMode={interactionMode}
                         onInteractionModeChange={setInteractionMode}
+                        editActions={
+                            <WidgetBoardReactGridLayoutTuningControls
+                                tuning={tuning}
+                                onTuningChange={setTuning}
+                            />
+                        }
                     />
                 </Box>
                 <WidgetBoard
@@ -420,6 +436,8 @@ const BoardWithHeaderControlsContent = () => {
                         rowHeight: 48,
                         margin: [0, 0],
                         containerPadding: [0, 0],
+                        compaction: tuning.compaction,
+                        collisionBehavior: tuning.collisionBehavior,
                     }}
                 />
             </Stack>
@@ -427,9 +445,13 @@ const BoardWithHeaderControlsContent = () => {
     )
 }
 
-const BoardWithHeaderControls = () => (
+const BoardWithHeaderControls = ({
+    initialInteractionMode,
+}: {
+    initialInteractionMode?: WidgetBoardInteractionMode
+}) => (
     <WidgetBoardScopeProvider>
-        <BoardWithHeaderControlsContent />
+        <BoardWithHeaderControlsContent initialInteractionMode={initialInteractionMode} />
     </WidgetBoardScopeProvider>
 )
 
@@ -574,4 +596,57 @@ export const ReactGridLayoutOrderOnlyEditMode: StoryObj<typeof BoardWithLayouts>
 
 export const ReactGridLayoutHeaderControls: StoryObj<typeof BoardWithLayouts> = {
     render: () => <BoardWithHeaderControls />,
+}
+
+export const ReactGridLayoutTuningPlayground: StoryObj<typeof BoardWithLayouts> = {
+    name: 'React Grid Layout — tuning playground',
+    render: () => <BoardWithHeaderControls initialInteractionMode='edit' />,
+}
+
+export const ReactGridLayoutDragPlaceholder: StoryObj<typeof BoardWithLayouts> = {
+    name: 'React Grid Layout — drag placeholder',
+    render: () => <BoardWithHeaderControls initialInteractionMode='edit' />,
+    play: async ({ canvasElement }) => {
+        const dragHandle = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLElement>(
+                '.pne-widget-board-rgl-drag-handle',
+            )
+            if (!element) throw new Error('RGL drag handle did not render')
+            return element
+        })
+        const rect = dragHandle.getBoundingClientRect()
+
+        fireEvent.mouseDown(dragHandle, {
+            button: 0,
+            buttons: 1,
+            clientX: rect.left + 20,
+            clientY: rect.top + 16,
+        })
+        fireEvent.mouseMove(document, {
+            buttons: 1,
+            clientX: rect.left + 180,
+            clientY: rect.top + 96,
+        })
+
+        const placeholder = await waitFor(() => {
+            const placeholder = canvasElement.querySelector<HTMLElement>('.react-grid-placeholder')
+            if (!placeholder) throw new Error('RGL drag placeholder did not render')
+            return placeholder
+        })
+        const placeholderStyle = getComputedStyle(placeholder)
+        const title = dragHandle.querySelector<HTMLElement>('h3')
+        if (!title) throw new Error('RGL widget title did not render')
+        const accentRgb = getComputedStyle(title).color.match(/[\d.]+/g)?.slice(0, 3)
+        const placeholderRgb = placeholderStyle.backgroundColor.match(/[\d.]+/g)?.slice(0, 3)
+
+        expect(placeholderStyle.opacity).toBe('1')
+        expect(placeholderStyle.borderRadius).toBe('4px')
+        expect(placeholderStyle.borderTopWidth).toBe('0px')
+        expect(placeholderStyle.boxShadow).toBe('none')
+        expect(placeholderStyle.outlineStyle).toBe('none')
+        expect(placeholderRgb).toEqual(accentRgb)
+        expect(placeholderStyle.backgroundColor).not.toContain('255, 0, 0')
+
+        // This visual story intentionally stays mid-drag; iframe teardown releases document listeners.
+    },
 }

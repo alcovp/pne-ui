@@ -132,7 +132,9 @@ describe('WidgetBoard order-only editor', () => {
         const { container } = render(
             <WidgetBoardReactGridLayoutEngine
                 boardRootRef={jest.fn()}
+                collisionBehavior='push'
                 columns={6}
+                compaction='none'
                 containerPadding={[0, 0]}
                 editBehavior='order-only'
                 interactionMode='edit'
