@@ -39,6 +39,20 @@ export const createPneTheme = (
             },
         },
         components: {
+            MuiFormHelperText: {
+                styleOverrides: {
+                    root: {
+                        overflowWrap: 'anywhere',
+                        whiteSpace: 'normal',
+                        '&.Mui-error': {
+                            display: '-webkit-box',
+                            overflow: 'hidden',
+                            WebkitBoxOrient: 'vertical',
+                            WebkitLineClamp: 5,
+                        },
+                    },
+                },
+            },
             MuiIconButton: {
                 styleOverrides: {
                     root: ({ownerState, theme}) => {
@@ -135,9 +149,7 @@ export const createPneTheme = (
                 },
             },
         },
-        ...options,
-        ...args,
-    })
+    }, options ?? {}, ...args)
 
     return theme
 }
