@@ -120,8 +120,10 @@ describe('PneBreadcrumbs', () => {
         const link = screen.getByRole('link', {name: 'Orders search'})
         const current = screen.getByText('Order 8861110')
         const muted = screen.getByText('Orders')
+        const mutedIcon = muted.querySelector('svg') as SVGSVGElement
         const linkStyle = window.getComputedStyle(link)
         const currentStyle = window.getComputedStyle(current)
+        const mutedContentStyle = window.getComputedStyle(muted)
         const mutedStyle = window.getComputedStyle(muted.parentElement as HTMLElement)
 
         expect(linkStyle.fontFamily).toBe('Arial,sans-serif')
@@ -131,6 +133,9 @@ describe('PneBreadcrumbs', () => {
         expect(linkStyle.textDecoration).toBe('none')
         expect(currentStyle.fontWeight).toBe('700')
         expect(mutedStyle.fontWeight).toBe('400')
+        expect(mutedStyle.color).not.toBe(currentStyle.color)
+        expect(mutedContentStyle.color).not.toBe(currentStyle.color)
+        expect(window.getComputedStyle(mutedIcon).color).toBe(currentStyle.color)
     })
 
     it('collapses and expands its own trail as the available width changes', async () => {

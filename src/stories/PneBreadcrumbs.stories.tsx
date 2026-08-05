@@ -23,7 +23,7 @@ const orderItems: readonly PneBreadcrumbItem[] = [
     },
     {
         id: 'order',
-        label: 'Order 8861110',
+        label: 'Order',
         type: 'text',
     },
 ]

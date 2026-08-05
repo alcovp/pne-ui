@@ -289,11 +289,11 @@ export const PneBreadcrumbs = ({
             component='span'
             sx={{
                 alignItems: 'center',
-                color: 'text.primary',
                 display: 'flex',
                 gap: '4px',
                 minWidth: 0,
                 '& > svg': {
+                    color: 'text.primary',
                     flexShrink: 0,
                 },
             }}
