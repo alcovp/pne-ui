@@ -27,8 +27,8 @@ export type PaynetErrorResponse = {
 
 /**
  * Transport-independent error data used by the shared error presentation.
- * `notificationId` is an internal overlay identity and is deliberately separate
- * from the backend-provided `errorId`.
+ * `notificationId` is a per-report internal overlay identity and is deliberately
+ * separate from the backend-provided `errorId`, even when that error id repeats.
  */
 export type NormalizedPaynetError = {
     notificationId: string

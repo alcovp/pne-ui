@@ -102,6 +102,19 @@ describe('overlayActions.showUndoSnackbar', () => {
         ])
     })
 
+    it('enqueues repeated event messages as independent snackbars when no id is provided', () => {
+        overlayActions.showInfo({ message: 'Copied successfully' })
+        overlayActions.showInfo({ message: 'Copied successfully' })
+
+        const snackbars = useOverlayStore.getState().snackbars
+        expect(snackbars).toHaveLength(2)
+        expect(snackbars.map(snackbar => snackbar.message)).toEqual([
+            'Copied successfully',
+            'Copied successfully',
+        ])
+        expect(new Set(snackbars.map(snackbar => snackbar.id))).toHaveProperty('size', 2)
+    })
+
     it('keeps ordinary errors persistent and transient errors timed', () => {
         overlayActions.showTransientError({
             id: 'transient-error',

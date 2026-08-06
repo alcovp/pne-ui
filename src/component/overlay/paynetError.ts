@@ -28,8 +28,8 @@ const createRandomId = (): string => {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
-const createNotificationId = (errorId?: string): string =>
-    `${PAYNET_ERROR_ID_PREFIX}${errorId ?? createRandomId()}`
+const createNotificationId = (): string =>
+    `${PAYNET_ERROR_ID_PREFIX}${createRandomId()}`
 
 const settle = async (value: unknown): Promise<unknown> => {
     try {
@@ -212,7 +212,7 @@ const normalizeResolvedError = async (input: unknown): Promise<NormalizedPaynetE
         ?? readNumber(sourceRecord, 'status')
 
     return {
-        notificationId: createNotificationId(errorId),
+        notificationId: createNotificationId(),
         errorId,
         messageId: messageId ?? (message ? undefined : UNKNOWN_ERROR_MESSAGE_ID),
         message,

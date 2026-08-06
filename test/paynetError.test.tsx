@@ -35,7 +35,7 @@ describe('Paynet error normalization', () => {
         })
 
         expect(normalized).toEqual({
-            notificationId: 'paynet-error:backend-123',
+            notificationId: expect.stringMatching(/^paynet-error:/),
             errorId: 'backend-123',
             messageId: 'react.unexpected.exception.message',
             message: undefined,
@@ -57,7 +57,7 @@ describe('Paynet error normalization', () => {
         })
 
         expect(normalized).toEqual(expect.objectContaining({
-            notificationId: 'paynet-error:direct-response',
+            notificationId: expect.stringMatching(/^paynet-error:/),
             errorId: 'direct-response',
             messageId: 'react.unexpected.exception.message',
             details: 'Direct response details',
@@ -105,7 +105,7 @@ describe('Paynet error normalization', () => {
         }))
 
         expect(normalized).toEqual(expect.objectContaining({
-            notificationId: 'paynet-error:blob-response',
+            notificationId: expect.stringMatching(/^paynet-error:/),
             errorId: 'blob-response',
             details: 'Blob details',
             errorType: 'SERVER_ERROR',
@@ -521,7 +521,7 @@ describe('structured overlay errors', () => {
         setTimeoutSpy.mockRestore()
     })
 
-    it('deduplicates concurrent reports by backend error id', async () => {
+    it('enqueues concurrent reports independently even when their backend error id matches', async () => {
         render(<OverlayHost container={null} />)
         const error = {
             errorId: 'same-backend-error',
@@ -534,9 +534,15 @@ describe('structured overlay errors', () => {
         })
 
         await waitFor(() => {
-            expect(useOverlayStore.getState().snackbars).toHaveLength(1)
+            expect(useOverlayStore.getState().snackbars).toHaveLength(2)
         })
-        expect(useOverlayStore.getState().snackbars[0].id).toBe('paynet-error:same-backend-error')
+
+        const notificationIds = useOverlayStore.getState().snackbars.map(snackbar => snackbar.id)
+        expect(notificationIds).toEqual([
+            expect.stringMatching(/^paynet-error:/),
+            expect.stringMatching(/^paynet-error:/),
+        ])
+        expect(new Set(notificationIds)).toHaveProperty('size', 2)
     })
 
     it('does not enqueue or report a missing host for a canceled request', async () => {
