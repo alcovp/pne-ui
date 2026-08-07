@@ -1,5 +1,7 @@
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
+import { useTranslation } from 'react-i18next'
+import { overlayActions } from '../overlay/overlayStore'
 import { buildPresetFromState } from './layoutPersistence'
 import { useWidgetBoardAutosize } from './useWidgetBoardAutosize'
 import { useWidgetBoardInteractionLock } from './useWidgetBoardInteractionLock'
@@ -8,6 +10,7 @@ import { useWidgetBoardLayoutSource } from './useWidgetBoardLayoutSource'
 import { useWidgetBoardScopeStore } from './WidgetBoardScope'
 import { useWidgetBoardStateActions } from './useWidgetBoardStateActions'
 import { WidgetBoardCloudscapeEngine } from './WidgetBoardCloudscapeEngine'
+import { WidgetBoardEmptyState } from './WidgetBoardEmptyState'
 import { WidgetBoardItem } from './WidgetBoardItem'
 import {
     WidgetBoardReactGridLayoutEngine,
@@ -19,6 +22,7 @@ import {
     buildLayoutOptions,
     getLayoutConfigForBreakpoint,
     layoutOptionsEqual,
+    toBoardItem,
     withLayout,
     type WidgetDefinitionWithLayout,
 } from './widgetBoardLayoutUtils'
@@ -161,9 +165,11 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         reactGridLayoutOptions,
         breakpoints: configuredBreakpoints,
         breakpointSource = 'viewport',
+        showHideUndo = false,
     },
     ref,
 ) {
+    const { t } = useTranslation()
     const [isLoadingLayouts, setIsLoadingLayouts] = useState(true)
     const scopeFabStore = useWidgetBoardScopeStore()
     const resolvedBreakpoints = useMemo(
@@ -182,9 +188,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         source: breakpointSource,
     })
     const currentBreakpointKey = activeBreakpoint.id
+    const activeEditBehavior: WidgetBoardEditBehavior = activeBreakpoint.editBehavior ?? 'grid'
     const currentEditBehavior: WidgetBoardEditBehavior =
         interactionMode === 'edit'
-            ? (activeBreakpoint.editBehavior ?? 'grid')
+            ? activeEditBehavior
             : 'grid'
     const currentBreakpointKeyRef = useRef(currentBreakpointKey)
     currentBreakpointKeyRef.current = currentBreakpointKey
@@ -416,9 +423,17 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutStateContext.widgets === widgets &&
         layoutSourceOwnerIdRef.current === effectiveSelectedLayoutId
 
-    const { handleItemsChange, hideItem, setWidgetVisibility, resetLayout, restoreHidden, toggleCollapse } = useWidgetBoardStateActions({
+    const {
+        handleItemsChange,
+        hideItem,
+        reorderAllItems,
+        setWidgetVisibility,
+        resetLayout,
+        restoreHidden,
+        toggleCollapse,
+    } = useWidgetBoardStateActions({
         currentBreakpointKey,
-        defaultDefinitionsMap,
+        defaultDefinitionsWithLayout,
         definitionsMap,
         definitionsWithLayout,
         isDefaultLayoutSelected: effectiveSelectedLayoutId === defaultOption.id,
@@ -447,7 +462,13 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             const hasDifferentVisibleWidgets =
                 visibleItems.length !== defaultVisibleIds.length || defaultVisibleIds.some(id => !visibleItemIdSet.has(id))
 
-            const hasDifferentOrder = defaultVisibleIds.some((id, index) => visibleItems[index]?.id !== id)
+            const currentFullOrder = layoutState.widgetOrder.filter(id => definitionsMap.has(id))
+            const defaultFullOrder = defaultDefinitionsWithLayout
+                .filter(definition => definitionsMap.has(definition.id))
+                .map(definition => definition.id)
+            const hasDifferentOrder =
+                currentFullOrder.length !== defaultFullOrder.length ||
+                defaultFullOrder.some((id, index) => currentFullOrder[index] !== id)
 
             if (hasDifferentVisibleWidgets || hasDifferentOrder) {
                 canResetLayout = true
@@ -492,16 +513,90 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutState.collapsed,
         layoutState.hidden,
         layoutState.items,
+        layoutState.widgetOrder,
     ])
+
+    const fullWidgetOrder = useMemo(() => {
+        const seen = new Set<string>()
+        return [...layoutState.widgetOrder, ...definitionsWithLayout.map(definition => definition.id)].filter(id => {
+            if (!definitionsMap.has(id) || seen.has(id)) return false
+            seen.add(id)
+            return true
+        })
+    }, [definitionsMap, definitionsWithLayout, layoutState.widgetOrder])
 
     const visibilityItems = useMemo(() => {
         const hiddenSet = new Set(layoutState.hidden)
-        return definitionsWithLayout.map(definition => ({
-            id: definition.id,
-            title: definition.title,
-            visible: !hiddenSet.has(definition.id),
-        }))
-    }, [definitionsWithLayout, layoutState.hidden])
+        return fullWidgetOrder.flatMap(id => {
+            const definition = definitionsMap.get(id)
+            if (!definition) return []
+            return [{
+                id,
+                title: definition.title,
+                visible: !hiddenSet.has(id),
+                canHide: definition.canHide !== false,
+            }]
+        })
+    }, [definitionsMap, fullWidgetOrder, layoutState.hidden])
+
+    const pendingHideUndoRef = useRef(new Map<string, string>())
+    const undoContextKey = `${currentBreakpointKey}\u0000${effectiveSelectedLayoutId}`
+    const undoContextKeyRef = useRef(undoContextKey)
+    undoContextKeyRef.current = undoContextKey
+
+    const dismissPendingHideUndo = useCallback((widgetId?: string) => {
+        if (widgetId) {
+            const snackbarId = pendingHideUndoRef.current.get(widgetId)
+            if (snackbarId) overlayActions.removeSnackbar(snackbarId)
+            pendingHideUndoRef.current.delete(widgetId)
+            return
+        }
+
+        pendingHideUndoRef.current.forEach(snackbarId => overlayActions.removeSnackbar(snackbarId))
+        pendingHideUndoRef.current.clear()
+    }, [])
+
+    useEffect(() => () => dismissPendingHideUndo(), [dismissPendingHideUndo, undoContextKey])
+
+    const handleSetWidgetVisibility = useCallback(
+        (id: string, visible: boolean) => {
+            dismissPendingHideUndo(id)
+            setWidgetVisibility(id, visible)
+        },
+        [dismissPendingHideUndo, setWidgetVisibility],
+    )
+
+    const handleRestoreHidden = useCallback(() => {
+        dismissPendingHideUndo()
+        restoreHidden()
+    }, [dismissPendingHideUndo, restoreHidden])
+
+    const handleDirectHide = useCallback(
+        (id: string) => {
+            const definition = definitionsMap.get(id)
+            if (!definition || definition.canHide === false) return
+
+            dismissPendingHideUndo(id)
+            hideItem(id)
+            if (!showHideUndo) return
+
+            const hiddenInContext = undoContextKey
+            const snackbarId = overlayActions.showUndoSnackbar({
+                message: t('pne.widgetBoard.visibility.widgetHidden', {
+                    title: definition.title,
+                    defaultValue: 'Widget "{{title}}" hidden',
+                }),
+                undoLabel: t('pne.widgetBoard.visibility.undo', { defaultValue: 'Undo' }),
+                onUndo: () => {
+                    pendingHideUndoRef.current.delete(id)
+                    if (undoContextKeyRef.current !== hiddenInContext) return
+                    setWidgetVisibility(id, true)
+                },
+            })
+            pendingHideUndoRef.current.set(id, snackbarId)
+        },
+        [definitionsMap, dismissPendingHideUndo, hideItem, setWidgetVisibility, showHideUndo, t, undoContextKey],
+    )
 
     useWidgetBoardLayoutActions({
         buildCurrentPreset,
@@ -515,10 +610,12 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         saveLayouts,
         fabStore: scopeFabStore,
         actionsState,
+        activeBreakpointId: currentBreakpointKey,
+        editBehavior: activeEditBehavior,
         visibilityItems,
-        onSetWidgetVisibility: setWidgetVisibility,
+        onSetWidgetVisibility: handleSetWidgetVisibility,
         onResetLayout: resetLayout,
-        onRestoreHidden: restoreHidden,
+        onRestoreHidden: handleRestoreHidden,
         selectedLayoutId,
         setLayoutOptions,
         setLayoutSource,
@@ -533,16 +630,29 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         ref,
         () => ({
             resetLayout,
-            restoreHidden,
+            restoreHidden: handleRestoreHidden,
             getActionsState: () => actionsState,
         }),
-        [actionsState, resetLayout, restoreHidden],
+        [actionsState, handleRestoreHidden, resetLayout],
     )
 
     const visibleItems = useMemo(
         () => layoutState.items.filter(item => definitionsMap.has(item.id as string)),
         [layoutState.items, definitionsMap],
     )
+    const orderEditorItems = useMemo(() => {
+        const visibleItemMap = new Map(layoutState.items.map(item => [item.id as string, item]))
+        const memory = layoutState.layoutMemory[currentBreakpointKey] ?? {}
+
+        return fullWidgetOrder.flatMap(id => {
+            const visibleItem = visibleItemMap.get(id)
+            if (visibleItem) return [visibleItem]
+            const definition = definitionsMap.get(id)
+            if (!definition) return []
+            const snapshot = memory[id]
+            return [snapshot ? toBoardItem(definition, snapshot) : toBoardItem(definition)]
+        })
+    }, [currentBreakpointKey, definitionsMap, fullWidgetOrder, layoutState.items, layoutState.layoutMemory])
     const minWidthPxByWidgetId = useMemo(
         () =>
             Object.fromEntries(
@@ -588,7 +698,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 isCollapsed={renderState.isCollapsed}
                 isInteractionLocked={isInteractionLocked}
                 onContentRef={handleContentRef}
-                onHide={hideItem}
+                onHide={handleDirectHide}
                 onToggleCollapse={toggleCollapse}
             />
         )
@@ -606,10 +716,17 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 isCollapsed={renderState.isCollapsed}
                 interactionMode={interactionMode}
                 onContentRef={handleContentRef}
-                onHide={hideItem}
+                onHide={handleDirectHide}
             />
         )
     }
+
+    const emptyState = (
+        <WidgetBoardEmptyState
+            hasHiddenWidgets={actionsState.hasHiddenWidgets}
+            onShowAll={handleRestoreHidden}
+        />
+    )
 
     return (
         <WidgetBoardInteractionContext.Provider value={interactionState}>
@@ -621,19 +738,25 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                     compaction={reactGridLayoutCompaction}
                     containerPadding={reactGridLayoutContainerPadding}
                     editBehavior={currentEditBehavior}
+                    empty={emptyState}
                     interactionMode={interactionMode}
                     isLoadingLayouts={isLoadingLayouts}
                     items={visibleItems}
+                    orderEditorItems={orderEditorItems}
                     margin={reactGridLayoutMargin}
                     minWidthPxByWidgetId={minWidthPxByWidgetId}
                     onItemsChange={handleItemsChange}
+                    onOrderChange={reorderAllItems}
+                    onSetWidgetVisibility={handleSetWidgetVisibility}
                     renderItem={renderReactGridLayoutItem}
                     rowHeight={reactGridLayoutRowHeight}
                     useCSSTransforms={reactGridLayoutUseCSSTransforms}
+                    visibilityItems={visibilityItems}
                 />
             ) : (
                 <WidgetBoardCloudscapeEngine
                     boardRootRef={handleBoardRootRef}
+                    empty={emptyState}
                     items={visibleItems}
                     isLoadingLayouts={isLoadingLayouts}
                     onItemsChange={handleItemsChange}

@@ -105,7 +105,10 @@ const applyCollapsedState = (
 }
 
 export const buildDefaultState = (definitions: WidgetDefinitionWithLayout[], breakpointKey: string): WidgetBoardState => {
-    const hidden = definitions.filter(def => def.layout.initialState?.isHidden).map(def => def.id)
+    const widgetOrder = definitions.map(definition => definition.id)
+    const hidden = definitions
+        .filter(def => def.canHide !== false && def.layout.initialState?.isHidden)
+        .map(def => def.id)
     const collapsed = definitions.filter(def => def.layout.initialState?.isCollapsed).map(def => def.id)
     const sizeMemory: Partial<Record<string, number>> = {}
     const definitionsMap = new Map<string, WidgetDefinitionWithLayout>(definitions.map(def => [def.id, def]))
@@ -128,6 +131,7 @@ export const buildDefaultState = (definitions: WidgetDefinitionWithLayout[], bre
 
     return {
         items: collapsedItems,
+        widgetOrder,
         hidden,
         collapsed,
         sizeMemory,

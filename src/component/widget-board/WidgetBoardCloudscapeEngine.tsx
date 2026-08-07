@@ -13,6 +13,7 @@ export type WidgetBoardCloudscapeEngineProps = {
     isLoadingLayouts: boolean
     onItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange']
     renderItem: (item: BoardProps.Item<WidgetBoardItemData>) => React.ReactElement
+    empty: React.ReactNode
 }
 
 /**
@@ -25,6 +26,7 @@ export const WidgetBoardCloudscapeEngine = ({
     isLoadingLayouts,
     onItemsChange,
     renderItem,
+    empty,
 }: WidgetBoardCloudscapeEngineProps) => {
     const boardI18nStrings = useMemo(() => createBoardI18nStrings<WidgetBoardItemData>(item => item.data.title), [])
 
@@ -34,7 +36,7 @@ export const WidgetBoardCloudscapeEngine = ({
             renderItem={renderItem}
             i18nStrings={boardI18nStrings}
             onItemsChange={onItemsChange}
-            empty={<Box sx={{ p: 2, color: 'text.secondary' }}>No widgets available</Box>}
+            empty={empty}
         />
     )
 

@@ -100,32 +100,26 @@ export const buildPresetFromState = (
             }
         })
 
-        const baseOrder = [
+        const baseOrderCandidates = [
             ...(base.widgetOrder ?? Object.keys(base.widgets)),
             ...Object.keys(base.widgets).filter(id => !base.widgetOrder?.includes(id)),
         ]
-        const managedOrder = state.items
-            .map(item => item.id as string)
-            .filter(id => base.widgets[id])
-        Array.from(hiddenSet)
-            .filter(id => base.widgets[id])
-            .map(id => ({
-                id,
-                order:
-                    memoryForBreakpoint[id]?.order ??
-                    Math.max(0, baseOrder.indexOf(id)),
-            }))
-            .sort((left, right) => left.order - right.order)
-            .forEach(({ id, order }) => {
-                managedOrder.splice(Math.min(Math.max(order, 0), managedOrder.length), 0, id)
-            })
+        const seenBaseOrderIds = new Set<string>()
+        const baseOrder = baseOrderCandidates.filter(id => {
+            if (!base.widgets[id] || seenBaseOrderIds.has(id)) return false
+            seenBaseOrderIds.add(id)
+            return true
+        })
+        const seenManagedOrderIds = new Set<string>()
+        const managedOrder = [...state.widgetOrder, ...baseOrder].filter(id => {
+            if (!base.widgets[id] || !managedWidgetIds.has(id) || seenManagedOrderIds.has(id)) return false
+            seenManagedOrderIds.add(id)
+            return true
+        })
         const managedOrderIterator = managedOrder[Symbol.iterator]()
         const widgetOrder = baseOrder.map(id =>
             managedWidgetIds.has(id) ? managedOrderIterator.next().value ?? id : id,
         )
-        managedOrder.forEach(id => {
-            if (!widgetOrder.includes(id)) widgetOrder.push(id)
-        })
 
         layoutByBreakpoint[breakpoint] = {
             columns: base.columns,

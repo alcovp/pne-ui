@@ -12,7 +12,10 @@ import ArrowUpwardRoundedIcon from '@mui/icons-material/ArrowUpwardRounded'
 import OpenWithRoundedIcon from '@mui/icons-material/OpenWithRounded'
 import { Box, IconButton, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
+import { useTranslation } from 'react-i18next'
+import { PneCheckbox } from '../PneCheckbox'
 import type { WidgetBoardItemData } from './types'
+import type { WidgetBoardVisibilityItem } from './widgetBoardFabStore'
 
 const ORDER_ONLY_ROW_HEIGHT = 48
 const neutralColor = '#5E7594'
@@ -21,7 +24,9 @@ type WidgetBoardOrderEditorProps = {
     boardRootRef: React.Ref<HTMLDivElement>
     isLoadingLayouts: boolean
     items: BoardProps.Item<WidgetBoardItemData>[]
-    onItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange']
+    onOrderChange: (orderedIds: string[]) => void
+    onSetWidgetVisibility: (id: string, visible: boolean) => void
+    visibilityItems: WidgetBoardVisibilityItem[]
     rowGap?: number
 }
 
@@ -50,10 +55,14 @@ export const WidgetBoardOrderEditor = ({
     boardRootRef,
     isLoadingLayouts,
     items,
-    onItemsChange,
+    onOrderChange,
+    onSetWidgetVisibility,
+    visibilityItems,
     rowGap = 0,
 }: WidgetBoardOrderEditorProps) => {
+    const { t } = useTranslation()
     const [orderAnnouncement, setOrderAnnouncement] = useState('')
+    const visibilityMap = new Map(visibilityItems.map(item => [item.id, item]))
 
     const emitReorder = useCallback(
         (
@@ -65,23 +74,20 @@ export const WidgetBoardOrderEditor = ({
             if (nextItems === items) return
 
             const movedItem = items[sourceIndex]
-            const event = {
-                detail: {
-                    items: nextItems,
-                    movedItem,
-                },
-            } as unknown as Parameters<typeof onItemsChange>[0]
-
-            onItemsChange(event)
-            const message =
-                `${movedItem.data.title} moved to position ${destinationIndex + 1} of ${nextItems.length}`
+            onOrderChange(nextItems.map(item => item.id as string))
+            const message = t('pne.widgetBoard.orderOnly.moved', {
+                title: movedItem.data.title,
+                position: destinationIndex + 1,
+                total: nextItems.length,
+                defaultValue: '{{title}} moved to position {{position}} of {{total}}',
+            })
             if (announce) {
                 announce(message)
             } else {
                 setOrderAnnouncement(message)
             }
         },
-        [items, onItemsChange],
+        [items, onOrderChange, t],
     )
 
     const handleDragEnd = useCallback(
@@ -113,14 +119,16 @@ export const WidgetBoardOrderEditor = ({
             }}
         >
             {isLoadingLayouts ? (
-                <Box sx={{ p: 2, color: 'text.secondary' }}>Loading widgets...</Box>
+                <Box sx={{ p: 2, color: 'text.secondary' }}>
+                    {t('pne.widgetBoard.loading', { defaultValue: 'Loading widgets...' })}
+                </Box>
             ) : (
                 <DragDropContext onDragEnd={handleDragEnd}>
                     <Droppable droppableId='pne-widget-board-order-editor' direction='vertical'>
                         {provided => (
                             <Box
                                 {...provided.droppableProps}
-                                aria-label='Widget order'
+                                aria-label={String(t('pne.widgetBoard.orderOnly.listLabel', { defaultValue: 'Widget order' }))}
                                 ref={provided.innerRef}
                                 role='list'
                                 sx={{ width: '100%' }}
@@ -128,6 +136,22 @@ export const WidgetBoardOrderEditor = ({
                                 {items.map((item, index) => {
                                     const widgetId = item.id as string
                                     const title = item.data.title
+                                    const visibilityItem = visibilityMap.get(widgetId)
+                                    const visible = visibilityItem?.visible ?? true
+                                    const canHide = visibilityItem?.canHide ?? true
+                                    const visibilityState = canHide
+                                        ? visible
+                                            ? null
+                                            : t('pne.widgetBoard.visibility.hidden', { defaultValue: 'Hidden' })
+                                        : t('pne.widgetBoard.visibility.required', { defaultValue: 'Required' })
+                                    const checkboxLabel = t('pne.widgetBoard.visibility.showWidget', {
+                                        title,
+                                        defaultValue: 'Show widget {{title}}',
+                                    })
+                                    const dragLabel = t('pne.widgetBoard.orderOnly.drag', {
+                                        title,
+                                        defaultValue: 'Drag {{title}} to reorder',
+                                    })
 
                                     return (
                                         <Draggable
@@ -150,6 +174,7 @@ export const WidgetBoardOrderEditor = ({
                                                         aria-setsize={items.length}
                                                         data-pne-widget-board-item-id={widgetId}
                                                         data-pne-widget-board-order-only-item='true'
+                                                        data-pne-widget-board-widget-visible={visible ? 'true' : 'false'}
                                                         ref={draggableProvided.innerRef}
                                                         role='listitem'
                                                         style={draggableStyle}
@@ -171,9 +196,9 @@ export const WidgetBoardOrderEditor = ({
                                                     >
                                                         <Box
                                                             {...draggableProvided.dragHandleProps}
-                                                            aria-label={`Drag ${title} to reorder`}
+                                                            aria-label={dragLabel}
                                                             component='span'
-                                                            title={`Drag ${title} to reorder`}
+                                                            title={dragLabel}
                                                             sx={{
                                                                 alignItems: 'center',
                                                                 alignSelf: 'stretch',
@@ -208,9 +233,48 @@ export const WidgetBoardOrderEditor = ({
                                                         >
                                                             {title}
                                                         </Typography>
+                                                        {visibilityState ? (
+                                                            <Typography
+                                                                data-pne-widget-board-order-only-state={
+                                                                    canHide ? (visible ? 'shown' : 'hidden') : 'required'
+                                                                }
+                                                                sx={{
+                                                                    color: visible ? 'text.secondary' : 'text.primary',
+                                                                    flex: '0 0 auto',
+                                                                    fontSize: 12,
+                                                                    lineHeight: '16px',
+                                                                    ml: 0.5,
+                                                                }}
+                                                            >
+                                                                {visibilityState}
+                                                            </Typography>
+                                                        ) : null}
+                                                        <PneCheckbox
+                                                            aria-label={checkboxLabel}
+                                                            checked={visible}
+                                                            disabled={!canHide}
+                                                            onChange={event => {
+                                                                onSetWidgetVisibility(widgetId, event.target.checked)
+                                                                setOrderAnnouncement(
+                                                                    event.target.checked
+                                                                        ? t('pne.widgetBoard.orderOnly.shown', {
+                                                                            title,
+                                                                            defaultValue: '{{title}} shown',
+                                                                        })
+                                                                        : t('pne.widgetBoard.orderOnly.hidden', {
+                                                                            title,
+                                                                            defaultValue: '{{title}} hidden',
+                                                                        }),
+                                                                )
+                                                            }}
+                                                            sx={{ flex: '0 0 auto', height: 44, width: 44 }}
+                                                        />
                                                         <Box sx={{ display: 'flex', flex: '0 0 auto' }}>
                                                             <IconButton
-                                                                aria-label={`Move ${title} up`}
+                                                                aria-label={t('pne.widgetBoard.orderOnly.moveUp', {
+                                                                    title,
+                                                                    defaultValue: 'Move {{title}} up',
+                                                                })}
                                                                 disabled={index === 0}
                                                                 onClick={() => handleMove(widgetId, -1)}
                                                                 size='small'
@@ -219,7 +283,10 @@ export const WidgetBoardOrderEditor = ({
                                                                 <ArrowUpwardRoundedIcon fontSize='small' />
                                                             </IconButton>
                                                             <IconButton
-                                                                aria-label={`Move ${title} down`}
+                                                                aria-label={t('pne.widgetBoard.orderOnly.moveDown', {
+                                                                    title,
+                                                                    defaultValue: 'Move {{title}} down',
+                                                                })}
                                                                 disabled={index === items.length - 1}
                                                                 onClick={() => handleMove(widgetId, 1)}
                                                                 size='small'

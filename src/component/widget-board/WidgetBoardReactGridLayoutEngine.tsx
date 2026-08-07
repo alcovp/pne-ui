@@ -2,8 +2,8 @@ import React, { useCallback, useMemo } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
-import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import OpenWithRoundedIcon from '@mui/icons-material/OpenWithRounded'
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined'
 import { Box, IconButton, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import ReactGridLayout, {
@@ -26,6 +26,7 @@ import type {
     WidgetHeightMode,
 } from './types'
 import type { WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
+import type { WidgetBoardVisibilityItem } from './widgetBoardFabStore'
 
 type WidgetBoardReactGridLayoutItemProps = {
     item: BoardProps.Item<WidgetBoardItemData>
@@ -47,12 +48,17 @@ type WidgetBoardReactGridLayoutEngineProps = {
     interactionMode: WidgetBoardInteractionMode
     isLoadingLayouts: boolean
     items: BoardProps.Item<WidgetBoardItemData>[]
+    orderEditorItems: BoardProps.Item<WidgetBoardItemData>[]
     margin: readonly [number, number]
     minWidthPxByWidgetId: Partial<Record<string, number>>
     onItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange']
+    onOrderChange: (orderedIds: string[]) => void
+    onSetWidgetVisibility: (id: string, visible: boolean) => void
     renderItem: (item: BoardProps.Item<WidgetBoardItemData>) => React.ReactElement
     rowHeight: number
     useCSSTransforms: boolean
+    visibilityItems: WidgetBoardVisibilityItem[]
+    empty: React.ReactNode
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
@@ -302,9 +308,41 @@ export const WidgetBoardReactGridLayoutItem = ({
     onContentRef,
     onHide,
 }: WidgetBoardReactGridLayoutItemProps) => {
+    const { t } = useTranslation()
     const widgetId = item.id as string
     const contentOverflow = definition.contentFullHeight ? 'hidden' : heightMode === 'fixed' ? 'auto' : 'hidden'
     const showEditControls = interactionMode === 'edit'
+    const canHide = definition.canHide !== false
+    const hideLabel = t('pne.widgetBoard.visibility.hideWidget', {
+        title: definition.title,
+        defaultValue: 'Hide widget {{title}}',
+    })
+
+    const handleHide = (event: React.MouseEvent<HTMLButtonElement>) => {
+        const board = event.currentTarget.closest<HTMLElement>('[data-pne-widget-board="true"]')
+        const ownerDocument = event.currentTarget.ownerDocument
+        const currentControls = board
+            ? [...board.querySelectorAll<HTMLButtonElement>('[data-pne-widget-board-hide-widget="true"]')]
+            : []
+        const currentIndex = currentControls.indexOf(event.currentTarget)
+        onHide(widgetId)
+        if (typeof window === 'undefined') return
+        window.requestAnimationFrame(() => {
+            const remainingControls = board
+                ? [...board.querySelectorAll<HTMLButtonElement>('[data-pne-widget-board-hide-widget="true"]')]
+                : []
+            const nextHideControl = remainingControls[
+                Math.min(Math.max(currentIndex, 0), Math.max(remainingControls.length - 1, 0))
+            ]
+            const visibilityTrigger = ownerDocument.querySelector<HTMLButtonElement>(
+                '[data-pne-widget-board-visibility-trigger="true"]',
+            )
+            const emptyStateAction = board?.querySelector<HTMLButtonElement>(
+                '[data-pne-widget-board-empty-state="true"] button',
+            )
+            ;(nextHideControl ?? emptyStateAction ?? visibilityTrigger)?.focus()
+        })
+    }
 
     return (
         <Box
@@ -379,15 +417,17 @@ export const WidgetBoardReactGridLayoutItem = ({
                         {definition.settingsActions}
                     </Box>
                 ) : null}
-                {showEditControls ? (
+                {showEditControls && canHide ? (
                     <Box className='pne-widget-board-rgl-control' sx={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
                         <IconButton
-                            aria-label={`Remove ${definition.title}`}
-                            onClick={() => onHide(widgetId)}
+                            aria-label={hideLabel}
+                            data-pne-widget-board-hide-widget='true'
+                            onClick={handleHide}
                             size='small'
                             sx={{ color: neutralColor }}
+                            title={hideLabel}
                         >
-                            <DeleteOutlineRoundedIcon fontSize='small' />
+                            <VisibilityOffOutlinedIcon fontSize='small' />
                         </IconButton>
                     </Box>
                 ) : null}
@@ -429,6 +469,7 @@ const WidgetBoardReactGridLayoutGrid = ({
     compaction,
     containerPadding,
     editBehavior,
+    empty,
     interactionMode,
     isLoadingLayouts,
     items,
@@ -610,7 +651,7 @@ const WidgetBoardReactGridLayoutGrid = ({
                 {isLoadingLayouts ? (
                     <Box sx={{ p: 2, color: 'text.secondary' }}>Loading widgets...</Box>
                 ) : mounted ? (
-                    <Box>
+                    items.length === 0 ? empty : <Box>
                         <ReactGridLayout
                             autoSize
                             width={width}
@@ -659,9 +700,11 @@ export const WidgetBoardReactGridLayoutEngine = (props: WidgetBoardReactGridLayo
             <WidgetBoardOrderEditor
                 boardRootRef={props.boardRootRef}
                 isLoadingLayouts={props.isLoadingLayouts}
-                items={props.items}
-                onItemsChange={props.onItemsChange}
+                items={props.orderEditorItems}
+                onOrderChange={props.onOrderChange}
+                onSetWidgetVisibility={props.onSetWidgetVisibility}
                 rowGap={props.margin[1]}
+                visibilityItems={props.visibilityItems}
             />
         )
     }

@@ -246,6 +246,7 @@ describe('WidgetBoard per-breakpoint persistence', () => {
                     data: { id: 'a', title: 'A' },
                 },
             ],
+            widgetOrder: ['c', 'b', 'a'],
             hidden: ['b'],
             collapsed: ['a'],
             sizeMemory: { a: 8 },
@@ -296,6 +297,36 @@ describe('WidgetBoard per-breakpoint persistence', () => {
             },
             initialState: { isCollapsed: false, isHidden: false },
         })
+    })
+
+    it('preserves unavailable widget slots while reordering the managed full sequence', () => {
+        const base: Record<string, BreakpointLayoutConfig> = {
+            desktop: {
+                columns: 3,
+                widgetOrder: ['a', 'optional', 'b'],
+                widgets: {
+                    a: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
+                    optional: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
+                    b: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
+                },
+            },
+        }
+        const state: WidgetBoardState = {
+            items: [
+                { id: 'b', data: { id: 'b', title: 'B' }, columnSpan: 1, rowSpan: 2 },
+                { id: 'a', data: { id: 'a', title: 'A' }, columnSpan: 1, rowSpan: 2 },
+            ],
+            widgetOrder: ['b', 'a'],
+            hidden: [],
+            collapsed: [],
+            sizeMemory: {},
+            layoutMemory: {},
+        }
+
+        const result = buildPresetFromState(state, base, ['desktop'], 'desktop')
+
+        expect(result.desktop.widgetOrder).toEqual(['b', 'optional', 'a'])
+        expect(result.desktop.widgets.optional).toEqual(base.desktop.widgets.optional)
     })
 
     it('uses widgetOrder to build state and remembers the position of initially hidden widgets', () => {

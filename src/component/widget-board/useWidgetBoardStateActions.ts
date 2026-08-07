@@ -12,9 +12,77 @@ import {
     type WidgetDefinitionWithLayout,
 } from './widgetBoardLayoutUtils'
 
+const resolveCompleteWidgetOrder = (
+    state: WidgetBoardState,
+    definitionsMap: Map<string, WidgetDefinitionWithLayout>,
+    definitionsWithLayout: WidgetDefinitionWithLayout[],
+) => {
+    const seen = new Set<string>()
+    const order: string[] = []
+    const candidates = [
+        ...state.widgetOrder,
+        ...state.items.map(item => item.id as string),
+        ...state.hidden,
+        ...definitionsWithLayout.map(definition => definition.id),
+    ]
+
+    candidates.forEach(id => {
+        if (!definitionsMap.has(id) || seen.has(id)) return
+        seen.add(id)
+        order.push(id)
+    })
+
+    return order
+}
+
+export const mergeVisibleOrderIntoFullOrder = (
+    fullOrder: readonly string[],
+    visibleOrder: readonly string[],
+    hiddenIds: ReadonlySet<string>,
+) => {
+    const visibleIterator = visibleOrder[Symbol.iterator]()
+    const merged = fullOrder.map(id => hiddenIds.has(id) ? id : visibleIterator.next().value ?? id)
+
+    visibleOrder.forEach(id => {
+        if (!merged.includes(id)) merged.push(id)
+    })
+
+    return merged
+}
+
+const updateHiddenSnapshotOrders = (
+    layoutMemory: WidgetBoardState['layoutMemory'],
+    breakpointKey: string,
+    hiddenIds: readonly string[],
+    widgetOrder: readonly string[],
+    definitionsMap: Map<string, WidgetDefinitionWithLayout>,
+) => {
+    if (hiddenIds.length === 0) return layoutMemory
+
+    const currentMemory = layoutMemory[breakpointKey] ?? {}
+    const nextMemory = { ...currentMemory }
+
+    hiddenIds.forEach(id => {
+        const definition = definitionsMap.get(id)
+        if (!definition) return
+        const current = currentMemory[id]
+        nextMemory[id] = {
+            columnSpan: current?.columnSpan ?? definition.layout.defaultSize.columnSpan,
+            rowSpan: current?.rowSpan ?? definition.layout.defaultSize.rowSpan,
+            columnOffset: current?.columnOffset ?? definition.layout.defaultSize.columnOffset,
+            order: Math.max(0, widgetOrder.indexOf(id)),
+        }
+    })
+
+    return {
+        ...layoutMemory,
+        [breakpointKey]: nextMemory,
+    }
+}
+
 type UseWidgetBoardStateActionsParams = {
     currentBreakpointKey: string
-    defaultDefinitionsMap: Map<string, WidgetDefinitionWithLayout>
+    defaultDefinitionsWithLayout: WidgetDefinitionWithLayout[]
     definitionsMap: Map<string, WidgetDefinitionWithLayout>
     definitionsWithLayout: WidgetDefinitionWithLayout[]
     isDefaultLayoutSelected: boolean
@@ -23,7 +91,7 @@ type UseWidgetBoardStateActionsParams = {
 
 export const useWidgetBoardStateActions = ({
     currentBreakpointKey,
-    defaultDefinitionsMap,
+    defaultDefinitionsWithLayout,
     definitionsMap,
     definitionsWithLayout,
     isDefaultLayoutSelected,
@@ -34,18 +102,20 @@ export const useWidgetBoardStateActions = ({
             setLayoutState(prev => {
                 const definition = definitionsMap.get(id)
                 if (!definition) return prev
+                if (!visible && definition.canHide === false) return prev
 
                 const isHidden = prev.hidden.includes(id)
                 if (visible === !isHidden) return prev
 
+                const widgetOrder = resolveCompleteWidgetOrder(prev, definitionsMap, definitionsWithLayout)
+
                 if (!visible) {
-                    const index = prev.items.findIndex(item => item.id === id)
-                    const item = index >= 0 ? prev.items[index] : undefined
+                    const item = prev.items.find(boardItem => boardItem.id === id)
                     const snapshot: WidgetLayoutSnapshot = {
                         columnSpan: item?.columnSpan ?? definition.layout.defaultSize.columnSpan,
                         rowSpan: item?.rowSpan ?? definition.layout.defaultSize.rowSpan,
                         columnOffset: item?.columnOffset ?? definition.layout.defaultSize.columnOffset,
-                        order: index >= 0 ? index : prev.items.length,
+                        order: Math.max(0, widgetOrder.indexOf(id)),
                     }
 
                     const layoutMemory = upsertLayoutMemory(prev.layoutMemory, currentBreakpointKey, id, snapshot)
@@ -53,6 +123,7 @@ export const useWidgetBoardStateActions = ({
                     return {
                         ...prev,
                         layoutMemory,
+                        widgetOrder,
                         items: prev.items.filter(boardItem => boardItem.id !== id),
                         hidden: prev.hidden.includes(id) ? prev.hidden : [...prev.hidden, id],
                         collapsed: prev.collapsed.filter(col => col !== id),
@@ -63,19 +134,25 @@ export const useWidgetBoardStateActions = ({
                 const snapshot = prev.layoutMemory?.[currentBreakpointKey]?.[id]
                 const restoredItem = snapshot ? toBoardItem(definition, snapshot) : toBoardItem(definition)
                 const nextItems = [...prev.items]
-                const target = Math.min(Math.max(snapshot?.order ?? prev.items.length, 0), nextItems.length)
+                const nextHidden = prev.hidden.filter(hiddenId => hiddenId !== id)
+                const fullOrderIndex = Math.max(0, widgetOrder.indexOf(id))
+                const target = widgetOrder
+                    .slice(0, fullOrderIndex)
+                    .filter(widgetId => definitionsMap.has(widgetId) && !nextHidden.includes(widgetId))
+                    .length
                 nextItems.splice(target, 0, restoredItem)
 
                 return {
                     ...prev,
                     items: nextItems,
-                    hidden: prev.hidden.filter(hiddenId => hiddenId !== id),
+                    widgetOrder,
+                    hidden: nextHidden,
                     collapsed: prev.collapsed.filter(col => col !== id),
                     sizeMemory: Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => key !== id)) as Partial<Record<string, number>>,
                 }
             })
         },
-        [currentBreakpointKey, definitionsMap, setLayoutState],
+        [currentBreakpointKey, definitionsMap, definitionsWithLayout, setLayoutState],
     )
 
     const hideItem = useCallback(
@@ -94,21 +171,21 @@ export const useWidgetBoardStateActions = ({
         setLayoutState(prev => {
             const hiddenSet = new Set(prev.hidden)
 
-            const resetDefinitions = definitionsWithLayout.map(definition => {
-                if (hiddenSet.has(definition.id)) {
+            const resetDefinitions = defaultDefinitionsWithLayout.map(defaultDefinition => {
+                if (hiddenSet.has(defaultDefinition.id)) {
+                    const currentDefinition = definitionsMap.get(defaultDefinition.id) ?? defaultDefinition
                     return {
-                        ...definition,
+                        ...currentDefinition,
                         layout: {
-                            ...definition.layout,
+                            ...currentDefinition.layout,
                             initialState: {
-                                ...definition.layout.initialState,
+                                ...currentDefinition.layout.initialState,
                                 isHidden: true,
                             },
                         },
                     }
                 }
 
-                const defaultDefinition = defaultDefinitionsMap.get(definition.id) ?? definition
                 return {
                     ...defaultDefinition,
                     layout: {
@@ -139,10 +216,23 @@ export const useWidgetBoardStateActions = ({
                 ...nextState,
                 hidden: nextHidden,
                 collapsed: nextCollapsed,
-                layoutMemory: nextLayoutMemory,
+                layoutMemory: updateHiddenSnapshotOrders(
+                    nextLayoutMemory,
+                    currentBreakpointKey,
+                    nextHidden,
+                    nextState.widgetOrder,
+                    definitionsMap,
+                ),
             }
         })
-    }, [currentBreakpointKey, defaultDefinitionsMap, definitionsMap, definitionsWithLayout, isDefaultLayoutSelected, setLayoutState])
+    }, [
+        currentBreakpointKey,
+        defaultDefinitionsWithLayout,
+        definitionsMap,
+        definitionsWithLayout,
+        isDefaultLayoutSelected,
+        setLayoutState,
+    ])
 
     const handleItemsChange: BoardProps<WidgetBoardItemData>['onItemsChange'] = useCallback(
         ({ detail }) => {
@@ -201,10 +291,66 @@ export const useWidgetBoardStateActions = ({
                     })
                     .filter(Boolean) as BoardProps.Item<WidgetBoardItemData>[]
 
-                return { ...prev, items: nextItems }
+                const previousFullOrder = resolveCompleteWidgetOrder(prev, definitionsMap, definitionsWithLayout)
+                const hiddenSet = new Set(prev.hidden)
+                const nextVisibleOrder = nextItems.map(item => item.id as string)
+                const widgetOrder = mergeVisibleOrderIntoFullOrder(previousFullOrder, nextVisibleOrder, hiddenSet)
+
+                return {
+                    ...prev,
+                    items: nextItems,
+                    widgetOrder,
+                    layoutMemory: updateHiddenSnapshotOrders(
+                        prev.layoutMemory,
+                        currentBreakpointKey,
+                        prev.hidden,
+                        widgetOrder,
+                        definitionsMap,
+                    ),
+                }
             })
         },
-        [definitionsMap, setLayoutState],
+        [currentBreakpointKey, definitionsMap, definitionsWithLayout, setLayoutState],
+    )
+
+    const reorderAllItems = useCallback(
+        (orderedIds: string[]) => {
+            setLayoutState(prev => {
+                const previousOrder = resolveCompleteWidgetOrder(prev, definitionsMap, definitionsWithLayout)
+                const orderedSet = new Set<string>()
+                const widgetOrder = [...orderedIds, ...previousOrder].filter(id => {
+                    if (!definitionsMap.has(id) || orderedSet.has(id)) return false
+                    orderedSet.add(id)
+                    return true
+                })
+                if (
+                    widgetOrder.length === previousOrder.length &&
+                    widgetOrder.every((id, index) => id === previousOrder[index])
+                ) {
+                    return prev
+                }
+
+                const itemMap = new Map(prev.items.map(item => [item.id as string, item]))
+                const items = widgetOrder.flatMap(id => {
+                    const item = itemMap.get(id)
+                    return item ? [item] : []
+                })
+
+                return {
+                    ...prev,
+                    items,
+                    widgetOrder,
+                    layoutMemory: updateHiddenSnapshotOrders(
+                        prev.layoutMemory,
+                        currentBreakpointKey,
+                        prev.hidden,
+                        widgetOrder,
+                        definitionsMap,
+                    ),
+                }
+            })
+        },
+        [currentBreakpointKey, definitionsMap, definitionsWithLayout, setLayoutState],
     )
 
     const toggleCollapse = useCallback(
@@ -249,40 +395,35 @@ export const useWidgetBoardStateActions = ({
             if (prev.hidden.length === 0) return prev
 
             const hiddenSet = new Set(prev.hidden)
-            const restoredWithOrder: Array<{ order: number; hiddenIndex: number; item: BoardProps.Item<WidgetBoardItemData> }> = prev.hidden.flatMap(
-                (id, hiddenIndex) => {
-                    const def = definitionsMap.get(id)
-                    if (!def) return []
-                    const snapshot = prev.layoutMemory?.[currentBreakpointKey]?.[id]
-                    const item = snapshot ? toBoardItem(def, snapshot) : toBoardItem(def)
-                    const order = snapshot?.order ?? prev.items.length + hiddenIndex
-                    return [{ order, hiddenIndex, item }]
-                },
-            )
+            const widgetOrder = resolveCompleteWidgetOrder(prev, definitionsMap, definitionsWithLayout)
+            const currentItems = new Map(prev.items.map(item => [item.id as string, item]))
+            const nextItems = widgetOrder.flatMap(id => {
+                const currentItem = currentItems.get(id)
+                if (currentItem) return [currentItem]
+                if (!hiddenSet.has(id)) return []
 
-            const nextItems = [...prev.items]
-            restoredWithOrder
-                .sort((a, b) => a.order - b.order || a.hiddenIndex - b.hiddenIndex)
-                .reverse()
-                .forEach(({ order, item }) => {
-                    const target = Math.min(Math.max(order, 0), nextItems.length)
-                    nextItems.splice(target, 0, item)
-                })
+                const definition = definitionsMap.get(id)
+                if (!definition) return []
+                const snapshot = prev.layoutMemory?.[currentBreakpointKey]?.[id]
+                return [snapshot ? toBoardItem(definition, snapshot) : toBoardItem(definition)]
+            })
 
             const nextSizeMemory = Object.fromEntries(Object.entries(prev.sizeMemory).filter(([key]) => !hiddenSet.has(key)))
 
             return {
                 ...prev,
+                widgetOrder,
                 hidden: [],
                 collapsed: prev.collapsed.filter(col => !hiddenSet.has(col)),
                 sizeMemory: nextSizeMemory,
                 items: nextItems,
             }
         })
-    }, [currentBreakpointKey, definitionsMap, setLayoutState])
+    }, [currentBreakpointKey, definitionsMap, definitionsWithLayout, setLayoutState])
 
     return {
         handleItemsChange,
+        reorderAllItems,
         hideItem,
         setWidgetVisibility,
         resetLayout,

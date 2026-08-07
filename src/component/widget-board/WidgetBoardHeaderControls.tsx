@@ -16,8 +16,10 @@ import type { WidgetBoardInteractionMode } from './types'
 export type WidgetBoardHeaderControlsProps = {
     interactionMode: WidgetBoardInteractionMode
     onInteractionModeChange: (mode: WidgetBoardInteractionMode) => void
-    /** Optional controls rendered immediately after Cancel while the board is being edited. */
+    /** Optional controls rendered immediately after Done while the board is being edited. */
     editActions?: React.ReactNode
+    /** First-class widget visibility control rendered after the layout selector in edit mode. */
+    visibilityControl?: React.ReactNode
     className?: string
     sx?: SxProps<Theme>
 }
@@ -53,6 +55,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
     interactionMode,
     onInteractionModeChange,
     editActions,
+    visibilityControl,
     className,
     sx,
 }) => {
@@ -131,6 +134,12 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                 </Box>
             </PneButton>
 
+            {isEditMode && visibilityControl ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
+                    {visibilityControl}
+                </Box>
+            ) : null}
+
             {isEditMode ? (
                 <>
                     <PneButton
@@ -148,7 +157,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                         onClick={() => onInteractionModeChange('view')}
                         sx={headerButtonSx}
                     >
-                        {t('pne.widgetBoard.layouts.cancel', { defaultValue: 'Cancel' })}
+                        {t('pne.widgetBoard.layouts.done', { defaultValue: 'Done' })}
                     </PneButton>
                     {editActions ? (
                         <Box

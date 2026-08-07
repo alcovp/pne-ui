@@ -7,6 +7,14 @@ import {
 } from '../src/component/widget-board/WidgetBoardOrderEditor'
 import { WidgetBoardReactGridLayoutEngine } from '../src/component/widget-board/WidgetBoardReactGridLayoutEngine'
 import type { WidgetBoardItemData } from '../src/component/widget-board/types'
+import type { WidgetBoardVisibilityItem } from '../src/component/widget-board/widgetBoardFabStore'
+
+jest.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, options: Record<string, unknown> = {}) =>
+            String(options.defaultValue ?? key).replace(/\{\{(\w+)\}\}/g, (_match, name) => String(options[name] ?? '')),
+    }),
+}))
 
 type MockDragEnd = (
     result: {
@@ -94,6 +102,12 @@ const items: BoardProps.Item<WidgetBoardItemData>[] = [
     },
 ]
 
+const visibilityItems: WidgetBoardVisibilityItem[] = [
+    { id: 'payment', title: 'Payment', visible: true, canHide: true },
+    { id: 'status', title: 'Status', visible: false, canHide: true },
+    { id: 'balance', title: 'Balance', visible: true, canHide: false },
+]
+
 describe('reorderWidgetBoardItems', () => {
     it('returns the same item objects in the requested order without changing geometry', () => {
         const reordered = reorderWidgetBoardItems(items, 0, 2)
@@ -139,13 +153,18 @@ describe('WidgetBoard order-only editor', () => {
                 editBehavior='order-only'
                 interactionMode='edit'
                 isLoadingLayouts={false}
-                items={items}
+                items={[items[0], items[2]]}
+                orderEditorItems={items}
                 margin={[0, 0]}
                 minWidthPxByWidgetId={{}}
                 onItemsChange={jest.fn()}
+                onOrderChange={jest.fn()}
+                onSetWidgetVisibility={jest.fn()}
                 renderItem={renderItem}
                 rowHeight={16}
                 useCSSTransforms
+                visibilityItems={visibilityItems}
+                empty={null}
             />,
         )
 
@@ -155,13 +174,17 @@ describe('WidgetBoard order-only editor', () => {
         expect(screen.getByText('Payment')).toBeTruthy()
         expect(screen.getByText('Status')).toBeTruthy()
         expect(screen.getByText('Balance')).toBeTruthy()
+        expect(screen.getByText('Hidden')).toBeTruthy()
+        expect(screen.getByText('Required')).toBeTruthy()
+        expect((screen.getByRole('checkbox', { name: 'Show widget Status' }) as HTMLInputElement).checked).toBe(false)
+        expect((screen.getByRole('checkbox', { name: 'Show widget Balance' }) as HTMLInputElement).disabled).toBe(true)
         expect(container.querySelector('[data-pne-widget-board-content-body="true"]')).toBeNull()
         expect(container.querySelector('.react-grid-layout')).toBeNull()
         expect(container.querySelector('.react-resizable-handle')).toBeNull()
     })
 
     it('moves rows immediately with buttons and preserves the original item objects', async () => {
-        const onItemsChange = jest.fn()
+        const onOrderChange = jest.fn()
 
         const ControlledEditor = () => {
             const [controlledItems, setControlledItems] = useState(items)
@@ -171,10 +194,16 @@ describe('WidgetBoard order-only editor', () => {
                     boardRootRef={jest.fn()}
                     isLoadingLayouts={false}
                     items={controlledItems}
-                    onItemsChange={event => {
-                        onItemsChange(event)
-                        setControlledItems([...event.detail.items])
+                    onOrderChange={ids => {
+                        onOrderChange(ids)
+                        const byId = new Map(controlledItems.map(item => [item.id as string, item]))
+                        setControlledItems(ids.flatMap(id => {
+                            const item = byId.get(id)
+                            return item ? [item] : []
+                        }))
                     }}
+                    onSetWidgetVisibility={jest.fn()}
+                    visibilityItems={visibilityItems}
                 />
             )
         }
@@ -202,20 +231,11 @@ describe('WidgetBoard order-only editor', () => {
             expect(getRowTitles()).toEqual(['Status', 'Payment', 'Balance'])
         })
 
-        const nextItems = onItemsChange.mock.calls[0][0].detail.items
-        expect(nextItems).toEqual([items[1], items[0], items[2]])
-        expect(nextItems[0]).toBe(items[1])
-        expect(nextItems[1]).toBe(items[0])
-        expect(nextItems[2]).toBe(items[2])
-        expect(nextItems[1]).toMatchObject({
-            columnSpan: 3,
-            rowSpan: 7,
-            columnOffset: { 6: 1 },
-        })
+        expect(onOrderChange).toHaveBeenCalledWith(['status', 'payment', 'balance'])
     })
 
     it('commits a drag destination through the same geometry-preserving reorder path', async () => {
-        const onItemsChange = jest.fn()
+        const onOrderChange = jest.fn()
         const announce = jest.fn()
 
         const ControlledEditor = () => {
@@ -226,10 +246,16 @@ describe('WidgetBoard order-only editor', () => {
                     boardRootRef={jest.fn()}
                     isLoadingLayouts={false}
                     items={controlledItems}
-                    onItemsChange={event => {
-                        onItemsChange(event)
-                        setControlledItems([...event.detail.items])
+                    onOrderChange={ids => {
+                        onOrderChange(ids)
+                        const byId = new Map(controlledItems.map(item => [item.id as string, item]))
+                        setControlledItems(ids.flatMap(id => {
+                            const item = byId.get(id)
+                            return item ? [item] : []
+                        }))
                     }}
+                    onSetWidgetVisibility={jest.fn()}
+                    visibilityItems={visibilityItems}
                 />
             )
         }
@@ -245,7 +271,7 @@ describe('WidgetBoard order-only editor', () => {
                 { announce },
             )
         })
-        expect(onItemsChange).not.toHaveBeenCalled()
+        expect(onOrderChange).not.toHaveBeenCalled()
 
         act(() => {
             mockOnDragEnd?.(
@@ -265,11 +291,33 @@ describe('WidgetBoard order-only editor', () => {
             ).toEqual(['Status', 'Balance', 'Payment'])
         })
 
-        const nextItems = onItemsChange.mock.calls[0][0].detail.items
-        expect(nextItems).toEqual([items[1], items[2], items[0]])
-        expect(nextItems[0]).toBe(items[1])
-        expect(nextItems[1]).toBe(items[2])
-        expect(nextItems[2]).toBe(items[0])
+        expect(onOrderChange).toHaveBeenCalledWith(['status', 'balance', 'payment'])
         expect(announce).toHaveBeenCalledWith('Payment moved to position 3 of 3')
+    })
+
+    it('keeps a hidden row reorderable and toggles its visibility without mounting content', () => {
+        const onOrderChange = jest.fn()
+        const onSetWidgetVisibility = jest.fn()
+
+        render(
+            <WidgetBoardOrderEditor
+                boardRootRef={jest.fn()}
+                isLoadingLayouts={false}
+                items={items}
+                onOrderChange={onOrderChange}
+                onSetWidgetVisibility={onSetWidgetVisibility}
+                visibilityItems={visibilityItems}
+            />,
+        )
+
+        const hiddenRow = screen.getByText('Status').closest('[role="listitem"]') as HTMLElement
+        expect(hiddenRow.getAttribute('data-pne-widget-board-widget-visible')).toBe('false')
+        expect(within(hiddenRow).getByText('Hidden')).toBeTruthy()
+
+        fireEvent.click(within(hiddenRow).getByRole('button', { name: 'Move Status down' }))
+        expect(onOrderChange).toHaveBeenCalledWith(['payment', 'balance', 'status'])
+
+        fireEvent.click(within(hiddenRow).getByRole('checkbox', { name: 'Show widget Status' }))
+        expect(onSetWidgetVisibility).toHaveBeenCalledWith('status', true)
     })
 })

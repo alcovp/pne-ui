@@ -2,10 +2,11 @@ import React from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 import BoardItem from '@cloudscape-design/board-components/board-item'
 import '@fontsource/roboto/600.css'
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import ExpandLessRoundedIcon from '@mui/icons-material/ExpandLessRounded'
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded'
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { boardItemI18nStrings } from '../cloudscape/boardI18n'
 import type { WidgetBoardItemData, WidgetHeightMode } from './types'
 import type { WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
@@ -47,6 +48,7 @@ export const WidgetBoardItem = ({
     onHide,
     onToggleCollapse,
 }: WidgetBoardItemProps) => {
+    const { t } = useTranslation()
     const widgetId = item.id as string
     const contentOverflow = definition.contentFullHeight ? 'hidden' : heightMode === 'fixed' ? 'auto' : 'hidden'
     const boardItemDataAttributes = { 'data-height-mode': heightMode, 'data-collapsed': isCollapsed ? 'true' : 'false' } as any
@@ -86,9 +88,19 @@ export const WidgetBoardItem = ({
             >
                 {isCollapsed ? <ExpandMoreRoundedIcon fontSize='medium' /> : <ExpandLessRoundedIcon fontSize='medium' />}
             </IconButton>
-            <IconButton aria-label='Hide widget' onClick={() => onHide(widgetId)} size='small' sx={{ color: 'rgba(78, 93, 120, 1)' }}>
-                <CloseRoundedIcon fontSize='medium' />
-            </IconButton>
+            {definition.canHide !== false ? (
+                <IconButton
+                    aria-label={t('pne.widgetBoard.visibility.hideWidget', {
+                        title: definition.title,
+                        defaultValue: 'Hide widget {{title}}',
+                    })}
+                    onClick={() => onHide(widgetId)}
+                    size='small'
+                    sx={{ color: 'rgba(78, 93, 120, 1)' }}
+                >
+                    <VisibilityOffOutlinedIcon fontSize='medium' />
+                </IconButton>
+            ) : null}
         </Stack>
     )
 

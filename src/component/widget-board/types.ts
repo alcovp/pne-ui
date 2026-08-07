@@ -81,6 +81,8 @@ export type WidgetDefinition = {
     settingsActions?: React.ReactNode
     contentFullHeight?: boolean
     minWidthPx?: number
+    /** Whether the user may hide this widget. Defaults to `true`. */
+    canHide?: boolean
 }
 
 export type WidgetBoardItemData = {
@@ -90,6 +92,8 @@ export type WidgetBoardItemData = {
 
 export type WidgetBoardState = {
     items: Array<BoardProps.Item<WidgetBoardItemData>>
+    /** Complete current order, including hidden widgets. */
+    widgetOrder: WidgetId[]
     hidden: WidgetId[]
     collapsed: WidgetId[]
     sizeMemory: Partial<Record<WidgetId, number>>
@@ -137,4 +141,6 @@ export type WidgetBoardProps = {
     reactGridLayoutOptions?: WidgetBoardReactGridLayoutOptions
     breakpoints?: readonly WidgetBoardBreakpoint[]
     breakpointSource?: WidgetBoardBreakpointSource
+    /** Show an undo snackbar after the inline widget-header hide action. */
+    showHideUndo?: boolean
 }

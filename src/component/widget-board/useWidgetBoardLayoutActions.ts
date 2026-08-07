@@ -2,7 +2,12 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { createLayoutId } from './widgetBoardLayoutUtils'
-import type { BreakpointLayoutConfig, WidgetBoardActionsState, WidgetBoardLayoutOption } from './types'
+import type {
+    BreakpointLayoutConfig,
+    WidgetBoardActionsState,
+    WidgetBoardEditBehavior,
+    WidgetBoardLayoutOption,
+} from './types'
 import type { WidgetBoardFabStore, WidgetBoardVisibilityItem } from './widgetBoardFabStore'
 
 type UseWidgetBoardLayoutActionsParams = {
@@ -21,6 +26,8 @@ type UseWidgetBoardLayoutActionsParams = {
     onSetWidgetVisibility: (id: string, visible: boolean) => void
     onResetLayout: () => void
     onRestoreHidden: () => void
+    activeBreakpointId: string
+    editBehavior: WidgetBoardEditBehavior
     selectedLayoutId: string | undefined
     setLayoutOptions: Dispatch<SetStateAction<WidgetBoardLayoutOption[]>>
     setLayoutSource: Dispatch<SetStateAction<Record<number | string, BreakpointLayoutConfig>>>
@@ -43,6 +50,8 @@ export const useWidgetBoardLayoutActions = ({
     onSetWidgetVisibility,
     onResetLayout,
     onRestoreHidden,
+    activeBreakpointId,
+    editBehavior,
     selectedLayoutId,
     setLayoutOptions,
     setLayoutSource,
@@ -215,6 +224,9 @@ export const useWidgetBoardLayoutActions = ({
             onSetWidgetVisibility,
             onResetLayout,
             onRestoreHidden,
+            activeBreakpointId,
+            editBehavior,
+            isLoadingLayouts,
         }
         fabStore.getState().setPanelState(panelProps)
         return () => {
@@ -222,10 +234,13 @@ export const useWidgetBoardLayoutActions = ({
         }
     }, [
         actionsState,
+        activeBreakpointId,
         addInfo,
         addLayout,
         deleteLayout,
+        editBehavior,
         fabStore,
+        isLoadingLayouts,
         layoutOptions,
         lockedLayoutIdRef,
         onSetWidgetVisibility,

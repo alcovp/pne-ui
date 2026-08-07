@@ -5,6 +5,7 @@ import { expect, fireEvent, waitFor } from 'storybook/test'
 import type { PneFabAction, PneFabItem, WidgetBoardInteractionMode, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetBoardReactGridLayoutTuning, WidgetDefinition } from '../index'
 import {
     DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING,
+    OverlayHost,
     PneButton,
     WidgetBoardVisibilityModal,
     WidgetBoardHeaderControls,
@@ -12,6 +13,7 @@ import {
     WidgetLayoutsPanel,
     WidgetBoard,
     WidgetBoardScopeProvider,
+    WidgetBoardVisibilityControl,
     useWidgetBoardFabActions,
     useWidgetBoardScopeStore,
 } from '../index'
@@ -455,6 +457,112 @@ const BoardWithHeaderControls = ({
     </WidgetBoardScopeProvider>
 )
 
+const visibilityExperienceBreakpoints = [
+    { id: 'narrow', minWidth: 0, editBehavior: 'order-only' },
+    { id: 'desktop', minWidth: 700, editBehavior: 'grid' },
+] as const
+
+const visibilityExperienceLayout = {
+    narrow: {
+        columns: 1,
+        rowHeight: 48,
+        margin: [0, 0] as const,
+        containerPadding: [0, 0] as const,
+        widgetOrder: ['traffic', 'sales', 'uptime', 'errors'],
+        widgets: {
+            traffic: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
+            sales: {
+                defaultSize: { columnSpan: 1, rowSpan: 2 },
+                initialState: { isHidden: true },
+            },
+            uptime: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
+            errors: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
+        },
+    },
+    desktop: {
+        columns: 4,
+        rowHeight: 48,
+        margin: [8, 8] as const,
+        containerPadding: [0, 0] as const,
+        widgetOrder: ['traffic', 'sales', 'uptime', 'errors'],
+        widgets: {
+            traffic: { defaultSize: { columnSpan: 2, rowSpan: 3 } },
+            sales: { defaultSize: { columnSpan: 2, rowSpan: 3 } },
+            uptime: { defaultSize: { columnSpan: 2, rowSpan: 3 } },
+            errors: { defaultSize: { columnSpan: 2, rowSpan: 3 } },
+        },
+    },
+}
+
+const WidgetVisibilityExperienceContent = () => {
+    const [narrow, setNarrow] = React.useState(false)
+    const loadLayouts = React.useCallback(async () => ({
+        options: [{ id: 'default', name: 'Visibility demo', layoutByBreakpoint: visibilityExperienceLayout }],
+        selectedId: 'default',
+    }), [])
+    const saveLayouts = React.useCallback(async () => undefined, [])
+
+    return (
+        <Box sx={{ p: 2 }}>
+            <Stack spacing={2}>
+                <Stack direction='row' spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant='body2' color='text.secondary'>
+                        The side sheet is desktop-only; narrow editing keeps every widget in the inline order list.
+                    </Typography>
+                    <PneButton
+                        data-pne-widget-board-story-width-toggle='true'
+                        onClick={() => setNarrow(value => !value)}
+                        pneStyle='outlined'
+                        size='small'
+                    >
+                        {narrow ? 'Switch to desktop' : 'Switch to narrow'}
+                    </PneButton>
+                </Stack>
+                <Box
+                    data-pne-widget-board-story-surface='true'
+                    sx={{ maxWidth: '100%', transition: 'width 160ms ease', width: narrow ? 360 : '100%' }}
+                >
+                    <Stack spacing={1.5}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', minHeight: 40 }}>
+                            <WidgetBoardHeaderControls
+                                interactionMode='edit'
+                                onInteractionModeChange={() => undefined}
+                                visibilityControl={<WidgetBoardVisibilityControl />}
+                            />
+                        </Box>
+                        <WidgetBoard
+                            autoHeightEnabled={false}
+                            breakpointSource='container'
+                            breakpoints={visibilityExperienceBreakpoints}
+                            interactionMode='edit'
+                            layoutByBreakpoint={visibilityExperienceLayout}
+                            loadLayouts={loadLayouts}
+                            reactGridLayoutOptions={{
+                                columns: 4,
+                                rowHeight: 48,
+                                margin: [8, 8],
+                                containerPadding: [0, 0],
+                            }}
+                            saveLayouts={saveLayouts}
+                            showHideUndo
+                            widgets={widgets}
+                        />
+                    </Stack>
+                </Box>
+            </Stack>
+        </Box>
+    )
+}
+
+const WidgetVisibilityExperience = () => (
+    <>
+        <OverlayHost />
+        <WidgetBoardScopeProvider>
+            <WidgetVisibilityExperienceContent />
+        </WidgetBoardScopeProvider>
+    </>
+)
+
 const BoardWithLayoutsContent = () => {
     const [boardVersion, setBoardVersion] = React.useState(0)
     const [isVisibilityModalOpen, setVisibilityModalOpen] = React.useState(false)
@@ -601,6 +709,94 @@ export const ReactGridLayoutHeaderControls: StoryObj<typeof BoardWithLayouts> = 
 export const ReactGridLayoutTuningPlayground: StoryObj<typeof BoardWithLayouts> = {
     name: 'React Grid Layout — tuning playground',
     render: () => <BoardWithHeaderControls initialInteractionMode='edit' />,
+}
+
+export const VisibilityExperience: StoryObj<typeof BoardWithLayouts> = {
+    name: 'Visibility — side sheet, undo, empty recovery, narrow reorder',
+    render: () => <WidgetVisibilityExperience />,
+    play: async ({ canvasElement }) => {
+        const trigger = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLButtonElement>(
+                '[data-pne-widget-board-visibility-trigger="true"]',
+            )
+            if (!element) throw new Error('Visibility trigger did not render')
+            return element
+        })
+        fireEvent.click(trigger)
+
+        const panel = await waitFor(() => {
+            const element = document.querySelector<HTMLElement>(
+                '[data-pne-widget-board-visibility-panel="true"]',
+            )
+            if (!element) throw new Error('Visibility side sheet did not open')
+            return element
+        })
+        expect(panel.getAttribute('data-pne-widget-board-breakpoint-id')).toBe('desktop')
+        expect(panel.getAttribute('aria-modal')).toBe('false')
+        fireEvent.click(panel.querySelector<HTMLButtonElement>('button[aria-label="Close"]')!)
+
+        const firstHide = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLButtonElement>(
+                '[data-pne-widget-board-hide-widget="true"]',
+            )
+            if (!element) throw new Error('Direct hide control did not render')
+            return element
+        })
+        fireEvent.click(firstHide)
+        const undo = await waitFor(() => {
+            const element = [...document.querySelectorAll<HTMLButtonElement>('button')]
+                .find(button => button.textContent?.includes('Undo'))
+            if (!element) throw new Error('Hide undo snackbar did not render')
+            return element
+        })
+        fireEvent.click(undo)
+
+        await waitFor(() => {
+            const hideControls = canvasElement.querySelectorAll('[data-pne-widget-board-hide-widget="true"]')
+            expect(hideControls.length).toBe(widgets.length)
+        })
+        for (let remaining = widgets.length; remaining > 0; remaining -= 1) {
+            const hideControl = canvasElement.querySelector<HTMLButtonElement>(
+                '[data-pne-widget-board-hide-widget="true"]',
+            )
+            if (!hideControl) throw new Error('Expected another widget hide control')
+            fireEvent.click(hideControl)
+            await waitFor(() => {
+                expect(canvasElement.querySelectorAll('[data-pne-widget-board-hide-widget="true"]').length)
+                    .toBe(remaining - 1)
+            })
+        }
+
+        const showAll = await waitFor(() => {
+            const emptyState = canvasElement.querySelector<HTMLElement>(
+                '[data-pne-widget-board-empty-state="true"]',
+            )
+            const element = emptyState?.querySelector<HTMLButtonElement>('button')
+            if (!element) throw new Error('All-hidden recovery action did not render')
+            return element
+        })
+        fireEvent.click(showAll)
+        await waitFor(() => {
+            expect(canvasElement.querySelectorAll('[data-pne-widget-board-hide-widget="true"]').length)
+                .toBe(widgets.length)
+        })
+
+        fireEvent.click(canvasElement.querySelector<HTMLButtonElement>(
+            '[data-pne-widget-board-story-width-toggle="true"]',
+        )!)
+        const hiddenRow = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLElement>(
+                '[data-pne-widget-board-order-only-item="true"][data-pne-widget-board-widget-visible="false"]',
+            )
+            if (!element) throw new Error('Narrow hidden widget row did not render')
+            return element
+        })
+        expect(hiddenRow.querySelector('[data-pne-widget-board-order-only-state="hidden"]')).toBeTruthy()
+        const moveDown = [...hiddenRow.querySelectorAll<HTMLButtonElement>('button')]
+            .find(button => button.getAttribute('aria-label')?.includes('down'))
+        if (!moveDown) throw new Error('Hidden row reorder control did not render')
+        fireEvent.click(moveDown)
+    },
 }
 
 export const ReactGridLayoutDragPlaceholder: StoryObj<typeof BoardWithLayouts> = {
