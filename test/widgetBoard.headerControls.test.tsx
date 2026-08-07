@@ -4,6 +4,7 @@ import {
     WidgetBoardDraftNotice,
     WidgetBoardHeaderControls,
     WidgetBoardScopeProvider,
+    WidgetBoardVisibilityControl,
     useWidgetBoardScopeStore,
 } from '../src/component/widget-board'
 import type { WidgetBoardActionsState } from '../src/component/widget-board/types'
@@ -60,12 +61,14 @@ const HeaderStateBridge: React.FC<{ panelState: WidgetBoardFabPanelState }> = ({
 const HeaderHarness: React.FC<{
     onInteractionModeChange: jest.Mock
     panelState: WidgetBoardFabPanelState
-}> = ({ onInteractionModeChange, panelState }) => (
+    visibilityControl?: React.ReactNode
+}> = ({ onInteractionModeChange, panelState, visibilityControl }) => (
     <WidgetBoardScopeProvider>
         <HeaderStateBridge panelState={panelState} />
         <WidgetBoardHeaderControls
             interactionMode='edit'
             onInteractionModeChange={onInteractionModeChange}
+            visibilityControl={visibilityControl}
         />
     </WidgetBoardScopeProvider>
 )
@@ -92,6 +95,49 @@ describe('WidgetBoardDraftNotice', () => {
 })
 
 describe('WidgetBoardHeaderControls layout editing UX', () => {
+    it('keeps equal 8px outer gaps around Saved when order-only visibility renders nothing', async () => {
+        render(
+            <HeaderHarness
+                onInteractionModeChange={jest.fn()}
+                panelState={makePanelState({
+                    actionsState: makeActionsState({
+                        defaultLayoutId: 'default',
+                        isDefaultLayoutSelected: false,
+                        isSelectedLayoutLocked: false,
+                        selectedLayoutId: 'custom',
+                    }),
+                    editBehavior: 'order-only',
+                    onFlushLayoutSave: jest.fn(async () => undefined),
+                    onSelect: jest.fn(async () => undefined),
+                    selectedId: 'custom',
+                })}
+                visibilityControl={<WidgetBoardVisibilityControl />}
+            />,
+        )
+
+        const savedStatus = (await screen.findByText('Saved')).closest<HTMLElement>(
+            '[data-pne-widget-board-persistence-status]',
+        )
+        const controls = document.querySelector<HTMLElement>(
+            '[data-pne-widget-board-header-controls="true"]',
+        )
+        const layoutSelector = controls?.querySelector<HTMLElement>(
+            '[data-pne-widget-board-layout-selector="true"]',
+        )
+        const doneButton = screen.getByRole('button', { name: 'Done' })
+
+        expect(controls).toBeTruthy()
+        expect(layoutSelector).toBeTruthy()
+        expect(savedStatus).toBeTruthy()
+        expect(layoutSelector?.nextElementSibling).toBe(savedStatus)
+        expect(savedStatus?.nextElementSibling).toBe(doneButton)
+        expect(window.getComputedStyle(controls!).gap).toBe('4px')
+        expect(window.getComputedStyle(savedStatus!).marginLeft).toBe('4px')
+        expect(window.getComputedStyle(savedStatus!).marginRight).toBe('4px')
+        expect(window.getComputedStyle(savedStatus!).gap).toBe('6px')
+        expect(controls?.querySelector('[data-pne-widget-board-visibility-trigger="true"]')).toBeNull()
+    })
+
     it('marks a dirty locked selector and guards Done with Continue or Discard', async () => {
         const onInteractionModeChange = jest.fn()
         const onDiscardLayoutChanges = jest.fn(async () => undefined)

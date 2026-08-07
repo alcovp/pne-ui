@@ -90,7 +90,7 @@ const PersistenceStatus: React.FC<PersistenceStatusProps> = ({ error, onRetry, s
                 aria-live='polite'
                 data-pne-widget-board-persistence-status='error'
                 role='alert'
-                sx={{ alignItems: 'center', color: 'error.main', display: 'flex', flexShrink: 0, gap: 0.5 }}
+                sx={{ alignItems: 'center', color: 'error.main', display: 'flex', flexShrink: 0, gap: 0.5, mx: 0.5 }}
                 title={error}
             >
                 <ErrorOutlineIcon sx={buttonIconSx} />
@@ -109,7 +109,7 @@ const PersistenceStatus: React.FC<PersistenceStatusProps> = ({ error, onRetry, s
             aria-live='polite'
             data-pne-widget-board-persistence-status={effectiveStatus}
             role='status'
-            sx={{ alignItems: 'center', color: 'text.secondary', display: 'flex', flexShrink: 0, gap: 0.75 }}
+            sx={{ alignItems: 'center', color: 'text.secondary', display: 'flex', flexShrink: 0, gap: 0.75, mx: 0.5 }}
         >
             {isSaving ? (
                 <CircularProgress aria-hidden size={14} />
@@ -155,6 +155,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
     const lockedIds = store(state => state.lockedIds)
     const actionsState = store(state => state.actionsState)
     const activeBreakpointId = store(state => state.activeBreakpointId)
+    const editBehavior = store(state => state.editBehavior)
     const isLoadingLayouts = store(state => state.isLoadingLayouts) ?? true
     const flushLayoutSave = store(state => state.onFlushLayoutSave)
     const discardLayoutChanges = store(state => state.onDiscardLayoutChanges)
@@ -387,7 +388,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                 </Box>
             </PneButton>
 
-            {isEditMode && visibilityControl ? (
+            {isEditMode && visibilityControl && editBehavior !== 'order-only' ? (
                 <Box
                     aria-disabled={headerControlsBusy ? 'true' : undefined}
                     sx={{
