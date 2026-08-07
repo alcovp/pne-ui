@@ -95,6 +95,61 @@ describe('WidgetBoardDraftNotice', () => {
 })
 
 describe('WidgetBoardHeaderControls layout editing UX', () => {
+    it('uses standard menu semantics and shows the active board size once above the layouts', async () => {
+        render(
+            <HeaderHarness
+                onInteractionModeChange={jest.fn()}
+                panelState={makePanelState({
+                    onAdd: jest.fn(async () => 'new-layout'),
+                    onSelect: jest.fn(async () => undefined),
+                })}
+            />,
+        )
+
+        const trigger = await screen.findByRole('button', { name: 'Default layout' })
+        fireEvent.click(trigger)
+
+        const menu = await screen.findByRole('menu', { name: 'Layouts' })
+        const context = menu.querySelector<HTMLElement>('[data-pne-widget-board-layout-menu-context="true"]')
+        const layoutOptions = within(menu).getAllByRole('menuitemradio')
+        const defaultOption = within(menu).getByRole('menuitemradio', { name: 'Default layout' })
+        const customOption = within(menu).getByRole('menuitemradio', { name: 'Custom layout' })
+        const saveAsAction = within(menu).getByRole('menuitem', { name: 'Save as new layout' })
+        const dividers = within(menu).getAllByRole('separator')
+
+        expect(context).toBeTruthy()
+        expect(within(context!).getByText('Board size')).toBeTruthy()
+        expect(within(context!).getByText('desktop')).toBeTruthy()
+        expect(within(menu).getAllByText('desktop')).toHaveLength(1)
+        expect(trigger.getAttribute('aria-controls')).toBe(menu.id)
+        expect(menu.getAttribute('aria-describedby')).toBe(context!.id)
+        expect(context!.getAttribute('role')).toBe('presentation')
+        expect(within(menu).queryByRole('listitem')).toBeNull()
+        expect(layoutOptions).toHaveLength(2)
+        expect(defaultOption.getAttribute('aria-checked')).toBe('true')
+        expect(defaultOption.classList.contains('Mui-selected')).toBe(true)
+        expect(within(defaultOption).getByTestId('CheckRoundedIcon')).toBeTruthy()
+        await waitFor(() => expect(document.activeElement).toBe(defaultOption))
+        expect(customOption.getAttribute('aria-checked')).toBe('false')
+        expect(defaultOption.parentElement).toBe(menu)
+        expect(customOption.parentElement).toBe(menu)
+        expect(saveAsAction.parentElement).toBe(menu)
+        expect(dividers).toHaveLength(2)
+        expect(dividers[1].compareDocumentPosition(saveAsAction) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+
+        fireEvent.keyDown(defaultOption, { key: 'ArrowDown' })
+        await waitFor(() => expect(document.activeElement).toBe(customOption))
+        fireEvent.keyDown(customOption, { key: 'End' })
+        await waitFor(() => expect(document.activeElement).toBe(saveAsAction))
+        fireEvent.keyDown(saveAsAction, { key: 'Escape' })
+        await waitFor(() => expect(screen.queryByRole('menu', { name: 'Layouts' })).toBeNull())
+        expect(trigger.hasAttribute('aria-expanded')).toBe(false)
+
+        fireEvent.click(trigger)
+        fireEvent.click(await screen.findByRole('menuitem', { name: 'Save as new layout' }))
+        expect(await screen.findByRole('dialog', { name: 'Create layout' })).toBeTruthy()
+    })
+
     it('keeps equal 8px outer gaps around Saved when order-only visibility renders nothing', async () => {
         render(
             <HeaderHarness
@@ -198,6 +253,7 @@ describe('WidgetBoardHeaderControls layout editing UX', () => {
             .mockRejectedValueOnce(new Error('backend unavailable'))
             .mockResolvedValueOnce('saved-draft')
         const panelState = makePanelState({
+            addInfo: { basedOnName: 'Default layout' },
             actionsState: makeActionsState({
                 dirtyBreakpointIds: ['desktop'],
                 hasDraftChanges: true,
@@ -216,7 +272,7 @@ describe('WidgetBoardHeaderControls layout editing UX', () => {
 
         const selector = await screen.findByRole('button', { name: /Default layout/ })
         fireEvent.click(selector)
-        fireEvent.click(await screen.findByRole('menuitem', { name: 'Custom layout' }))
+        fireEvent.click(await screen.findByRole('menuitemradio', { name: 'Custom layout' }))
 
         const guard = await screen.findByRole('dialog', { name: 'Keep your changes?' })
         fireEvent.click(within(guard).getByRole('button', { name: 'Save as new layout' }))
@@ -228,11 +284,20 @@ describe('WidgetBoardHeaderControls layout editing UX', () => {
         expect(window.getComputedStyle(createTrailing).gap).toBe('8px')
         expectLargeButton(within(createDialog).getByText('Cancel').closest('button') as HTMLButtonElement)
         expectLargeButton(within(createDialog).getByRole('button', { name: 'Create' }))
+        const inheritanceNotice = within(createDialog).getByRole('status')
+        expect(inheritanceNotice.getAttribute('data-pne-widget-board-save-as-inheritance')).toBe('true')
+        expect(inheritanceNotice.textContent).toBe('Will inherit from: Default layout')
+        expect(inheritanceNotice.classList.contains('MuiAlert-colorInfo')).toBe(true)
+        expect(inheritanceNotice.classList.contains('MuiAlert-standard')).toBe(true)
+        expect(inheritanceNotice.querySelector('.MuiAlert-icon')).toBeTruthy()
+        expect(within(createDialog).queryByRole('alert')).toBeNull()
         const nameInput = within(createDialog).getByRole('textbox', { name: 'Layout name' }) as HTMLInputElement
         fireEvent.change(nameInput, { target: { value: 'Saved draft' } })
         fireEvent.click(within(createDialog).getByRole('button', { name: 'Create' }))
 
-        expect(await within(createDialog).findByText('Couldn’t create the layout. Try again.')).toBeTruthy()
+        const createError = await within(createDialog).findByRole('alert')
+        expect(createError.textContent).toBe('Couldn’t create the layout. Try again.')
+        expect(inheritanceNotice.isConnected).toBe(true)
         expect(nameInput.value).toBe('Saved draft')
         expect(onSelect).not.toHaveBeenCalled()
 
@@ -267,7 +332,7 @@ describe('WidgetBoardHeaderControls layout editing UX', () => {
         )
 
         fireEvent.click(await screen.findByRole('button', { name: /Default layout/ }))
-        fireEvent.click(await screen.findByRole('menuitem', { name: 'Custom layout' }))
+        fireEvent.click(await screen.findByRole('menuitemradio', { name: 'Custom layout' }))
         const guard = await screen.findByRole('dialog', { name: 'Keep your changes?' })
         fireEvent.click(within(guard).getByRole('button', { name: 'Save as new layout' }))
 
@@ -304,7 +369,7 @@ describe('WidgetBoardHeaderControls layout editing UX', () => {
         )
 
         fireEvent.click(await screen.findByRole('button', { name: 'Default layout' }))
-        fireEvent.click(await screen.findByRole('menuitem', { name: 'Custom layout' }))
+        fireEvent.click(await screen.findByRole('menuitemradio', { name: 'Custom layout' }))
         expect(await screen.findByText('Couldn’t save changes')).toBeTruthy()
         fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
@@ -331,6 +396,7 @@ describe('WidgetBoardHeaderControls layout editing UX', () => {
 
         fireEvent.click(await screen.findByRole('button', { name: 'Save as new layout' }))
         const createDialog = await screen.findByRole('dialog', { name: 'Create layout' })
+        expect(createDialog.querySelector('[data-pne-widget-board-save-as-inheritance="true"]')).toBeNull()
         const nameInput = within(createDialog).getByRole('textbox', { name: 'Layout name' }) as HTMLInputElement
         fireEvent.change(nameInput, { target: { value: 'Awaited layout' } })
         fireEvent.click(within(createDialog).getByRole('button', { name: 'Create' }))

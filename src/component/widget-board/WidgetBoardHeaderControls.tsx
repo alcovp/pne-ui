@@ -1,13 +1,26 @@
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlineRounded'
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutlineRounded'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
-import { Alert, Box, CircularProgress, Divider, Menu, MenuItem, Stack, Typography } from '@mui/material'
-import { alpha, type SxProps, type Theme } from '@mui/material/styles'
-import React, { useMemo, useState } from 'react'
+import {
+    Alert,
+    Box,
+    CircularProgress,
+    Divider,
+    ListItemIcon,
+    ListItemText,
+    ListSubheader,
+    Menu,
+    MenuItem,
+    Stack,
+    Typography,
+} from '@mui/material'
+import { type SxProps, type Theme } from '@mui/material/styles'
+import React, { useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import PneButton from '../PneButton'
 import PneModal from '../PneModal'
@@ -33,7 +46,6 @@ type GuardIntent =
 
 type SaveAsOrigin = 'direct' | 'guard'
 
-const neutralColor = '#5E7594'
 const headerButtonSx: SxProps<Theme> = {
     flexShrink: 0,
     whiteSpace: 'nowrap',
@@ -134,6 +146,8 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
     sx,
 }) => {
     const { t } = useTranslation()
+    const layoutMenuId = useId()
+    const layoutMenuContextId = `${layoutMenuId}-context`
     const [layoutAnchorEl, setLayoutAnchorEl] = useState<HTMLElement | null>(null)
     const [saveAsModalOpen, setSaveAsModalOpen] = useState(false)
     const [saveAsOrigin, setSaveAsOrigin] = useState<SaveAsOrigin>('direct')
@@ -165,6 +179,9 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
         [layoutItems, selectedLayoutId],
     )
     const selectedLayoutName = selectedLayout?.name ?? t('pne.widgetBoard.layouts.defaultName', { defaultValue: 'Default layout' })
+    const activeBreakpointLabel = activeBreakpointId
+        ? String(t(`pne.widgetBoard.breakpoints.${activeBreakpointId}`, { defaultValue: activeBreakpointId }))
+        : undefined
     const isEditMode = interactionMode === 'edit'
     const layoutMenuOpen = Boolean(layoutAnchorEl)
     const isSelectedLayoutLocked = actionsState?.isSelectedLayoutLocked
@@ -367,6 +384,7 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
         >
             <PneButton
                 aria-label={dirtyStatusLabel ? `${selectedLayoutName}. ${dirtyStatusLabel}` : undefined}
+                aria-controls={layoutMenuOpen ? layoutMenuId : undefined}
                 aria-haspopup='menu'
                 aria-expanded={layoutMenuOpen ? 'true' : undefined}
                 data-pne-widget-board-layout-dirty={hasDraftChanges ? 'true' : 'false'}
@@ -468,77 +486,84 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                 anchorEl={layoutAnchorEl}
                 open={layoutMenuOpen}
                 onClose={() => setLayoutAnchorEl(null)}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                 slotProps={{
                     paper: {
                         sx: {
+                            boxSizing: 'border-box',
                             mt: 0.5,
                             width: 300,
                             maxWidth: 'calc(100vw - 32px)',
-                            borderRadius: 1,
-                            border: '1px solid rgba(0, 0, 0, 0.1)',
-                            boxShadow: '0px 4px 8px rgba(20, 27, 52, 0.2)',
-                            p: 1,
                         },
                     },
                     list: {
-                        sx: { p: 0 },
+                        'aria-describedby': activeBreakpointLabel ? layoutMenuContextId : undefined,
+                        'aria-label': t('pne.widgetBoard.layouts.title', { defaultValue: 'Layouts' }),
+                        id: layoutMenuId,
                     },
                 }}
             >
+                {activeBreakpointLabel ? (
+                    <ListSubheader
+                        data-pne-widget-board-layout-menu-context='true'
+                        disableSticky
+                        id={layoutMenuContextId}
+                        role='presentation'
+                        sx={{ alignItems: 'center', display: 'flex', gap: 2 }}
+                    >
+                        <Box
+                            component='span'
+                            sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                            {t('pne.widgetBoard.layouts.currentBoardSize', { defaultValue: 'Board size' })}
+                        </Box>
+                        <Box
+                            component='span'
+                            sx={{ color: 'text.primary', flexShrink: 0, fontWeight: 500, ml: 'auto', whiteSpace: 'nowrap' }}
+                        >
+                            {activeBreakpointLabel}
+                        </Box>
+                    </ListSubheader>
+                ) : null}
+                {activeBreakpointLabel ? <Divider component='li' /> : null}
+                {layoutItems.map(item => {
+                    const selected = item.id === selectedLayoutId
+                    return (
+                        <MenuItem
+                            aria-checked={selected}
+                            disabled={isLoadingLayouts}
+                            key={item.id}
+                            role='menuitemradio'
+                            selected={selected}
+                            onClick={() => handleSelectLayout(item.id)}
+                        >
+                            <ListItemIcon sx={{ color: selected ? 'primary.main' : 'transparent' }}>
+                                <CheckRoundedIcon fontSize='small' />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={item.name}
+                                slotProps={{
+                                    primary: {
+                                        noWrap: true,
+                                        title: item.name,
+                                    },
+                                }}
+                            />
+                        </MenuItem>
+                    )
+                })}
+                <Divider component='li' />
                 <MenuItem
                     disabled={!addLayout || isLoadingLayouts}
                     onClick={() => {
                         setLayoutAnchorEl(null)
                         openSaveAsModal('direct')
                     }}
-                    sx={{
-                        minHeight: 32,
-                        borderRadius: 0.5,
-                        px: 1.5,
-                        py: 0.5,
-                        fontSize: 14,
-                        lineHeight: '20px',
-                        color: 'primary.main',
-                    }}
                 >
-                    {t('pne.widgetBoard.layouts.saveAsNew', { defaultValue: 'Save as new layout' })}
+                    <ListItemIcon>
+                        <SaveOutlinedIcon fontSize='small' />
+                    </ListItemIcon>
+                    <ListItemText primary={t('pne.widgetBoard.layouts.saveAsNew', { defaultValue: 'Save as new layout' })} />
                 </MenuItem>
-                <Divider sx={{ my: 1 }} />
-                <Stack spacing={0}>
-                    {layoutItems.map(item => {
-                        const selected = item.id === selectedLayoutId
-                        return (
-                            <MenuItem
-                                disabled={isLoadingLayouts}
-                                key={item.id}
-                                selected={selected}
-                                onClick={() => handleSelectLayout(item.id)}
-                                sx={{
-                                    minHeight: 36,
-                                    borderRadius: 0.5,
-                                    px: 1,
-                                    py: 1,
-                                    fontSize: 14,
-                                    lineHeight: '20px',
-                                    color: selected ? 'primary.main' : neutralColor,
-                                    '&.Mui-selected': {
-                                        bgcolor: theme => alpha(theme.palette.primary.main, 0.04),
-                                        border: theme => `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
-                                    },
-                                    '&.Mui-selected:hover': {
-                                        bgcolor: theme => alpha(theme.palette.primary.main, 0.07),
-                                    },
-                                }}
-                            >
-                                <Box component='span' sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {item.name}
-                                </Box>
-                            </MenuItem>
-                        )
-                    })}
-                </Stack>
             </Menu>
 
             <PneModal
@@ -579,11 +604,17 @@ export const WidgetBoardHeaderControls: React.FC<WidgetBoardHeaderControlsProps>
                         }}
                     />
                     {addInfo ? (
-                        <Box sx={{ px: 1.5, py: 1, bgcolor: '#F7F9FC', borderRadius: 1, border: '1px solid #E5E8ED' }}>
-                            <Typography sx={{ fontSize: 13, lineHeight: '18px', color: '#4E5D78' }}>
-                                {t('pne.widgetBoard.layouts.basedOn', { defaultValue: 'Will inherit from' })}: {addInfo.basedOnName}
-                            </Typography>
-                        </Box>
+                        <Alert
+                            data-pne-widget-board-save-as-inheritance='true'
+                            role='status'
+                            severity='info'
+                            variant='standard'
+                        >
+                            {t('pne.widgetBoard.layouts.basedOn', { defaultValue: 'Will inherit from' })}:{' '}
+                            <Box component='span' sx={{ fontWeight: 600, overflowWrap: 'anywhere' }}>
+                                {addInfo.basedOnName ?? '—'}
+                            </Box>
+                        </Alert>
                     ) : null}
                     {saveAsError ? (
                         <Alert data-pne-widget-board-save-as-error='true' severity='error'>
