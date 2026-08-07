@@ -13,15 +13,17 @@ export type WidgetBoardFabPanelState = {
     items: WidgetLayoutOption[]
     visibilityItems: WidgetBoardVisibilityItem[]
     selectedId?: string
-    onSelect?: (id: string) => void
-    onDelete?: (id: string) => void
-    onAdd?: (name: string) => void
+    onSelect?: (id: string) => Promise<void>
+    onDelete?: (id: string) => Promise<void>
+    onAdd?: (name: string) => Promise<string>
     onSetWidgetVisibility?: (id: string, visible: boolean) => void
     addInfo?: WidgetLayoutAddInfo
     lockedIds: string[]
     actionsState?: WidgetBoardActionsState
     onResetLayout?: () => void
     onRestoreHidden?: () => void
+    onFlushLayoutSave?: () => Promise<void>
+    onDiscardLayoutChanges?: () => Promise<void>
     activeBreakpointId?: string
     editBehavior?: WidgetBoardEditBehavior
     isLoadingLayouts?: boolean

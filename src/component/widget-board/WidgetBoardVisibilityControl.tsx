@@ -93,7 +93,6 @@ export const WidgetBoardVisibilityControl: React.FC<WidgetBoardVisibilityControl
     })
     const title = t('pne.widgetBoard.visibility.title', { defaultValue: 'Widgets' })
     const closeLabel = t('pne.widgetBoard.visibility.close', { defaultValue: 'Close' })
-    const doneLabel = t('pne.widgetBoard.layouts.done', { defaultValue: 'Done' })
     const showAllLabel = t('pne.widgetBoard.visibility.showAll', { defaultValue: 'Show all' })
     const searchLabel = t('pne.widgetBoard.visibility.search', { defaultValue: 'Search widgets' })
     const shownCountLabel = t('pne.widgetBoard.visibility.shownCount', {
@@ -299,9 +298,9 @@ export const WidgetBoardVisibilityControl: React.FC<WidgetBoardVisibilityControl
                             })}
                         </Stack>
                         <Divider />
-                        <Stack direction='row' sx={{ justifyContent: 'flex-end', px: 2, py: 1.5 }}>
-                            <PneButton onClick={closePanel} pneStyle='contained' size='small'>
-                                {doneLabel}
+                        <Stack direction='row' sx={{ gap: 1, justifyContent: 'flex-end', px: 2, py: 1.5 }}>
+                            <PneButton onClick={closePanel} pneStyle='contained'>
+                                {closeLabel}
                             </PneButton>
                         </Stack>
                     </Paper>

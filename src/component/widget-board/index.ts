@@ -1,6 +1,7 @@
 export * from './WidgetBoard'
 export * from './WidgetBoardFab'
 export * from './WidgetBoardHeaderControls'
+export * from './WidgetBoardDraftNotice'
 export * from './WidgetBoardReactGridLayoutTuningControls'
 export * from './types'
 export * from './WidgetLayoutsPanel'

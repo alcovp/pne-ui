@@ -5,7 +5,10 @@ import { overlayActions } from '../overlay/overlayStore'
 import { buildPresetFromState } from './layoutPersistence'
 import { useWidgetBoardAutosize } from './useWidgetBoardAutosize'
 import { useWidgetBoardInteractionLock } from './useWidgetBoardInteractionLock'
-import { useWidgetBoardLayoutActions } from './useWidgetBoardLayoutActions'
+import {
+    useWidgetBoardLayoutActions,
+    type WidgetBoardPersistenceState,
+} from './useWidgetBoardLayoutActions'
 import { useWidgetBoardLayoutSource } from './useWidgetBoardLayoutSource'
 import { useWidgetBoardScopeStore } from './WidgetBoardScope'
 import { useWidgetBoardStateActions } from './useWidgetBoardStateActions'
@@ -136,6 +139,8 @@ const differsFromBaseLayout = (
 export type WidgetBoardHandle = {
     resetLayout: () => void
     restoreHidden: () => void
+    flushPendingSave: () => Promise<void>
+    discardDraft: () => Promise<void>
     getActionsState: () => WidgetBoardActionsState
 }
 
@@ -218,6 +223,20 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
     const breakpointsRef = useRef(breakpoints)
     breakpointsRef.current = breakpoints
     const breakpointIdsKey = breakpoints.join('\u0000')
+    const defaultDraftStatesRef = useRef(new Map<string, WidgetBoardState>())
+    const defaultDraftOwnerRef = useRef({ layoutByBreakpoint, widgets })
+    const [persistenceState, setPersistenceState] = useState<WidgetBoardPersistenceState>({
+        status: 'idle',
+        dirtyBreakpointIds: [],
+    })
+
+    useEffect(() => {
+        const owner = defaultDraftOwnerRef.current
+        if (owner.layoutByBreakpoint === layoutByBreakpoint && owner.widgets === widgets) return
+
+        defaultDraftOwnerRef.current = { layoutByBreakpoint, widgets }
+        defaultDraftStatesRef.current.clear()
+    }, [layoutByBreakpoint, widgets])
 
     useEffect(() => {
         let cancelled = false
@@ -248,14 +267,21 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
                 const nextBreakpointKey = String(nextPreset.breakpoint ?? activeBreakpoints[0])
                 const fallbackForNext = nextLayoutSource[activeBreakpoints[0]] ?? Object.values(nextLayoutSource)[0] ?? { widgets: {} }
                 const nextDefinitions = withLayout(widgets, nextPreset.layout ?? fallbackForNext)
+                const nextLayoutId = nextSelected ?? defaultOption.id
+                const defaultDraft = nextLayoutId === defaultOption.id
+                    ? defaultDraftStatesRef.current.get(nextBreakpointKey)
+                    : undefined
 
-                layoutSourceOwnerIdRef.current = nextSelected ?? defaultOption.id
+                layoutSourceOwnerIdRef.current = nextLayoutId
                 setLayoutSource(prev => (prev === nextLayoutSource ? prev : nextLayoutSource))
-                setLayoutState(buildDefaultState(nextDefinitions, nextBreakpointKey))
+                setLayoutState(defaultDraft ?? buildDefaultState(nextDefinitions, nextBreakpointKey))
                 setLayoutStateContext({
                     breakpointKey: nextBreakpointKey,
-                    layoutId: nextSelected ?? defaultOption.id,
+                    layoutId: nextLayoutId,
                     widgets,
+                    defaultLayoutSource: nextLayoutId === defaultOption.id
+                        ? defaultOption.layoutByBreakpoint
+                        : undefined,
                 })
 
                 if (nextSelected && nextSelected !== currentSelected) {
@@ -324,7 +350,29 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         breakpointKey: currentBreakpointKey,
         layoutId: effectiveSelectedLayoutId,
         widgets,
+        defaultLayoutSource: effectiveSelectedLayoutId === defaultOption.id
+            ? defaultOption.layoutByBreakpoint
+            : undefined,
     }))
+    const stashDefaultDraft = useCallback((state: WidgetBoardState, context: typeof layoutStateContext) => {
+        if (
+            context.layoutId !== defaultOption.id ||
+            context.widgets !== widgets ||
+            context.defaultLayoutSource !== defaultOption.layoutByBreakpoint ||
+            defaultDraftOwnerRef.current.layoutByBreakpoint !== layoutByBreakpoint ||
+            defaultDraftOwnerRef.current.widgets !== widgets
+        ) {
+            return
+        }
+
+        if (defaultDraftStatesRef.current.get(context.breakpointKey) === state) return
+        defaultDraftStatesRef.current.set(context.breakpointKey, state)
+    }, [defaultOption.id, defaultOption.layoutByBreakpoint, layoutByBreakpoint, widgets])
+
+    useEffect(() => {
+        stashDefaultDraft(layoutState, layoutStateContext)
+    }, [layoutState, layoutStateContext, stashDefaultDraft])
+
     const isInteractionLocked = useWidgetBoardInteractionLock()
     const interactionState = useMemo(() => ({ isInteractionLocked }), [isInteractionLocked])
     const { boardRootRef, handleContentRef, remeasureAll } = useWidgetBoardAutosize({
@@ -370,6 +418,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             (isDefaultLayout && previous.layoutSource !== layoutSource)
         if (!shouldReset) return
 
+        stashDefaultDraft(layoutState, layoutStateContext)
+
         layoutResetContextRef.current = {
             breakpointKey: currentBreakpointKey,
             layoutId: effectiveSelectedLayoutId,
@@ -377,19 +427,28 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             ownerId: layoutSourceOwnerId,
             widgets,
         }
-        setLayoutState(buildDefaultState(definitionsWithLayout, currentBreakpointKey))
+        const nextState = isDefaultLayout
+            ? defaultDraftStatesRef.current.get(currentBreakpointKey) ??
+                buildDefaultState(definitionsWithLayout, currentBreakpointKey)
+            : buildDefaultState(definitionsWithLayout, currentBreakpointKey)
+        setLayoutState(nextState)
         setLayoutStateContext({
             breakpointKey: currentBreakpointKey,
             layoutId: effectiveSelectedLayoutId,
             widgets,
+            defaultLayoutSource: isDefaultLayout ? defaultOption.layoutByBreakpoint : undefined,
         })
     }, [
         currentBreakpointKey,
         defaultOption.id,
+        defaultOption.layoutByBreakpoint,
         definitionsWithLayout,
         effectiveSelectedLayoutId,
         layoutSource,
         layoutSourceOwnerId,
+        layoutState,
+        layoutStateContext,
+        stashDefaultDraft,
         widgets,
     ])
 
@@ -413,10 +472,40 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         }
     }, [remeasureAll])
 
-    const buildCurrentPreset = useCallback(
-        () => buildPresetFromState(layoutState, layoutSource, breakpoints, currentBreakpointKey),
-        [breakpoints, currentBreakpointKey, layoutSource, layoutState],
-    )
+    const buildCurrentPreset = useCallback(() => {
+        if (effectiveSelectedLayoutId !== defaultOption.id) {
+            return buildPresetFromState(layoutState, layoutSource, breakpoints, currentBreakpointKey)
+        }
+
+        const drafts = new Map(defaultDraftStatesRef.current)
+        if (
+            layoutStateContext.layoutId === defaultOption.id &&
+            layoutStateContext.widgets === widgets &&
+            layoutStateContext.defaultLayoutSource === defaultOption.layoutByBreakpoint
+        ) {
+            drafts.set(layoutStateContext.breakpointKey, layoutState)
+        }
+
+        return breakpoints.reduce<Record<number | string, BreakpointLayoutConfig>>(
+            (preset, breakpoint) => {
+                const draft = drafts.get(String(breakpoint))
+                return draft
+                    ? buildPresetFromState(draft, preset, breakpoints, breakpoint)
+                    : preset
+            },
+            defaultOption.layoutByBreakpoint,
+        )
+    }, [
+        breakpoints,
+        currentBreakpointKey,
+        defaultOption.id,
+        defaultOption.layoutByBreakpoint,
+        effectiveSelectedLayoutId,
+        layoutSource,
+        layoutState,
+        layoutStateContext,
+        widgets,
+    ])
     const isLayoutStateCurrent =
         layoutStateContext.breakpointKey === currentBreakpointKey &&
         layoutStateContext.layoutId === effectiveSelectedLayoutId &&
@@ -439,6 +528,39 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         isDefaultLayoutSelected: effectiveSelectedLayoutId === defaultOption.id,
         setLayoutState,
     })
+
+    const defaultDirtyBreakpointIds = useMemo(() => {
+        const drafts = new Map(defaultDraftStatesRef.current)
+        if (
+            layoutStateContext.layoutId === defaultOption.id &&
+            layoutStateContext.widgets === widgets &&
+            layoutStateContext.defaultLayoutSource === defaultOption.layoutByBreakpoint
+        ) {
+            drafts.set(layoutStateContext.breakpointKey, layoutState)
+        }
+
+        return breakpoints.filter(breakpoint => {
+            const breakpointKey = String(breakpoint)
+            const draft = drafts.get(breakpointKey)
+            if (!draft) return false
+            const draftPreset = buildPresetFromState(
+                draft,
+                defaultOption.layoutByBreakpoint,
+                breakpoints,
+                breakpoint,
+            )
+            const currentLayout = resolveLayoutForBreakpoint(draftPreset, breakpoint)
+            const baseLayout = resolveLayoutForBreakpoint(defaultOption.layoutByBreakpoint, breakpoint)
+            return differsFromBaseLayout(currentLayout, baseLayout)
+        }).map(String)
+    }, [
+        breakpoints,
+        defaultOption.id,
+        defaultOption.layoutByBreakpoint,
+        layoutState,
+        layoutStateContext,
+        widgets,
+    ])
 
     const actionsState = useMemo<WidgetBoardActionsState>(() => {
         const currentPreset = buildCurrentPreset()
@@ -494,12 +616,23 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
             }
         }
 
+        const isDefaultLayoutSelected = effectiveSelectedLayoutId === defaultOption.id
+        const isSelectedLayoutLocked = lockedLayoutIdRef.current === effectiveSelectedLayoutId
+        const dirtyBreakpointIds = isDefaultLayoutSelected
+            ? defaultDirtyBreakpointIds
+            : persistenceState.dirtyBreakpointIds
+
         return {
             hasHiddenWidgets: layoutState.hidden.some(widgetId => definitionsMap.has(widgetId)),
             canResetLayout,
-            isDefaultLayoutSelected: effectiveSelectedLayoutId === defaultOption.id,
+            isDefaultLayoutSelected,
             selectedLayoutId: effectiveSelectedLayoutId,
             defaultLayoutId: defaultOption.id,
+            isSelectedLayoutLocked,
+            hasDraftChanges: dirtyBreakpointIds.length > 0,
+            dirtyBreakpointIds,
+            persistenceStatus: persistenceState.status,
+            persistenceError: persistenceState.error,
         }
     }, [
         buildCurrentPreset,
@@ -507,6 +640,7 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         defaultBreakpointLayout,
         defaultDefinitionsMap,
         defaultDefinitionsWithLayout,
+        defaultDirtyBreakpointIds,
         defaultOption.id,
         definitionsMap,
         effectiveSelectedLayoutId,
@@ -514,6 +648,8 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         layoutState.hidden,
         layoutState.items,
         layoutState.widgetOrder,
+        lockedLayoutIdRef,
+        persistenceState,
     ])
 
     const fullWidgetOrder = useMemo(() => {
@@ -598,7 +734,68 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         [definitionsMap, dismissPendingHideUndo, hideItem, setWidgetVisibility, showHideUndo, t, undoContextKey],
     )
 
-    useWidgetBoardLayoutActions({
+    const clearDefaultLayoutDrafts = useCallback(() => {
+        defaultDraftStatesRef.current.clear()
+    }, [])
+
+    const discardLockedLayoutDrafts = useCallback(() => {
+        clearDefaultLayoutDrafts()
+        if (effectiveSelectedLayoutId !== defaultOption.id) return
+
+        setLayoutState(buildDefaultState(defaultDefinitionsWithLayout, currentBreakpointKey))
+        setLayoutStateContext({
+            breakpointKey: currentBreakpointKey,
+            layoutId: defaultOption.id,
+            widgets,
+            defaultLayoutSource: defaultOption.layoutByBreakpoint,
+        })
+    }, [
+        currentBreakpointKey,
+        clearDefaultLayoutDrafts,
+        defaultDefinitionsWithLayout,
+        defaultOption.id,
+        defaultOption.layoutByBreakpoint,
+        effectiveSelectedLayoutId,
+        widgets,
+    ])
+
+    const promoteLockedDraftToLayout = useCallback((
+        layoutId: string,
+        savedLayoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
+    ) => {
+        clearDefaultLayoutDrafts()
+        layoutSourceOwnerIdRef.current = layoutId
+        setLayoutSource(savedLayoutByBreakpoint)
+        setLayoutStateContext(context => ({
+            ...context,
+            layoutId,
+            defaultLayoutSource: undefined,
+        }))
+    }, [clearDefaultLayoutDrafts, layoutSourceOwnerIdRef, setLayoutSource])
+
+    const restorePersistedLayout = useCallback((
+        layoutId: string,
+        persistedLayoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>,
+    ) => {
+        const preset = getLayoutConfigForBreakpoint(currentBreakpointKey, persistedLayoutByBreakpoint)
+        const fallback = persistedLayoutByBreakpoint[breakpoints[0]] ??
+            Object.values(persistedLayoutByBreakpoint)[0] ??
+            { widgets: {} }
+        const restoredDefinitions = withLayout(widgets, preset.layout ?? fallback)
+        layoutSourceOwnerIdRef.current = layoutId
+        setLayoutState(buildDefaultState(restoredDefinitions, currentBreakpointKey))
+        setLayoutStateContext({
+            breakpointKey: currentBreakpointKey,
+            layoutId,
+            widgets,
+            defaultLayoutSource: undefined,
+        })
+    }, [breakpoints, currentBreakpointKey, layoutSourceOwnerIdRef, widgets])
+
+    const {
+        discardLayoutChanges,
+        flushPendingSave,
+    } = useWidgetBoardLayoutActions({
         buildCurrentPreset,
         defaultLayoutId: defaultOption.id,
         isLayoutStateCurrent,
@@ -616,6 +813,10 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         onSetWidgetVisibility: handleSetWidgetVisibility,
         onResetLayout: resetLayout,
         onRestoreHidden: handleRestoreHidden,
+        onDiscardLockedLayoutDrafts: discardLockedLayoutDrafts,
+        onRestorePersistedLayout: restorePersistedLayout,
+        onSaveAsLockedLayoutSuccess: promoteLockedDraftToLayout,
+        onPersistenceStateChange: setPersistenceState,
         selectedLayoutId,
         setLayoutOptions,
         setLayoutSource,
@@ -631,9 +832,11 @@ export const WidgetBoard = forwardRef<WidgetBoardHandle, WidgetBoardProps>(funct
         () => ({
             resetLayout,
             restoreHidden: handleRestoreHidden,
+            flushPendingSave,
+            discardDraft: discardLayoutChanges,
             getActionsState: () => actionsState,
         }),
-        [actionsState, handleRestoreHidden, resetLayout],
+        [actionsState, discardLayoutChanges, flushPendingSave, handleRestoreHidden, resetLayout],
     )
 
     const visibleItems = useMemo(

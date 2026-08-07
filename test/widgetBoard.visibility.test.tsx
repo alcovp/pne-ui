@@ -116,6 +116,10 @@ describe('WidgetBoardVisibilityControl', () => {
         expect(within(panel).getByText('Hidden')).toBeTruthy()
         expect(within(panel).getByText('Required')).toBeTruthy()
 
+        const closeButton = within(panel).getByText('Close').closest('button') as HTMLButtonElement
+        expect(closeButton.classList.contains('MuiButton-sizeLarge')).toBe(true)
+        expect(window.getComputedStyle(closeButton.parentElement as HTMLElement).gap).toBe('8px')
+
         const hiddenCheckbox = within(panel).getByRole('checkbox', { name: 'Show widget Beta' }) as HTMLInputElement
         const requiredCheckbox = within(panel).getByRole('checkbox', { name: 'Show widget Required widget' }) as HTMLInputElement
         expect(hiddenCheckbox.checked).toBe(false)
@@ -126,6 +130,8 @@ describe('WidgetBoardVisibilityControl', () => {
         expect(onSetWidgetVisibility).toHaveBeenCalledWith('beta', true)
         fireEvent.click(within(panel).getByRole('button', { name: 'Show all' }))
         expect(onRestoreHidden).toHaveBeenCalledTimes(1)
+        fireEvent.click(closeButton)
+        await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Widgets' })).toBeNull())
     })
 
     it('restores trigger focus on Escape and closes when the active breakpoint changes', async () => {

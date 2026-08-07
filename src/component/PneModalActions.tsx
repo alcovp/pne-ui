@@ -10,6 +10,8 @@ export type PneModalActionsProps = Omit<
     React.HTMLAttributes<HTMLDivElement>,
     'children' | 'dangerouslySetInnerHTML'
 > & PneModalActionsDataAttributes & {
+    /** Keep the leading action in the same 8px group instead of separating it to the opposite edge. */
+    groupLeading?: boolean
     primary: ReactNode
     secondary?: ReactNode
     leading?: ReactNode
@@ -21,12 +23,17 @@ const PneModalActions = forwardRef<HTMLDivElement, PneModalActionsProps>(
         primary,
         secondary,
         leading,
+        groupLeading = false,
         ...rootProps
     }, ref) {
         const safeRootProps = sanitizeRootProps(rootProps)
         const isNarrow = useMediaQuery('(max-width:480px)')
         const leadingAction = leading != null
-            ? <LeadingActionSlot key='leading' data-pne-modal-action='leading'>
+            ? <LeadingActionSlot
+                $groupLeading={groupLeading}
+                key='leading'
+                data-pne-modal-action='leading'
+            >
                 {leading}
             </LeadingActionSlot>
             : null
@@ -102,8 +109,10 @@ const ActionSlot = styled('div')`
     }
 `
 
-const LeadingActionSlot = styled(ActionSlot)`
-    margin-inline-end: auto;
+const LeadingActionSlot = styled(ActionSlot, {
+    shouldForwardProp: prop => prop !== '$groupLeading',
+})<{ $groupLeading: boolean }>`
+    margin-inline-end: ${({$groupLeading}) => $groupLeading ? '0px' : 'auto'};
 
     @media (max-width: 480px) {
         margin-inline-end: 0;

@@ -114,6 +114,25 @@ describe('PneModalActions', () => {
         expect(document.activeElement).toBe(saveButton)
     })
 
+    it('can keep a leading action in the same 8px action group', () => {
+        render(
+            <PneModalActions
+                groupLeading
+                leading={<button>Continue</button>}
+                primary={<button>Save</button>}
+                secondary={<button>Discard</button>}
+            />,
+        )
+
+        const actions = document.querySelector<HTMLElement>('[data-pne-modal-actions="true"]')!
+        const leading = document.querySelector<HTMLElement>('[data-pne-modal-action="leading"]')!
+        const trailing = document.querySelector<HTMLElement>('[data-pne-modal-actions-group="trailing"]')!
+
+        expect(window.getComputedStyle(actions).gap).toBe('8px')
+        expect(window.getComputedStyle(leading).marginInlineEnd).toBe('0px')
+        expect(window.getComputedStyle(trailing).gap).toBe('8px')
+    })
+
     it('forwards a div ref and common root attributes while keeping its marker managed', () => {
         const ref = React.createRef<HTMLDivElement>()
 

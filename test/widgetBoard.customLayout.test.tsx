@@ -191,15 +191,12 @@ describe('WidgetBoard custom layout source', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Add layout' }))
 
         await waitFor(() => expect(saveLayouts).toHaveBeenCalledTimes(1))
-        await waitFor(() =>
-            expect(screen.getByTestId('selected-layout').textContent).not.toBe('custom'),
-        )
-        fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }))
-
-        await act(async () => undefined)
-        expect(saveLayouts).toHaveBeenCalledTimes(1)
+        expect(screen.getByTestId('selected-layout').textContent).toBe('custom')
 
         resolveFirstSave?.()
+        await waitFor(() => expect(screen.getByTestId('selected-layout').textContent).not.toBe('custom'))
+        fireEvent.click(screen.getByRole('button', { name: 'Delete selected' }))
+
         await waitFor(() => expect(saveLayouts).toHaveBeenCalledTimes(2))
         await act(async () => {
             await new Promise(resolve => setTimeout(resolve, 400))

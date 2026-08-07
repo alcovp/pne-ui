@@ -109,12 +109,22 @@ export type WidgetBoardLoadLayoutsResult = {
     selectedId?: string
 }
 
+export type WidgetBoardPersistenceStatus = 'idle' | 'pending' | 'saving' | 'error'
+
 export type WidgetBoardActionsState = {
     hasHiddenWidgets: boolean
     canResetLayout: boolean
     isDefaultLayoutSelected: boolean
     selectedLayoutId?: string
     defaultLayoutId: string
+    /** Whether the selected layout is immutable and cannot be autosaved in place. */
+    isSelectedLayoutLocked: boolean
+    /** Whether the selected layout has local changes that are not durable yet. */
+    hasDraftChanges: boolean
+    /** Breakpoint ids with local draft changes for the selected layout. */
+    dirtyBreakpointIds: string[]
+    persistenceStatus: WidgetBoardPersistenceStatus
+    persistenceError?: string
 }
 
 export type WidgetBoardReactGridLayoutOptions = {
