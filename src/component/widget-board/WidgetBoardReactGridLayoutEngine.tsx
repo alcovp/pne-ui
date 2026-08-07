@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import type { BoardProps } from '@cloudscape-design/board-components/board'
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
@@ -19,6 +19,7 @@ import 'react-grid-layout/css/styles.css'
 import { WidgetBoardOrderEditor } from './WidgetBoardOrderEditor'
 import type {
     WidgetBoardEditBehavior,
+    WidgetBoardEditScale,
     WidgetBoardInteractionMode,
     WidgetBoardItemData,
     WidgetBoardReactGridLayoutCollisionBehavior,
@@ -34,6 +35,7 @@ type WidgetBoardReactGridLayoutItemProps = {
     heightMode: WidgetHeightMode
     isCollapsed: boolean
     interactionMode: WidgetBoardInteractionMode
+    isOverview: boolean
     onContentRef: (widgetId: string, node: HTMLDivElement | null) => void
     onHide: (widgetId: string) => void
 }
@@ -45,6 +47,7 @@ type WidgetBoardReactGridLayoutEngineProps = {
     compaction: WidgetBoardReactGridLayoutCompaction
     containerPadding: readonly [number, number] | null
     editBehavior: WidgetBoardEditBehavior
+    editScale: WidgetBoardEditScale
     interactionMode: WidgetBoardInteractionMode
     isLoadingLayouts: boolean
     items: BoardProps.Item<WidgetBoardItemData>[]
@@ -172,6 +175,22 @@ const absolutePositionStrategy = {
         height: `${height}px`,
         position: 'absolute',
     }),
+}
+
+export const getReactGridLayoutLogicalHeight = ({
+    layout,
+    rowHeight,
+    rowGap,
+    verticalPadding,
+}: {
+    layout: Layout
+    rowHeight: number
+    rowGap: number
+    verticalPadding: number
+}) => {
+    const rows = layout.reduce((bottom, item) => Math.max(bottom, item.y + item.h), 0)
+    if (rows <= 0) return verticalPadding * 2
+    return rows * rowHeight + Math.max(0, rows - 1) * rowGap + verticalPadding * 2
 }
 
 const getItemColumnSpan = (item: BoardProps.Item<WidgetBoardItemData>, columns: number) => {
@@ -305,6 +324,7 @@ export const WidgetBoardReactGridLayoutItem = ({
     heightMode,
     isCollapsed,
     interactionMode,
+    isOverview,
     onContentRef,
     onHide,
 }: WidgetBoardReactGridLayoutItemProps) => {
@@ -348,6 +368,7 @@ export const WidgetBoardReactGridLayoutItem = ({
         <Box
             data-pne-widget-board-rgl-item='true'
             data-pne-widget-board-item-id={widgetId}
+            data-pne-widget-board-overview={isOverview ? 'true' : undefined}
             sx={{
                 height: '100%',
                 boxSizing: 'border-box',
@@ -403,7 +424,7 @@ export const WidgetBoardReactGridLayoutItem = ({
                         {definition.title}
                     </Box>
                 </Typography>
-                {definition.settingsActions ? (
+                {definition.settingsActions && !isOverview ? (
                     <Box
                         className='pne-widget-board-rgl-control'
                         sx={{
@@ -417,7 +438,7 @@ export const WidgetBoardReactGridLayoutItem = ({
                         {definition.settingsActions}
                     </Box>
                 ) : null}
-                {showEditControls && canHide ? (
+                {showEditControls && canHide && !isOverview ? (
                     <Box className='pne-widget-board-rgl-control' sx={{ display: 'flex', alignItems: 'center', flex: '0 0 auto' }}>
                         <IconButton
                             aria-label={hideLabel}
@@ -435,11 +456,14 @@ export const WidgetBoardReactGridLayoutItem = ({
             {!isCollapsed ? (
                 <Box
                     data-pne-widget-board-content-body='true'
+                    data-pne-widget-board-overview={isOverview ? 'true' : undefined}
+                    inert={isOverview ? true : undefined}
                     sx={{
                         flex: '1 1 auto',
                         minHeight: 0,
                         boxSizing: 'border-box',
                         overflow: contentOverflow,
+                        pointerEvents: isOverview ? 'none' : undefined,
                     }}
                 >
                     <Box
@@ -469,6 +493,7 @@ const WidgetBoardReactGridLayoutGrid = ({
     compaction,
     containerPadding,
     editBehavior,
+    editScale,
     empty,
     interactionMode,
     isLoadingLayouts,
@@ -504,11 +529,53 @@ const WidgetBoardReactGridLayoutGrid = ({
         ],
     )
     const rowGap = margin[1] ?? 0
-    const positionStrategy = useCSSTransforms ? transformPositionStrategy : absolutePositionStrategy
+    const isOverview = editScale === 0.5
+    const positionStrategy = useMemo(
+        () => ({
+            ...(useCSSTransforms ? transformPositionStrategy : absolutePositionStrategy),
+            scale: editScale,
+        }),
+        [editScale, useCSSTransforms],
+    )
     const compactor = useMemo(
         () => resolveReactGridLayoutCompactor(compaction, collisionBehavior),
         [collisionBehavior, compaction],
     )
+    const estimatedGridHeight = useMemo(
+        () => getReactGridLayoutLogicalHeight({
+            layout,
+            rowHeight,
+            rowGap,
+            verticalPadding: (containerPadding ?? margin)[1],
+        }),
+        [containerPadding, layout, margin, rowGap, rowHeight],
+    )
+    const [gridElement, setGridElement] = useState<HTMLDivElement | null>(null)
+    const [measuredGridHeight, setMeasuredGridHeight] = useState<number | null>(null)
+
+    useEffect(() => {
+        if (!gridElement) {
+            setMeasuredGridHeight(null)
+            return
+        }
+
+        const updateHeight = () => {
+            const inlineHeight = Number.parseFloat(gridElement.style.height)
+            const nextHeight = gridElement.offsetHeight || (Number.isFinite(inlineHeight) ? inlineHeight : 0)
+            if (nextHeight <= 0) return
+            setMeasuredGridHeight(current => current === nextHeight ? current : nextHeight)
+        }
+
+        updateHeight()
+        if (typeof ResizeObserver === 'undefined') return
+
+        const observer = new ResizeObserver(updateHeight)
+        observer.observe(gridElement)
+        return () => observer.disconnect()
+    }, [gridElement])
+
+    const logicalGridHeight = measuredGridHeight ?? estimatedGridHeight
+    const scaledGridHeight = Math.ceil(logicalGridHeight * editScale)
     const resizeWidthLabel = t('pne.widgetBoard.rgl.resizeWidth', {
         defaultValue: 'Drag to resize widget width',
     })
@@ -561,12 +628,16 @@ const WidgetBoardReactGridLayoutGrid = ({
         <Box
             data-pne-widget-board='true'
             data-pne-widget-board-edit-behavior={interactionMode === 'edit' ? editBehavior : undefined}
+            data-pne-widget-board-edit-scale={editScale}
+            data-pne-widget-board-overview={isOverview ? 'true' : undefined}
             data-pne-widget-board-rgl-collision-behavior={collisionBehavior}
             data-pne-widget-board-rgl-compaction={compaction}
             ref={boardRootRef}
             sx={{
                 '--pne-widget-board-row-height': `${rowHeight}px`,
                 '--pne-widget-board-row-gap': `${rowGap}px`,
+                '--pne-widget-board-edit-scale': editScale,
+                '--pne-widget-board-resize-rail-width': `${Math.max(resizeRailWidth, 24 / editScale)}px`,
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
@@ -585,7 +656,7 @@ const WidgetBoardReactGridLayoutGrid = ({
                     position: 'absolute',
                     top: `${widgetHeaderHeight}px`,
                     bottom: 0,
-                    width: `${resizeRailWidth}px`,
+                    width: 'var(--pne-widget-board-resize-rail-width)',
                     height: 'auto',
                     m: 0,
                     p: 0,
@@ -645,49 +716,82 @@ const WidgetBoardReactGridLayoutGrid = ({
                 '& .react-grid-item > [data-pne-widget-board-resize-handle="e"]': {
                     right: `${resizeRailInset}px`,
                 },
+                '&[data-pne-widget-board-overview="true"] .pne-widget-board-rgl-drag-handle': {
+                    position: 'relative',
+                    zIndex: 3,
+                    '&::after': {
+                        content: '""',
+                        position: 'absolute',
+                        inset: 0,
+                        bottom: '-16px',
+                    },
+                },
             }}
         >
             <Box ref={containerRef} sx={{ width: '100%' }}>
                 {isLoadingLayouts ? (
                     <Box sx={{ p: 2, color: 'text.secondary' }}>Loading widgets...</Box>
                 ) : mounted ? (
-                    items.length === 0 ? empty : <Box>
-                        <ReactGridLayout
-                            autoSize
-                            width={width}
-                            layout={layout}
-                            positionStrategy={positionStrategy}
-                            gridConfig={{
-                                cols: columns,
-                                rowHeight,
-                                margin,
-                                containerPadding,
-                                maxRows: Number.POSITIVE_INFINITY,
+                    items.length === 0 ? empty : (
+                        <Box
+                            data-pne-widget-board-scale-shell='true'
+                            sx={{
+                                position: 'relative',
+                                width: '100%',
+                                height: `${scaledGridHeight}px`,
+                                overflow: 'hidden',
                             }}
-                            dragConfig={{
-                                enabled: interactionMode === 'edit',
-                                handle: '.pne-widget-board-rgl-drag-handle',
-                                cancel: '.pne-widget-board-rgl-control',
-                            }}
-                            resizeConfig={{
-                                enabled: interactionMode === 'edit',
-                                handles: interactionMode === 'edit' ? ['e', 'w'] : [],
-                                handleComponent: renderResizeHandle,
-                            }}
-                            compactor={compactor}
-                            onDragStop={handleLayoutCommit}
-                            onResizeStop={handleLayoutCommit}
                         >
-                            {items.map(item => (
-                                <div
-                                    key={item.id}
-                                    style={{ height: '100%' }}
+                            <Box
+                                data-pne-widget-board-scale-canvas='true'
+                                sx={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    transform: `scale(${editScale})`,
+                                    transformOrigin: 'top center',
+                                }}
+                            >
+                                <ReactGridLayout
+                                    autoSize
+                                    innerRef={setGridElement}
+                                    width={width}
+                                    layout={layout}
+                                    positionStrategy={positionStrategy}
+                                    gridConfig={{
+                                        cols: columns,
+                                        rowHeight,
+                                        margin,
+                                        containerPadding,
+                                        maxRows: Number.POSITIVE_INFINITY,
+                                    }}
+                                    dragConfig={{
+                                        enabled: interactionMode === 'edit',
+                                        handle: '.pne-widget-board-rgl-drag-handle',
+                                        cancel: '.pne-widget-board-rgl-control',
+                                    }}
+                                    resizeConfig={{
+                                        enabled: interactionMode === 'edit',
+                                        handles: interactionMode === 'edit' ? ['e', 'w'] : [],
+                                        handleComponent: renderResizeHandle,
+                                    }}
+                                    compactor={compactor}
+                                    onDragStop={handleLayoutCommit}
+                                    onResizeStop={handleLayoutCommit}
                                 >
-                                    {renderItem(item)}
-                                </div>
-                            ))}
-                        </ReactGridLayout>
-                    </Box>
+                                    {items.map(item => (
+                                        <div
+                                            key={item.id}
+                                            style={{ height: '100%' }}
+                                        >
+                                            {renderItem(item)}
+                                        </div>
+                                    ))}
+                                </ReactGridLayout>
+                            </Box>
+                        </Box>
+                    )
                 ) : null}
             </Box>
         </Box>

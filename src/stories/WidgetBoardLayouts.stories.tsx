@@ -2,11 +2,12 @@ import React from 'react'
 import { Box, Button, Chip, Divider, LinearProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, fireEvent, waitFor } from 'storybook/test'
-import type { PneFabAction, PneFabItem, WidgetBoardInteractionMode, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetBoardReactGridLayoutTuning, WidgetDefinition } from '../index'
+import type { PneFabAction, PneFabItem, WidgetBoardEditScale, WidgetBoardInteractionMode, WidgetBoardLayoutOption, WidgetBoardLoadLayoutsResult, WidgetBoardReactGridLayoutTuning, WidgetDefinition } from '../index'
 import {
     DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING,
     OverlayHost,
     PneButton,
+    WidgetBoardEditScaleControl,
     WidgetBoardVisibilityModal,
     WidgetBoardHeaderControls,
     WidgetBoardReactGridLayoutTuningControls,
@@ -395,6 +396,7 @@ const BoardWithHeaderControlsContent = ({
     const [tuning, setTuning] = React.useState<WidgetBoardReactGridLayoutTuning>(
         DEFAULT_WIDGET_BOARD_REACT_GRID_LAYOUT_TUNING,
     )
+    const [editScale, setEditScale] = React.useState<WidgetBoardEditScale>(0.75)
 
     const loadLayouts = React.useCallback(async () => {
         return mockOrderHistoryLayoutsApi.getOrderHistoryLayoutSettings()
@@ -419,10 +421,16 @@ const BoardWithHeaderControlsContent = ({
                         interactionMode={interactionMode}
                         onInteractionModeChange={setInteractionMode}
                         editActions={
-                            <WidgetBoardReactGridLayoutTuningControls
-                                tuning={tuning}
-                                onTuningChange={setTuning}
-                            />
+                            <Stack direction='row' spacing={0.5} sx={{ alignItems: 'center' }}>
+                                <WidgetBoardEditScaleControl
+                                    scale={editScale}
+                                    onScaleChange={setEditScale}
+                                />
+                                <WidgetBoardReactGridLayoutTuningControls
+                                    tuning={tuning}
+                                    onTuningChange={setTuning}
+                                />
+                            </Stack>
                         }
                     />
                 </Box>
@@ -440,6 +448,7 @@ const BoardWithHeaderControlsContent = ({
                         containerPadding: [0, 0],
                         compaction: tuning.compaction,
                         collisionBehavior: tuning.collisionBehavior,
+                        editScale,
                     }}
                 />
             </Stack>
@@ -709,6 +718,48 @@ export const ReactGridLayoutHeaderControls: StoryObj<typeof BoardWithLayouts> = 
 export const ReactGridLayoutTuningPlayground: StoryObj<typeof BoardWithLayouts> = {
     name: 'React Grid Layout — tuning playground',
     render: () => <BoardWithHeaderControls initialInteractionMode='edit' />,
+}
+
+export const ReactGridLayoutEditScale: StoryObj<typeof BoardWithLayouts> = {
+    name: 'React Grid Layout — edit scale',
+    render: () => <BoardWithHeaderControls initialInteractionMode='edit' />,
+    play: async ({ canvasElement }) => {
+        const trigger = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLButtonElement>(
+                '[data-pne-widget-board-edit-scale-trigger="true"]',
+            )
+            if (!element) throw new Error('Edit scale trigger did not render')
+            return element
+        })
+        expect(trigger.textContent).toContain('75%')
+
+        fireEvent.click(trigger)
+        const overviewOption = await waitFor(() => {
+            const element = document.querySelector<HTMLElement>(
+                '[data-pne-widget-board-edit-scale-option="0.5"]',
+            )
+            if (!element) throw new Error('Overview scale option did not render')
+            return element
+        })
+        fireEvent.click(overviewOption)
+
+        const board = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLElement>(
+                '[data-pne-widget-board-edit-scale="0.5"]',
+            )
+            if (!element) throw new Error('Board did not switch to overview scale')
+            return element
+        })
+        expect(board.getAttribute('data-pne-widget-board-overview')).toBe('true')
+        expect(
+            board.querySelector('[data-pne-widget-board-scale-canvas="true"]')
+                ?.getAttribute('style'),
+        ).toContain('scale(0.5)')
+        expect(
+            board.querySelector('[data-pne-widget-board-content-body="true"]')
+                ?.hasAttribute('inert'),
+        ).toBe(true)
+    },
 }
 
 export const VisibilityExperience: StoryObj<typeof BoardWithLayouts> = {

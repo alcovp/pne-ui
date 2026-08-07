@@ -151,6 +151,7 @@ describe('WidgetBoard order-only editor', () => {
                 compaction='none'
                 containerPadding={[0, 0]}
                 editBehavior='order-only'
+                editScale={1}
                 interactionMode='edit'
                 isLoadingLayouts={false}
                 items={[items[0], items[2]]}

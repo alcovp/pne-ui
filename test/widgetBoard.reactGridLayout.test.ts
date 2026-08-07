@@ -1,6 +1,7 @@
 import type { Layout } from 'react-grid-layout'
 import {
     applyUserResizeMinWidths,
+    getReactGridLayoutLogicalHeight,
     getResizeMinColumnSpan,
     resolveReactGridLayoutCompactor,
     toBoardItems,
@@ -171,6 +172,20 @@ describe('WidgetBoard React Grid Layout constraints', () => {
             rowSpan: 9,
             columnOffset: { 12: 1 },
         })
+    })
+
+    it('derives the unscaled canvas height from logical rows, gaps and padding', () => {
+        expect(
+            getReactGridLayoutLogicalHeight({
+                layout: [
+                    { i: 'a', x: 0, y: 0, w: 2, h: 3 },
+                    { i: 'b', x: 2, y: 2, w: 2, h: 4 },
+                ],
+                rowHeight: 48,
+                rowGap: 8,
+                verticalPadding: 12,
+            }),
+        ).toBe(6 * 48 + 5 * 8 + 24)
     })
 
 })

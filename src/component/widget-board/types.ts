@@ -42,6 +42,7 @@ export type WidgetBoardEngine = 'react-grid-layout' | 'cloudscape'
 export type WidgetBoardInteractionMode = 'view' | 'edit'
 export type WidgetBoardReactGridLayoutCompaction = 'none' | 'vertical'
 export type WidgetBoardReactGridLayoutCollisionBehavior = 'push' | 'prevent'
+export type WidgetBoardEditScale = 0.5 | 0.75 | 1
 
 export type WidgetBoardReactGridLayoutTuning = {
     compaction: WidgetBoardReactGridLayoutCompaction
@@ -137,6 +138,8 @@ export type WidgetBoardReactGridLayoutOptions = {
     compaction?: WidgetBoardReactGridLayoutCompaction
     /** `push` moves an occupied widget away; `prevent` blocks dropping onto it. */
     collisionBehavior?: WidgetBoardReactGridLayoutCollisionBehavior
+    /** Visual scale used while editing multi-column grids. View and order-only modes stay at 100%. */
+    editScale?: WidgetBoardEditScale
 }
 
 export type WidgetBoardProps = {

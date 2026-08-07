@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { Dispatch, SetStateAction } from 'react'
 import type { WidgetBoardState } from './types'
+import type { WidgetBoardEditScale } from './types'
 import { DEFAULT_ROW_GAP, DEFAULT_ROW_HEIGHT, type WidgetDefinitionWithLayout } from './widgetBoardLayoutUtils'
 
 const AUTOSIZE_PIXEL_TOLERANCE = 1
@@ -8,6 +9,7 @@ const AUTOSIZE_PIXEL_TOLERANCE = 1
 type UseWidgetBoardAutosizeParams = {
     autoHeightEnabled: boolean
     definitionsMap: Map<string, WidgetDefinitionWithLayout>
+    editScale: WidgetBoardEditScale
     isInteractionLocked: boolean
     isSuspended: boolean
     layoutPresetBreakpoint: number | string | undefined
@@ -17,6 +19,7 @@ type UseWidgetBoardAutosizeParams = {
 export const useWidgetBoardAutosize = ({
     autoHeightEnabled,
     definitionsMap,
+    editScale,
     isInteractionLocked,
     isSuspended,
     layoutPresetBreakpoint,
@@ -109,7 +112,7 @@ export const useWidgetBoardAutosize = ({
 
             const containerRect = containerRoot.getBoundingClientRect()
             const contentRect = contentElement.getBoundingClientRect()
-            const offsetTop = contentRect.top - containerRect.top
+            const offsetTop = (contentRect.top - containerRect.top) / editScale
             const contentHeight = contentElement.scrollHeight
 
             if (!Number.isFinite(offsetTop) || !Number.isFinite(contentHeight) || contentHeight <= 0) return null
@@ -122,7 +125,7 @@ export const useWidgetBoardAutosize = ({
 
             return Math.abs(rawRows - roundedRows) <= rowTolerance ? roundedRows : Math.ceil(rawRows)
         },
-        [resolveFallbackRowGap, updateGridMetrics],
+        [editScale, resolveFallbackRowGap, updateGridMetrics],
     )
 
     const applyAutoSize = useCallback(
