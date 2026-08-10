@@ -90,6 +90,76 @@ describe('PneModalActions', () => {
         expect(document.activeElement).toBe(saveButton)
     })
 
+    it('keeps grouped secondary actions spaced and ordered around the primary action', () => {
+        const media = installControllableMatchMedia()
+        const {container} = render(
+            <PneModalActions
+                primary={<button>Done</button>}
+                secondary={
+                    <>
+                        <button>Back</button>
+                        <button>Try editing</button>
+                    </>
+                }
+            />,
+        )
+
+        const actions = container.querySelector<HTMLElement>('[data-pne-modal-actions]')!
+        const secondary = container.querySelector<HTMLElement>(
+            "[data-pne-modal-action='secondary']",
+        )!
+        const backButton = screen.getByRole('button', {name: 'Back'})
+        const tryEditingButton = screen.getByRole('button', {name: 'Try editing'})
+        const doneButton = screen.getByRole('button', {name: 'Done'})
+
+        expect(buttonLabels(actions)).toEqual(['Back', 'Try editing', 'Done'])
+        expect(buttonLabels(secondary)).toEqual(['Back', 'Try editing'])
+        expect(window.getComputedStyle(secondary).gap).toBe('8px')
+
+        tryEditingButton.focus()
+        act(() => media.setMatches(true))
+
+        expect(buttonLabels(actions)).toEqual(['Done', 'Back', 'Try editing'])
+        expect(buttonLabels(secondary)).toEqual(['Back', 'Try editing'])
+        expect(screen.getByRole('button', {name: 'Back'})).toBe(backButton)
+        expect(screen.getByRole('button', {name: 'Try editing'})).toBe(tryEditingButton)
+        expect(screen.getByRole('button', {name: 'Done'})).toBe(doneButton)
+        expect(document.activeElement).toBe(tryEditingButton)
+    })
+
+    it('keeps multiple desktop actions in one non-shrinking row with one-line labels', () => {
+        installControllableMatchMedia()
+        const {container} = render(
+            <PneModalActions
+                leading={<button>Do not offer again</button>}
+                primary={<button>Show me</button>}
+                secondary={<button>Not now</button>}
+            />,
+        )
+
+        const actions = container.querySelector<HTMLElement>('[data-pne-modal-actions]')!
+        const directGroups = Array.from(actions.children) as HTMLElement[]
+        const actionSlots = Array.from(
+            actions.querySelectorAll<HTMLElement>('[data-pne-modal-action]'),
+        )
+        const buttons = within(actions).getAllByRole('button')
+
+        expect(buttonLabels(actions)).toEqual(['Do not offer again', 'Not now', 'Show me'])
+        expect(window.getComputedStyle(actions).flexWrap).not.toBe('wrap')
+        directGroups.forEach(group => {
+            expect(window.getComputedStyle(group).flexShrink).toBe('0')
+            expect(window.getComputedStyle(group).flexWrap).not.toBe('wrap')
+        })
+        actionSlots.forEach(slot => {
+            expect(window.getComputedStyle(slot).flexShrink).toBe('0')
+            expect(window.getComputedStyle(slot).flexWrap).toBe('nowrap')
+        })
+        buttons.forEach(button => {
+            expect(window.getComputedStyle(button).flexShrink).toBe('0')
+            expect(window.getComputedStyle(button).whiteSpace).toBe('nowrap')
+        })
+    })
+
     it('does not remount actions or drop focus when its props update', () => {
         const {rerender} = render(
             <PneModalActions

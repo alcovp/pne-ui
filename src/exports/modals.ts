@@ -1,3 +1,24 @@
+export { default as PneCoachmark } from '../component/PneCoachmark'
+export type {
+    PneCoachmarkAnchor,
+    PneCoachmarkBoxSlotProps,
+    PneCoachmarkCloseButtonProps,
+    PneCoachmarkCloseEvent,
+    PneCoachmarkCloseHandler,
+    PneCoachmarkCloseReason,
+    PneCoachmarkContainerProps,
+    PneCoachmarkContainerSlotProps,
+    PneCoachmarkDataAttributes,
+    PneCoachmarkFallbackSlotProps,
+    PneCoachmarkModifiers,
+    PneCoachmarkPlacement,
+    PneCoachmarkPopperSlotProps,
+    PneCoachmarkProps,
+    PneCoachmarkSlotProps,
+    PneCoachmarkSubtitleSlotProps,
+    PneCoachmarkTitle,
+    PneCoachmarkTitleSlotProps,
+} from '../component/PneCoachmark'
 export { default as PneModal } from '../component/PneModal'
 export type {
     PneModalBoxSlotProps,

@@ -153,6 +153,92 @@ export const Wizard: Story = {
     </ModalStoryHarness>,
 };
 
+const GroupedSecondaryActionsExample = () => <ModalStoryHarness
+    containerSx={{width: 640}}
+    renderActions={close => <PneModalActions
+        secondary={<>
+            <PneButton pneStyle='outlined' onClick={close}>Назад</PneButton>
+            <PneButton pneStyle='outlined' onClick={close}>Попробовать редактирование</PneButton>
+        </>}
+        primary={<PneButton pneStyle='contained' onClick={close}>Готово</PneButton>}
+    />}
+    title='Финальный шаг'
+>
+    <ModalContent
+        section='modal-actions-grouped-secondary'
+        title='Два вторичных действия'
+        description='Назад и Попробовать редактирование остаются одной вторичной группой перед основным действием Готово.'
+    />
+</ModalStoryHarness>
+
+const verifyGroupedSecondaryActions = async (
+    canvasElement: HTMLElement,
+    expectedOrder: string[],
+) => {
+    const iframeDocument = canvasElement.ownerDocument;
+    const documentCanvas = within(iframeDocument.body);
+    const dialog = await documentCanvas.findByRole("dialog", {name: "Финальный шаг"});
+    const actions = dialog.querySelector<HTMLElement>('[data-pne-modal-actions="true"]')!;
+    const secondary = actions.querySelector<HTMLElement>('[data-pne-modal-action="secondary"]')!;
+    const buttons = within(actions).getAllByRole("button");
+
+    expect(buttons.map(button => button.textContent)).toEqual(expectedOrder);
+    expect(within(secondary).getAllByRole("button").map(button => button.textContent))
+        .toEqual(["Назад", "Попробовать редактирование"]);
+    expect(getComputedStyle(secondary).gap).toBe("8px");
+
+    return {actions, buttons, secondary};
+}
+
+export const GroupedSecondaryActions: Story = {
+    parameters: {
+        docs: {
+            description: {
+                story: "Несколько вторичных действий передаются одним ReactNode-слотом, сохраняют порядок и внутренний отступ 8px.",
+            },
+        },
+    },
+    play: async context => {
+        await openModal(context);
+        await verifyGroupedSecondaryActions(
+            context.canvasElement,
+            ["Назад", "Попробовать редактирование", "Готово"],
+        );
+    },
+    render: () => <GroupedSecondaryActionsExample/>,
+};
+
+export const ResponsiveGroupedSecondaryActions: Story = {
+    globals: {
+        viewport: {
+            value: "mobile360",
+            isRotated: false,
+        },
+    },
+    parameters: {
+        docs: {
+            description: {
+                story: "На узком экране основное действие располагается первым, затем полноширинная вторичная группа в исходном порядке.",
+            },
+        },
+    },
+    play: async context => {
+        await openModal(context);
+        const {actions, buttons, secondary} = await verifyGroupedSecondaryActions(
+            context.canvasElement,
+            ["Готово", "Назад", "Попробовать редактирование"],
+        );
+
+        expect(context.canvasElement.ownerDocument.defaultView?.innerWidth).toBe(360);
+        expect(secondary.scrollWidth).toBeLessThanOrEqual(secondary.clientWidth + 1);
+        buttons.forEach(button => {
+            expect(Math.abs(button.getBoundingClientRect().width - actions.clientWidth))
+                .toBeLessThanOrEqual(1);
+        });
+    },
+    render: () => <GroupedSecondaryActionsExample/>,
+};
+
 export const ResponsiveLongLabels: Story = {
     parameters: {
         docs: {

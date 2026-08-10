@@ -88,6 +88,7 @@ const ActionsRoot = styled('div')`
     gap: 8px;
     align-items: center;
     justify-content: flex-end;
+    flex-wrap: nowrap;
 
     @media (max-width: 480px) {
         flex-direction: column;
@@ -97,13 +98,32 @@ const ActionsRoot = styled('div')`
 
 const ActionSlot = styled('div')`
     display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: 8px;
+    white-space: nowrap;
+
+    & > *,
+    & button,
+    & .MuiButton-root {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
 
     @media (max-width: 480px) {
+        align-items: stretch;
+        flex: 0 1 auto;
+        flex-direction: column;
+        flex-wrap: nowrap;
         width: 100%;
+        white-space: normal;
 
         & > *,
         & button,
         & .MuiButton-root {
+            flex: 0 1 auto;
+            white-space: normal;
             width: 100%;
         }
     }
@@ -123,9 +143,11 @@ const TrailingActions = styled('div')`
     display: flex;
     align-items: center;
     justify-content: flex-end;
+    flex: 0 0 auto;
     gap: 8px;
 
     @media (max-width: 480px) {
+        flex: 0 1 auto;
         width: 100%;
         flex-direction: column;
         align-items: stretch;
