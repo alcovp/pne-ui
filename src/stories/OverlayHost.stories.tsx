@@ -15,10 +15,10 @@ const OverlayDemo = () => {
             onClick: () => overlayActions.showSuccess({ message: 'Add action clicked' }),
         },
         {
-            id: 'reset',
-            label: 'Reset layout',
+            id: 'refresh',
+            label: 'Refresh data',
             icon: <RefreshIcon fontSize='small' />,
-            onClick: () => overlayActions.showInfo({ message: 'Reset triggered' }),
+            onClick: () => overlayActions.showInfo({ message: 'Data refreshed' }),
         },
     ]
 

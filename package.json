@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "4.3.0-rc.38",
+    "version": "4.3.0-rc.39",
     "description": "",
     "repository": {
         "type": "git",
@@ -95,9 +95,6 @@
         "@babel/preset-react": "7.28.5",
         "@babel/preset-typescript": "7.28.5",
         "@chromatic-com/storybook": "5.1.2",
-        "@cloudscape-design/board-components": "3.0.125",
-        "@cloudscape-design/components": "3.0.1118",
-        "@cloudscape-design/global-styles": "1.0.0",
         "@emotion/react": "11.14.0",
         "@emotion/styled": "11.14.1",
         "@eslint/js": "9.39.4",
@@ -141,15 +138,10 @@
         "typescript": "6.0.3"
     },
     "dependencies": {
-        "@cloudscape-design/board-components": "3.0.125",
-        "@cloudscape-design/components": "3.0.1118",
-        "@cloudscape-design/global-styles": "1.0.0",
-        "@fontsource/roboto": "^5.2.10",
         "@hello-pangea/dnd": "18.0.1",
         "dayjs": "1.11.20",
         "immer": "10.0.3",
         "lodash": "4.18.1",
-        "react-grid-layout": "2.2.3",
         "react-imask": "^7.6.1",
         "react-virtuoso": "4.7.5",
         "zod": "3.23.4",

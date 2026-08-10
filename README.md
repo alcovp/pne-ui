@@ -1697,138 +1697,6 @@ export const App = () => (
 тему MUI (тип `ThemeOptions`). Обёрнутые компоненты получают как базовые цвета skin, так и кастомные
 color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), объявленные в `src/index.ts`.
 
-## WidgetBoard и работа с лейаутами
-
-`WidgetBoard` — дашборд с драгабл-виджетами и встраиваемой панелью лейаутов. Компонент инкапсулирует состояние:
-выбор лейаута, CRUD кастомных схем и сохранение/загрузку лежат внутри `WidgetBoard`; снаружи достаточно передать
-источники данных. Для связи `WidgetBoard` с `WidgetLayoutsPanel`/`WidgetBoardFab` используйте
-`WidgetBoardScopeProvider` и `useWidgetBoardScopeStore`.
-
-Основные пропсы:
-- `widgets`: список `{ id, title, render }` — содержимое виджетов.
-- `layoutByBreakpoint`: базовый пресет для дефолтного лейаута.
-- `breakpoints`: семантические брейкпоинты `{ id, minWidth, editBehavior? }`. Значение
-  `editBehavior: 'order-only'` превращает edit-mode в полноширинный draggable-список без resize.
-  В этом режиме тела виджетов не монтируются и их `render`-функции не вызываются; остальные брейкпоинты
-  по умолчанию используют обычный grid-editor.
-- `loadLayouts(): Promise<{ options; selectedId? } | null>`: обязательная функция загрузки пользовательских схем (вызывается при маунте). `WidgetBoard` сам добавляет и блокирует встроенный `default`-лейаут.
-- `saveLayouts(options, selectedId?)`: обязательная функция сохранения пользовательских схем (вызывается при select/add/delete и автосохранении изменений в выбранном пользовательском лейауте).
-
-В grid-editor пользователь меняет только ширину и положение виджета. Высота всегда вычисляется из содержимого
-autosize-механизмом: runtime-значение `rowSpan` не сохраняется в пользовательский лейаут и не превращается в
-фиксированную высоту после resize. `heightMode: 'fixed'` остаётся только code-owned opt-out для специальных
-виджетов, которым фиксированная высота задана самим приложением.
-
-Панель `WidgetLayoutsPanel` — презентационный компонент. Передавайте `items/selectedId/onSelect/onAdd/onDelete`
-и прочие данные из scoped store (`useWidgetBoardScopeStore`).
-
-### Структура данных для лейаутов
-
-`loadLayouts` и `saveLayouts` работают с массивом `WidgetBoardLayoutOption`:
-
-- `id: string`: уникальный идентификатор лейаута (можно `uuid` или любое значение бэка).
-- `name: string`: отображаемое имя пресета.
-- `layoutByBreakpoint: Record<number | string, BreakpointLayoutConfig>`: карта брейкпоинтов (ключ — число или строка, обычно `12`, `1280`, `1600` и т.д.).
-  - `BreakpointLayoutConfig`: `{ widgets: Record<widgetId, WidgetLayoutConfig> }`.
-  - `WidgetLayoutConfig`: `{ defaultSize: { columnSpan; rowSpan; columnOffset? }; limits?; initialState?; heightMode? }`.
-    - `initialState` поддерживает `isHidden` и `isCollapsed`.
-
-Формат функции `loadLayouts`:
-
-```ts
-type LoadLayoutsResult = {
-    options: WidgetBoardLayoutOption[]
-    selectedId?: string // id активного лейаута, если его нет в options — упадет на первый элемент
-} | null
-```
-
-`saveLayouts` получает тот же `options` (уже с последними изменениями) и `selectedId`.
-
-### Пример использования
-
-```tsx
-import React from 'react'
-import { Box, Stack } from '@mui/material'
-import {
-    WidgetBoard,
-    WidgetLayoutsPanel,
-    WidgetBoardScopeProvider,
-    useWidgetBoardScopeStore,
-    type WidgetDefinition,
-    type WidgetBoardLayoutOption,
-} from 'pne-ui'
-
-const widgets: WidgetDefinition[] = [
-    { id: 'traffic', title: 'Traffic', render: () => <div>Traffic content</div> },
-    { id: 'sales', title: 'Sales', render: () => <div>Sales content</div> },
-]
-
-const baseLayoutByBreakpoint = {
-    narrow: {
-        columns: 1,
-        widgets: {
-            traffic: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
-            sales: { defaultSize: { columnSpan: 1, rowSpan: 2 } },
-        },
-    },
-}
-
-const boardBreakpoints = [
-    { id: 'narrow', minWidth: 0, editBehavior: 'order-only' },
-] as const
-
-// Загрузка/сохранение пресетов
-const loadLayouts = async (): Promise<{ options: WidgetBoardLayoutOption[]; selectedId?: string }> => {
-    const response = await api.getUserLayouts() // верните { options, selectedId }
-    // Если API пустой, вернем пустой набор: WidgetBoard добавит встроенный default сам
-    return response ?? { options: [], selectedId: 'default' }
-}
-const saveLayouts = async (options: WidgetBoardLayoutOption[], selectedId?: string) => {
-    await api.saveUserLayouts({ options, selectedId })
-}
-
-const DashboardContent = () => {
-    const boardStore = useWidgetBoardScopeStore()
-    const panelProps = boardStore(state => ({
-        items: state.items,
-        selectedId: state.selectedId,
-        onSelect: state.onSelect,
-        onDelete: state.onDelete,
-        onAdd: state.onAdd,
-        addInfo: state.addInfo,
-        lockedIds: state.lockedIds,
-    }))
-
-    return (
-        <Box sx={{ p: 2 }}>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'flex-start' }}>
-                <Box sx={{ minWidth: 260 }}>
-                    <WidgetLayoutsPanel {...panelProps} />
-                </Box>
-                <Box sx={{ flex: 1 }}>
-                    <WidgetBoard
-                        widgets={widgets}
-                        layoutByBreakpoint={baseLayoutByBreakpoint}
-                        breakpoints={boardBreakpoints}
-                        loadLayouts={loadLayouts}
-                        saveLayouts={saveLayouts}
-                    />
-                </Box>
-            </Box>
-        </Box>
-    )
-}
-
-export const Dashboard = () => (
-    <WidgetBoardScopeProvider>
-        <DashboardContent />
-    </WidgetBoardScopeProvider>
-)
-```
-
-`WidgetBoard` сам обновляет выбранный лейаут, следит за состоянием виджетов и при изменениях дергает `saveLayouts`
-с актуальным набором опций.
-
 ## OverlayHost и уведомления
 
 `OverlayHost` рендерит snackbars из `overlayActions` и принимает декларативные постоянные оверлеи через `PermanentOverlay`
@@ -1894,7 +1762,7 @@ const AppShell = () => (
 import { PneFloatingActionButtons, overlayActions } from 'pne-ui'
 
 const actions = [
-    { id: 'reset', label: 'Reset layout', onClick: () => overlayActions.showInfo({ message: 'Reset' }) },
+    { id: 'refresh', label: 'Refresh data', onClick: () => overlayActions.showInfo({ message: 'Refreshed' }) },
     { id: 'save', label: 'Save', onClick: () => overlayActions.showSuccess({ message: 'Saved' }) },
     { id: 'divider', kind: 'divider' as const },
     { id: 'custom', kind: 'content' as const, node: <div style={{ padding: 8 }}>Any JSX here</div> },
@@ -1904,7 +1772,7 @@ export const FabDemo = () => (
     <PneFloatingActionButtons
         actions={actions}
         fabLabel='Actions'
-        bannerText='Edit widgets'
+        bannerText='Page actions'
         position={{ bottom: 24, right: 24 }}
         mobileBreakpoint={900} // считать мобильным до 900px, иначе поведение как на десктопе
     />
