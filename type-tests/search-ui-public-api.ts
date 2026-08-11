@@ -2,6 +2,7 @@ import {
     CriterionTypeEnum,
     SearchUIConditionsInput,
     SearchUIDateRangeSpec,
+    SearchUIFiltersConfig,
     SearchUIFiltersProps,
     SearchUIProps,
     SearchUITemplate,
@@ -22,6 +23,7 @@ const acceptsInitialFiltersConditions = (
 const acceptsPersistedTemplateDateRange = (
     _value: SearchUITemplate['searchConditions']['dateRangeSpec'],
 ): void => undefined
+const acceptsFiltersConfig = (_value: SearchUIFiltersConfig): void => undefined
 
 acceptsDateRange({
     dateRangeSpecType: 'EXACTLY',
@@ -54,6 +56,11 @@ acceptsInitialFiltersConditions({
         dateTo: new Date('2026-01-02T00:00:00.000Z'),
     },
 })
+acceptsFiltersConfig({
+    transactionTypes: {
+        allowedNames: ['chargeback', 'fraud'],
+    },
+})
 
 // @ts-expect-error Relative ranges are declarative and must not contain resolved dates.
 acceptsDateRange({dateRangeSpecType: 'DAYS_BEFORE', beforeCount: 30, dateFrom: null, dateTo: null})
@@ -73,3 +80,7 @@ acceptsDateRange({dateRangeSpecType: 'LAST_30_DAYS', beforeCount: 30})
 acceptsInitialSearchUIConditions({criteria: [CriterionTypeEnum.STATUS]})
 // @ts-expect-error SearchUIFilters enforces the same strict date-range contract as SearchUI.
 acceptsInitialFiltersConditions({dateRangeSpec: {dateRangeSpecType: 'TODAY', dateFrom: null, dateTo: null, beforeCount: 0}})
+// @ts-expect-error A transaction-types restriction must declare its allowed system names.
+acceptsFiltersConfig({transactionTypes: {}})
+// @ts-expect-error Transaction-type database IDs are instance-specific and are not accepted by this config.
+acceptsFiltersConfig({transactionTypes: {allowedIds: [6, 7]}})

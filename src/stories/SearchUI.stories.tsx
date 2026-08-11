@@ -419,9 +419,9 @@ const HookWrap = (props: HookWrapProps) => {
                 },
                 getTransactionTypes: async () => {
                     return [
-                        { id: 1, displayName: 'One' },
-                        { id: 2, displayName: 'Second' },
-                        { id: 99, displayName: '33333' },
+                        { id: 611, displayName: 'chargeback' },
+                        { id: 722, displayName: 'fraud' },
+                        { id: 833, displayName: 'sale' },
                     ]
                 },
                 getTransactionStatuses: async () => {
@@ -557,6 +557,20 @@ export const ManualSearch: Story = {
         config: {
             manualSearch: true,
             removablePredefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
+        },
+        showVisaButton: false,
+    },
+}
+
+export const RestrictedTransactionTypes: Story = {
+    args: {
+        settingsContextName: 'storybook-restricted-transaction-types',
+        possibleCriteria: [CriterionTypeEnum.TRANSACTION_TYPES],
+        predefinedCriteria: [CriterionTypeEnum.TRANSACTION_TYPES],
+        config: {
+            transactionTypes: {
+                allowedNames: ['chargeback', 'fraud'],
+            },
         },
         showVisaButton: false,
     },

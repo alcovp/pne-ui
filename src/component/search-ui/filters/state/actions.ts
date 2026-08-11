@@ -68,6 +68,11 @@ import {
     SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../dateRangeTimeZone'
 import { getConcreteCustomerLevelMerchantId } from '../customerLevelDependencies'
+import {
+    createEntityOptionRestrictionFingerprint,
+    extractRestrictedEntityIds,
+    normalizeRestrictedEntityCollection,
+} from '../entityOptionRestriction'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -177,6 +182,10 @@ const isRetainedSnapshotCompatible = (
         && isEqual(snapshot.predefinedCriteria, state.predefinedCriteria)
         && isEqual(snapshot.exactSearchLabels, state.exactSearchLabels)
         && snapshot.manualSearch === !!state.config?.manualSearch
+        && isEqual(
+            snapshot.transactionTypesRestriction,
+            createEntityOptionRestrictionFingerprint(state.prefetchedData.allowedTransactionTypes),
+        )
 }
 
 const addCriterionReducer = (
@@ -211,6 +220,20 @@ const ensureCustomerLevelDependenciesReducer = (
     }
 
     CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
+}
+
+const normalizeRestrictedTransactionTypesReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+): void => {
+    const allowedTransactionTypes = draft.prefetchedData.allowedTransactionTypes
+    if (allowedTransactionTypes === undefined) {
+        return
+    }
+
+    draft.transactionTypes = normalizeRestrictedEntityCollection(
+        draft.transactionTypes,
+        allowedTransactionTypes,
+    )
 }
 
 const applyConditionsReducer = (
@@ -277,6 +300,7 @@ const applyConditionsReducer = (
     }
 
     ensureCustomerLevelDependenciesReducer(draft)
+    normalizeRestrictedTransactionTypesReducer(draft)
 }
 
 const restoreAppliedSearchCriteria = (
@@ -338,6 +362,7 @@ export const getSearchUIFiltersActions = (
                 draft.restoredFromRetention = true
             }
 
+            normalizeRestrictedTransactionTypesReducer(draft)
             draft.initialized = true
         })
 
@@ -411,6 +436,7 @@ export const getSearchUIFiltersActions = (
             draft.template = template
             draft.activeTemplateName = template?.name ?? null
             ensureCustomerLevelDependenciesReducer(draft)
+            normalizeRestrictedTransactionTypesReducer(draft)
         })
         syncCriterionAvailability(set, get)
 
@@ -747,6 +773,7 @@ export const getSearchUIFiltersActions = (
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => {
         set((draft) => {
             draft.transactionTypes = transactionTypes
+            normalizeRestrictedTransactionTypesReducer(draft)
         })
         postUpdate(set, get)
     },
@@ -1078,6 +1105,19 @@ const extractEntitiesIds = (allable: AllableCollection<{ id: number }>): number[
     }
 
     return allable.entities.map(c => c.id)
+}
+
+const extractTransactionTypeIds = (state: SearchUIFiltersState): number[] => {
+    const allowedTransactionTypes = state.prefetchedData.allowedTransactionTypes
+    if (allowedTransactionTypes === undefined) {
+        return extractEntitiesIds(state.transactionTypes)
+    }
+
+    if (!state.criteria.includes(CriterionTypeEnum.TRANSACTION_TYPES)) {
+        return []
+    }
+
+    return extractRestrictedEntityIds(state.transactionTypes, allowedTransactionTypes)
 }
 
 const extractGroupTypes = (grouping: Grouping): GroupingType[] => {
@@ -1433,7 +1473,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled, dateOnlyTimeZone),
         orderDateType: state.orderDateType,
         cardTypes: extractEntitiesIds(state.cardTypes),
-        transactionTypes: extractEntitiesIds(state.transactionTypes),
+        transactionTypes: extractTransactionTypeIds(state),
         transactionStatuses: extractEntitiesIds(state.transactionStatuses),
         transactionSessionStatuses: extractTransactionSessionStatuses(state.criteria, state.transactionSessionStatuses),
         projectCurrencyId: state.projectCurrency.currency.id,

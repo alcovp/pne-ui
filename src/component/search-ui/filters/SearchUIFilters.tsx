@@ -35,6 +35,11 @@ import type { SearchUIDateOnlyTimeZone } from './dateRangeTimeZone';
 import {SearchUIFiltersStoreProvider} from './state/SearchUIFiltersStoreProvider';
 import {getRetainedSearchUIState} from './state/retention';
 import {toSearchUIConditionsState} from './publicConditions';
+import type {AbstractEntity} from '../../../common/paynet/type';
+import {
+    normalizeAllowedEntityNames,
+    resolveAllowedEntityOptions,
+} from './entityOptionRestriction';
 
 type PendingClearCriteriaUndo = {
     snackbarId: string
@@ -60,6 +65,16 @@ export type DateRangeCriterionConfig = {
      * Ограничивает список доступных вариантов выбора диапазона дат.
      */
     dateRangeSpecTypes?: ReadonlyArray<DateRangeSpecType>
+}
+
+/**
+ * Дополнительные настройки критерия типов транзакций.
+ */
+export type TransactionTypesCriterionConfig = {
+    /**
+     * Ограничивает общий справочник точным списком системных имён из поля displayName.
+     */
+    allowedNames: ReadonlyArray<string>
 }
 
 /**
@@ -92,6 +107,10 @@ export type SearchUIFiltersConfig = {
      * Дополнительные настройки поведения фильтра по диапазону дат.
      */
     dateRange?: DateRangeCriterionConfig
+    /**
+     * Дополнительные настройки поведения фильтра типов транзакций.
+     */
+    transactionTypes?: TransactionTypesCriterionConfig
     /**
      * Включает ручной режим поиска: при изменении фильтров запрос не отправляется автоматически.
      * Кнопка в шапке панели остается видимой всегда: в ручном режиме это «Search», в автоматическом — «Refresh».
@@ -155,6 +174,88 @@ export const SearchUIFilters = (props: SearchUIFiltersProps) => {
 }
 
 export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
+    const transactionTypesConfig = props.config?.transactionTypes
+    if (transactionTypesConfig === undefined) {
+        return <InitializedSearchUIFiltersContent {...props}/>
+    }
+
+    const normalizedAllowedNames = normalizeAllowedEntityNames(
+        transactionTypesConfig.allowedNames,
+    ) ?? []
+
+    return <RestrictedTransactionTypesSearchUIFiltersContent
+        key={JSON.stringify(normalizedAllowedNames)}
+        {...props}
+        allowedNames={normalizedAllowedNames}
+    />
+}
+
+type RestrictedTransactionTypesSearchUIFiltersContentProps = SearchUIFiltersProps & {
+    allowedNames: string[]
+}
+
+type RestrictedTransactionTypesLoadState =
+    | {status: 'loading'}
+    | {status: 'ready', options: AbstractEntity[]}
+    | {status: 'error', error: Error}
+
+const RestrictedTransactionTypesSearchUIFiltersContent = (
+    props: RestrictedTransactionTypesSearchUIFiltersContentProps,
+) => {
+    const {allowedNames, ...filtersProps} = props
+    const {getTransactionTypes} = useContext(SearchUIDefaultsContext)
+    const loadPromiseRef = useRef<Promise<AbstractEntity[]> | null>(null)
+    const [loadState, setLoadState] = useState<RestrictedTransactionTypesLoadState>({status: 'loading'})
+
+    useEffect(() => {
+        let active = true
+
+        loadPromiseRef.current ??= getTransactionTypes()
+            .then(options => resolveAllowedEntityOptions(
+                options,
+                allowedNames,
+                'SearchUIFiltersConfig.transactionTypes.allowedNames',
+            ))
+
+        loadPromiseRef.current
+            .then(options => {
+                if (active) {
+                    setLoadState({status: 'ready', options})
+                }
+            })
+            .catch(error => {
+                if (active) {
+                    setLoadState({
+                        status: 'error',
+                        error: error instanceof Error ? error : new Error(String(error)),
+                    })
+                }
+            })
+
+        return () => {
+            active = false
+        }
+    }, [allowedNames, getTransactionTypes])
+
+    if (loadState.status === 'error') {
+        throw loadState.error
+    }
+
+    if (loadState.status === 'loading') {
+        return null
+    }
+
+    return <InitializedSearchUIFiltersContent
+        {...filtersProps}
+        allowedTransactionTypes={loadState.options}
+    />
+}
+
+type InitializedSearchUIFiltersContentProps = SearchUIFiltersProps & {
+    allowedTransactionTypes?: AbstractEntity[]
+}
+
+const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersContentProps) => {
     const {t} = useTranslation();
     const {
         settingsContextName,
@@ -166,6 +267,7 @@ export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
         config,
         onFiltersUpdate,
         searchLoading = false,
+        allowedTransactionTypes,
     } = props
 
     const defaults = useContext(SearchUIDefaultsContext)
@@ -241,6 +343,11 @@ export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
             config: config,
             onFiltersUpdate: onFiltersUpdate,
             skipLastTemplateAutoApply: hasExternalSearchConditions,
+            ...(allowedTransactionTypes === undefined ? {} : {
+                prefetchedData: {
+                    allowedTransactionTypes,
+                },
+            }),
             ...initialSearchConditionsState
         }, getRetainedSearchUIState(settingsContextName, instanceId), {
             normalizeInitialDateRange: initialSearchConditionsState?.dateRangeSpec !== undefined,

@@ -126,6 +126,32 @@ const config = {
 />
 ```
 
+### Ограничение типов транзакций
+
+Чтобы показать в `TRANSACTION_TYPES` только часть общего справочника, передайте
+точные системные имена в `config.transactionTypes.allowedNames`. Имена сравниваются
+с полем `displayName`, а числовые ID берутся из справочника текущего инстанса.
+
+```tsx
+<SearchUIFilters
+    settingsContextName="fraud-chargeback-report"
+    possibleCriteria={[CriterionTypeEnum.TRANSACTION_TYPES]}
+    predefinedCriteria={[CriterionTypeEnum.TRANSACTION_TYPES]}
+    onFiltersUpdate={handleFiltersUpdate}
+    config={{
+        transactionTypes: {
+            allowedNames: ['chargeback', 'fraud'],
+        },
+    }}
+/>
+```
+
+При таком ограничении значение `All` соответствует всем разрешённым типам и
+передаёт их фактические ID в `SearchCriteria.transactionTypes`. Пока справочник
+не загружен, фильтры не инициализируются и промежуточный неограниченный запрос не
+отправляется. Без `config.transactionTypes` сохраняется прежний контракт:
+`All` сериализуется как пустой массив.
+
 ### Динамическая доступность критериев
 
 Если критерий должен быть доступен только при определённом состоянии фильтров,

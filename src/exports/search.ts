@@ -8,6 +8,7 @@ export {
     type SearchUIFiltersConfig,
     type SearchUIFiltersProps,
     type DateRangeCriterionConfig,
+    type TransactionTypesCriterionConfig,
 } from '../component/search-ui/filters/SearchUIFilters'
 export {
     CriterionTypeEnum,

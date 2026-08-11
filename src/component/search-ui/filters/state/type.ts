@@ -20,6 +20,7 @@ import {
 import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} from '../../../..';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
 import {SearchUIDefaults} from '../../SearchUIProvider';
+import type {EntityOptionRestrictionFingerprint} from '../entityOptionRestriction';
 
 export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 
@@ -32,11 +33,13 @@ export type SearchUIRetentionSnapshot = {
     predefinedCriteria: CriterionTypeEnum[]
     exactSearchLabels: ExactCriterionSearchLabelEnum[]
     manualSearch: boolean
+    transactionTypesRestriction: EntityOptionRestrictionFingerprint | null
 }
 
 export type SearchUIPrefetchedTransactionSessionStatuses = Map<TransactionSessionGroup, TransactionSessionStatus[]>
 
 export type SearchUIPrefetchedData = {
+    allowedTransactionTypes?: AbstractEntity[]
     transactionSessionStatuses?: SearchUIPrefetchedTransactionSessionStatuses
 }
 

@@ -3,6 +3,7 @@ import type {
     SearchUIFiltersState,
     SearchUIRetentionSnapshot,
 } from './type'
+import { createEntityOptionRestrictionFingerprint } from '../entityOptionRestriction'
 
 const MAX_RETAINED_SEARCH_UI_STATES = 100
 
@@ -124,4 +125,6 @@ const createSearchUIRetentionSnapshot = (state: SearchUIFiltersState): SearchUIR
     predefinedCriteria: state.predefinedCriteria,
     exactSearchLabels: state.exactSearchLabels,
     manualSearch: !!state.config?.manualSearch,
+    transactionTypesRestriction:
+        createEntityOptionRestrictionFingerprint(state.prefetchedData.allowedTransactionTypes),
 })

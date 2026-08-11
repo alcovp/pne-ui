@@ -399,6 +399,7 @@ describe('SearchUIFilters Zustand store', () => {
             predefinedCriteria: [],
             exactSearchLabels: [],
             manualSearch: false,
+            transactionTypesRestriction: null,
         }
 
         const { setInitialState } = store.getState()
