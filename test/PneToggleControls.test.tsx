@@ -316,6 +316,33 @@ describe('PneCheckbox', () => {
 })
 
 describe('PneSwitch', () => {
+    it('smoothly transitions the track color for every switch state change', () => {
+        const {container} = render(<PneSwitch aria-label='Animated track switch'/>)
+        const track = container.querySelector<HTMLElement>('.MuiSwitch-track')!
+
+        expect(window.getComputedStyle(track).transition)
+            .toBe('background-color 240ms cubic-bezier(0.4, 0, 0.2, 1) 0ms')
+    })
+
+    it('lets a functional track slot extend and override the shared transition', () => {
+        const trackSlot = jest.fn((ownerState: SwitchOwnerState) => ({
+            'data-consumer-track': 'true',
+            sx: {transitionDuration: '333ms'},
+        }))
+        const {container} = render(<PneSwitch
+            aria-label='Custom animated track switch'
+            slotProps={{track: trackSlot}}
+        />)
+        const track = container.querySelector<HTMLElement>('.MuiSwitch-track')!
+
+        expect(trackSlot).toHaveBeenCalledWith(expect.objectContaining({
+            checked: false,
+            size: 'medium',
+        }))
+        expect(track.dataset.consumerTrack).toBe('true')
+        expect(window.getComputedStyle(track).transitionDuration).toBe('333ms')
+    })
+
     it('keeps the switch role while composing functional input props and refs', () => {
         const slotInputRefCleanup = jest.fn()
         const slotInputRef = jest.fn((_input: HTMLInputElement | null) => slotInputRefCleanup)

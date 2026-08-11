@@ -1,9 +1,77 @@
 import * as React from 'react'
+import {ThemeProvider} from '@mui/material/styles'
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 
-import {PneModal, PneModalActions} from '../src'
+import {createPneTheme, PneModal, PneModalActions, type Skin} from '../src'
 
 describe('PneModal', () => {
+    it('keeps its dark title readable against legacy heading styles', () => {
+        const theme = createPneTheme(
+            {experimentalColor: '#0a91bc'} as Skin,
+            {colorMode: 'dark'},
+        )
+
+        render(
+            <ThemeProvider theme={theme}>
+                <style>{'h3 { color: rgb(6, 63, 83); }'}</style>
+                <PneModal
+                    onClose={jest.fn()}
+                    open
+                    slotProps={{title: {'data-testid': 'dark-modal-title'}}}
+                    title='Readable modal title'
+                />
+            </ThemeProvider>,
+        )
+
+        expect(window.getComputedStyle(screen.getByTestId('dark-modal-title')).color)
+            .toBe('rgb(242, 242, 242)')
+    })
+
+    it('does not override an existing light-skin heading color', () => {
+        const theme = createPneTheme({experimentalColor: '#0a91bc'} as Skin)
+
+        render(
+            <ThemeProvider theme={theme}>
+                <style>{'h3 { color: rgb(6, 63, 83); }'}</style>
+                <PneModal
+                    onClose={jest.fn()}
+                    open
+                    slotProps={{title: {'data-testid': 'light-modal-title'}}}
+                    title='Existing light title'
+                />
+            </ThemeProvider>,
+        )
+
+        expect(window.getComputedStyle(screen.getByTestId('light-modal-title')).color)
+            .toBe('rgb(6, 63, 83)')
+    })
+
+    it('keeps an explicit title color ahead of the dark default', () => {
+        const theme = createPneTheme(
+            {experimentalColor: '#0a91bc'} as Skin,
+            {colorMode: 'dark'},
+        )
+
+        render(
+            <ThemeProvider theme={theme}>
+                <PneModal
+                    onClose={jest.fn()}
+                    open
+                    slotProps={{
+                        title: {
+                            color: 'error',
+                            'data-testid': 'custom-modal-title',
+                        },
+                    }}
+                    title='Custom modal title'
+                />
+            </ThemeProvider>,
+        )
+
+        expect(window.getComputedStyle(screen.getByTestId('custom-modal-title')).color)
+            .toBe('rgb(244, 67, 54)')
+    })
+
     it('renders actions in a persistent footer and makes only the body scrollable', () => {
         render(
             <PneModal

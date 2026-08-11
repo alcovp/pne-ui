@@ -180,7 +180,15 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                 {current && hasMessage(current.message) ? (
                     <Stack spacing={3}>
                         <Box {...createAutoTestAttributes('alert.message')}>
-                            <Typography sx={{ fontSize: '14px', lineHeight: '20px', color: '#4E5D78' }}>
+                            <Typography
+                                sx={{
+                                    fontSize: '14px',
+                                    lineHeight: '20px',
+                                    color: theme => theme.palette.mode === 'dark'
+                                        ? theme.palette.text.primary
+                                        : '#4E5D78',
+                                }}
+                            >
                                 {current.message}
                             </Typography>
                         </Box>

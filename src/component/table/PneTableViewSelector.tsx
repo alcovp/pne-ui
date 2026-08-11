@@ -73,39 +73,48 @@ const groupSx: SxProps<Theme> = {
     },
 }
 
-const viewButtonSx: SxProps<Theme> = theme => ({
-    border: 0,
-    borderRadius: '4px !important',
-    color: TABLE_CONTROL_TEXT_COLOR,
-    flex: '1 1 0',
-    fontWeight: 'bold',
-    height: '40px',
-    letterSpacing: '0.46px',
-    lineHeight: '22px',
-    minWidth: 0,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    textTransform: 'none',
-    whiteSpace: 'nowrap',
-    [`&.${toggleButtonClasses.selected}`]: {
-        backgroundColor: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
-        color: TABLE_CONTROL_TEXT_COLOR,
-        '&:hover': {
-            backgroundColor: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
+const viewButtonSx: SxProps<Theme> = theme => {
+    const activeBackgroundColor = theme.palette.mode === 'dark'
+        ? theme.palette.pne.surface.subtle
+        : TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
+    const controlTextColor = theme.palette.mode === 'dark'
+        ? theme.palette.text.secondary
+        : TABLE_CONTROL_TEXT_COLOR
+
+    return {
+        border: 0,
+        borderRadius: '4px !important',
+        color: controlTextColor,
+        flex: '1 1 0',
+        fontWeight: 'bold',
+        height: '40px',
+        letterSpacing: '0.46px',
+        lineHeight: '22px',
+        minWidth: 0,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        textTransform: 'none',
+        whiteSpace: 'nowrap',
+        [`&.${toggleButtonClasses.selected}`]: {
+            backgroundColor: activeBackgroundColor,
+            color: controlTextColor,
+            '&:hover': {
+                backgroundColor: activeBackgroundColor,
+            },
         },
-    },
-    [`&.${toggleButtonClasses.disabled}`]: {
-        border: 'none',
-    },
-    '&:hover': {
-        backgroundColor: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
-        borderRadius: '4px',
-    },
-    '&.Mui-focusVisible': {
-        outline: `2px solid ${theme.palette.primary.main}`,
-        outlineOffset: '-2px',
-    },
-})
+        [`&.${toggleButtonClasses.disabled}`]: {
+            border: 'none',
+        },
+        '&:hover': {
+            backgroundColor: activeBackgroundColor,
+            borderRadius: '4px',
+        },
+        '&.Mui-focusVisible': {
+            outline: `2px solid ${theme.palette.primary.main}`,
+            outlineOffset: '-2px',
+        },
+    }
+}
 
 const PneTableViewSelectorInner = <TViewId extends string, >(
     props: PneTableViewSelectorProps<TViewId>,
@@ -168,21 +177,25 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
             />
             <Box
                 {...createAutoTestAttributes(TABLE_VIEW_ACTIONS_AUTOTEST_ID)}
-                sx={{
+                sx={(theme: Theme) => ({
                     alignItems: 'center',
                     display: 'flex',
                     flexShrink: 0,
                     height: '40px',
                     [`& .${iconButtonClasses.root}`]: {
                         borderRadius: '4px !important',
-                        color: TABLE_CONTROL_TEXT_COLOR,
+                        color: theme.palette.mode === 'dark'
+                            ? theme.palette.text.secondary
+                            : TABLE_CONTROL_TEXT_COLOR,
                         height: '40px',
                         width: '40px',
                         '&:hover': {
-                            backgroundColor: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
+                            backgroundColor: theme.palette.mode === 'dark'
+                                ? theme.palette.pne.surface.subtle
+                                : TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
                         },
                     },
-                }}
+                })}
             >
                 {actions}
             </Box>

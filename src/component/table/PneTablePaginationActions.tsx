@@ -10,7 +10,7 @@ import {
     TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
     TABLE_CONTROL_TEXT_COLOR,
 } from "./tableControlColors";
-// import {usePneTheme} from "../../usePneTheme";
+import {usePneTheme} from "../../usePneTheme";
 
 interface IPaginationActionsProps {
     count: number
@@ -145,7 +145,13 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const pageSizesRef = useRef<HTMLDivElement>(null)
     const [layout, setLayout] = useState<PneTablePaginationActionsLayout>('inline')
 
-    // const theme = usePneTheme()
+    const theme = usePneTheme()
+    const controlTextColor = theme.palette.mode === 'dark'
+        ? theme.palette.text.secondary
+        : TABLE_CONTROL_TEXT_COLOR
+    const activeBackgroundColor = theme.palette.mode === 'dark'
+        ? theme.palette.pne.surface.subtle
+        : TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
 
     const buttonStyle = {
         width: `${CONTROL_SIZE}px`,
@@ -156,16 +162,16 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         fontSize: '12px',
         lineHeight: '16px',
         //TODO тут цвет из темы - основной
-        color: TABLE_CONTROL_TEXT_COLOR,
+        color: controlTextColor,
         '&:hover': {
-            background: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
+            background: activeBackgroundColor,
             ...activeActionSx
         },
     }
 
     const selectedButtonStyle = {
         ...buttonStyle,
-        background: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
+        background: activeBackgroundColor,
         ...activeActionSx
     }
 
@@ -182,12 +188,12 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         height: `${CONTROL_SIZE}px`,
         overflow: 'hidden',
         borderRadius: '4px',
-        background: TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
+        background: activeBackgroundColor,
         fontWeight: 700,
         fontSize: '12px',
         lineHeight: '16px',
         //TODO тут цвет из темы - основной
-        color: TABLE_CONTROL_TEXT_COLOR,
+        color: controlTextColor,
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         ...activeActionSx

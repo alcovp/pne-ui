@@ -297,18 +297,32 @@ const createPrimaryButtonColorSx = (
     }
 
     const feedbackBackgroundColor = alpha(theme.palette.primary.main, 0.1)
+    const isDarkMode = theme.palette.mode === 'dark'
+    const disabledBackground = isDarkMode ? theme.palette.action.disabledBackground : '#B0B7C3'
+    const disabledForeground = isDarkMode ? theme.palette.text.disabled : '#fff'
+    const disabledOutline = isDarkMode ? theme.palette.text.disabled : '#B0B7C3'
+    const brand = theme.palette.pne?.brand
 
     if (variant === 'contained') {
+        const fill = brand?.fill ?? theme.palette.primary.main
+        const fillHover = isDarkMode && brand ? brand.fillHover : theme.palette.primary.dark
+        const onFill = brand?.onFill ?? theme.palette.primary.contrastText
+        const fillBorder = brand?.fillBorder ?? 'transparent'
+        const fillBoundary = fillBorder === 'transparent'
+            ? 'none'
+            : `inset 0 0 0 1px ${fillBorder}`
         return {
-            backgroundColor: theme.palette.primary.main,
-            color: theme.palette.primary.contrastText,
+            backgroundColor: fill,
+            color: onFill,
+            boxShadow: fillBoundary,
             '&:hover, &:active': {
-                backgroundColor: theme.palette.primary.dark,
-                boxShadow: 'none',
+                backgroundColor: fillHover,
+                boxShadow: fillBoundary,
             },
             '&.Mui-disabled': {
-                backgroundColor: '#B0B7C3',
-                color: '#fff',
+                backgroundColor: disabledBackground,
+                color: disabledForeground,
+                boxShadow: 'none',
             },
         }
     }
@@ -325,8 +339,8 @@ const createPrimaryButtonColorSx = (
             },
             '&.Mui-disabled': {
                 backgroundColor: 'transparent',
-                borderColor: '#B0B7C3',
-                color: '#B0B7C3',
+                borderColor: disabledOutline,
+                color: disabledOutline,
             },
         }
     }
@@ -340,7 +354,7 @@ const createPrimaryButtonColorSx = (
             },
             '&.Mui-disabled': {
                 backgroundColor: 'transparent',
-                color: '#B0B7C3',
+                color: disabledOutline,
             },
         }
     }

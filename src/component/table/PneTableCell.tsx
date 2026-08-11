@@ -22,7 +22,7 @@ const PneTableCell = forwardRef<HTMLTableCellElement, PneTableCellProps>((props,
             padding: '8px',
             background: selected ? theme.palette.action.selected : 'inherit',
             border: 'none',
-            color: '#4E5D78',
+            color: theme.palette.mode === 'dark' ? theme.palette.text.secondary : '#4E5D78',
             position: 'relative',
         },
         ...(Array.isArray(sx) ? sx : [sx])

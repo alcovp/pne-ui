@@ -16,7 +16,7 @@ Layers and directories
   - Table: `component/table/*` (core `AbstractTable`, header/row factories, sorting/pagination, helper `useTable`).
   - SearchUI: `component/search-ui/*` stitches filter panel and results table, using zustand (`state/*`) to hold criteria.
   - Entity selectors: `component/non-abstract-entity-selector`.
-- Theming: `createPneTheme.ts` builds an extended MUI theme from `Skin` (`common/paynet/skin`); `usePneTheme.ts` is a convenience hook.
+- Theming: `createTheme.ts` builds light/dark MUI themes and semantic tokens from `Skin`; `PneThemeProvider.tsx` scopes a controlled or in-memory color mode without owning persistence; `usePneTheme.ts` is a convenience hook.
 - Stories: `src/stories/*.stories.tsx` show props and usage patterns.
 - Tests: `test/` — Jest + ts-jest; currently cover parts of SearchUI (store/utils) and shared helpers.
 
@@ -30,7 +30,8 @@ Key flows
   - Table uses `PneTable` + `useTable`: criteria become request params via `createSearchParams`, then `searchData` is called.
   - `settingsContextName` is used as a key-prefix for persisted settings/context.
 - Theming:
-  - `createPneTheme(skin, overrides?)` injects `skin` and extends the palette (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated`, etc.) via module declarations in `src/index.ts`.
+  - `createPneTheme(skin, {colorMode, ...overrides})` injects `skin`, derives accessible `palette.pne` surface/brand roles at runtime, and retains the compatibility palettes (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated`, etc.) via module declarations in `src/index.ts`.
+  - `createPneThemeOptions` exposes the pure options contract; `PneThemeProvider` owns only React/MUI context, while applications own profile or other persistence.
   - MUI components (`MuiIconButton`, `MuiButton`, `MuiToggleButtonGroup`) define styleOverrides for custom colors.
 
 Working with the public API

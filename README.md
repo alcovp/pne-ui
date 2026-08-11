@@ -1658,10 +1658,13 @@ export default i18n
 
 ## Темизация компонентов MUI
 
-`pne-ui` поставляет вспомогательную функцию `createPneTheme` и тип `Skin`.  
+`pne-ui` поставляет `createPneTheme`, `PneThemeProvider` и тип `Skin`.
 `Skin` описывает корпоративные цвета Paynet (цвета хедера, меню и т.д.),
 а `createPneTheme(skin)` на их основе строит расширенную MUI-тему с дополнительными палитрами:
 `pnePrimary`, `pneNeutral`, `pnePrimaryLight`, `pneAccentuated`, `pneWhite`, `pneWarningLight`.
+По умолчанию тема остаётся светлой. Для тёмной схемы передайте `{colorMode: 'dark'}`; нейтральные
+surface/text/action-токены при этом меняются, а skin accent автоматически получает контрастный вариант для
+текста и отдельный исходный fill для contained-кнопок.
 
 ### Быстрый старт
 
@@ -1696,6 +1699,32 @@ export const App = () => (
 При необходимости можно передать второй аргумент `createPneTheme(skin, muiOverrides)` и дополнительно расширить
 тему MUI (тип `ThemeOptions`). Обёрнутые компоненты получают как базовые цвета skin, так и кастомные
 color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), объявленные в `src/index.ts`.
+
+### Светлая и тёмная схемы
+
+Для управляемого режима используйте `PneThemeProvider`. Он создаёт один MUI `ThemeProvider` и публикует
+`usePneColorMode()` для переключателя внутри выбранной области. Компонент намеренно ничего не читает и не пишет
+в `localStorage`: загрузка, optimistic update, rollback и сохранение пользовательской настройки принадлежат
+приложению. Вложенный provider позволяет сначала включить dark mode только для одной страницы; React portals
+этой страницы сохраняют её theme context.
+
+```tsx
+import {PneThemeProvider, type PneColorMode} from 'pne-ui'
+
+const [mode, setMode] = useState<PneColorMode>('light')
+
+return (
+    <PneThemeProvider skin={skin} mode={mode} onModeChange={setMode}>
+        <OrderDetails />
+    </PneThemeProvider>
+)
+```
+
+Новые роли доступны в `theme.palette.pne`: `surface.sunken/subtle/raised`,
+`border.default/control`, `text.muted` и `brand`. В `brand` исходный `seed/fill` отделён от автоматически
+адаптированного `foreground`; используйте `foreground` для ссылок, иконок и заголовков на тёмных surfaces,
+а `fill/onFill/fillBorder` — для залитых controls. `createPneThemeOptions` возвращает те же чистые MUI
+`ThemeOptions`, если consumer должен сам вызвать свою `createTheme`.
 
 ## OverlayHost и уведомления
 

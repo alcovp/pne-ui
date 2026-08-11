@@ -12,7 +12,7 @@ import {
     PneSurfaceHeader as Header,
     pneSurfaceCloseButtonSx,
     pneSurfaceSubtitleSx,
-    pneSurfaceTitleSx,
+    getPneSurfaceTitleSx,
 } from './internal/PneSurface'
 
 export type PneModalDataAttributes = {
@@ -311,7 +311,7 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
                         component={titleComponent ?? 'h3'}
                         id={titleId}
                         sx={[
-                            pneSurfaceTitleSx,
+                            getPneSurfaceTitleSx(forwardedTitleProps.color !== undefined),
                             ...(Array.isArray(titleSx) ? titleSx : [titleSx]),
                         ]}
                     >

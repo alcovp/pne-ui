@@ -5,7 +5,7 @@ import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
 import {alpha, keyframes} from '@mui/material/styles'
 import {useTheme} from '@mui/material/styles'
 import type {SxProps, Theme} from '@mui/material/styles'
-import {useControlled} from '@mui/material/utils'
+import * as MuiMaterialUtils from '@mui/material/utils'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
 import {usePneFieldControlProps} from './PneFieldContext'
 import {composeToggleInputSlotProps, moveAriaPropsToInput} from './PneToggleInput'
@@ -70,7 +70,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         slotProps,
         ...rest
     } = themedProps
-    const [confirmedChecked, setConfirmedChecked] = useControlled({
+    const [confirmedChecked, setConfirmedChecked] = MuiMaterialUtils.useControlled({
         controlled: checkedProp,
         default: Boolean(defaultChecked),
         name: 'PneSwitch',
@@ -298,6 +298,9 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
             slotProps={{
                 ...slotProps,
                 input: inputSlotProps,
+                track: MuiMaterialUtils.mergeSlotProps(slotProps?.track, {
+                    sx: switchTrackTransitionSx,
+                }),
             }}
             sx={_sx}
         />
@@ -320,6 +323,16 @@ const pendingRipple = keyframes({
     to: {
         opacity: 0,
         transform: 'scale(1.28)',
+    },
+})
+
+const switchTrackTransitionSx: SxProps<Theme> = theme => ({
+    transition: theme.transitions.create('background-color', {
+        duration: 240,
+        easing: theme.transitions.easing.easeInOut,
+    }),
+    '@media (prefers-reduced-motion: reduce)': {
+        transitionDuration: '0.01ms',
     },
 })
 
@@ -403,6 +416,16 @@ const createSwitchSx = (
     },
 ): SxProps<Theme> => theme => {
     const trackFeedbackColor = alpha(theme.palette.primary.main, 0.1)
+    const isDarkMode = theme.palette.mode === 'dark'
+    const thumbColor = isDarkMode ? theme.palette.text.primary : '#fff'
+    const trackColor = isDarkMode
+        ? (theme.palette.pne?.border.control ?? theme.palette.text.secondary)
+        : '#809EAE'
+    const trackHoverColor = isDarkMode ? theme.palette.text.secondary : '#5E7594'
+    const disabledTrackColor = isDarkMode
+        ? theme.palette.action.disabledBackground
+        : '#E6E6E6'
+    const disabledThumbColor = isDarkMode ? theme.palette.text.disabled : '#fff'
 
     return {
         '--pne-switch-track-height': `${config.trackHeight}px`,
@@ -428,17 +451,17 @@ const createSwitchSx = (
             top: config.trackTop,
             left: config.trackLeft,
             padding: `${config.thumbPadding}px`,
-            color: '#fff',
+            color: thumbColor,
             '&.Mui-checked': {
                 transform: `translateX(${config.checkedShift}px)`,
-                color: '#fff',
+                color: thumbColor,
                 '& + .MuiSwitch-track': {
                     backgroundColor: 'primary.main',
                     opacity: 1,
                 },
             },
             '&:hover + .MuiSwitch-track': {
-                backgroundColor: '#5E7594',
+                backgroundColor: trackHoverColor,
                 opacity: 1,
             },
             '&.Mui-checked:hover + .MuiSwitch-track': {
@@ -446,13 +469,13 @@ const createSwitchSx = (
                 opacity: 1,
             },
             '&.Mui-disabled': {
-                color: '#fff',
+                color: disabledThumbColor,
                 opacity: 1,
                 '& .MuiSwitch-thumb': {
-                    backgroundColor: '#fff',
+                    backgroundColor: disabledThumbColor,
                 },
                 '& + .MuiSwitch-track': {
-                    backgroundColor: '#E6E6E6',
+                    backgroundColor: disabledTrackColor,
                     opacity: 1,
                 },
                 '& + .MuiSwitch-track::before': {
@@ -462,17 +485,17 @@ const createSwitchSx = (
                 },
             },
             '&.Mui-checked.Mui-disabled + .MuiSwitch-track': {
-                backgroundColor: '#E6E6E6',
+                backgroundColor: disabledTrackColor,
                 opacity: 1,
             },
             '&.Mui-checked.Mui-disabled .MuiSwitch-thumb': {
-                backgroundColor: '#fff',
+                backgroundColor: disabledThumbColor,
             },
             '&.Mui-checked.Mui-disabled': {
-                color: '#fff',
+                color: disabledThumbColor,
                 opacity: 1,
                 '& + .MuiSwitch-track': {
-                    backgroundColor: '#E6E6E6',
+                    backgroundColor: disabledTrackColor,
                     opacity: 1,
                 },
                 '& + .MuiSwitch-track::before': {
@@ -482,11 +505,11 @@ const createSwitchSx = (
                 },
             },
             '&.Mui-disabled:hover + .MuiSwitch-track': {
-                backgroundColor: '#E6E6E6',
+                backgroundColor: disabledTrackColor,
                 opacity: 1,
             },
             '&.Mui-checked.Mui-disabled:hover + .MuiSwitch-track': {
-                backgroundColor: '#E6E6E6',
+                backgroundColor: disabledTrackColor,
                 opacity: 1,
             },
             '&.Mui-focusVisible:not(.Mui-disabled) + .MuiSwitch-track::before': {
@@ -514,7 +537,7 @@ const createSwitchSx = (
             width: config.trackWidth,
             height: config.trackHeight,
             borderRadius: 40,
-            backgroundColor: '#809EAE',
+            backgroundColor: trackColor,
             opacity: 1,
             overflow: 'visible',
             '&::before': {

@@ -1,4 +1,5 @@
 import type {Skin} from './common/paynet/skin'
+import type {PneSemanticPalette} from './createTheme'
 
 // TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
 // возможностью ее дополнять?
@@ -8,6 +9,7 @@ declare module '@mui/material/styles' {
     }
 
     interface Palette {
+        pne: PneSemanticPalette
         pneNeutral: Palette['primary']
         pnePrimary: Palette['primary']
         pnePrimaryLight: Palette['primary']
@@ -17,17 +19,18 @@ declare module '@mui/material/styles' {
     }
 
     interface PaletteOptions {
-        pneNeutral: PaletteOptions['primary']
-        pnePrimary: PaletteOptions['primary']
-        pnePrimaryLight: PaletteOptions['primary']
-        pneWhite: PaletteOptions['primary']
-        pneWarningLight: PaletteOptions['primary']
-        pneAccentuated: PaletteOptions['primary']
+        pne?: PneSemanticPalette
+        pneNeutral?: PaletteOptions['primary']
+        pnePrimary?: PaletteOptions['primary']
+        pnePrimaryLight?: PaletteOptions['primary']
+        pneWhite?: PaletteOptions['primary']
+        pneWarningLight?: PaletteOptions['primary']
+        pneAccentuated?: PaletteOptions['primary']
     }
 
     // allow configuration using `createTheme`
     interface ThemeOptions {
-        skin: Skin
+        skin?: Skin
     }
 }
 

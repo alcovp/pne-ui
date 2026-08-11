@@ -22,7 +22,7 @@ import {
     PneSurfaceHeader,
     pneSurfaceCloseButtonSx,
     pneSurfaceSubtitleSx,
-    pneSurfaceTitleSx,
+    getPneSurfaceTitleSx,
 } from './internal/PneSurface'
 
 export type PneCoachmarkDataAttributes = PneModalDataAttributes
@@ -227,7 +227,7 @@ const PneCoachmark = React.forwardRef<HTMLDivElement, PneCoachmarkProps>(
                         component={titleComponent ?? 'h3'}
                         id={titleId}
                         sx={[
-                            pneSurfaceTitleSx,
+                            getPneSurfaceTitleSx(forwardedTitleProps.color !== undefined),
                             ...(Array.isArray(titleSx) ? titleSx : [titleSx]),
                         ]}
                     >

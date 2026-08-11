@@ -1,7 +1,8 @@
 import * as React from 'react'
+import {ThemeProvider} from '@mui/material/styles'
 import {fireEvent, render, screen} from '@testing-library/react'
 
-import {PneCoachmark} from '../src'
+import {createPneTheme, PneCoachmark, type Skin} from '../src'
 
 const createAnchor = (): HTMLButtonElement => {
     const anchor = document.createElement('button')
@@ -22,6 +23,38 @@ const createAnchor = (): HTMLButtonElement => {
 }
 
 describe('PneCoachmark', () => {
+    it('keeps its dark title readable against legacy heading styles', () => {
+        const theme = createPneTheme(
+            {experimentalColor: '#0a91bc'} as Skin,
+            {colorMode: 'dark'},
+        )
+
+        render(
+            <ThemeProvider theme={theme}>
+                <style>{`
+                    h1, h2, h3, h4, h5, h6 { color: rgb(6, 63, 83); }
+                    h2 { padding-top: 23.4px; }
+                `}</style>
+                <PneCoachmark
+                    anchorEl={null}
+                    onClose={jest.fn()}
+                    open
+                    slotProps={{
+                        title: {
+                            component: 'h2',
+                            'data-testid': 'dark-coachmark-title',
+                        },
+                    }}
+                    title='Readable coachmark title'
+                />
+            </ThemeProvider>,
+        )
+
+        const title = window.getComputedStyle(screen.getByTestId('dark-coachmark-title'))
+        expect(title.color).toBe('rgb(242, 242, 242)')
+        expect(title.paddingTop).toBe('0px')
+    })
+
     it('renders an anchored non-modal dialog without taking focus', () => {
         const anchor = createAnchor()
         const outsideControl = document.createElement('button')
