@@ -30,6 +30,7 @@ export type PneSemanticPalette = {
         raised: string
     }
     border: {
+        subtle: string
         default: string
         control: string
     }
@@ -50,6 +51,7 @@ export const PNE_DARK_COLORS = Object.freeze({
     surfaceSunken: '#181818',
     surfaceSubtle: '#242424',
     surfaceRaised: '#292929',
+    borderSubtle: 'rgba(255,255,255,0.035)',
     borderDefault: '#484848',
     borderControl: '#707070',
     textPrimary: '#F2F2F2',
@@ -68,6 +70,7 @@ const PNE_LIGHT_COLORS = Object.freeze({
     surfaceSunken: '#F8FAFC',
     surfaceSubtle: '#F1F5FA',
     surfaceRaised: '#FFFFFF',
+    borderSubtle: '#F1F5FA',
     borderDefault: '#E1E7EF',
     borderControl: '#B0B7C3',
     textMuted: '#809EAE',
@@ -222,8 +225,16 @@ const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPal
             raised: PNE_LIGHT_COLORS.surfaceRaised,
         },
     border: mode === 'dark'
-        ? {default: PNE_DARK_COLORS.borderDefault, control: PNE_DARK_COLORS.borderControl}
-        : {default: PNE_LIGHT_COLORS.borderDefault, control: PNE_LIGHT_COLORS.borderControl},
+        ? {
+            subtle: PNE_DARK_COLORS.borderSubtle,
+            default: PNE_DARK_COLORS.borderDefault,
+            control: PNE_DARK_COLORS.borderControl,
+        }
+        : {
+            subtle: PNE_LIGHT_COLORS.borderSubtle,
+            default: PNE_LIGHT_COLORS.borderDefault,
+            control: PNE_LIGHT_COLORS.borderControl,
+        },
     text: {
         muted: mode === 'dark' ? PNE_DARK_COLORS.textMuted : PNE_LIGHT_COLORS.textMuted,
     },

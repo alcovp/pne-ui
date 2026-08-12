@@ -52,6 +52,13 @@ describe('createPneTheme', () => {
             subtle: PNE_DARK_COLORS.surfaceSubtle,
             raised: PNE_DARK_COLORS.surfaceRaised,
         })
+        expect(theme.palette.pne.border.subtle).toBe(PNE_DARK_COLORS.borderSubtle)
+    })
+
+    it('keeps light subtle borders pixel-compatible', () => {
+        const theme = createPneTheme(createSkin('#0a91bc'))
+
+        expect(theme.palette.pne.border.subtle).toBe('#F1F5FA')
     })
 
     it.each([

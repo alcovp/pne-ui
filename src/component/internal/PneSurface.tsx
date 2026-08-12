@@ -36,6 +36,7 @@ export const pneSurfaceCloseButtonSx: SxProps<Theme> = (theme: Theme) => ({
 
 export const PneSurface = styled(Box)(({theme}) => ({
     boxSizing: 'border-box',
+    colorScheme: theme.palette.mode,
     background: theme.palette.background.paper,
     color: theme.palette.text.primary,
     border: 'none',
@@ -54,9 +55,7 @@ export const PneSurfaceHeader = styled(Box)(({theme}) => ({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '16px 24px',
-    borderBottom: `1px solid ${theme.palette.mode === 'dark'
-        ? theme.palette.divider
-        : '#F1F5FA'}`,
+    borderBottom: `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
     gap: '16px',
 }))
 
@@ -71,7 +70,5 @@ export const PneSurfaceBody = styled(Box)`
 export const PneSurfaceFooter = styled(Box)(({theme}) => ({
     flex: '0 0 auto',
     padding: '16px 24px',
-    borderTop: `1px solid ${theme.palette.mode === 'dark'
-        ? theme.palette.divider
-        : '#F1F5FA'}`,
+    borderTop: `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
 }))

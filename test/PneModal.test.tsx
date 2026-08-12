@@ -72,6 +72,37 @@ describe('PneModal', () => {
             .toBe('rgb(244, 67, 54)')
     })
 
+    it.each([
+        ['light', '#F1F5FA'],
+        ['dark', 'rgba(255,255,255,0.035)'],
+    ] as const)('uses the semantic subtle divider in %s mode', (colorMode, expectedColor) => {
+        const theme = createPneTheme(
+            {experimentalColor: '#0a91bc'} as Skin,
+            {colorMode},
+        )
+
+        render(
+            <ThemeProvider theme={theme}>
+                <PneModal
+                    actions={<PneModalActions primary={<button>Save</button>} />}
+                    onClose={jest.fn()}
+                    open
+                    title='Edit item'
+                >
+                    <div>Modal content</div>
+                </PneModal>
+            </ThemeProvider>,
+        )
+
+        const header = document.querySelector<HTMLElement>('[data-pne-modal-header]')
+        const footer = document.querySelector<HTMLElement>('[data-pne-modal-footer]')
+        const modal = screen.getByRole('dialog', {name: 'Edit item'})
+
+        expect(window.getComputedStyle(modal).colorScheme).toBe(colorMode)
+        expect(window.getComputedStyle(header!).borderBottomColor).toBe(expectedColor)
+        expect(window.getComputedStyle(footer!).borderTopColor).toBe(expectedColor)
+    })
+
     it('renders actions in a persistent footer and makes only the body scrollable', () => {
         render(
             <PneModal
