@@ -69,16 +69,15 @@ import {
 } from '../dateRangeTimeZone'
 import { getConcreteCustomerLevelMerchantId } from '../customerLevelDependencies'
 import {
-    createEntityOptionRestrictionFingerprint,
     extractRestrictedEntityIds,
     normalizeRestrictedEntityCollection,
 } from '../entityOptionRestriction'
+import { isSearchUIRetentionSnapshotCompatible } from './retention'
+import { getLastSearchUITemplateStorageKey } from '../templateStorage'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(isoWeek)
-
-const LAST_TEMPLATE_NAME = 'last_template_name'
 
 const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
     [CriterionTypeEnum.ENDPOINT]: LinkedEntityTypeEnum.ENDPOINT,
@@ -172,20 +171,6 @@ type SearchUIUpdateOptions = {
 
 type SearchUIConditionsUpdateOptions = SearchUIUpdateOptions & {
     resetTemplate?: boolean
-}
-
-const isRetainedSnapshotCompatible = (
-    snapshot: SearchUIRetentionSnapshot,
-    state: SearchUIFiltersState,
-): boolean => {
-    return isEqual(snapshot.possibleCriteria, state.possibleCriteria)
-        && isEqual(snapshot.predefinedCriteria, state.predefinedCriteria)
-        && isEqual(snapshot.exactSearchLabels, state.exactSearchLabels)
-        && snapshot.manualSearch === !!state.config?.manualSearch
-        && isEqual(
-            snapshot.transactionTypesRestriction,
-            createEntityOptionRestrictionFingerprint(state.prefetchedData.allowedTransactionTypes),
-        )
 }
 
 const addCriterionReducer = (
@@ -342,8 +327,17 @@ export const getSearchUIFiltersActions = (
         retainedSnapshot?: SearchUIRetentionSnapshot,
         options?: {
             normalizeInitialDateRange?: boolean
+            templates?: SearchUITemplate[]
+            initialTemplate?: SearchUITemplate
+            initialConditions?: Partial<SearchUIConditions>
         },
     ) => {
+        const normalizedTemplates = options?.templates?.map(normalizeSearchUITemplate)
+        const normalizedInitialTemplate = options?.initialTemplate === undefined
+            ? undefined
+            : normalizedTemplates?.find(template => template.name === options.initialTemplate?.name)
+                ?? normalizeSearchUITemplate(options.initialTemplate)
+
         set((draft) => {
             const initialState = {
                 ...draft,
@@ -354,12 +348,27 @@ export const getSearchUIFiltersActions = (
 
             Object.assign(draft, initialState)
 
+            if (normalizedTemplates !== undefined) {
+                draft.templates = normalizedTemplates
+            }
+
             ensureCustomerLevelDependenciesReducer(draft)
 
-            if (retainedSnapshot && isRetainedSnapshotCompatible(retainedSnapshot, initialState)) {
+            if (options?.initialConditions !== undefined) {
+                applyConditionsReducer(draft, options.initialConditions)
+            } else if (retainedSnapshot && isSearchUIRetentionSnapshotCompatible(retainedSnapshot, initialState)) {
                 applyConditionsReducer(draft, retainedSnapshot.searchConditions)
                 draft.activeTemplateName = retainedSnapshot.activeTemplateName
                 draft.restoredFromRetention = true
+            } else if (normalizedInitialTemplate !== undefined) {
+                const defaults = getSearchUIInitialSearchCriteria(draft.defaults)
+                Object.assign(draft, defaults)
+                draft.template = normalizedInitialTemplate
+                draft.activeTemplateName = normalizedInitialTemplate.name
+                applyConditionsReducer(draft, {
+                    ...defaults,
+                    ...normalizedInitialTemplate.searchConditions,
+                })
             }
 
             normalizeRestrictedTransactionTypesReducer(draft)
@@ -372,7 +381,10 @@ export const getSearchUIFiltersActions = (
 
         syncCriterionAvailability(set, get)
         normalizeRetainedDateRange(set, get)
-        if (!get().restoredFromRetention && options?.normalizeInitialDateRange) {
+        if (
+            !get().restoredFromRetention
+            && (options?.normalizeInitialDateRange || normalizedInitialTemplate !== undefined)
+        ) {
             normalizeRelativeDateRange(set, get)
         }
         ensureTransactionSessionStatusesPrefetched(set, get)
@@ -426,9 +438,9 @@ export const getSearchUIFiltersActions = (
         } = restoredSnapshot
 
         if (template?.name) {
-            localStorage.setItem(LAST_TEMPLATE_NAME + get().settingsContextName, template.name)
+            localStorage.setItem(getLastSearchUITemplateStorageKey(get().settingsContextName), template.name)
         } else {
-            localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
+            localStorage.removeItem(getLastSearchUITemplateStorageKey(get().settingsContextName))
         }
 
         set(draft => {
@@ -455,7 +467,7 @@ export const getSearchUIFiltersActions = (
         })
     },
     clearCriteria: () => {
-        localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
+        localStorage.removeItem(getLastSearchUITemplateStorageKey(get().settingsContextName))
 
         set((draft) => {
             Object.assign(draft, {
@@ -502,7 +514,7 @@ export const getSearchUIFiltersActions = (
             templateName: templateName,
         })
             .then(() => {
-                localStorage.setItem(LAST_TEMPLATE_NAME + get().settingsContextName, template.name)
+                localStorage.setItem(getLastSearchUITemplateStorageKey(get().settingsContextName), template.name)
 
                 set((draft) => {
                     draft.templates.push(template)
@@ -537,9 +549,11 @@ export const getSearchUIFiltersActions = (
             templateName: template.name,
         })
             .then(() => {
-                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + get().settingsContextName)
+                const lastTemplateName = localStorage.getItem(
+                    getLastSearchUITemplateStorageKey(get().settingsContextName),
+                )
                 if (lastTemplateName && lastTemplateName === template.name) {
-                    localStorage.removeItem(LAST_TEMPLATE_NAME + get().settingsContextName)
+                    localStorage.removeItem(getLastSearchUITemplateStorageKey(get().settingsContextName))
                 }
 
                 set((draft) => {
@@ -574,7 +588,7 @@ export const getSearchUIFiltersActions = (
             )
         }
 
-        localStorage.setItem(LAST_TEMPLATE_NAME + get().settingsContextName, template.name)
+        localStorage.setItem(getLastSearchUITemplateStorageKey(get().settingsContextName), template.name)
 
         set((draft) => {
             Object.assign(draft, defaults)
@@ -584,7 +598,7 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get, options)
     },
-    loadTemplates: () => {
+    loadTemplates: (options) => {
         const settingsContextName = get().settingsContextName
         const defaults = get().defaults
 
@@ -608,14 +622,18 @@ export const getSearchUIFiltersActions = (
                     return
                 }
 
-                if (get().skipLastTemplateAutoApply) {
+                if (options?.autoApplyLastTemplate === false || get().skipLastTemplateAutoApply) {
                     return
                 }
 
-                const lastTemplateName = localStorage.getItem(LAST_TEMPLATE_NAME + settingsContextName)
+                const lastTemplateName = localStorage.getItem(
+                    getLastSearchUITemplateStorageKey(settingsContextName),
+                )
                 const lastTemplate = normalizedTemplates.find(t => t.name === lastTemplateName)
                 if (lastTemplate) {
                     get().setTemplate(lastTemplate, { forceSearch: true })
+                } else if (lastTemplateName) {
+                    localStorage.removeItem(getLastSearchUITemplateStorageKey(settingsContextName))
                 }
             })
             // .catch(raiseUIError)

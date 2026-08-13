@@ -14,6 +14,7 @@ import {
     SearchCriteria,
     SearchUICriterionAvailabilityRule,
     SearchUIConditionsInput,
+    SearchUITemplate,
 } from './types';
 import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
 import {useTranslation} from 'react-i18next';
@@ -33,13 +34,18 @@ import {createClearCriteriaUndoSnapshot} from './state/undo';
 import {isCriterionAvailable} from './criterionAvailability';
 import type { SearchUIDateOnlyTimeZone } from './dateRangeTimeZone';
 import {SearchUIFiltersStoreProvider} from './state/SearchUIFiltersStoreProvider';
-import {getRetainedSearchUIState} from './state/retention';
+import {
+    getRetainedSearchUIState,
+    isSearchUIRetentionSnapshotCompatible,
+} from './state/retention';
+import type {SearchUIRetentionSnapshot} from './state/type';
 import {toSearchUIConditionsState} from './publicConditions';
 import type {AbstractEntity} from '../../../common/paynet/type';
 import {
     normalizeAllowedEntityNames,
     resolveAllowedEntityOptions,
 } from './entityOptionRestriction';
+import {getLastSearchUITemplateStorageKey} from './templateStorage';
 
 type PendingClearCriteriaUndo = {
     snackbarId: string
@@ -174,9 +180,14 @@ export const SearchUIFilters = (props: SearchUIFiltersProps) => {
 }
 
 export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
+    // Keep runtime validation at the public render boundary even when asynchronous
+    // bootstrap work delays mounting the initialized filters subtree.
+    toSearchUIConditionsState(props.initialSearchConditions, 'initialSearchConditions', false)
+    toSearchUIConditionsState(props.searchConditions, 'searchConditions', true)
+
     const transactionTypesConfig = props.config?.transactionTypes
     if (transactionTypesConfig === undefined) {
-        return <InitializedSearchUIFiltersContent {...props}/>
+        return <SearchUIFiltersBootstrap {...props}/>
     }
 
     const normalizedAllowedNames = normalizeAllowedEntityNames(
@@ -245,14 +256,153 @@ const RestrictedTransactionTypesSearchUIFiltersContent = (
         return null
     }
 
-    return <InitializedSearchUIFiltersContent
+    return <SearchUIFiltersBootstrap
         {...filtersProps}
         allowedTransactionTypes={loadState.options}
     />
 }
 
+type SearchUIFiltersBootstrapProps = SearchUIFiltersProps & {
+    allowedTransactionTypes?: AbstractEntity[]
+}
+
+type SearchUIFiltersBootstrapResult = {
+    retainedSnapshot?: SearchUIRetentionSnapshot
+    templates?: SearchUITemplate[]
+    initialTemplate?: SearchUITemplate
+    loadTemplatesInBackground: boolean
+}
+
+type SearchUIFiltersBootstrapWork =
+    | {status: 'ready', result: SearchUIFiltersBootstrapResult}
+    | {status: 'pending', promise: Promise<SearchUIFiltersBootstrapResult>}
+
+const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
+    const {
+        settingsContextName,
+        possibleCriteria = [],
+        predefinedCriteria = [],
+        exactSearchLabels = [],
+        searchConditions,
+        config,
+        allowedTransactionTypes,
+    } = props
+    const defaults = useContext(SearchUIDefaultsContext)
+    const {instanceId} = useSearchUIFiltersStoreContext()
+    const bootstrapWorkRef = useRef<SearchUIFiltersBootstrapWork | null>(null)
+    const [bootstrapResult, setBootstrapResult] = useState<SearchUIFiltersBootstrapResult | null>(null)
+
+    useEffect(() => {
+        let active = true
+
+        bootstrapWorkRef.current ??= (() => {
+            const hasExternalSearchConditions = searchConditions !== undefined
+                && Object.keys(searchConditions).length > 0
+            const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
+                ...new Set([
+                    ...possibleCriteria,
+                    ...predefinedCriteria,
+                ]),
+            ])
+            const retainedSnapshot = hasExternalSearchConditions
+                ? undefined
+                : getRetainedSearchUIState(settingsContextName, instanceId)
+            const retainedSnapshotCompatible = retainedSnapshot !== undefined
+                && isSearchUIRetentionSnapshotCompatible(retainedSnapshot, {
+                    possibleCriteria: adjustedPossibleCriteria,
+                    predefinedCriteria,
+                    exactSearchLabels,
+                    config,
+                    prefetchedData: allowedTransactionTypes === undefined
+                        ? {}
+                        : {allowedTransactionTypes},
+                })
+
+            if (hasExternalSearchConditions || retainedSnapshotCompatible) {
+                return {
+                    status: 'ready' as const,
+                    result: {
+                        retainedSnapshot,
+                        loadTemplatesInBackground: true,
+                    },
+                }
+            }
+
+            const lastTemplateStorageKey = getLastSearchUITemplateStorageKey(settingsContextName)
+            const lastTemplateName = localStorage.getItem(lastTemplateStorageKey)
+            if (!lastTemplateName) {
+                return {
+                    status: 'ready' as const,
+                    result: {
+                        retainedSnapshot,
+                        loadTemplatesInBackground: true,
+                    },
+                }
+            }
+
+            return {
+                status: 'pending' as const,
+                promise: defaults.getSearchTemplates(settingsContextName)
+                    .then(templates => {
+                        const initialTemplate = templates.find(template => template.name === lastTemplateName)
+
+                        if (initialTemplate === undefined) {
+                            localStorage.removeItem(lastTemplateStorageKey)
+                        }
+
+                        return {
+                            retainedSnapshot,
+                            templates,
+                            initialTemplate,
+                            loadTemplatesInBackground: false,
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error)
+                        return {
+                            retainedSnapshot,
+                            templates: [],
+                            loadTemplatesInBackground: false,
+                        }
+                    }),
+            }
+        })()
+
+        const bootstrapWork = bootstrapWorkRef.current
+        if (bootstrapWork.status === 'pending') {
+            bootstrapWork.promise.then(result => {
+                if (active) {
+                    setBootstrapResult(result)
+                }
+            })
+        } else {
+            setBootstrapResult(bootstrapWork.result)
+        }
+
+        return () => {
+            active = false
+        }
+        // The keyed store provider remounts this subtree when the search context changes.
+        // The promise ref deliberately survives the StrictMode effect replay.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    if (bootstrapResult === null) {
+        return null
+    }
+
+    return <InitializedSearchUIFiltersContent
+        {...props}
+        {...bootstrapResult}
+    />
+}
+
 type InitializedSearchUIFiltersContentProps = SearchUIFiltersProps & {
     allowedTransactionTypes?: AbstractEntity[]
+    retainedSnapshot?: SearchUIRetentionSnapshot
+    templates?: SearchUITemplate[]
+    initialTemplate?: SearchUITemplate
+    loadTemplatesInBackground: boolean
 }
 
 const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersContentProps) => {
@@ -268,11 +418,14 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         onFiltersUpdate,
         searchLoading = false,
         allowedTransactionTypes,
+        retainedSnapshot,
+        templates,
+        initialTemplate,
+        loadTemplatesInBackground,
     } = props
 
     const defaults = useContext(SearchUIDefaultsContext)
     const filtersStore = useSearchUIFiltersStoreApi()
-    const {instanceId} = useSearchUIFiltersStoreContext()
     const hasExternalSearchConditions = searchConditions !== undefined
         && Object.keys(searchConditions).length > 0
     const initialSearchConditionsState = useMemo(() => toSearchUIConditionsState(
@@ -309,6 +462,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
 
     const [showFilters, setShowFilters] = useState(true)
     const initializedRef = useRef(false)
+    const synchronizedExternalConditionsRef = useRef(searchConditionsState)
     const pendingClearCriteriaUndoRef = useRef<PendingClearCriteriaUndo | null>(null)
 
     const clearPendingClearCriteriaUndo = (dismissSnackbar = true) => {
@@ -342,22 +496,34 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             criteria: predefinedCriteria,
             config: config,
             onFiltersUpdate: onFiltersUpdate,
-            skipLastTemplateAutoApply: hasExternalSearchConditions,
+            skipLastTemplateAutoApply: true,
             ...(allowedTransactionTypes === undefined ? {} : {
                 prefetchedData: {
                     allowedTransactionTypes,
                 },
             }),
-            ...initialSearchConditionsState
-        }, getRetainedSearchUIState(settingsContextName, instanceId), {
-            normalizeInitialDateRange: initialSearchConditionsState?.dateRangeSpec !== undefined,
+            ...initialSearchConditionsState,
+        }, hasExternalSearchConditions ? undefined : retainedSnapshot, {
+            normalizeInitialDateRange:
+                initialSearchConditionsState?.dateRangeSpec !== undefined
+                || searchConditionsState?.dateRangeSpec !== undefined,
+            templates,
+            initialTemplate: hasExternalSearchConditions ? undefined : initialTemplate,
+            initialConditions: hasExternalSearchConditions ? searchConditionsState : undefined,
         })
-        loadTemplates()
+        if (loadTemplatesInBackground) {
+            loadTemplates({autoApplyLastTemplate: false})
+        }
         // The keyed store provider remounts this subtree when the search context changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     useEffect(() => {
+        if (isEqual(synchronizedExternalConditionsRef.current, searchConditionsState)) {
+            return
+        }
+        synchronizedExternalConditionsRef.current = searchConditionsState
+
         if (hasExternalSearchConditions && searchConditionsState) {
             updateConditions(searchConditionsState, {
                 forceSearch: true,

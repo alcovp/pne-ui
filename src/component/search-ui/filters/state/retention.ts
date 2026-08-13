@@ -1,4 +1,5 @@
 import cloneDeep from 'lodash/cloneDeep'
+import isEqual from 'lodash/isEqual'
 import type {
     SearchUIFiltersState,
     SearchUIRetentionSnapshot,
@@ -10,6 +11,23 @@ const MAX_RETAINED_SEARCH_UI_STATES = 100
 const retainedStates = new Map<string, SearchUIRetentionSnapshot>()
 const activeInstances = new Map<string, Set<symbol>>()
 const warnedDuplicateKeys = new Set<string>()
+
+export const isSearchUIRetentionSnapshotCompatible = (
+    snapshot: SearchUIRetentionSnapshot,
+    state: Pick<
+        SearchUIFiltersState,
+        'possibleCriteria' | 'predefinedCriteria' | 'exactSearchLabels' | 'config' | 'prefetchedData'
+    >,
+): boolean => {
+    return isEqual(snapshot.possibleCriteria, state.possibleCriteria)
+        && isEqual(snapshot.predefinedCriteria, state.predefinedCriteria)
+        && isEqual(snapshot.exactSearchLabels, state.exactSearchLabels)
+        && snapshot.manualSearch === !!state.config?.manualSearch
+        && isEqual(
+            snapshot.transactionTypesRestriction,
+            createEntityOptionRestrictionFingerprint(state.prefetchedData.allowedTransactionTypes),
+        )
+}
 
 export const getRetainedSearchUIState = (
     settingsContextName: string,

@@ -85,6 +85,9 @@ export type SearchUIFiltersActions = {
         retainedSnapshot?: SearchUIRetentionSnapshot,
         options?: {
             normalizeInitialDateRange?: boolean
+            templates?: SearchUITemplate[]
+            initialTemplate?: SearchUITemplate
+            initialConditions?: Partial<SearchUIConditions>
         },
     ) => void
     updateConditions: (
@@ -108,7 +111,7 @@ export type SearchUIFiltersActions = {
             forceSearch?: boolean
         },
     ) => void
-    loadTemplates: () => void
+    loadTemplates: (options?: {autoApplyLastTemplate?: boolean}) => void
     setJustAddedCriterion: (criterion: CriterionTypeEnum | null) => void
     setMultigetCriterion: (criterion: MultigetCriterion) => void
     set3DCriterion: (threeD: ThreeDCriterionEnum) => void
