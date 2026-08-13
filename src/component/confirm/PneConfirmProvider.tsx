@@ -4,9 +4,11 @@ import { useTranslation } from 'react-i18next'
 import PneButton from '../PneButton'
 import PneModal from '../PneModal'
 import PneModalActions from '../PneModalActions'
-import { createAutoTestAttributes } from '../AutoTestAttribute'
+import { type AutoTestValue, createAutoTestAttributes } from '../AutoTestAttribute'
 
 export type PneConfirmOptions = {
+    /** Stable owner identity copied to the portal dialog's Selenium scope. */
+    autoTestValue?: AutoTestValue
     title?: string
     message?: React.ReactNode
     confirmLabel?: string
@@ -29,6 +31,7 @@ export type PneConfirmProviderProps = {
 
 type PendingConfirm = {
     requestId: number
+    autoTestValue?: AutoTestValue
     title: string
     message?: React.ReactNode
     confirmLabel: string
@@ -93,6 +96,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
             new Promise<boolean>(resolve => {
                 const pending: PendingConfirm = {
                     requestId: ++requestIdRef.current,
+                    autoTestValue: options.autoTestValue ?? defaultOptions?.autoTestValue,
                     title: normalizeTitle(options.title) ?? normalizeTitle(defaultOptions?.title) ?? fallbackStrings.title,
                     message: options.message,
                     confirmLabel: options.confirmLabel ?? defaultOptions?.confirmLabel ?? fallbackStrings.confirmLabel,
@@ -110,7 +114,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                 currentRef.current = pending
                 setCurrent(pending)
             }),
-        [defaultOptions?.cancelLabel, defaultOptions?.confirmLabel, defaultOptions?.danger, defaultOptions?.showCancel, defaultOptions?.title, fallbackStrings.cancelLabel, fallbackStrings.confirmLabel, fallbackStrings.title],
+        [defaultOptions?.autoTestValue, defaultOptions?.cancelLabel, defaultOptions?.confirmLabel, defaultOptions?.danger, defaultOptions?.showCancel, defaultOptions?.title, fallbackStrings.cancelLabel, fallbackStrings.confirmLabel, fallbackStrings.title],
     )
 
     const confirmDestructive = useCallback(
@@ -120,6 +124,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
 
     const confirmDelete = useCallback(
         (options: PneConfirmDeleteOptions = {}) => confirm({
+            autoTestValue: options.autoTestValue,
             title: normalizeTitle(options.title) ?? normalizeTitle(deleteOptions?.title),
             message: options.message,
             confirmLabel: deleteOptions?.confirmLabel ?? fallbackStrings.deleteLabel,
@@ -172,7 +177,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                 onClose={() => settle(current, false)}
                 slotProps={{
                     closeButton: createAutoTestAttributes('alert.button.close'),
-                    container: createAutoTestAttributes('alert.container'),
+                    container: createAutoTestAttributes('alert.container', current?.autoTestValue),
                 }}
                 title={current?.title ?? fallbackStrings.title}
                 containerSx={{ maxWidth: 560, width: 'calc(100% - 32px)', minWidth: 0 }}

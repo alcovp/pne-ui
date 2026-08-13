@@ -37,7 +37,11 @@ describe('PneConfirmProvider', () => {
             <PneConfirmProvider>
                 <ConfirmTrigger
                     onResult={jest.fn()}
-                    options={{ title: 'Delete item', message: 'This cannot be undone' }}
+                    options={{
+                        autoTestValue: 'order-action:DELETE_ORDER',
+                        title: 'Delete item',
+                        message: 'This cannot be undone',
+                    }}
                 />
             </PneConfirmProvider>,
         )
@@ -48,6 +52,9 @@ describe('PneConfirmProvider', () => {
         expect(document.body.contains(autoTestNode('alert.container'))).toBe(true)
         expect(container.contains(autoTestNode('alert.container'))).toBe(false)
         expect(screen.getByRole('dialog', { name: 'Delete item' })).toBe(autoTestNode('alert.container'))
+        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe(
+            'order-action:DELETE_ORDER',
+        )
         expect(autoTestNode('alert.message').textContent).toBe('This cannot be undone')
         expect(autoTestNode('alert.button.close').getAttribute('aria-label')).toBe('Cancel')
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Cancel')
@@ -274,16 +281,30 @@ describe('PneConfirmProvider', () => {
         let firstResult: Promise<boolean>
         let secondResult: Promise<boolean>
         act(() => {
-            firstResult = confirm({ title: 'First', message: 'First message' })
-            secondResult = confirm({ title: 'Second', message: 'Second message' })
+            firstResult = confirm({
+                autoTestValue: 'first-owner',
+                title: 'First',
+                message: 'First message',
+            })
+            secondResult = confirm({
+                autoTestValue: 'second-owner',
+                title: 'Second',
+                message: 'Second message',
+            })
         })
 
         expect(await screen.findByText('First message')).toBeTruthy()
+        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe(
+            'first-owner',
+        )
         expect(screen.queryByText('Second message')).toBeNull()
         fireEvent.click(autoTestNode('alert.button.submit'))
 
         await expect(firstResult!).resolves.toBe(true)
         expect(await screen.findByText('Second message')).toBeTruthy()
+        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe(
+            'second-owner',
+        )
         fireEvent.click(autoTestNode('alert.button.cancel'))
         await expect(secondResult!).resolves.toBe(false)
     })

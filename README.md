@@ -1414,6 +1414,7 @@ const DeleteButton = () => {
 
     const handleDelete = async () => {
         const accepted = await confirm({
+            autoTestValue: item.id,
             danger: true,
             title: 'Delete item?',
             message: 'This action cannot be undone.',
@@ -1440,12 +1441,17 @@ Cancel используйте `showCancel: false`: Close, Escape и backdrop п�
 вызовы обслуживаются по FIFO; повторное событие от action предыдущего dialog не подтверждает следующий запрос.
 При размонтировании provider текущий и ожидающие Promise завершаются значением `false`.
 
+Для повторяемого или бизнес-специфичного действия передавайте стабильный не-секретный
+`autoTestValue` (raw entity ID, enum или caller-owned scope). Portal-root получает это значение, поэтому dialog
+однозначно связывается с инициировавшим control даже вне его DOM-поддерева. Очередь хранит scope каждого
+запроса независимо и меняет его вместе с текущим confirm.
+
 Поддерживаемые Selenium-якоря размещены на существующих интерактивных/смысловых DOM nodes без
 дополнительных wrapper-элементов:
 
 | Якорь | Назначение |
 |-------|------------|
-| `alert.container` | контейнер confirm modal |
+| `alert.container/<autoTestValue?>` | контейнер confirm modal и опциональный owner scope |
 | `alert.message` | содержимое сообщения |
 | `alert.button.close` | кнопка закрытия |
 | `alert.button.cancel` | cancel action; отсутствует при `showCancel: false` |
