@@ -65,4 +65,19 @@ describe('SearchUIFilters search button', () => {
 
         expect(searchButton.disabled).toBe(true)
     })
+
+    it('rejects legacy resolved relative dates at the component props boundary', () => {
+        expect(() => renderFilters({
+            initialSearchConditions: {
+                dateRangeSpec: {
+                    dateRangeSpecType: 'DAYS_BEFORE',
+                    dateFrom: new Date('2020-01-01T00:00:00.000Z'),
+                    dateTo: new Date('2020-01-31T00:00:00.000Z'),
+                    beforeCount: 30,
+                },
+            } as never,
+        })).toThrow(
+            '[pne-ui] Invalid initialSearchConditions.dateRangeSpec: field "dateFrom" is not allowed for DAYS_BEFORE',
+        )
+    })
 })

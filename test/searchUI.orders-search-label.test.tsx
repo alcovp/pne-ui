@@ -1,10 +1,13 @@
 import * as React from 'react'
 import {fireEvent, render, waitFor} from '@testing-library/react'
 
+import 'jest-canvas-mock'
+
 import {
     CriterionTypeEnum,
     ORDER_SEARCH_LABELS,
     SearchUIFilters,
+    SearchUIProvider,
 } from '../src'
 import {ORDERS_SEARCH_LABEL_GROUPS} from '../src/component/search-ui/filters/component/select/SearchUICollapsableGroupSelect'
 
@@ -265,5 +268,92 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             )?.value).toBe('')
         })
         expect(transactionsTrigger.getAttribute('data-autotest-value')).toBe('customer_email')
+    })
+})
+
+const renderOrderSearch = (showCMSOrderSearchLabels?: () => boolean) => {
+    const onFiltersUpdate = jest.fn()
+    const defaults = showCMSOrderSearchLabels === undefined
+        ? {}
+        : {showCMSOrderSearchLabels}
+
+    const {container} = render(
+        <SearchUIProvider defaults={defaults}>
+            <SearchUIFilters
+                autoTestId='order-search-visibility'
+                settingsContextName={'order-search-labels'}
+                possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
+                predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
+                initialSearchConditions={{
+                    ordersSearchLabel: 'customer_id',
+                    ordersSearchValue: '42',
+                }}
+                onFiltersUpdate={onFiltersUpdate}
+                config={{
+                    hideShowFiltersButton: true,
+                    hideTemplatesSelect: true,
+                }}
+            />
+        </SearchUIProvider>,
+    )
+
+    return {container, onFiltersUpdate}
+}
+
+const openLabelPicker = async (container: HTMLElement) => {
+    const criterion = getOrdersCriterion(container, 'order-search-visibility')
+    const trigger = getLabelTrigger(criterion)
+
+    fireEvent.click(trigger)
+
+    const dialog = await waitFor(() => {
+        const ownedDialog = getOwnedDialog('order-search-visibility')
+        expect(ownedDialog).not.toBeNull()
+        return ownedDialog as HTMLElement
+    })
+
+    return {dialog, trigger}
+}
+
+describe('SearchUI order-search label visibility', () => {
+    beforeEach(() => {
+        localStorage.clear()
+    })
+
+    it('shows CMS labels by default', async () => {
+        const {container} = renderOrderSearch()
+        const {dialog} = await openLabelPicker(container)
+
+        expect(dialog.querySelector(
+            'input[data-autotest="criterion-label-option"][data-autotest-value="customer_id"]',
+        )).not.toBeNull()
+        expect(dialog.querySelector(
+            'input[data-autotest="criterion-label-option"]'
+            + '[data-autotest-value="merchant_customer_identifier"]',
+        )).not.toBeNull()
+    })
+
+    it('hides only CMS label options while preserving an existing condition', async () => {
+        const {container, onFiltersUpdate} = renderOrderSearch(() => false)
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
+                ordersSearchLabel: 'customer_id',
+                ordersSearchValue: '42',
+            }))
+        })
+        const {dialog, trigger} = await openLabelPicker(container)
+
+        expect(trigger.getAttribute('data-autotest-value')).toBe('customer_id')
+        expect(dialog.querySelector(
+            'input[data-autotest="criterion-label-option"][data-autotest-value="customer_id"]',
+        )).toBeNull()
+        expect(dialog.querySelector(
+            'input[data-autotest="criterion-label-option"]'
+            + '[data-autotest-value="merchant_customer_identifier"]',
+        )).toBeNull()
+        expect(dialog.querySelector(
+            'input[data-autotest="criterion-label-option"][data-autotest-value="customer_phone"]',
+        )).not.toBeNull()
     })
 })

@@ -9,7 +9,12 @@ import React, {
     useState,
 } from 'react'
 import { SearchUIFiltersConfig, SearchUIFiltersContent } from './filters/SearchUIFilters'
-import { CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchCriteria, SearchUIConditions } from './filters/types'
+import {
+    CriterionTypeEnum,
+    ExactCriterionSearchLabelEnum,
+    SearchCriteria,
+    SearchUIConditionsInput,
+} from './filters/types'
 import { Box, Divider, SxProps } from '@mui/material'
 import { GetPagedOrderedSortedListRequest, Order } from '../../common'
 import {
@@ -81,11 +86,11 @@ type SearchUICommonProps<
     /**
      * Начальные значения условий фильтрации, кроме списка критериев.
      */
-    initialSearchConditions?: Partial<Omit<SearchUIConditions, 'criteria'>>
+    initialSearchConditions?: Partial<Omit<SearchUIConditionsInput, 'criteria'>>
     /**
      * Внешнее управление состоянием фильтров. При изменении значения происходит синхронизация стора.
      */
-    searchConditions?: Partial<SearchUIConditions>
+    searchConditions?: Partial<SearchUIConditionsInput>
     /**
      * Кастомизация поведения таблицы (пагинация, отображение, дублирование пагинатора).
      */

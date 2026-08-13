@@ -262,6 +262,20 @@ const mergeThemeObjects = <T>(base: T, override: unknown): T => {
 }
 
 const createPneComponentOverrides = (mode: PneColorMode): ThemeOptions['components'] => ({
+    MuiFormHelperText: {
+        styleOverrides: {
+            root: {
+                overflowWrap: 'anywhere',
+                whiteSpace: 'normal',
+                '&.Mui-error': {
+                    display: '-webkit-box',
+                    overflow: 'hidden',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 5,
+                },
+            },
+        },
+    },
     MuiIconButton: {
         styleOverrides: {
             root: ({ownerState, theme}) => {

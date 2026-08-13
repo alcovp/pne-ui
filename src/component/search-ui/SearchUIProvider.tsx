@@ -102,6 +102,11 @@ export type SearchUIDefaults = {
     showDealersCriterion: () => boolean
     showCompaniesCriterion: () => boolean
     showProjectCurrencyCriterion: () => boolean,
+    /**
+     * Controls whether CMS-specific labels are offered by the Orders Search selector.
+     * Existing search conditions that use these labels are preserved.
+     */
+    showCMSOrderSearchLabels: () => boolean
     // showFormPaymentTemplatesCriterion: () => boolean,
     // showFormFinishTemplatesCriterion: () => boolean,
     // showFormWaitTemplatesCriterion: () => boolean,
@@ -174,6 +179,7 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     showDealersCriterion: () => true,
     showCompaniesCriterion: () => true,
     showProjectCurrencyCriterion: () => true,
+    showCMSOrderSearchLabels: () => true,
     // showFormPaymentTemplatesCriterion: () => true,
     // showFormFinishTemplatesCriterion: () => true,
     // showFormWaitTemplatesCriterion: () => true,

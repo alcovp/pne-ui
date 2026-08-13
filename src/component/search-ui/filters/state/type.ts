@@ -20,6 +20,7 @@ import {
 import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} from '../../../..';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
 import {SearchUIDefaults} from '../../SearchUIProvider';
+import type {EntityOptionRestrictionFingerprint} from '../entityOptionRestriction';
 
 export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 
@@ -32,11 +33,13 @@ export type SearchUIRetentionSnapshot = {
     predefinedCriteria: CriterionTypeEnum[]
     exactSearchLabels: ExactCriterionSearchLabelEnum[]
     manualSearch: boolean
+    transactionTypesRestriction: EntityOptionRestrictionFingerprint | null
 }
 
 export type SearchUIPrefetchedTransactionSessionStatuses = Map<TransactionSessionGroup, TransactionSessionStatus[]>
 
 export type SearchUIPrefetchedData = {
+    allowedTransactionTypes?: AbstractEntity[]
     transactionSessionStatuses?: SearchUIPrefetchedTransactionSessionStatuses
 }
 
@@ -80,6 +83,12 @@ export type SearchUIFiltersActions = {
     setInitialState: (
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
+        options?: {
+            normalizeInitialDateRange?: boolean
+            templates?: SearchUITemplate[]
+            initialTemplate?: SearchUITemplate
+            initialConditions?: Partial<SearchUIConditions>
+        },
     ) => void
     updateConditions: (
         conditions: Partial<SearchUIConditions>,
@@ -102,7 +111,7 @@ export type SearchUIFiltersActions = {
             forceSearch?: boolean
         },
     ) => void
-    loadTemplates: () => void
+    loadTemplates: (options?: {autoApplyLastTemplate?: boolean}) => void
     setJustAddedCriterion: (criterion: CriterionTypeEnum | null) => void
     setMultigetCriterion: (criterion: MultigetCriterion) => void
     set3DCriterion: (threeD: ThreeDCriterionEnum) => void

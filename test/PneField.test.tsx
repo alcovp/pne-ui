@@ -1,10 +1,17 @@
 import * as React from 'react'
+import {ThemeProvider, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import {fireEvent, render, screen} from '@testing-library/react'
-import {ToggleButton, ToggleButtonGroup} from '@mui/material'
 
 import 'jest-canvas-mock'
 
-import {PneField, PneSelect, PneTextField, usePneFieldControl} from '../src'
+import {
+    createPneTheme,
+    PneField,
+    PneSelect,
+    PneTextField,
+    Skin,
+    usePneFieldControl,
+} from '../src'
 
 const FieldAwareInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
     const field = usePneFieldControl()
@@ -12,6 +19,10 @@ const FieldAwareInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => 
 
     return <input {...controlProps}/>
 }
+
+const testSkin = {
+    experimentalColor: '#0a91bc',
+} as Skin
 
 describe('PneField', () => {
     it('renders the external label and child control', () => {
@@ -36,6 +47,67 @@ describe('PneField', () => {
 
         expect(helperText).toBeTruthy()
         expect(helperText.id).toBe('report-file-field-helper-text')
+    })
+
+    it('wraps helper text and clamps errors to five lines', () => {
+        const theme = createPneTheme(testSkin)
+
+        expect(theme.components?.MuiFormHelperText?.styleOverrides).toMatchObject({
+            root: {
+                overflowWrap: 'anywhere',
+                whiteSpace: 'normal',
+                '&.Mui-error': {
+                    display: '-webkit-box',
+                    overflow: 'hidden',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 5,
+                },
+            },
+        })
+
+        render(<ThemeProvider theme={theme}>
+            <PneField
+                error
+                helperText={`Invalid value: ${'x'.repeat(400)}`}
+                label='Report file name'
+            >
+                <PneTextField/>
+            </PneField>
+        </ThemeProvider>)
+
+        const helperText = screen.getByText(/^Invalid value:/)
+        const computedStyle = window.getComputedStyle(helperText)
+
+        expect(computedStyle.getPropertyValue('overflow-wrap')).toBe('anywhere')
+        expect(computedStyle.getPropertyValue('white-space')).toBe('normal')
+        expect(computedStyle.getPropertyValue('display')).toBe('-webkit-box')
+        expect(computedStyle.getPropertyValue('overflow')).toBe('hidden')
+    })
+
+    it('preserves built-in helper text styles when theme options add component overrides', () => {
+        const theme = createPneTheme(testSkin, {
+            components: {
+                MuiFormHelperText: {
+                    styleOverrides: {
+                        root: {
+                            backgroundColor: 'rgb(1, 2, 3)',
+                        },
+                    },
+                },
+            },
+        })
+
+        render(<ThemeProvider theme={theme}>
+            <PneField helperText='Hint' label='Report file name'>
+                <PneTextField/>
+            </PneField>
+        </ThemeProvider>)
+
+        const computedStyle = window.getComputedStyle(screen.getByText('Hint'))
+
+        expect(computedStyle.getPropertyValue('overflow-wrap')).toBe('anywhere')
+        expect(computedStyle.getPropertyValue('background-color')).toBe('rgb(1, 2, 3)')
+        expect(computedStyle.getPropertyValue('-webkit-line-clamp')).toBe('')
     })
 
     it('links helper text to a generated text input', () => {

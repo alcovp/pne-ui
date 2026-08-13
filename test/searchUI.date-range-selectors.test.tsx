@@ -9,6 +9,10 @@ import {
 import {ORDER_DATE_TYPES} from '../src/component/search-ui/filters/types'
 
 type DateRangeSpecType = typeof DATE_RANGE_SPEC_TYPES[number]
+type CalendarDateRangeSpecType = Exclude<
+    DateRangeSpecType,
+    'EXACTLY' | 'DAYS_BEFORE' | 'HOURS_BEFORE' | 'DATE_INDEPENDENT'
+>
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -21,11 +25,8 @@ const filtersConfig = {
     hideTemplatesSelect: true,
 }
 
-const createDateRangeSpec = (dateRangeSpecType: DateRangeSpecType) => ({
+const createDateRangeSpec = (dateRangeSpecType: CalendarDateRangeSpecType) => ({
     dateRangeSpecType,
-    dateFrom: new Date('2026-07-01T00:00:00.000Z'),
-    dateTo: new Date('2026-07-02T00:00:00.000Z'),
-    beforeCount: 1,
 })
 
 const getDateCriterion = (

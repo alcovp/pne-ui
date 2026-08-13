@@ -162,3 +162,25 @@ export const SegmentedControl: Story = {
         <Typography id='period-format' variant='caption'>Calendar unit</Typography>
     </Stack>,
 }
+
+const longInvalidToken = 'invalid-' + 'x'.repeat(400)
+
+export const LongError: Story = {
+    render: () => <Stack
+        sx={{
+            width: 320,
+        }}
+    >
+        <PneField
+            error
+            helperText={`Invalid IP/mask: ${longInvalidToken}`}
+            label='Login IPs/masks whitelist'
+        >
+            <PneTextField
+                defaultValue={longInvalidToken}
+                multiline
+                rows={5}
+            />
+        </PneField>
+    </Stack>,
+}

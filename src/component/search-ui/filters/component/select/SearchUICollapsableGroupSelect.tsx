@@ -1,4 +1,4 @@
-import React, {useId, useState} from 'react';
+import React, {useContext, useId, useState} from 'react';
 import {Box, Popover, SxProps, Typography} from '@mui/material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -10,6 +10,7 @@ import {
     createSearchUIOwnedAutoTestAttributes,
     useSearchUIAutoTestScope,
 } from '../../AutoTestScope';
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider';
 
 const CRITERION_LABEL_OPTIONS_AUTOTEST_ID = 'criterion-label-options'
 const CRITERION_LABEL_GROUP_AUTOTEST_ID = 'criterion-label-group'
@@ -24,6 +25,11 @@ interface GroupConfig {
         label: string
     }[]
 }
+
+const CMS_ORDER_SEARCH_LABELS: ReadonlySet<OrderSearchLabel> = new Set([
+    'customer_id',
+    'merchant_customer_identifier',
+])
 
 export const ORDERS_SEARCH_LABEL_GROUPS: GroupConfig[] = [
     {
@@ -145,6 +151,14 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
     const autoTestOwner = useSearchUIAutoTestScope()
     const radioGroupName = useId()
     const fieldLabel = t('react.searchUI.ordersSearch.label', {defaultValue: 'Order search field'})
+    const {showCMSOrderSearchLabels} = useContext(SearchUIDefaultsContext)
+    const cmsOrderSearchLabelsVisible = showCMSOrderSearchLabels()
+    const visibleGroups = cmsOrderSearchLabelsVisible
+        ? ORDERS_SEARCH_LABEL_GROUPS
+        : ORDERS_SEARCH_LABEL_GROUPS.map(group => ({
+            ...group,
+            items: group.items.filter(item => !CMS_ORDER_SEARCH_LABELS.has(item.value)),
+        }))
 
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(readExpandedGroups)
 
@@ -163,7 +177,7 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
         writeExpandedGroup(groupId, expanded)
     }
 
-    const selectedGroup = ORDERS_SEARCH_LABEL_GROUPS.find(group => (
+    const selectedGroup = visibleGroups.find(group => (
         group.items.some(item => item.value === ordersSearchLabel)
     ))
 
@@ -187,7 +201,7 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
     >
         <Box component={'fieldset'} sx={fieldsetSx}>
             <Box component={'legend'} sx={visuallyHiddenSx}>{fieldLabel}</Box>
-            {ORDERS_SEARCH_LABEL_GROUPS.map((group, groupIndex) => {
+            {visibleGroups.map((group, groupIndex) => {
                 const isExpanded = expandedGroups[group.id]
                 const summaryId = `${id}-summary-${groupIndex}`
                 const optionsId = `${id}-group-${groupIndex}`

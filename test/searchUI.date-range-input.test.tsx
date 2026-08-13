@@ -2,7 +2,6 @@ import * as React from 'react'
 import {fireEvent, render, waitFor, within} from '@testing-library/react'
 
 import {CriterionTypeEnum, SearchUIFilters} from '../src'
-import {DateRangeSpecType} from '../src/component/search-ui/filters/types'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -14,13 +13,6 @@ const filtersConfig = {
     hideShowFiltersButton: true,
     hideTemplatesSelect: true,
 }
-
-const createDateRangeSpec = (dateRangeSpecType: DateRangeSpecType, beforeCount: number) => ({
-    dateRangeSpecType,
-    dateFrom: new Date('2026-07-01T00:00:00.000Z'),
-    dateTo: new Date('2026-07-02T00:00:00.000Z'),
-    beforeCount,
-})
 
 const getDateCriterion = (
     container: HTMLElement,
@@ -65,7 +57,10 @@ describe('SearchUI date-range native input Selenium contract', () => {
                     possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     initialSearchConditions={{
-                        dateRangeSpec: createDateRangeSpec('DAYS_BEFORE', 7),
+                        dateRangeSpec: {
+                            dateRangeSpecType: 'DAYS_BEFORE',
+                            beforeCount: 7,
+                        },
                     }}
                     onFiltersUpdate={daysOnFiltersUpdate}
                     config={filtersConfig}
@@ -76,7 +71,10 @@ describe('SearchUI date-range native input Selenium contract', () => {
                     possibleCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     initialSearchConditions={{
-                        dateRangeSpec: createDateRangeSpec('HOURS_BEFORE', 12),
+                        dateRangeSpec: {
+                            dateRangeSpecType: 'HOURS_BEFORE',
+                            beforeCount: 12,
+                        },
                     }}
                     onFiltersUpdate={hoursOnFiltersUpdate}
                     config={filtersConfig}
@@ -87,7 +85,7 @@ describe('SearchUI date-range native input Selenium contract', () => {
                     possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     initialSearchConditions={{
-                        dateRangeSpec: createDateRangeSpec('TODAY', 1),
+                        dateRangeSpec: {dateRangeSpecType: 'TODAY'},
                     }}
                     onFiltersUpdate={presetOnFiltersUpdate}
                     config={filtersConfig}
@@ -179,7 +177,7 @@ describe('SearchUI date-range native input Selenium contract', () => {
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     initialSearchConditions={{
                         dateRangeSpec: {
-                            ...createDateRangeSpec('EXACTLY', 1),
+                            dateRangeSpecType: 'EXACTLY',
                             dateFrom: new Date('2026-07-01T00:00:00.000Z'),
                             dateTo: new Date('2026-07-02T00:00:00.000Z'),
                         },
@@ -194,7 +192,7 @@ describe('SearchUI date-range native input Selenium contract', () => {
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     initialSearchConditions={{
                         dateRangeSpec: {
-                            ...createDateRangeSpec('EXACTLY', 1),
+                            dateRangeSpecType: 'EXACTLY',
                             dateFrom: new Date('2026-09-10T00:00:00.000Z'),
                             dateTo: new Date('2026-09-11T00:00:00.000Z'),
                         },
@@ -347,7 +345,7 @@ describe('SearchUI date-range native input Selenium contract', () => {
                 predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
                 initialSearchConditions={{
                     dateRangeSpec: {
-                        ...createDateRangeSpec('EXACTLY', 1),
+                        dateRangeSpecType: 'EXACTLY',
                         dateFrom: new Date('2026-10-01T00:00:00.000Z'),
                         dateTo: new Date('2026-10-02T00:00:00.000Z'),
                     },
@@ -419,7 +417,7 @@ describe('SearchUI date-range native input Selenium contract', () => {
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     initialSearchConditions={{
                         dateRangeSpec: {
-                            ...createDateRangeSpec('EXACTLY', 1),
+                            dateRangeSpecType: 'EXACTLY',
                             dateFrom: standardFrom,
                             dateTo: standardTo,
                         },
@@ -437,7 +435,7 @@ describe('SearchUI date-range native input Selenium contract', () => {
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     initialSearchConditions={{
                         dateRangeSpec: {
-                            ...createDateRangeSpec('EXACTLY', 1),
+                            dateRangeSpecType: 'EXACTLY',
                             dateFrom: ordersFrom,
                             dateTo: ordersTo,
                         },

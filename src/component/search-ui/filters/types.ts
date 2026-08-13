@@ -72,6 +72,55 @@ export const DATE_RANGE_SPEC_TYPES = [
 
 export type DateRangeSpecType = typeof DATE_RANGE_SPEC_TYPES[number];
 
+type SearchUICalendarDateRangeSpecType =
+    | 'TODAY'
+    | 'YESTERDAY'
+    | 'THIS_WEEK'
+    | 'LAST_WEEK'
+    | 'THIS_MONTH'
+    | 'LAST_MONTH'
+
+type SearchUICountedDateRangeSpecType =
+    | 'DAYS_BEFORE'
+    | 'HOURS_BEFORE'
+
+type SearchUIDateRangeWithoutDates = {
+    readonly dateFrom?: never
+    readonly dateTo?: never
+}
+
+type SearchUIDateRangeWithoutCount = {
+    readonly beforeCount?: never
+}
+
+/**
+ * Declarative date-range input accepted by SearchUI and SearchUIFilters props.
+ *
+ * Relative presets intentionally cannot carry resolved dates: SearchUI owns their
+ * calculation and refreshes them whenever a search is executed.
+ */
+export type SearchUIDateRangeSpec =
+    | {
+        readonly dateRangeSpecType: 'EXACTLY'
+        readonly dateFrom: Date
+        readonly dateTo: Date
+        readonly beforeCount?: never
+    }
+    | ({
+        readonly dateRangeSpecType: SearchUICalendarDateRangeSpecType
+    } & SearchUIDateRangeWithoutDates & SearchUIDateRangeWithoutCount)
+    | ({
+        readonly dateRangeSpecType: SearchUICountedDateRangeSpecType
+        readonly beforeCount: number
+    } & SearchUIDateRangeWithoutDates)
+    | ({
+        readonly dateRangeSpecType: 'DATE_INDEPENDENT'
+    } & SearchUIDateRangeWithoutDates & SearchUIDateRangeWithoutCount)
+
+/**
+ * Resolved date-range state used internally and in persisted user templates.
+ * Host applications should use SearchUIDateRangeSpec in component props.
+ */
 export type DateRangeSpec = {
     dateRangeSpecType: DateRangeSpecType
     dateFrom: Date | null
@@ -383,6 +432,14 @@ export type SearchUIConditions = {
     markerStatus: MarkerStatusCriterion
     processorLogEntryType: AbstractEntity | null
     errorCode: AutoCompleteChoice | null
+}
+
+/**
+ * Public SearchUI/SearchUIFilters conditions input.
+ * If dateRangeSpec is provided, it must describe intent rather than resolved state.
+ */
+export type SearchUIConditionsInput = Omit<SearchUIConditions, 'dateRangeSpec'> & {
+    dateRangeSpec: SearchUIDateRangeSpec
 }
 
 /**
