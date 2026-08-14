@@ -44,10 +44,15 @@ export type OverlayHostProps = {
      */
     leftOffset?: number | OverlayHostResponsiveOffset
     /**
-     * Portal target for snackbar stacks and permanent overlays. Defaults to `document.body`.
+     * Portal target for snackbar stacks, permanent overlays, and the operation center. Defaults to `document.body`.
      * Pass `null` to render overlays in place (for example, in a non-DOM harness).
      */
     container?: OverlayPortalContainer | (() => OverlayPortalContainer | null) | null
+    /**
+     * Host-owned background-operation presentation rendered in a dedicated
+     * bottom-right overlay slot. OverlayHost does not own or mutate its state.
+     */
+    operationCenter?: React.ReactNode
     children?: React.ReactNode
 }
 
@@ -72,6 +77,7 @@ type PresentedSnackbar = {
 
 const STACK_GAP = 12
 const STACK_OFFSET = 24
+const OPERATION_CENTER_OFFSET = 16
 const STACK_REFLOW_DURATION_MS = 200
 const PERMANENT_OFFSET = 24
 
@@ -292,7 +298,7 @@ const ManagedSnackbar = ({
 }
 
 /**
- * Renders overlay elements (currently snackbars) driven by the shared overlay store.
+ * Renders shared snackbars and host-supplied presentation layers.
  * Mount this once near the root of the app and trigger notifications via `overlayActions`.
  * Permanent overlays are registered declaratively via `<PermanentOverlay />` components.
  */
@@ -301,12 +307,16 @@ export function OverlayHost({
     maxSnack = 10,
     leftOffset = STACK_OFFSET,
     container,
+    operationCenter,
     children,
 }: OverlayHostProps) {
     const snackbars = useOverlayStore(state => state.snackbars)
     const removeSnackbar = useOverlayStore(state => state.removeSnackbar)
     const breakpoint = useBreakpoint()
     const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+    const [operationCenterElement, setOperationCenterElement] = useState<HTMLDivElement | null>(null)
+    const [operationCenterHeight, setOperationCenterHeight] = useState(0)
+    const hasOperationCenter = operationCenter != null
 
     const [permanentOverlays, setPermanentOverlays] = useState<Map<PermanentOverlaySlot, PermanentOverlayInstance>>(
         () => new Map(),
@@ -446,6 +456,10 @@ export function OverlayHost({
                 const offset = entry.offset ?? PERMANENT_OFFSET
                 const vertical = entry.slot.startsWith('top') ? 'top' : 'bottom'
                 const horizontal = entry.slot.endsWith('left') ? 'left' : 'right'
+                const reservesOperationBottom = vertical === 'bottom' && operationCenterHeight > 0
+                const verticalOffset = reservesOperationBottom
+                    ? operationCenterHeight + Math.max(offset, OPERATION_CENTER_OFFSET) + STACK_GAP
+                    : offset
                 return (
                     <Box
                         key={entry.slot}
@@ -453,8 +467,13 @@ export function OverlayHost({
                         sx={{
                             position: 'fixed',
                             zIndex: entry.zIndex ?? (theme => theme.zIndex.modal),
-                            [vertical]: offset,
+                            [vertical]: verticalOffset,
                             [horizontal]: offset,
+                            ...(reservesOperationBottom ? {
+                                '@supports (bottom: env(safe-area-inset-bottom))': {
+                                    bottom: `calc(${verticalOffset}px + env(safe-area-inset-bottom, 0px))`,
+                                },
+                            } : {}),
                         }}
                     >
                         {content}
@@ -462,14 +481,41 @@ export function OverlayHost({
                 )
             })
             .filter(Boolean)
-    }, [breakpoint, permanentOverlays])
+    }, [breakpoint, operationCenterHeight, permanentOverlays])
 
     React.useEffect(() => registerOverlayHost(), [])
+
+    React.useEffect(() => {
+        const element = operationCenterElement
+        if (!hasOperationCenter || !element) {
+            setOperationCenterHeight(0)
+            return undefined
+        }
+
+        const measure = () => {
+            const nextHeight = Math.ceil(element.getBoundingClientRect().height)
+            setOperationCenterHeight(current => current === nextHeight ? current : nextHeight)
+        }
+        measure()
+
+        if (typeof ResizeObserver === 'undefined') {
+            window.addEventListener('resize', measure)
+            return () => window.removeEventListener('resize', measure)
+        }
+
+        const observer = new ResizeObserver(measure)
+        observer.observe(element)
+        return () => observer.disconnect()
+    }, [hasOperationCenter, operationCenterElement])
 
     const overlayContent = (
         <>
             {groupedSnackbars.map(group => {
                 const { anchor, items } = group
+                // The center is almost full-width on small screens, so every bottom stack must
+                // reserve its vertical band even when the two desktop anchors differ.
+                const sharesOperationBottom = anchor.vertical === 'bottom'
+                    && operationCenterHeight > 0
                 const horizontalStyles =
                     anchor.horizontal === 'left'
                         ? {
@@ -485,9 +531,16 @@ export function OverlayHost({
                     anchor.vertical === 'top'
                         ? { top: STACK_OFFSET, bottom: 'auto', flexDirection: 'column-reverse' as const }
                         : {
-                            bottom: STACK_OFFSET - STACK_GAP,
+                            bottom: sharesOperationBottom
+                                ? operationCenterHeight + OPERATION_CENTER_OFFSET
+                                : STACK_OFFSET - STACK_GAP,
                             top: 'auto',
                             flexDirection: 'column-reverse' as const,
+                            '@supports (bottom: env(safe-area-inset-bottom))': {
+                                bottom: sharesOperationBottom
+                                    ? `calc(${operationCenterHeight + OPERATION_CENTER_OFFSET}px + env(safe-area-inset-bottom, 0px))`
+                                    : `calc(${STACK_OFFSET - STACK_GAP}px + env(safe-area-inset-bottom, 0px))`,
+                            },
                         }
 
                 return (
@@ -529,6 +582,32 @@ export function OverlayHost({
                 )
             })}
             {permanentContent}
+            {operationCenter != null ? (
+                <Box
+                    data-pne-overlay-operation-center
+                    ref={setOperationCenterElement}
+                    sx={{
+                        bottom: OPERATION_CENTER_OFFSET,
+                        maxWidth: 'calc(100vw - 32px)',
+                        pointerEvents: 'none',
+                        position: 'fixed',
+                        right: OPERATION_CENTER_OFFSET,
+                        width: 400,
+                        // Keep the interactive center above application chrome but below modal
+                        // backdrops so it cannot bypass a modal focus/interaction boundary.
+                        zIndex: theme => theme.zIndex.modal - 1,
+                        '@supports (right: env(safe-area-inset-right))': {
+                            bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
+                            maxWidth: 'calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))',
+                            right: 'calc(16px + env(safe-area-inset-right, 0px))',
+                        },
+                    }}
+                >
+                    <Box sx={{maxWidth: '100%', pointerEvents: 'auto'}}>
+                        {operationCenter}
+                    </Box>
+                </Box>
+            ) : null}
         </>
     )
 
