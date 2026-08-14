@@ -75,11 +75,56 @@ type PresentedSnackbar = {
     snack: KeyedSnackbar
 }
 
+type HorizontalCollision = boolean | null
+
 const STACK_GAP = 12
 const STACK_OFFSET = 24
 const OPERATION_CENTER_OFFSET = 16
 const STACK_REFLOW_DURATION_MS = 200
 const PERMANENT_OFFSET = 24
+const useOverlayLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect
+
+const useHorizontalCollision = (
+    firstElement: HTMLElement | null,
+    secondElement: HTMLElement | null,
+    firstPositionDependency?: unknown,
+    secondPositionDependency?: unknown,
+): HorizontalCollision => {
+    const [collision, setCollision] = useState<HorizontalCollision>(null)
+
+    useOverlayLayoutEffect(() => {
+        if (!firstElement || !secondElement) {
+            setCollision(null)
+            return undefined
+        }
+
+        const measure = () => {
+            const firstRect = firstElement.getBoundingClientRect()
+            const secondRect = secondElement.getBoundingClientRect()
+            const nextCollision = firstRect.width > 0 && secondRect.width > 0
+                ? firstRect.left < secondRect.right && firstRect.right > secondRect.left
+                : null
+            setCollision(current => current === nextCollision ? current : nextCollision)
+        }
+
+        measure()
+        window.addEventListener('resize', measure)
+
+        if (typeof ResizeObserver === 'undefined') {
+            return () => window.removeEventListener('resize', measure)
+        }
+
+        const observer = new ResizeObserver(measure)
+        observer.observe(firstElement)
+        observer.observe(secondElement)
+        return () => {
+            observer.disconnect()
+            window.removeEventListener('resize', measure)
+        }
+    }, [firstElement, firstPositionDependency, secondElement, secondPositionDependency])
+
+    return collision
+}
 
 const clearTimer = (timer: ReturnType<typeof setInterval> | ReturnType<typeof setTimeout> | null) => {
     if (timer) {
@@ -297,6 +342,152 @@ const ManagedSnackbar = ({
     )
 }
 
+type MeasuredSnackbarStackProps = {
+    anchor: SnackbarOrigin
+    breakpoint: number
+    completeExitPart: (presentationKey: number, part: 'collapse' | 'grow') => void
+    items: PresentedSnackbar[]
+    leftOffset: number | OverlayHostResponsiveOffset
+    operationCenterElement: HTMLDivElement | null
+    operationCenterHeight: number
+    prefersReducedMotion: boolean
+    removeSnackbar: (id: string) => void
+}
+
+const MeasuredSnackbarStack = ({
+    anchor,
+    breakpoint,
+    completeExitPart,
+    items,
+    leftOffset,
+    operationCenterElement,
+    operationCenterHeight,
+    prefersReducedMotion,
+    removeSnackbar,
+}: MeasuredSnackbarStackProps) => {
+    const [stackElement, setStackElement] = useState<HTMLDivElement | null>(null)
+    const horizontalCollision = useHorizontalCollision(
+        stackElement,
+        operationCenterElement,
+        leftOffset,
+        breakpoint,
+    )
+    const fallbackCollision = breakpoint < 800 || anchor.horizontal !== 'left'
+    const sharesOperationBottom = anchor.vertical === 'bottom'
+        && operationCenterHeight > 0
+        && (horizontalCollision ?? fallbackCollision)
+    const horizontalStyles = anchor.horizontal === 'left'
+        ? {
+            ...createResponsiveLeftOffsetStyles(leftOffset),
+            right: 'auto',
+            transform: 'none',
+        }
+        : anchor.horizontal === 'right'
+            ? {right: STACK_OFFSET, left: 'auto', transform: 'none'}
+            : {left: '50%', transform: 'translateX(-50%)'}
+    const verticalStyles = anchor.vertical === 'top'
+        ? {top: STACK_OFFSET, bottom: 'auto', flexDirection: 'column-reverse' as const}
+        : {
+            bottom: sharesOperationBottom
+                ? operationCenterHeight + OPERATION_CENTER_OFFSET
+                : STACK_OFFSET - STACK_GAP,
+            top: 'auto',
+            flexDirection: 'column-reverse' as const,
+            '@supports (bottom: env(safe-area-inset-bottom))': {
+                bottom: sharesOperationBottom
+                    ? `calc(${operationCenterHeight + OPERATION_CENTER_OFFSET}px + env(safe-area-inset-bottom, 0px))`
+                    : `calc(${STACK_OFFSET - STACK_GAP}px + env(safe-area-inset-bottom, 0px))`,
+            },
+        }
+
+    return (
+        <Box
+            data-pne-overlay-stack={`${anchor.vertical}-${anchor.horizontal}`}
+            ref={setStackElement}
+            sx={{
+                position: 'fixed',
+                zIndex: theme => theme.zIndex.snackbar,
+                display: 'flex',
+                gap: 0,
+                pointerEvents: 'none',
+                ...horizontalStyles,
+                ...verticalStyles,
+            }}
+        >
+            {items.map(({open, presentationKey, snack}) => (
+                <Collapse
+                    key={presentationKey}
+                    appear={false}
+                    enter={false}
+                    in={open}
+                    onExited={() => completeExitPart(presentationKey, 'collapse')}
+                    timeout={prefersReducedMotion ? 0 : STACK_REFLOW_DURATION_MS}
+                >
+                    <Box data-pne-overlay-stack-item sx={{pb: `${STACK_GAP}px`}}>
+                        <ManagedSnackbar
+                            anchor={anchor}
+                            onExited={() => completeExitPart(presentationKey, 'grow')}
+                            open={open}
+                            onRemove={removeSnackbar}
+                            prefersReducedMotion={prefersReducedMotion}
+                            snack={snack}
+                        />
+                    </Box>
+                </Collapse>
+            ))}
+        </Box>
+    )
+}
+
+type MeasuredPermanentOverlayProps = {
+    breakpoint: number
+    content: React.ReactNode
+    entry: PermanentOverlayInstance
+    operationCenterElement: HTMLDivElement | null
+    operationCenterHeight: number
+}
+
+const MeasuredPermanentOverlay = ({
+    breakpoint,
+    content,
+    entry,
+    operationCenterElement,
+    operationCenterHeight,
+}: MeasuredPermanentOverlayProps) => {
+    const [element, setElement] = useState<HTMLDivElement | null>(null)
+    const offset = entry.offset ?? PERMANENT_OFFSET
+    const horizontalCollision = useHorizontalCollision(element, operationCenterElement, offset, breakpoint)
+    const vertical = entry.slot.startsWith('top') ? 'top' : 'bottom'
+    const horizontal = entry.slot.endsWith('left') ? 'left' : 'right'
+    const fallbackCollision = breakpoint < 800 || horizontal === 'right'
+    const reservesOperationBottom = vertical === 'bottom'
+        && operationCenterHeight > 0
+        && (horizontalCollision ?? fallbackCollision)
+    const verticalOffset = reservesOperationBottom
+        ? operationCenterHeight + Math.max(offset, OPERATION_CENTER_OFFSET) + STACK_GAP
+        : offset
+
+    return (
+        <Box
+            data-pne-overlay-slot={entry.slot}
+            ref={setElement}
+            sx={{
+                position: 'fixed',
+                zIndex: entry.zIndex ?? (theme => theme.zIndex.modal),
+                [vertical]: verticalOffset,
+                [horizontal]: offset,
+                ...(reservesOperationBottom ? {
+                    '@supports (bottom: env(safe-area-inset-bottom))': {
+                        bottom: `calc(${verticalOffset}px + env(safe-area-inset-bottom, 0px))`,
+                    },
+                } : {}),
+            }}
+        >
+            {content}
+        </Box>
+    )
+}
+
 /**
  * Renders shared snackbars and host-supplied presentation layers.
  * Mount this once near the root of the app and trigger notifications via `overlayActions`.
@@ -447,45 +638,17 @@ export function OverlayHost({
         return groups
     }, [anchorOrigin, presentedSnackbars])
 
-    const permanentContent = useMemo(() => {
+    const permanentPresentations = useMemo(() => {
         const entries = Array.from(permanentOverlays.values())
-        return entries
-            .map(entry => {
-                const content = entry.render({ breakpoint })
-                if (!content) return null
-                const offset = entry.offset ?? PERMANENT_OFFSET
-                const vertical = entry.slot.startsWith('top') ? 'top' : 'bottom'
-                const horizontal = entry.slot.endsWith('left') ? 'left' : 'right'
-                const reservesOperationBottom = vertical === 'bottom' && operationCenterHeight > 0
-                const verticalOffset = reservesOperationBottom
-                    ? operationCenterHeight + Math.max(offset, OPERATION_CENTER_OFFSET) + STACK_GAP
-                    : offset
-                return (
-                    <Box
-                        key={entry.slot}
-                        data-pne-overlay-slot={entry.slot}
-                        sx={{
-                            position: 'fixed',
-                            zIndex: entry.zIndex ?? (theme => theme.zIndex.modal),
-                            [vertical]: verticalOffset,
-                            [horizontal]: offset,
-                            ...(reservesOperationBottom ? {
-                                '@supports (bottom: env(safe-area-inset-bottom))': {
-                                    bottom: `calc(${verticalOffset}px + env(safe-area-inset-bottom, 0px))`,
-                                },
-                            } : {}),
-                        }}
-                    >
-                        {content}
-                    </Box>
-                )
-            })
-            .filter(Boolean)
-    }, [breakpoint, operationCenterHeight, permanentOverlays])
+        return entries.flatMap(entry => {
+            const content = entry.render({breakpoint})
+            return content ? [{content, entry}] : []
+        })
+    }, [breakpoint, permanentOverlays])
 
     React.useEffect(() => registerOverlayHost(), [])
 
-    React.useEffect(() => {
+    useOverlayLayoutEffect(() => {
         const element = operationCenterElement
         if (!hasOperationCenter || !element) {
             setOperationCenterHeight(0)
@@ -512,76 +675,31 @@ export function OverlayHost({
         <>
             {groupedSnackbars.map(group => {
                 const { anchor, items } = group
-                // The center is almost full-width on small screens, so every bottom stack must
-                // reserve its vertical band even when the two desktop anchors differ.
-                const sharesOperationBottom = anchor.vertical === 'bottom'
-                    && operationCenterHeight > 0
-                const horizontalStyles =
-                    anchor.horizontal === 'left'
-                        ? {
-                            ...createResponsiveLeftOffsetStyles(leftOffset),
-                            right: 'auto',
-                            transform: 'none',
-                        }
-                        : anchor.horizontal === 'right'
-                            ? { right: STACK_OFFSET, left: 'auto', transform: 'none' }
-                            : { left: '50%', transform: 'translateX(-50%)' }
-
-                const verticalStyles =
-                    anchor.vertical === 'top'
-                        ? { top: STACK_OFFSET, bottom: 'auto', flexDirection: 'column-reverse' as const }
-                        : {
-                            bottom: sharesOperationBottom
-                                ? operationCenterHeight + OPERATION_CENTER_OFFSET
-                                : STACK_OFFSET - STACK_GAP,
-                            top: 'auto',
-                            flexDirection: 'column-reverse' as const,
-                            '@supports (bottom: env(safe-area-inset-bottom))': {
-                                bottom: sharesOperationBottom
-                                    ? `calc(${operationCenterHeight + OPERATION_CENTER_OFFSET}px + env(safe-area-inset-bottom, 0px))`
-                                    : `calc(${STACK_OFFSET - STACK_GAP}px + env(safe-area-inset-bottom, 0px))`,
-                            },
-                        }
-
                 return (
-                    <Box
+                    <MeasuredSnackbarStack
+                        anchor={anchor}
+                        breakpoint={breakpoint}
+                        completeExitPart={completeSnackbarExitPart}
+                        items={items}
                         key={`${anchor.vertical}-${anchor.horizontal}`}
-                        data-pne-overlay-stack={`${anchor.vertical}-${anchor.horizontal}`}
-                        sx={{
-                            position: 'fixed',
-                            zIndex: theme => theme.zIndex.snackbar,
-                            display: 'flex',
-                            gap: 0,
-                            pointerEvents: 'none',
-                            ...horizontalStyles,
-                            ...verticalStyles,
-                        }}
-                    >
-                        {items.map(({ open, presentationKey, snack }) => (
-                            <Collapse
-                                key={presentationKey}
-                                appear={false}
-                                enter={false}
-                                in={open}
-                                onExited={() => completeSnackbarExitPart(presentationKey, 'collapse')}
-                                timeout={prefersReducedMotion ? 0 : STACK_REFLOW_DURATION_MS}
-                            >
-                                <Box data-pne-overlay-stack-item sx={{ pb: `${STACK_GAP}px` }}>
-                                    <ManagedSnackbar
-                                        anchor={anchor}
-                                        onExited={() => completeSnackbarExitPart(presentationKey, 'grow')}
-                                        open={open}
-                                        onRemove={removeSnackbar}
-                                        prefersReducedMotion={prefersReducedMotion}
-                                        snack={snack}
-                                    />
-                                </Box>
-                            </Collapse>
-                        ))}
-                    </Box>
+                        leftOffset={leftOffset}
+                        operationCenterElement={operationCenterElement}
+                        operationCenterHeight={operationCenterHeight}
+                        prefersReducedMotion={prefersReducedMotion}
+                        removeSnackbar={removeSnackbar}
+                    />
                 )
             })}
-            {permanentContent}
+            {permanentPresentations.map(({content, entry}) => (
+                <MeasuredPermanentOverlay
+                    breakpoint={breakpoint}
+                    content={content}
+                    entry={entry}
+                    key={entry.slot}
+                    operationCenterElement={operationCenterElement}
+                    operationCenterHeight={operationCenterHeight}
+                />
+            ))}
             {operationCenter != null ? (
                 <Box
                     data-pne-overlay-operation-center
@@ -592,7 +710,11 @@ export function OverlayHost({
                         pointerEvents: 'none',
                         position: 'fixed',
                         right: OPERATION_CENTER_OFFSET,
-                        width: 400,
+                        width: 'fit-content',
+                        '@media (max-width: 639.95px)': {
+                            left: OPERATION_CENTER_OFFSET,
+                            width: 'auto',
+                        },
                         // Keep the interactive center above application chrome but below modal
                         // backdrops so it cannot bypass a modal focus/interaction boundary.
                         zIndex: theme => theme.zIndex.modal - 1,
@@ -600,10 +722,21 @@ export function OverlayHost({
                             bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
                             maxWidth: 'calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))',
                             right: 'calc(16px + env(safe-area-inset-right, 0px))',
+                            '@media (max-width: 639.95px)': {
+                                left: 'calc(16px + env(safe-area-inset-left, 0px))',
+                            },
                         },
                     }}
                 >
-                    <Box sx={{maxWidth: '100%', pointerEvents: 'auto'}}>
+                    <Box
+                        sx={{
+                            maxWidth: '100%',
+                            ml: 'auto',
+                            pointerEvents: 'auto',
+                            width: 'fit-content',
+                            '@media (max-width: 639.95px)': {width: '100%'},
+                        }}
+                    >
                         {operationCenter}
                     </Box>
                 </Box>

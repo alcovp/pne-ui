@@ -23,7 +23,7 @@ import {
     Typography,
     useMediaQuery,
 } from '@mui/material'
-import type {SxProps, Theme} from '@mui/material/styles'
+import {alpha, type SxProps, type Theme} from '@mui/material/styles'
 import {useTranslation} from 'react-i18next'
 import PneButton from '../PneButton'
 import {PneSurface} from '../internal/PneSurface'
@@ -349,7 +349,37 @@ export function PneOperationCenter({
                     maxWidth: '100%',
                     overflow: 'hidden',
                     position: 'relative',
-                    width: '400px',
+                    transition: prefersReducedMotion
+                        ? 'none'
+                        : 'background-color 160ms ease, width 180ms ease',
+                    width: resolvedExpanded ? '400px' : '224px',
+                    '@media (max-width: 639.95px)': {
+                        width: resolvedExpanded
+                            ? '100%'
+                            : 'min(224px, calc(100vw - 32px))',
+                    },
+                    ...(!resolvedExpanded ? {
+                        WebkitBackdropFilter: 'blur(8px)',
+                        backdropFilter: 'blur(8px)',
+                        backgroundColor: (theme: Theme) => alpha(
+                            theme.palette.background.paper,
+                            theme.palette.mode === 'dark' ? 0.82 : 0.72,
+                        ),
+                        '@media (hover: hover) and (pointer: fine)': {
+                            '&:hover': {
+                                backgroundColor: (theme: Theme) => alpha(
+                                    theme.palette.background.paper,
+                                    theme.palette.mode === 'dark' ? 0.94 : 0.9,
+                                ),
+                            },
+                            '&:focus-within': {backgroundColor: 'background.paper'},
+                        },
+                        '@media (hover: none), (pointer: coarse)': {
+                            WebkitBackdropFilter: 'none',
+                            backdropFilter: 'none',
+                            backgroundColor: 'background.paper',
+                        },
+                    } : {}),
                 },
                 ...(Array.isArray(sx) ? sx : [sx]),
             ]}
@@ -425,7 +455,7 @@ export function PneOperationCenter({
                     sx={{minHeight: 0, overflowY: 'auto'}}
                 >
                     {showClearTerminal ? (
-                        <Box sx={{display: 'flex', justifyContent: 'flex-end', px: 2, pt: 1.25}}>
+                        <Box sx={{display: 'flex', justifyContent: 'flex-end', px: 2, py: 1}}>
                             <PneButton
                                 onClick={() => {
                                     onClearTerminal?.(terminalIds)
@@ -433,7 +463,11 @@ export function PneOperationCenter({
                                 }}
                                 pneStyle='neutralText'
                                 size='small'
-                                sx={{minHeight: 44}}
+                                sx={{
+                                    '@media (hover: none), (pointer: coarse)': {
+                                        minHeight: 44,
+                                    },
+                                }}
                             >
                                 {labels?.clearFinished ?? t('pne.operationCenter.clearFinished', {defaultValue: 'Clear finished'})}
                             </PneButton>
@@ -495,7 +529,15 @@ export function PneOperationCenter({
                                                         restoreFocusAfterMutation()
                                                     }}
                                                     size='small'
-                                                    sx={{flex: '0 0 auto', minHeight: 44, minWidth: 44, mt: -1}}
+                                                    sx={{
+                                                        flex: '0 0 auto',
+                                                        mt: -0.5,
+                                                        '@media (hover: none), (pointer: coarse)': {
+                                                            minHeight: 44,
+                                                            minWidth: 44,
+                                                            mt: -1,
+                                                        },
+                                                    }}
                                                 >
                                                     <CloseIcon aria-hidden='true' fontSize='small'/>
                                                 </IconButton>
@@ -573,7 +615,11 @@ export function PneOperationCenter({
                                                                 } : undefined}
                                                             />
                                                             : action.icon}
-                                                        sx={{minHeight: 44}}
+                                                        sx={{
+                                                            '@media (hover: none), (pointer: coarse)': {
+                                                                minHeight: 44,
+                                                            },
+                                                        }}
                                                     >
                                                         {action.label}
                                                     </PneButton>

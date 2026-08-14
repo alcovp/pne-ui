@@ -42,8 +42,28 @@ const initialOperations: readonly PneOperationCenterItem[] = [
     },
 ]
 
-const OperationCenterDemo = ({defaultExpanded = true}: {defaultExpanded?: boolean}) => {
+type OperationCenterDemoProps = {
+    defaultExpanded?: boolean
+    showSnackbar?: boolean
+}
+
+const OperationCenterDemo = ({
+    defaultExpanded = true,
+    showSnackbar = false,
+}: OperationCenterDemoProps) => {
     const [operations, setOperations] = React.useState(initialOperations)
+
+    React.useEffect(() => {
+        if (!showSnackbar) return undefined
+
+        const id = 'operation-center-layout-demo'
+        overlayActions.showInfo({
+            autoHideMs: undefined,
+            id,
+            message: 'Background report has been queued',
+        })
+        return () => overlayActions.removeSnackbar(id)
+    }, [showSnackbar])
 
     const removeOperations = (ids: readonly string[]) => {
         const removed = new Set(ids)
@@ -115,4 +135,23 @@ export const CollapsedSummary: Story = {
 export const Mobile360: Story = {
     args: {defaultExpanded: true},
     globals: {viewport: {value: 'mobile360', isRotated: false}},
+}
+
+export const DesktopWithSnackbar: Story = {
+    args: {defaultExpanded: false, showSnackbar: true},
+}
+
+export const MobileWithSnackbar: Story = {
+    args: {defaultExpanded: true, showSnackbar: true},
+    globals: {viewport: {value: 'mobile360', isRotated: false}},
+}
+
+export const DarkExpanded: Story = {
+    args: {defaultExpanded: true},
+    globals: {colorMode: 'dark'},
+}
+
+export const DarkCollapsed: Story = {
+    args: {defaultExpanded: false},
+    globals: {colorMode: 'dark'},
 }

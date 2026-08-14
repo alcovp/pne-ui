@@ -77,6 +77,33 @@ describe('PneOperationCenter', () => {
         expect(progress[1].getAttribute('aria-valuenow')).toBeNull()
     })
 
+    it('uses a compact collapsed footprint and true small desktop actions', () => {
+        render(
+            <PneOperationCenter
+                onAction={jest.fn()}
+                onClearTerminal={jest.fn()}
+                operations={[
+                    operation('running', 'running', {
+                        actions: [{id: 'cancel', label: 'Cancel'}],
+                    }),
+                    operation('done', 'succeeded'),
+                ]}
+            />,
+        )
+
+        const center = document.querySelector<HTMLElement>('[data-pne-operation-center]')!
+        expect(window.getComputedStyle(center).width).toBe('224px')
+
+        fireEvent.click(screen.getByRole('button', {name: 'Show background operations'}))
+        expect(window.getComputedStyle(center).width).toBe('400px')
+
+        const clear = screen.getByRole('button', {name: 'Clear finished'})
+        const cancel = screen.getByRole('button', {name: /Cancel: Operation running/})
+        expect(clear.className).toContain('MuiButton-sizeSmall')
+        expect(cancel.className).toContain('MuiButton-sizeSmall')
+        expect(window.getComputedStyle(clear.parentElement!).paddingBottom).toBe('8px')
+    })
+
     it('covers every lifecycle status and lets item status labels override the defaults', () => {
         const statuses: PneOperationCenterStatus[] = [
             'starting',
