@@ -100,6 +100,69 @@ const TableViewsHarness = ({
     </section>
 }
 
+type ConfigurableViewId = 'brief' | 'detailed'
+
+type DetailedSearchData = (searchDataKey: string, params: SearchParams) => Promise<Row[]>
+
+const ConfigurableDetailedViewHarness = ({briefSearch, detailedSearch}: {
+    briefSearch: SearchData
+    detailedSearch: DetailedSearchData
+}) => {
+    const [value, setValue] = React.useState<ConfigurableViewId>('brief')
+    const [searchDataKey, setSearchDataKey] = React.useState('kpi-a')
+    const [pickerOpen, setPickerOpen] = React.useState(false)
+    const views: readonly SearchUIView<Row, ConfigurableViewId>[] = [
+        {
+            id: 'brief',
+            label: 'Brief',
+            searchData: briefSearch,
+            createTableHeader: () => <tr><th>Brief header</th></tr>,
+            createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+            sortOnActivate: {sortColumnIndex: 2, sortAsc: true},
+            tableStateOnActivate: 'restore',
+        },
+        {
+            id: 'detailed',
+            label: 'Detailed',
+            onClick: event => {
+                event.preventDefault()
+                setPickerOpen(true)
+            },
+            searchData: params => detailedSearch(searchDataKey, params),
+            searchDataKey,
+            createTableHeader: () => <tr><th>Detailed header</th></tr>,
+            createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+            sortOnActivate: {sortColumnIndex: -100, sortAsc: true},
+            tableStateOnActivate: 'restore',
+        },
+    ]
+    const applyKpis = (nextSearchDataKey: string) => {
+        setSearchDataKey(nextSearchDataKey)
+        setValue('detailed')
+        setPickerOpen(false)
+    }
+
+    return <section data-testid='configurable-detailed-view'>
+        <SearchUI<Row, ConfigurableViewId>
+            autoTestId='configurable-detailed-view'
+            config={filtersConfig}
+            possibleCriteria={[]}
+            settingsContextName='configurable-detailed-view-settings'
+            tableViews={{
+                'aria-label': 'Configurable results view',
+                onChange: setValue,
+                value,
+                views,
+            }}
+        />
+        {pickerOpen ? <div aria-label='KPI picker' role='dialog'>
+            <button onClick={() => applyKpis('kpi-a')} type='button'>Apply KPI A</button>
+            <button onClick={() => applyKpis('kpi-b')} type='button'>Apply KPI B</button>
+            <button onClick={() => applyKpis('kpi-c')} type='button'>Apply KPI C</button>
+        </div> : null}
+    </section>
+}
+
 const resolvedSearch = (label: string) => jest.fn<Promise<Row[]>, [SearchParams]>()
     .mockResolvedValue([{id: label, label}])
 
@@ -266,6 +329,207 @@ describe('SearchUI table views', () => {
 
         fireEvent.click(within(toolbar).getByRole('button', {name: 'View settings'}))
         expect(onSettings).toHaveBeenCalledTimes(1)
+    })
+
+    it('gates activation with a view click, reopens the active picker, and invalidates keyed requests', async () => {
+        const kpiBResponse = createDeferred<Row[]>()
+        const kpiCResponse = createDeferred<Row[]>()
+        const briefSearch = resolvedSearch('Brief row')
+        const detailedSearch = jest.fn<Promise<Row[]>, [string, SearchParams]>()
+            .mockImplementation(searchDataKey => {
+                if (searchDataKey === 'kpi-b') {
+                    return kpiBResponse.promise
+                }
+                if (searchDataKey === 'kpi-c') {
+                    return kpiCResponse.promise
+                }
+                return Promise.resolve([{id: 'kpi-a', label: 'KPI A row'}])
+            })
+        const {container} = render(<ConfigurableDetailedViewHarness
+            briefSearch={briefSearch}
+            detailedSearch={detailedSearch}
+        />)
+
+        await waitFor(() => {
+            expect(screen.getByText('Brief row')).toBeTruthy()
+        })
+        const filtersScope = container.querySelector(
+            '[data-autotest="search-filters"][data-autotest-value="configurable-detailed-view"]',
+        )
+        const detailedButton = screen.getByRole('button', {name: 'Detailed'})
+
+        fireEvent.click(detailedButton)
+
+        expect(screen.getByRole('dialog', {name: 'KPI picker'})).toBeTruthy()
+        expect(detailedSearch).not.toHaveBeenCalled()
+        expect(screen.getByRole('button', {name: 'Brief'}).getAttribute('aria-pressed')).toBe('true')
+        expect(screen.getByText('Brief row')).toBeTruthy()
+
+        fireEvent.click(screen.getByRole('button', {name: 'Apply KPI A'}))
+
+        await waitFor(() => {
+            expect(screen.getByText('KPI A row')).toBeTruthy()
+        })
+        expect(detailedSearch).toHaveBeenCalledTimes(1)
+        expect(detailedSearch).toHaveBeenLastCalledWith('kpi-a', expect.objectContaining({
+            orderBy: -100,
+            sortOrder: 'asc',
+            startNum: 0,
+        }))
+        expect(container.querySelector(
+            '[data-autotest="search-filters"][data-autotest-value="configurable-detailed-view"]',
+        )).toBe(filtersScope)
+
+        fireEvent.click(screen.getByRole('button', {name: 'Detailed'}))
+
+        expect(screen.getByRole('dialog', {name: 'KPI picker'})).toBeTruthy()
+        expect(detailedSearch).toHaveBeenCalledTimes(1)
+        expect(screen.getByRole('button', {name: 'Detailed'}).getAttribute('aria-pressed')).toBe('true')
+
+        fireEvent.click(screen.getByRole('button', {name: 'Apply KPI B'}))
+
+        expect(screen.queryByText('KPI A row')).toBeNull()
+        await waitFor(() => {
+            expect(detailedSearch).toHaveBeenCalledTimes(2)
+        })
+        expect(detailedSearch).toHaveBeenLastCalledWith('kpi-b', expect.objectContaining({
+            orderBy: -100,
+            startNum: 0,
+        }))
+
+        fireEvent.click(screen.getByRole('button', {name: 'Detailed'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Apply KPI C'}))
+        await waitFor(() => {
+            expect(detailedSearch).toHaveBeenCalledTimes(3)
+        })
+
+        await act(async () => {
+            kpiCResponse.resolve([{id: 'kpi-c', label: 'Current KPI C row'}])
+            await kpiCResponse.promise
+        })
+        await waitFor(() => {
+            expect(screen.getByText('Current KPI C row')).toBeTruthy()
+        })
+
+        await act(async () => {
+            kpiBResponse.resolve([{id: 'kpi-b', label: 'Stale KPI B row'}])
+            await kpiBResponse.promise
+        })
+
+        expect(screen.getByText('Current KPI C row')).toBeTruthy()
+        expect(screen.queryByText('Stale KPI B row')).toBeNull()
+    })
+
+    it('does not refetch the active view when only an inactive view data key changes', async () => {
+        const summarySearch = resolvedSearch('Active summary row')
+        const operationsSearch = resolvedSearch('Inactive operations row')
+        const riskSearch = resolvedSearch('Inactive risk row')
+        const InactiveKeyHarness = ({riskKey}: {riskKey: string}) => <SearchUI<Row, ViewId>
+            config={filtersConfig}
+            possibleCriteria={[]}
+            settingsContextName='inactive-key-settings'
+            tableViews={{
+                'aria-label': 'Inactive key views',
+                onChange: () => undefined,
+                value: 'summary',
+                views: createViews({
+                    summary: summarySearch,
+                    operations: operationsSearch,
+                    risk: riskSearch,
+                }).map(view => view.id === 'risk'
+                    ? {...view, searchDataKey: riskKey}
+                    : view),
+            }}
+        />
+        const view = render(<InactiveKeyHarness riskKey='risk-a'/>)
+
+        await waitFor(() => {
+            expect(screen.getByText('Active summary row')).toBeTruthy()
+        })
+        expect(summarySearch).toHaveBeenCalledTimes(1)
+
+        view.rerender(<InactiveKeyHarness riskKey='risk-b'/>)
+        await act(async () => {
+            await Promise.resolve()
+        })
+
+        expect(summarySearch).toHaveBeenCalledTimes(1)
+        expect(operationsSearch).not.toHaveBeenCalled()
+        expect(riskSearch).not.toHaveBeenCalled()
+    })
+
+    it('keeps reset identities distinct when view IDs and data keys contain the same separators', async () => {
+        type CollisionViewId = 'a|b' | 'a'
+        const firstSearch = jest.fn<Promise<Row[]>, [SearchParams]>()
+            .mockImplementation(params => Promise.resolve(
+                params.startNum === 0
+                    ? Array.from({length: 51}, (_, index) => ({
+                        id: `first-${index}`,
+                        label: `First row ${index}`,
+                    }))
+                    : [{id: 'first-page-two', label: 'First page two row'}],
+            ))
+        const secondSearch = resolvedSearch('Second view row')
+        const CollisionHarness = () => {
+            const [value, setValue] = React.useState<CollisionViewId>('a|b')
+            const views: readonly SearchUIView<Row, CollisionViewId>[] = [
+                {
+                    id: 'a|b',
+                    label: 'First collision view',
+                    searchData: firstSearch,
+                    searchDataKey: 'c',
+                    createTableHeader: () => <tr><th>First collision header</th></tr>,
+                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    sortOnActivate: {sortColumnIndex: 2, sortAsc: true},
+                },
+                {
+                    id: 'a',
+                    label: 'Second collision view',
+                    searchData: secondSearch,
+                    searchDataKey: 'b|c',
+                    createTableHeader: () => <tr><th>Second collision header</th></tr>,
+                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    sortOnActivate: {sortColumnIndex: 7, sortAsc: false},
+                },
+            ]
+
+            return <SearchUI<Row, CollisionViewId>
+                config={filtersConfig}
+                possibleCriteria={[]}
+                settingsContextName='collision-safe-view-settings'
+                tableViews={{
+                    'aria-label': 'Collision-safe views',
+                    onChange: setValue,
+                    value,
+                    views,
+                }}
+            />
+        }
+        const {container} = render(<CollisionHarness/>)
+
+        await waitFor(() => {
+            expect(screen.getByText('First row 0')).toBeTruthy()
+        })
+        const bottomPagination = container.querySelector(
+            '[data-autotest="pagination"][data-autotest-value="bottom"]',
+        ) as HTMLElement
+        fireEvent.click(within(bottomPagination).getByRole('button', {name: 'next page'}))
+        await waitFor(() => {
+            expect(screen.getByText('First page two row')).toBeTruthy()
+        })
+
+        fireEvent.click(screen.getByRole('button', {name: 'Second collision view'}))
+
+        expect(screen.queryByText('First page two row')).toBeNull()
+        await waitFor(() => {
+            expect(screen.getByText('Second view row')).toBeTruthy()
+        })
+        expect(secondSearch).toHaveBeenCalledTimes(1)
+        expect(secondSearch).toHaveBeenLastCalledWith(expect.objectContaining({
+            orderBy: 7,
+            sortOrder: 'desc',
+            startNum: 0,
+        }))
     })
 
     it('suppresses a stale view completion and never renders its rows under the new header', async () => {

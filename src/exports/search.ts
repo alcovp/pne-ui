@@ -7,6 +7,7 @@ export {
     type SearchUITableRowFactory,
     type SearchUIView,
     type SearchUIViewSort,
+    type SearchUIViewTableStateOnActivate,
     type SearchUIViewsConfig,
 } from '../component/search-ui/SearchUI'
 export type {

@@ -18,6 +18,14 @@ type FetchDataArgs = {
     extraDeps?: unknown[]
 }
 
+export type UseTableResetStateOnKeyChange = 'reset' | 'restore'
+
+type TableStateSnapshot = {
+    page: number
+    sortIndex: number
+    order: Order
+}
+
 export type UseTableParams<D> = {
     displayOptions?: Partial<TableDisplayOptions>
     onDisplayOptionsChange?: (options: TableDisplayOptions) => void
@@ -28,10 +36,15 @@ export type UseTableParams<D> = {
     dataUseState?: [D[], Dispatch<SetStateAction<D[]>>]
     fetchData?: (args: FetchDataArgs) => Promise<D[]>,
     fetchDataExtraDeps?: unknown[]
-    /** Stable identity whose change resets page/sort and invalidates rows from the previous identity. */
+    /** Stable identity whose change invalidates rows and requests, then applies resetStateOnKeyChange. */
     resetKey?: string | number
     /** Sort defaults applied when resetKey changes, or an explicit request to keep the current sort. */
     resetDisplayOptions?: 'preserve' | Pick<TableDisplayOptions, 'sortColumnIndex' | 'sortAsc'>
+    /**
+     * State policy applied when resetKey changes. `reset` preserves the historical behavior.
+     * `restore` recalls page and sort independently for each previously visited resetKey.
+     */
+    resetStateOnKeyChange?: UseTableResetStateOnKeyChange
 }
 
 interface IUseTableResult<D> {
@@ -63,6 +76,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         duplicatePagination,
         resetKey,
         resetDisplayOptions,
+        resetStateOnKeyChange = 'reset',
     } = params;
 
     // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
@@ -124,6 +138,8 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const [dataResetKey, setDataResetKey] = useState<unknown>(
         resetKey === undefined || !fetchData ? resetKey : UNRESOLVED_DATA_KEY,
     )
+    const resetStateByKeyRef = useRef(new Map<string | number, TableStateSnapshot>())
+    const requestSequenceRef = useRef(0)
 
     const preserveSortOnReset = resetDisplayOptions === 'preserve'
     const resetSortIndex = preserveSortOnReset
@@ -136,13 +152,29 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
             : resetDisplayOptions.sortAsc ? 'asc' : 'desc'
 
     if (!Object.is(activeResetKey, resetKey)) {
+        if (activeResetKey !== undefined) {
+            resetStateByKeyRef.current.set(activeResetKey, {
+                page: pageNumber,
+                sortIndex,
+                order,
+            })
+        }
+        const restoredState = resetStateOnKeyChange === 'restore' && resetKey !== undefined
+            ? resetStateByKeyRef.current.get(resetKey)
+            : undefined
+
+        // Invalidate the previous identity before its effect cleanup runs.
+        requestSequenceRef.current += 1
         setActiveResetKey(resetKey)
         setDataResetKey(fetchData ? UNRESOLVED_DATA_KEY : resetKey)
-        setPageNumber(0)
+        setPageNumber(restoredState?.page ?? 0)
         setHasNext(false)
         setDisableActions(false)
         setLoading(!!fetchData)
-        if (!preserveSortOnReset) {
+        if (restoredState) {
+            setSortIndex(restoredState.sortIndex)
+            setOrder(restoredState.order)
+        } else if (!preserveSortOnReset) {
             setSortIndex(resetSortIndex)
             setOrder(resetSortOrder)
         }
@@ -170,12 +202,12 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 
     const isFirstRender = useIsFirstRender()
     useEffect(() => {
-        if (!isFirstRender) {
+        if (!isFirstRender && Object.is(dataResetKey, resetKey)) {
             if (getData().length === 0 && pageNumber !== 0) {
                 setPageNumber(0)
             }
         }
-    }, [getData().length])
+    }, [dataResetKey, getData().length, resetKey])
 
     const displayedRowsLabel = () => {
         if (getData().length === 0) {
@@ -295,7 +327,6 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     }
 
     const shouldSkipFetchDate = useRef(false)
-    const requestSequenceRef = useRef(0)
     useEffect(() => {
         if (!fetchData) {
             return
@@ -315,9 +346,9 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         if (!Object.is(dataResetKey, resetKey)) {
             getSetData()([])
             if (settingsContextName) {
-                sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, '0')
-                sessionStorage.setItem(settingsContextName + SORT_INDEX_SETTING_NAME, resetSortIndex.toString())
-                sessionStorage.setItem(settingsContextName + SORT_ORDER_ASC_SETTING_NAME, resetSortOrder)
+                sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, pageNumber.toString())
+                sessionStorage.setItem(settingsContextName + SORT_INDEX_SETTING_NAME, sortIndex.toString())
+                sessionStorage.setItem(settingsContextName + SORT_ORDER_ASC_SETTING_NAME, order)
             }
         }
 
@@ -344,6 +375,9 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                     // надо предотвратить следующую перерисовку из-за измененного pageNumber
                     shouldSkipFetchDate.current = true
                     setPageNumber(0)
+                    if (settingsContextName) {
+                        sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, '0')
+                    }
                 }
                 if (isLatestRequest()) {
                     afterDataFetch(data)

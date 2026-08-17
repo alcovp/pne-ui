@@ -28,6 +28,8 @@ Key flows
   - Retained snapshots contain user search state only; callbacks, configuration, async data, and table results are recreated.
   - Filters render via `SearchUIFilters` and push updates into the store.
   - Table uses `PneTable` + `useTable`: criteria become request params via `createSearchParams`, then `searchData` is called.
+  - Controlled `tableViews` can provide a per-view `searchDataKey` for external request inputs. The combined view/data identity invalidates stale rows and requests; `tableStateOnActivate='restore'` recalls page and sort independently for identities visited by the mounted table.
+  - A view option `onClick` runs for both inactive and selected views. Consumers may call `preventDefault()` to open configuration before changing the controlled view.
   - `settingsContextName` is used as a key-prefix for persisted settings/context.
 - Theming:
   - `createPneTheme(skin, {colorMode, ...overrides})` injects `skin`, derives accessible `palette.pne` surface/brand roles at runtime, and retains the compatibility palettes (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated`, etc.) via module declarations in `src/index.ts`.

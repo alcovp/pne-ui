@@ -33,8 +33,9 @@ const displayOptionsByView = {
     full: {sortColumnIndex: 7, sortAsc: true},
 } as const
 
-const ResetKeyHarness = ({preserveSortOnReset = false, view, searchByView}: {
+const ResetKeyHarness = ({preserveSortOnReset = false, restoreStateOnReset = false, view, searchByView}: {
     preserveSortOnReset?: boolean
+    restoreStateOnReset?: boolean
     view: ViewId
     searchByView: Record<ViewId, FetchData>
 }) => {
@@ -46,6 +47,7 @@ const ResetKeyHarness = ({preserveSortOnReset = false, view, searchByView}: {
         fetchData: args => searchByView[view](args),
         resetDisplayOptions: preserveSortOnReset ? 'preserve' : viewDisplayOptions,
         resetKey: view,
+        resetStateOnKeyChange: restoreStateOnReset ? 'restore' : undefined,
         rowsPerPageOptions: [10],
     })
 
@@ -216,6 +218,129 @@ describe('useTable resetKey', () => {
             page: 0,
             sortIndex: 9,
         }))
+    })
+
+    it('restores independent page and sort state for each previously visited key', async () => {
+        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockResolvedValue([{id: 'brief', label: 'Brief row'}])
+        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockResolvedValue([{id: 'full', label: 'Full row'}])
+        const searchByView = {brief: briefSearch, full: fullSearch}
+        const view = render(<ResetKeyHarness
+            restoreStateOnReset
+            searchByView={searchByView}
+            view='brief'
+        />)
+
+        await waitFor(() => {
+            expect(screen.getByText('Brief row')).toBeTruthy()
+        })
+        fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Change sort'}))
+        await waitFor(() => {
+            expect(screen.getByTestId('page').textContent).toBe('2')
+            expect(screen.getByTestId('sort').textContent).toBe('9:desc')
+            expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({
+                order: 'desc',
+                page: 2,
+                sortIndex: 9,
+            }))
+        })
+
+        view.rerender(<ResetKeyHarness
+            restoreStateOnReset
+            searchByView={searchByView}
+            view='full'
+        />)
+        expect(screen.getByTestId('page').textContent).toBe('0')
+        expect(screen.getByTestId('sort').textContent).toBe('7:asc')
+        await waitFor(() => {
+            expect(fullSearch).toHaveBeenLastCalledWith(expect.objectContaining({
+                order: 'asc',
+                page: 0,
+                sortIndex: 7,
+            }))
+        })
+
+        view.rerender(<ResetKeyHarness
+            restoreStateOnReset
+            searchByView={searchByView}
+            view='brief'
+        />)
+        expect(screen.getByTestId('page').textContent).toBe('2')
+        expect(screen.getByTestId('sort').textContent).toBe('9:desc')
+        await waitFor(() => {
+            expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({
+                order: 'desc',
+                page: 2,
+                sortIndex: 9,
+            }))
+        })
+
+        view.rerender(<ResetKeyHarness
+            restoreStateOnReset
+            searchByView={searchByView}
+            view='full'
+        />)
+        expect(screen.getByTestId('page').textContent).toBe('0')
+        expect(screen.getByTestId('sort').textContent).toBe('7:asc')
+        await waitFor(() => {
+            expect(screen.getByText('Full row')).toBeTruthy()
+            expect(fullSearch).toHaveBeenLastCalledWith(expect.objectContaining({
+                order: 'asc',
+                page: 0,
+                sortIndex: 7,
+            }))
+        })
+    })
+
+    it('falls back once to page zero when a restored page no longer has rows', async () => {
+        let emptyRestoredPage = false
+        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockImplementation(({page}) => Promise.resolve(
+                emptyRestoredPage && page === 2
+                    ? []
+                    : [{id: `brief-${page}`, label: `Brief page ${page}`}],
+            ))
+        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockResolvedValue([{id: 'full', label: 'Full row'}])
+        const searchByView = {brief: briefSearch, full: fullSearch}
+        const view = render(<ResetKeyHarness
+            restoreStateOnReset
+            searchByView={searchByView}
+            view='brief'
+        />)
+
+        await waitFor(() => {
+            expect(screen.getByText('Brief page 0')).toBeTruthy()
+        })
+        fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
+        await waitFor(() => {
+            expect(screen.getByText('Brief page 2')).toBeTruthy()
+        })
+
+        view.rerender(<ResetKeyHarness
+            restoreStateOnReset
+            searchByView={searchByView}
+            view='full'
+        />)
+        await waitFor(() => {
+            expect(screen.getByText('Full row')).toBeTruthy()
+        })
+        emptyRestoredPage = true
+        const callsBeforeRestore = briefSearch.mock.calls.length
+
+        view.rerender(<ResetKeyHarness
+            restoreStateOnReset
+            searchByView={searchByView}
+            view='brief'
+        />)
+
+        await waitFor(() => {
+            expect(screen.getByText('Brief page 0')).toBeTruthy()
+            expect(screen.getByTestId('page').textContent).toBe('0')
+        })
+        expect(briefSearch.mock.calls.slice(callsBeforeRestore).map(([args]) => args.page)).toEqual([2, 0])
     })
 
     it('keeps manual external data visible when resetKey has no fetch lifecycle', () => {

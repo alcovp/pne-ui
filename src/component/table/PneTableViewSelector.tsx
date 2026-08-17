@@ -25,6 +25,12 @@ export type PneTableViewOption<TViewId extends string = string> = {
     id: TViewId
     label: ReactNode
     disabled?: boolean
+    /**
+     * Called for every enabled view-button click, including the already selected view.
+     * Calling `event.preventDefault()` keeps the controlled value unchanged, allowing
+     * consumers to open configuration UI before activating a view.
+     */
+    onClick?: React.MouseEventHandler<HTMLButtonElement>
 }
 
 export type PneTableViewSelectorProps<TViewId extends string = string> = Omit<
@@ -136,12 +142,6 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
         && actions !== null
         && typeof actions !== 'boolean'
 
-    const handleChange = (_event: React.MouseEvent<HTMLElement>, nextValue: TViewId | null) => {
-        if (nextValue !== null && nextValue !== value) {
-            onChange(nextValue)
-        }
-    }
-
     return <Box
         {...rootProps}
         {...createAutoTestAttributes(TABLE_VIEWS_AUTOTEST_ID, autoTestId)}
@@ -156,19 +156,30 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
             aria-labelledby={ariaLabelledBy}
             disabled={disabled}
             exclusive
-            onChange={handleChange}
             sx={groupSx}
             value={value}
         >
-            {views.map(view => <ToggleButton
-                {...createAutoTestAttributes(TABLE_VIEW_AUTOTEST_ID, view.id)}
-                disabled={view.disabled}
-                key={view.id}
-                sx={viewButtonSx}
-                value={view.id}
-            >
-                {view.label}
-            </ToggleButton>)}
+            {views.map(view => {
+                const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+                    // This selector always renders its options as native button-backed ToggleButtons.
+                    const buttonEvent = event as React.MouseEvent<HTMLButtonElement>
+                    view.onClick?.(buttonEvent)
+                    if (!event.defaultPrevented && view.id !== value) {
+                        onChange(view.id)
+                    }
+                }
+
+                return <ToggleButton
+                    {...createAutoTestAttributes(TABLE_VIEW_AUTOTEST_ID, view.id)}
+                    disabled={view.disabled}
+                    key={view.id}
+                    onClick={handleClick}
+                    sx={viewButtonSx}
+                    value={view.id}
+                >
+                    {view.label}
+                </ToggleButton>
+            })}
         </ToggleButtonGroup>
         {hasActions ? <>
             <Divider

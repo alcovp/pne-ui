@@ -119,6 +119,49 @@ describe('PneTableViewSelector', () => {
         expect(onChange).not.toHaveBeenCalled()
     })
 
+    it('lets a view click inspect its button, veto activation, and handle selected repeats', () => {
+        const onChange = jest.fn()
+        const clickedTargets: HTMLButtonElement[] = []
+        const onDetailedClick = jest.fn((event: React.MouseEvent<HTMLButtonElement>) => {
+            clickedTargets.push(event.currentTarget)
+            event.preventDefault()
+        })
+        const hookedViews: readonly PneTableViewOption<ViewId>[] = [
+            views[0],
+            {
+                ...views[1],
+                onClick: onDetailedClick,
+            },
+            views[2],
+        ]
+        const {rerender} = render(<PneTableViewSelector
+            aria-label='Configurable table view'
+            onChange={onChange}
+            value='brief'
+            views={hookedViews}
+        />)
+
+        fireEvent.click(screen.getByRole('button', {name: 'Full'}))
+
+        expect(onDetailedClick).toHaveBeenCalledTimes(1)
+        expect(clickedTargets[0]).toBe(screen.getByRole('button', {name: 'Full'}))
+        expect(clickedTargets[0].tagName).toBe('BUTTON')
+        expect(onChange).not.toHaveBeenCalled()
+        expect(screen.getByRole('button', {name: 'Brief'}).getAttribute('aria-pressed')).toBe('true')
+
+        rerender(<PneTableViewSelector
+            aria-label='Configurable table view'
+            onChange={onChange}
+            value='full'
+            views={hookedViews}
+        />)
+        fireEvent.click(screen.getByRole('button', {name: 'Full'}))
+
+        expect(onDetailedClick).toHaveBeenCalledTimes(2)
+        expect(clickedTargets[1]).toBe(screen.getByRole('button', {name: 'Full'}))
+        expect(onChange).not.toHaveBeenCalled()
+    })
+
     it('keeps simultaneous selectors isolated and preserves the Orders geometry', () => {
         render(<>
             <ControlledSelector

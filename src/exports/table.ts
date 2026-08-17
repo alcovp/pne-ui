@@ -44,7 +44,10 @@ export type {
     UseTableSelectionResult,
 } from '../component/table/useTableSelection'
 export { default as useTable } from '../component/table/useTable'
-export type { UseTableParams } from '../component/table/useTable'
+export type {
+    UseTableParams,
+    UseTableResetStateOnKeyChange,
+} from '../component/table/useTable'
 
 export { default as PneTableRow } from '../component/table/PneTableRow'
 export { default as PneHeaderTableCell } from '../component/table/PneHeaderTableCell'

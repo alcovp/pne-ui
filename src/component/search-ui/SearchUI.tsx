@@ -140,6 +140,8 @@ export type SearchUIViewSort = 'preserve' | {
     sortAsc: boolean
 }
 
+export type SearchUIViewTableStateOnActivate = 'reset' | 'restore'
+
 export type SearchUIView<
     D extends object,
     TViewId extends string = string,
@@ -155,6 +157,16 @@ export type SearchUIView<
     actions?: React.ReactNode
     /** Defaults to the common safe sort; preserving another view's sort must be explicit. */
     sortOnActivate?: SearchUIViewSort
+    /**
+     * Stable identity for consumer-owned inputs used by searchData but absent from SearchParams.
+     * A change invalidates rows and in-flight requests even while this view remains selected.
+     */
+    searchDataKey?: string | number
+    /**
+     * Controls page/sort handling when this view/data identity becomes active.
+     * `reset` is the backward-compatible default. `restore` recalls state per identity.
+     */
+    tableStateOnActivate?: SearchUIViewTableStateOnActivate
 }
 
 type SearchUIViewsAccessibleName = {
@@ -256,6 +268,12 @@ const SearchUIContent = <
         tableSelection,
     } = props
     const resolvedTable = resolveSearchUITable(props)
+    const tableResetIdentity = resolvedTable.viewId === undefined
+        ? undefined
+        : createSearchUITableResetIdentity(
+            resolvedTable.viewId,
+            resolvedTable.searchDataKey,
+        )
 
     const searchCriteria = useSearchUIFiltersStore(store => store.appliedSearchCriteria)
     const filtersSettingsContextName = useSearchUIFiltersStore(store => store.settingsContextName)
@@ -305,7 +323,8 @@ const SearchUIContent = <
                     sortColumnIndex: resolvedDisplayOptions.sortColumnIndex,
                     sortAsc: resolvedDisplayOptions.sortAsc,
                 },
-        resetKey: resolvedTable.viewId,
+        resetKey: tableResetIdentity,
+        resetStateOnKeyChange: resolvedTable.tableStateOnActivate,
         fetchData: ({ page, pageSize, order, sortIndex }) => {
             if (!searchCriteria?.initialized || !filtersContextReady) {
                 return Promise.resolve<D[]>([])
@@ -365,7 +384,7 @@ const SearchUIContent = <
             )}
             paginator={paginator}
             loading={loading}
-            loadingKey={resolvedTable.viewId}
+            loadingKey={tableResetIdentity}
             toolbar={toolbar}
             feedback={feedback}
         />
@@ -695,7 +714,9 @@ type ResolvedSearchUITable<
     createTableHeader: SearchUITableHeaderFactory<D, TKey, TViewId>
     createTableRow: SearchUITableRowFactory<D, TKey, TViewId>
     actions?: React.ReactNode
+    searchDataKey?: string | number
     sortOnActivate?: SearchUIViewSort
+    tableStateOnActivate?: SearchUIViewTableStateOnActivate
     viewId?: TViewId
 }
 
@@ -739,10 +760,24 @@ const resolveSearchUITable = <
         createTableHeader: activeView.createTableHeader,
         createTableRow: activeView.createTableRow,
         actions: activeView.actions,
+        searchDataKey: activeView.searchDataKey,
         sortOnActivate: activeView.sortOnActivate,
+        tableStateOnActivate: activeView.tableStateOnActivate,
         viewId: activeView.id,
     }
 }
+
+const createSearchUITableResetIdentity = (
+    viewId: string,
+    searchDataKey: string | number | undefined,
+): string => JSON.stringify([
+    ['string', viewId],
+    searchDataKey === undefined
+        ? ['undefined']
+        : typeof searchDataKey === 'number'
+            ? ['number', Object.is(searchDataKey, -0) ? '-0' : String(searchDataKey)]
+            : ['string', searchDataKey],
+])
 
 const createTableViewSelector = <
     D extends object,
@@ -767,6 +802,7 @@ const createTableViewSelector = <
         id: view.id,
         label: view.label,
         disabled: view.disabled,
+        onClick: view.onClick,
     }))
 
     let selector: React.ReactElement
