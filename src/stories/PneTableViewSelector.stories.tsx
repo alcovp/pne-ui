@@ -7,7 +7,7 @@ import {
     PneTableViewSelector,
 } from '../index'
 
-type ViewId = 'brief' | 'full' | 'risk'
+type ViewId = 'brief' | 'detailed' | 'full' | 'risk'
 
 const meta = {
     title: 'pne-ui/PneTable/View selector',
@@ -72,6 +72,16 @@ export const ThreeGenericViews: Story = {
             {id: 'brief', label: 'Summary'},
             {id: 'full', label: 'Operations'},
             {id: 'risk', label: 'Risk'},
+        ]}
+    />,
+}
+
+export const DetailedKpiCount: Story = {
+    render: () => <StorySelector
+        views={[
+            {id: 'brief', label: 'Brief'},
+            {id: 'full', label: 'Full'},
+            {id: 'detailed', label: 'Detailed (5)'},
         ]}
     />,
 }

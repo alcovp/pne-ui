@@ -23,6 +23,8 @@ interface IPaginationActionsProps {
     paginator: PaginatorProps
     shouldRequestScroll: boolean
     toolbar?: React.ReactNode
+    toolbarElementKey?: React.Key | null
+    toolbarElementType?: unknown
 }
 
 export type PneTablePaginationActionsLayout =
@@ -126,6 +128,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         paginator,
         shouldRequestScroll,
         toolbar,
+        toolbarElementKey,
+        toolbarElementType,
     } = props;
 
     const {
@@ -251,13 +255,6 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const hasToolbar = toolbar !== undefined
         && toolbar !== null
         && typeof toolbar !== 'boolean'
-    const toolbarElementType = React.isValidElement(toolbar)
-        ? toolbar.type
-        : typeof toolbar
-    const toolbarElementKey = React.isValidElement(toolbar)
-        ? toolbar.key
-        : null
-
     useResponsiveLayoutEffect(() => {
         const root = rootRef.current
 

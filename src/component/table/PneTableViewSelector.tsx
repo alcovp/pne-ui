@@ -91,7 +91,7 @@ const viewButtonSx: SxProps<Theme> = theme => {
         border: 0,
         borderRadius: '4px !important',
         color: controlTextColor,
-        flex: '1 1 0',
+        flex: '1 1 auto',
         fontWeight: 'bold',
         height: '40px',
         letterSpacing: '0.46px',

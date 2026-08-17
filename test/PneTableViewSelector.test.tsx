@@ -162,6 +162,30 @@ describe('PneTableViewSelector', () => {
         expect(onChange).not.toHaveBeenCalled()
     })
 
+    it('sizes views from their content while allowing safe label truncation', () => {
+        render(<PneTableViewSelector
+            aria-label='Detailed table view'
+            onChange={() => undefined}
+            value='brief'
+            views={[
+                {id: 'brief', label: 'Brief'},
+                {id: 'full', label: 'Detailed (5)'},
+            ]}
+        />)
+
+        const detailedButtonStyle = window.getComputedStyle(
+            screen.getByRole('button', {name: 'Detailed (5)'}),
+        )
+
+        expect(detailedButtonStyle.flexBasis).toBe('auto')
+        expect(detailedButtonStyle.flexGrow).toBe('1')
+        expect(detailedButtonStyle.flexShrink).toBe('1')
+        expect(detailedButtonStyle.minWidth).toBe('0')
+        expect(detailedButtonStyle.overflow).toBe('hidden')
+        expect(detailedButtonStyle.textOverflow).toBe('ellipsis')
+        expect(detailedButtonStyle.whiteSpace).toBe('nowrap')
+    })
+
     it('keeps simultaneous selectors isolated and preserves the Orders geometry', () => {
         render(<>
             <ControlledSelector

@@ -227,6 +227,19 @@ describe('responsive pagination action layout', () => {
             expect(Array.from(actionBand.children)).toEqual([toolbar, navigation, pageSizes])
             expect(window.getComputedStyle(pageSizes).flexWrap).toBe('wrap')
 
+            const observerCount = resizeObservers.length
+            rerender(createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    paginator: createPaginator(true),
+                    toolbar: <button type='button'>Updated orders view</button>,
+                },
+            ))
+
+            expect(resizeObservers).toHaveLength(observerCount)
+            expect(screen.getByRole('button', {name: 'Updated orders view'})).toBe(toolbarControl)
+
             rerender(createTable(
                 'orders',
                 {id: 'order-1', label: 'Order'},

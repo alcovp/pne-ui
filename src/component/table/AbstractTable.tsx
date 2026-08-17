@@ -43,6 +43,29 @@ export type PaginatorProps = {
     duplicatePagination?: boolean
 }
 
+type PaginationActionsContextValue = {
+    paginator: PaginatorProps
+    shouldRequestScroll: boolean
+    toolbar?: React.ReactNode
+    toolbarElementKey?: React.Key | null
+    toolbarElementType?: unknown
+}
+
+const PaginationActionsContext = React.createContext<PaginationActionsContextValue | null>(null)
+
+const StablePaginationActions = (props: TablePaginationActionsProps) => {
+    const context = React.useContext(PaginationActionsContext)
+
+    if (!context) {
+        throw new Error('StablePaginationActions must be rendered inside PaginationActionsContext')
+    }
+
+    return <PneTablePaginationActions
+        {...props}
+        {...context}
+    />
+}
+
 export type TableProps<D> = {
     /** Stable, non-secret instance identifier; required for unambiguous multiple-table scopes. */
     autoTestId?: string
@@ -166,27 +189,38 @@ const AbstractTable = <D, >(
             return null
         }
 
-        return <PneTablePagination
-            {...createAutoTestAttributes(TABLE_PAGINATION_AUTOTEST_ID, position)}
-            ref={position === 'bottom' ? paginator.paginationRef : undefined}
-            count={-1}
-            /*
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore */
-            component={'div'}
-            labelDisplayedRows={() => null}
-            labelRowsPerPage={null}
-            rowsPerPageOptions={paginator.rowsPerPageOptions}
-            rowsPerPage={paginator.rowsPerPage}
-            page={paginator.page}
-            onPageChange={paginator.onPageChange}
-            ActionsComponent={(props: TablePaginationActionsProps) => <PneTablePaginationActions
-                {...props}
-                paginator={paginator}
-                shouldRequestScroll={position === 'bottom'}
-                toolbar={position === 'top' ? topToolbar : undefined}
-            />}
-        />;
+        const observedToolbar = position === 'top' ? toolbar : undefined
+
+        return <PaginationActionsContext.Provider
+            value={{
+                paginator,
+                shouldRequestScroll: position === 'bottom',
+                toolbar: position === 'top' ? topToolbar : undefined,
+                toolbarElementKey: React.isValidElement(observedToolbar)
+                    ? observedToolbar.key
+                    : null,
+                toolbarElementType: React.isValidElement(observedToolbar)
+                    ? observedToolbar.type
+                    : typeof observedToolbar,
+            }}
+        >
+            <PneTablePagination
+                {...createAutoTestAttributes(TABLE_PAGINATION_AUTOTEST_ID, position)}
+                ref={position === 'bottom' ? paginator.paginationRef : undefined}
+                count={-1}
+                /*
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore */
+                component={'div'}
+                labelDisplayedRows={() => null}
+                labelRowsPerPage={null}
+                rowsPerPageOptions={paginator.rowsPerPageOptions}
+                rowsPerPage={paginator.rowsPerPage}
+                page={paginator.page}
+                onPageChange={paginator.onPageChange}
+                ActionsComponent={StablePaginationActions}
+            />
+        </PaginationActionsContext.Provider>;
     }
     const skeletonRowCount = paginator?.rowsPerPage || 10;
     const cellPadding = 16; // 8px top + 8px bottom

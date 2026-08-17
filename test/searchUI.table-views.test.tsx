@@ -104,9 +104,14 @@ type ConfigurableViewId = 'brief' | 'detailed'
 
 type DetailedSearchData = (searchDataKey: string, params: SearchParams) => Promise<Row[]>
 
-const ConfigurableDetailedViewHarness = ({briefSearch, detailedSearch}: {
+const ConfigurableDetailedViewHarness = ({
+    briefSearch,
+    detailedSearch,
+    duplicatePagination = false,
+}: {
     briefSearch: SearchData
     detailedSearch: DetailedSearchData
+    duplicatePagination?: boolean
 }) => {
     const [value, setValue] = React.useState<ConfigurableViewId>('brief')
     const [searchDataKey, setSearchDataKey] = React.useState('kpi-a')
@@ -148,6 +153,7 @@ const ConfigurableDetailedViewHarness = ({briefSearch, detailedSearch}: {
             config={filtersConfig}
             possibleCriteria={[]}
             settingsContextName='configurable-detailed-view-settings'
+            tableParams={{duplicatePagination}}
             tableViews={{
                 'aria-label': 'Configurable results view',
                 onChange: setValue,
@@ -418,6 +424,34 @@ describe('SearchUI table views', () => {
 
         expect(screen.getByText('Current KPI C row')).toBeTruthy()
         expect(screen.queryByText('Stale KPI B row')).toBeNull()
+    })
+
+    it('keeps the intercepted active view button mounted in duplicated pagination', async () => {
+        const briefSearch = resolvedSearch('Stable brief row')
+        const detailedSearch = jest.fn<Promise<Row[]>, [string, SearchParams]>()
+            .mockResolvedValue([{id: 'stable-kpi', label: 'Stable KPI row'}])
+
+        render(<ConfigurableDetailedViewHarness
+            briefSearch={briefSearch}
+            detailedSearch={detailedSearch}
+            duplicatePagination
+        />)
+
+        await waitFor(() => {
+            expect(screen.getByText('Stable brief row')).toBeTruthy()
+        })
+        fireEvent.click(screen.getByRole('button', {name: 'Detailed'}))
+        fireEvent.click(screen.getByRole('button', {name: 'Apply KPI A'}))
+        await waitFor(() => {
+            expect(screen.getByText('Stable KPI row')).toBeTruthy()
+        })
+
+        const activeDetailedButton = screen.getByRole('button', {name: 'Detailed'})
+        fireEvent.click(activeDetailedButton)
+
+        expect(screen.getByRole('dialog', {name: 'KPI picker'})).toBeTruthy()
+        expect(activeDetailedButton.isConnected).toBe(true)
+        expect(screen.getByRole('button', {name: 'Detailed'})).toBe(activeDetailedButton)
     })
 
     it('does not refetch the active view when only an inactive view data key changes', async () => {
