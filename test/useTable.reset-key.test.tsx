@@ -21,11 +21,13 @@ type FetchData = NonNullable<UseTableParams<Row>['fetchData']>
 
 const createDeferred = <T, >() => {
     let resolve!: (value: T) => void
-    const promise = new Promise<T>(promiseResolve => {
+    let reject!: (reason?: unknown) => void
+    const promise = new Promise<T>((promiseResolve, promiseReject) => {
         resolve = promiseResolve
+        reject = promiseReject
     })
 
-    return {promise, resolve}
+    return {promise, reject, resolve}
 }
 
 const displayOptionsByView = {
@@ -33,9 +35,16 @@ const displayOptionsByView = {
     full: {sortColumnIndex: 7, sortAsc: true},
 } as const
 
-const ResetKeyHarness = ({preserveSortOnReset = false, restoreStateOnReset = false, view, searchByView}: {
+const ResetKeyHarness = ({
+    preserveSortOnReset = false,
+    restoreStateOnReset = false,
+    suspendOnFull,
+    view,
+    searchByView,
+}: {
     preserveSortOnReset?: boolean
     restoreStateOnReset?: boolean
+    suspendOnFull?: Promise<never>
     view: ViewId
     searchByView: Record<ViewId, FetchData>
 }) => {
@@ -51,9 +60,14 @@ const ResetKeyHarness = ({preserveSortOnReset = false, restoreStateOnReset = fal
         rowsPerPageOptions: [10],
     })
 
+    if (view === 'full' && suspendOnFull) {
+        throw suspendOnFull
+    }
+
     return <>
         <output data-testid='page'>{table.page}</output>
         <output data-testid='sort'>{`${table.sortIndex}:${table.order}`}</output>
+        <output data-testid='actions-disabled'>{String(table.paginator.disableActions)}</output>
         <output data-testid='external-data'>{externalData.map(row => row.label).join(',')}</output>
         <button
             onClick={() => table.paginator.onPageChange(null, 2)}
@@ -97,7 +111,72 @@ const ManualDataHarness = ({view}: {view: ViewId}) => {
     return <output data-testid='manual-data'>{table.data.map(row => row.label).join(',')}</output>
 }
 
+const SimpleFetchHarness = ({getter}: {getter: () => Promise<Row[]>}) => {
+    const table = useTable<Row>({rowsPerPageOptions: [10]})
+    table.useSimpleFetch(getter)
+
+    return <>
+        <output data-testid='simple-actions-disabled'>
+            {String(table.paginator.disableActions)}
+        </output>
+        <button onClick={() => table.paginator.onPageChange(null, 2)} type='button'>
+            Change simple-fetch page
+        </button>
+        <PneTable<Row>
+            createTableHeader={() => <tr><th>Label</th></tr>}
+            createRow={row => <tr key={row.id}><td>{row.label}</td></tr>}
+            data={table.data}
+            loading={table.loading}
+        />
+    </>
+}
+
 describe('useTable resetKey', () => {
+    it('does not invalidate the committed request from an aborted view render', async () => {
+        const briefResponse = createDeferred<Row[]>()
+        const neverResolves = new Promise<never>(() => undefined)
+        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockReturnValue(briefResponse.promise)
+        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockResolvedValue([{id: 'full', label: 'Full row'}])
+        const searchByView = {brief: briefSearch, full: fullSearch}
+
+        const ConcurrentHarness = () => {
+            const [view, setView] = React.useState<ViewId>('brief')
+
+            return <>
+                <button
+                    onClick={() => React.startTransition(() => setView('full'))}
+                    type='button'
+                >
+                    Start interrupted Full transition
+                </button>
+                <React.Suspense fallback={<output data-testid='fallback'>Loading Full</output>}>
+                    <ResetKeyHarness
+                        searchByView={searchByView}
+                        suspendOnFull={neverResolves}
+                        view={view}
+                    />
+                </React.Suspense>
+            </>
+        }
+
+        render(<ConcurrentHarness/>)
+        await waitFor(() => expect(briefSearch).toHaveBeenCalledTimes(1))
+
+        fireEvent.click(screen.getByRole('button', {name: 'Start interrupted Full transition'}))
+        expect(screen.queryByTestId('fallback')).toBeNull()
+        expect(fullSearch).not.toHaveBeenCalled()
+
+        await act(async () => {
+            briefResponse.resolve([{id: 'brief', label: 'Committed Brief row'}])
+            await briefResponse.promise
+        })
+
+        expect(screen.getByText('Committed Brief row')).toBeTruthy()
+        expect(fullSearch).not.toHaveBeenCalled()
+    })
+
     it('resets page/sort, clears external rows, and fetches the new identity once', async () => {
         const fullResponse = createDeferred<Row[]>()
         const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
@@ -349,6 +428,70 @@ describe('useTable resetKey', () => {
         expect(screen.getByTestId('manual-data').textContent).toBe('Manual row')
         view.rerender(<ManualDataHarness view='full'/>)
         expect(screen.getByTestId('manual-data').textContent).toBe('Manual row')
+    })
+
+    it('unlocks pagination actions when the latest page request fails', async () => {
+        const failedPage = createDeferred<Row[]>()
+        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockImplementation(({page}) => page === 0
+                ? Promise.resolve(Array.from(
+                    {length: 11},
+                    (_, index) => ({id: `brief-${index}`, label: `Brief row ${index}`}),
+                ))
+                : failedPage.promise)
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+
+        try {
+            render(<ResetKeyHarness
+                searchByView={{brief: briefSearch, full: jest.fn()}}
+                view='brief'
+            />)
+            await waitFor(() => expect(screen.getByText('Brief row 0')).toBeTruthy())
+
+            fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
+            expect(screen.getByTestId('actions-disabled').textContent).toBe('true')
+
+            await act(async () => {
+                failedPage.reject(new Error('Page request failed'))
+                await expect(failedPage.promise).rejects.toThrow('Page request failed')
+            })
+
+            await waitFor(() => {
+                expect(screen.getByTestId('actions-disabled').textContent).toBe('false')
+            })
+            expect(screen.getByTestId('page').textContent).toBe('2')
+            expect(screen.queryByText('Brief row 0')).toBeNull()
+        } finally {
+            consoleError.mockRestore()
+        }
+    })
+
+    it('clears stale rows and unlocks actions when useSimpleFetch fails', async () => {
+        const failedRequest = createDeferred<Row[]>()
+        const getter = jest.fn<Promise<Row[]>, []>()
+            .mockResolvedValueOnce([{id: 'initial', label: 'Simple initial row'}])
+            .mockReturnValueOnce(failedRequest.promise)
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+
+        try {
+            render(<SimpleFetchHarness getter={getter}/>)
+            await waitFor(() => expect(screen.getByText('Simple initial row')).toBeTruthy())
+
+            fireEvent.click(screen.getByRole('button', {name: 'Change simple-fetch page'}))
+            expect(screen.getByTestId('simple-actions-disabled').textContent).toBe('true')
+
+            await act(async () => {
+                failedRequest.reject(new Error('Simple request failed'))
+                await expect(failedRequest.promise).rejects.toThrow('Simple request failed')
+            })
+
+            await waitFor(() => {
+                expect(screen.getByTestId('simple-actions-disabled').textContent).toBe('false')
+            })
+            expect(screen.queryByText('Simple initial row')).toBeNull()
+        } finally {
+            consoleError.mockRestore()
+        }
     })
 
     it('drops a pending pagination scroll when the request identity changes', async () => {

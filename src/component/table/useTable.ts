@@ -1,4 +1,4 @@
-import {Dispatch, SetStateAction, useEffect, useRef, useState} from 'react';
+import {Dispatch, SetStateAction, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {PaginatorProps, RowsPerPageOption} from './AbstractTable';
 import {SxProps} from '@mui/material';
 import {ensure, Order} from "../../common/pne/type";
@@ -9,6 +9,7 @@ const PAGE_NUMBER_SETTING_NAME = 'page_number'
 const SORT_INDEX_SETTING_NAME = 'sort_index'
 const SORT_ORDER_ASC_SETTING_NAME = 'sort_asc'
 const UNRESOLVED_DATA_KEY = Symbol('unresolved-table-data')
+const useCommittedIdentityEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 type FetchDataArgs = {
     page: number,
@@ -25,6 +26,25 @@ type TableStateSnapshot = {
     sortIndex: number
     order: Order
 }
+
+type FetchSignature = {
+    resetKey: string | number | undefined
+    page: number
+    pageSize: number
+    order: Order
+    sortIndex: number
+    extraDeps: readonly unknown[]
+}
+
+const sameFetchSignature = (left: FetchSignature, right: FetchSignature): boolean => (
+    Object.is(left.resetKey, right.resetKey)
+    && left.page === right.page
+    && left.pageSize === right.pageSize
+    && left.order === right.order
+    && left.sortIndex === right.sortIndex
+    && left.extraDeps.length === right.extraDeps.length
+    && left.extraDeps.every((value, index) => Object.is(value, right.extraDeps[index]))
+)
 
 export type UseTableParams<D> = {
     displayOptions?: Partial<TableDisplayOptions>
@@ -140,6 +160,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     )
     const resetStateByKeyRef = useRef(new Map<string | number, TableStateSnapshot>())
     const requestSequenceRef = useRef(0)
+    const skippedFetchRef = useRef<FetchSignature | null>(null)
 
     const preserveSortOnReset = resetDisplayOptions === 'preserve'
     const resetSortIndex = preserveSortOnReset
@@ -151,7 +172,30 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
             ? initialSortOrder
             : resetDisplayOptions.sortAsc ? 'asc' : 'desc'
 
-    if (!Object.is(activeResetKey, resetKey)) {
+    const identityTransitionPending = !Object.is(activeResetKey, resetKey)
+    const restoredState = identityTransitionPending
+        && resetStateOnKeyChange === 'restore'
+        && resetKey !== undefined
+        ? resetStateByKeyRef.current.get(resetKey)
+        : undefined
+    const renderedPageNumber = identityTransitionPending
+        ? restoredState?.page ?? 0
+        : pageNumber
+    const renderedSortIndex = identityTransitionPending
+        ? restoredState?.sortIndex ?? resetSortIndex
+        : sortIndex
+    const renderedOrder = identityTransitionPending
+        ? restoredState?.order ?? resetSortOrder
+        : order
+    const renderedHasNext = identityTransitionPending ? false : hasNext
+    const renderedDisableActions = identityTransitionPending ? false : disableActions
+    const renderedLoading = identityTransitionPending ? !!fetchData : loading
+
+    useCommittedIdentityEffect(() => {
+        if (!identityTransitionPending) {
+            return
+        }
+
         if (activeResetKey !== undefined) {
             resetStateByKeyRef.current.set(activeResetKey, {
                 page: pageNumber,
@@ -159,26 +203,30 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                 order,
             })
         }
-        const restoredState = resetStateOnKeyChange === 'restore' && resetKey !== undefined
-            ? resetStateByKeyRef.current.get(resetKey)
-            : undefined
 
-        // Invalidate the previous identity before its effect cleanup runs.
+        // The requested identity has committed. Aborted concurrent renders never invalidate its predecessor.
         requestSequenceRef.current += 1
+        skippedFetchRef.current = null
         setActiveResetKey(resetKey)
         setDataResetKey(fetchData ? UNRESOLVED_DATA_KEY : resetKey)
-        setPageNumber(restoredState?.page ?? 0)
+        setPageNumber(renderedPageNumber)
+        setSortIndex(renderedSortIndex)
+        setOrder(renderedOrder)
         setHasNext(false)
         setDisableActions(false)
         setLoading(!!fetchData)
-        if (restoredState) {
-            setSortIndex(restoredState.sortIndex)
-            setOrder(restoredState.order)
-        } else if (!preserveSortOnReset) {
-            setSortIndex(resetSortIndex)
-            setOrder(resetSortOrder)
-        }
-    }
+    }, [
+        activeResetKey,
+        fetchData,
+        identityTransitionPending,
+        order,
+        pageNumber,
+        renderedOrder,
+        renderedPageNumber,
+        renderedSortIndex,
+        resetKey,
+        sortIndex,
+    ])
 
     const getData = (): D[] => {
         if (!Object.is(dataResetKey, resetKey)) {
@@ -211,13 +259,15 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
 
     const displayedRowsLabel = () => {
         if (getData().length === 0) {
-            if (pageNumber === 0) {
+            if (renderedPageNumber === 0) {
                 return 'Ø';
             } else {
-                return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + pageSize)
+                return (renderedPageNumber * pageSize + 1) + ' - '
+                    + (renderedPageNumber * pageSize + pageSize)
             }
         }
-        return (pageNumber * pageSize + 1) + ' - ' + (pageNumber * pageSize + getData().length)
+        return (renderedPageNumber * pageSize + 1) + ' - '
+            + (renderedPageNumber * pageSize + getData().length)
     }
 
     const onSortChange = (sortIndex: number, sortOrder: Order) => {
@@ -277,8 +327,8 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const paginator: PaginatorProps = {
         rowsPerPageOptions: rowsPerPageOptions,
         rowsPerPage: pageSize,
-        page: pageNumber,
-        disableActions: disableActions,
+        page: renderedPageNumber,
+        disableActions: renderedDisableActions,
         onPageChange: (event, newPage) => {
             setDisableActions(true)
             setPageNumber(newPage);
@@ -305,7 +355,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                 });
             }
         },
-        hasNext,
+        hasNext: renderedHasNext,
         displayedRowsLabel: displayedRowsLabel(),
         activeActionSx: paginatorActiveActionSx,
         duplicatePagination: duplicatePagination,
@@ -321,23 +371,30 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         scrollToPagination()
     }
 
-    const fetchDataDeps: unknown[] = [pageNumber, pageSize, order, sortIndex, resetKey]
+    const fetchDataDeps: unknown[] = [activeResetKey, pageNumber, pageSize, order, sortIndex, resetKey]
     if (fetchDataExtraDeps) {
         fetchDataDeps.push(...fetchDataExtraDeps)
     }
 
-    const shouldSkipFetchDate = useRef(false)
     useEffect(() => {
-        if (!fetchData) {
+        if (!fetchData || !Object.is(activeResetKey, resetKey)) {
             return
         }
 
         let mounted = true
         const requestId = ++requestSequenceRef.current
         const isLatestRequest = () => mounted && requestId === requestSequenceRef.current
-
-        if (shouldSkipFetchDate.current) {
-            shouldSkipFetchDate.current = false
+        const signature: FetchSignature = {
+            resetKey,
+            page: pageNumber,
+            pageSize,
+            order,
+            sortIndex,
+            extraDeps: [...(fetchDataExtraDeps ?? [])],
+        }
+        const skippedFetch = skippedFetchRef.current
+        skippedFetchRef.current = null
+        if (skippedFetch && sameFetchSignature(skippedFetch, signature)) {
             return
         }
 
@@ -373,7 +430,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                         return
                     }
                     // надо предотвратить следующую перерисовку из-за измененного pageNumber
-                    shouldSkipFetchDate.current = true
+                    skippedFetchRef.current = {...signature, page: 0}
                     setPageNumber(0)
                     if (settingsContextName) {
                         sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, '0')
@@ -385,6 +442,11 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
             } catch (err) {
                 if (isLatestRequest()) {
                     console.error(err)
+                    shouldScrollToPaginationRef.current = false
+                    getSetData()([])
+                    setDataResetKey(UNRESOLVED_DATA_KEY)
+                    setHasNext(false)
+                    setDisableActions(false)
                     setLoading(false)
                 }
             }
@@ -423,6 +485,11 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                 .catch((err) => {
                     if (isLatestRequest()) {
                         console.error(err)
+                        shouldScrollToPaginationRef.current = false
+                        getSetData()([])
+                        setDataResetKey(UNRESOLVED_DATA_KEY)
+                        setHasNext(false)
+                        setDisableActions(false)
                         setLoading(false)
                     }
                 })
@@ -434,16 +501,16 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     }
 
     return {
-        page: pageNumber,
+        page: renderedPageNumber,
         pageSize,
-        loading,
+        loading: renderedLoading,
         setHasNext: wrapSetHasNext,
         paginator,
         data: getData(),
         setData: getSetData(),
-        sortIndex,
+        sortIndex: renderedSortIndex,
         setSortIndex,
-        order,
+        order: renderedOrder,
         setOrder,
         onSortChange,
         useSimpleFetch,

@@ -326,6 +326,8 @@ export enum MultichoiceFilterTypeEnum {
 }
 
 export enum LinkedEntityTypeEnum {
+    /** Backend-only multiget discriminator used to pass the Currency criterion to generic searches. */
+    CURRENCY = 'CURRENCY',
     PROCESSOR = 'PROCESSOR',
     GATE = 'GATE',
     PROJECT = 'PROJECT',

@@ -29,6 +29,7 @@ Key flows
   - Filters render via `SearchUIFilters` and push updates into the store.
   - Table uses `PneTable` + `useTable`: criteria become request params via `createSearchParams`, then `searchData` is called.
   - Controlled `tableViews` can provide a per-view `searchDataKey` for external request inputs. The combined view/data identity invalidates stale rows and requests; `tableStateOnActivate='restore'` recalls page and sort independently for identities visited by the mounted table.
+  - A view can declare `disabledCriteria` when its backend does not support part of the shared filter set. Active values remain in the shared filter context for other views, while their controls are disabled and neutral values are passed to that view's `searchData`.
   - A view option `onClick` runs for both inactive and selected views. Consumers may call `preventDefault()` to open configuration before changing the controlled view.
   - `settingsContextName` is used as a key-prefix for persisted settings/context.
 - Theming:

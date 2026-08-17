@@ -1,10 +1,13 @@
 import React from 'react'
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import {
+    CriterionTypeEnum,
     SearchUI,
     type SearchParams,
+    type TableSelectionModel,
     type SearchUIView,
 } from '../src'
+import {ThreeDCriterionEnum} from '../src/component/search-ui/filters/types'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({t: (key: string) => key}),
@@ -292,6 +295,99 @@ describe('SearchUI table views', () => {
         fireEvent.click(within(switchedToolbar).getByRole('button', {name: 'View settings'}))
         expect(onSettings).toHaveBeenCalledTimes(1)
         expect(operationsSearch).toHaveBeenCalledTimes(1)
+    })
+
+    it('keeps a view-disabled filter value for other views but neutralizes its request value', async () => {
+        type FilteredViewId = 'brief' | 'detailed'
+        const briefSearch = resolvedSearch('Filtered Brief row')
+        const detailedSearch = resolvedSearch('Filtered Detailed row')
+
+        const FilteredViewsHarness = () => {
+            const [value, setValue] = React.useState<FilteredViewId>('brief')
+            const [selection, setSelection] = React.useState<TableSelectionModel<string>>({
+                mode: 'explicit' as const,
+                selectedIds: new Set<string>(),
+            })
+            const views: readonly SearchUIView<Row, FilteredViewId>[] = [
+                {
+                    id: 'brief',
+                    label: 'Filtered Brief',
+                    searchData: briefSearch,
+                    createTableHeader: (_params, context) => <tr>
+                        <th data-three-d={String(context?.appliedSearchCriteria?.threeD)}>
+                            Filtered Brief header
+                        </th>
+                    </tr>,
+                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                },
+                {
+                    id: 'detailed',
+                    label: 'Filtered Detailed',
+                    disabledCriteria: [CriterionTypeEnum.THREE_D],
+                    searchData: detailedSearch,
+                    createTableHeader: (_params, context) => <tr>
+                        <th data-three-d={String(context?.appliedSearchCriteria?.threeD)}>
+                            Filtered Detailed header
+                        </th>
+                    </tr>,
+                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                },
+            ]
+
+            return <SearchUI<Row, FilteredViewId, string>
+                config={filtersConfig}
+                initialSearchConditions={{threeD: ThreeDCriterionEnum.YES}}
+                possibleCriteria={[CriterionTypeEnum.THREE_D]}
+                predefinedCriteria={[CriterionTypeEnum.THREE_D]}
+                settingsContextName='view-disabled-filter-settings'
+                tableSelection={{
+                    getRowId: row => row.id,
+                    onSelectionChange: setSelection,
+                    renderControls: ({selection: controller}) => <output data-testid='selection-three-d'>
+                        {String(controller.scope.appliedSearchCriteria?.threeD)}
+                    </output>,
+                    selection,
+                    toolbarAriaLabel: 'Filtered selection',
+                }}
+                tableViews={{
+                    'aria-label': 'Filtered views',
+                    onChange: setValue,
+                    value,
+                    views,
+                }}
+            />
+        }
+
+        const {container} = render(<FilteredViewsHarness/>)
+        await waitFor(() => expect(screen.getByText('Filtered Brief row')).toBeTruthy())
+        expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: true}))
+        expect(screen.getByText('Filtered Brief header').getAttribute('data-three-d')).toBe('true')
+        expect(screen.getByTestId('selection-three-d').textContent).toBe('true')
+
+        fireEvent.click(screen.getByRole('button', {name: 'Filtered Detailed'}))
+        await waitFor(() => expect(screen.getByText('Filtered Detailed row')).toBeTruthy())
+        expect(detailedSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: null}))
+        expect(screen.getByText('Filtered Detailed header').getAttribute('data-three-d')).toBe('null')
+        expect(screen.getByTestId('selection-three-d').textContent).toBe('null')
+
+        const criterion = container.querySelector(
+            '[data-autotest="criterion"][data-autotest-value="THREE_D"]',
+        ) as HTMLElement
+        const disabledContent = within(criterion).getByRole('group', {
+            name: 'react.CriterionTypeEnum.THREE_D: react.searchUI.criterion.notAvailableInView',
+        })
+        expect(disabledContent.getAttribute('aria-disabled')).toBe('true')
+        const noOption = container.querySelector(
+            '[data-autotest="criterion-option"][data-autotest-value="NO"]',
+        ) as HTMLElement
+        fireEvent.click(noOption)
+
+        fireEvent.click(screen.getByRole('button', {name: 'Filtered Brief'}))
+        await waitFor(() => expect(briefSearch).toHaveBeenCalledTimes(2))
+        expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: true}))
+        expect(within(criterion).queryByRole('group', {
+            name: 'react.CriterionTypeEnum.THREE_D: react.searchUI.criterion.notAvailableInView',
+        })).toBeNull()
     })
 
     it('composes the selector into the responsive top pagination band when enabled', async () => {

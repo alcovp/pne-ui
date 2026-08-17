@@ -28,18 +28,30 @@ import { ErrorCodeCriterion } from './component/criterion/ErrorCodeCriterion'
 import { CustomerLevelCriterion } from './component/criterion/CustomerLevelCriterion'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
 import {SearchUICriterionAutoTestScopeProvider} from './AutoTestScope'
+import {useTranslation} from 'react-i18next'
 
 const CRITERION_AUTOTEST_ID = 'criterion'
 
 interface IProps {
+    disabled?: boolean
     type: CriterionTypeEnum
 }
 
 export const CriterionContainer = (props: IProps) => {
 
     const {
+        disabled = false,
         type,
     } = props
+    const {t} = useTranslation()
+    const disabledTitle = disabled
+        ? t('react.searchUI.criterion.notAvailableInView', {
+            defaultValue: 'This filter is not available in the selected view',
+        })
+        : undefined
+    const disabledAriaLabel = disabled
+        ? `${t('react.CriterionTypeEnum.' + type)}: ${disabledTitle}`
+        : undefined
 
     const renderCriterion = () => {
         switch (type) {
@@ -146,8 +158,29 @@ export const CriterionContainer = (props: IProps) => {
             <Box sx={criterionLeftWrapperSx}>
                 <CriterionLeft criterionType={type}/>
             </Box>
-            <Box sx={criterionContentWrapperSx}>
-                {renderCriterion()}
+            <Box
+                aria-disabled={disabled || undefined}
+                aria-label={disabledAriaLabel}
+                onClickCapture={disabled ? event => {
+                    event.preventDefault()
+                    event.stopPropagation()
+                } : undefined}
+                role={disabled ? 'group' : undefined}
+                sx={{
+                    ...criterionContentWrapperSx,
+                    ...(disabled ? disabledCriterionContentSx : {}),
+                }}
+                tabIndex={disabled ? 0 : undefined}
+                title={disabledTitle}
+            >
+                <Box
+                    component='fieldset'
+                    disabled={disabled}
+                    inert={disabled || undefined}
+                    sx={criterionFieldsetSx}
+                >
+                    {renderCriterion()}
+                </Box>
             </Box>
             <Box sx={criterionRightWrapperSx}>
                 <CriterionRight criterionType={type}/>
@@ -186,11 +219,24 @@ const criterionLeftWrapperSx: SxProps = {
     },
 }
 
-const criterionContentWrapperSx: SxProps = {
+const criterionContentWrapperSx = {
     flex: 1,
+    minWidth: 0,
     '@media (max-width: 599px)': {
         gridArea: 'content',
     },
+}
+
+const criterionFieldsetSx = {
+    border: 0,
+    margin: 0,
+    minWidth: 0,
+    padding: 0,
+}
+
+const disabledCriterionContentSx = {
+    opacity: 0.5,
+    pointerEvents: 'none',
 }
 
 const criterionRightWrapperSx: SxProps = {

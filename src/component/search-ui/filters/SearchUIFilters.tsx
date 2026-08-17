@@ -149,6 +149,12 @@ export type SearchUIFiltersProps = {
      */
     possibleCriteria: CriterionTypeEnum[]
     /**
+     * Criteria temporarily unavailable in the current consumer mode. Active
+     * values remain stored but their controls are disabled and callers of
+     * SearchUI receive neutral request values until the criteria are enabled.
+     */
+    disabledCriteria?: readonly CriterionTypeEnum[]
+    /**
      * Критерии, которые активируются автоматически.
      */
     predefinedCriteria?: CriterionTypeEnum[]
@@ -424,6 +430,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         settingsContextName,
         possibleCriteria = [],
         predefinedCriteria = [],
+        disabledCriteria = [],
         exactSearchLabels = [],
         initialSearchConditions,
         searchConditions,
@@ -458,6 +465,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             ...predefinedCriteria
         ])
     ])
+    const disabledCriteriaSet = useMemo(() => new Set(disabledCriteria), [disabledCriteria])
 
     const setInitialState = useSearchUIFiltersStore(s => s.setInitialState)
     const loadTemplates = useSearchUIFiltersStore(s => s.loadTemplates)
@@ -574,6 +582,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const nothingToClear = criteria.every(criterion => nonRemovablePredefinedCriteria.includes(criterion))
     const criteriaOptions = adjustedPossibleCriteria
         .filter(criterion => !criteria.includes(criterion))
+        .filter(criterion => !disabledCriteriaSet.has(criterion))
         .filter(possibleC => {
             const criteriaToAdd = possibleC === CriterionTypeEnum.CUSTOMER_LEVEL
                 ? [possibleC, ...CUSTOMER_LEVEL_DEPENDENCIES]
@@ -699,6 +708,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             <Box id={filtersPanelId} hidden={!showFilters}>
                 {showFilters ? criteria.map((criterion) =>
                     <CriterionContainer
+                        disabled={disabledCriteriaSet.has(criterion)}
                         key={criterion}
                         type={criterion}
                     />

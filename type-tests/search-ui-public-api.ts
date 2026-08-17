@@ -29,6 +29,9 @@ const acceptsPersistedTemplateDateRange = (
 ): void => undefined
 const acceptsFiltersConfig = (_value: SearchUIFiltersConfig): void => undefined
 const acceptsViewDataKey = (_value: SearchUIView<Row>['searchDataKey']): void => undefined
+const acceptsViewDisabledCriteria = (
+    _value: SearchUIView<Row>['disabledCriteria'],
+): void => undefined
 const acceptsViewStatePolicy = (_value: SearchUIViewTableStateOnActivate): void => undefined
 const acceptsTableResetPolicy = (
     _value: UseTableParams<Row>['resetStateOnKeyChange'],
@@ -77,6 +80,7 @@ acceptsFiltersConfig({
 })
 acceptsViewDataKey('approved-kpis:1,2,3')
 acceptsViewDataKey(4)
+acceptsViewDisabledCriteria([CriterionTypeEnum.THREE_D])
 acceptsViewStatePolicy('restore')
 acceptsTableResetPolicy('reset')
 void viewClick
@@ -105,5 +109,7 @@ acceptsFiltersConfig({transactionTypes: {}})
 acceptsFiltersConfig({transactionTypes: {allowedIds: [6, 7]}})
 // @ts-expect-error Search data identities are stable primitives, not mutable collections.
 acceptsViewDataKey(['kpi-a', 'kpi-b'])
+// @ts-expect-error Views accept known criterion enum values only.
+acceptsViewDisabledCriteria(['THREE_D'])
 // @ts-expect-error View state has only backward-compatible reset and per-key restore policies.
 acceptsViewStatePolicy('preserve')

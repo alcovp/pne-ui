@@ -12,6 +12,7 @@ import { SearchUIFiltersConfig, SearchUIFiltersContent } from './filters/SearchU
 import {
     CriterionTypeEnum,
     ExactCriterionSearchLabelEnum,
+    LinkedEntityTypeEnum,
     SearchCriteria,
     SearchUIConditionsInput,
 } from './filters/types'
@@ -155,6 +156,13 @@ export type SearchUIView<
     createTableRow: SearchUITableRowFactory<D, TKey, TViewId>
     /** Optional consumer-owned actions rendered while this view is selected. */
     actions?: React.ReactNode
+    /**
+     * Criteria that remain visible but disabled while this view is active.
+     * Their values stay in the shared filter context for another view, while
+     * searchData receives neutral values so an unsupported filter is never
+     * presented as applied to this view.
+     */
+    disabledCriteria?: readonly CriterionTypeEnum[]
     /** Defaults to the common safe sort; preserving another view's sort must be explicit. */
     sortOnActivate?: SearchUIViewSort
     /**
@@ -294,9 +302,20 @@ const SearchUIContent = <
             ...resolvedTable.sortOnActivate,
         }
 
+    const disabledCriteriaKey = JSON.stringify(resolvedTable.disabledCriteria ?? [])
+    const effectiveDisabledCriteria = useMemo<readonly CriterionTypeEnum[]>(
+        () => JSON.parse(disabledCriteriaKey) as CriterionTypeEnum[],
+        [disabledCriteriaKey],
+    )
+    const effectiveSearchCriteria = useMemo(
+        () => searchCriteria === null || effectiveDisabledCriteria.length === 0
+            ? searchCriteria
+            : neutralizeDisabledCriteria(searchCriteria, effectiveDisabledCriteria),
+        [effectiveDisabledCriteria, searchCriteria],
+    )
     const fetchDataExtraDeps = useMemo(
-        () => [searchCriteria, filtersContextReady, resolvedTable.viewId],
-        [searchCriteria, filtersContextReady, resolvedTable.viewId],
+        () => [effectiveSearchCriteria, filtersContextReady, resolvedTable.viewId, disabledCriteriaKey],
+        [effectiveSearchCriteria, filtersContextReady, resolvedTable.viewId, disabledCriteriaKey],
     )
 
     const {
@@ -326,11 +345,11 @@ const SearchUIContent = <
         resetKey: tableResetIdentity,
         resetStateOnKeyChange: resolvedTable.tableStateOnActivate,
         fetchData: ({ page, pageSize, order, sortIndex }) => {
-            if (!searchCriteria?.initialized || !filtersContextReady) {
+            if (!effectiveSearchCriteria?.initialized || !filtersContextReady) {
                 return Promise.resolve<D[]>([])
             }
 
-            const searchParams = createSearchParams(searchCriteria, {
+            const searchParams = createSearchParams(effectiveSearchCriteria, {
                 page,
                 pageSize,
                 order,
@@ -356,7 +375,7 @@ const SearchUIContent = <
         feedback?: React.ReactNode,
     ) => {
         const factoryContext: SearchUITableFactoryContext<D, TKey, TViewId> = {
-            appliedSearchCriteria: searchCriteria,
+            appliedSearchCriteria: effectiveSearchCriteria,
             selection,
             viewId: resolvedTable.viewId,
         }
@@ -392,7 +411,7 @@ const SearchUIContent = <
 
     const table = tableSelection
         ? <SearchUISelectableTable
-            appliedSearchCriteria={searchCriteria}
+            appliedSearchCriteria={effectiveSearchCriteria}
             config={tableSelection}
             data={data}
             loading={loading}
@@ -405,6 +424,7 @@ const SearchUIContent = <
     return <>
         <SearchUIFiltersContent
             autoTestId={autoTestId}
+            disabledCriteria={effectiveDisabledCriteria}
             settingsContextName={settingsContextName}
             possibleCriteria={possibleCriteria}
             predefinedCriteria={predefinedCriteria}
@@ -714,6 +734,7 @@ type ResolvedSearchUITable<
     createTableHeader: SearchUITableHeaderFactory<D, TKey, TViewId>
     createTableRow: SearchUITableRowFactory<D, TKey, TViewId>
     actions?: React.ReactNode
+    disabledCriteria?: readonly CriterionTypeEnum[]
     searchDataKey?: string | number
     sortOnActivate?: SearchUIViewSort
     tableStateOnActivate?: SearchUIViewTableStateOnActivate
@@ -760,6 +781,7 @@ const resolveSearchUITable = <
         createTableHeader: activeView.createTableHeader,
         createTableRow: activeView.createTableRow,
         actions: activeView.actions,
+        disabledCriteria: activeView.disabledCriteria,
         searchDataKey: activeView.searchDataKey,
         sortOnActivate: activeView.sortOnActivate,
         tableStateOnActivate: activeView.tableStateOnActivate,
@@ -849,40 +871,159 @@ const tableBoxSx: SxProps = {
  * @param options Параметры пагинации и сортировки таблицы.
  * @returns Объект параметров, совместимый с обработчиком `searchData`.
  */
+const linkedEntityTypeByCriterion: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
+    [CriterionTypeEnum.PROJECT]: LinkedEntityTypeEnum.PROJECT,
+    [CriterionTypeEnum.ENDPOINT]: LinkedEntityTypeEnum.ENDPOINT,
+    [CriterionTypeEnum.GATE]: LinkedEntityTypeEnum.GATE,
+    [CriterionTypeEnum.PROCESSOR]: LinkedEntityTypeEnum.PROCESSOR,
+    [CriterionTypeEnum.COMPANY]: LinkedEntityTypeEnum.COMPANY,
+    [CriterionTypeEnum.MANAGER]: LinkedEntityTypeEnum.MANAGER,
+    [CriterionTypeEnum.MERCHANT]: LinkedEntityTypeEnum.MERCHANT,
+    [CriterionTypeEnum.RESELLER]: LinkedEntityTypeEnum.RESELLER,
+    [CriterionTypeEnum.DEALER]: LinkedEntityTypeEnum.DEALER,
+}
+
+const neutralizeDisabledCriteria = <T extends Omit<SearchCriteria, 'initialized'> | SearchCriteria>(
+    searchParams: T,
+    disabledCriteria: readonly CriterionTypeEnum[],
+): T => {
+    const neutralized = {...searchParams}
+
+    disabledCriteria.forEach(criterion => {
+        const linkedEntityType = linkedEntityTypeByCriterion[criterion]
+        if (linkedEntityType !== undefined) {
+            neutralized.multigetCriteria = neutralized.multigetCriteria.filter(
+                item => item.entityType !== linkedEntityType,
+            )
+            return
+        }
+
+        switch (criterion) {
+            case CriterionTypeEnum.EXACT:
+                neutralized.exactSearchLabel = null
+                neutralized.exactSearchValue = null
+                break
+            case CriterionTypeEnum.ORDERS_SEARCH:
+                neutralized.ordersSearchLabel = null
+                neutralized.ordersSearchValue = null
+                break
+            case CriterionTypeEnum.CUSTOMER_LEVEL:
+                neutralized.customerLevelId = null
+                break
+            case CriterionTypeEnum.STATUS:
+                neutralized.status = null
+                break
+            case CriterionTypeEnum.THREE_D:
+                neutralized.threeD = null
+                break
+            case CriterionTypeEnum.CURRENCY:
+                neutralized.currencies = []
+                break
+            case CriterionTypeEnum.DATE_RANGE:
+            case CriterionTypeEnum.DATE_RANGE_ORDERS:
+                neutralized.dateFrom = null
+                neutralized.dateTo = null
+                break
+            case CriterionTypeEnum.PROJECT_CURRENCY:
+                neutralized.projectCurrencyId = null
+                neutralized.projectCurrencyConvert = null
+                break
+            case CriterionTypeEnum.CARD_TYPES:
+                neutralized.cardTypes = []
+                break
+            case CriterionTypeEnum.COUNTRIES:
+                neutralized.countries = []
+                break
+            case CriterionTypeEnum.GROUPING:
+                neutralized.groupTypes = []
+                break
+            case CriterionTypeEnum.TRANSACTION_TYPES:
+                neutralized.transactionTypes = []
+                break
+            case CriterionTypeEnum.TRANSACTION_STATUS:
+                neutralized.transactionStatuses = []
+                break
+            case CriterionTypeEnum.TRANSACTION_SESSION_STATUS:
+                neutralized.transactionSessionStatuses = null
+                break
+            case CriterionTypeEnum.RECURRENCE_TYPE:
+                neutralized.recurrenceTypes = []
+                break
+            case CriterionTypeEnum.RECURRENCE_STATUS:
+                neutralized.recurrenceStatuses = []
+                break
+            case CriterionTypeEnum.MFO_CONFIGURATION_TYPE:
+                neutralized.mfoConfigurationTypes = []
+                break
+            case CriterionTypeEnum.MARKER_TYPE:
+                neutralized.markerTypes = []
+                break
+            case CriterionTypeEnum.MARKER_STATUS:
+                neutralized.markerStatus = null
+                break
+            case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
+                neutralized.processorLogEntryType = null
+                break
+            case CriterionTypeEnum.ERROR_CODE:
+                neutralized.errorCode = null
+                break
+            case CriterionTypeEnum.PROJECT:
+            case CriterionTypeEnum.ENDPOINT:
+            case CriterionTypeEnum.GATE:
+            case CriterionTypeEnum.PROCESSOR:
+            case CriterionTypeEnum.COMPANY:
+            case CriterionTypeEnum.MANAGER:
+            case CriterionTypeEnum.MERCHANT:
+            case CriterionTypeEnum.RESELLER:
+            case CriterionTypeEnum.DEALER:
+                break
+        }
+    })
+
+    return neutralized as T
+}
+
 export const createSearchParams = (
     searchCriteria: SearchCriteria,
     options: { page: number; pageSize: number; order?: Order; sortIndex: number },
-): SearchParams => ({
-    startNum: options.page * options.pageSize,
-    rowCount: options.pageSize + 1,
-    orderBy: options.sortIndex,
-    sortOrder: options.order,
+    disabledCriteria: readonly CriterionTypeEnum[] = [],
+): SearchParams => {
+    const searchParams: SearchParams = {
+        startNum: options.page * options.pageSize,
+        rowCount: options.pageSize + 1,
+        orderBy: options.sortIndex,
+        sortOrder: options.order,
 
-    exactSearchLabel: searchCriteria.exactSearchLabel,
-    exactSearchValue: searchCriteria.exactSearchValue,
-    ordersSearchLabel: searchCriteria.ordersSearchLabel,
-    ordersSearchValue: searchCriteria.ordersSearchValue,
-    customerLevelId: searchCriteria.customerLevelId,
-    status: searchCriteria.status,
-    threeD: searchCriteria.threeD,
-    currencies: searchCriteria.currencies,
-    countries: searchCriteria.countries,
-    dateFrom: searchCriteria.dateFrom,
-    dateTo: searchCriteria.dateTo,
-    orderDateType: searchCriteria.orderDateType,
-    cardTypes: searchCriteria.cardTypes,
-    transactionTypes: searchCriteria.transactionTypes,
-    transactionStatuses: searchCriteria.transactionStatuses,
-    transactionSessionStatuses: searchCriteria.transactionSessionStatuses,
-    projectCurrencyId: searchCriteria.projectCurrencyId,
-    projectCurrencyConvert: searchCriteria.projectCurrencyConvert,
-    groupTypes: searchCriteria.groupTypes,
-    multigetCriteria: searchCriteria.multigetCriteria,
-    recurrenceTypes: searchCriteria.recurrenceTypes,
-    recurrenceStatuses: searchCriteria.recurrenceStatuses,
-    mfoConfigurationTypes: searchCriteria.mfoConfigurationTypes,
-    markerTypes: searchCriteria.markerTypes,
-    markerStatus: searchCriteria.markerStatus,
-    processorLogEntryType: searchCriteria.processorLogEntryType,
-    errorCode: searchCriteria.errorCode,
-})
+        exactSearchLabel: searchCriteria.exactSearchLabel,
+        exactSearchValue: searchCriteria.exactSearchValue,
+        ordersSearchLabel: searchCriteria.ordersSearchLabel,
+        ordersSearchValue: searchCriteria.ordersSearchValue,
+        customerLevelId: searchCriteria.customerLevelId,
+        status: searchCriteria.status,
+        threeD: searchCriteria.threeD,
+        currencies: searchCriteria.currencies,
+        countries: searchCriteria.countries,
+        dateFrom: searchCriteria.dateFrom,
+        dateTo: searchCriteria.dateTo,
+        orderDateType: searchCriteria.orderDateType,
+        cardTypes: searchCriteria.cardTypes,
+        transactionTypes: searchCriteria.transactionTypes,
+        transactionStatuses: searchCriteria.transactionStatuses,
+        transactionSessionStatuses: searchCriteria.transactionSessionStatuses,
+        projectCurrencyId: searchCriteria.projectCurrencyId,
+        projectCurrencyConvert: searchCriteria.projectCurrencyConvert,
+        groupTypes: searchCriteria.groupTypes,
+        multigetCriteria: searchCriteria.multigetCriteria,
+        recurrenceTypes: searchCriteria.recurrenceTypes,
+        recurrenceStatuses: searchCriteria.recurrenceStatuses,
+        mfoConfigurationTypes: searchCriteria.mfoConfigurationTypes,
+        markerTypes: searchCriteria.markerTypes,
+        markerStatus: searchCriteria.markerStatus,
+        processorLogEntryType: searchCriteria.processorLogEntryType,
+        errorCode: searchCriteria.errorCode,
+    }
+
+    return disabledCriteria.length === 0
+        ? searchParams
+        : neutralizeDisabledCriteria(searchParams, disabledCriteria)
+}
