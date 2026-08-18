@@ -97,6 +97,17 @@ describe('responsive pagination action layout', () => {
         })).toBe('toolbar-stacked')
     })
 
+    it('ignores only subpixel CSSOM rounding at the fit boundary', () => {
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 575.5,
+        })).toBe('inline')
+        expect(resolvePneTablePaginationActionsLayout({
+            ...baseWidths,
+            availableWidth: 575,
+        })).toBe('toolbar-stacked')
+    })
+
     it('places the toolbar above a pagination row when only pagination fits', () => {
         expect(resolvePneTablePaginationActionsLayout({
             ...baseWidths,

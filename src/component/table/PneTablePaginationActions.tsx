@@ -11,6 +11,7 @@ import {
     TABLE_CONTROL_TEXT_COLOR,
 } from "./tableControlColors";
 import {usePneTheme} from "../../usePneTheme";
+import {measuredLayoutWidthFits} from './tableLayoutMeasurement';
 
 interface IPaginationActionsProps {
     count: number
@@ -94,19 +95,23 @@ export const resolvePneTablePaginationActionsLayout = ({
         return 'inline'
     }
 
-    const paginationFits = navigationMinimumWidth + CONTROL_GAP + pageSizesWidth
-        <= availableWidth
+    const paginationFits = measuredLayoutWidthFits(
+        navigationMinimumWidth + CONTROL_GAP + pageSizesWidth,
+        availableWidth,
+    )
 
     if (!hasToolbar) {
         return paginationFits ? 'inline' : 'pagination-stacked'
     }
 
-    const allControlsFit = navigationPreferredWidth
-        + CONTROL_GAP
-        + toolbarPreferredWidth
-        + CONTROL_GAP
-        + pageSizesWidth
-        <= availableWidth
+    const allControlsFit = measuredLayoutWidthFits(
+        navigationPreferredWidth
+            + CONTROL_GAP
+            + toolbarPreferredWidth
+            + CONTROL_GAP
+            + pageSizesWidth,
+        availableWidth,
+    )
 
     if (allControlsFit) {
         return 'inline'

@@ -168,6 +168,99 @@ const SelectionTableStory = ({
     </Box>
 }
 
+const SubpixelSelectionLayoutStory = () => {
+    const paginationRef = useRef<HTMLDivElement>(null)
+    const selection = useTableSelection({
+        rows: storyRows,
+        getRowId: row => row.id,
+    })
+    const contextualWidth = selection.selectedCount === 0 ? 518.375 : 631.84375
+
+    return <Box
+        data-story-section='subpixel-selection-layout'
+        sx={{
+            backgroundColor: '#fff',
+            boxSizing: 'border-box',
+            maxWidth: 'calc(100vw - 32px)',
+            p: 2,
+            width: '1312px',
+        }}
+    >
+        <PneTable<StoryRow>
+            autoTestId='subpixel-selection-layout'
+            createRow={row => <PneTableRow
+                aria-selected={selection.isRowSelected(row)}
+                key={row.id}
+                selected={selection.isRowSelected(row)}
+            >
+                <PneTableSelectionCell
+                    aria-label={`Select ${row.name}`}
+                    checked={selection.isRowSelected(row)}
+                    onChange={checked => selection.setRowSelected(row, checked)}
+                />
+                <PneTableCell>{row.id}</PneTableCell>
+                <PneTableCell>{row.name}</PneTableCell>
+            </PneTableRow>}
+            createTableHeader={() => <PneTableRow data-story-selection-header-row>
+                <PneTableSelectionHeaderCell
+                    aria-label='Select current page for layout regression'
+                    onChange={checked => selection.setPageSelected(checked)}
+                    state={selection.pageState}
+                />
+                <PneHeaderTableCell>ID</PneHeaderTableCell>
+                <PneHeaderTableCell>Name</PneHeaderTableCell>
+            </PneTableRow>}
+            data={storyRows}
+            paginator={{
+                rowsPerPageOptions: [5, 10, 25],
+                rowsPerPage: 5,
+                page: 0,
+                onPageChange: () => undefined,
+                onPageSizeChange: () => undefined,
+                hasNext: false,
+                disableActions: false,
+                displayedRowsLabel: '1 - 5',
+                paginationRef,
+                duplicatePagination: true,
+            }}
+            tableAriaLabel='Subpixel selection layout regression'
+            toolbar={<PneTableToolbar
+                aria-label='Subpixel table controls'
+                contextual={<Box
+                    data-story-dynamic-selection-controls
+                    sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        height: '40px',
+                        justifyContent: 'flex-end',
+                        width: `${contextualWidth}px`,
+                    }}
+                >
+                    <Typography>{selection.selectedCount} rows selected</Typography>
+                    {selection.selectedCount > 0 ? <PneButton
+                        onClick={selection.clear}
+                        pneStyle='text'
+                    >
+                        Unselect
+                    </PneButton> : null}
+                </Box>}
+                persistent={<Box
+                    data-story-persistent-view
+                    sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        height: '40px',
+                        justifyContent: 'flex-end',
+                        width: '159.1875px',
+                    }}
+                >
+                    Detailed view
+                </Box>}
+            />}
+        />
+    </Box>
+}
+
 const meta = {
     title: 'pne-ui/PneTable/Selection',
     component: SelectionTableStory,
@@ -337,6 +430,63 @@ export const SelectionAndViewsDesktop: Story = {
     args: {
         initialSelection: {mode: 'explicit', selectedIds: new Set([1, 3])},
         showViews: true,
+    },
+}
+
+export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
+    render: () => <SubpixelSelectionLayoutStory/>,
+    parameters: {
+        viewport: {defaultViewport: 'desktop'},
+    },
+    play: async ({canvasElement}) => {
+        const checkbox = canvasElement.querySelector<HTMLInputElement>(
+            'input[aria-label="Select current page for layout regression"]',
+        )
+        const header = canvasElement.querySelector<HTMLElement>(
+            '[data-story-selection-header-row]',
+        )
+        const actionBand = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="pagination-actions"]',
+        )
+        const tableControlBar = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-control-bar"]',
+        )
+        const persistentControls = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="table-persistent-controls"]',
+        )
+
+        if (!checkbox || !header || !actionBand || !tableControlBar || !persistentControls) {
+            throw new Error('Subpixel selection layout fixture is incomplete')
+        }
+
+        checkbox.click()
+        const observedLayouts = new Set<string>()
+        const observedHeaderTops: number[] = []
+        const observedToolbarLefts: number[] = []
+        const observedPersistentLefts: number[] = []
+
+        for (let frame = 0; frame < 20; frame += 1) {
+            await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+            observedLayouts.add(
+                `${actionBand.dataset.autotestValue}/${tableControlBar.dataset.autotestValue}`,
+            )
+            observedHeaderTops.push(header.getBoundingClientRect().top)
+            observedToolbarLefts.push(tableControlBar.getBoundingClientRect().left)
+            observedPersistentLefts.push(persistentControls.getBoundingClientRect().left)
+        }
+
+        if (observedLayouts.size !== 1 || !observedLayouts.has('inline/inline')) {
+            throw new Error(`Table controls did not settle: ${[...observedLayouts].join(', ')}`)
+        }
+        if (Math.max(...observedHeaderTops) - Math.min(...observedHeaderTops) >= 1) {
+            throw new Error('Table header moved after selecting the current page')
+        }
+        if (Math.max(...observedToolbarLefts) - Math.min(...observedToolbarLefts) >= 1
+            || Math.max(...observedPersistentLefts) - Math.min(...observedPersistentLefts) >= 1) {
+            throw new Error('Table controls moved after selecting the current page')
+        }
+
+        canvasElement.setAttribute('data-story-layout-stable', 'true')
     },
 }
 

@@ -4,6 +4,10 @@ import PneTableToolbar, {
     resolvePneTableToolbarLayout,
 } from '../src/component/table/PneTableToolbar'
 import PneTableSelectionControls from '../src/component/table/PneTableSelectionControls'
+import {
+    type PneTablePaginationActionsLayout,
+    resolvePneTablePaginationActionsLayout,
+} from '../src/component/table/PneTablePaginationActions'
 
 describe('PneTableToolbar', () => {
     it('resolves inline and stacked group layouts from measured content', () => {
@@ -21,6 +25,60 @@ describe('PneTableToolbar', () => {
             availableWidth: 100,
             hasPersistent: false,
         })).toBe('inline')
+        expect(resolvePneTableToolbarLayout({
+            ...base,
+            availableWidth: 339,
+        })).toBe('stacked')
+    })
+
+    it('treats mixed CSSOM subpixel rounding as an inline fit', () => {
+        const qaMeasurements = {
+            contextualWidth: 632,
+            persistentWidth: 159.1875,
+            hasContextual: true,
+            hasPersistent: true,
+        }
+
+        expect(resolvePneTableToolbarLayout({
+            ...qaMeasurements,
+            availableWidth: 799.03125,
+        })).toBe('inline')
+        expect(resolvePneTableToolbarLayout({
+            ...qaMeasurements,
+            availableWidth: 798,
+        })).toBe('stacked')
+    })
+
+    it('settles nested table layouts across CSSOM subpixel rounding', () => {
+        const contextualWidth = 632
+        const persistentWidth = 159.1875
+        const inlineToolbarWidth = 799.1875
+        const expandedToolbarWidth = 1009.3125
+        let paginationLayout: PneTablePaginationActionsLayout = 'inline'
+        const observedLayouts: string[] = []
+
+        for (let frame = 0; frame < 10; frame += 1) {
+            const toolbarLayout = resolvePneTableToolbarLayout({
+                availableWidth: paginationLayout === 'inline' ? 799 : 1312,
+                contextualWidth,
+                persistentWidth,
+                hasContextual: true,
+                hasPersistent: true,
+            })
+            paginationLayout = resolvePneTablePaginationActionsLayout({
+                availableWidth: 1312,
+                hasToolbar: true,
+                navigationMinimumWidth: 160,
+                navigationPreferredWidth: 174.5,
+                pageSizesWidth: 120,
+                toolbarPreferredWidth: toolbarLayout === 'inline'
+                    ? inlineToolbarWidth
+                    : expandedToolbarWidth,
+            })
+            observedLayouts.push(`${paginationLayout}/${toolbarLayout}`)
+        }
+
+        expect(observedLayouts).toEqual(Array(10).fill('inline/inline'))
     })
 
     it('keeps DOM order aligned while responsive measurements change', () => {

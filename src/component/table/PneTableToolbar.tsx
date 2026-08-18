@@ -1,6 +1,7 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react'
 import {Box, BoxProps, SxProps, Theme} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
+import {measuredLayoutWidthFits} from './tableLayoutMeasurement'
 
 export type PneTableToolbarLayout = 'inline' | 'stacked'
 
@@ -46,7 +47,10 @@ export const resolvePneTableToolbarLayout = ({
         return 'inline'
     }
 
-    return contextualWidth + CONTROL_GROUP_GAP + persistentWidth <= availableWidth
+    return measuredLayoutWidthFits(
+        contextualWidth + CONTROL_GROUP_GAP + persistentWidth,
+        availableWidth,
+    )
         ? 'inline'
         : 'stacked'
 }
