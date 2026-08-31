@@ -218,7 +218,6 @@ export const TransactionReportFiltersExample = ({
                 onFiltersUpdate={criteria => setSearchCriteria(criteria)}
                 onValidationChange={setValidation}
                 config={{
-                    manualSearch: true,
                     dateRange: {
                         dateRangeSpecTypes: DATE_RANGE_SPEC_TYPES.filter(
                             type => type !== 'DATE_INDEPENDENT',
@@ -277,8 +276,13 @@ Wicket сразу показывает эти вычисленные значе�
 production-запросе.
 
 Если диапазон невалиден, встроенная кнопка Search/Refresh блокируется и
-`onFiltersUpdate` не публикует невалидный черновик. Для внешней кнопки Generate
-используйте `onValidationChange`, как в примере выше.
+`onFiltersUpdate` не публикует невалидный черновик. При валидном изменении пример
+выше сразу синхронизирует актуальные критерии, а внешнюю кнопку Generate блокирует
+через `onValidationChange`.
+
+Если отдельно включить `manualSearch: true`, пользователь должен сначала применить
+изменения встроенной кнопкой Search и только затем запускать Generate: до Search в
+`onFiltersUpdate` остаются последние применённые критерии.
 
 ### Ограничение типов транзакций
 
