@@ -26,6 +26,11 @@ import { OrdersSearchCriterion } from './component/criterion/orders-search/Order
 import { ProcessorLogEntryTypesCriterion } from './component/criterion/ProcessorLogEntryTypesCriterion'
 import { ErrorCodeCriterion } from './component/criterion/ErrorCodeCriterion'
 import { CustomerLevelCriterion } from './component/criterion/CustomerLevelCriterion'
+import { TransactionReportScopeCriterion } from './component/criterion/TransactionReportScopeCriterion'
+import { TransactionDateTypeCriterion } from './component/criterion/TransactionDateTypeCriterion'
+import { TransactionRecurrentFilterCriterion } from './component/criterion/TransactionRecurrentFilterCriterion'
+import { TimeZoneCriterion } from './component/criterion/TimeZoneCriterion'
+import { CsvCharsetCriterion } from './component/criterion/CsvCharsetCriterion'
 
 interface IProps {
     type: CriterionTypeEnum
@@ -128,6 +133,16 @@ export const CriterionContainer = (props: IProps) => {
                 return <ProcessorLogEntryTypesCriterion/>
             case CriterionTypeEnum.ERROR_CODE:
                 return <ErrorCodeCriterion/>
+            case CriterionTypeEnum.TRANSACTION_REPORT_SCOPE:
+                return <TransactionReportScopeCriterion/>
+            case CriterionTypeEnum.TRANSACTION_DATE_TYPE:
+                return <TransactionDateTypeCriterion/>
+            case CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER:
+                return <TransactionRecurrentFilterCriterion/>
+            case CriterionTypeEnum.TIME_ZONE:
+                return <TimeZoneCriterion/>
+            case CriterionTypeEnum.CSV_CHARSET:
+                return <CsvCharsetCriterion/>
             default:
                 exhaustiveCheck(type)
         }

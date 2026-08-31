@@ -117,4 +117,48 @@ describe('SearchUI public conditions boundary', () => {
             criteria: [],
         })
     })
+
+    it('accepts the transaction report wire fields', () => {
+        expect(toSearchUIConditionsState({
+            scope: 'SELECTED_BY_TX_RRN',
+            transactionIds: 'rrn-1\nrrn-2',
+            datesType: 'CREATED',
+            recurrentFilter: 'NON_RECURRENTS_ONLY',
+            timeZoneOffsetHours: -12,
+            csvCharset: 'UTF-8-SIG',
+        }, 'searchConditions', true)).toEqual({
+            scope: 'SELECTED_BY_TX_RRN',
+            transactionIds: 'rrn-1\nrrn-2',
+            datesType: 'CREATED',
+            recurrentFilter: 'NON_RECURRENTS_ONLY',
+            timeZoneOffsetHours: -12,
+            csvCharset: 'UTF-8-SIG',
+        })
+    })
+
+    it('treats explicitly undefined optional report fields as omitted', () => {
+        expect(toSearchUIConditionsState({
+            scope: undefined,
+            transactionIds: undefined,
+            datesType: undefined,
+            recurrentFilter: undefined,
+            timeZoneOffsetHours: undefined,
+            csvCharset: undefined,
+        }, 'searchConditions', true)).toEqual({})
+    })
+
+    it.each([
+        [{scope: 'SELECTED_BY_UNKNOWN'}, 'searchConditions.scope: unknown value'],
+        [{datesType: 'BANK'}, 'searchConditions.datesType: unknown value'],
+        [{recurrentFilter: 'RECURRENT'}, 'searchConditions.recurrentFilter: unknown value'],
+        [{timeZoneOffsetHours: 13}, 'expected null or an integer from -12 through 12'],
+        [{timeZoneOffsetHours: 1.5}, 'expected null or an integer from -12 through 12'],
+        [{csvCharset: 'CP1251'}, 'searchConditions.csvCharset: unknown value'],
+    ])('rejects invalid transaction report conditions %j', (conditions, expectedMessage) => {
+        expect(() => toSearchUIConditionsState(
+            conditions as never,
+            'searchConditions',
+            true,
+        )).toThrow(expectedMessage as string)
+    })
 })

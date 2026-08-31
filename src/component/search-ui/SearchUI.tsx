@@ -12,6 +12,7 @@ import { PneTable, TableCreateHeaderType, TableDisplayOptions, useTable } from '
 import { UseTableParams } from '../table/useTable'
 import { useSearchUIFiltersStore } from './filters/state/store'
 import { SearchUIFiltersStoreProvider } from './filters/state/SearchUIFiltersStoreProvider'
+import type {SearchUIValidationResult} from './filters/validation'
 
 /**
  * Параметры запроса поиска, отправляемые в обработчик данных таблицы.
@@ -85,6 +86,10 @@ export type SearchUIProps<D extends object> = {
      * Конфигурация виджета фильтров.
      */
     config?: SearchUIFiltersConfig
+    /**
+     * Колбэк состояния валидации фильтров.
+     */
+    onValidationChange?: (validationResult: SearchUIValidationResult) => void
 }
 
 /**
@@ -115,6 +120,7 @@ const SearchUIContent = <D extends object>(props: SearchUIProps<D>): React.React
         tableParams,
         dataUseState,
         config,
+        onValidationChange,
     } = props
 
     const searchCriteria = useSearchUIFiltersStore(store => store.appliedSearchCriteria)
@@ -170,6 +176,7 @@ const SearchUIContent = <D extends object>(props: SearchUIProps<D>): React.React
             initialSearchConditions={initialSearchConditions}
             searchConditions={searchConditions}
             onFiltersUpdate={ignoreAppliedSearchCriteria}
+            onValidationChange={onValidationChange}
             config={config}
             searchLoading={loading}
         />
@@ -249,4 +256,10 @@ export const createSearchParams = (
     markerStatus: searchCriteria.markerStatus,
     processorLogEntryType: searchCriteria.processorLogEntryType,
     errorCode: searchCriteria.errorCode,
+    scope: searchCriteria.scope,
+    transactionIds: searchCriteria.transactionIds,
+    datesType: searchCriteria.datesType,
+    recurrentFilter: searchCriteria.recurrentFilter,
+    timeZoneOffsetHours: searchCriteria.timeZoneOffsetHours,
+    csvCharset: searchCriteria.csvCharset,
 })

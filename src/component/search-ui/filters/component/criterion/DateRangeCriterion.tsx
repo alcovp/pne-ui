@@ -2,7 +2,7 @@ import React, { ChangeEvent } from 'react'
 import { DateRangeSpecType } from '../../types'
 import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect'
 import dayjs, { Dayjs } from 'dayjs'
-import { Box, SxProps, useMediaQuery } from '@mui/material'
+import { Box, FormHelperText, SxProps, useMediaQuery } from '@mui/material'
 import { DateRange, DateRangePicker, LocalizationProvider } from '@mui/x-date-pickers-pro'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -15,6 +15,8 @@ import {
     createDateOnlyPickerValue,
     resolveDateOnlyTimeZone,
 } from '../../dateRangeTimeZone'
+import {useTranslation} from 'react-i18next'
+import {SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED} from '../../validation'
 
 type Props = {
     showOrdersDateType?: boolean
@@ -24,6 +26,7 @@ const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
 
 export const DateRangeCriterion = (props: Props) => {
     const { showOrdersDateType } = props
+    const {t} = useTranslation()
 
     const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
     const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
@@ -33,6 +36,9 @@ export const DateRangeCriterion = (props: Props) => {
     const dateOnlyTimeZone = useSearchUIFiltersStore(
         s => resolveDateOnlyTimeZone(s.config?.dateRange?.dateOnlyTimeZone),
     )
+    const validationError = useSearchUIFiltersStore(s => s.validationResult.errors.find(
+        error => error.code === SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
+    ))
 
     const changeBeforeCount = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         const value = event.target.value
@@ -167,11 +173,14 @@ export const DateRangeCriterion = (props: Props) => {
                                 />
                             </Box>
                             : <DateRangePicker
-                                sx={dateRangePickerSx}
                                 value={dateRange}
                                 onChange={handleSetDateRange}
                                 slotProps={{
                                     popper: { placement: 'auto' },
+                                    textField: {
+                                        size: 'small',
+                                        sx: dateRangePickerSx,
+                                    },
                                 }}
                             />}
                     </LocalizationProvider>
@@ -193,27 +202,21 @@ export const DateRangeCriterion = (props: Props) => {
                     />
                 : null}
         </Box>
+        {validationError ? <FormHelperText error role={'alert'} sx={{mt: 0, mb: '8px'}}>
+            {t(validationError.messageKey, validationError.params)}
+        </FormHelperText> : null}
     </>
 }
 
 const dateRangePickerSx: SxProps = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '40px',
     '& .MuiFormLabel-root.MuiInputLabel-root': {
         display: 'none',
     },
-    '& .MuiInputBase-input.MuiOutlinedInput-input': {
-        p: '0 0 0 5px',
-        height: '20px',
+    '& .MuiPickersOutlinedInput-root': {
+        height: '40px',
+    },
+    '& .MuiPickersInputBase-sectionsContainer': {
         fontSize: '14px',
-    },
-    '& .MuiOutlinedInput-notchedOutline': {
-        borderRadius: '0',
-        border: 'transparent !important',
-    },
-    '& .MuiFormControl-root.MuiTextField-root': {
-        m: 0,
     },
 }
 

@@ -1,5 +1,6 @@
 import {
     CountryAllableCollection,
+    CsvCharset,
     CriterionTypeEnum,
     DateRangeSpec,
     ExactCriterionSearchLabelEnum,
@@ -14,6 +15,10 @@ import {
     SearchUITemplate,
     StatusCriterion,
     ThreeDCriterionEnum,
+    TimeZoneOffsetHours,
+    TransactionDateType,
+    TransactionRecurrentFilter,
+    TransactionReportScope,
     TransactionSessionGroup,
     TransactionSessionStatus,
 } from '../types';
@@ -21,6 +26,7 @@ import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} fro
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
 import {SearchUIDefaults} from '../../SearchUIProvider';
 import type {EntityOptionRestrictionFingerprint} from '../entityOptionRestriction';
+import type {SearchUIValidationResult} from '../validation';
 
 export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 
@@ -74,6 +80,8 @@ export type SearchUIFiltersState = SearchUIConditions & {
     restoredFromRetention: boolean
     skipLastTemplateAutoApply: boolean
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
+    validationResult: SearchUIValidationResult
+    onValidationChange: (validationResult: SearchUIValidationResult) => void
     prefetchedData: SearchUIPrefetchedData
     prefetchedDataLoading: SearchUIPrefetchedDataLoading
     prefetchedDataMeta: SearchUIPrefetchedDataMeta
@@ -141,5 +149,11 @@ export type SearchUIFiltersActions = {
     setMarkerStatusCriterion: (markerStatus: MarkerStatusCriterion) => void
     setProcessorLogEntryType: (entryType: AbstractEntity) => void
     setErrorCodeCriterion: (errorCode: AutoCompleteChoice | null) => void
+    setTransactionReportScopeCriterion: (scope: TransactionReportScope) => void
+    setTransactionIdsCriterion: (transactionIds: string) => void
+    setTransactionDateTypeCriterion: (datesType: TransactionDateType) => void
+    setTransactionRecurrentFilterCriterion: (recurrentFilter: TransactionRecurrentFilter) => void
+    setTimeZoneCriterion: (timeZoneOffsetHours: TimeZoneOffsetHours | null) => void
+    setCsvCharsetCriterion: (csvCharset: CsvCharset | null) => void
     triggerSearch: () => void
 }
