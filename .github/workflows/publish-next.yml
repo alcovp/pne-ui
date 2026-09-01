@@ -1,0 +1,48 @@
+name: Publish pne-ui next 4.3.0-rc.53
+
+on:
+  push:
+    branches:
+      - ci/publish-next-4.3.0-rc.53
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-pne-ui-next
+  cancel-in-progress: false
+
+jobs:
+  publish-next:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the audited release commit
+        uses: actions/checkout@v4
+        with:
+          ref: 0933a7fd8a56bcb5fdb608817f0636d46be25b5d
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.16.0
+          registry-url: https://registry.npmjs.org/
+
+      - name: Enable the pinned Yarn version
+        run: corepack enable
+
+      - name: Verify the exact release
+        run: node -e "const p = require('./package.json'); if (p.name !== 'pne-ui' || p.version !== '4.3.0-rc.53') process.exit(1)"
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Check
+        run: yarn check
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish only to the next tag
+        run: npm publish --ignore-scripts --access public --tag next
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
