@@ -119,6 +119,26 @@ const criterionContracts = {
         selector: 'button[data-autotest="criterion-transaction-session-status"]'
             + '[data-autotest-value="APPROVED"][aria-haspopup="dialog"]',
     },
+    [CriterionTypeEnum.TRANSACTION_REPORT_SCOPE]: {
+        family: 'enum',
+        selector: '[role="combobox"][data-autotest="criterion-select"]',
+    },
+    [CriterionTypeEnum.TRANSACTION_DATE_TYPE]: {
+        family: 'enum',
+        selector: '[data-autotest="criterion-option"][data-autotest-value="CREATED"]',
+    },
+    [CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER]: {
+        family: 'enum',
+        selector: '[role="combobox"][data-autotest="criterion-select"]',
+    },
+    [CriterionTypeEnum.TIME_ZONE]: {
+        family: 'enum',
+        selector: '[role="combobox"][data-autotest="criterion-select"]',
+    },
+    [CriterionTypeEnum.CSV_CHARSET]: {
+        family: 'enum',
+        selector: '[role="combobox"][data-autotest="criterion-select"]',
+    },
 } satisfies Record<CriterionTypeEnum, CriterionContract>
 
 type MultigetCriterionType =
@@ -156,7 +176,7 @@ const createMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCrit
 
 const neverResolves = <T,>(): Promise<T> => new Promise(() => undefined)
 
-describe('SearchUI 31-of-31 criterion contract', () => {
+describe('SearchUI 36-of-36 criterion contract', () => {
     beforeEach(() => {
         localStorage.clear()
         resetSearchUIRetentionForTests()
@@ -205,10 +225,10 @@ describe('SearchUI 31-of-31 criterion contract', () => {
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
-            expect(container.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(31)
+            expect(container.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(36)
         })
 
-        expect(criterionTypes).toHaveLength(31)
+        expect(criterionTypes).toHaveLength(36)
         expect(Object.keys(criterionContracts).sort()).toEqual([...criterionTypes].sort())
 
         const filters = container.querySelector<HTMLElement>(

@@ -1,9 +1,19 @@
 import {
+    CSV_CHARSETS,
+    CsvCharset,
     DATE_RANGE_SPEC_TYPES,
     DateRangeSpec,
     DateRangeSpecType,
     SearchUIConditions,
     SearchUIConditionsInput,
+    TIME_ZONE_OFFSET_HOURS,
+    TimeZoneOffsetHours,
+    TRANSACTION_DATE_TYPES,
+    TRANSACTION_RECURRENT_FILTERS,
+    TRANSACTION_REPORT_SCOPES,
+    TransactionDateType,
+    TransactionRecurrentFilter,
+    TransactionReportScope,
 } from './types'
 
 const hasOwn = (value: object, key: PropertyKey): boolean => (
@@ -47,6 +57,50 @@ const assertDateRangeSpecType = (value: unknown, source: string): DateRangeSpecT
     }
 
     return value as DateRangeSpecType
+}
+
+const assertString = (value: unknown, source: string): string => {
+    if (typeof value !== 'string') {
+        return fail(source, 'expected a string')
+    }
+
+    return value
+}
+
+const assertStringValue = <T extends string>(
+    value: unknown,
+    allowedValues: readonly T[],
+    source: string,
+): T => {
+    if (typeof value !== 'string' || !allowedValues.includes(value as T)) {
+        return fail(source, `unknown value "${String(value)}"`)
+    }
+
+    return value as T
+}
+
+const assertTimeZoneOffsetHours = (value: unknown, source: string): TimeZoneOffsetHours | null => {
+    if (value === null) {
+        return null
+    }
+
+    if (
+        typeof value !== 'number'
+        || !Number.isInteger(value)
+        || !(TIME_ZONE_OFFSET_HOURS as readonly number[]).includes(value)
+    ) {
+        return fail(source, 'expected null or an integer from -12 through 12')
+    }
+
+    return value as TimeZoneOffsetHours
+}
+
+const assertCsvCharset = (value: unknown, source: string): CsvCharset | null => {
+    if (value === null) {
+        return null
+    }
+
+    return assertStringValue(value, CSV_CHARSETS, source)
 }
 
 /**
@@ -124,11 +178,60 @@ export const toSearchUIConditionsState = (
     const {dateRangeSpec, ...rest} = input
     const stateConditions = rest as Partial<SearchUIConditions>
 
+    // Partial<T> permits explicitly undefined properties unless consumers opt
+    // into exactOptionalPropertyTypes. Treat those properties as omitted instead
+    // of allowing them to overwrite initialized store defaults.
+    delete stateConditions.scope
+    delete stateConditions.transactionIds
+    delete stateConditions.datesType
+    delete stateConditions.recurrentFilter
+    delete stateConditions.timeZoneOffsetHours
+    delete stateConditions.csvCharset
+
     if (dateRangeSpec !== undefined) {
         stateConditions.dateRangeSpec = toDateRangeState(
             dateRangeSpec,
             `${source}.dateRangeSpec`,
         )
+    }
+
+    if (hasOwn(value, 'scope') && value.scope !== undefined) {
+        stateConditions.scope = assertStringValue<TransactionReportScope>(
+            value.scope,
+            TRANSACTION_REPORT_SCOPES,
+            `${source}.scope`,
+        )
+    }
+
+    if (hasOwn(value, 'transactionIds') && value.transactionIds !== undefined) {
+        stateConditions.transactionIds = assertString(value.transactionIds, `${source}.transactionIds`)
+    }
+
+    if (hasOwn(value, 'datesType') && value.datesType !== undefined) {
+        stateConditions.datesType = assertStringValue<TransactionDateType>(
+            value.datesType,
+            TRANSACTION_DATE_TYPES,
+            `${source}.datesType`,
+        )
+    }
+
+    if (hasOwn(value, 'recurrentFilter') && value.recurrentFilter !== undefined) {
+        stateConditions.recurrentFilter = assertStringValue<TransactionRecurrentFilter>(
+            value.recurrentFilter,
+            TRANSACTION_RECURRENT_FILTERS,
+            `${source}.recurrentFilter`,
+        )
+    }
+
+    if (hasOwn(value, 'timeZoneOffsetHours') && value.timeZoneOffsetHours !== undefined) {
+        stateConditions.timeZoneOffsetHours = assertTimeZoneOffsetHours(
+            value.timeZoneOffsetHours,
+            `${source}.timeZoneOffsetHours`,
+        )
+    }
+
+    if (hasOwn(value, 'csvCharset') && value.csvCharset !== undefined) {
+        stateConditions.csvCharset = assertCsvCharset(value.csvCharset, `${source}.csvCharset`)
     }
 
     return stateConditions

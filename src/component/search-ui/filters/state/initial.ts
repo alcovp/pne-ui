@@ -115,6 +115,12 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         markerStatus: 'any',
         processorLogEntryType: null,
         errorCode: null,
+        scope: 'ALL',
+        transactionIds: '',
+        datesType: 'CREATED',
+        recurrentFilter: 'ALL',
+        timeZoneOffsetHours: null,
+        csvCharset: null,
 
         criteria: [],
     })
@@ -143,6 +149,11 @@ export const getSearchUIFiltersInitialState = (): SearchUIFiltersState => ({
     onFiltersUpdate: () => {
         throw new Error('Function onFiltersUpdate is not provided')
     },
+    validationResult: {
+        isValid: true,
+        errors: [],
+    },
+    onValidationChange: () => undefined,
     prefetchedData: {},
     prefetchedDataLoading: {
         transactionSessionStatuses: false,

@@ -30,6 +30,12 @@ const createCriteria = (overrides: Partial<SearchCriteria> = {}): SearchCriteria
     markerStatus: 'processed',
     processorLogEntryType: 'log',
     errorCode: 123,
+    scope: 'ALL',
+    transactionIds: '',
+    datesType: 'CREATED',
+    recurrentFilter: 'ALL',
+    timeZoneOffsetHours: null,
+    csvCharset: null,
     ...overrides,
 })
 

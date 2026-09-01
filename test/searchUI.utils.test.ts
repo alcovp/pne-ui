@@ -45,6 +45,12 @@ describe('SearchUI helpers', () => {
             markerStatus: 'processed',
             processorLogEntryType: 'log',
             errorCode: 123,
+            scope: 'SELECTED_BY_SESS_ID',
+            transactionIds: '1001\n1002',
+            datesType: 'CREATED',
+            recurrentFilter: 'RECURRENTS_ONLY',
+            timeZoneOffsetHours: 3,
+            csvCharset: 'UTF-8-SIG',
         }
 
         const params = createSearchParams(criteria, { page: 2, pageSize: 10, order: 'asc', sortIndex: 3 })
@@ -59,6 +65,12 @@ describe('SearchUI helpers', () => {
         expect(params.countries).toEqual([11])
         expect(params.errorCode).toBe(123)
         expect(params.customerLevelId).toBe(15)
+        expect(params.scope).toBe('SELECTED_BY_SESS_ID')
+        expect(params.transactionIds).toBe('1001\n1002')
+        expect(params.datesType).toBe('CREATED')
+        expect(params.recurrentFilter).toBe('RECURRENTS_ONLY')
+        expect(params.timeZoneOffsetHours).toBe(3)
+        expect(params.csvCharset).toBe('UTF-8-SIG')
     })
 
     it('filters available criteria based on defaults', () => {

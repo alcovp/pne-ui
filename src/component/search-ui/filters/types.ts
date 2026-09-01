@@ -40,6 +40,11 @@ export enum CriterionTypeEnum {
     PROCESSOR_LOG_ENTRY_TYPE = 'PROCESSOR_LOG_ENTRY_TYPE',
     ERROR_CODE = 'ERROR_CODE',
     TRANSACTION_SESSION_STATUS = 'TRANSACTION_SESSION_STATUS',
+    TRANSACTION_REPORT_SCOPE = 'TRANSACTION_REPORT_SCOPE',
+    TRANSACTION_DATE_TYPE = 'TRANSACTION_DATE_TYPE',
+    TRANSACTION_RECURRENT_FILTER = 'TRANSACTION_RECURRENT_FILTER',
+    TIME_ZONE = 'TIME_ZONE',
+    CSV_CHARSET = 'CSV_CHARSET',
 }
 
 export const CUSTOMER_LEVEL_DEPENDENCIES = [
@@ -127,6 +132,46 @@ export type DateRangeSpec = {
     dateTo: Date | null
     beforeCount: number
 }
+
+export const TRANSACTION_REPORT_SCOPES = [
+    'ALL',
+    'SELECTED_BY_SESS_ID',
+    'SELECTED_BY_PROCESSOR_TX_ID',
+    'SELECTED_BY_MOTHER_SESS_ID',
+    'SELECTED_BY_MOTHER_PROCESSOR_TX_ID',
+    'SELECTED_BY_TX_RRN',
+] as const
+export type TransactionReportScope = typeof TRANSACTION_REPORT_SCOPES[number]
+
+/**
+ * Supported transaction date dimensions for reports.
+ *
+ * BANK is intentionally omitted: the legacy option is deprecated and currently
+ * resolves to the same created-date range as CREATED.
+ */
+export const TRANSACTION_DATE_TYPES = ['CREATED'] as const
+export type TransactionDateType = typeof TRANSACTION_DATE_TYPES[number]
+
+export const TRANSACTION_RECURRENT_FILTERS = [
+    'ALL',
+    'RECURRENTS_ONLY',
+    'NON_RECURRENTS_ONLY',
+] as const
+export type TransactionRecurrentFilter = typeof TRANSACTION_RECURRENT_FILTERS[number]
+
+export const TIME_ZONE_OFFSET_HOURS = [
+    -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1,
+    0,
+    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+] as const
+export type TimeZoneOffsetHours = typeof TIME_ZONE_OFFSET_HOURS[number]
+
+export const CSV_CHARSETS = [
+    'UTF-8',
+    'UTF-8-SIG',
+    'windows-1251',
+] as const
+export type CsvCharset = typeof CSV_CHARSETS[number]
 
 export type ProjectCurrency = {
     convertToUserCurrency: boolean
@@ -400,6 +445,12 @@ export type SearchCriteria = {
     markerStatus: MarkerStatusCriterion | null
     processorLogEntryType: string | null
     errorCode: number | null
+    scope: TransactionReportScope
+    transactionIds: string
+    datesType: TransactionDateType
+    recurrentFilter: TransactionRecurrentFilter
+    timeZoneOffsetHours: TimeZoneOffsetHours | null
+    csvCharset: CsvCharset | null
 }
 
 /**
@@ -434,6 +485,12 @@ export type SearchUIConditions = {
     markerStatus: MarkerStatusCriterion
     processorLogEntryType: AbstractEntity | null
     errorCode: AutoCompleteChoice | null
+    scope: TransactionReportScope
+    transactionIds: string
+    datesType: TransactionDateType
+    recurrentFilter: TransactionRecurrentFilter
+    timeZoneOffsetHours: TimeZoneOffsetHours | null
+    csvCharset: CsvCharset | null
 }
 
 /**

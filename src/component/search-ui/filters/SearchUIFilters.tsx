@@ -48,6 +48,10 @@ import {
 import {getLastSearchUITemplateStorageKey} from './templateStorage';
 import {createAutoTestAttributes} from '../../AutoTestAttribute';
 import {SearchUIAutoTestScopeProvider} from './AutoTestScope';
+import {
+    assertValidMaxRangeSpanInDays,
+    type SearchUIValidationResult,
+} from './validation';
 
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
@@ -78,6 +82,11 @@ export type DateRangeCriterionConfig = {
      * Ограничивает список доступных вариантов выбора диапазона дат.
      */
     dateRangeSpecTypes?: ReadonlyArray<DateRangeSpecType>
+    /**
+     * Максимальная допустимая продолжительность диапазона в календарных сутках.
+     * Граница включительная: диапазон ровно в указанное число суток допустим.
+     */
+    maxRangeSpanInDays?: number
 }
 
 /**
@@ -175,6 +184,11 @@ export type SearchUIFiltersProps = {
      */
     onFiltersUpdate: (searchCriteria: SearchCriteria) => void
     /**
+     * Колбэк состояния валидации. Позволяет синхронно блокировать внешние действия,
+     * например кнопку генерации отчёта.
+     */
+    onValidationChange?: (validationResult: SearchUIValidationResult) => void
+    /**
      * Флаг активной загрузки данных таблицы. Используется для защиты кнопки поиска от повторных нажатий.
      */
     searchLoading?: boolean
@@ -202,6 +216,7 @@ export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
     // bootstrap work delays mounting the initialized filters subtree.
     toSearchUIConditionsState(props.initialSearchConditions, 'initialSearchConditions', false)
     toSearchUIConditionsState(props.searchConditions, 'searchConditions', true)
+    assertValidMaxRangeSpanInDays(props.config?.dateRange?.maxRangeSpanInDays)
 
     const transactionTypesConfig = props.config?.transactionTypes
     if (transactionTypesConfig === undefined) {
@@ -436,6 +451,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         searchConditions,
         config,
         onFiltersUpdate,
+        onValidationChange,
         searchLoading = false,
         allowedTransactionTypes,
         retainedSnapshot,
@@ -480,6 +496,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const triggerSearch = useSearchUIFiltersStore(s => s.triggerSearch)
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
     const filtersState = useSearchUIFiltersStore(s => s)
+    const validationResult = useSearchUIFiltersStore(s => s.validationResult)
 
     const [showFilters, setShowFilters] = useState(true)
     const filtersPanelId = useId()
@@ -518,6 +535,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             criteria: predefinedCriteria,
             config: config,
             onFiltersUpdate: onFiltersUpdate,
+            onValidationChange: onValidationChange ?? (() => undefined),
             skipLastTemplateAutoApply: true,
             ...(allowedTransactionTypes === undefined ? {} : {
                 prefetchedData: {
@@ -695,7 +713,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                             onClick={triggerSearch}
                             pneStyle='contained'
                             size={'small'}
-                            disabled={searchLoading}
+                            disabled={searchLoading || !validationResult.isValid}
                             sx={nowrapButtonSx}
                         >
                             {manualSearch

@@ -35,6 +35,7 @@ import {
 import { UseTableParams } from '../table/useTable'
 import { useSearchUIFiltersStore } from './filters/state/store'
 import { SearchUIFiltersStoreProvider } from './filters/state/SearchUIFiltersStoreProvider'
+import type {SearchUIValidationResult} from './filters/validation'
 import {
     createSearchUITableSelectionScopeKey,
     SearchUITableFactoryContext,
@@ -109,6 +110,10 @@ type SearchUICommonProps<
     config?: SearchUIFiltersConfig
     /** Optional transient selection controller for the current applied result set. */
     tableSelection?: SearchUITableSelectionConfig<D, TKey, TViewId>
+    /**
+     * Колбэк состояния валидации фильтров.
+     */
+    onValidationChange?: (validationResult: SearchUIValidationResult) => void
 }
 
 export type SearchUIDataSource<D extends object> = (searchParams: SearchParams) => Promise<D[]>
@@ -274,6 +279,7 @@ const SearchUIContent = <
         dataUseState,
         config,
         tableSelection,
+        onValidationChange,
     } = props
     const resolvedTable = resolveSearchUITable(props)
     const tableResetIdentity = resolvedTable.viewId === undefined
@@ -432,6 +438,7 @@ const SearchUIContent = <
             initialSearchConditions={initialSearchConditions}
             searchConditions={searchConditions}
             onFiltersUpdate={ignoreAppliedSearchCriteria}
+            onValidationChange={onValidationChange}
             config={config}
             searchLoading={loading}
         />
@@ -967,6 +974,22 @@ const neutralizeDisabledCriteria = <T extends Omit<SearchCriteria, 'initialized'
             case CriterionTypeEnum.ERROR_CODE:
                 neutralized.errorCode = null
                 break
+            case CriterionTypeEnum.TRANSACTION_REPORT_SCOPE:
+                neutralized.scope = 'ALL'
+                neutralized.transactionIds = ''
+                break
+            case CriterionTypeEnum.TRANSACTION_DATE_TYPE:
+                neutralized.datesType = 'CREATED'
+                break
+            case CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER:
+                neutralized.recurrentFilter = 'ALL'
+                break
+            case CriterionTypeEnum.TIME_ZONE:
+                neutralized.timeZoneOffsetHours = null
+                break
+            case CriterionTypeEnum.CSV_CHARSET:
+                neutralized.csvCharset = null
+                break
             case CriterionTypeEnum.PROJECT:
             case CriterionTypeEnum.ENDPOINT:
             case CriterionTypeEnum.GATE:
@@ -1021,6 +1044,12 @@ export const createSearchParams = (
         markerStatus: searchCriteria.markerStatus,
         processorLogEntryType: searchCriteria.processorLogEntryType,
         errorCode: searchCriteria.errorCode,
+        scope: searchCriteria.scope,
+        transactionIds: searchCriteria.transactionIds,
+        datesType: searchCriteria.datesType,
+        recurrentFilter: searchCriteria.recurrentFilter,
+        timeZoneOffsetHours: searchCriteria.timeZoneOffsetHours,
+        csvCharset: searchCriteria.csvCharset,
     }
 
     return disabledCriteria.length === 0

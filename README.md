@@ -1531,6 +1531,164 @@ const config = {
 />
 ```
 
+Параметр `maxRangeSpanInDays` задаёт включительную верхнюю границу диапазона.
+Он проверяет уже разрешённые границы всех режимов даты; для date-only `EXACTLY`
+пользовательская конечная дата считается включительной. Значение должно быть
+положительным целым числом.
+
+### Критерии отчёта по транзакциям
+
+Для экранов полного и краткого отчётов специализированная конфигурация включает
+шесть критериев: диапазон дат и пять новых критериев отчёта. Имена их полей в
+`SearchCriteria` совместимы с контрактом API: `scope` вместе с
+`transactionIds`, `datesType`, `recurrentFilter`, `timeZoneOffsetHours` и
+`csvCharset`. Поддерживаемые библиотекой значения местами намеренно уже полного
+backend-контракта; различия перечислены ниже.
+
+Все шесть специализированных критериев следует передавать в
+`predefinedCriteria`, чтобы их нельзя было удалить. Их необходимо объединить с
+уже существующими обязательными критериями конкретного отчёта. В примере ниже
+использован базовый набор Wicket-страниц: типы транзакций, статусы транзакций и
+типы карт. Дополнительные доступные критерии, например валюты, можно добавить
+только в `possibleCriteria`.
+
+```tsx
+import {useState} from 'react'
+import {
+    CriterionTypeEnum,
+    DATE_RANGE_SPEC_TYPES,
+    OverlayHost,
+    PneButton,
+    type SearchCriteria,
+    SearchUIFilters,
+    SearchUIProvider,
+    type SearchUIValidationResult,
+} from 'pne-ui'
+
+const BASE_REQUIRED_REPORT_CRITERIA: CriterionTypeEnum[] = [
+    CriterionTypeEnum.TRANSACTION_TYPES,
+    CriterionTypeEnum.TRANSACTION_STATUS,
+    CriterionTypeEnum.CARD_TYPES,
+]
+
+const SPECIALIZED_TRANSACTION_REPORT_CRITERIA: CriterionTypeEnum[] = [
+    CriterionTypeEnum.DATE_RANGE,
+    CriterionTypeEnum.TRANSACTION_REPORT_SCOPE,
+    CriterionTypeEnum.TRANSACTION_DATE_TYPE,
+    CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER,
+    CriterionTypeEnum.TIME_ZONE,
+    CriterionTypeEnum.CSV_CHARSET,
+]
+
+const REQUIRED_TRANSACTION_REPORT_CRITERIA: CriterionTypeEnum[] = [
+    ...BASE_REQUIRED_REPORT_CRITERIA,
+    ...SPECIALIZED_TRANSACTION_REPORT_CRITERIA,
+]
+
+type TransactionReportFiltersExampleProps = {
+    onGenerate: (criteria: SearchCriteria) => void
+}
+
+export const TransactionReportFiltersExample = ({
+    onGenerate,
+}: TransactionReportFiltersExampleProps) => {
+    const [searchCriteria, setSearchCriteria] = useState<SearchCriteria | null>(null)
+    const [validation, setValidation] = useState<SearchUIValidationResult | null>(null)
+
+    const generateReport = () => {
+        if (searchCriteria !== null) {
+            onGenerate(searchCriteria)
+        }
+    }
+
+    return <OverlayHost>
+        <SearchUIProvider>
+            <SearchUIFilters
+                settingsContextName="transaction-report"
+                possibleCriteria={REQUIRED_TRANSACTION_REPORT_CRITERIA}
+                predefinedCriteria={REQUIRED_TRANSACTION_REPORT_CRITERIA}
+                initialSearchConditions={{
+                    dateRangeSpec: {
+                        dateRangeSpecType: 'EXACTLY',
+                        dateFrom: new Date(2026, 0, 1),
+                        dateTo: new Date(2026, 0, 31),
+                    },
+                    scope: 'ALL',
+                    transactionIds: '',
+                    datesType: 'CREATED',
+                    recurrentFilter: 'ALL',
+                    timeZoneOffsetHours: null,
+                    csvCharset: null,
+                }}
+                onFiltersUpdate={criteria => setSearchCriteria(criteria)}
+                onValidationChange={setValidation}
+                config={{
+                    dateRange: {
+                        dateRangeSpecTypes: DATE_RANGE_SPEC_TYPES.filter(
+                            type => type !== 'DATE_INDEPENDENT',
+                        ),
+                        maxRangeSpanInDays: 93,
+                    },
+                }}
+            />
+
+            <PneButton
+                disabled={searchCriteria === null || !validation?.isValid}
+                onClick={generateReport}
+            >
+                Generate report
+            </PneButton>
+        </SearchUIProvider>
+    </OverlayHost>
+}
+```
+
+У высокоуровневого `SearchUI` используются те же `possibleCriteria`,
+`predefinedCriteria`, `initialSearchConditions`, `config` и
+`onValidationChange`; результат для бэкенда передаётся в `searchData` как часть
+`SearchParams`.
+
+Поддерживаемые значения специализированных полей:
+
+- `scope`: `ALL`, `SELECTED_BY_SESS_ID`, `SELECTED_BY_PROCESSOR_TX_ID`,
+  `SELECTED_BY_MOTHER_SESS_ID`, `SELECTED_BY_MOTHER_PROCESSOR_TX_ID`,
+  `SELECTED_BY_TX_RRN`;
+- `datesType`: библиотека поддерживает только `CREATED`. Backend enum и Wicket
+  также принимают deprecated-вариант `BANK`, который сейчас обрабатывается как
+  тот же диапазон created dates; библиотека намеренно его не показывает;
+- `recurrentFilter`: `ALL`, `RECURRENTS_ONLY`, `NON_RECURRENTS_ONLY`;
+- `timeZoneOffsetHours`: `null` либо целое число от `-12` до `12`;
+- `csvCharset`: `null`, `UTF-8`, `UTF-8-SIG` или `windows-1251`.
+
+`transactionIds` — необязательная строка, которая показывается только при
+`scope !== 'ALL'` и передаётся библиотекой без преобразования и UI-валидации.
+Backend заменяет каждую непрерывную группу whitespace, запятых, точек с запятой,
+одинарных/двойных кавычек и NUL одним разделителем-запятой. Для scope с числовыми
+order ID он затем молча отбрасывает фрагменты с недесятичными символами. Проверка,
+отключающая период при непустых ID, выполняется backend по исходной строке до
+этой нормализации.
+
+`timeZoneOffsetHours: null` включает backend fallback на серверный сдвиг
+таймзоны, а `csvCharset: null` — выбор кодировки на сервере по данным браузера.
+Wicket сразу показывает эти вычисленные значения в обязательных dropdown; React
+для `null` показывает `Default`. Если нужна точная визуальная parity с Wicket,
+передайте вычисленные конкретные значения вместо `null`.
+
+`UTF-8-SIG` экспонируется библиотекой в соответствии с UI-контрактом, но в
+текущем endpoint отчётов ещё нет обязательного backend mapping строки
+`UTF-8-SIG` на custom charset с BOM. До появления такого mapping выбор этого
+значения не является end-to-end поддержанным и не должен отправляться в
+production-запросе.
+
+Если диапазон невалиден, встроенная кнопка Search/Refresh блокируется и
+`onFiltersUpdate` не публикует невалидный черновик. При валидном изменении пример
+выше сразу синхронизирует актуальные критерии, а внешнюю кнопку Generate блокирует
+через `onValidationChange`.
+
+Если отдельно включить `manualSearch: true`, пользователь должен сначала применить
+изменения встроенной кнопкой Search и только затем запускать Generate: до Search в
+`onFiltersUpdate` остаются последние применённые критерии.
+
 ### Ограничение типов транзакций
 
 Чтобы показать в `TRANSACTION_TYPES` только часть общего справочника, передайте

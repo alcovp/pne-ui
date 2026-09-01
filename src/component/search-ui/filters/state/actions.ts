@@ -74,6 +74,10 @@ import {
 } from '../entityOptionRestriction'
 import { isSearchUIRetentionSnapshotCompatible } from './retention'
 import { getLastSearchUITemplateStorageKey } from '../templateStorage'
+import {
+    validateSearchUIFiltersState,
+    type SearchUIValidationResult,
+} from '../validation'
 
 dayjs.extend(utc)
 dayjs.extend(timezone)
@@ -388,6 +392,7 @@ export const getSearchUIFiltersActions = (
             normalizeRelativeDateRange(set, get)
         }
         ensureTransactionSessionStatusesPrefetched(set, get)
+        const validationResult = syncValidation(set, get, true)
 
         if (get().restoredFromRetention && retainedSnapshot && retainedDraftSearchCriteria) {
             const currentSearchCriteria = extractSearchCriteriaFromState(get())
@@ -398,6 +403,18 @@ export const getSearchUIFiltersActions = (
                     currentSearchCriteria,
                 )
                 : currentSearchCriteria
+
+            if (!validationResult.isValid) {
+                const retainedAppliedSearchCriteria = get().config?.manualSearch
+                    ? retainedSnapshot.appliedSearchCriteria
+                    : null
+                set(draft => {
+                    draft.prevSearchCriteria = retainedAppliedSearchCriteria
+                    draft.appliedSearchCriteria = retainedAppliedSearchCriteria
+                    draft.hasUnappliedFilters = true
+                })
+                return
+            }
 
             get().onFiltersUpdate(appliedSearchCriteria)
             set((draft) => {
@@ -453,17 +470,22 @@ export const getSearchUIFiltersActions = (
         syncCriterionAvailability(set, get)
 
         const currentSearchCriteria = extractSearchCriteriaFromState(get())
+        const validationResult = syncValidation(set, get)
 
-        if (!hasUnappliedFilters) {
+        if (validationResult.isValid && !hasUnappliedFilters) {
             get().onFiltersUpdate(currentSearchCriteria)
         }
 
         set(draft => {
-            draft.prevSearchCriteria = currentSearchCriteria
-            if (!hasUnappliedFilters) {
+            if (validationResult.isValid) {
+                draft.prevSearchCriteria = currentSearchCriteria
+            }
+            if (validationResult.isValid && !hasUnappliedFilters) {
                 draft.appliedSearchCriteria = currentSearchCriteria
             }
-            draft.hasUnappliedFilters = hasUnappliedFilters
+            draft.hasUnappliedFilters = validationResult.isValid
+                ? hasUnappliedFilters
+                : true
         })
     },
     clearCriteria: () => {
@@ -868,8 +890,52 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get)
     },
+    setTransactionReportScopeCriterion: scope => {
+        set(draft => {
+            draft.scope = scope
+        })
+        postUpdate(set, get)
+    },
+    setTransactionIdsCriterion: transactionIds => {
+        set(draft => {
+            draft.transactionIds = transactionIds
+        })
+        postUpdate(set, get)
+    },
+    setTransactionDateTypeCriterion: datesType => {
+        set(draft => {
+            draft.datesType = datesType
+        })
+        postUpdate(set, get)
+    },
+    setTransactionRecurrentFilterCriterion: recurrentFilter => {
+        set(draft => {
+            draft.recurrentFilter = recurrentFilter
+        })
+        postUpdate(set, get)
+    },
+    setTimeZoneCriterion: timeZoneOffsetHours => {
+        set(draft => {
+            draft.timeZoneOffsetHours = timeZoneOffsetHours
+        })
+        postUpdate(set, get)
+    },
+    setCsvCharsetCriterion: csvCharset => {
+        set(draft => {
+            draft.csvCharset = csvCharset
+        })
+        postUpdate(set, get)
+    },
     triggerSearch: () => {
         normalizeRelativeDateRange(set, get)
+        const validationResult = syncValidation(set, get)
+        if (!validationResult.isValid) {
+            set(draft => {
+                draft.hasUnappliedFilters = true
+            })
+            return
+        }
+
         const currentSearchCriteria = extractSearchCriteriaFromState(get())
         get().onFiltersUpdate(currentSearchCriteria)
         set((draft) => {
@@ -934,6 +1000,11 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
         case CriterionTypeEnum.ERROR_CODE:
         case CriterionTypeEnum.COUNTRIES:
+        case CriterionTypeEnum.TRANSACTION_REPORT_SCOPE:
+        case CriterionTypeEnum.TRANSACTION_DATE_TYPE:
+        case CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER:
+        case CriterionTypeEnum.TIME_ZONE:
+        case CriterionTypeEnum.CSV_CHARSET:
             // not multiget, so do nothing
             break
         default:
@@ -1046,6 +1117,22 @@ const clearCriterionReducer = (
             break
         case CriterionTypeEnum.ERROR_CODE:
             draft.errorCode = getSearchUIInitialSearchCriteria(draft.defaults).errorCode
+            break
+        case CriterionTypeEnum.TRANSACTION_REPORT_SCOPE:
+            draft.scope = getSearchUIInitialSearchCriteria(draft.defaults).scope
+            draft.transactionIds = getSearchUIInitialSearchCriteria(draft.defaults).transactionIds
+            break
+        case CriterionTypeEnum.TRANSACTION_DATE_TYPE:
+            draft.datesType = getSearchUIInitialSearchCriteria(draft.defaults).datesType
+            break
+        case CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER:
+            draft.recurrentFilter = getSearchUIInitialSearchCriteria(draft.defaults).recurrentFilter
+            break
+        case CriterionTypeEnum.TIME_ZONE:
+            draft.timeZoneOffsetHours = getSearchUIInitialSearchCriteria(draft.defaults).timeZoneOffsetHours
+            break
+        case CriterionTypeEnum.CSV_CHARSET:
+            draft.csvCharset = getSearchUIInitialSearchCriteria(draft.defaults).csvCharset
             break
         default:
             exhaustiveCheck(criterionType)
@@ -1443,6 +1530,16 @@ const checkIfFiltersChanged = (
     options?: SearchUIUpdateOptions,
 ) => {
     const currentSearchCriteria = extractSearchCriteriaFromState(get())
+    const validationResult = syncValidation(set, get)
+
+    if (!validationResult.isValid) {
+        if (!get().hasUnappliedFilters) {
+            set(draft => {
+                draft.hasUnappliedFilters = true
+            })
+        }
+        return
+    }
 
     if (!isEqual(get().prevSearchCriteria, currentSearchCriteria)) {
         const isManualSearch = get().config?.manualSearch
@@ -1462,7 +1559,35 @@ const checkIfFiltersChanged = (
                 draft.hasUnappliedFilters = false
             })
         }
+    } else if (
+        get().hasUnappliedFilters
+        && isEqual(get().appliedSearchCriteria, currentSearchCriteria)
+    ) {
+        set(draft => {
+            draft.hasUnappliedFilters = false
+        })
     }
+}
+
+const syncValidation = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+    forceCallback = false,
+): SearchUIValidationResult => {
+    const validationResult = validateSearchUIFiltersState(get())
+    const validationChanged = !isEqual(get().validationResult, validationResult)
+
+    if (validationChanged) {
+        set(draft => {
+            draft.validationResult = validationResult
+        })
+    }
+
+    if (validationChanged || forceCallback) {
+        get().onValidationChange(validationResult)
+    }
+
+    return validationResult
 }
 
 const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCriteria => {
@@ -1504,6 +1629,12 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         markerStatus: extractMarkerStatus(state.markerStatus),
         processorLogEntryType: extractProcessorLogEntryType(state.processorLogEntryType),
         errorCode: extractErrorCode(state.errorCode),
+        scope: state.scope,
+        transactionIds: state.transactionIds,
+        datesType: state.datesType,
+        recurrentFilter: state.recurrentFilter,
+        timeZoneOffsetHours: state.timeZoneOffsetHours,
+        csvCharset: state.csvCharset,
     }
 }
 
@@ -1537,6 +1668,12 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         markerStatus: store.markerStatus,
         processorLogEntryType: store.processorLogEntryType,
         errorCode: store.errorCode,
+        scope: store.scope,
+        transactionIds: store.transactionIds,
+        datesType: store.datesType,
+        recurrentFilter: store.recurrentFilter,
+        timeZoneOffsetHours: store.timeZoneOffsetHours,
+        csvCharset: store.csvCharset,
     },
 })
 

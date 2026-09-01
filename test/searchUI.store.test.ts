@@ -19,6 +19,11 @@ import {
     createClearCriteriaUndoSnapshot,
 } from '../src/component/search-ui/filters/state/undo'
 import {
+    getRetainedSearchUIState,
+    resetSearchUIRetentionForTests,
+    retainSearchUIState,
+} from '../src/component/search-ui/filters/state/retention'
+import {
     getSearchUIFiltersInitialState,
     getSearchUIInitialSearchCriteria,
 } from '../src/component/search-ui/filters/state/initial'
@@ -26,6 +31,23 @@ import { initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProv
 import dayjs from 'dayjs'
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
+
+const REPORT_CRITERIA: CriterionTypeEnum[] = [
+    CriterionTypeEnum.TRANSACTION_REPORT_SCOPE,
+    CriterionTypeEnum.TRANSACTION_DATE_TYPE,
+    CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER,
+    CriterionTypeEnum.TIME_ZONE,
+    CriterionTypeEnum.CSV_CHARSET,
+]
+
+const REPORT_CONDITIONS = {
+    scope: 'SELECTED_BY_TX_RRN',
+    transactionIds: 'rrn-1\nrrn-2',
+    datesType: 'CREATED',
+    recurrentFilter: 'NON_RECURRENTS_ONLY',
+    timeZoneOffsetHours: -5,
+    csvCharset: 'windows-1251',
+} as const
 
 describe('SearchUIFilters Zustand store', () => {
     let store: ReturnType<typeof createSearchUIFiltersStore>
@@ -179,6 +201,107 @@ describe('SearchUIFilters Zustand store', () => {
             CriterionTypeEnum.CURRENCY,
             CriterionTypeEnum.CUSTOMER_LEVEL,
         ])
+    })
+
+    it('round-trips transaction report fields through templates and clear-all undo', async () => {
+        const saveSearchTemplate = jest.fn().mockResolvedValue(undefined)
+        store.setState({
+            defaults: {
+                ...initialSearchUIDefaults,
+                saveSearchTemplate,
+            },
+            possibleCriteria: REPORT_CRITERIA,
+            criteria: REPORT_CRITERIA,
+            ...REPORT_CONDITIONS,
+        })
+
+        store.getState().createTemplate('transaction-report-template')
+        await flushPromises()
+
+        const savedTemplate = saveSearchTemplate.mock.calls[0][0].template as SearchUITemplate
+        expect(savedTemplate.searchConditions).toEqual(expect.objectContaining(REPORT_CONDITIONS))
+
+        const undoSnapshot = createClearCriteriaUndoSnapshot(store.getState())
+        store.getState().clearCriteria()
+        expect(store.getState()).toEqual(expect.objectContaining({
+            scope: 'ALL',
+            transactionIds: '',
+            datesType: 'CREATED',
+            recurrentFilter: 'ALL',
+            timeZoneOffsetHours: null,
+            csvCharset: null,
+        }))
+
+        store.getState().restoreClearCriteriaSnapshot(undoSnapshot)
+        expect(store.getState()).toEqual(expect.objectContaining(REPORT_CONDITIONS))
+        expect(store.getState().criteria).toEqual(REPORT_CRITERIA)
+
+        store.getState().clearCriteria()
+        store.getState().setTemplate(savedTemplate)
+        expect(store.getState()).toEqual(expect.objectContaining(REPORT_CONDITIONS))
+        expect(store.getState().criteria).toEqual(REPORT_CRITERIA)
+    })
+
+    it('restores transaction report fields from in-memory retention', () => {
+        resetSearchUIRetentionForTests()
+        try {
+            store.setState({
+                initialized: true,
+                possibleCriteria: REPORT_CRITERIA,
+                predefinedCriteria: REPORT_CRITERIA,
+                criteria: REPORT_CRITERIA,
+                ...REPORT_CONDITIONS,
+            })
+            retainSearchUIState('transaction-report-retention', store.getState())
+
+            const snapshot = getRetainedSearchUIState('transaction-report-retention')
+            expect(snapshot?.searchConditions).toEqual(expect.objectContaining(REPORT_CONDITIONS))
+
+            const restoredStore = createSearchUIFiltersStore()
+            restoredStore.getState().setInitialState({
+                defaults: initialSearchUIDefaults,
+                settingsContextName: 'transaction-report-retention',
+                possibleCriteria: REPORT_CRITERIA,
+                predefinedCriteria: REPORT_CRITERIA,
+                criteria: REPORT_CRITERIA,
+                onFiltersUpdate: jest.fn(),
+            }, snapshot)
+
+            expect(restoredStore.getState()).toEqual(expect.objectContaining(REPORT_CONDITIONS))
+            expect(restoredStore.getState().restoredFromRetention).toBe(true)
+        } finally {
+            resetSearchUIRetentionForTests()
+        }
+    })
+
+    it('resets transaction report fields when criteria are removed and re-added', () => {
+        store.setState({
+            possibleCriteria: REPORT_CRITERIA,
+            criteria: REPORT_CRITERIA,
+            ...REPORT_CONDITIONS,
+        })
+
+        store.getState().removeCriterion(CriterionTypeEnum.TRANSACTION_REPORT_SCOPE)
+        expect(store.getState()).toEqual(expect.objectContaining({scope: 'ALL', transactionIds: ''}))
+        store.getState().addCriterion(CriterionTypeEnum.TRANSACTION_REPORT_SCOPE)
+
+        store.getState().removeCriterion(CriterionTypeEnum.TRANSACTION_DATE_TYPE)
+        expect(store.getState().datesType).toBe('CREATED')
+        store.getState().addCriterion(CriterionTypeEnum.TRANSACTION_DATE_TYPE)
+
+        store.getState().removeCriterion(CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER)
+        expect(store.getState().recurrentFilter).toBe('ALL')
+        store.getState().addCriterion(CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER)
+
+        store.getState().removeCriterion(CriterionTypeEnum.TIME_ZONE)
+        expect(store.getState().timeZoneOffsetHours).toBeNull()
+        store.getState().addCriterion(CriterionTypeEnum.TIME_ZONE)
+
+        store.getState().removeCriterion(CriterionTypeEnum.CSV_CHARSET)
+        expect(store.getState().csvCharset).toBeNull()
+        store.getState().addCriterion(CriterionTypeEnum.CSV_CHARSET)
+
+        expect(store.getState().criteria).toEqual(REPORT_CRITERIA)
     })
 
     it('removes criterion', () => {

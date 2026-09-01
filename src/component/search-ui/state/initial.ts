@@ -30,5 +30,11 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         markerStatus: null,
         processorLogEntryType: null,
         errorCode: null,
+        scope: 'ALL',
+        transactionIds: '',
+        datesType: 'CREATED',
+        recurrentFilter: 'ALL',
+        timeZoneOffsetHours: null,
+        csvCharset: null,
     }
 })

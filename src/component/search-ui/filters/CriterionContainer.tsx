@@ -29,6 +29,11 @@ import { CustomerLevelCriterion } from './component/criterion/CustomerLevelCrite
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
 import {SearchUICriterionAutoTestScopeProvider} from './AutoTestScope'
 import {useTranslation} from 'react-i18next'
+import { TransactionReportScopeCriterion } from './component/criterion/TransactionReportScopeCriterion'
+import { TransactionDateTypeCriterion } from './component/criterion/TransactionDateTypeCriterion'
+import { TransactionRecurrentFilterCriterion } from './component/criterion/TransactionRecurrentFilterCriterion'
+import { TimeZoneCriterion } from './component/criterion/TimeZoneCriterion'
+import { CsvCharsetCriterion } from './component/criterion/CsvCharsetCriterion'
 
 const CRITERION_AUTOTEST_ID = 'criterion'
 
@@ -144,6 +149,16 @@ export const CriterionContainer = (props: IProps) => {
                 return <ProcessorLogEntryTypesCriterion/>
             case CriterionTypeEnum.ERROR_CODE:
                 return <ErrorCodeCriterion/>
+            case CriterionTypeEnum.TRANSACTION_REPORT_SCOPE:
+                return <TransactionReportScopeCriterion/>
+            case CriterionTypeEnum.TRANSACTION_DATE_TYPE:
+                return <TransactionDateTypeCriterion/>
+            case CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER:
+                return <TransactionRecurrentFilterCriterion/>
+            case CriterionTypeEnum.TIME_ZONE:
+                return <TimeZoneCriterion/>
+            case CriterionTypeEnum.CSV_CHARSET:
+                return <CsvCharsetCriterion/>
             default:
                 exhaustiveCheck(type)
         }
