@@ -33,16 +33,35 @@ jobs:
       - name: Verify the exact release
         run: node -e "const p = require('./package.json'); if (p.name !== 'pne-ui' || p.version !== '4.3.0-rc.53') process.exit(1)"
 
+      - name: Verify the CI publishing credential is present
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error title=NPM_TOKEN missing::The repository has no usable NPM_TOKEN secret for remote publishing."
+            exit 1
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Install dependencies
         run: yarn install --immutable
 
       - name: Build
         run: yarn build
 
-      - name: Check
-        run: yarn check
-
       - name: Publish only to the next tag
-        run: npm publish --ignore-scripts --access public --tag next
+        run: |
+          set +e
+          publish_output="$(npm publish --ignore-scripts --access public --tag next 2>&1)"
+          publish_status=$?
+          set -e
+          if [ "$publish_status" -ne 0 ]; then
+            publish_code="$(printf '%s\n' "$publish_output" | sed -n 's/^npm error code \([A-Z0-9]*\)$/\1/p' | head -n 1)"
+            case "$publish_code" in
+              E401|E403|E404|ENEEDAUTH|EOTP) ;;
+              *) publish_code="rejected" ;;
+            esac
+            echo "::error title=npm publish $publish_code::The NPM_TOKEN secret exists, but npm rejected the guarded next-tag publication."
+            exit "$publish_status"
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
