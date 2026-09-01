@@ -36,11 +36,11 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Check
-        run: yarn check
-
       - name: Build
         run: yarn build
+
+      - name: Check
+        run: yarn check
 
       - name: Publish only to the next tag
         run: npm publish --ignore-scripts --access public --tag next
