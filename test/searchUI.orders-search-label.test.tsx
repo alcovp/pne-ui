@@ -5,17 +5,35 @@ import 'jest-canvas-mock'
 
 import {
     CriterionTypeEnum,
+    type OrderSearchLabel,
     SearchUIFilters,
     SearchUIProvider,
 } from '../src'
 
 jest.mock('react-i18next', () => ({
-    useTranslation: () => ({
-        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
+    useTranslation: (_namespace?: string, config?: {keyPrefix?: string}) => ({
+        t: (key: string, options?: {defaultValue?: string}) => {
+            const fullKey = config?.keyPrefix ? `${config.keyPrefix}.${key}` : key
+            const translations: Record<string, string> = {
+                'orders.search.labelTip.destination': 'dest.',
+                'orders.search.labelTip.source': 'src.',
+                'searchLabel.dest_bin_last': 'by 6+4',
+                'searchLabel.dest_last4': 'by last 4',
+                'searchLabel.source_bin_last4': 'by 6+4',
+                'searchLabel.source_last4': 'by last 4',
+            }
+
+            return translations[fullKey] ?? options?.defaultValue ?? fullKey
+        },
     }),
 }))
 
-const renderOrderSearch = (showCMSOrderSearchLabels?: () => boolean) => {
+const renderOrderSearch = (
+    showCMSOrderSearchLabels?: () => boolean,
+    ordersSearchLabel: OrderSearchLabel = 'customer_id',
+    ordersSearchValue = '42',
+    settingsContextName = 'order-search-labels',
+) => {
     const onFiltersUpdate = jest.fn()
     const defaults = showCMSOrderSearchLabels === undefined
         ? {}
@@ -24,12 +42,12 @@ const renderOrderSearch = (showCMSOrderSearchLabels?: () => boolean) => {
     render(
         <SearchUIProvider defaults={defaults}>
             <SearchUIFilters
-                settingsContextName={'order-search-labels'}
+                settingsContextName={settingsContextName}
                 possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                 predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                 initialSearchConditions={{
-                    ordersSearchLabel: 'customer_id',
-                    ordersSearchValue: '42',
+                    ordersSearchLabel,
+                    ordersSearchValue,
                 }}
                 onFiltersUpdate={onFiltersUpdate}
                 config={{
@@ -43,6 +61,45 @@ const renderOrderSearch = (showCMSOrderSearchLabels?: () => boolean) => {
     return onFiltersUpdate
 }
 
+beforeEach(() => {
+    localStorage.clear()
+})
+
+describe('SearchUI selected order-search label', () => {
+    it.each([
+        ['source_last4', '9579', 'by last 4 src.'],
+        ['dest_last4', '9579', 'by last 4 dest.'],
+        ['source_bin_last4', '4050 64XX XXXX 9579', 'by 6+4 src.'],
+        ['dest_bin_last', '4050 64XX XXXX 9579', 'by 6+4 dest.'],
+    ] as const)('keeps the card side visible for %s', async (ordersSearchLabel, ordersSearchValue, expectedLabel) => {
+        renderOrderSearch(
+            undefined,
+            ordersSearchLabel,
+            ordersSearchValue,
+            `qualifier-${ordersSearchLabel}`,
+        )
+
+        await waitFor(() => {
+            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label'))
+                .map(element => element.textContent)
+
+            expect(chipLabels).toContain(expectedLabel)
+        })
+    })
+
+    it('does not qualify a label outside source and destination card fields', async () => {
+        renderOrderSearch(undefined, 'customer_id', '42', 'qualifier-neutral')
+
+        await waitFor(() => {
+            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label'))
+                .map(element => element.textContent)
+
+            expect(chipLabels).toContain('searchLabel.customer_id')
+            expect(chipLabels.some(label => label?.includes('src.') || label?.includes('dest.'))).toBe(false)
+        })
+    })
+})
+
 const openLabelPicker = async () => {
     const select = await screen.findByRole('combobox')
     fireEvent.mouseDown(select)
@@ -50,7 +107,7 @@ const openLabelPicker = async () => {
 
 describe('SearchUI order-search label visibility', () => {
     it('shows CMS labels by default', async () => {
-        renderOrderSearch()
+        renderOrderSearch(undefined, 'customer_id', '42', 'visibility-default')
         await openLabelPicker()
 
         expect(await screen.findByRole('option', {name: 'searchLabel.customer_id'})).not.toBeNull()
@@ -58,7 +115,12 @@ describe('SearchUI order-search label visibility', () => {
     })
 
     it('hides only CMS label options while preserving an existing condition', async () => {
-        const onFiltersUpdate = renderOrderSearch(() => false)
+        const onFiltersUpdate = renderOrderSearch(
+            () => false,
+            'customer_id',
+            '42',
+            'visibility-hidden',
+        )
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
