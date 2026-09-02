@@ -40,7 +40,7 @@ export const SearchUIOrdersSearchLabelSelect = () => {
 }
 
 const labelTipSx = {
-    color: '#bbbbbb',
+    color: 'text.secondary',
     fontSize: '10px',
     lineHeight: '12px',
 }

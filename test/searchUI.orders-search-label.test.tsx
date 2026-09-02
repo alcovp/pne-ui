@@ -98,6 +98,21 @@ describe('SearchUI selected order-search label', () => {
             expect(chipLabels.some(label => label?.includes('src.') || label?.includes('dest.'))).toBe(false)
         })
     })
+
+    it('keeps the qualifier secondary but readable on the chip background', async () => {
+        renderOrderSearch(
+            undefined,
+            'source_bin_last4',
+            '4050 64XX XXXX 9579',
+            'qualifier-contrast',
+        )
+
+        const labelTip = await screen.findByText('src.')
+        const labelTipStyle = getComputedStyle(labelTip)
+
+        expect(labelTipStyle.color).toBe('rgba(0, 0, 0, 0.6)')
+        expect(labelTipStyle.fontSize).toBe('10px')
+    })
 })
 
 const openLabelPicker = async () => {
