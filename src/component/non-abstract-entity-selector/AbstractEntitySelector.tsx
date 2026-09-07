@@ -1,11 +1,12 @@
 import React, {HTMLAttributes, useEffect, useState} from 'react';
-import {DragDropContext, Draggable, DraggableProvided, Droppable, DropResult} from '@hello-pangea/dnd';
+import {DragDropContext, Draggable, DraggableProvided, Droppable, DropResult, useKeyboardSensor, useMouseSensor} from '@hello-pangea/dnd';
 import {Box, IconButton, InputAdornment, Stack} from '@mui/material';
 import {Virtuoso} from 'react-virtuoso';
 import {TFunction, useTranslation} from 'react-i18next';
 
 import {AddedListWrapper, ColumnWrapper, Container, HeaderColumn, HeaderColumnWrapper,} from './styled';
 import ItemEntitySelector, {ItemEntitySelectorAttributes} from './ItemEntitySelector';
+import useImmediateTouchSensor from './useImmediateTouchSensor';
 import {
     AbstractEntity,
     assertObject,
@@ -19,6 +20,8 @@ import {
 import PneTextField from '../PneTextField';
 import PneButton from '../PneButton';
 import ClearIcon from '@mui/icons-material/Clear'
+
+const immediateDragSensors = [useMouseSensor, useKeyboardSensor, useImmediateTouchSensor];
 
 export type AbstractEntitySelectorItemAttributes = ItemEntitySelectorAttributes
 
@@ -61,6 +64,8 @@ export interface IAbstractEntityOptions<T> {
     height?: string
     /** Keep small lists mounted during touch dragging; large lists remain virtualized by default. */
     virtualized?: boolean
+    /** A separate button starts touch dragging on movement, without holding. Keeps rows mounted. */
+    dragHandle?: 'row' | 'button'
     disableMoving?: 'ADDED' | 'AVAILABLE' | undefined
     allowNewlyAddedRemoval?: boolean
     optionRenderer?: TFunction
@@ -131,7 +136,8 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         list,
         selected,
         height,
-        virtualized = true,
+        virtualized: requestedVirtualization = true,
+        dragHandle = 'row',
         optionRenderer,
         disableMoving,
         allowNewlyAddedRemoval = false,
@@ -142,6 +148,8 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         getItemAttributes,
         elementAttributes,
     } = props;
+
+    const virtualized = requestedVirtualization && dragHandle !== 'button';
 
     const {t} = useTranslation();
 
@@ -458,6 +466,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     item={item}
                     name={renderOption(item.displayName)}
                     itemAttributes={getItemAttributes?.(item, 'AVAILABLE')}
+                    dragHandle={dragHandle}
                 />
             )}
         </Draggable>
@@ -478,6 +487,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     item={item}
                     name={renderOption(item.displayName)}
                     itemAttributes={getItemAttributes?.(item, 'ADDED')}
+                    dragHandle={dragHandle}
                 />
             )}
         </Draggable>
@@ -524,7 +534,12 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     autoFocus={true}
                 />
             </Box>
-            <DragDropContext onDragEnd={onDragEnd}>
+            <DragDropContext
+                key={dragHandle}
+                onDragEnd={onDragEnd}
+                enableDefaultSensors={dragHandle === 'row'}
+                sensors={dragHandle === 'button' ? immediateDragSensors : undefined}
+            >
                 <Container height={height}>
                     <ColumnWrapper {...elementAttributes?.availableColumn}>
                         <AddedListWrapper>

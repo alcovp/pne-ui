@@ -31,13 +31,14 @@ const rect = (left: number, top: number, width: number, height: number): DOMRect
 const selected = [{id: 1, displayName: 'Name'}, {id: 2, displayName: 'Status'}]
 const available = [{id: 3, displayName: 'Email'}, {id: 4, displayName: 'Role'}]
 
-const renderSelector = (disableMoving?: 'ADDED' | 'AVAILABLE', virtualized?: boolean) => {
+const renderSelector = (disableMoving?: 'ADDED' | 'AVAILABLE', virtualized?: boolean, dragHandle?: 'row' | 'button') => {
     const onChange = jest.fn()
     render(<AbstractEntitySelector
         list={available}
         selected={selected}
         disableMoving={disableMoving}
         virtualized={virtualized}
+        dragHandle={dragHandle}
         elementAttributes={{
             addedColumn: {'data-testid': 'added'},
             availableColumn: {'data-testid': 'available'},
@@ -50,6 +51,20 @@ const renderSelector = (disableMoving?: 'ADDED' | 'AVAILABLE', virtualized?: boo
 const lastIds = (onChange: jest.Mock) => onChange.mock.calls.at(-1)?.map(
     (items: {id: number}[]) => items.map(item => item.id),
 )
+
+const pointer = (target: Element, type: string, clientX: number, clientY: number) => {
+    const event = new MouseEvent(type, {bubbles: true, cancelable: true, button: 0, clientX, clientY})
+    Object.defineProperties(event, {
+        pointerId: {value: 1},
+        pointerType: {value: 'touch'},
+        isPrimary: {value: true},
+    })
+    fireEvent(target, event)
+    return event
+}
+
+const gripFor = (name: string) => screen.getByRole('button', {name})
+    .parentElement!.querySelector<HTMLButtonElement>('[data-rfd-drag-handle-draggable-id]')!
 
 describe('AbstractEntitySelector drag handles', () => {
     beforeEach(() => {
@@ -72,6 +87,71 @@ describe('AbstractEntitySelector drag handles', () => {
 
     afterEach(() => {
         jest.restoreAllMocks()
+    })
+
+    describe('separate immediate drag button', () => {
+        it.each([
+            ['Name', 420, [[2, 1], [3, 4]]],
+            ['Email', 120, [[1, 2], [4, 3]]],
+        ] as const)('reorders %s with immediate movement and does not turn the drop into a transfer', async (name, x, expected) => {
+            const onChange = renderSelector(undefined, undefined, 'button')
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2], [3, 4]]))
+            const label = screen.getByRole('button', {name})
+            const grip = gripFor(name)
+            expect(grip).not.toBe(label)
+            expect(label.hasAttribute('data-rfd-drag-handle-draggable-id')).toBe(false)
+            expect(grip.style.touchAction).toBe('none')
+            pointer(grip, 'pointerdown', x, 120)
+            expect(grip.parentElement?.style.position).not.toBe('fixed')
+            // No elapsed hold: the very next pointer movement must lift the row.
+            pointer(grip, 'pointermove', x, 160)
+            expect(grip.parentElement?.style.position).toBe('fixed')
+            expect(grip.isConnected).toBe(true)
+            pointer(grip, 'pointerup', x, 160)
+            fireEvent.click(grip)
+            await waitFor(() => expect(lastIds(onChange)).toEqual(expected))
+            expect(grip.parentElement?.style.position).not.toBe('fixed')
+        })
+
+        it('leaves label swipes free for scrolling and still transfers by clicking the label', async () => {
+            const onChange = renderSelector(undefined, false, 'button')
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2], [3, 4]]))
+            const label = screen.getByRole('button', {name: 'Email'})
+            const down = pointer(label, 'pointerdown', 120, 120)
+            const move = pointer(label, 'pointermove', 120, 160)
+            pointer(label, 'pointerup', 120, 160)
+            expect(down.defaultPrevented).toBe(false)
+            expect(move.defaultPrevented).toBe(false)
+            expect(label.parentElement?.style.position).not.toBe('fixed')
+            expect(lastIds(onChange)).toEqual([[1, 2], [3, 4]])
+            fireEvent.click(label)
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2, 3], [4]]))
+        })
+
+        it('keeps a tap on the grip separate from label click and supports keyboard reordering', async () => {
+            const onChange = renderSelector(undefined, false, 'button')
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2], [3, 4]]))
+            const grip = gripFor('Name')
+            pointer(grip, 'pointerdown', 420, 120)
+            pointer(grip, 'pointerup', 420, 120)
+            fireEvent.click(grip)
+            expect(lastIds(onChange)).toEqual([[1, 2], [3, 4]])
+            act(() => grip.focus())
+            fireEvent.keyDown(grip, {key: ' ', code: 'Space', keyCode: 32})
+            await waitFor(() => expect(grip.parentElement?.style.position).toBe('fixed'))
+            fireEvent.keyDown(window, {key: 'ArrowDown', code: 'ArrowDown', keyCode: 40})
+            fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[2, 1], [3, 4]]))
+        })
+
+        it('omits the grip where moving is disabled', async () => {
+            const onChange = renderSelector('ADDED', false, 'button')
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2], [3, 4]]))
+            expect(gripFor('Name')).toBeNull()
+            expect(gripFor('Email')).not.toBeNull()
+            fireEvent.click(screen.getByRole('button', {name: 'Name'}))
+            expect(lastIds(onChange)).toEqual([[1, 2], [3, 4]])
+        })
     })
 
     it.each([

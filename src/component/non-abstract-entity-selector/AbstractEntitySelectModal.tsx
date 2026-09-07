@@ -24,6 +24,8 @@ interface IProps<T extends AbstractEntitySelectorProp> {
     loading?: boolean;
     /** Use false for short reorderable lists to keep the original touch target mounted. */
     virtualized?: boolean;
+    /** Show a separate handle for immediate touch dragging; disables list virtualization. */
+    dragHandle?: 'row' | 'button';
     disableMoving?: 'ADDED' | 'AVAILABLE' | undefined;
     allowNewlyAddedRemoval?: boolean;
     optionRenderer?: TFunction;
@@ -46,7 +48,8 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         title,
         subTitle,
         loading = false,
-        virtualized = true,
+        virtualized: requestedVirtualization = true,
+        dragHandle = 'row',
         disableMoving,
         allowNewlyAddedRemoval,
         optionRenderer,
@@ -58,6 +61,8 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         getItemAttributes,
         elementAttributes,
     } = props;
+
+    const virtualized = requestedVirtualization && dragHandle !== 'button';
 
     const {t} = useTranslation();
 
@@ -90,6 +95,7 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         selected: mappedList,
         height: autoHeight(),
         virtualized,
+        dragHandle,
         disableMoving,
         allowNewlyAddedRemoval,
         optionRenderer,
