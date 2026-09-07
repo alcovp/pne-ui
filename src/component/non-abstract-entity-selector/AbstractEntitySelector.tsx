@@ -533,6 +533,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                                     draggableId={item.id.toString()}
                                                     index={index}
                                                     isDragDisabled={disableMoving === 'AVAILABLE'}
+                                                    disableInteractiveElementBlocking
                                                 >
                                                     {(provided) => (
                                                         <ItemEntitySelector
@@ -611,6 +612,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                                     draggableId={item.id.toString()}
                                                     index={index}
                                                     isDragDisabled={!canMoveFromAdded(item)}
+                                                    disableInteractiveElementBlocking
                                                 >
                                                     {(provided: DraggableProvided) => (
                                                         <ItemEntitySelector
