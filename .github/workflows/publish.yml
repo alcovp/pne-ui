@@ -1,43 +1,87 @@
-# This is a name of the workflow
-name: build
-# Controls when the workflow will run
+name: Publish pne-ui
+
 on:
-  # Triggers the workflow on published releases
-  release:
-    types: [ published ]
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+  push:
+    tags:
+      - 'npm/v*'
+
+permissions: {}
+
+# Never interrupt an active publication. Send one release at a time: GitHub
+# concurrency keeps only one pending run and can replace it with a newer one.
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    name: Build, check and pack
+    if: github.repository == 'alcovp/pne-ui'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
     steps:
-
-      - name: Checkout
-        # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        # Setup node environment
-        uses: actions/setup-node@v4
+      - name: Check out release tag and branch history
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
-          # Node version. Run "node -v" to check the latest version
-          node-version: 18.x
-          registry-url: https://registry.npmjs.org/
-
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up release runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Verify pinned npm
+        run: test "$(npm --version)" = "11.9.0"
+      - name: Validate release tag
+        run: node scripts/release-ci.mjs validate
       - name: Install dependencies
-        run: yarn install --immutable
+        run: node .yarn/releases/yarn-4.2.2.cjs install --immutable
+      - name: Build, check and inspect release archive
+        run: node .yarn/releases/yarn-4.2.2.cjs release:check
+      - name: Upload checked archive
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: release-package
+          path: |
+            .release/*.tgz
+            .release/release.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
 
-      - name: Check
-        run: yarn check
-
-      - name: Build
-        run: yarn build
-
-      - name: Publish
-        run: npm publish --ignore-scripts --access public
-
-        env:
-          # We need this to our NPM account
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish:
+    name: Publish checked archive through npm OIDC
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out validation scripts from the release tag
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+          sparse-checkout: |
+            scripts
+          # Cone mode also checks out root files (package.json and .nvmrc).
+      - name: Set up release runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Verify pinned npm
+        run: test "$(npm --version)" = "11.9.0"
+      - name: Download checked archive from this run
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+        with:
+          name: release-package
+          path: .release
+      - name: Verify and publish the exact archive
+        run: node scripts/release-ci.mjs publish

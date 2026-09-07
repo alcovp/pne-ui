@@ -6,7 +6,7 @@ This file gives Codex a quick-start cheat sheet: tools, commands, and where to l
 Fast facts
 ----------
 - Package manager: Yarn 4.2.2 (berry; repo ships `.yarn/`). Use `yarn`, not `npm`.
-- Node target: 18+ (current toolchain: TypeScript 6, React 19, MUI 9).
+- Development/release runtime: Node 24.14.0 (`.nvmrc`), npm 11.9.0; Yarn 4.2.2 (TypeScript 6, React 19, MUI 9).
 - Sources live in `src/`, tests in `test/`. Built outputs `cjs/`, `esm/`, `storybook-static/` are generated — do not edit.
 
 Core commands
@@ -18,6 +18,13 @@ Core commands
 - Type-check public contracts: `yarn typecheck:contracts`
 - Type-check stories: `yarn typecheck:stories`
 - Storybook: `yarn storybook` (dev) / `yarn build-storybook`
+
+Releases
+--------
+- Read `docs/releasing.md` before release work. Use the explicit `release:prepare`, `release:send`, and `release:status` commands.
+- `release:prepare` changes the local version and creates a local commit/tag. `release:send` pushes the branch and selected release tag to origin, triggering npm publication; treat it as release authorization, not a routine sync.
+- `release:send --dry-run` does not push. `release:status` is read-only. Never run a real prepare/send just to check the tooling.
+- Ordinary branch pushes do not run release checks. CI publication uses the single tag-triggered `publish.yml`; RC goes to `next`, stable to `latest` from `master`.
 
 Search and edits
 ----------------

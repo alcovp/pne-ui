@@ -30,3 +30,6 @@ storybook-static
 !.yarn/versions
 
 /.yarn/install-state.gz
+
+# Local release archives
+/.release/

@@ -1,7 +1,7 @@
 # pne-ui
 
 [![NPM version][npm-image]][npm-url]
-[![Build][github-build]][github-build-url]
+[![npm release][github-publish]][github-publish-url]
 
 Мега обертка над MUI
 
@@ -2056,41 +2056,28 @@ export const FabDemo = () => (
 
 ## Публикация пакета
 
-Перед публикацией выполните `yarn npmLogin`. Release-команды проверяют npm-сессию, запускают тесты, линтер, сборку и
-`npm pack --dry-run` перед `npm publish`.
-
-Стабильные версии публикуются под npm dist-tag `latest`:
-
-| Команда | Результат |
-| --- | --- |
-| `yarn release` / `yarn release:patch` | Для стабильной версии поднять patch; для RC снять `-rc.N`. Затем опубликовать. Это команда по умолчанию, если отдельный bump был забыт. |
-| `yarn release:minor` | Поднять minor и опубликовать. |
-| `yarn release:major` | Поднять major и опубликовать. |
-| `yarn release:stable` | Снять текущий `-rc.N` и опубликовать стабильную версию; для уже стабильной версии работает как patch release. |
-| `yarn release:current` / `yarn publish:stable` | Опубликовать уже выставленную стабильную версию без изменения номера. |
-
-RC-версии публикуются под dist-tag `next`, поэтому не заменяют стабильную версию для обычной установки:
+Релиз запускается явной отправкой тега `npm/v<version>` через `yarn release:send`. Обычный push ветки не
+запускает проверки или публикацию. Единственный workflow `publish.yml` собирает, проверяет и упаковывает
+библиотеку, затем публикует проверенный архив через npm Trusted Publishing / OIDC.
 
 | Команда | Результат |
 | --- | --- |
-| `yarn release:rc:current` | Опубликовать уже выставленную RC-версию без изменения номера. |
-| `yarn release:rc:next` | Например, `4.3.0-rc.0` → `4.3.0-rc.1`, затем опубликовать. |
-| `yarn release:rc:patch` | Начать следующую patch RC-линейку и опубликовать. |
-| `yarn release:rc:minor` | Начать следующую minor RC-линейку и опубликовать. |
-| `yarn release:rc:major` | Начать следующую major RC-линейку и опубликовать. |
+| `yarn release:prepare --channel next --bump prerelease` | Подготовить следующую RC-версию, локальный version commit и annotated tag; ничего не отправлять. |
+| `yarn release:prepare --channel latest --bump patch` | Подготовить стабильную версию из `master`. Доступны также `minor` / `major`. |
+| `yarn release:prepare --channel next --version <точная-rc-версия>` | Выбрать номер явно; `--version current` использует текущий номер из `package.json`. |
+| `yarn release:send --dry-run` | Проверить подготовленный релиз и показать адресную отправку ветки и одного тега без push. |
+| `yarn release:send` | Атомарно отправить подготовленную ветку и один релизный тег в `origin`, запуская публикацию. |
+| `yarn release:status` | Прочитать состояние релиза без изменения git refs и npm-пакета. |
 
-Версию можно изменить отдельно, без публикации: `yarn version:patch`, `yarn version:minor`, `yarn version:major`,
-`yarn version:rc:patch`, `yarn version:rc:minor`, `yarn version:rc:major` или `yarn version:rc:next`. После ручного bump
-используйте `yarn publish:stable` либо `yarn publish:rc`; команда должна соответствовать типу версии в `package.json`.
-Повторный запуск составной `release:*`-команды поднимет версию ещё раз.
-
-Если публикация завершилась ошибкой уже после bump, исправьте причину и повторите только `yarn publish:stable` или
-`yarn publish:rc`. Скрипты меняют `package.json`, но не создают git commit и tag — их следует оформить отдельно.
+RC публикуются под `next`; стабильные версии — под `latest` и только из истории `master`.
+Сначала требуется однократная настройка доверия npm/GitHub и доставка нового workflow на релизные ветки.
+Подробные команды, ограничения и порядок внедрения описаны в [docs/releasing.md](docs/releasing.md).
+Локальный Storybook остаётся доступен через `yarn storybook` и `yarn build-storybook`; Chromatic не используется.
 
 [npm-url]: https://www.npmjs.com/package/pne-ui
 
 [npm-image]: https://img.shields.io/npm/v/pne-ui
 
-[github-build]: https://github.com/alcovp/pne-ui/actions/workflows/publish.yml/badge.svg
+[github-publish]: https://github.com/alcovp/pne-ui/actions/workflows/publish.yml/badge.svg
 
-[github-build-url]: https://github.com/alcovp/pne-ui/actions/workflows/publish.yml
+[github-publish-url]: https://github.com/alcovp/pne-ui/actions/workflows/publish.yml
