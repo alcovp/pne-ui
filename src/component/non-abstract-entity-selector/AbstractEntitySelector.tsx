@@ -59,6 +59,8 @@ export interface IAbstractEntityOptions<T> {
     list: T[]
     selected: T[]
     height?: string
+    /** Keep small lists mounted during touch dragging; large lists remain virtualized by default. */
+    virtualized?: boolean
     disableMoving?: 'ADDED' | 'AVAILABLE' | undefined
     allowNewlyAddedRemoval?: boolean
     optionRenderer?: TFunction
@@ -129,6 +131,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         list,
         selected,
         height,
+        virtualized = true,
         optionRenderer,
         disableMoving,
         allowNewlyAddedRemoval = false,
@@ -436,6 +439,52 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         }
     }, [addedList, availableList]);
 
+    const renderAvailableItem = (index: number, item: AbstractEntity) => (
+        <Draggable
+            key={item.id}
+            draggableId={item.id.toString()}
+            index={index}
+            isDragDisabled={disableMoving === 'AVAILABLE'}
+            disableInteractiveElementBlocking
+        >
+            {(provided) => (
+                <ItemEntitySelector
+                    handleClick={() => {
+                        if (disableMoving !== 'AVAILABLE') {
+                            onListChange(item, 'AVAILABLE');
+                        }
+                    }}
+                    provided={provided}
+                    item={item}
+                    name={renderOption(item.displayName)}
+                    itemAttributes={getItemAttributes?.(item, 'AVAILABLE')}
+                />
+            )}
+        </Draggable>
+    );
+
+    const renderAddedItem = (index: number, item: AbstractEntity) => (
+        <Draggable
+            key={item.id}
+            draggableId={item.id.toString()}
+            index={index}
+            isDragDisabled={!canMoveFromAdded(item)}
+            disableInteractiveElementBlocking
+        >
+            {(provided: DraggableProvided) => (
+                <ItemEntitySelector
+                    handleClick={() => onListChange(item, 'ADD')}
+                    provided={provided}
+                    item={item}
+                    name={renderOption(item.displayName)}
+                    itemAttributes={getItemAttributes?.(item, 'ADDED')}
+                />
+            )}
+        </Draggable>
+    );
+
+    const visibleAvailableList = availableList.filter(item => renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase()));
+
     const HeightPreservingItem: React.FunctionComponent<HTMLAttributes<HTMLDivElement>> = ({children, ...props}) => {
         return (
             <div {...props} style={{minHeight: '32px'}}>
@@ -499,8 +548,8 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                             </HeaderColumnWrapper>
                             <Droppable
                                 droppableId={'availableList'}
-                                mode="virtual"
-                                renderClone={(provided, _snapshot, rubric) => {
+                                mode={virtualized ? 'virtual' : 'standard'}
+                                renderClone={virtualized ? (provided, _snapshot, rubric) => {
                                     return (
                                         <ItemEntitySelector
                                             handleClick={() => {
@@ -517,43 +566,28 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                             )}
                                         />
                                     )
-                                }}
+                                } : undefined}
                             >
-                                {(provided) => (
+                                {(provided) => virtualized ? (
                                     <Virtuoso
                                         components={{
                                             Item: HeightPreservingItem,
                                         }}
                                         scrollerRef={(value) => provided.innerRef(value as HTMLElement)}
-                                        data={availableList.filter(item => renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase()))}
-                                        itemContent={(index, item) => {
-                                            return (
-                                                <Draggable
-                                                    key={item.id}
-                                                    draggableId={item.id.toString()}
-                                                    index={index}
-                                                    isDragDisabled={disableMoving === 'AVAILABLE'}
-                                                    disableInteractiveElementBlocking
-                                                >
-                                                    {(provided) => (
-                                                        <ItemEntitySelector
-                                                            handleClick={() => {
-                                                                if (disableMoving !== 'AVAILABLE') {
-                                                                    onListChange(item, 'AVAILABLE');
-                                                                }
-                                                            }}
-                                                            provided={provided}
-                                                            item={item}
-                                                            name={renderOption(item.displayName)}
-                                                            itemAttributes={getItemAttributes?.(item, 'AVAILABLE')}
-                                                        />
-                                                    )}
-                                                </Draggable>
-                                            )
-                                        }}
+                                        data={visibleAvailableList}
+                                        itemContent={renderAvailableItem}
                                     >
                                         {provided.placeholder}
                                     </Virtuoso>
+                                ) : (
+                                    <Box
+                                        ref={provided.innerRef}
+                                        {...provided.droppableProps}
+                                        sx={{flex: 1, minHeight: 0}}
+                                    >
+                                        {visibleAvailableList.map((item, index) => renderAvailableItem(index, item))}
+                                        {provided.placeholder}
+                                    </Box>
                                 )}
                             </Droppable>
                         </AddedListWrapper>
@@ -580,8 +614,8 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                             </HeaderColumnWrapper>
                             <Droppable
                                 droppableId={'addedList'}
-                                mode="virtual"
-                                renderClone={(provided, _snapshot, rubric) => {
+                                mode={virtualized ? 'virtual' : 'standard'}
+                                renderClone={virtualized ? (provided, _snapshot, rubric) => {
                                     return (
                                         <ItemEntitySelector
                                             handleClick={() => {
@@ -596,41 +630,28 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                             )}
                                         />
                                     )
-                                }}
+                                } : undefined}
                             >
-                                {(provided) => (
+                                {(provided) => virtualized ? (
                                     <Virtuoso
                                         components={{
                                             Item: HeightPreservingItem,
                                         }}
                                         scrollerRef={(value) => provided.innerRef(value as HTMLElement)}
                                         data={addedList}
-                                        itemContent={(index, item) => {
-                                            return (
-                                                <Draggable
-                                                    key={item.id}
-                                                    draggableId={item.id.toString()}
-                                                    index={index}
-                                                    isDragDisabled={!canMoveFromAdded(item)}
-                                                    disableInteractiveElementBlocking
-                                                >
-                                                    {(provided: DraggableProvided) => (
-                                                        <ItemEntitySelector
-                                                            handleClick={() => {
-                                                                onListChange(item, 'ADD');
-                                                            }}
-                                                            provided={provided}
-                                                            item={item}
-                                                            name={renderOption(item.displayName)}
-                                                            itemAttributes={getItemAttributes?.(item, 'ADDED')}
-                                                        />
-                                                    )}
-                                                </Draggable>
-                                            )
-                                        }}
+                                        itemContent={renderAddedItem}
                                     >
                                         {provided.placeholder}
                                     </Virtuoso>
+                                ) : (
+                                    <Box
+                                        ref={provided.innerRef}
+                                        {...provided.droppableProps}
+                                        sx={{flex: 1, minHeight: 0}}
+                                    >
+                                        {addedList.map((item, index) => renderAddedItem(index, item))}
+                                        {provided.placeholder}
+                                    </Box>
                                 )}
                             </Droppable>
                         </AddedListWrapper>

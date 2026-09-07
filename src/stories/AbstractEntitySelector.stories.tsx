@@ -25,6 +25,7 @@ const FullViewColumnsExample = () => {
             open
             title='Full view columns'
             unMappedList={allColumns.filter(column => !columns.includes(column))}
+            virtualized={false}
         />}
     </Box>
 }
@@ -35,7 +36,7 @@ const meta = {
     parameters: {
         docs: {
             description: {
-                component: 'Drag the selected columns to reorder them, then save and reopen. Clicking an item moves it between lists. Keyboard dragging uses Space, arrow keys and Space; Escape cancels the drag.',
+                component: 'Drag the selected columns to reorder them, then save and reopen. On touch screens, briefly hold an item before moving it. Clicking an item moves it between lists. Keyboard dragging uses Space, arrow keys and Space; Escape cancels the drag. Short column lists use virtualized={false} to keep the original touch target mounted throughout the gesture.',
             },
         },
     },
