@@ -13,6 +13,11 @@ export const SearchUIOrdersSearchLabelSelect = () => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'searchLabel'})
 
     const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
+    const labelTip = ordersSearchLabel.startsWith('source_')
+        ? t('orders.search.labelTip.source', {defaultValue: 'src.'})
+        : ordersSearchLabel.startsWith('dest_')
+            ? t('orders.search.labelTip.destination', {defaultValue: 'dest.'})
+            : null
 
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
     const optionsDialogId = useId()
@@ -44,7 +49,13 @@ export const SearchUIOrdersSearchLabelSelect = () => {
             onClick={handleOpen}
             onKeyDown={handleKeyDown}
             label={<Box component={'span'} sx={triggerLabelSx}>
-                {optionRenderer(ordersSearchLabel)}
+                <Box component={'span'}>
+                    {optionRenderer(ordersSearchLabel)}
+                    {labelTip && <>
+                        {' '}
+                        <Box component={'span'} sx={labelTipSx}>{labelTip}</Box>
+                    </>}
+                </Box>
                 <ExpandMoreIcon aria-hidden={true} fontSize={'small'}/>
             </Box>}
             size={'small'}
@@ -68,4 +79,10 @@ const triggerLabelSx = {
     display: 'inline-flex',
     alignItems: 'center',
     columnGap: '4px',
+}
+
+const labelTipSx = {
+    color: 'text.secondary',
+    fontSize: '10px',
+    lineHeight: '12px',
 }

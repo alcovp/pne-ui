@@ -1,19 +1,32 @@
 import * as React from 'react'
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
 import {
     CriterionTypeEnum,
     ORDER_SEARCH_LABELS,
+    type OrderSearchLabel,
     SearchUIFilters,
     SearchUIProvider,
 } from '../src'
 import {ORDERS_SEARCH_LABEL_GROUPS} from '../src/component/search-ui/filters/component/select/SearchUICollapsableGroupSelect'
 
 jest.mock('react-i18next', () => ({
-    useTranslation: () => ({
-        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
+    useTranslation: (_namespace?: string, config?: {keyPrefix?: string}) => ({
+        t: (key: string, options?: {defaultValue?: string}) => {
+            const fullKey = config?.keyPrefix ? `${config.keyPrefix}.${key}` : key
+            const translations: Record<string, string> = {
+                'orders.search.labelTip.destination': 'dest.',
+                'orders.search.labelTip.source': 'src.',
+                'searchLabel.dest_bin_last': 'by 6+4',
+                'searchLabel.dest_last4': 'by last 4',
+                'searchLabel.source_bin_last4': 'by 6+4',
+                'searchLabel.source_last4': 'by last 4',
+            }
+
+            return translations[fullKey] ?? options?.defaultValue ?? fullKey
+        },
     }),
 }))
 
@@ -237,6 +250,7 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
 
         await waitFor(() => {
             expect(ordersTrigger.getAttribute('data-autotest-value')).toBe('source_last4')
+            expect(ordersTrigger.textContent).toBe('by last 4 src.')
             expect(ordersTrigger.getAttribute('aria-expanded')).toBe('false')
             expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
                 ordersSearchLabel: 'source_last4',
@@ -271,7 +285,12 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
     })
 })
 
-const renderOrderSearch = (showCMSOrderSearchLabels?: () => boolean) => {
+const renderOrderSearch = (
+    showCMSOrderSearchLabels?: () => boolean,
+    ordersSearchLabel: OrderSearchLabel = 'customer_id',
+    ordersSearchValue = '42',
+    settingsContextName = 'order-search-labels',
+) => {
     const onFiltersUpdate = jest.fn()
     const defaults = showCMSOrderSearchLabels === undefined
         ? {}
@@ -281,12 +300,12 @@ const renderOrderSearch = (showCMSOrderSearchLabels?: () => boolean) => {
         <SearchUIProvider defaults={defaults}>
             <SearchUIFilters
                 autoTestId='order-search-visibility'
-                settingsContextName={'order-search-labels'}
+                settingsContextName={settingsContextName}
                 possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                 predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                 initialSearchConditions={{
-                    ordersSearchLabel: 'customer_id',
-                    ordersSearchValue: '42',
+                    ordersSearchLabel,
+                    ordersSearchValue,
                 }}
                 onFiltersUpdate={onFiltersUpdate}
                 config={{
@@ -299,6 +318,98 @@ const renderOrderSearch = (showCMSOrderSearchLabels?: () => boolean) => {
 
     return {container, onFiltersUpdate}
 }
+
+describe('SearchUI selected order-search label', () => {
+    beforeEach(() => {
+        localStorage.clear()
+    })
+
+    it.each([
+        ['source_last4', '9579', 'by last 4 src.'],
+        ['dest_last4', '9579', 'by last 4 dest.'],
+        ['source_bin_last4', '4050 64XX XXXX 9579', 'by 6+4 src.'],
+        ['dest_bin_last', '4050 64XX XXXX 9579', 'by 6+4 dest.'],
+    ] as const)('keeps the card side visible for %s', async (ordersSearchLabel, ordersSearchValue, expectedLabel) => {
+        renderOrderSearch(
+            undefined,
+            ordersSearchLabel,
+            ordersSearchValue,
+            `qualifier-${ordersSearchLabel}`,
+        )
+
+        await waitFor(() => {
+            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label'))
+                .map(element => element.textContent)
+
+            expect(chipLabels).toContain(expectedLabel)
+        })
+    })
+
+    it('does not qualify a label outside source and destination card fields', async () => {
+        renderOrderSearch(undefined, 'customer_id', '42', 'qualifier-neutral')
+
+        await waitFor(() => {
+            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label'))
+                .map(element => element.textContent)
+
+            expect(chipLabels).toContain('searchLabel.customer_id')
+            expect(chipLabels.some(label => label?.includes('src.') || label?.includes('dest.'))).toBe(false)
+        })
+    })
+
+    it('keeps the qualifier secondary but readable on the chip background', async () => {
+        renderOrderSearch(
+            undefined,
+            'source_bin_last4',
+            '4050 64XX XXXX 9579',
+            'qualifier-contrast',
+        )
+
+        const labelTip = await screen.findByText('src.')
+        const labelTipStyle = getComputedStyle(labelTip)
+
+        expect(labelTipStyle.color).toBe('rgba(0, 0, 0, 0.6)')
+        expect(labelTipStyle.fontSize).toBe('10px')
+    })
+
+    it('updates and clears the qualifier through the native radio picker', async () => {
+        const {container, onFiltersUpdate} = renderOrderSearch(
+            undefined,
+            'source_last4',
+            '9579',
+            'qualifier-selection',
+        )
+        const trigger = getLabelTrigger(getOrdersCriterion(container, 'order-search-visibility'))
+
+        await waitFor(() => {
+            expect(trigger.textContent).toBe('by last 4 src.')
+        })
+
+        for (const [label, expectedLabel] of [
+            ['dest_last4', 'by last 4 dest.'],
+            ['customer_id', 'searchLabel.customer_id'],
+        ] as const) {
+            const {dialog} = await openLabelPicker(container)
+            const radio = dialog.querySelector<HTMLInputElement>(
+                `input[type="radio"][data-autotest="criterion-label-option"][data-autotest-value="${label}"]`,
+            )
+
+            expect(radio).not.toBeNull()
+            expect(trigger.getAttribute('aria-expanded')).toBe('true')
+            fireEvent.click(radio as HTMLInputElement)
+
+            await waitFor(() => {
+                expect(trigger.textContent).toBe(expectedLabel)
+                expect(trigger.getAttribute('data-autotest-value')).toBe(label)
+                expect(trigger.getAttribute('aria-expanded')).toBe('false')
+                expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+                    ordersSearchLabel: label,
+                    ...(label === 'dest_last4' ? {ordersSearchValue: '9579'} : {}),
+                }))
+            })
+        }
+    })
+})
 
 const openLabelPicker = async (container: HTMLElement) => {
     const criterion = getOrdersCriterion(container, 'order-search-visibility')
