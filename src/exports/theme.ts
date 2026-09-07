@@ -14,3 +14,4 @@ export {
     type PneThemeProviderProps,
 } from '../PneThemeProvider'
 export {Skin} from '../common/paynet/skin'
+export {PNE_ACTION_SPACING, pneActionSpacing, PneActionSpacingStyles} from '../actionSpacing'

@@ -1,5 +1,5 @@
 import * as React from "react";
-import {PneButton} from "../index";
+import {PneButton, PNE_ACTION_SPACING, pneActionSpacing} from "../index";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -188,12 +188,24 @@ export const UsageGuidelines: Story = {
         <Typography component='h2' sx={{fontSize: 18, fontWeight: 700, lineHeight: '24px', mb: 2}}>
             Рекомендуемые группы действий
         </Typography>
+        <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px', mb: 2, maxWidth: 840}}>
+            В заголовках страниц и модальных окнах задавайте gap контейнеру, без дополнительных margin
+            на кнопках. Внутри группы используйте --pne-action-buttons-gap; между отдельными группами
+            без разделителя — --pne-action-groups-gap. Оба токена сейчас равны 8 px и настраиваются независимо
+            в PNE_ACTION_SPACING. Для модальных окон используйте PneModalActions.
+        </Typography>
+        <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px', mb: 2, maxWidth: 840}}>
+            PneThemeProvider подключает CSS-переменные автоматически. С собственным ThemeProvider
+            подключайте PneActionSpacingStyles один раз в корне приложения или микрофронтенда.
+            Для sx доступны pneActionSpacing.buttons и pneActionSpacing.groups с библиотечными значениями
+            по умолчанию. Не копируйте определения токенов в CSS приложений.
+        </Typography>
         <Box sx={{display: 'flex', flexWrap: 'wrap', gap: 4}}>
             <Box>
                 <Typography sx={{color: '#697386', fontSize: 12, lineHeight: '18px', mb: 1}}>
                     Обычное подтверждение
                 </Typography>
-                <Box sx={{display: 'flex', gap: 1}}>
+                <Box sx={{display: 'flex', gap: pneActionSpacing.buttons}}>
                     <PneButton pneStyle='outlined'>Отмена</PneButton>
                     <PneButton pneStyle='contained'>Сохранить</PneButton>
                 </Box>
@@ -202,7 +214,7 @@ export const UsageGuidelines: Story = {
                 <Typography sx={{color: '#697386', fontSize: 12, lineHeight: '18px', mb: 1}}>
                     Подтверждение удаления
                 </Typography>
-                <Box sx={{display: 'flex', gap: 1}}>
+                <Box sx={{display: 'flex', gap: pneActionSpacing.buttons}}>
                     <PneButton pneStyle='outlined'>Отмена</PneButton>
                     <PneButton pneStyle='error'>Удалить</PneButton>
                 </Box>
@@ -246,6 +258,30 @@ export const UsageGuidelines: Story = {
                 Три и более строк означают, что подпись стоит сократить или вынести пояснение в соседний текст.
                 До исправления такую подпись всё равно нужно показывать целиком.
             </li>
+        </Box>
+    </Box>,
+}
+
+export const ActionGroups: StoryObj<{groupGap: number}> = {
+    args: {groupGap: PNE_ACTION_SPACING.groups},
+    argTypes: {groupGap: {control: {type: 'number', min: 0, max: 40, step: 4}}},
+    render: ({groupGap}) => <Box
+        style={{'--pne-action-groups-gap': `${groupGap}px`} as React.CSSProperties}
+        sx={{p: 3}}
+    >
+        <Typography sx={{mb: 2}}>Промежуток внутри групп — 8 px; между группами — {groupGap} px.</Typography>
+        <Box
+            data-action-spacing-example='groups'
+            sx={{display: 'flex', flexWrap: 'wrap', gap: pneActionSpacing.groups}}
+        >
+            <Box data-action-spacing-group='navigation' sx={{display: 'flex', gap: pneActionSpacing.buttons}}>
+                <PneButton pneStyle='neutral'>Импорт</PneButton>
+                <PneButton pneStyle='neutral'>Экспорт</PneButton>
+            </Box>
+            <Box data-action-spacing-group='editing' sx={{display: 'flex', gap: pneActionSpacing.buttons}}>
+                <PneButton pneStyle='outlined'>Отмена</PneButton>
+                <PneButton pneStyle='contained'>Сохранить</PneButton>
+            </Box>
         </Box>
     </Box>,
 }

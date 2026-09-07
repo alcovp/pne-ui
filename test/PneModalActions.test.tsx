@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {act, render, screen, within} from '@testing-library/react'
 
-import {PneModalActions} from '../src'
+import {PneModalActions, pneActionSpacing} from '../src'
 
 const buttonLabels = (container: HTMLElement) => (
     within(container)
@@ -75,6 +75,8 @@ describe('PneModalActions', () => {
         expect(buttonLabels(trailing)).toEqual(['Cancel', 'Save'])
         expect(leading.parentElement).toBe(actions)
         expect(trailing.parentElement).toBe(actions)
+        expect(window.getComputedStyle(actions).gap).toBe(pneActionSpacing.groups)
+        expect(window.getComputedStyle(trailing).gap).toBe(pneActionSpacing.buttons)
         expect(media.matchMedia).toHaveBeenCalledWith('(max-width:480px)')
 
         saveButton.focus()
@@ -114,7 +116,7 @@ describe('PneModalActions', () => {
 
         expect(buttonLabels(actions)).toEqual(['Back', 'Try editing', 'Done'])
         expect(buttonLabels(secondary)).toEqual(['Back', 'Try editing'])
-        expect(window.getComputedStyle(secondary).gap).toBe('8px')
+        expect(window.getComputedStyle(secondary).gap).toBe(pneActionSpacing.buttons)
 
         tryEditingButton.focus()
         act(() => media.setMatches(true))
@@ -198,9 +200,9 @@ describe('PneModalActions', () => {
         const leading = document.querySelector<HTMLElement>('[data-pne-modal-action="leading"]')!
         const trailing = document.querySelector<HTMLElement>('[data-pne-modal-actions-group="trailing"]')!
 
-        expect(window.getComputedStyle(actions).gap).toBe('8px')
+        expect(window.getComputedStyle(actions).gap).toBe(pneActionSpacing.buttons)
         expect(window.getComputedStyle(leading).marginInlineEnd).toBe('0px')
-        expect(window.getComputedStyle(trailing).gap).toBe('8px')
+        expect(window.getComputedStyle(trailing).gap).toBe(pneActionSpacing.buttons)
     })
 
     it('forwards a div ref and common root attributes while keeping its marker managed', () => {

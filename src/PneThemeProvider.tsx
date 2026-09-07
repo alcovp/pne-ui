@@ -1,6 +1,7 @@
 import {ThemeProvider} from '@mui/material/styles'
 import React, {createContext, useCallback, useContext, useMemo, useState} from 'react'
 import type {Skin} from './common/paynet/skin'
+import {PneActionSpacingStyles} from './actionSpacing'
 import {
     createPneTheme,
     type PneColorMode,
@@ -52,7 +53,10 @@ export const PneThemeProvider = ({
 
     return (
         <PneColorModeContext.Provider value={contextValue}>
-            <ThemeProvider theme={theme}>{children}</ThemeProvider>
+            <ThemeProvider theme={theme}>
+                <PneActionSpacingStyles/>
+                {children}
+            </ThemeProvider>
         </PneColorModeContext.Provider>
     )
 }

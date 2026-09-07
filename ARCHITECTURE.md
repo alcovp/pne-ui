@@ -36,6 +36,7 @@ Key flows
   - `createPneTheme(skin, {colorMode, ...overrides})` injects `skin`, derives accessible `palette.pne` surface/brand roles at runtime, and retains the compatibility palettes (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated`, etc.) via module declarations in `src/index.ts`.
   - `palette.pne.border.subtle` is the low-emphasis separator for sections on `background.paper`; modal and coachmark header/footer dividers consume it without weakening the global MUI divider role.
   - `createPneThemeOptions` exposes the pure options contract; `PneThemeProvider` owns only React/MUI context, while applications own profile or other persistence.
+  - `actionSpacing.tsx` owns independent button/group spacing tokens. `PneThemeProvider` mounts `PneActionSpacingStyles`; consumers with their own provider mount it once. `PneModalActions` consumes the same variables with library-owned fallbacks. See `docs/action-spacing.md`.
   - MUI components (`MuiIconButton`, `MuiButton`, `MuiToggleButtonGroup`) define styleOverrides for custom colors.
 
 Working with the public API

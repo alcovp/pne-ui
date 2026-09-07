@@ -1,6 +1,7 @@
 import React, {forwardRef, ReactNode} from 'react'
 import {SxProps, styled, Theme} from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
+import {pneActionSpacing} from '../actionSpacing'
 
 type PneModalActionsDataAttributes = {
     [attribute: `data-${string}`]: string | number | boolean | undefined
@@ -10,7 +11,7 @@ export type PneModalActionsProps = Omit<
     React.HTMLAttributes<HTMLDivElement>,
     'children' | 'dangerouslySetInnerHTML'
 > & PneModalActionsDataAttributes & {
-    /** Keep the leading action in the same 8px group instead of separating it to the opposite edge. */
+    /** Keep the leading action in the same button group instead of separating it to the opposite edge. */
     groupLeading?: boolean
     primary: ReactNode
     secondary?: ReactNode
@@ -57,6 +58,7 @@ const PneModalActions = forwardRef<HTMLDivElement, PneModalActionsProps>(
         return (
             <ActionsRoot
                 {...safeRootProps}
+                $groupLeading={groupLeading}
                 ref={ref}
                 data-pne-modal-actions='true'
             >
@@ -81,11 +83,13 @@ const sanitizeRootProps = (
     return safeProps as Omit<PneModalActionsProps, 'leading' | 'primary' | 'secondary'>
 }
 
-const ActionsRoot = styled('div')`
+const ActionsRoot = styled('div', {
+    shouldForwardProp: prop => prop !== '$groupLeading',
+})<{ $groupLeading: boolean }>`
     display: flex;
     width: 100%;
     box-sizing: border-box;
-    gap: 8px;
+    gap: ${({$groupLeading}) => $groupLeading ? pneActionSpacing.buttons : pneActionSpacing.groups};
     align-items: center;
     justify-content: flex-end;
     flex-wrap: nowrap;
@@ -101,7 +105,7 @@ const ActionSlot = styled('div')`
     align-items: center;
     flex: 0 0 auto;
     flex-wrap: nowrap;
-    gap: 8px;
+    gap: ${pneActionSpacing.buttons};
     white-space: nowrap;
 
     & > *,
@@ -144,7 +148,7 @@ const TrailingActions = styled('div')`
     align-items: center;
     justify-content: flex-end;
     flex: 0 0 auto;
-    gap: 8px;
+    gap: ${pneActionSpacing.buttons};
 
     @media (max-width: 480px) {
         flex: 0 1 auto;
