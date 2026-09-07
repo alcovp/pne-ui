@@ -100,8 +100,10 @@ function registryData(versions, latest = '4.2.13', next = '4.3.0-rc.54') {
 
 function registrySequence(...responses) {
     const urls = []
-    const fetchImpl = async url => {
+    const requests = []
+    const fetchImpl = async (url, init) => {
         urls.push(url)
+        requests.push({url, init})
         assert.ok(responses.length, `Unexpected request: ${url}`)
         const data = responses.shift()
         if (data instanceof Error) throw data
@@ -110,11 +112,23 @@ function registrySequence(...responses) {
         assert.equal(url, expectedUrl)
         return {ok: true, json: async () => data}
     }
-    return {fetchImpl, urls, assertConsumed: () => assert.equal(responses.length, 0)}
+    return {fetchImpl, urls, requests, assertConsumed: () => assert.equal(responses.length, 0)}
 }
 
 const beforePublish = () => registryData(['4.2.13', '4.3.0-rc.54'])
 const published = manifest => ({name: 'pne-ui', version: manifest.version, dist: {integrity: `sha512-${manifest.sha512}`, shasum: manifest.sha1}})
+const afterPublish = manifest => registryData(['4.2.13', '4.3.0-rc.54', manifest.version], '4.2.13', manifest.version)
+
+function verificationClock() {
+    let now = 0
+    const delays = [], logs = []
+    return {
+        delays, logs, advance: ms => { now += ms },
+        nowImpl: () => now,
+        waitImpl: async ms => { delays.push(ms); now += ms },
+        logImpl: message => logs.push(message),
+    }
+}
 
 test('validates the tag event against annotated metadata and the checkout', async t => {
     const f = await fixture(t)
@@ -298,16 +312,116 @@ test('registry outages fail closed and do not publish', async t => {
     assert.equal(f.calls.some(call => call.args[0] === 'publish'), false)
 })
 
-test('post-publication verification detects digest, channel and RC latest changes without retrying publish', async t => {
-    for (const scenario of ['digest', 'channel', 'latest']) {
+test('post-publication integrity, newer channel and RC latest failures are immediate and never republish', async t => {
+    for (const scenario of ['digest', 'name', 'sha1', 'channel', 'latest', 'latest-and-stale-next', 'unauthorized']) {
         const f = await fixture(t)
         const {manifest} = await packRelease(f)
+        const clock = verificationClock()
         let responses = [beforePublish(), published(manifest)]
         if (scenario === 'digest') responses[1] = {...published(manifest), dist: {integrity: 'wrong'}}
-        else responses.push(registryData(['4.2.13', '4.2.14', '4.3.0-rc.54', manifest.version], scenario === 'latest' ? '4.2.14' : '4.2.13', scenario === 'channel' ? '4.3.0-rc.54' : manifest.version))
-        await assert.rejects(publishRelease({...f, fetchImpl: registrySequence(...responses).fetchImpl}), scenario === 'digest' ? /different archive integrity/ : scenario === 'channel' ? /expected channel/ : /latest changed/)
+        else if (scenario === 'name') responses[1].name = 'different-package'
+        else if (scenario === 'sha1') responses[1].dist.shasum = 'wrong'
+        else if (scenario === 'unauthorized') responses[1] = {http: 403}
+        else responses.push(registryData(['4.2.13', '4.2.14', '4.3.0-rc.54', manifest.version, '4.3.0-rc.56'],
+            scenario.startsWith('latest') ? '4.2.14' : '4.2.13',
+            scenario === 'channel' ? '4.3.0-rc.56' : scenario === 'latest-and-stale-next' ? '4.3.0-rc.54' : manifest.version))
+        const registry = registrySequence(...responses)
+        await assert.rejects(publishRelease({...f, ...clock, fetchImpl: registry.fetchImpl}),
+            ['digest', 'name', 'sha1'].includes(scenario) ? /different archive integrity/
+                : scenario === 'channel' ? /expected channel/ : scenario === 'unauthorized' ? /HTTP 403/ : /latest changed/)
+        registry.assertConsumed()
+        assert.deepEqual(clock.delays, [])
         assert.equal(f.calls.filter(call => call.args[0] === 'publish').length, 1)
     }
+})
+
+test('waits for stale channel reads to converge after publishing exactly once', async t => {
+    const f = await fixture(t)
+    const {manifest} = await packRelease(f)
+    const clock = verificationClock()
+    const registry = registrySequence(beforePublish(), published(manifest), beforePublish(),
+        published(manifest), registryData(['4.2.13', '4.3.0-rc.53'], '4.2.13', '4.3.0-rc.53'),
+        published(manifest), afterPublish(manifest))
+    assert.equal((await publishRelease({...f, ...clock, fetchImpl: registry.fetchImpl})).status, 'published')
+    assert.deepEqual(clock.delays, [1000, 2000])
+    assert.equal(clock.logs.length, 2)
+    assert.match(clock.logs[0], /retrying registry verification.*next=4.3.0-rc.54/)
+    assert.equal(f.calls.filter(call => call.args[0] === 'publish').length, 1)
+    assert.equal(registry.requests[0].init.cache, undefined)
+    for (const request of registry.requests.slice(1)) {
+        assert.equal(request.init.cache, 'no-store')
+        assert.equal(request.init.headers['cache-control'], 'no-cache')
+        assert.ok(request.init.signal instanceof AbortSignal)
+    }
+    registry.assertConsumed()
+})
+
+test('retries temporary metadata visibility and transport errors after a successful publish only', async t => {
+    for (const failure of [{http: 404}, {http: 429}, {http: 503}, new TypeError('fetch failed'),
+        Object.assign(new Error('Timed out'), {name: 'TimeoutError'})]) {
+        const f = await fixture(t)
+        const {manifest} = await packRelease(f)
+        const clock = verificationClock()
+        const registry = registrySequence(beforePublish(), failure, published(manifest), afterPublish(manifest))
+        assert.equal((await publishRelease({...f, ...clock, fetchImpl: registry.fetchImpl})).status, 'published')
+        assert.deepEqual(clock.delays, [1000])
+        assert.equal(f.calls.filter(call => call.args[0] === 'publish').length, 1)
+        registry.assertConsumed()
+    }
+    const f = await fixture(t)
+    const {manifest} = await packRelease(f)
+    const clock = verificationClock()
+    const registry = registrySequence(beforePublish(), published(manifest), {http: 503}, published(manifest), afterPublish(manifest))
+    assert.equal((await publishRelease({...f, ...clock, fetchImpl: registry.fetchImpl})).status, 'published')
+    assert.deepEqual(clock.delays, [1000])
+    registry.assertConsumed()
+})
+
+test('stops stale registry verification after seven attempts without republishing', async t => {
+    const f = await fixture(t)
+    const {manifest} = await packRelease(f)
+    const clock = verificationClock()
+    const responses = Array.from({length: 7}, () => [published(manifest), beforePublish()]).flat()
+    const registry = registrySequence(beforePublish(), ...responses)
+    await assert.rejects(publishRelease({...f, ...clock, fetchImpl: registry.fetchImpl}), /did not converge within 7 attempts \/ 60s/)
+    assert.deepEqual(clock.delays, [1000, 2000, 4000, 8000, 10000, 10000])
+    assert.equal(clock.logs.length, 6)
+    assert.equal(f.calls.filter(call => call.args[0] === 'publish').length, 1)
+    registry.assertConsumed()
+})
+
+test('the elapsed verification budget prevents another request after a slow response', async t => {
+    const f = await fixture(t)
+    await packRelease(f)
+    const clock = verificationClock()
+    const registry = registrySequence(beforePublish(), {http: 503})
+    const fetchImpl = async (url, init) => {
+        const response = await registry.fetchImpl(url, init)
+        if (registry.urls.length === 2) clock.advance(59_500)
+        return response
+    }
+    await assert.rejects(publishRelease({...f, ...clock, fetchImpl}), /did not converge/)
+    assert.deepEqual(clock.delays, [500])
+    assert.equal(clock.nowImpl(), 60_000)
+    assert.equal(registry.urls.length, 2)
+    assert.equal(f.calls.filter(call => call.args[0] === 'publish').length, 1)
+    registry.assertConsumed()
+})
+
+test('a failed npm publish is never retried or followed by verification reads', async t => {
+    const f = await fixture(t)
+    await packRelease(f)
+    const clock = verificationClock()
+    const registry = registrySequence(beforePublish())
+    const runImpl = async (...args) => {
+        const result = await f.runImpl(...args)
+        if (args[0] === 'npm' && args[1][0] === 'publish') throw new Error('npm publish rejected')
+        return result
+    }
+    await assert.rejects(publishRelease({...f, ...clock, runImpl, fetchImpl: registry.fetchImpl}), /npm publish rejected/)
+    assert.deepEqual(clock.delays, [])
+    assert.equal(f.calls.filter(call => call.args[0] === 'publish').length, 1)
+    registry.assertConsumed()
 })
 
 test('CLI accepts only a single explicit operation and prints a compact validation result', async t => {

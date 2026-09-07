@@ -5,12 +5,14 @@ import path from 'node:path'
 import {pathToFileURL} from 'node:url'
 import {gunzipSync} from 'node:zlib'
 import {
-    RELEASE_CONFIG, channelForVersion, ensureFreshVersion, readReleaseTag,
+    RELEASE_CONFIG, channelForVersion, compareVersions, ensureFreshVersion, readReleaseTag,
     registrySnapshot, run, versionFromTag,
 } from './release-common.mjs'
 
 const REGISTRY = 'https://registry.npmjs.org'
 const MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
+const PUBLICATION_VERIFY_BUDGET_MS = 60_000
+const PUBLICATION_VERIFY_DELAYS_MS = [1_000, 2_000, 4_000, 8_000, 10_000, 10_000]
 const digest = (bytes, algorithm, encoding) => createHash(algorithm).update(bytes).digest(encoding)
 const packageFilename = version => `${RELEASE_CONFIG.packageName}-${version}.tgz`
 
@@ -206,6 +208,60 @@ async function publishedDigest(version, manifest, fetchImpl) {
     }
 }
 
+class RegistryVisibilityError extends Error {}
+
+/** Registry reads may lag a successful publish. Retry reads only, with a hard time/attempt bound. */
+async function verifyPublication(manifest, before, {
+    fetchImpl, waitImpl = ms => new Promise(resolve => setTimeout(resolve, ms)),
+    nowImpl = Date.now, logImpl = console.error,
+}) {
+    const deadline = nowImpl() + PUBLICATION_VERIFY_BUDGET_MS
+    const read = async (url, init) => {
+        const remaining = deadline - nowImpl()
+        if (remaining <= 0) throw new RegistryVisibilityError('Registry verification time budget exhausted')
+        const transport = async operation => {
+            try { return await operation() } catch (error) {
+                if (error instanceof TypeError || ['AbortError', 'TimeoutError'].includes(error.name)) {
+                    throw new RegistryVisibilityError(`Temporary registry read failure: ${error.message}`, {cause: error})
+                }
+                throw error
+            }
+        }
+        const response = await transport(() => fetchImpl(url, {
+            ...init, cache: 'no-store', headers: {...init.headers, 'cache-control': 'no-cache'},
+            signal: AbortSignal.any([init.signal, AbortSignal.timeout(remaining)]),
+        }))
+        if ([404, 429].includes(response.status) || response.status >= 500) {
+            throw new RegistryVisibilityError(`Registry metadata is temporarily unavailable: HTTP ${response.status}`)
+        }
+        return {ok: response.ok, status: response.status, json: () => transport(() => response.json())}
+    }
+    for (let attempt = 0; ; attempt++) {
+        try {
+            await publishedDigest(manifest.version, manifest, read)
+            const after = await registrySnapshot({fetchImpl: read})
+            if (manifest.channel === 'next' && after.distTags.latest !== before.distTags.latest) {
+                throw new Error('npm latest changed during RC publication')
+            }
+            if (after.distTags[manifest.channel] === manifest.version) return
+            const observed = after.distTags[manifest.channel]
+            if (observed !== undefined && compareVersions(observed, manifest.version) > 0) {
+                throw new Error(`Published version is not the expected channel target: ${manifest.channel} now points to ${observed}`)
+            }
+            throw new RegistryVisibilityError(`Published version is not the expected channel target yet: ${manifest.channel}=${observed ?? 'missing'}`)
+        } catch (error) {
+            if (!(error instanceof RegistryVisibilityError)) throw error
+            const remaining = deadline - nowImpl()
+            if (attempt >= PUBLICATION_VERIFY_DELAYS_MS.length || remaining <= 0) {
+                throw new Error(`npm publish completed, but registry verification did not converge within 7 attempts / 60s: ${error.message}`, {cause: error})
+            }
+            const delay = Math.min(PUBLICATION_VERIFY_DELAYS_MS[attempt], remaining)
+            logImpl(`npm publish completed; retrying registry verification in ${delay}ms (${attempt + 1}/6): ${error.message}`)
+            await waitImpl(delay)
+        }
+    }
+}
+
 /** Publish only a checked artifact from this exact tag, using the runner OIDC credentials. */
 export async function publishRelease(options = {}) {
     const {cwd = process.cwd(), env = process.env, runImpl = run, fetchImpl = fetch} = options
@@ -242,10 +298,7 @@ export async function publishRelease(options = {}) {
         // An OIDC failure must not silently fall back to a developer's publishing token.
         env: {NODE_AUTH_TOKEN: '', NPM_TOKEN: '', NPM_CONFIG_USERCONFIG: '/dev/null', npm_config_userconfig: '/dev/null'},
     })
-    await publishedDigest(manifest.version, manifest, fetchImpl)
-    const after = await registrySnapshot({fetchImpl})
-    if (after.distTags[manifest.channel] !== manifest.version) throw new Error('Published version is not the expected channel target')
-    if (manifest.channel === 'next' && after.distTags.latest !== before.distTags.latest) throw new Error('npm latest changed during RC publication')
+    await verifyPublication(manifest, before, {...options, fetchImpl})
     return {status: 'published', version: manifest.version, channel: manifest.channel}
 }
 
