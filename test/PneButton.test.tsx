@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {render, screen} from '@testing-library/react'
 
-import {PneButton} from '../src'
+import {PneButton, type PneButtonStyle} from '../src'
 
 const expectComputedStyle = (
     element: HTMLElement,
@@ -23,34 +23,47 @@ describe('PneButton', () => {
         expect(button.classList.contains('MuiButton-sizeLarge')).toBe(true)
     })
 
-    it('keeps pneStyle variant and color mappings', () => {
-        const {rerender} = render(<PneButton pneStyle='contained'>Button</PneButton>)
-        let button = screen.getByRole('button', {name: 'Button'})
-        expect(button.classList.contains('MuiButton-contained')).toBe(true)
-        expect(button.classList.contains('MuiButton-colorPrimary')).toBe(true)
-
-        rerender(<PneButton pneStyle='outlined'>Button</PneButton>)
-        button = screen.getByRole('button', {name: 'Button'})
-        expect(button.classList.contains('MuiButton-outlined')).toBe(true)
-        expect(button.classList.contains('MuiButton-colorPrimary')).toBe(true)
-
-        rerender(<PneButton pneStyle='text'>Button</PneButton>)
-        button = screen.getByRole('button', {name: 'Button'})
-        expect(button.classList.contains('MuiButton-text')).toBe(true)
-        expect(button.classList.contains('MuiButton-colorPrimary')).toBe(true)
-
-        rerender(<PneButton pneStyle='error'>Button</PneButton>)
-        button = screen.getByRole('button', {name: 'Button'})
-        expect(button.classList.contains('MuiButton-outlined')).toBe(true)
-        expect(button.classList.contains('MuiButton-colorError')).toBe(true)
-    })
-
-    it('preserves explicit custom color when pneStyle is not set', () => {
-        render(<PneButton color='pneNeutral'>Button</PneButton>)
+    it.each([
+        {color: 'Primary', pneStyle: 'contained', variant: 'contained'},
+        {color: 'Primary', pneStyle: 'outlined', variant: 'outlined'},
+        {color: 'Primary', pneStyle: 'text', variant: 'text'},
+        {color: 'Error', pneStyle: 'error', variant: 'outlined'},
+        {color: 'PneNeutral', pneStyle: 'neutral', variant: 'contained'},
+        {color: 'PneNeutral', pneStyle: 'neutralText', variant: 'text'},
+        {color: 'PnePrimaryLight', pneStyle: 'primaryLight', variant: 'contained'},
+        {color: 'PneWarningLight', pneStyle: 'warning', variant: 'contained'},
+        {color: 'PneWhite', pneStyle: 'white', variant: 'contained'},
+    ] satisfies Array<{
+        color: string
+        pneStyle: PneButtonStyle
+        variant: 'contained' | 'outlined' | 'text'
+    }>)('maps $pneStyle to the canonical PNE preset', ({color, pneStyle, variant}) => {
+        render(<PneButton pneStyle={pneStyle}>Button</PneButton>)
 
         const button = screen.getByRole('button', {name: 'Button'})
 
-        expect(button.classList.contains('MuiButton-colorPneNeutral')).toBe(true)
+        expect(button.classList.contains(`MuiButton-${variant}`)).toBe(true)
+        expect(button.classList.contains(`MuiButton-color${color}`)).toBe(true)
+    })
+
+    it('keeps the native button root and ref contract under React 19', () => {
+        const ref = React.createRef<HTMLButtonElement>()
+        render(<PneButton ref={ref}>Button</PneButton>)
+
+        const button = screen.getByRole('button', {name: 'Button'})
+
+        expect(ref.current).toBe(button)
+        expect((button as HTMLButtonElement).type).toBe('button')
+    })
+
+    it('keeps the href overload and anchor ref contract', () => {
+        const ref = React.createRef<HTMLAnchorElement>()
+        render(<PneButton href='/target' ref={ref}>Target</PneButton>)
+
+        const link = screen.getByRole('link', {name: 'Target'})
+
+        expect(ref.current).toBe(link)
+        expect((link as HTMLAnchorElement).getAttribute('href')).toBe('/target')
     })
 
     it('preserves MUI fullWidth behavior', () => {

@@ -6,7 +6,7 @@ This file gives Codex a quick-start cheat sheet: tools, commands, and where to l
 Fast facts
 ----------
 - Package manager: Yarn 4.2.2 (berry; repo ships `.yarn/`). Use `yarn`, not `npm`.
-- Node target: 18+ (works with TS 5.4 and MUI 7).
+- Development/release runtime: Node 24.14.0 (`.nvmrc`), npm 11.9.0; Yarn 4.2.2 (TypeScript 6, React 19, MUI 9).
 - Sources live in `src/`, tests in `test/`. Built outputs `cjs/`, `esm/`, `storybook-static/` are generated — do not edit.
 
 Core commands
@@ -15,7 +15,16 @@ Core commands
 - Lint: `yarn lint`
 - Tests: `yarn test` (ts-jest, see `jestconfig.json`, env `jsdom`)
 - Build library: `yarn build` (esm + cjs)
+- Type-check public contracts: `yarn typecheck:contracts`
+- Type-check stories: `yarn typecheck:stories`
 - Storybook: `yarn storybook` (dev) / `yarn build-storybook`
+
+Releases
+--------
+- Read `docs/releasing.md` before release work. Use the explicit `release:prepare`, `release:send`, and `release:status` commands.
+- `release:prepare` changes the local version and creates a local commit/tag. `release:send` pushes the branch and selected release tag to origin, triggering npm publication; treat it as release authorization, not a routine sync.
+- `release:send --dry-run` does not push. `release:status` is read-only. Never run a real prepare/send just to check the tooling.
+- Ordinary branch pushes do not run release checks. CI publication uses the single tag-triggered `publish.yml`; RC goes to `next`, stable to `latest` from `master`.
 
 Search and edits
 ----------------
@@ -25,7 +34,7 @@ Search and edits
 
 Before changing things
 ----------------------
-- Keep peer compatibility: React 18/19 and MUI 6/7.
+- Keep peer compatibility: React 19 and MUI 9.
 - If you touch public API, update exports in `src/index.ts` (and the grouped barrels in `src/exports/`) and adjust stories if needed.
 - Prefer running `yarn lint` and `yarn test` after changes; for UI-heavy work, `yarn build-storybook` is helpful when possible.
 

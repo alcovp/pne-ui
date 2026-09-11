@@ -11,6 +11,14 @@ i18nForStorybook
         resources: {
             en: {
                 translation: {
+                    'react.unexpected.exception.title': 'Error',
+                    'react.unexpected.exception.message': 'Unexpected error occurred. Please contact our support and provide them the error id {errorId}',
+                    'react.unexpected.exception.unknown-message': 'Internal server error',
+                    'pne.error.copyErrorId': 'Copy error ID',
+                    'pne.error.errorIdCopied': 'Error ID copied',
+                    'pne.error.details': 'Details',
+                    'pne.error.showFullDetails': 'Show full details',
+                    'pne.error.closeDetails': 'Close details',
                     'react.searchUI.all': 'All',
                     'react.searchUI.allExcluding': 'All excluding',
                     'react.searchUI.none': 'None',

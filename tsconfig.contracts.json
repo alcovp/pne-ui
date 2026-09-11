@@ -1,0 +1,27 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "noEmit": true,
+        "paths": {
+            "pne-ui": [
+                "./esm/index.d.ts"
+            ]
+        },
+        "rootDir": ".",
+        "sourceMap": false,
+        "types": [
+            "node",
+            "react"
+        ]
+    },
+    "include": [
+        "src/assets.d.ts",
+        "type-tests/**/*.tsx"
+    ],
+    "exclude": [
+        "cjs",
+        "esm",
+        "node_modules"
+    ]
+}

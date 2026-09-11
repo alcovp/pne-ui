@@ -879,7 +879,6 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get)
     },
     setProcessorLogEntryType: entryType => {
-        console.log('setProcessorLogEntryType', entryType)
         set((draft) => {
             draft.processorLogEntryType = entryType
         })

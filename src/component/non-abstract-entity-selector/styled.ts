@@ -155,6 +155,12 @@ export const StyledListItemButton = styled(ListItemButton)(() => ({
     minHeight: '32px',
     padding: '6px 8px',
     backgroundColor: 'rgba(25, 118, 210, 0.08)',
+    '@media (hover: none)': {
+        // MUI resets touch hover to transparent; retain this row's normal fill.
+        '&:hover:not(.Mui-focusVisible):not(.Mui-selected)': {
+            backgroundColor: 'rgba(25, 118, 210, 0.08)',
+        },
+    },
     fontSize: '14px',
     marginBottom: '2px',
     cursor: 'pointer',
@@ -162,4 +168,4 @@ export const StyledListItemButton = styled(ListItemButton)(() => ({
     overflow: 'hidden',
     whiteSpace: 'nowrap',
     textOverflow: 'ellipsis',
-}));
+})) as typeof ListItemButton;

@@ -1,5 +1,9 @@
 export {
     AbstractEntitySelector,
+    type AbstractEntitySelectorElementAttributes,
+    type AbstractEntitySelectorElements,
+    type AbstractEntitySelectorItemAttributes,
+    type AbstractEntitySelectorList,
     type AbstractEntitySelectorProp,
     type IAbstractEntityOptions,
     type IMappedUnmappedList,

@@ -1,5 +1,5 @@
 import React from 'react';
-import {SxProps} from '@mui/material/styles';
+import {SxProps, type Theme} from '@mui/material/styles';
 import {TableSortLabel, tableSortLabelClasses, TableSortLabelProps} from '@mui/material';
 import {TableSortOptions} from './AbstractTable';
 
@@ -25,10 +25,12 @@ const PneTableSortLabel = (props: PneTableSortLabelProps) => {
         ...rest
     } = props;
 
-    const _sx: SxProps = [
+    const _sx: SxProps<Theme> = [
         {
             [`&.${tableSortLabelClasses.active}`]: {
-                color: '#809EAE',
+                color: (theme: Theme) => theme.palette.mode === 'dark'
+                    ? theme.palette.pne.brand.foreground
+                    : '#809EAE',
             }
         },
         ...(Array.isArray(sx) ? sx : [sx])

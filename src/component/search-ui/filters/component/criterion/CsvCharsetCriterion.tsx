@@ -15,6 +15,7 @@ export const CsvCharsetCriterion = () => {
     const selectedOption = csvCharset ?? DEFAULT_OPTION
 
     return <SearchUIEnumChipSelect
+        mode={'select'}
         value={selectedOption}
         options={CSV_CHARSET_OPTIONS}
         onChange={value => setCsvCharsetCriterion(

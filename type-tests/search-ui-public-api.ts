@@ -1,11 +1,15 @@
 import {
     CriterionTypeEnum,
+    PneTableViewOption,
     SearchUIConditionsInput,
     SearchUIDateRangeSpec,
     SearchUIFiltersConfig,
     SearchUIFiltersProps,
     SearchUIProps,
     SearchUITemplate,
+    SearchUIView,
+    SearchUIViewTableStateOnActivate,
+    UseTableParams,
 } from '../src'
 
 type Row = {
@@ -24,6 +28,19 @@ const acceptsPersistedTemplateDateRange = (
     _value: SearchUITemplate['searchConditions']['dateRangeSpec'],
 ): void => undefined
 const acceptsFiltersConfig = (_value: SearchUIFiltersConfig): void => undefined
+const acceptsViewDataKey = (_value: SearchUIView<Row>['searchDataKey']): void => undefined
+const acceptsViewDisabledCriteria = (
+    _value: SearchUIView<Row>['disabledCriteria'],
+): void => undefined
+const acceptsViewStatePolicy = (_value: SearchUIViewTableStateOnActivate): void => undefined
+const acceptsTableResetPolicy = (
+    _value: UseTableParams<Row>['resetStateOnKeyChange'],
+): void => undefined
+const viewClick: NonNullable<PneTableViewOption<'detailed'>['onClick']> = event => {
+    event.currentTarget.disabled = false
+    event.currentTarget.focus()
+    event.preventDefault()
+}
 
 acceptsDateRange({
     dateRangeSpecType: 'EXACTLY',
@@ -61,6 +78,12 @@ acceptsFiltersConfig({
         allowedNames: ['chargeback', 'fraud'],
     },
 })
+acceptsViewDataKey('approved-kpis:1,2,3')
+acceptsViewDataKey(4)
+acceptsViewDisabledCriteria([CriterionTypeEnum.THREE_D])
+acceptsViewStatePolicy('restore')
+acceptsTableResetPolicy('reset')
+void viewClick
 
 // @ts-expect-error Relative ranges are declarative and must not contain resolved dates.
 acceptsDateRange({dateRangeSpecType: 'DAYS_BEFORE', beforeCount: 30, dateFrom: null, dateTo: null})
@@ -84,3 +107,9 @@ acceptsInitialFiltersConditions({dateRangeSpec: {dateRangeSpecType: 'TODAY', dat
 acceptsFiltersConfig({transactionTypes: {}})
 // @ts-expect-error Transaction-type database IDs are instance-specific and are not accepted by this config.
 acceptsFiltersConfig({transactionTypes: {allowedIds: [6, 7]}})
+// @ts-expect-error Search data identities are stable primitives, not mutable collections.
+acceptsViewDataKey(['kpi-a', 'kpi-b'])
+// @ts-expect-error Views accept known criterion enum values only.
+acceptsViewDisabledCriteria(['THREE_D'])
+// @ts-expect-error View state has only backward-compatible reset and per-key restore policies.
+acceptsViewStatePolicy('preserve')

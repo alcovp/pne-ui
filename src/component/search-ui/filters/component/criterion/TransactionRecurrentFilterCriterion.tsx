@@ -13,6 +13,7 @@ export const TransactionRecurrentFilterCriterion = () => {
     )
 
     return <SearchUIEnumChipSelect
+        mode={'select'}
         value={recurrentFilter}
         options={TRANSACTION_RECURRENT_FILTERS}
         onChange={setTransactionRecurrentFilterCriterion}

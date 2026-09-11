@@ -20,6 +20,7 @@ export const TimeZoneCriterion = () => {
         : String(timeZoneOffsetHours)
 
     return <SearchUIEnumChipSelect
+        mode={'select'}
         value={selectedOption}
         options={TIME_ZONE_OPTIONS}
         onChange={value => setTimeZoneCriterion(

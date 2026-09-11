@@ -11,6 +11,7 @@ type Story = StoryObj<typeof PneCheckbox>;
 
 export const Default: StoryObj = {
     args: {
+        'aria-label': 'Example checkbox',
         size: 'small',
         disabled: false,
         checked: false,

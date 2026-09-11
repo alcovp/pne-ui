@@ -2,8 +2,16 @@ import React from 'react'
 import UndoIcon from '@mui/icons-material/Undo'
 import PneButton from '../PneButton'
 import { create } from 'zustand'
-import type { OverlayState, SnackbarOptions, SnackbarVariant, UndoSnackbarOptions } from './types'
+import type {
+    ErrorSnackbarOptions,
+    OverlayState,
+    SnackbarOptions,
+    SnackbarVariant,
+    UndoSnackbarOptions,
+} from './types'
 import { reportMissingOverlayHost } from './overlayRuntime'
+import { normalizePaynetError } from './paynetError'
+import { PaynetErrorContent } from './PaynetErrorContent'
 
 const defaultAutoHideMs = 5000
 
@@ -17,17 +25,31 @@ const makeId = () => {
 export const useOverlayStore = create<OverlayState>(set => ({
     snackbars: [],
     enqueueSnackbar: snackbar =>
-        set(state => ({
-            snackbars: [
-                ...state.snackbars,
-                {
-                    id: snackbar.id ?? makeId(),
-                    variant: snackbar.variant ?? 'info',
-                    autoHideMs: snackbar.autoHideMs ?? (snackbar.variant === 'error' ? undefined : defaultAutoHideMs),
-                    ...snackbar,
-                },
-            ],
-        })),
+        set(state => {
+            const id = snackbar.id ?? makeId()
+            if (state.snackbars.some(current => current.id === id)) {
+                return state
+            }
+
+            const hasExplicitAutoHideMs = Object.prototype.hasOwnProperty.call(snackbar, 'autoHideMs')
+            const variant = snackbar.variant ?? 'info'
+
+            return {
+                snackbars: [
+                    ...state.snackbars,
+                    {
+                        ...snackbar,
+                        id,
+                        variant,
+                        autoHideMs: hasExplicitAutoHideMs
+                            ? snackbar.autoHideMs
+                            : variant === 'error'
+                                ? undefined
+                                : defaultAutoHideMs,
+                    },
+                ],
+            }
+        }),
     removeSnackbar: id => set(state => ({ snackbars: state.snackbars.filter(snack => snack.id !== id) })),
     clearSnackbars: () => set({ snackbars: [] }),
 }))
@@ -37,13 +59,43 @@ const showWithVariant = (variant: SnackbarVariant) => (snackbar: Omit<SnackbarOp
     useOverlayStore.getState().enqueueSnackbar({ ...snackbar, variant })
 }
 
+const showError = (snackbar: ErrorSnackbarOptions): void => {
+    if ('error' in snackbar) {
+        const { error, ...options } = snackbar
+        void normalizePaynetError(error).then(normalized => {
+            if (!normalized) return
+
+            reportMissingOverlayHost('showError')
+            useOverlayStore.getState().enqueueSnackbar({
+                ...options,
+                id: options.id ?? normalized.notificationId,
+                message: React.createElement(PaynetErrorContent, { error: normalized }),
+                variant: 'error',
+            })
+        })
+        return
+    }
+
+    reportMissingOverlayHost('showError')
+    useOverlayStore.getState().enqueueSnackbar({ ...snackbar, variant: 'error' })
+}
+
 export const overlayActions = {
     showSnackbar: (snackbar: SnackbarOptions) => {
         reportMissingOverlayHost('showSnackbar')
         useOverlayStore.getState().enqueueSnackbar(snackbar)
     },
     showSuccess: showWithVariant('success'),
-    showError: showWithVariant('error'),
+    showError,
+    /** Shows an error snackbar that auto-hides after the standard 5000 ms transient timeout. */
+    showTransientError: (snackbar: Omit<SnackbarOptions, 'variant' | 'autoHideMs'>) => {
+        reportMissingOverlayHost('showTransientError')
+        useOverlayStore.getState().enqueueSnackbar({
+            ...snackbar,
+            variant: 'error',
+            autoHideMs: defaultAutoHideMs,
+        })
+    },
     showWarning: showWithVariant('warning'),
     showInfo: showWithVariant('info'),
     /**
@@ -60,7 +112,7 @@ export const overlayActions = {
             action: React.createElement(
                 PneButton,
                 {
-                    variant: 'text',
+                    pneStyle: 'text',
                     size: 'small',
                     startIcon: React.createElement(UndoIcon, { fontSize: 'inherit' }),
                     onClick: () => {

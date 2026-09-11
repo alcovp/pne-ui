@@ -7,7 +7,10 @@ import {
     IMappedUnmappedList
 } from './AbstractEntitySelector';
 import PneButton from '../PneButton';
-import PneModal from "../PneModal";
+import PneModal, {
+    PneModalCloseButtonProps,
+    PneModalContainerProps,
+} from "../PneModal";
 import PneModalActions from '../PneModalActions';
 
 interface IProps<T extends AbstractEntitySelectorProp> {
@@ -19,11 +22,20 @@ interface IProps<T extends AbstractEntitySelectorProp> {
     title: string;
     subTitle?: string;
     loading?: boolean;
+    /** Use false for short reorderable lists to keep the original touch target mounted. */
+    virtualized?: boolean;
+    /** Show a separate handle for immediate touch dragging; disables list virtualization. */
+    dragHandle?: 'row' | 'button';
     disableMoving?: 'ADDED' | 'AVAILABLE' | undefined;
     allowNewlyAddedRemoval?: boolean;
     optionRenderer?: TFunction;
     textRepresentation?: 'ID' | 'NAME' | undefined;
-    textRepresentationValue?: string
+    textRepresentationValue?: string;
+    containerProps?: PneModalContainerProps;
+    closeButtonProps?: PneModalCloseButtonProps;
+    closeLabel?: string;
+    getItemAttributes?: IAbstractEntityOptions<T>['getItemAttributes'];
+    elementAttributes?: IAbstractEntityOptions<T>['elementAttributes'];
 }
 
 export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(props: IProps<T>) => {
@@ -36,12 +48,21 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         title,
         subTitle,
         loading = false,
+        virtualized: requestedVirtualization = true,
+        dragHandle = 'row',
         disableMoving,
         allowNewlyAddedRemoval,
         optionRenderer,
         textRepresentation,
-        textRepresentationValue
+        textRepresentationValue,
+        containerProps,
+        closeButtonProps,
+        closeLabel,
+        getItemAttributes,
+        elementAttributes,
     } = props;
+
+    const virtualized = requestedVirtualization && dragHandle !== 'button';
 
     const {t} = useTranslation();
 
@@ -73,22 +94,26 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         list: unMappedList,
         selected: mappedList,
         height: autoHeight(),
+        virtualized,
+        dragHandle,
         disableMoving,
         allowNewlyAddedRemoval,
         optionRenderer,
         textRepresentation,
         textRepresentationValue,
         onChange: handleChange,
+        getItemAttributes,
+        elementAttributes,
     };
 
     return (
         <PneModal
             actions={<PneModalActions
-                secondary={<PneButton variant='outlined' onClick={onClose}>
+                secondary={<PneButton pneStyle='outlined' onClick={onClose}>
                     {t('cancel')}
                 </PneButton>}
                 primary={<PneButton
-                    variant='contained'
+                    pneStyle='contained'
                     onClick={() => handleSave({
                         mapped: localMappedList,
                         unmapped: localUnMappedList
@@ -101,6 +126,14 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
             onClose={onClose}
             title={title}
             subtitle={subTitle}
+            closeLabel={closeLabel}
+            modalProps={!virtualized ? {
+                sx: {display: 'flex', alignItems: 'center', justifyContent: 'center'},
+            } : undefined}
+            slotProps={{
+                container: containerProps,
+                closeButton: closeButtonProps,
+            }}
             containerSx={{
                 width: {
                     xs: 'clamp(360px, calc(100vw - 32px), 600px)',
@@ -108,7 +141,10 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
                 },
                 minWidth: 0,
                 maxWidth: '600px',
-                height: 'auto'
+                height: 'auto',
+                // Standard DnD keeps the touched row in place. Its fixed drag positioning
+                // needs viewport coordinates, without a transformed modal ancestor.
+                ...(!virtualized && {position: 'relative', top: 'auto', left: 'auto', transform: 'none'}),
             }}
         >
             {/*<LoadingWrapper loading={loading}>*/}

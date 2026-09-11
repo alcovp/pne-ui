@@ -5,6 +5,12 @@ import {MULTIGET_PAGE_SIZE} from './MultigetSelect'
 import {useTranslation} from 'react-i18next'
 import {SxProps} from '@mui/material/styles'
 import {useMultigetSelectStore} from './state/store'
+import {createAutoTestAttributes} from '../../AutoTestAttribute'
+
+const CRITERION_MULTIGET_AVAILABLE_AUTOTEST_ID = 'criterion-multiget-available'
+const CRITERION_MULTIGET_SELECTED_AUTOTEST_ID = 'criterion-multiget-selected'
+const CRITERION_MULTIGET_ADD_AUTOTEST_ID = 'criterion-multiget-add'
+const CRITERION_MULTIGET_REMOVE_AUTOTEST_ID = 'criterion-multiget-remove'
 
 export const MultigetSelectTable = () => {
 
@@ -32,25 +38,45 @@ export const MultigetSelectTable = () => {
     }
 
     const knownPagesCount = hasNextPage ? currentPage + 1 : currentPage
+    const availableLabel = t('react.searchUI.available')
+    const selectedLabel = filterType === 'ALL'
+        ? t('react.searchUI.excluded')
+        : t('react.searchUI.selected')
+    const addEntityLabel = filterType === 'ALL'
+        ? t('react.searchUI.multiget.excludeEntity', {defaultValue: 'Exclude entity'})
+        : t('react.searchUI.multiget.selectEntity', {defaultValue: 'Select entity'})
+    const removeEntityLabel = filterType === 'ALL'
+        ? t('react.searchUI.multiget.includeEntity', {defaultValue: 'Include entity'})
+        : t('react.searchUI.multiget.removeEntity', {defaultValue: 'Remove selected entity'})
 
     return <Box sx={tableSx}>
-        <Box sx={columnSx}>
+        <Box
+            {...createAutoTestAttributes(CRITERION_MULTIGET_AVAILABLE_AUTOTEST_ID)}
+            sx={columnSx}
+            role='group'
+            aria-label={availableLabel}
+            aria-busy={isLoading}
+        >
             <Box sx={headerSx}>
                 <Box component={'span'} sx={headerTitleSx}>
                     {t('react.searchUI.available')}
                 </Box>
             </Box>
             <Box sx={{display: 'flex', flexDirection: 'column', minHeight: '360px'}}>
-                {availableItems.slice(0, MULTIGET_PAGE_SIZE).map((entity, index) => {
+                {availableItems.slice(0, MULTIGET_PAGE_SIZE).map(entity => {
                     const rowSelected = selectedItems.some(e => +e.id === +entity.id)
                     return <Box
+                        {...createAutoTestAttributes(CRITERION_MULTIGET_ADD_AUTOTEST_ID, entity.id)}
+                        component='button'
+                        type='button'
                         sx={{
                             ...rowSx,
                             visibility: rowSelected ? 'hidden' : 'visible',
                         }}
-                        key={index}
+                        key={entity.id}
                         onClick={() => onEntityClick(entity)}
                         title={entity.displayName}
+                        aria-label={`${addEntityLabel}: ${entity.displayName}`}
                     >
                         {entity.displayName}
                     </Box>
@@ -73,7 +99,12 @@ export const MultigetSelectTable = () => {
             />
         </Box>
         <Divider orientation={'vertical'} flexItem/>
-        <Box sx={columnSx}>
+        <Box
+            {...createAutoTestAttributes(CRITERION_MULTIGET_SELECTED_AUTOTEST_ID)}
+            sx={columnSx}
+            role='group'
+            aria-label={selectedLabel}
+        >
             <Box sx={{...headerSx, justifyContent: 'space-between'}}>
                 <Box component={'span'} sx={headerTitleSx}>
                     {filterType === 'ALL' ? t('react.searchUI.excluded') : t('react.searchUI.selected')}
@@ -85,12 +116,16 @@ export const MultigetSelectTable = () => {
                 >{t('clear')}</PneButton>
             </Box>
             <Box sx={{display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: '1 1 0'}}>
-                {selectedItems.map((entity, index) =>
+                {selectedItems.map(entity =>
                     <Box
+                        {...createAutoTestAttributes(CRITERION_MULTIGET_REMOVE_AUTOTEST_ID, entity.id)}
+                        component='button'
+                        type='button'
                         sx={rowSx}
-                        key={index}
+                        key={entity.id}
                         onClick={() => onSelectedClick(entity)}
                         title={entity.displayName}
+                        aria-label={`${removeEntityLabel}: ${entity.displayName}`}
                     >
                         {entity.displayName}
                     </Box>,
@@ -105,8 +140,17 @@ const columnSx = {display: 'flex', flexDirection: 'column', rowGap: '5px', flex:
 const headerSx = {display: 'flex', flexDirection: 'row', alignItems: 'center'}
 const headerTitleSx = {fontSize: '14px', fontWeight: '700', lineHeight: '30px'}
 const rowSx: SxProps = {
+    appearance: 'none',
+    background: 'transparent',
+    border: 0,
+    color: 'inherit',
+    cursor: 'pointer',
     flexShrink: 0,
+    font: 'inherit',
     lineHeight: '35px',
+    padding: 0,
+    textAlign: 'left',
+    width: '100%',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',

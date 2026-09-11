@@ -1,7 +1,6 @@
 import * as React from 'react';
-import {createPneTheme} from "../src/createTheme";
-import {ThemeProvider} from '@mui/material';
-import {Skin} from "../src";
+import Box from '@mui/material/Box';
+import {PneThemeProvider, Skin, type PneColorMode} from "../src";
 import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 import { withContext } from './decorators/withContext';
 
@@ -53,9 +52,60 @@ const customViewports = {
             height: '960px',
         },
     },
+    menuBoundary1079: {
+        name: 'Menu boundary 1079px',
+        styles: {
+            width: '1079px',
+            height: '720px',
+        },
+    },
+    menuBoundary1080: {
+        name: 'Menu boundary 1080px',
+        styles: {
+            width: '1080px',
+            height: '720px',
+        },
+    },
+    menuBoundary1599: {
+        name: 'Menu boundary 1599px',
+        styles: {
+            width: '1599px',
+            height: '900px',
+        },
+    },
+    menuBoundary1600: {
+        name: 'Menu boundary 1600px',
+        styles: {
+            width: '1600px',
+            height: '900px',
+        },
+    },
+    menuWide1920: {
+        name: 'Wide menu 1920px',
+        styles: {
+            width: '1920px',
+            height: '900px',
+        },
+    },
 }
 
 const preview = {
+    globalTypes: {
+        colorMode: {
+            description: 'PNE color mode',
+            toolbar: {
+                dynamicTitle: true,
+                icon: 'paintbrush',
+                items: [
+                    {title: 'Light', value: 'light'},
+                    {title: 'Dark', value: 'dark'},
+                ],
+            },
+        },
+    },
+    initialGlobals: {
+        colorMode: 'light',
+    },
     parameters: {
         layout: 'fullscreen',
         controls: {
@@ -65,7 +115,7 @@ const preview = {
             },
         },
         viewport: {
-            viewports: {
+            options: {
                 ...MINIMAL_VIEWPORTS,
                 ...customViewports,
             },
@@ -73,10 +123,21 @@ const preview = {
     },
     decorators: [
         withContext,
-        (Story) => (
-            <ThemeProvider theme={createPneTheme(defaultSkin)}>
-                <Story/>
-            </ThemeProvider>
+        (Story, context) => (
+            <PneThemeProvider
+                skin={defaultSkin}
+                mode={(context.globals.colorMode ?? 'light') as PneColorMode}
+            >
+                <Box
+                    sx={{
+                        backgroundColor: 'background.default',
+                        color: 'text.primary',
+                        minHeight: '100vh',
+                    }}
+                >
+                    <Story/>
+                </Box>
+            </PneThemeProvider>
         ),
     ],
 };

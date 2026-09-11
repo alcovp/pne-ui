@@ -1,2 +1,6 @@
 export { default as PneButton } from '../component/PneButton'
-export { PneButtonGroup } from '../component/PneButtonGroup'
+export type {
+    PneButtonProps,
+    PneButtonSize,
+    PneButtonStyle,
+} from '../component/PneButton'

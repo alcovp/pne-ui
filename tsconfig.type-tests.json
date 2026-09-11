@@ -3,6 +3,11 @@
     "compilerOptions": {
         "declaration": false,
         "noEmit": true,
+        "paths": {
+            "pne-ui": [
+                "./esm/index.d.ts"
+            ]
+        },
         "rootDir": ".",
         "sourceMap": false
     },

@@ -1,0 +1,25 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "declaration": false,
+        "moduleResolution": "Bundler",
+        "noEmit": true,
+        "paths": {
+            "immer/src/internal": [
+                "./node_modules/immer/src/internal.ts"
+            ]
+        },
+        "rootDir": ".",
+        "sourceMap": false
+    },
+    "include": [
+        "src/assets.d.ts",
+        "src/**/*.stories.tsx"
+    ],
+    "exclude": [
+        "cjs",
+        "esm",
+        "node_modules",
+        "storybook-static"
+    ]
+}

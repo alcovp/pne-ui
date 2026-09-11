@@ -12,6 +12,7 @@ export default [
             'cjs/**',
             'esm/**',
             'storybook-static/**',
+            '.release/**',
         ],
     },
     js.configs.recommended,
@@ -19,7 +20,7 @@ export default [
     reactPlugin.configs.flat.recommended,
     ...storybookPlugin.configs['flat/recommended'],
     {
-        files: ['**/*.{js,jsx,ts,tsx}'],
+        files: ['**/*.{js,mjs,jsx,ts,tsx}'],
         languageOptions: {
             ecmaVersion: 'latest',
             sourceType: 'module',

@@ -1,34 +1,404 @@
-import React, {forwardRef, Ref} from 'react'
+import React, {forwardRef, useCallback, useMemo, useRef, useState} from 'react'
 import {Switch, SwitchProps} from '@mui/material'
-import {alpha} from '@mui/material/styles'
+import type {SwitchOwnerState} from '@mui/material/Switch'
+import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
+import {alpha, keyframes} from '@mui/material/styles'
+import {useTheme} from '@mui/material/styles'
 import type {SxProps, Theme} from '@mui/material/styles'
+import * as MuiMaterialUtils from '@mui/material/utils'
+import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
+import {usePneFieldControlProps} from './PneFieldContext'
+import {composeToggleInputSlotProps, moveAriaPropsToInput} from './PneToggleInput'
 
 export type PneSwitchSize = NonNullable<SwitchProps['size']>
 
-export type PneSwitchProps = SwitchProps
+type MuiSwitchChangeHandler = NonNullable<SwitchProps['onChange']>
 
-const PneSwitch = forwardRef((
-    props: PneSwitchProps,
-    ref: Ref<HTMLButtonElement>,
-) => {
+type AsyncSwitchChangeHandler = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    checked: boolean,
+) => PromiseLike<unknown>
+
+export type PneSwitchChangeHandler = MuiSwitchChangeHandler | AsyncSwitchChangeHandler
+
+export interface PneSwitchProps extends Omit<SwitchProps, 'onChange'> {
+    inputRef?: React.Ref<HTMLInputElement>
+    /**
+     * Preserves the MUI callback contract. When the callback returns a thenable,
+     * PneSwitch shows the requested value optimistically, locks repeat activation,
+     * and rolls back if the thenable rejects.
+     */
+    onChange?: PneSwitchChangeHandler
+}
+
+type SwitchInputSlotProps = NonNullable<NonNullable<SwitchProps['slotProps']>['input']>
+type ResolvedSwitchInputSlotProps = Record<string, unknown> & {
+    onClick?: React.MouseEventHandler<HTMLInputElement>
+}
+
+const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
+    const propsWithDefaultSize: PneSwitchProps = props.size === undefined
+        ? {...props, size: 'medium'}
+        : props
+    const theme = useTheme()
+    const consumerInputSlotProps = props.slotProps?.input
+    const defaultInputSlotProps = theme.components?.MuiSwitch?.defaultProps?.slotProps?.input
+    const themedProps = useDefaultProps({
+        name: 'MuiSwitch',
+        props: {
+            ...propsWithDefaultSize,
+            slotProps: {
+                ...propsWithDefaultSize.slotProps,
+                // See PneCheckbox: MUI cannot merge a theme input object with a
+                // functional consumer slot without replacing the function.
+                input: {},
+            },
+        },
+    })
+    const componentsWithoutSwitchDefaults = useComponentsWithoutSwitchDefaults()
     const {
+        checked: checkedProp,
+        defaultChecked = false,
+        disabled,
+        id,
+        inputRef,
+        onChange,
+        readOnly = false,
+        required,
         sx,
         size = 'medium',
+        slotProps,
         ...rest
-    } = props
+    } = themedProps
+    const [confirmedChecked, setConfirmedChecked] = MuiMaterialUtils.useControlled({
+        controlled: checkedProp,
+        default: Boolean(defaultChecked),
+        name: 'PneSwitch',
+        state: 'checked',
+    })
+    const initialDefaultChecked = useRef(Boolean(defaultChecked)).current
+    const detachObserverRef = useRef<MutationObserver | null>(null)
+    const internalInputRef = useRef<HTMLInputElement | null>(null)
+    const inputRefAttachedRef = useRef(false)
+    const resetFormRef = useRef<HTMLFormElement | null>(null)
+    const handlingChangeRef = useRef(false)
+    const pendingRef = useRef(false)
+    const pendingRequestRef = useRef(0)
+    const [optimisticChecked, setOptimisticChecked] = useState<boolean>()
+    const [pending, setPending] = useState(false)
+    const displayedChecked = optimisticChecked ?? Boolean(confirmedChecked)
+    const displayedCheckedRef = useRef(displayedChecked)
+    displayedCheckedRef.current = displayedChecked
+    const handleFormReset = useCallback((event: Event) => {
+        // React's delegated onReset runs after a native listener on the form.
+        // Wait for propagation so preventDefault keeps native semantics.
+        queueMicrotask(() => {
+            if (event.defaultPrevented) {
+                return
+            }
+
+            // A native reset is a new source-of-truth boundary. Invalidate an
+            // in-flight visual transaction so its late settlement cannot
+            // overwrite the reset value.
+            pendingRequestRef.current += 1
+            pendingRef.current = false
+            setPending(false)
+            setOptimisticChecked(undefined)
+            setConfirmedChecked(initialDefaultChecked)
+        })
+    }, [initialDefaultChecked, setConfirmedChecked])
+    const handleInternalInputRef = useCallback((input: HTMLInputElement | null) => {
+        if (input) {
+            inputRefAttachedRef.current = true
+            detachObserverRef.current?.disconnect()
+            detachObserverRef.current = null
+            internalInputRef.current = input
+            const nextForm = input.form
+
+            if (resetFormRef.current !== nextForm) {
+                resetFormRef.current?.removeEventListener('reset', handleFormReset)
+                nextForm?.addEventListener('reset', handleFormReset)
+                resetFormRef.current = nextForm
+            }
+            return
+        }
+
+        inputRefAttachedRef.current = false
+        const detachedInput = internalInputRef.current
+        const releaseResetBinding = () => {
+            resetFormRef.current?.removeEventListener('reset', handleFormReset)
+            resetFormRef.current = null
+            internalInputRef.current = null
+            detachObserverRef.current?.disconnect()
+            detachObserverRef.current = null
+        }
+
+        // Merged slot refs are replaced during ordinary renders. Delay cleanup
+        // so a same-commit reattachment (and React Activity's connected hidden
+        // DOM) keeps the reset listener, while a real unmount releases it.
+        queueMicrotask(() => {
+            if (inputRefAttachedRef.current || internalInputRef.current !== detachedInput) {
+                return
+            }
+
+            if (!detachedInput?.isConnected) {
+                releaseResetBinding()
+                return
+            }
+
+            const MutationObserverConstructor = detachedInput.ownerDocument.defaultView
+                ?.MutationObserver
+
+            if (!MutationObserverConstructor) {
+                return
+            }
+
+            const observer = new MutationObserverConstructor(() => {
+                if (inputRefAttachedRef.current || internalInputRef.current !== detachedInput) {
+                    observer.disconnect()
+                    return
+                }
+
+                if (!detachedInput.isConnected) {
+                    releaseResetBinding()
+                }
+            })
+
+            detachObserverRef.current?.disconnect()
+            detachObserverRef.current = observer
+            observer.observe(detachedInput.ownerDocument, {childList: true, subtree: true})
+        })
+    }, [handleFormReset])
+    const {inputAriaProps, rootProps} = moveAriaPropsToInput(rest)
+    const controlProps = usePneFieldControlProps({
+        ariaDescribedBy: inputAriaProps['aria-describedby'],
+        disabled: props.disabled,
+        id: props.id,
+        required: props.required,
+    })
+    const composedInputSlotProps = composeToggleInputSlotProps<SwitchOwnerState>(
+        [defaultInputSlotProps, consumerInputSlotProps],
+        {
+            controlId: controlProps.id ?? id,
+            describedBy: controlProps.ariaDescribedBy,
+            forceDisabled: controlProps.disabled === true || disabled === true,
+            forceInvalid: controlProps.error,
+            forceRequired: controlProps.ariaRequired,
+            inputAriaProps,
+            inputRef,
+            internalInputRef: handleInternalInputRef,
+            labelId: controlProps.labelId,
+            mergeClassNameAndStyle: theme.components?.mergeClassNameAndStyle,
+            readOnly,
+            role: 'switch',
+        },
+    )
+    const inputSlotProps = ((ownerState: SwitchOwnerState) => {
+        const inputProps = composedInputSlotProps(ownerState) as ResolvedSwitchInputSlotProps
+
+        if (!pending && !readOnly) {
+            return inputProps
+        }
+
+        const consumerOnClick = inputProps.onClick
+
+        return {
+            ...inputProps,
+            ...(pending ? {
+                'aria-busy': true,
+                'aria-disabled': true,
+            } : {}),
+            onClick: (event: React.MouseEvent<HTMLInputElement>) => {
+                event.preventDefault()
+                consumerOnClick?.(event)
+                const input = event.currentTarget
+
+                // React's controlled checkbox restoration and the browser's
+                // cancelled click can leave a transient inverse value. Restore
+                // the source-of-truth value before the next paint.
+                queueMicrotask(() => {
+                    if (input.isConnected) {
+                        input.checked = displayedCheckedRef.current
+                    }
+                })
+            },
+        }
+    }) as SwitchInputSlotProps
+
+    const settleAsyncChange = (requestId: number, rollbackChecked?: boolean) => {
+        if (requestId !== pendingRequestRef.current) {
+            return
+        }
+
+        if (rollbackChecked !== undefined) {
+            // Controlled owners remain the source of truth; this setter only
+            // restores the previous value for defaultChecked usage.
+            setConfirmedChecked(rollbackChecked)
+        }
+
+        pendingRef.current = false
+        setOptimisticChecked(undefined)
+        setPending(false)
+    }
+
+    const handleChange: MuiSwitchChangeHandler = (event, nextChecked) => {
+        if (handlingChangeRef.current || pendingRef.current) {
+            return
+        }
+
+        const previousChecked = Boolean(confirmedChecked)
+        let changeResult: unknown
+
+        handlingChangeRef.current = true
+        try {
+            // This is a no-op for controlled usage and preserves MUI's immediate
+            // uncontrolled update semantics before the consumer callback runs.
+            setConfirmedChecked(nextChecked)
+            changeResult = onChange?.(event, nextChecked)
+        } finally {
+            handlingChangeRef.current = false
+        }
+
+        if (!isPromiseLike(changeResult)) {
+            return
+        }
+
+        const requestId = ++pendingRequestRef.current
+
+        pendingRef.current = true
+        setOptimisticChecked(nextChecked)
+        setPending(true)
+
+        void Promise.resolve(changeResult).then(
+            () => settleAsyncChange(requestId),
+            () => settleAsyncChange(requestId, previousChecked),
+        )
+    }
 
     const _sx: SxProps<Theme> = [
         switchSxBySize[size],
+        pending ? pendingSwitchSx : undefined,
         ...(Array.isArray(sx) ? sx : [sx]),
     ]
+    // MUI types still expose the SwitchBase ref as a button although its
+    // runtime root is a span. Keep the corrected public ref at the PNE edge.
+    const muiRootRef = ref as React.Ref<HTMLButtonElement>
 
-    return <Switch
-        sx={_sx}
-        size={size}
-        {...rest}
-        ref={ref}
-    />
+    return <DefaultPropsProvider value={componentsWithoutSwitchDefaults}>
+        <Switch
+            {...rootProps}
+            checked={displayedChecked}
+            disabled={controlProps.disabled ?? disabled}
+            id={controlProps.id ?? id}
+            onChange={handleChange}
+            readOnly={readOnly || pending}
+            ref={muiRootRef}
+            required={controlProps.required ?? required}
+            size={size}
+            slotProps={{
+                ...slotProps,
+                input: inputSlotProps,
+                track: MuiMaterialUtils.mergeSlotProps(slotProps?.track, {
+                    sx: switchTrackTransitionSx,
+                }),
+            }}
+            sx={_sx}
+        />
+    </DefaultPropsProvider>
 })
+
+PneSwitch.displayName = 'PneSwitch'
+
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
+    return (typeof value === 'object' && value !== null) || typeof value === 'function'
+        ? typeof (value as PromiseLike<unknown>).then === 'function'
+        : false
+}
+
+const pendingRipple = keyframes({
+    from: {
+        opacity: 0.32,
+        transform: 'scale(1)',
+    },
+    to: {
+        opacity: 0,
+        transform: 'scale(1.28)',
+    },
+})
+
+const switchTrackTransitionSx: SxProps<Theme> = theme => ({
+    transition: theme.transitions.create('background-color', {
+        duration: 240,
+        easing: theme.transitions.easing.easeInOut,
+    }),
+    '@media (prefers-reduced-motion: reduce)': {
+        transitionDuration: '0.01ms',
+    },
+})
+
+const revealStaticPendingOutline = keyframes({
+    to: {
+        opacity: 0.32,
+    },
+})
+
+const pendingSwitchSx: SxProps<Theme> = theme => ({
+    cursor: 'progress',
+    position: 'relative',
+    '& .MuiSwitch-switchBase': {
+        cursor: 'progress',
+    },
+    '&::before, &::after': {
+        animation: `${pendingRipple} 1200ms ease-out 400ms infinite`,
+        border: `2px solid ${theme.palette.primary.main}`,
+        borderRadius: 40,
+        boxSizing: 'border-box',
+        content: '""',
+        height: 'calc(var(--pne-switch-track-height) + 4px)',
+        left: 'calc(var(--pne-switch-track-left) - 2px)',
+        opacity: 0,
+        pointerEvents: 'none',
+        position: 'absolute',
+        top: 'calc(var(--pne-switch-track-top) - 2px)',
+        transformOrigin: 'center',
+        width: 'calc(var(--pne-switch-track-width) + 4px)',
+    },
+    '&::after': {
+        animationDelay: '1000ms',
+    },
+    '@media (prefers-reduced-motion: reduce)': {
+        '&::before': {
+            animation: `${revealStaticPendingOutline} 1ms linear 400ms forwards`,
+            transform: 'none',
+        },
+        '&::after': {
+            display: 'none',
+        },
+    },
+})
+
+const useComponentsWithoutSwitchDefaults = () => {
+    const theme = useTheme()
+
+    return useMemo(() => {
+        const components = theme.components
+        const switchConfig = components?.MuiSwitch
+
+        if (!switchConfig?.defaultProps) {
+            return components ?? {}
+        }
+
+        const switchConfigWithoutDefaults = {...switchConfig}
+        Reflect.deleteProperty(switchConfigWithoutDefaults, 'defaultProps')
+
+        return {
+            ...components,
+            MuiSwitch: Object.keys(switchConfigWithoutDefaults).length > 0
+                ? switchConfigWithoutDefaults
+                : undefined,
+        }
+    }, [theme.components])
+}
 
 const createSwitchSx = (
     config: {
@@ -46,8 +416,22 @@ const createSwitchSx = (
     },
 ): SxProps<Theme> => theme => {
     const trackFeedbackColor = alpha(theme.palette.primary.main, 0.1)
+    const isDarkMode = theme.palette.mode === 'dark'
+    const thumbColor = isDarkMode ? theme.palette.text.primary : '#fff'
+    const trackColor = isDarkMode
+        ? (theme.palette.pne?.border.control ?? theme.palette.text.secondary)
+        : '#809EAE'
+    const trackHoverColor = isDarkMode ? theme.palette.text.secondary : '#5E7594'
+    const disabledTrackColor = isDarkMode
+        ? theme.palette.action.disabledBackground
+        : '#E6E6E6'
+    const disabledThumbColor = isDarkMode ? theme.palette.text.disabled : '#fff'
 
     return {
+        '--pne-switch-track-height': `${config.trackHeight}px`,
+        '--pne-switch-track-left': `${config.trackLeft}px`,
+        '--pne-switch-track-top': `${config.trackTop}px`,
+        '--pne-switch-track-width': `${config.trackWidth}px`,
         width: config.rootWidth,
         height: config.rootHeight,
         padding: 0,
@@ -67,17 +451,17 @@ const createSwitchSx = (
             top: config.trackTop,
             left: config.trackLeft,
             padding: `${config.thumbPadding}px`,
-            color: '#fff',
+            color: thumbColor,
             '&.Mui-checked': {
                 transform: `translateX(${config.checkedShift}px)`,
-                color: '#fff',
+                color: thumbColor,
                 '& + .MuiSwitch-track': {
                     backgroundColor: 'primary.main',
                     opacity: 1,
                 },
             },
             '&:hover + .MuiSwitch-track': {
-                backgroundColor: '#5E7594',
+                backgroundColor: trackHoverColor,
                 opacity: 1,
             },
             '&.Mui-checked:hover + .MuiSwitch-track': {
@@ -85,13 +469,13 @@ const createSwitchSx = (
                 opacity: 1,
             },
             '&.Mui-disabled': {
-                color: '#fff',
+                color: disabledThumbColor,
                 opacity: 1,
                 '& .MuiSwitch-thumb': {
-                    backgroundColor: '#fff',
+                    backgroundColor: disabledThumbColor,
                 },
                 '& + .MuiSwitch-track': {
-                    backgroundColor: '#E6E6E6',
+                    backgroundColor: disabledTrackColor,
                     opacity: 1,
                 },
                 '& + .MuiSwitch-track::before': {
@@ -101,17 +485,17 @@ const createSwitchSx = (
                 },
             },
             '&.Mui-checked.Mui-disabled + .MuiSwitch-track': {
-                backgroundColor: '#E6E6E6',
+                backgroundColor: disabledTrackColor,
                 opacity: 1,
             },
             '&.Mui-checked.Mui-disabled .MuiSwitch-thumb': {
-                backgroundColor: '#fff',
+                backgroundColor: disabledThumbColor,
             },
             '&.Mui-checked.Mui-disabled': {
-                color: '#fff',
+                color: disabledThumbColor,
                 opacity: 1,
                 '& + .MuiSwitch-track': {
-                    backgroundColor: '#E6E6E6',
+                    backgroundColor: disabledTrackColor,
                     opacity: 1,
                 },
                 '& + .MuiSwitch-track::before': {
@@ -121,11 +505,11 @@ const createSwitchSx = (
                 },
             },
             '&.Mui-disabled:hover + .MuiSwitch-track': {
-                backgroundColor: '#E6E6E6',
+                backgroundColor: disabledTrackColor,
                 opacity: 1,
             },
             '&.Mui-checked.Mui-disabled:hover + .MuiSwitch-track': {
-                backgroundColor: '#E6E6E6',
+                backgroundColor: disabledTrackColor,
                 opacity: 1,
             },
             '&.Mui-focusVisible:not(.Mui-disabled) + .MuiSwitch-track::before': {
@@ -153,7 +537,7 @@ const createSwitchSx = (
             width: config.trackWidth,
             height: config.trackHeight,
             borderRadius: 40,
-            backgroundColor: '#809EAE',
+            backgroundColor: trackColor,
             opacity: 1,
             overflow: 'visible',
             '&::before': {

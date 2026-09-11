@@ -57,7 +57,7 @@ const TransactionReportFilters = ({invalidRange = false}: Props) => {
     }
 
     return <OverlayHost>
-        <SearchUIProvider>
+        <SearchUIProvider defaults={{}}>
             <Box sx={{width: 'min(1120px, 100%)', mx: 'auto', py: '16px'}}>
                 <SearchUIFilters
                     settingsContextName={`storybook-transaction-report-${invalidRange ? 'invalid' : 'valid'}`}
@@ -70,7 +70,7 @@ const TransactionReportFilters = ({invalidRange = false}: Props) => {
                 />
                 <Box sx={{display: 'flex', alignItems: 'center', gap: '12px', px: '16px', pt: '16px'}}>
                     <PneButton
-                        variant={'contained'}
+                        pneStyle={'contained'}
                         disabled={!validationResult?.isValid}
                     >
                         {'Generate report'}

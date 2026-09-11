@@ -20,6 +20,7 @@ export const TransactionReportScopeCriterion = () => {
 
     return <Box sx={criterionSx}>
         <SearchUIEnumChipSelect
+            mode={'select'}
             value={scope}
             options={TRANSACTION_REPORT_SCOPES}
             onChange={setTransactionReportScopeCriterion}
