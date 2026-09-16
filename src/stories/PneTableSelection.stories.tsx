@@ -1,6 +1,6 @@
 import React, {useRef, useState} from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import {Alert, Box, IconButton, Tooltip, Typography} from '@mui/material'
+import {Alert, Box, IconButton, Stack, Tooltip, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
 import {
     PneButton,
@@ -261,6 +261,196 @@ const SubpixelSelectionLayoutStory = () => {
     </Box>
 }
 
+/**
+ * Mirrors the gates list: a wide selection band (summary, bulk actions and a nested
+ * wrapping action group) beside a View selector, with four page sizes underneath.
+ * Fractional CSS pixels used to drive those nested responsive bands into a
+ * ResizeObserver loop, so the table header jumped continuously.
+ */
+const GatesLikeControlsStory = ({width}: {width?: number}) => {
+    const [view, setView] = useState<StoryView>('summary')
+    const paginationRef = useRef<HTMLDivElement>(null)
+    const selection = useTableSelection({
+        rows: storyRows,
+        getRowId: row => row.id,
+        defaultSelection: {mode: 'explicit', selectedIds: new Set([1, 3])},
+    })
+
+    return <Box
+        data-story-section='gates-like-controls'
+        sx={{
+            backgroundColor: '#fff',
+            boxSizing: 'border-box',
+            maxWidth: '100%',
+            p: 2,
+            width: width === undefined ? '100%' : `${width}px`,
+        }}
+    >
+        <PneTable<StoryRow>
+            autoTestId='gates-like-controls'
+            createRow={row => <PneTableRow key={row.id} selected={selection.isRowSelected(row)}>
+                <PneTableSelectionCell
+                    aria-label={`Select ${row.name}`}
+                    checked={selection.isRowSelected(row)}
+                    onChange={checked => selection.setRowSelected(row, checked)}
+                />
+                <PneTableCell>{row.id}</PneTableCell>
+                <PneTableCell>{row.name}</PneTableCell>
+            </PneTableRow>}
+            createTableHeader={() => <PneTableRow>
+                <PneTableSelectionHeaderCell
+                    aria-label='Select current page'
+                    onChange={checked => selection.setPageSelected(checked)}
+                    state={selection.pageState}
+                />
+                <PneHeaderTableCell>Status</PneHeaderTableCell>
+                <PneHeaderTableCell>Name</PneHeaderTableCell>
+            </PneTableRow>}
+            data={storyRows}
+            paginator={{
+                rowsPerPageOptions: [10, 25, 50, 100],
+                rowsPerPage: 10,
+                page: 0,
+                onPageChange: () => undefined,
+                onPageSizeChange: () => undefined,
+                hasNext: true,
+                disableActions: false,
+                displayedRowsLabel: '1 - 10',
+                paginationRef,
+                duplicatePagination: true,
+            }}
+            tableAriaLabel='Gates'
+            toolbar={<PneTableToolbar
+                aria-label='Gates table controls'
+                contextual={<PneTableSelectionControls
+                    summary={<Typography>Selected gates: {selection.selectedCount}</Typography>}
+                    actions={<>
+                        <PneButton onClick={() => selection.selectAllMatching(120)} pneStyle='text'>
+                            Select all
+                        </PneButton>
+                        {selection.selectedCount > 0 ? <PneButton
+                            onClick={selection.clear}
+                            pneStyle='text'
+                        >
+                            Unselect
+                        </PneButton> : null}
+                        <Stack
+                            sx={{
+                                alignItems: 'center',
+                                flexDirection: 'row',
+                                flexWrap: 'wrap',
+                                gap: 1,
+                                justifyContent: 'flex-end',
+                            }}
+                        >
+                            <Box>Operations with selected gates</Box>
+                            <PneButton pneStyle='outlined'>Actions</PneButton>
+                        </Stack>
+                    </>}
+                />}
+                persistent={<Box sx={{display: 'contents'}}>
+                    <PneTableViewSelector<StoryView>
+                        aria-label='Gates view'
+                        actions={<Tooltip title='View settings'>
+                            <IconButton aria-label='View settings'>
+                                <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
+                            </IconButton>
+                        </Tooltip>}
+                        onChange={setView}
+                        value={view}
+                        views={[
+                            {id: 'summary', label: 'Brief'},
+                            {id: 'operations', label: 'Detailed'},
+                        ]}
+                    />
+                </Box>}
+            />}
+        />
+    </Box>
+}
+
+const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
+
+const requireControlBands = (canvasElement: HTMLElement) => {
+    const topControls = canvasElement.querySelector<HTMLElement>(
+        '[data-autotest="table-top-controls"]',
+    )
+    const actionBand = canvasElement.querySelector<HTMLElement>(
+        '[data-autotest="pagination-actions"]',
+    )
+    const tableControlBar = canvasElement.querySelector<HTMLElement>(
+        '[data-autotest="table-control-bar"]',
+    )
+
+    if (!topControls || !actionBand || !tableControlBar) {
+        throw new Error('Gates-like control bands are missing from the story')
+    }
+
+    return {actionBand, tableControlBar, topControls}
+}
+
+/** Flex items of a wrapping band, looking through `display: contents` wrappers. */
+const getBandItems = (band: HTMLElement): HTMLElement[] =>
+    Array.from(band.children).flatMap(child => {
+        const element = child as HTMLElement
+
+        return window.getComputedStyle(element).display === 'contents'
+            ? getBandItems(element)
+            : [element]
+    })
+
+/**
+ * Fails when a wrapping band broke to a new row earlier than it had to, which is
+ * what used to leave the selection summary alone on a row of its own.
+ */
+const requireTightRowPacking = (band: HTMLElement, bandName: string, gap: number): number => {
+    const rows: HTMLElement[][] = []
+
+    getBandItems(band).forEach(item => {
+        const rect = item.getBoundingClientRect()
+
+        if (rect.width === 0 && rect.height === 0) {
+            return
+        }
+
+        const currentRow = rows[rows.length - 1]
+        const currentTop = currentRow
+            ? Math.round(currentRow[0].getBoundingClientRect().top)
+            : null
+
+        if (currentRow && currentTop === Math.round(rect.top)) {
+            currentRow.push(item)
+        } else {
+            rows.push([item])
+        }
+    })
+
+    const availableWidth = band.clientWidth
+
+    rows.forEach((row, index) => {
+        const nextRow = rows[index + 1]
+
+        if (!nextRow) {
+            return
+        }
+
+        const rects = row.map(item => item.getBoundingClientRect())
+        const packedWidth = Math.max(...rects.map(rect => rect.right))
+            - Math.min(...rects.map(rect => rect.left))
+        const candidateWidth = nextRow[0].getBoundingClientRect().width
+
+        if (packedWidth + gap + candidateWidth <= availableWidth) {
+            throw new Error(
+                `${bandName} wrapped too early: row ${index + 1} (${Math.round(packedWidth)}px)`
+                + ` had room for the next ${Math.round(candidateWidth)}px control`
+                + ` within ${Math.round(availableWidth)}px`,
+            )
+        }
+    })
+
+    return rows.length
+}
+
 const meta = {
     title: 'pne-ui/PneTable/Selection',
     component: SelectionTableStory,
@@ -487,6 +677,95 @@ export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
         }
 
         canvasElement.setAttribute('data-story-layout-stable', 'true')
+    },
+}
+
+export const GatesControlsStayStableAtFractionalZoom: Story = {
+    render: () => <GatesLikeControlsStory/>,
+    parameters: {
+        viewport: {defaultViewport: 'desktop'},
+    },
+    play: async ({canvasElement}) => {
+        const section = canvasElement.querySelector<HTMLElement>(
+            '[data-story-section="gates-like-controls"]',
+        )
+
+        if (!section) {
+            throw new Error('Gates-like fixture is missing')
+        }
+
+        const {actionBand, tableControlBar} = requireControlBands(canvasElement)
+
+        for (const zoom of [1, 1.05, 1.1, 1.25, 1.5]) {
+            section.style.zoom = String(zoom)
+
+            for (let frame = 0; frame < 30; frame += 1) {
+                await nextFrame()
+            }
+
+            const observedLayouts = new Set<string>()
+
+            for (let frame = 0; frame < 90; frame += 1) {
+                await nextFrame()
+                observedLayouts.add(
+                    `${actionBand.dataset.autotestValue}/${tableControlBar.dataset.autotestValue}`,
+                )
+            }
+
+            if (observedLayouts.size !== 1) {
+                throw new Error(
+                    `Table controls keep flipping at zoom ${zoom}: ${[...observedLayouts].join(', ')}`,
+                )
+            }
+        }
+
+        section.style.zoom = ''
+        canvasElement.setAttribute('data-story-layout-stable', 'true')
+    },
+}
+
+export const GatesControlsRowBudgetMobile360: Story = {
+    render: () => <GatesLikeControlsStory width={360}/>,
+    parameters: {
+        viewport: {defaultViewport: 'mobile360'},
+    },
+    play: async ({canvasElement}) => {
+        const {actionBand, tableControlBar, topControls} = requireControlBands(canvasElement)
+
+        for (let frame = 0; frame < 30; frame += 1) {
+            await nextFrame()
+        }
+
+        for (const [name, element] of [
+            ['top controls', topControls],
+            ['pagination actions', actionBand],
+            ['table control bar', tableControlBar],
+        ] as const) {
+            if (element.scrollWidth > element.clientWidth) {
+                throw new Error(`${name} overflow at the supported 360px viewport`)
+            }
+        }
+
+        const selectionControls = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="selection-controls"]',
+        )
+        const summary = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="selection-summary"]',
+        )
+        const selectAll = canvasElement.querySelector<HTMLElement>(
+            '[data-autotest="selection-actions"] button',
+        )
+
+        if (!selectionControls || !summary || !selectAll) {
+            throw new Error('Selection summary and actions are missing from the 360px story')
+        }
+
+        requireTightRowPacking(selectionControls, 'Selection controls', 8)
+
+        if (Math.round(summary.getBoundingClientRect().top)
+            !== Math.round(selectAll.getBoundingClientRect().top)) {
+            throw new Error('Selection summary must share its row with the first bulk action')
+        }
     },
 }
 

@@ -11,7 +11,11 @@ import {
     TABLE_CONTROL_TEXT_COLOR,
 } from "./tableControlColors";
 import {usePneTheme} from "../../usePneTheme";
-import {measuredLayoutWidthFits} from './tableLayoutMeasurement';
+import {
+    TABLE_LAYOUT_HYSTERESIS,
+    measureSingleRowWidth,
+    measuredLayoutWidthFits,
+} from './tableLayoutMeasurement';
 
 interface IPaginationActionsProps {
     count: number
@@ -40,6 +44,12 @@ type ResolvePaginationActionsLayoutParams = {
     navigationPreferredWidth: number
     pageSizesWidth: number
     toolbarPreferredWidth: number
+    /**
+     * Layout currently rendered. Unstacking costs {@link TABLE_LAYOUT_HYSTERESIS}
+     * extra width so a height change that toggles the document scrollbar cannot
+     * push the band back and forth every frame.
+     */
+    currentLayout?: PneTablePaginationActionsLayout
 }
 
 const CONTROL_SIZE = 40
@@ -47,41 +57,12 @@ const CONTROL_GAP = 8
 const DISPLAYED_ROWS_MAX_WIDTH = 120
 const FIXED_NAVIGATION_CONTROLS = 3
 
-const measurePreferredWidth = (element: HTMLElement, ownerDocument: Document): number => {
-    const renderedWidth = Math.max(
-        element.scrollWidth,
-        element.getBoundingClientRect().width,
-    )
-    const clone = element.cloneNode(true) as HTMLElement
-    Object.assign(clone.style, {
-        height: 'auto',
-        left: '-100000px',
-        maxWidth: 'none',
-        minWidth: '0',
-        pointerEvents: 'none',
-        position: 'fixed',
-        top: '0',
-        visibility: 'hidden',
-        width: 'max-content',
-    })
-    clone.setAttribute('aria-hidden', 'true')
-    ownerDocument.body.appendChild(clone)
-
-    try {
-        return Math.max(
-            renderedWidth,
-            clone.scrollWidth,
-            clone.getBoundingClientRect().width,
-        )
-    } finally {
-        clone.remove()
-    }
-}
-
 /**
  * Chooses the smallest layout that keeps each control group on an intentional row.
- * Widths are measured from the rendered content, so consumers are not tied to a
- * viewport breakpoint or to a particular set of view labels/page sizes.
+ * Widths are the single-row widths the groups would take if nothing constrained
+ * them, so consumers are not tied to a viewport breakpoint or to a particular set
+ * of view labels/page sizes, and the choice never depends on the layout that was
+ * in place when the measurement was taken.
  */
 export const resolvePneTablePaginationActionsLayout = ({
     availableWidth,
@@ -90,13 +71,18 @@ export const resolvePneTablePaginationActionsLayout = ({
     navigationPreferredWidth,
     pageSizesWidth,
     toolbarPreferredWidth,
+    currentLayout = 'inline',
 }: ResolvePaginationActionsLayoutParams): PneTablePaginationActionsLayout => {
     if (availableWidth <= 0) {
         return 'inline'
     }
 
+    const unstackPaginationCost = currentLayout === 'pagination-stacked'
+        ? TABLE_LAYOUT_HYSTERESIS
+        : 0
+    const unstackToolbarCost = currentLayout === 'inline' ? 0 : TABLE_LAYOUT_HYSTERESIS
     const paginationFits = measuredLayoutWidthFits(
-        navigationMinimumWidth + CONTROL_GAP + pageSizesWidth,
+        navigationMinimumWidth + CONTROL_GAP + pageSizesWidth + unstackPaginationCost,
         availableWidth,
     )
 
@@ -109,7 +95,8 @@ export const resolvePneTablePaginationActionsLayout = ({
             + CONTROL_GAP
             + toolbarPreferredWidth
             + CONTROL_GAP
-            + pageSizesWidth,
+            + pageSizesWidth
+            + unstackToolbarCost,
         availableWidth,
     )
 
@@ -294,8 +281,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             const currentPageNaturalWidth = currentPage
                 ? Math.max(
                     currentPageMinimumWidth,
-                    currentPage.scrollWidth,
-                    currentPage.getBoundingClientRect().width,
+                    measureSingleRowWidth(currentPage, root.ownerDocument),
                 )
                 : currentPageMinimumWidth
             const currentPagePreferredWidth = Number.isFinite(parsedCurrentPageMaxWidth)
@@ -314,31 +300,30 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             const pageSizesElement = pageSizesRef.current
             const pageSizesWidth = Math.max(
                 rowsPerPageOptions.length * CONTROL_SIZE,
-                pageSizesElement?.scrollWidth ?? 0,
-                pageSizesElement?.getBoundingClientRect().width ?? 0,
+                measureSingleRowWidth(pageSizesElement, root.ownerDocument),
             )
             const toolbarElement = toolbarRef.current
             const toolbarContent = toolbarElement?.firstElementChild as HTMLElement | null
             const toolbarControlContents = toolbarContent
                 ? Array.from(toolbarContent.children) as HTMLElement[]
                 : []
-            const toolbarPreferredWidth = toolbarControlContents.length > 0
-                ? toolbarControlContents.reduce((width, element) => (
-                    width + measurePreferredWidth(element, root.ownerDocument)
-                ), 0)
-                : 0
-            const nextLayout = resolvePneTablePaginationActionsLayout({
-                availableWidth,
-                hasToolbar,
-                navigationMinimumWidth,
-                navigationPreferredWidth,
-                pageSizesWidth,
-                toolbarPreferredWidth,
-            })
+            const toolbarPreferredWidth = toolbarControlContents.reduce((width, element) => (
+                width + measureSingleRowWidth(element, root.ownerDocument)
+            ), 0)
 
-            setLayout(currentLayout => currentLayout === nextLayout
-                ? currentLayout
-                : nextLayout)
+            setLayout(currentLayout => {
+                const nextLayout = resolvePneTablePaginationActionsLayout({
+                    availableWidth,
+                    hasToolbar,
+                    navigationMinimumWidth,
+                    navigationPreferredWidth,
+                    pageSizesWidth,
+                    toolbarPreferredWidth,
+                    currentLayout,
+                })
+
+                return currentLayout === nextLayout ? currentLayout : nextLayout
+            })
         }
 
         measureLayout()

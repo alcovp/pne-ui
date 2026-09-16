@@ -1,7 +1,12 @@
 import React, {useEffect, useLayoutEffect, useRef, useState} from 'react'
 import {Box, BoxProps, SxProps, Theme} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
-import {measuredLayoutWidthFits} from './tableLayoutMeasurement'
+import {
+    TABLE_LAYOUT_HYSTERESIS,
+    measureAvailableWidth,
+    measureSingleRowWidth,
+    measuredLayoutWidthFits,
+} from './tableLayoutMeasurement'
 
 export type PneTableToolbarLayout = 'inline' | 'stacked'
 
@@ -31,6 +36,11 @@ type ResolvePneTableToolbarLayoutParams = {
     persistentWidth: number
     hasContextual: boolean
     hasPersistent: boolean
+    /**
+     * Layout currently rendered. Returning to `inline` costs
+     * {@link TABLE_LAYOUT_HYSTERESIS} extra width so the band cannot flap.
+     */
+    currentLayout?: PneTableToolbarLayout
 }
 
 const CONTROL_GROUP_GAP = 8
@@ -42,15 +52,16 @@ export const resolvePneTableToolbarLayout = ({
     persistentWidth,
     hasContextual,
     hasPersistent,
+    currentLayout = 'inline',
 }: ResolvePneTableToolbarLayoutParams): PneTableToolbarLayout => {
     if (!hasContextual || !hasPersistent || availableWidth <= 0) {
         return 'inline'
     }
 
-    return measuredLayoutWidthFits(
-        contextualWidth + CONTROL_GROUP_GAP + persistentWidth,
-        availableWidth,
-    )
+    const requiredWidth = contextualWidth + CONTROL_GROUP_GAP + persistentWidth
+    const hysteresis = currentLayout === 'stacked' ? TABLE_LAYOUT_HYSTERESIS : 0
+
+    return measuredLayoutWidthFits(requiredWidth + hysteresis, availableWidth)
         ? 'inline'
         : 'stacked'
 }
@@ -98,28 +109,29 @@ const PneTableToolbar = (props: PneTableToolbarProps) => {
         }
 
         const measureLayout = () => {
-            const measurePreferredWidth = (element: HTMLElement | null): number => {
-                if (!element) {
-                    return 0
-                }
+            const ownerDocument = root.ownerDocument
+            const availableWidth = measureAvailableWidth(root)
+            const contextualWidth = measureSingleRowWidth(
+                contextualContentRef.current,
+                ownerDocument,
+            )
+            const persistentWidth = measureSingleRowWidth(
+                persistentContentRef.current,
+                ownerDocument,
+            )
 
-                return Math.max(
-                    element.scrollWidth,
-                    element.getBoundingClientRect().width,
-                )
-            }
-            const availableWidth = root.clientWidth || root.getBoundingClientRect().width
-            const nextLayout = resolvePneTableToolbarLayout({
-                availableWidth,
-                contextualWidth: measurePreferredWidth(contextualContentRef.current),
-                persistentWidth: measurePreferredWidth(persistentContentRef.current),
-                hasContextual,
-                hasPersistent,
+            setLayout(currentLayout => {
+                const nextLayout = resolvePneTableToolbarLayout({
+                    availableWidth,
+                    contextualWidth,
+                    persistentWidth,
+                    hasContextual,
+                    hasPersistent,
+                    currentLayout,
+                })
+
+                return currentLayout === nextLayout ? currentLayout : nextLayout
             })
-
-            setLayout(currentLayout => currentLayout === nextLayout
-                ? currentLayout
-                : nextLayout)
         }
 
         measureLayout()

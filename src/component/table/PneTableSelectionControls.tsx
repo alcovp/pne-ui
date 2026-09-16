@@ -52,17 +52,16 @@ const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
         >
             {summary}
         </Box>
+        {/*
+          * `display: contents` keeps the Selenium hook in the DOM while letting the
+          * actions share wrap lines with the summary. As a real box the group is a
+          * single flex item whose unwrapped width rarely fits beside the summary, so
+          * it always dropped to its own line and left the summary on a row of its
+          * own - several wasted rows at the 360px minimum supported width.
+          */}
         {actions !== undefined && actions !== null && typeof actions !== 'boolean' ? <Box
             {...createAutoTestAttributes('selection-actions')}
-            sx={{
-                alignItems: 'center',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '8px',
-                justifyContent: 'flex-end',
-                minHeight: '40px',
-                minWidth: 0,
-            }}
+            sx={{display: 'contents'}}
         >
             {actions}
         </Box> : null}

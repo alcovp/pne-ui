@@ -8,6 +8,7 @@ import {
     type PneTablePaginationActionsLayout,
     resolvePneTablePaginationActionsLayout,
 } from '../src/component/table/PneTablePaginationActions'
+import {TABLE_LAYOUT_HYSTERESIS} from '../src/component/table/tableLayoutMeasurement'
 
 describe('PneTableToolbar', () => {
     it('resolves inline and stacked group layouts from measured content', () => {
@@ -47,6 +48,60 @@ describe('PneTableToolbar', () => {
             ...qaMeasurements,
             availableWidth: 798,
         })).toBe('stacked')
+    })
+
+    it('charges hysteresis before a stacked band returns to a single row', () => {
+        const base = {
+            contextualWidth: 180,
+            persistentWidth: 160,
+            hasContextual: true,
+            hasPersistent: true,
+        }
+
+        // 180 + 8 + 160 = 348 fits exactly, but only for a band that is not stacked.
+        expect(resolvePneTableToolbarLayout({
+            ...base,
+            availableWidth: 348,
+            currentLayout: 'inline',
+        })).toBe('inline')
+        expect(resolvePneTableToolbarLayout({
+            ...base,
+            availableWidth: 348,
+            currentLayout: 'stacked',
+        })).toBe('stacked')
+        expect(resolvePneTableToolbarLayout({
+            ...base,
+            availableWidth: 348 + TABLE_LAYOUT_HYSTERESIS,
+            currentLayout: 'stacked',
+        })).toBe('inline')
+    })
+
+    it('charges hysteresis before pagination puts the toolbar back on its row', () => {
+        const base = {
+            hasToolbar: true,
+            navigationMinimumWidth: 160,
+            navigationPreferredWidth: 174.5,
+            pageSizesWidth: 120,
+            toolbarPreferredWidth: 800,
+        }
+        // 174.5 + 8 + 800 + 8 + 120 = 1110.5
+        const exactFit = 1110.5
+
+        expect(resolvePneTablePaginationActionsLayout({
+            ...base,
+            availableWidth: exactFit,
+            currentLayout: 'inline',
+        })).toBe('inline')
+        expect(resolvePneTablePaginationActionsLayout({
+            ...base,
+            availableWidth: exactFit,
+            currentLayout: 'toolbar-stacked',
+        })).toBe('toolbar-stacked')
+        expect(resolvePneTablePaginationActionsLayout({
+            ...base,
+            availableWidth: exactFit + TABLE_LAYOUT_HYSTERESIS,
+            currentLayout: 'toolbar-stacked',
+        })).toBe('inline')
     })
 
     it('settles nested table layouts across CSSOM subpixel rounding', () => {
