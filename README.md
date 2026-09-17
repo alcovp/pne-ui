@@ -587,12 +587,35 @@ const selection = useTableSelection({
 scope-reset и вернуть canonical empty-модель `{mode: 'explicit', selectedIds: new Set()}`.
 
 `PneTableToolbar` объединяет contextual selection controls и persistent View controls в существующей верхней
-полосе таблицы. Он измеряет фактическое содержимое и сохраняет DOM/keyboard-порядок Selection → View →
-Pagination при переходе на несколько строк, включая поддерживаемую ширину viewport 360px.
+полосе таблицы. Раскладка полностью определяется CSS: каждая группа контролов запрашивает свою естественную
+ширину в одну строку (`flex-basis: max-content`), поэтому не поместившаяся группа переносится целиком, а
+сжимается и переносится внутри себя только получив отдельную строку.
+
+Полоса пагинации построена на container query (`container-type: inline-size`), то есть реагирует на
+собственную ширину, а не на viewport: таблица в узкой колонке ведёт себя как на узком экране. Обе половины
+пагинации — навигация и размеры страницы — лежат в одной группе, которую тулбар не может разделить: в широкой
+раскладке группа прозрачна (`display: contents`) и тулбар стоит между её половинами через grid-области, а в
+узкой становится собственной строкой и переносит размеры страницы под навигацию ровно тогда, когда они
+перестают помещаться рядом — при любой локализации и любой метке страницы.
+
+Порог, на котором тулбар перестаёт делить строку с пагинацией, вычисляется из содержимого: естественные
+ширины тулбара, навигации и размеров страницы измеряются при монтировании и при смене контента. Содержимое
+toolbar задаёт consumer и оно у каждой страницы своё — от пустого (чаще всего) до полосы гейтов с выбором
+строк, батчевыми операциями и View, — поэтому константа тут не работает: на фикстурах библиотеки требуемая
+ширина меняется от ~590px до ~1330px. Измеряется только естественная ширина контента, которая не зависит от
+выбранной раскладки, поэтому обратной связи не возникает и `ResizeObserver` не нужен.
+`PaginatorProps.controlRowBreakpoints.toolbar` позволяет задать порог вручную, но в норме этого не требуется.
+
+Минимальная поддерживаемая ширина — 360px.
+
+Ни один из компонентов не измеряет собственный результат и не использует `ResizeObserver`, поэтому раскладка
+не может зациклиться на дробных CSS-пикселях (page zoom, масштаб ОС). DOM-порядок постоянен: тулбар, затем
+пагинация одной группой — он совпадает с визуальным во всех перенесённых раскладках; в самой широкой
+раскладке все три группы стоят рядом в одной строке. Поддерживаемая ширина viewport 360px сохранена.
 
 `PneTable.feedback` — отдельный full-width slot над всей верхней полосой. Warning, error и informational alert
-нужно передавать туда, а не внутрь toolbar: feedback не входит в измерения `PneTableToolbar` и пагинации и
-поэтому не меняет их inline/stacked layout даже при переносе текста на несколько строк.
+нужно передавать туда, а не внутрь toolbar: feedback лежит вне полосы контролов и поэтому не меняет их
+раскладку даже при переносе текста на несколько строк.
 
 #### Выбор строк в SearchUI
 
@@ -839,10 +862,10 @@ assertEquals("true", enabled.getAttribute("aria-pressed"));
 | Верхняя пагинация | `[data-autotest="pagination"][data-autotest-value="top"]` | Native button `disabled`; `current-page` внутри |
 | Нижняя пагинация | `[data-autotest="pagination"][data-autotest-value="bottom"]` | Native button `disabled`; `current-page` внутри |
 | Feedback над таблицей | `[data-autotest="table-feedback"]` | Full-width slot перед верхней полосой; alert/status semantics задаёт consumer |
-| Общая полоса контролов | `[data-autotest="table-control-bar"]` | `data-autotest-value="inline|stacked"` |
+| Общая полоса контролов | `[data-autotest="table-control-bar"]` | Раскладка определяется CSS; состояние в атрибуте не публикуется |
 | Выбор текущей страницы | `input[data-autotest="page-selection"]` | Native `checked`, `disabled`, `aria-checked="mixed"` |
 | Выбор строки | `input[data-autotest="row-selection"]` | Native `checked`, `disabled`; consumer может задать `autoTestId`/`autoTestValue` |
-| Selection summary/actions | `[data-autotest="selection-summary"]`, `[data-autotest="selection-actions"]` | Summary является polite live status |
+| Selection summary/actions | `[data-autotest="selection-summary"]`, `[data-autotest="selection-actions"]` | Summary является polite live status; `selection-actions` — прозрачная группа (`display: contents`) без собственного бокса, действия внутри неё надо адресовать напрямую |
 | Пустой результат | `[data-autotest="empty-state"]` | Наличие существующей empty row |
 | Загрузка | Semantic `table` | `aria-busy="true|false"` |
 | Активная сортировка | `th[aria-sort="ascending"], th[aria-sort="descending"]` | Значение `aria-sort` |

@@ -36,6 +36,7 @@ import { expect, userEvent, waitFor } from 'storybook/test'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import { Alert, Box, IconButton, Tooltip } from '@mui/material'
+import { sharesRow } from './tableControlRows'
 
 type DataType = AbstractEntity
 
@@ -927,10 +928,14 @@ export const TableSelectionAndViewsMobile360: Story = {
             }
         }
 
-        if (actionBand.dataset.autotestValue !== 'toolbar-stacked') {
-            throw new Error('SearchUI table controls must sit above pagination at 360px')
+        if (sharesRow(paginationToolbar, navigation)) {
+            throw new Error('SearchUI table controls must occupy their own row at 360px')
         }
-        if (tableControlBar.dataset.autotestValue !== 'stacked') {
+        if (paginationToolbar.getBoundingClientRect().top
+            >= navigation.getBoundingClientRect().top) {
+            throw new Error('SearchUI table controls must sit above the pagination at 360px')
+        }
+        if (sharesRow(contextual, persistent)) {
             throw new Error('SearchUI Selection and View must use separate rows at 360px')
         }
         if (feedback.nextElementSibling !== topControls) {
@@ -938,10 +943,10 @@ export const TableSelectionAndViewsMobile360: Story = {
         }
         if (
             actionBand.children[0] !== paginationToolbar
-            || actionBand.children[1] !== navigation
-            || actionBand.children[2] !== pageSizes
+            || navigation.parentElement !== pageSizes.parentElement
+            || actionBand.children[1] !== navigation.parentElement
         ) {
-            throw new Error('SearchUI pagination DOM order must follow the mobile rows')
+            throw new Error('SearchUI pagination halves must stay one group after the toolbar')
         }
         if (
             tableControlBar.children[0] !== contextual
@@ -1017,16 +1022,15 @@ export const TableViewsMobile360: Story = {
             }
         }
 
-        if (actionBand.dataset.autotestValue !== 'toolbar-stacked') {
-            throw new Error('The 360px layout must keep View above one pagination row')
+        if (sharesRow(paginationToolbar, navigation)) {
+            throw new Error('The 360px layout must keep View on a pagination row of its own')
         }
 
         if (
             actionBand.children[0] !== paginationToolbar
-            || actionBand.children[1] !== navigation
-            || actionBand.children[2] !== pageSizes
+            || actionBand.children[1] !== navigation.parentElement
         ) {
-            throw new Error('DOM and keyboard order must follow the two visual rows at 360px')
+            throw new Error('DOM order must follow the wrapped rows: toolbar, then pagination')
         }
 
         const actionBandRect = actionBand.getBoundingClientRect()

@@ -10,7 +10,6 @@ import {
     type TableCreateHeaderType,
     type TableSortOptions,
 } from '../src'
-import {resolvePneTablePaginationActionsLayout} from '../src/component/table/PneTablePaginationActions'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({t: (key: string) => key}),
@@ -78,81 +77,46 @@ const createPaginator = (duplicatePagination: boolean): PaginatorProps => ({
 })
 
 describe('responsive pagination action layout', () => {
-    const baseWidths = {
-        hasToolbar: true,
-        navigationMinimumWidth: 160,
-        navigationPreferredWidth: 200,
-        pageSizesWidth: 120,
-        toolbarPreferredWidth: 240,
+    const renderActionBand = () => {
+        const {container} = render(createTable(
+            'orders',
+            {id: 'order-1', label: 'Order'},
+            {
+                paginator: createPaginator(true),
+                toolbar: <button type='button'>Orders view</button>,
+            },
+        ))
+        const actionBand = container.querySelector(
+            '[data-autotest="pagination-actions"]',
+        ) as HTMLElement
+
+        return {
+            actionBand,
+            navigation: actionBand.querySelector(
+                '[data-autotest="page-navigation"]',
+            ) as HTMLElement,
+            pageSizes: actionBand.querySelector(
+                '[data-autotest="page-sizes"]',
+            ) as HTMLElement,
+            toolbar: actionBand.querySelector(
+                '[data-autotest="pagination-toolbar"]',
+            ) as HTMLElement,
+        }
     }
 
-    it('keeps all controls inline when their preferred widths fit', () => {
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 576,
-        })).toBe('inline')
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 575,
-        })).toBe('toolbar-stacked')
-    })
+    const paginationGroupOf = (actionBand: HTMLElement) =>
+        actionBand.children[1] as HTMLElement
 
-    it('ignores only subpixel CSSOM rounding at the fit boundary', () => {
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 575.5,
-        })).toBe('inline')
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 575,
-        })).toBe('toolbar-stacked')
-    })
-
-    it('places the toolbar above a pagination row when only pagination fits', () => {
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 328,
-        })).toBe('toolbar-stacked')
-    })
-
-    it('splits pagination only when its minimum width does not fit', () => {
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 280,
-        })).toBe('pagination-stacked')
-    })
-
-    it('does not reserve a toolbar row when no toolbar exists', () => {
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 328,
-            hasToolbar: false,
-            toolbarPreferredWidth: 0,
-        })).toBe('inline')
-        expect(resolvePneTablePaginationActionsLayout({
-            ...baseWidths,
-            availableWidth: 280,
-            hasToolbar: false,
-            toolbarPreferredWidth: 0,
-        })).toBe('pagination-stacked')
-    })
-
-    it('reacts to measured width changes while keeping DOM order aligned with visual order', () => {
-        const resizeObserverDescriptor = Object.getOwnPropertyDescriptor(window, 'ResizeObserver')
-        const resizeObservers: ResizeObserverMock[] = []
+    it('keeps one DOM order and never observes the layout it produced', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(window, 'ResizeObserver')
+        const constructed: unknown[] = []
 
         class ResizeObserverMock {
-            readonly observedElements: Element[] = []
-            readonly callback: ResizeObserverCallback
-
-            constructor(callback: ResizeObserverCallback) {
-                this.callback = callback
-                resizeObservers.push(this)
+            constructor() {
+                constructed.push(this)
             }
 
-            observe = jest.fn((element: Element) => {
-                this.observedElements.push(element)
-            })
+            observe = jest.fn()
             unobserve = jest.fn()
             disconnect = jest.fn()
         }
@@ -163,114 +127,54 @@ describe('responsive pagination action layout', () => {
         })
 
         try {
-            const {container, rerender} = render(createTable(
-                'orders',
-                {id: 'order-1', label: 'Order'},
-                {
-                    paginator: createPaginator(true),
-                    toolbar: <button type='button'>Orders view</button>,
-                },
-            ))
-            const actionBand = container.querySelector(
-                '[data-autotest="pagination-actions"]',
-            ) as HTMLElement
-            const navigation = actionBand.querySelector(
-                '[data-autotest="page-navigation"]',
-            ) as HTMLElement
-            const toolbar = actionBand.querySelector(
-                '[data-autotest="pagination-toolbar"]',
-            ) as HTMLElement
-            const tableToolbar = toolbar.firstElementChild as HTMLElement
-            const toolbarControl = tableToolbar.firstElementChild as HTMLElement
-            const pageSizes = actionBand.querySelector(
-                '[data-autotest="page-sizes"]',
-            ) as HTMLElement
-            const currentPage = actionBand.querySelector(
-                '[data-autotest="current-page"]',
-            ) as HTMLElement
-            let availableWidth = 328
-            let measuredPageSizesWidth = 120
+            const {actionBand, navigation, pageSizes, toolbar} = renderActionBand()
+            const paginationGroup = paginationGroupOf(actionBand)
 
-            Object.defineProperties(actionBand, {
-                clientWidth: {configurable: true, get: () => availableWidth},
-            })
-            Object.defineProperties(currentPage, {
-                scrollWidth: {configurable: true, get: () => 80},
-            })
-            Object.defineProperties(toolbar, {
-                scrollWidth: {configurable: true, get: () => availableWidth},
-            })
-            Object.defineProperties(tableToolbar, {
-                scrollWidth: {configurable: true, get: () => availableWidth},
-            })
-            Object.defineProperties(toolbarControl, {
-                scrollWidth: {configurable: true, get: () => 240},
-            })
-            Object.defineProperties(pageSizes, {
-                scrollWidth: {configurable: true, get: () => measuredPageSizesWidth},
-            })
-            const topObserver = resizeObservers.find(observer => (
-                observer.observedElements.includes(actionBand)
-            ))
-
-            const triggerResize = () => act(() => {
-                topObserver?.callback([], topObserver as unknown as ResizeObserver)
-            })
-
-            triggerResize()
-
-            expect(actionBand.dataset.autotestValue).toBe('toolbar-stacked')
-            expect(Array.from(actionBand.children)).toEqual([toolbar, navigation, pageSizes])
-            expect(window.getComputedStyle(toolbar).width).toBe('100%')
-
-            availableWidth = 700
-            triggerResize()
-
-            expect(actionBand.dataset.autotestValue).toBe('inline')
-            expect(Array.from(actionBand.children)).toEqual([navigation, toolbar, pageSizes])
-            expect(actionBand.querySelector('[data-autotest="pagination-toolbar"]')).toBe(toolbar)
-
-            measuredPageSizesWidth = 360
-            availableWidth = 328
-            triggerResize()
-
-            expect(actionBand.dataset.autotestValue).toBe('pagination-stacked')
-            expect(Array.from(actionBand.children)).toEqual([toolbar, navigation, pageSizes])
-            expect(window.getComputedStyle(pageSizes).flexWrap).toBe('wrap')
-
-            const observerCount = resizeObservers.length
-            rerender(createTable(
-                'orders',
-                {id: 'order-1', label: 'Order'},
-                {
-                    paginator: createPaginator(true),
-                    toolbar: <button type='button'>Updated orders view</button>,
-                },
-            ))
-
-            expect(resizeObservers).toHaveLength(observerCount)
-            expect(screen.getByRole('button', {name: 'Updated orders view'})).toBe(toolbarControl)
-
-            rerender(createTable(
-                'orders',
-                {id: 'order-1', label: 'Order'},
-                {
-                    paginator: createPaginator(true),
-                    toolbar: <div data-testid='replacement-toolbar'>Selection controls</div>,
-                },
-            ))
-            const replacementToolbar = screen.getByTestId('replacement-toolbar')
-
-            expect(resizeObservers.some(observer => (
-                observer.observedElements.includes(replacementToolbar)
-            ))).toBe(true)
+            expect(constructed).toHaveLength(0)
+            // Toolbar first, then the pagination as one group that cannot be split.
+            expect(Array.from(actionBand.children)).toEqual([toolbar, paginationGroup])
+            expect(Array.from(paginationGroup.children)).toEqual([navigation, pageSizes])
+            expect(actionBand.hasAttribute('data-autotest-value')).toBe(false)
         } finally {
-            if (resizeObserverDescriptor) {
-                Object.defineProperty(window, 'ResizeObserver', resizeObserverDescriptor)
+            if (descriptor) {
+                Object.defineProperty(window, 'ResizeObserver', descriptor)
             } else {
                 Reflect.deleteProperty(window, 'ResizeObserver')
             }
         }
+    })
+
+    /*
+     * The rows themselves are placed by `@container` rules, which jsdom does not
+     * evaluate, so the three resulting layouts are asserted on real geometry by
+     * the GatesControls* stories. What is verifiable here is the widest layout and
+     * the placement contract those rules switch between.
+     */
+    it('places the groups in named grid areas, pagination never split by the toolbar', () => {
+        const {actionBand, navigation, pageSizes, toolbar} = renderActionBand()
+        const bandStyle = window.getComputedStyle(actionBand)
+
+        expect(bandStyle.display).toBe('grid')
+        expect(bandStyle.gridTemplateAreas).toBe('"navigation toolbar sizes"')
+        expect(window.getComputedStyle(navigation).gridArea).toBe('navigation')
+        expect(window.getComputedStyle(toolbar).gridArea).toBe('toolbar')
+        expect(window.getComputedStyle(pageSizes).gridArea).toBe('sizes')
+
+        /*
+         * Transparent in the single-row layout, so the halves take the outer
+         * areas with the toolbar between them; the container query turns it into
+         * a real row that wraps by content.
+         */
+        expect(window.getComputedStyle(paginationGroupOf(actionBand)).display).toBe('contents')
+
+        /*
+         * The band is wrapped in a stretched query container so the rows are
+         * chosen from the band's own width rather than the viewport. jsdom does
+         * not know `container-type`, so the story checks that property in Chrome;
+         * here we can only pin the wrapper down.
+         */
+        expect(window.getComputedStyle(actionBand.parentElement as HTMLElement).width)
+            .toBe('100%')
     })
 })
 
@@ -372,24 +276,23 @@ describe('PneTable autotest scope', () => {
         const paginationToolbar = topPagination.querySelector(
             '[data-autotest="pagination-toolbar"]',
         ) as HTMLElement
-        const actionBand = navigation.parentElement as HTMLElement
+        const actionBand = topPagination.querySelector(
+            '[data-autotest="pagination-actions"]',
+        ) as HTMLElement
+        const paginationGroup = navigation.parentElement as HTMLElement
 
         expect(toolbar).not.toBeNull()
         expect(topControls.getAttribute('data-autotest')).toBe('table-top-controls')
         expect(within(toolbar).getByRole('button', {name: 'Orders view'})).toBeTruthy()
         expect(bottomPagination.querySelector('[data-autotest="table-toolbar"]')).toBeNull()
-        expect(Array.from(actionBand.children)).toEqual([
-            navigation,
-            paginationToolbar,
-            pageSizes,
-        ])
+        expect(Array.from(actionBand.children)).toEqual([paginationToolbar, paginationGroup])
+        expect(Array.from(paginationGroup.children)).toEqual([navigation, pageSizes])
         expect(Array.from(paginationToolbar.children)).toEqual([toolbar])
         expect(actionBand.getAttribute('data-autotest')).toBe('pagination-actions')
-        expect(actionBand.getAttribute('data-autotest-value')).toBe('inline')
         expect(window.getComputedStyle(actionBand).display).toBe('grid')
         expect(window.getComputedStyle(paginationToolbar).justifySelf).toBe('stretch')
-        expect(window.getComputedStyle(paginationToolbar).width).toBe('100%')
-        expect(window.getComputedStyle(pageSizes).justifySelf).toBe('end')
+        expect(window.getComputedStyle(paginationToolbar).justifyContent).toBe('flex-end')
+        expect(window.getComputedStyle(pageSizes).justifyContent).toBe('flex-end')
     })
 
     it('renders full-width feedback above and independently from top controls and pagination', () => {
@@ -428,7 +331,7 @@ describe('PneTable autotest scope', () => {
         expect(topPagination.contains(feedback)).toBe(false)
         expect(bottomPagination.contains(feedback)).toBe(false)
         expect(window.getComputedStyle(feedback).width).toBe('100%')
-        expect(actionBand.dataset.autotestValue).toBe('inline')
+        expect(actionBand).not.toBeNull()
         expect(within(feedback).getByRole('alert').textContent).toBe(
             'A deliberately long table feedback message',
         )

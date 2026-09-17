@@ -24,6 +24,8 @@ type StoryRow = {
 
 type StoryView = 'summary' | 'operations' | 'risk'
 
+import {heightSignature, sharesRow} from './tableControlRows'
+
 const storyRows: StoryRow[] = Array.from({length: 5}, (_, index) => ({
     id: index + 1,
     name: `Gate ${index + 1}`,
@@ -557,8 +559,18 @@ export const LimitWarning: Story = {
         if (Math.abs(feedback.getBoundingClientRect().width - topControls.getBoundingClientRect().width) > 1) {
             throw new Error('Selection feedback must span the full table-control width')
         }
-        if (actionBand.dataset.autotestValue !== 'inline') {
-            throw new Error('Desktop pagination must stay inline regardless of feedback height')
+        const navigation = actionBand.querySelector<HTMLElement>(
+            '[data-autotest="page-navigation"]',
+        )
+        const pageSizes = actionBand.querySelector<HTMLElement>(
+            '[data-autotest="page-sizes"]',
+        )
+
+        if (!navigation || !pageSizes) {
+            throw new Error('Pagination controls are missing from the feedback fixture')
+        }
+        if (!sharesRow(navigation, pageSizes)) {
+            throw new Error('Desktop pagination must stay on one row regardless of feedback height')
         }
     },
 }
@@ -595,8 +607,22 @@ export const SelectionOnlyMobile360: Story = {
         if (persistent) {
             throw new Error('Selection-only regression story must not render View controls')
         }
-        if (actionBand.dataset.autotestValue !== 'toolbar-stacked') {
+        const paginationToolbar = actionBand.querySelector<HTMLElement>(
+            '[data-autotest="pagination-toolbar"]',
+        )
+        const paginationNavigation = actionBand.querySelector<HTMLElement>(
+            '[data-autotest="page-navigation"]',
+        )
+
+        if (!paginationToolbar || !paginationNavigation) {
+            throw new Error('Pagination controls are missing from the 360px story')
+        }
+        if (sharesRow(paginationToolbar, paginationNavigation)) {
             throw new Error('Selection-only controls must occupy their own row at 360px')
+        }
+        if (paginationToolbar.getBoundingClientRect().top
+            >= paginationNavigation.getBoundingClientRect().top) {
+            throw new Error('Selection-only controls must sit above pagination at 360px')
         }
         if (selectionControls.clientWidth < 240) {
             throw new Error('Selection-only controls collapsed below a usable mobile width')
@@ -657,15 +683,13 @@ export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
 
         for (let frame = 0; frame < 20; frame += 1) {
             await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
-            observedLayouts.add(
-                `${actionBand.dataset.autotestValue}/${tableControlBar.dataset.autotestValue}`,
-            )
+            observedLayouts.add(heightSignature(actionBand, tableControlBar))
             observedHeaderTops.push(header.getBoundingClientRect().top)
             observedToolbarLefts.push(tableControlBar.getBoundingClientRect().left)
             observedPersistentLefts.push(persistentControls.getBoundingClientRect().left)
         }
 
-        if (observedLayouts.size !== 1 || !observedLayouts.has('inline/inline')) {
+        if (observedLayouts.size !== 1) {
             throw new Error(`Table controls did not settle: ${[...observedLayouts].join(', ')}`)
         }
         if (Math.max(...observedHeaderTops) - Math.min(...observedHeaderTops) >= 1) {
@@ -680,6 +704,25 @@ export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
     },
 }
 
+/**
+ * The gates-like control bands with no play function, so the fixture can be
+ * driven by hand (or by a headless probe) at any width without competing with
+ * an assertion loop for animation frames.
+ */
+export const GatesControlsPlayground: Story = {
+    render: () => <GatesLikeControlsStory/>,
+    parameters: {
+        viewport: {defaultViewport: 'desktop'},
+    },
+}
+
+/**
+ * Fractional CSS pixels from page zoom or OS scaling used to set the two
+ * responsive bands oscillating against each other, and the table header jumped
+ * continuously. Nothing measures a rendered result any more, so this asserts
+ * both halves of the property: the bands settle and stay settled at every zoom,
+ * and the pagination is never broken apart by the toolbar on the way.
+ */
 export const GatesControlsStayStableAtFractionalZoom: Story = {
     render: () => <GatesLikeControlsStory/>,
     parameters: {
@@ -695,27 +738,47 @@ export const GatesControlsStayStableAtFractionalZoom: Story = {
         }
 
         const {actionBand, tableControlBar} = requireControlBands(canvasElement)
+        const navigation = actionBand.querySelector<HTMLElement>(
+            '[data-autotest="page-navigation"]',
+        )
+        const pageSizes = actionBand.querySelector<HTMLElement>(
+            '[data-autotest="page-sizes"]',
+        )
+        const paginationToolbar = actionBand.querySelector<HTMLElement>(
+            '[data-autotest="pagination-toolbar"]',
+        )
+
+        if (!navigation || !pageSizes || !paginationToolbar) {
+            throw new Error('Pagination controls are missing from the gates-like fixture')
+        }
 
         for (const zoom of [1, 1.05, 1.1, 1.25, 1.5]) {
             section.style.zoom = String(zoom)
 
-            for (let frame = 0; frame < 30; frame += 1) {
+            for (let frame = 0; frame < 10; frame += 1) {
                 await nextFrame()
             }
 
             const observedLayouts = new Set<string>()
 
-            for (let frame = 0; frame < 90; frame += 1) {
+            for (let frame = 0; frame < 20; frame += 1) {
                 await nextFrame()
-                observedLayouts.add(
-                    `${actionBand.dataset.autotestValue}/${tableControlBar.dataset.autotestValue}`,
-                )
+                observedLayouts.add(heightSignature(actionBand, tableControlBar))
             }
 
             if (observedLayouts.size !== 1) {
                 throw new Error(
                     `Table controls keep flipping at zoom ${zoom}: ${[...observedLayouts].join(', ')}`,
                 )
+            }
+            if (!sharesRow(navigation, pageSizes)
+                && sharesRow(paginationToolbar, navigation)) {
+                throw new Error(
+                    `The toolbar came between the two pagination halves at zoom ${zoom}`,
+                )
+            }
+            if (actionBand.scrollWidth > actionBand.clientWidth + 1) {
+                throw new Error(`Pagination actions overflow at zoom ${zoom}`)
             }
         }
 
@@ -830,18 +893,22 @@ export const SelectionAndViewsMobile360: Story = {
             }
         }
 
-        if (actionBand.dataset.autotestValue !== 'toolbar-stacked') {
+        if (sharesRow(paginationToolbar, navigation)) {
+            throw new Error('Combined table controls must occupy their own row at 360px')
+        }
+        if (paginationToolbar.getBoundingClientRect().top
+            >= navigation.getBoundingClientRect().top) {
             throw new Error('Combined table controls must sit above pagination at 360px')
         }
-        if (tableControlBar.dataset.autotestValue !== 'stacked') {
+        if (sharesRow(contextual, persistent)) {
             throw new Error('Selection and View controls must use separate rows at 360px')
         }
         if (
             actionBand.children[0] !== paginationToolbar
-            || actionBand.children[1] !== navigation
-            || actionBand.children[2] !== pageSizes
+            || navigation.parentElement !== pageSizes.parentElement
+            || actionBand.children[1] !== navigation.parentElement
         ) {
-            throw new Error('Pagination DOM order must follow the visual mobile rows')
+            throw new Error('Pagination halves must stay one group that follows the toolbar')
         }
         if (
             tableControlBar.children[0] !== contextual

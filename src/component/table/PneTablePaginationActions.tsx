@@ -11,11 +11,7 @@ import {
     TABLE_CONTROL_TEXT_COLOR,
 } from "./tableControlColors";
 import {usePneTheme} from "../../usePneTheme";
-import {
-    TABLE_LAYOUT_HYSTERESIS,
-    measureSingleRowWidth,
-    measuredLayoutWidthFits,
-} from './tableLayoutMeasurement';
+import {measureNaturalWidth} from "./measureNaturalWidth";
 
 interface IPaginationActionsProps {
     count: number
@@ -32,84 +28,81 @@ interface IPaginationActionsProps {
     toolbarElementType?: unknown
 }
 
-export type PneTablePaginationActionsLayout =
-    | 'inline'
-    | 'toolbar-stacked'
-    | 'pagination-stacked'
-
-type ResolvePaginationActionsLayoutParams = {
-    availableWidth: number
-    hasToolbar: boolean
-    navigationMinimumWidth: number
-    navigationPreferredWidth: number
-    pageSizesWidth: number
-    toolbarPreferredWidth: number
-    /**
-     * Layout currently rendered. Unstacking costs {@link TABLE_LAYOUT_HYSTERESIS}
-     * extra width so a height change that toggles the document scrollbar cannot
-     * push the band back and forth every frame.
-     */
-    currentLayout?: PneTablePaginationActionsLayout
-}
-
 const CONTROL_SIZE = 40
 const CONTROL_GAP = 8
 const DISPLAYED_ROWS_MAX_WIDTH = 120
-const FIXED_NAVIGATION_CONTROLS = 3
 
 /**
- * Chooses the smallest layout that keeps each control group on an intentional row.
- * Widths are the single-row widths the groups would take if nothing constrained
- * them, so consumers are not tied to a viewport breakpoint or to a particular set
- * of view labels/page sizes, and the choice never depends on the layout that was
- * in place when the measurement was taken.
+ * The band places its rows with a container query, whose threshold is the width
+ * the controls need to share a single row. That width is measured from the
+ * content - the natural widths of the toolbar, the navigation and the page
+ * sizes - so it holds for whatever the consumer put in the toolbar and for
+ * whatever the current locale makes of the labels. Across this library's own
+ * fixtures it ranges from ~590px for a lone View selector to ~1330px for the
+ * gates control band, which is why it cannot be a constant.
+ *
+ * Nothing here measures a rendered layout, so the threshold cannot move in
+ * response to the layout it selects: a natural width is a property of the
+ * content alone. The measurement therefore runs when the content changes, never
+ * on resize, and `container-type: inline-size` keeps the container's width
+ * independent of what the band renders into it.
+ *
+ * Until the first measurement lands the band stays on one row; consumers can
+ * pin the threshold through `PaginatorProps.controlRowBreakpoints`.
  */
-export const resolvePneTablePaginationActionsLayout = ({
-    availableWidth,
-    hasToolbar,
-    navigationMinimumWidth,
-    navigationPreferredWidth,
-    pageSizesWidth,
-    toolbarPreferredWidth,
-    currentLayout = 'inline',
-}: ResolvePaginationActionsLayoutParams): PneTablePaginationActionsLayout => {
-    if (availableWidth <= 0) {
-        return 'inline'
-    }
+const useControlRowThreshold = (
+    refs: {
+        navigation: React.RefObject<HTMLDivElement | null>
+        pageSizes: React.RefObject<HTMLDivElement | null>
+        toolbar: React.RefObject<HTMLDivElement | null>
+    },
+    gap: number,
+) => {
+    const [threshold, setThreshold] = useState(0)
 
-    const unstackPaginationCost = currentLayout === 'pagination-stacked'
-        ? TABLE_LAYOUT_HYSTERESIS
-        : 0
-    const unstackToolbarCost = currentLayout === 'inline' ? 0 : TABLE_LAYOUT_HYSTERESIS
-    const paginationFits = measuredLayoutWidthFits(
-        navigationMinimumWidth + CONTROL_GAP + pageSizesWidth + unstackPaginationCost,
-        availableWidth,
-    )
+    useLayoutEffect(() => {
+        const measure = () => {
+            const toolbarContent = refs.toolbar.current?.firstElementChild
+            const naturalWidth = measureNaturalWidth(refs.navigation.current)
+                + measureNaturalWidth(refs.pageSizes.current)
+                + measureNaturalWidth(toolbarContent as HTMLElement | null)
+            const gaps = refs.toolbar.current ? gap * 2 : gap
 
-    if (!hasToolbar) {
-        return paginationFits ? 'inline' : 'pagination-stacked'
-    }
+            setThreshold(current => {
+                const next = naturalWidth > 0 ? Math.ceil(naturalWidth + gaps) : 0
 
-    const allControlsFit = measuredLayoutWidthFits(
-        navigationPreferredWidth
-            + CONTROL_GAP
-            + toolbarPreferredWidth
-            + CONTROL_GAP
-            + pageSizesWidth
-            + unstackToolbarCost,
-        availableWidth,
-    )
+                return current === next ? current : next
+            })
+        }
 
-    if (allControlsFit) {
-        return 'inline'
-    }
+        measure()
 
-    return paginationFits ? 'toolbar-stacked' : 'pagination-stacked'
+        /*
+         * Web fonts land after the first layout and change every label width, so
+         * the thresholds measured before they arrive are short.
+         */
+        const fonts = refs.navigation.current?.ownerDocument?.fonts
+
+        if (!fonts || fonts.status === 'loaded') {
+            return
+        }
+
+        let cancelled = false
+
+        fonts.ready.then(() => {
+            if (!cancelled) {
+                measure()
+            }
+        })
+
+        return () => {
+            cancelled = true
+        }
+    })
+
+    return threshold
 }
-
-const useResponsiveLayoutEffect = typeof window === 'undefined'
-    ? useEffect
-    : useLayoutEffect
+const PAGINATION_ROWS_BREAKPOINT = 340
 
 const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const {
@@ -132,14 +125,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         displayedRowsLabel,
         requestScrollToPagination,
         activeActionSx = {},
+        controlRowBreakpoints,
     } = paginator;
-
-    const rootRef = useRef<HTMLDivElement>(null)
-    const navigationRef = useRef<HTMLDivElement>(null)
-    const currentPageRef = useRef<HTMLElement>(null)
-    const toolbarRef = useRef<HTMLDivElement>(null)
-    const pageSizesRef = useRef<HTMLDivElement>(null)
-    const [layout, setLayout] = useState<PneTablePaginationActionsLayout>('inline')
 
     const theme = usePneTheme()
     const controlTextColor = theme.palette.mode === 'dark'
@@ -247,146 +234,14 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const hasToolbar = toolbar !== undefined
         && toolbar !== null
         && typeof toolbar !== 'boolean'
-    useResponsiveLayoutEffect(() => {
-        const root = rootRef.current
-
-        if (!root) {
-            return
-        }
-
-        const ownerWindow = root.ownerDocument?.defaultView
-
-        if (!ownerWindow) {
-            return
-        }
-
-        const measureLayout = () => {
-            const availableWidth = root.clientWidth || root.getBoundingClientRect().width
-
-            if (availableWidth <= 0) {
-                return
-            }
-
-            const currentPage = currentPageRef.current
-            const currentPageStyle = currentPage
-                ? ownerWindow.getComputedStyle(currentPage)
-                : null
-            const parsedCurrentPageMaxWidth = Number.parseFloat(
-                currentPageStyle?.maxWidth ?? '',
-            )
-            const currentPageMinimumWidth = Math.max(
-                CONTROL_SIZE,
-                Number.parseFloat(currentPageStyle?.minWidth ?? '') || 0,
-            )
-            const currentPageNaturalWidth = currentPage
-                ? Math.max(
-                    currentPageMinimumWidth,
-                    measureSingleRowWidth(currentPage, root.ownerDocument),
-                )
-                : currentPageMinimumWidth
-            const currentPagePreferredWidth = Number.isFinite(parsedCurrentPageMaxWidth)
-                ? Math.min(parsedCurrentPageMaxWidth, currentPageNaturalWidth)
-                : currentPageNaturalWidth
-            const navigationButtons = navigationRef.current
-                ? Array.from(navigationRef.current.querySelectorAll('button'))
-                : []
-            const fixedNavigationWidth = navigationButtons.length
-                ? navigationButtons.reduce((width, button) => (
-                    width + Math.max(CONTROL_SIZE, button.getBoundingClientRect().width)
-                ), 0)
-                : FIXED_NAVIGATION_CONTROLS * CONTROL_SIZE
-            const navigationMinimumWidth = fixedNavigationWidth + currentPageMinimumWidth
-            const navigationPreferredWidth = fixedNavigationWidth + currentPagePreferredWidth
-            const pageSizesElement = pageSizesRef.current
-            const pageSizesWidth = Math.max(
-                rowsPerPageOptions.length * CONTROL_SIZE,
-                measureSingleRowWidth(pageSizesElement, root.ownerDocument),
-            )
-            const toolbarElement = toolbarRef.current
-            const toolbarContent = toolbarElement?.firstElementChild as HTMLElement | null
-            const toolbarControlContents = toolbarContent
-                ? Array.from(toolbarContent.children) as HTMLElement[]
-                : []
-            const toolbarPreferredWidth = toolbarControlContents.reduce((width, element) => (
-                width + measureSingleRowWidth(element, root.ownerDocument)
-            ), 0)
-
-            setLayout(currentLayout => {
-                const nextLayout = resolvePneTablePaginationActionsLayout({
-                    availableWidth,
-                    hasToolbar,
-                    navigationMinimumWidth,
-                    navigationPreferredWidth,
-                    pageSizesWidth,
-                    toolbarPreferredWidth,
-                    currentLayout,
-                })
-
-                return currentLayout === nextLayout ? currentLayout : nextLayout
-            })
-        }
-
-        measureLayout()
-
-        const ResizeObserverCtor = ownerWindow.ResizeObserver
-
-        if (ResizeObserverCtor) {
-            const resizeObserver = new ResizeObserverCtor(measureLayout)
-            const observedElements = [
-                root,
-                navigationRef.current,
-                currentPageRef.current,
-                toolbarRef.current,
-                toolbarRef.current?.firstElementChild,
-                ...Array.from(toolbarRef.current?.firstElementChild?.children ?? []),
-                pageSizesRef.current,
-            ]
-
-            observedElements.forEach(element => {
-                if (element) {
-                    resizeObserver.observe(element)
-                }
-            })
-
-            return () => resizeObserver.disconnect()
-        }
-
-        ownerWindow.addEventListener('resize', measureLayout)
-        return () => ownerWindow.removeEventListener('resize', measureLayout)
-    }, [hasToolbar, rowsPerPageOptions.length, toolbarElementKey, toolbarElementType])
-
-    const rootGridStyle = layout === 'inline'
-        ? {
-            gridTemplateColumns: hasToolbar
-                ? 'max-content minmax(0, 1fr) max-content'
-                : 'minmax(0, 1fr) max-content',
-            gridTemplateRows: 'auto',
-        }
-        : layout === 'toolbar-stacked'
-            ? {
-                gridTemplateColumns: 'minmax(0, 1fr) max-content',
-                gridTemplateRows: 'auto auto',
-            }
-            : {
-                gridTemplateColumns: 'minmax(0, 1fr)',
-                gridTemplateRows: hasToolbar ? 'auto auto auto' : 'auto auto',
-            }
-
-    const navigationGridStyle = layout === 'inline'
-        ? {gridColumn: '1', gridRow: '1'}
-        : layout === 'toolbar-stacked'
-            ? {gridColumn: '1', gridRow: '2'}
-            : {gridColumn: '1', gridRow: hasToolbar ? '2' : '1'}
-
-    const toolbarGridStyle = layout === 'inline'
-        ? {gridColumn: '2', gridRow: '1', justifySelf: 'stretch', width: '100%'}
-        : {gridColumn: '1 / -1', gridRow: '1', justifySelf: 'stretch', width: '100%'}
-
-    const pageSizesGridStyle = layout === 'inline'
-        ? {gridColumn: hasToolbar ? '3' : '2', gridRow: '1'}
-        : layout === 'toolbar-stacked'
-            ? {gridColumn: '2', gridRow: '2'}
-            : {gridColumn: '1', gridRow: hasToolbar ? '3' : '2'}
+    const navigationRef = useRef<HTMLDivElement>(null)
+    const pageSizesRef = useRef<HTMLDivElement>(null)
+    const toolbarRef = useRef<HTMLDivElement>(null)
+    const measuredThreshold = useControlRowThreshold(
+        {navigation: navigationRef, pageSizes: pageSizesRef, toolbar: toolbarRef},
+        CONTROL_GAP,
+    )
+    const toolbarRowBreakpoint = controlRowBreakpoints?.toolbar ?? measuredThreshold
 
     const navigationElement = <Box
         {...createAutoTestAttributes('page-navigation')}
@@ -394,10 +249,11 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         ref={navigationRef}
         sx={{
             display: 'flex',
-            maxWidth: '100%',
+            gridArea: 'navigation',
+            justifySelf: 'start',
+            /* Holds the start of the row when the pagination group wraps. */
+            marginRight: 'auto',
             minWidth: 0,
-            width: 'max-content',
-            ...navigationGridStyle,
         }}
     >
         <IconButton
@@ -419,7 +275,6 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             <PnePreviousPageIcon disabled={disableActions || page === 0}/>
         </IconButton>
         <Icon
-            ref={currentPageRef}
             sx={displayedRowsStyle}
             {...createAutoTestAttributes('current-page')}
         >
@@ -443,10 +298,10 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         sx={{
             alignItems: 'center',
             display: 'flex',
+            gridArea: 'toolbar',
             justifyContent: 'flex-end',
-            maxWidth: '100%',
+            justifySelf: 'stretch',
             minWidth: 0,
-            ...toolbarGridStyle,
         }}
     >
         {toolbar}
@@ -457,37 +312,85 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         ref={pageSizesRef}
         sx={{
             display: 'flex',
-            flexShrink: 0,
-            flexWrap: layout === 'pagination-stacked' ? 'wrap' : 'nowrap',
+            flexWrap: 'wrap',
+            gridArea: 'sizes',
             justifyContent: 'flex-end',
             justifySelf: 'end',
-            maxWidth: '100%',
-            width: 'max-content',
-            ...pageSizesGridStyle,
+            minWidth: 0,
         }}
         {...createAutoTestAttributes('page-sizes', rowsPerPage)}
     >
         {populateRowsPerPageOptions()}
     </Box>
 
-    const orderedElements = (layout === 'inline'
-        ? [navigationElement, toolbarElement, pageSizesElement]
-        : [toolbarElement, navigationElement, pageSizesElement]
-    ).filter((element): element is React.ReactElement => element !== null)
-
-    return <Box
-        {...createAutoTestAttributes('pagination-actions', layout)}
-        ref={rootRef}
+    /*
+     * The two halves of the pagination are one group, so the toolbar can never
+     * come between them. Above the threshold the group is transparent and its
+     * halves take the outer grid areas with the toolbar in the middle; below it
+     * the group becomes a row of its own that wraps by content - the page sizes
+     * drop under the navigation exactly when they stop fitting beside it, at
+     * whatever width that is for the current locale and page label.
+     *
+     * DOM order is toolbar first, which is the visual order of every wrapped
+     * layout. Only the single-row layout reads navigation-toolbar-sizes, and
+     * there all three sit side by side.
+     */
+    const paginationGroup = <Box
+        key='pagination-group'
         sx={{
             alignItems: 'center',
-            columnGap: '8px',
-            display: 'grid',
-            rowGap: '8px',
-            width: '100%',
-            ...rootGridStyle,
+            display: 'contents',
+            [`@container (width < ${toolbarRowBreakpoint}px)`]: {
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: `${CONTROL_GAP}px`,
+                gridArea: 'pagination',
+                justifyContent: 'flex-end',
+                minWidth: 0,
+            },
         }}
     >
-        {orderedElements}
+        {navigationElement}
+        {pageSizesElement}
+    </Box>
+
+    return <Box
+        sx={{
+            /*
+             * Establishes the query container. It has to be an ancestor of the
+             * band: `@container` rules apply to descendants, not to the container
+             * element itself.
+             */
+            containerType: 'inline-size',
+            minWidth: 0,
+            width: '100%',
+        }}
+    >
+        <Box
+            {...createAutoTestAttributes('pagination-actions')}
+            sx={{
+                alignItems: 'center',
+                display: 'grid',
+                gap: `${CONTROL_GAP}px`,
+                gridTemplateAreas: hasToolbar
+                    ? '"navigation toolbar sizes"'
+                    : '"navigation sizes"',
+                gridTemplateColumns: hasToolbar
+                    ? 'auto minmax(0, 1fr) auto'
+                    : 'minmax(0, 1fr) auto',
+                minWidth: 0,
+                width: '100%',
+                [`@container (width < ${toolbarRowBreakpoint}px)`]: {
+                    gridTemplateAreas: hasToolbar
+                        ? '"toolbar" "pagination"'
+                        : '"pagination"',
+                    gridTemplateColumns: 'minmax(0, 1fr)',
+                },
+            }}
+        >
+            {toolbarElement}
+            {paginationGroup}
+        </Box>
     </Box>
 }
 

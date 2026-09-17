@@ -41,6 +41,21 @@ export type PaginatorProps = {
     requestScrollToPagination?: () => void
     activeActionSx?: SxProps
     duplicatePagination?: boolean
+    /**
+     * Overrides the band width in px at which the toolbar stops sharing the
+     * pagination row. Normally there is nothing to set: the threshold is
+     * measured from the content, so it already fits whatever this table put in
+     * the toolbar and whatever the current locale makes of the labels.
+     *
+     * The band is a container query, so this is the width of the band itself,
+     * not of the viewport - a table inside a narrow column behaves like a narrow
+     * screen. The pagination needs no threshold at all: its two halves wrap by
+     * content.
+     */
+    controlRowBreakpoints?: {
+        /** Below this width the toolbar takes a row of its own. */
+        toolbar?: number
+    }
 }
 
 type PaginationActionsContextValue = {

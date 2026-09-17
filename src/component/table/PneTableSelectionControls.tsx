@@ -53,11 +53,16 @@ const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
             {summary}
         </Box>
         {/*
-          * `display: contents` keeps the Selenium hook in the DOM while letting the
-          * actions share wrap lines with the summary. As a real box the group is a
-          * single flex item whose unwrapped width rarely fits beside the summary, so
-          * it always dropped to its own line and left the summary on a row of its
-          * own - several wasted rows at the 360px minimum supported width.
+          * The actions are a transparent group: as a real box they would be one
+          * flex item whose natural width rarely fits beside the summary, so the
+          * whole group dropped to its own line and left the summary alone on the
+          * previous one - several wasted rows at the 360px minimum supported width.
+          * `display: contents` lets each action wrap individually against the
+          * summary instead.
+          *
+          * The element keeps its autotest id and stays in the DOM as an anchor for
+          * locating the actions, but it has no box of its own: it cannot be clicked
+          * or measured, so target the individual actions inside it.
           */}
         {actions !== undefined && actions !== null && typeof actions !== 'boolean' ? <Box
             {...createAutoTestAttributes('selection-actions')}

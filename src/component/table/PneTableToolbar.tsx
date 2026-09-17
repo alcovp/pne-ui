@@ -1,14 +1,6 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react'
+import React from 'react'
 import {Box, BoxProps, SxProps, Theme} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
-import {
-    TABLE_LAYOUT_HYSTERESIS,
-    measureAvailableWidth,
-    measureSingleRowWidth,
-    measuredLayoutWidthFits,
-} from './tableLayoutMeasurement'
-
-export type PneTableToolbarLayout = 'inline' | 'stacked'
 
 type PneTableToolbarAccessibleName =
     | {
@@ -30,50 +22,31 @@ export type PneTableToolbarProps = Omit<
     persistent?: React.ReactNode
 }
 
-type ResolvePneTableToolbarLayoutParams = {
-    availableWidth: number
-    contextualWidth: number
-    persistentWidth: number
-    hasContextual: boolean
-    hasPersistent: boolean
-    /**
-     * Layout currently rendered. Returning to `inline` costs
-     * {@link TABLE_LAYOUT_HYSTERESIS} extra width so the band cannot flap.
-     */
-    currentLayout?: PneTableToolbarLayout
-}
-
+/** Gap between the control groups, and between the rows they wrap onto. */
 const CONTROL_GROUP_GAP = 8
-const useToolbarLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
-export const resolvePneTableToolbarLayout = ({
-    availableWidth,
-    contextualWidth,
-    persistentWidth,
-    hasContextual,
-    hasPersistent,
-    currentLayout = 'inline',
-}: ResolvePneTableToolbarLayoutParams): PneTableToolbarLayout => {
-    if (!hasContextual || !hasPersistent || availableWidth <= 0) {
-        return 'inline'
-    }
-
-    const requiredWidth = contextualWidth + CONTROL_GROUP_GAP + persistentWidth
-    const hysteresis = currentLayout === 'stacked' ? TABLE_LAYOUT_HYSTERESIS : 0
-
-    return measuredLayoutWidthFits(requiredWidth + hysteresis, availableWidth)
-        ? 'inline'
-        : 'stacked'
-}
-
-const getGroupSx = (layout: PneTableToolbarLayout): SxProps<Theme> => ({
+/**
+ * Each control group claims its natural single-row width (`flex-basis:
+ * max-content`), so the browser moves the whole group onto the next row rather
+ * than squeezing it - the group is never split mid-way. `flex-shrink: 1` then
+ * lets a group that already owns a row use that row and wrap inside itself.
+ *
+ * The band therefore reads its layout from the width the parent offers and from
+ * the intrinsic width of its content, and never from the layout it is currently
+ * rendering. That is what keeps it stable: a responsive decision that measures
+ * its own result feeds back into itself, and with fractional CSS pixels the
+ * feedback oscillates.
+ */
+const groupSx: SxProps<Theme> = {
     alignItems: 'center',
     display: 'flex',
+    flexBasis: 'max-content',
+    flexGrow: 0,
+    flexShrink: 1,
+    flexWrap: 'wrap',
     justifyContent: 'flex-end',
-    maxWidth: '100%',
     minWidth: 0,
-    width: layout === 'stacked' ? '100%' : 'max-content',
-})
+}
 
 const PneTableToolbar = (props: PneTableToolbarProps) => {
     const {
@@ -90,98 +63,22 @@ const PneTableToolbar = (props: PneTableToolbarProps) => {
     const hasPersistent = persistent !== undefined
         && persistent !== null
         && typeof persistent !== 'boolean'
-    const rootRef = useRef<HTMLDivElement>(null)
-    const contextualRef = useRef<HTMLDivElement>(null)
-    const contextualContentRef = useRef<HTMLDivElement>(null)
-    const persistentRef = useRef<HTMLDivElement>(null)
-    const persistentContentRef = useRef<HTMLDivElement>(null)
-    const [layout, setLayout] = useState<PneTableToolbarLayout>('inline')
-
-    useToolbarLayoutEffect(() => {
-        const root = rootRef.current
-        if (!root) {
-            return
-        }
-
-        const ownerWindow = root.ownerDocument?.defaultView
-        if (!ownerWindow) {
-            return
-        }
-
-        const measureLayout = () => {
-            const ownerDocument = root.ownerDocument
-            const availableWidth = measureAvailableWidth(root)
-            const contextualWidth = measureSingleRowWidth(
-                contextualContentRef.current,
-                ownerDocument,
-            )
-            const persistentWidth = measureSingleRowWidth(
-                persistentContentRef.current,
-                ownerDocument,
-            )
-
-            setLayout(currentLayout => {
-                const nextLayout = resolvePneTableToolbarLayout({
-                    availableWidth,
-                    contextualWidth,
-                    persistentWidth,
-                    hasContextual,
-                    hasPersistent,
-                    currentLayout,
-                })
-
-                return currentLayout === nextLayout ? currentLayout : nextLayout
-            })
-        }
-
-        measureLayout()
-
-        const ResizeObserverCtor = ownerWindow.ResizeObserver
-        if (ResizeObserverCtor) {
-            const resizeObserver = new ResizeObserverCtor(measureLayout)
-            const observedElements = [
-                root,
-                contextualRef.current,
-                contextualContentRef.current,
-                ...Array.from(contextualContentRef.current?.children ?? []),
-                persistentRef.current,
-                persistentContentRef.current,
-                ...Array.from(persistentContentRef.current?.children ?? []),
-            ]
-            observedElements.forEach(element => {
-                if (element) {
-                    resizeObserver.observe(element)
-                }
-            })
-
-            return () => resizeObserver.disconnect()
-        }
-
-        ownerWindow.addEventListener('resize', measureLayout)
-        return () => ownerWindow.removeEventListener('resize', measureLayout)
-    }, [hasContextual, hasPersistent])
-
-    const groupSx = getGroupSx(layout)
 
     return <Box
         {...rootProps}
-        {...createAutoTestAttributes('table-control-bar', layout)}
+        {...createAutoTestAttributes('table-control-bar')}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
-        ref={rootRef}
         role='group'
         sx={[
             {
                 alignItems: 'center',
-                columnGap: `${CONTROL_GROUP_GAP}px`,
-                display: 'grid',
-                gridTemplateColumns: layout === 'inline'
-                    ? 'minmax(0, max-content) minmax(0, max-content)'
-                    : 'minmax(0, 1fr)',
-                maxWidth: '100%',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: `${CONTROL_GROUP_GAP}px`,
+                justifyContent: 'flex-end',
                 minWidth: 0,
-                rowGap: `${CONTROL_GROUP_GAP}px`,
-                width: layout === 'stacked' ? '100%' : 'max-content',
+                width: '100%',
             },
             ...(Array.isArray(sx) ? sx : [sx]),
         ]}
@@ -189,40 +86,16 @@ const PneTableToolbar = (props: PneTableToolbarProps) => {
         {hasContextual ? <Box
             {...createAutoTestAttributes('table-contextual-controls')}
             key='contextual'
-            ref={contextualRef}
             sx={groupSx}
         >
-            <Box
-                ref={contextualContentRef}
-                sx={{
-                    alignItems: 'center',
-                    display: 'flex',
-                    maxWidth: '100%',
-                    minWidth: 0,
-                    width: 'max-content',
-                }}
-            >
-                {contextual}
-            </Box>
+            {contextual}
         </Box> : null}
         {hasPersistent ? <Box
             {...createAutoTestAttributes('table-persistent-controls')}
             key='persistent'
-            ref={persistentRef}
             sx={groupSx}
         >
-            <Box
-                ref={persistentContentRef}
-                sx={{
-                    alignItems: 'center',
-                    display: 'flex',
-                    maxWidth: '100%',
-                    minWidth: 0,
-                    width: 'max-content',
-                }}
-            >
-                {persistent}
-            </Box>
+            {persistent}
         </Box> : null}
     </Box>
 }

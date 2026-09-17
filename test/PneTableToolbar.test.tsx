@@ -1,167 +1,47 @@
 import React from 'react'
-import {act, render, screen} from '@testing-library/react'
-import PneTableToolbar, {
-    resolvePneTableToolbarLayout,
-} from '../src/component/table/PneTableToolbar'
+import {render, screen} from '@testing-library/react'
+import PneTableToolbar from '../src/component/table/PneTableToolbar'
 import PneTableSelectionControls from '../src/component/table/PneTableSelectionControls'
-import {
-    type PneTablePaginationActionsLayout,
-    resolvePneTablePaginationActionsLayout,
-} from '../src/component/table/PneTablePaginationActions'
-import {TABLE_LAYOUT_HYSTERESIS} from '../src/component/table/tableLayoutMeasurement'
+
+/**
+ * Runs `body` with a ResizeObserver that only records the fact it was
+ * constructed. The responsive control bands must never need one: a band that
+ * observes the elements it has just laid out is measuring its own result, and
+ * that feedback loop is what used to make the table header jump.
+ */
+const withRecordedResizeObservers = (body: (constructed: unknown[]) => void) => {
+    const descriptor = Object.getOwnPropertyDescriptor(window, 'ResizeObserver')
+    const constructed: unknown[] = []
+
+    class ResizeObserverMock {
+        constructor() {
+            constructed.push(this)
+        }
+
+        observe = jest.fn()
+        unobserve = jest.fn()
+        disconnect = jest.fn()
+    }
+
+    Object.defineProperty(window, 'ResizeObserver', {
+        configurable: true,
+        value: ResizeObserverMock,
+    })
+
+    try {
+        body(constructed)
+    } finally {
+        if (descriptor) {
+            Object.defineProperty(window, 'ResizeObserver', descriptor)
+        } else {
+            Reflect.deleteProperty(window, 'ResizeObserver')
+        }
+    }
+}
 
 describe('PneTableToolbar', () => {
-    it('resolves inline and stacked group layouts from measured content', () => {
-        const base = {
-            contextualWidth: 180,
-            persistentWidth: 160,
-            hasContextual: true,
-            hasPersistent: true,
-        }
-
-        expect(resolvePneTableToolbarLayout({...base, availableWidth: 348})).toBe('inline')
-        expect(resolvePneTableToolbarLayout({...base, availableWidth: 328})).toBe('stacked')
-        expect(resolvePneTableToolbarLayout({
-            ...base,
-            availableWidth: 100,
-            hasPersistent: false,
-        })).toBe('inline')
-        expect(resolvePneTableToolbarLayout({
-            ...base,
-            availableWidth: 339,
-        })).toBe('stacked')
-    })
-
-    it('treats mixed CSSOM subpixel rounding as an inline fit', () => {
-        const qaMeasurements = {
-            contextualWidth: 632,
-            persistentWidth: 159.1875,
-            hasContextual: true,
-            hasPersistent: true,
-        }
-
-        expect(resolvePneTableToolbarLayout({
-            ...qaMeasurements,
-            availableWidth: 799.03125,
-        })).toBe('inline')
-        expect(resolvePneTableToolbarLayout({
-            ...qaMeasurements,
-            availableWidth: 798,
-        })).toBe('stacked')
-    })
-
-    it('charges hysteresis before a stacked band returns to a single row', () => {
-        const base = {
-            contextualWidth: 180,
-            persistentWidth: 160,
-            hasContextual: true,
-            hasPersistent: true,
-        }
-
-        // 180 + 8 + 160 = 348 fits exactly, but only for a band that is not stacked.
-        expect(resolvePneTableToolbarLayout({
-            ...base,
-            availableWidth: 348,
-            currentLayout: 'inline',
-        })).toBe('inline')
-        expect(resolvePneTableToolbarLayout({
-            ...base,
-            availableWidth: 348,
-            currentLayout: 'stacked',
-        })).toBe('stacked')
-        expect(resolvePneTableToolbarLayout({
-            ...base,
-            availableWidth: 348 + TABLE_LAYOUT_HYSTERESIS,
-            currentLayout: 'stacked',
-        })).toBe('inline')
-    })
-
-    it('charges hysteresis before pagination puts the toolbar back on its row', () => {
-        const base = {
-            hasToolbar: true,
-            navigationMinimumWidth: 160,
-            navigationPreferredWidth: 174.5,
-            pageSizesWidth: 120,
-            toolbarPreferredWidth: 800,
-        }
-        // 174.5 + 8 + 800 + 8 + 120 = 1110.5
-        const exactFit = 1110.5
-
-        expect(resolvePneTablePaginationActionsLayout({
-            ...base,
-            availableWidth: exactFit,
-            currentLayout: 'inline',
-        })).toBe('inline')
-        expect(resolvePneTablePaginationActionsLayout({
-            ...base,
-            availableWidth: exactFit,
-            currentLayout: 'toolbar-stacked',
-        })).toBe('toolbar-stacked')
-        expect(resolvePneTablePaginationActionsLayout({
-            ...base,
-            availableWidth: exactFit + TABLE_LAYOUT_HYSTERESIS,
-            currentLayout: 'toolbar-stacked',
-        })).toBe('inline')
-    })
-
-    it('settles nested table layouts across CSSOM subpixel rounding', () => {
-        const contextualWidth = 632
-        const persistentWidth = 159.1875
-        const inlineToolbarWidth = 799.1875
-        const expandedToolbarWidth = 1009.3125
-        let paginationLayout: PneTablePaginationActionsLayout = 'inline'
-        const observedLayouts: string[] = []
-
-        for (let frame = 0; frame < 10; frame += 1) {
-            const toolbarLayout = resolvePneTableToolbarLayout({
-                availableWidth: paginationLayout === 'inline' ? 799 : 1312,
-                contextualWidth,
-                persistentWidth,
-                hasContextual: true,
-                hasPersistent: true,
-            })
-            paginationLayout = resolvePneTablePaginationActionsLayout({
-                availableWidth: 1312,
-                hasToolbar: true,
-                navigationMinimumWidth: 160,
-                navigationPreferredWidth: 174.5,
-                pageSizesWidth: 120,
-                toolbarPreferredWidth: toolbarLayout === 'inline'
-                    ? inlineToolbarWidth
-                    : expandedToolbarWidth,
-            })
-            observedLayouts.push(`${paginationLayout}/${toolbarLayout}`)
-        }
-
-        expect(observedLayouts).toEqual(Array(10).fill('inline/inline'))
-    })
-
-    it('keeps DOM order aligned while responsive measurements change', () => {
-        const resizeObserverDescriptor = Object.getOwnPropertyDescriptor(window, 'ResizeObserver')
-        const resizeObservers: ResizeObserverMock[] = []
-
-        class ResizeObserverMock {
-            readonly observedElements: Element[] = []
-            readonly callback: ResizeObserverCallback
-
-            constructor(callback: ResizeObserverCallback) {
-                this.callback = callback
-                resizeObservers.push(this)
-            }
-
-            observe = jest.fn((element: Element) => {
-                this.observedElements.push(element)
-            })
-            unobserve = jest.fn()
-            disconnect = jest.fn()
-        }
-
-        Object.defineProperty(window, 'ResizeObserver', {
-            configurable: true,
-            value: ResizeObserverMock,
-        })
-
-        try {
+    it('wraps its control groups without measuring the layout it produced', () => {
+        withRecordedResizeObservers(constructed => {
             const {container} = render(
                 <PneTableToolbar
                     aria-label='Results controls'
@@ -176,50 +56,60 @@ describe('PneTableToolbar', () => {
             const persistent = container.querySelector(
                 '[data-autotest="table-persistent-controls"]',
             ) as HTMLElement
-            const contextualContent = contextual.firstElementChild as HTMLElement
-            const persistentContent = persistent.firstElementChild as HTMLElement
-            let availableWidth = 328
 
-            Object.defineProperty(toolbar, 'clientWidth', {
-                configurable: true,
-                get: () => availableWidth,
-            })
-            Object.defineProperty(contextual, 'scrollWidth', {
-                configurable: true,
-                get: () => availableWidth,
-            })
-            Object.defineProperty(persistent, 'scrollWidth', {
-                configurable: true,
-                get: () => availableWidth,
-            })
-            Object.defineProperty(contextualContent, 'scrollWidth', {
-                configurable: true,
-                get: () => 180,
-            })
-            Object.defineProperty(persistentContent, 'scrollWidth', {
-                configurable: true,
-                get: () => 160,
-            })
-            const observer = resizeObservers.find(item => item.observedElements.includes(toolbar))
-            const triggerResize = () => act(() => {
-                observer?.callback([], observer as unknown as ResizeObserver)
-            })
-
-            triggerResize()
-            expect(toolbar.dataset.autotestValue).toBe('stacked')
+            expect(constructed).toHaveLength(0)
             expect(Array.from(toolbar.children)).toEqual([contextual, persistent])
+            expect(toolbar.hasAttribute('data-autotest-value')).toBe(false)
 
-            availableWidth = 640
-            triggerResize()
-            expect(toolbar.dataset.autotestValue).toBe('inline')
-            expect(Array.from(toolbar.children)).toEqual([contextual, persistent])
-        } finally {
-            if (resizeObserverDescriptor) {
-                Object.defineProperty(window, 'ResizeObserver', resizeObserverDescriptor)
-            } else {
-                Reflect.deleteProperty(window, 'ResizeObserver')
-            }
-        }
+            const toolbarStyle = window.getComputedStyle(toolbar)
+
+            expect(toolbarStyle.display).toBe('flex')
+            expect(toolbarStyle.flexWrap).toBe('wrap')
+            expect(toolbarStyle.justifyContent).toBe('flex-end')
+            expect(toolbarStyle.width).toBe('100%')
+        })
+    })
+
+    /*
+     * jsdom has no layout engine and drops `flex-basis: max-content` as an
+     * unsupported value, so the wrap-whole-group behaviour itself is asserted on
+     * real geometry by the GatesControls* stories. What is verifiable here is
+     * that a group neither grows nor is pinned against shrinking.
+     */
+    it('lets a group claim its natural width so it wraps whole', () => {
+        const {container} = render(
+            <PneTableToolbar
+                aria-label='Results controls'
+                contextual={<button type='button'>Selection</button>}
+                persistent={<button type='button'>View</button>}
+            />,
+        )
+
+        const groups = Array.from(container.querySelectorAll<HTMLElement>(
+            '[data-autotest="table-contextual-controls"],'
+            + '[data-autotest="table-persistent-controls"]',
+        ))
+
+        expect(groups).toHaveLength(2)
+        groups.forEach(group => {
+            const style = window.getComputedStyle(group)
+
+            expect(style.flexGrow).toBe('0')
+            expect(style.flexShrink).toBe('1')
+            expect(style.flexWrap).toBe('wrap')
+        })
+    })
+
+    it('omits a group that was not supplied', () => {
+        const {container} = render(
+            <PneTableToolbar
+                aria-label='Results controls'
+                persistent={<button type='button'>View</button>}
+            />,
+        )
+
+        expect(container.querySelector('[data-autotest="table-contextual-controls"]')).toBeNull()
+        expect(container.querySelector('[data-autotest="table-persistent-controls"]')).not.toBeNull()
     })
 
     it('renders localized selection summary and actions', () => {
