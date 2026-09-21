@@ -15,6 +15,7 @@ export enum CriterionTypeEnum {
     CUSTOMER_LEVEL = 'CUSTOMER_LEVEL',
     THREE_D = 'THREE_D',
     STATUS = 'STATUS',
+    OTP_STATUS = 'OTP_STATUS',
     MERCHANT = 'MERCHANT',
     ENDPOINT = 'ENDPOINT',
     RESELLER = 'RESELLER',
@@ -220,6 +221,15 @@ export const STATUS_CRITERION_VALUES = [
 ] as const
 export type StatusCriterion = typeof STATUS_CRITERION_VALUES[number]
 
+export const OTP_STATUS_CRITERION_VALUES = [
+    'ANY',
+    'DISABLED',
+    'ENABLED',
+] as const
+export type OtpStatusCriterion = typeof OTP_STATUS_CRITERION_VALUES[number]
+/** Значение otpStatus в запросе: ANY означает отсутствие фильтра и передаётся как null. */
+export type OtpStatusSearchValue = Exclude<OtpStatusCriterion, 'ANY'>
+
 export const MARKER_STATUS_CRITERION_VALUES = [
     'any',
     'unprocessed',
@@ -424,6 +434,7 @@ export type SearchCriteria = {
     ordersSearchValue: string | null
     customerLevelId: number | null
     status: Status | null
+    otpStatus: OtpStatusSearchValue | null
     threeD: boolean | null
     currencies: number[]
     countries: number[]
@@ -461,6 +472,7 @@ export type SearchUIConditions = {
 
     multigetCriteria: MultigetCriterion[]
     status: StatusCriterion
+    otpStatus: OtpStatusCriterion
     threeD: ThreeDCriterionEnum
     exactSearchLabel: ExactCriterionSearchLabelEnum | undefined
     exactSearchValue: string

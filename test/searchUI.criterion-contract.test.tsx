@@ -67,6 +67,7 @@ const criterionContracts = {
     },
     [CriterionTypeEnum.THREE_D]: enumAnyContract,
     [CriterionTypeEnum.STATUS]: enumAnyContract,
+    [CriterionTypeEnum.OTP_STATUS]: enumAnyContract,
     [CriterionTypeEnum.MERCHANT]: multigetContract,
     [CriterionTypeEnum.ENDPOINT]: multigetContract,
     [CriterionTypeEnum.RESELLER]: multigetContract,
@@ -176,7 +177,7 @@ const createMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCrit
 
 const neverResolves = <T,>(): Promise<T> => new Promise(() => undefined)
 
-describe('SearchUI 36-of-36 criterion contract', () => {
+describe('SearchUI 37-of-37 criterion contract', () => {
     beforeEach(() => {
         localStorage.clear()
         resetSearchUIRetentionForTests()
@@ -225,10 +226,10 @@ describe('SearchUI 36-of-36 criterion contract', () => {
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
-            expect(container.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(36)
+            expect(container.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(37)
         })
 
-        expect(criterionTypes).toHaveLength(36)
+        expect(criterionTypes).toHaveLength(37)
         expect(Object.keys(criterionContracts).sort()).toEqual([...criterionTypes].sort())
 
         const filters = container.querySelector<HTMLElement>(

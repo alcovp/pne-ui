@@ -920,6 +920,9 @@ const neutralizeDisabledCriteria = <T extends Omit<SearchCriteria, 'initialized'
             case CriterionTypeEnum.STATUS:
                 neutralized.status = null
                 break
+            case CriterionTypeEnum.OTP_STATUS:
+                neutralized.otpStatus = null
+                break
             case CriterionTypeEnum.THREE_D:
                 neutralized.threeD = null
                 break
@@ -1023,6 +1026,7 @@ export const createSearchParams = (
         ordersSearchValue: searchCriteria.ordersSearchValue,
         customerLevelId: searchCriteria.customerLevelId,
         status: searchCriteria.status,
+        otpStatus: searchCriteria.otpStatus,
         threeD: searchCriteria.threeD,
         currencies: searchCriteria.currencies,
         countries: searchCriteria.countries,

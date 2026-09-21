@@ -10,6 +10,7 @@ import {
     MultigetCriterion,
     OrderDate,
     OrderSearchLabel,
+    OtpStatusCriterion,
     SearchCriteria,
     SearchUIConditions,
     SearchUITemplate,
@@ -124,6 +125,7 @@ export type SearchUIFiltersActions = {
     setMultigetCriterion: (criterion: MultigetCriterion) => void
     set3DCriterion: (threeD: ThreeDCriterionEnum) => void
     setStatusCriterion: (status: StatusCriterion) => void
+    setOtpStatusCriterion: (otpStatus: OtpStatusCriterion) => void
     setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => void
     setExactCriterionSearchValue: (searchValue: string) => void
     setOrderSearchCriterionLabel: (searchLabel: OrderSearchLabel) => void

@@ -6,6 +6,7 @@ export const createClearCriteriaUndoSnapshot = (
 ): SearchUIClearCriteriaUndoSnapshot => cloneDeep({
     multigetCriteria: state.multigetCriteria,
     status: state.status,
+    otpStatus: state.otpStatus,
     threeD: state.threeD,
     exactSearchLabel: state.exactSearchLabel,
     exactSearchValue: state.exactSearchValue,

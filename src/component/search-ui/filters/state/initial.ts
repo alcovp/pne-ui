@@ -86,6 +86,7 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
     return Object.freeze<SearchUIConditions>({
         multigetCriteria: [],
         status: 'ANY',
+        otpStatus: 'ANY',
         threeD: ThreeDCriterionEnum.ANY,
         exactSearchLabel: undefined,
         exactSearchValue: '',

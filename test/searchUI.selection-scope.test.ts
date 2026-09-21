@@ -9,6 +9,7 @@ const createCriteria = (overrides: Partial<SearchCriteria> = {}): SearchCriteria
     ordersSearchValue: '7',
     customerLevelId: 15,
     status: 'E',
+    otpStatus: 'ENABLED',
     threeD: true,
     currencies: [1, 2],
     countries: [11],

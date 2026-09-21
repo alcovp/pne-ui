@@ -142,6 +142,7 @@ const allFiltersStoryPredefinedCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.ORDERS_SEARCH,
     CriterionTypeEnum.CURRENCY,
     CriterionTypeEnum.STATUS,
+    CriterionTypeEnum.OTP_STATUS,
     CriterionTypeEnum.DATE_RANGE,
     CriterionTypeEnum.DATE_RANGE_ORDERS,
     CriterionTypeEnum.PROJECT_CURRENCY,

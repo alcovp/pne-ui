@@ -29,6 +29,8 @@ import {
     MultichoiceFilterTypeEnum,
     MultigetCriterion,
     OrderSearchLabel,
+    OtpStatusCriterion,
+    OtpStatusSearchValue,
     SearchCriteria,
     SearchUIConditions,
     SearchUITemplate,
@@ -695,6 +697,12 @@ export const getSearchUIFiltersActions = (
         })
         postUpdate(set, get)
     },
+    setOtpStatusCriterion: (otpStatus: OtpStatusCriterion) => {
+        set((draft) => {
+            draft.otpStatus = otpStatus
+        })
+        postUpdate(set, get)
+    },
     setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => {
         set((draft) => {
             draft.exactSearchLabel = searchLabel
@@ -983,6 +991,7 @@ const addInitialMultigetCriterionReducer = (
         case CriterionTypeEnum.EXACT:
         case CriterionTypeEnum.ORDERS_SEARCH:
         case CriterionTypeEnum.STATUS:
+        case CriterionTypeEnum.OTP_STATUS:
         case CriterionTypeEnum.THREE_D:
         case CriterionTypeEnum.DATE_RANGE:
         case CriterionTypeEnum.DATE_RANGE_ORDERS:
@@ -1019,6 +1028,9 @@ const clearCriterionReducer = (
     switch (criterionType) {
         case CriterionTypeEnum.STATUS:
             draft.status = getSearchUIInitialSearchCriteria(draft.defaults).status
+            break
+        case CriterionTypeEnum.OTP_STATUS:
+            draft.otpStatus = getSearchUIInitialSearchCriteria(draft.defaults).otpStatus
             break
         case CriterionTypeEnum.THREE_D:
             draft.threeD = getSearchUIInitialSearchCriteria(draft.defaults).threeD
@@ -1158,6 +1170,13 @@ const extractStatus = (status: StatusCriterion): Status | null => {
         return 'D'
     }
     return null
+}
+
+const extractOtpStatus = (otpStatus: OtpStatusCriterion): OtpStatusSearchValue | null => {
+    if (otpStatus === 'ANY') {
+        return null
+    }
+    return otpStatus
 }
 
 const extractMarkerStatus = (status: MarkerStatusCriterion): MarkerStatusCriterion | null => {
@@ -1608,6 +1627,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
             ? state.customerLevel?.id ?? null
             : null,
         status: extractStatus(state.status),
+        otpStatus: extractOtpStatus(state.otpStatus),
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
         countries: extractEntitiesIds(state.countries),
@@ -1649,6 +1669,7 @@ const getTemplate = (templateName: string, store: SearchUIFiltersStore): SearchU
         ordersSearchValue: store.ordersSearchValue,
         customerLevel: store.customerLevel,
         status: store.status,
+        otpStatus: store.otpStatus,
         currencies: store.currencies,
         countries: store.countries,
         threeD: store.threeD,

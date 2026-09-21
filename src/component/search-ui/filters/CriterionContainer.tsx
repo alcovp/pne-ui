@@ -3,6 +3,7 @@ import { CriterionTypeEnum, LinkedEntityTypeEnum } from './types'
 import { Box, SxProps } from '@mui/material'
 import { ExactSearchCriterion } from './component/criterion/ExactSearchCriterion'
 import { StatusCriterion } from './component/criterion/StatusCriterion'
+import { OtpStatusCriterion } from './component/criterion/OtpStatusCriterion'
 import { CriterionLeft } from './component/criterion/CriterionLeft'
 import { CriterionRight } from './component/criterion/CriterionRight'
 import { ThreeDCriterion } from './component/criterion/ThreeDCriterion'
@@ -111,6 +112,8 @@ export const CriterionContainer = (props: IProps) => {
                 return <OrdersSearchCriterion/>
             case CriterionTypeEnum.STATUS:
                 return <StatusCriterion/>
+            case CriterionTypeEnum.OTP_STATUS:
+                return <OtpStatusCriterion/>
             case CriterionTypeEnum.THREE_D:
                 return <ThreeDCriterion/>
             case CriterionTypeEnum.CURRENCY:
