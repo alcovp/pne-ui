@@ -690,6 +690,63 @@ remount. В controlled-режиме lifetime принадлежит consumer: е
 экрана, consumer сам должен очистить его при navigation/remount. Строковое представление applied scope остаётся
 в памяти библиотеки и не выводится в DOM/storage.
 
+#### Настройка колонок
+
+Пользовательский состав колонок для одного view таблицы. Библиотека не знает, где хранится настройка:
+consumer передаёт загруженное значение и колбэк сохранения, а получает упорядоченный список видимых колонок.
+
+- Каталог — массив `PneTableColumnOption` (`id`, текстовый `label`, `defaultVisible`) в порядке по умолчанию.
+  `id` стабилен и не зависит от языка и позиции; поля consumer-типа (например, `render`) сохраняются
+  в `visibleColumns`.
+- Значение `PneTableColumnSettingsValue` — `visibleColumnIds` в порядке отображения и `hiddenColumnIds`.
+  Колонки каталога, отсутствующие в обоих списках, считаются новыми и показываются; неизвестные `id`
+  отбрасываются; значение без видимых колонок заменяется умолчанием.
+- `usePneTableColumnSettings({columns, value, onSave})` сверяет значение с каталогом и владеет состоянием
+  окна. Для нескольких view создавайте по одному хуку на view.
+- `PneTableColumnSettingsAction` — кнопка вызова (`variant='icon'` для слота `actions` селектора view,
+  `variant='button'` для широкой панели). `PneTableColumnSettingsDialog` — модальное окно: поиск, один
+  чеклист по каталогу, «Reset to default», «Cancel», «Save». Последняя видимая колонка не снимается.
+- `onSave` получает нормализованное значение. Окно закрывается после resolve; при reject остаётся открытым
+  с черновиком, сообщение об ошибке показывает consumer.
+- Служебные колонки (выбор строки, действия) в каталог не входят: рендерьте их рядом с `visibleColumns`.
+
+```tsx
+const columns = [
+    {id: 'id', label: 'ID'},
+    {id: 'name', label: 'Name'},
+    {id: 'email', label: 'Email', defaultVisible: false},
+] as const satisfies readonly PneTableColumnOption[]
+
+const settings = usePneTableColumnSettings({
+    columns,
+    value: storedValue,            // PneTableColumnSettingsValue | undefined
+    onSave: value => api.save(value),
+})
+
+<PneTable<Row>
+    autoTestId="items"
+    data={rows}
+    toolbar={<PneTableToolbar
+        aria-label="Items table controls"
+        persistent={<PneTableColumnSettingsAction autoTestId="items" onClick={settings.openDialog}/>}
+    />}
+    createTableHeader={() => <PneTableRow>
+        {settings.visibleColumns.map(column => (
+            <PneHeaderTableCell key={column.id}>{column.label}</PneHeaderTableCell>
+        ))}
+    </PneTableRow>}
+    createRow={row => <PneTableRow key={row.id}>
+        {settings.visibleColumns.map(column => (
+            <PneTableCell key={column.id}>{row[column.id]}</PneTableCell>
+        ))}
+    </PneTableRow>}
+/>
+<PneTableColumnSettingsDialog {...settings.dialogProps} autoTestId="items"/>
+```
+
+Ключи локализации задаются в библиотеке с английским `defaultValue`: `pneTable.columnSettings.action`,
+`.title`, `.search`, `.reset`, `.cancel`, `.save`, `.noMatches`, `.lastVisible`.
+
 ### SearchUI и SearchUIFilters
 
 Передавайте стабильный несекретный `autoTestId` как Selenium scope поискового интерфейса. Если prop не задан,
@@ -869,6 +926,10 @@ assertEquals("true", enabled.getAttribute("aria-pressed"));
 | Пустой результат | `[data-autotest="empty-state"]` | Наличие существующей empty row |
 | Загрузка | Semantic `table` | `aria-busy="true|false"` |
 | Активная сортировка | `th[aria-sort="ascending"], th[aria-sort="descending"]` | Значение `aria-sort` |
+| Кнопка настройки колонок | `[data-autotest="column-settings"][data-autotest-value="<scope>"]` | Native button `disabled`; `<scope>` задаёт consumer через `autoTestId` |
+| Окно настройки колонок | `[data-autotest="column-settings-dialog"][data-autotest-value="<scope>"]` | Существование `role="dialog"`; внутри `column-settings-search`, `column-settings-reset`, `column-settings-cancel`, `column-settings-save` |
+| Колонка в окне настройки | `input[data-autotest="column-settings-option"][data-autotest-value="<columnId>"]` | Native `checked`, `disabled`; порядок в DOM = порядок отображения, скрытые в конце |
+| Пустой поиск по колонкам | `[data-autotest="column-settings-empty"]` | Наличие строки |
 
 Внутри каждого `pagination/top|bottom` уже существуют:
 

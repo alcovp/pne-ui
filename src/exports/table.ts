@@ -69,3 +69,23 @@ export type {
 export { default as AbstractHeaderTableCell } from '../component/table/AbstractHeaderTableCell'
 export { default as AbstractTableCell } from '../component/table/AbstractTableCell'
 export { TableDisplayOptions } from '../component/table/type'
+export { default as PneTableColumnSettingsDialog } from '../component/table/column-settings/PneTableColumnSettingsDialog'
+export type { PneTableColumnSettingsDialogProps } from '../component/table/column-settings/PneTableColumnSettingsDialog'
+export { default as PneTableColumnSettingsAction } from '../component/table/column-settings/PneTableColumnSettingsAction'
+export type { PneTableColumnSettingsActionProps } from '../component/table/column-settings/PneTableColumnSettingsAction'
+export { default as usePneTableColumnSettings } from '../component/table/column-settings/usePneTableColumnSettings'
+export type {
+    UsePneTableColumnSettingsParams,
+    UsePneTableColumnSettingsResult,
+} from '../component/table/column-settings/usePneTableColumnSettings'
+export {
+    createDefaultPneTableColumnSettings,
+    isSamePneTableColumnSettings,
+    resolvePneTableColumnSettings,
+} from '../component/table/column-settings/resolveColumnSettings'
+export type {
+    PneTableColumnId,
+    PneTableColumnOption,
+    PneTableColumnSettingsValue,
+    PneTableResolvedColumnSettings,
+} from '../component/table/column-settings/types'
