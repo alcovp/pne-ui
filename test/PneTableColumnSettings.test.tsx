@@ -10,7 +10,10 @@ import {
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
+        t: (key: string, options?: {defaultValue?: string} & Record<string, unknown>) => {
+            const template = options?.defaultValue ?? key
+            return template.replace(/\{\{(\w+)\}\}/g, (_match, name: string) => String(options?.[name] ?? ''))
+        },
     }),
 }))
 
@@ -261,5 +264,87 @@ describe('usePneTableColumnSettings', () => {
         expect(screen.getByTestId('visible').textContent).toBe('id,name,created,email')
         expect(screen.getByTestId('email-visible').textContent).toBe('true')
         expect(screen.getByTestId('default').textContent).toBe('false')
+    })
+})
+
+describe('PneTableColumnSettingsDialog reordering', () => {
+    const rect = (left: number, top: number, width: number, height: number): DOMRect => ({
+        x: left, y: top, left, top, width, height,
+        right: left + width, bottom: top + height,
+        toJSON: () => ({}),
+    })
+    const grips = () => Array.from(
+        dialog().querySelectorAll<HTMLButtonElement>('[data-autotest="column-settings-reorder"]'),
+    )
+    const gripFor = (id: string) => grips().find(grip => grip.dataset.autotestValue === id)
+
+    beforeEach(() => {
+        jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+            const list = this.closest('[data-rfd-droppable-id]')
+            if (this.hasAttribute('data-rfd-draggable-id') && list) {
+                const index = Array.from(list.querySelectorAll('[data-rfd-draggable-id]')).indexOf(this)
+                return rect(100, 100 + index * 40, 400, 40)
+            }
+            return rect(100, 100, 400, 400)
+        })
+        jest.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400)
+        jest.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(400)
+        jest.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(400)
+        jest.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(400)
+        jest.spyOn(document.documentElement, 'clientWidth', 'get').mockReturnValue(1024)
+        jest.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(768)
+    })
+
+    afterEach(() => {
+        jest.restoreAllMocks()
+    })
+
+    it('shows grips only for visible columns and hides them while filtering or when disabled', () => {
+        const {rerender, onClose, onSave} = renderDialog()
+
+        expect(grips().map(grip => grip.dataset.autotestValue)).toEqual(['id', 'name', 'created'])
+        expect(gripFor('id')?.getAttribute('aria-label')).toBe('Reorder ID')
+
+        const search = dialog().querySelector('input[data-autotest="column-settings-search"]') as HTMLInputElement
+        fireEvent.change(search, {target: {value: 'a'}})
+        expect(grips()).toHaveLength(0)
+        fireEvent.change(search, {target: {value: ''}})
+        expect(grips()).toHaveLength(3)
+
+        rerender(<PneTableColumnSettingsDialog
+            autoTestId='items'
+            columns={columns}
+            onClose={onClose}
+            onSave={onSave}
+            open
+            reorderable={false}
+        />)
+        expect(grips()).toHaveLength(0)
+    })
+
+    it('reorders visible columns from the keyboard and saves the new order', async () => {
+        const {onSave} = renderDialog()
+        const grip = gripFor('id') as HTMLButtonElement
+
+        act(() => grip.focus())
+        fireEvent.keyDown(grip, {key: ' ', code: 'Space', keyCode: 32})
+        await waitFor(() => expect(grip.closest('[data-rfd-draggable-id]')?.getAttribute('style')).toContain('position: fixed'))
+        fireEvent.keyDown(window, {key: 'ArrowDown', code: 'ArrowDown', keyCode: 40})
+        fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})
+
+        await waitFor(() => expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual(['name', 'id', 'created', 'email']))
+
+        fireEvent.click(button('column-settings-save'))
+
+        await waitFor(() => expect(onSave).toHaveBeenCalledWith({
+            visibleColumnIds: ['name', 'id', 'created'],
+            hiddenColumnIds: ['email'],
+        }))
+    })
+
+    it('keeps the single visible column without a grip', () => {
+        renderDialog({value: {visibleColumnIds: ['id'], hiddenColumnIds: ['name', 'email', 'created']}})
+
+        expect(grips()).toHaveLength(0)
     })
 })

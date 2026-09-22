@@ -706,6 +706,9 @@ consumer передаёт загруженное значение и колбэ�
 - `PneTableColumnSettingsAction` — кнопка вызова (`variant='icon'` для слота `actions` селектора view,
   `variant='button'` для широкой панели). `PneTableColumnSettingsDialog` — модальное окно: поиск, один
   чеклист по каталогу, «Reset to default», «Cancel», «Save». Последняя видимая колонка не снимается.
+- Видимые колонки переставляются перетаскиванием за отдельную ручку (мышь, клавиатура: Space, стрелки,
+  Space; тач без задержки). Ручки показываются только у видимых колонок и только без активного поиска;
+  `reorderable={false}` отключает перестановку. Скрытые колонки идут в конце списка без ручек.
 - `onSave` получает нормализованное значение. Окно закрывается после resolve; при reject остаётся открытым
   с черновиком, сообщение об ошибке показывает consumer.
 - Служебные колонки (выбор строки, действия) в каталог не входят: рендерьте их рядом с `visibleColumns`.
@@ -745,7 +748,7 @@ const settings = usePneTableColumnSettings({
 ```
 
 Ключи локализации задаются в библиотеке с английским `defaultValue`: `pneTable.columnSettings.action`,
-`.title`, `.search`, `.reset`, `.cancel`, `.save`, `.noMatches`, `.lastVisible`.
+`.title`, `.search`, `.reset`, `.cancel`, `.save`, `.noMatches`, `.lastVisible`, `.reorder` (с `{{name}}`).
 
 ### SearchUI и SearchUIFilters
 
@@ -929,6 +932,7 @@ assertEquals("true", enabled.getAttribute("aria-pressed"));
 | Кнопка настройки колонок | `[data-autotest="column-settings"][data-autotest-value="<scope>"]` | Native button `disabled`; `<scope>` задаёт consumer через `autoTestId` |
 | Окно настройки колонок | `[data-autotest="column-settings-dialog"][data-autotest-value="<scope>"]` | Существование `role="dialog"`; внутри `column-settings-search`, `column-settings-reset`, `column-settings-cancel`, `column-settings-save` |
 | Колонка в окне настройки | `input[data-autotest="column-settings-option"][data-autotest-value="<columnId>"]` | Native `checked`, `disabled`; порядок в DOM = порядок отображения, скрытые в конце |
+| Ручка перестановки колонки | `button[data-autotest="column-settings-reorder"][data-autotest-value="<columnId>"]` | Есть только у видимых колонок без активного поиска; keyboard: Space, ArrowUp/ArrowDown, Space |
 | Пустой поиск по колонкам | `[data-autotest="column-settings-empty"]` | Наличие строки |
 
 Внутри каждого `pagination/top|bottom` уже существуют:
