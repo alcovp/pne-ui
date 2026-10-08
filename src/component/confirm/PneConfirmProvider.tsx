@@ -212,4 +212,10 @@ export const usePneConfirm = (): PneConfirmContextValue => {
     return context
 }
 
+/**
+ * Library-internal variant for components that must keep working without a provider:
+ * returns `null` instead of throwing. Not part of the public barrel.
+ */
+export const useOptionalPneConfirm = (): PneConfirmContextValue | null => useContext(PneConfirmContext)
+
 export default PneConfirmProvider

@@ -354,10 +354,10 @@ describe('SearchUI autotest scope', () => {
             const panel = panelId ? document.getElementById(panelId) : null
 
             expect(templates?.getAttribute('aria-expanded')).toBe('true')
-            expect(templates?.getAttribute('aria-haspopup')).toBe('dialog')
+            expect(templates?.getAttribute('aria-haspopup')).toBe('menu')
             expect(panel?.getAttribute('data-autotest')).toBe('templates-panel')
             expect(panel?.getAttribute('data-autotest-value')).toBe(scope)
-            expect(panel?.getAttribute('role')).toBe('dialog')
+            expect(panel?.getAttribute('role')).toBe('menu')
             expect(panel?.getAttribute('aria-label')).toBe('react.searchUI.template')
             expect(panel && filterScope.contains(panel)).toBe(false)
         }
@@ -402,7 +402,11 @@ describe('SearchUI autotest scope', () => {
         expect(item?.hasAttribute('data-autotest-value')).toBe(false)
         expect(selectTemplate?.tagName).toBe('BUTTON')
         expect(selectTemplate?.type).toBe('button')
-        expect(selectTemplate?.getAttribute('aria-label')).toBe('Use template: Saved orders')
+        expect(selectTemplate?.getAttribute('role')).toBe('menuitemradio')
+        expect(selectTemplate?.getAttribute('aria-checked')).toBe('false')
+        expect(selectTemplate?.getAttribute('title')).toBe('Saved orders')
+        expect(within(panel as HTMLElement).getByRole('menuitemradio', {name: 'Saved orders'}))
+            .toBe(selectTemplate)
         expect(removeTemplate?.tagName).toBe('BUTTON')
         expect(removeTemplate?.type).toBe('button')
         expect(removeTemplate?.getAttribute('aria-label')).toBe('Remove template: Saved orders')
@@ -420,22 +424,21 @@ describe('SearchUI autotest scope', () => {
             panel = document.body.querySelector<HTMLElement>(
                 '[data-autotest="templates-panel"][data-autotest-value="template-actions"]',
             )
-            expect(within(panel as HTMLElement).getByRole('button', {
-                name: 'react.searchUI.template.update',
-            })).not.toBeNull()
+            expect(panel?.querySelector('[data-autotest="update-template"]')).not.toBeNull()
         })
 
-        const newTemplate = within(panel as HTMLElement).getByRole<HTMLButtonElement>('button', {
-            name: 'react.searchUI.template.create',
-        })
-        const updateTemplate = within(panel as HTMLElement).getByRole<HTMLButtonElement>('button', {
-            name: 'react.searchUI.template.update',
-        })
+        const newTemplate = panel?.querySelector<HTMLButtonElement>('[data-autotest="create-template"]')
+        const updateTemplate = panel?.querySelector<HTMLButtonElement>('[data-autotest="update-template"]')
         item = panel?.querySelector<HTMLElement>('[data-autotest="template-item"]')
 
         expect(newTemplate?.type).toBe('button')
+        expect(newTemplate?.getAttribute('role')).toBe('menuitem')
+        expect(newTemplate?.getAttribute('aria-haspopup')).toBe('dialog')
         expect(updateTemplate?.type).toBe('button')
+        expect(updateTemplate?.getAttribute('role')).toBe('menuitem')
+        expect(item?.querySelector('[data-autotest="select-template"]')?.getAttribute('aria-checked')).toBe('true')
 
+        // Without a PneConfirmProvider the menu deletes right away, as before.
         fireEvent.click(item?.querySelector('[data-autotest="remove-template"]') as HTMLButtonElement)
 
         await waitFor(() => {
@@ -443,7 +446,7 @@ describe('SearchUI autotest scope', () => {
                 contextName: 'template-item-actions',
                 templateName: 'Saved orders',
             })
-            expect(panel?.querySelector('[data-autotest="template-item"]')).toBeNull()
+            expect(document.body.querySelector('[data-autotest="template-item"]')).toBeNull()
         })
     })
 
@@ -471,11 +474,9 @@ describe('SearchUI autotest scope', () => {
             expect(result).not.toBeNull()
             return result as HTMLElement
         })
-        const newTemplate = within(panel).getByRole<HTMLButtonElement>('button', {
-            name: 'react.searchUI.template.create',
-        })
+        const newTemplate = panel.querySelector<HTMLButtonElement>('[data-autotest="create-template"]')
 
-        expect(newTemplate?.getAttribute('aria-expanded')).toBe('false')
+        expect(within(panel).getByRole('menuitem', {name: 'Save as new template'})).toBe(newTemplate)
         expect(newTemplate?.getAttribute('aria-haspopup')).toBe('dialog')
 
         fireEvent.click(newTemplate as HTMLButtonElement)
@@ -487,7 +488,6 @@ describe('SearchUI autotest scope', () => {
             expect(result).not.toBeNull()
             return result as HTMLElement
         })
-        const editorId = newTemplate?.getAttribute('aria-controls')
         const closeEditor = editor.querySelector<HTMLButtonElement>('[data-autotest="close-template-editor"]')
         const cancelTemplate = within(editor).getByRole<HTMLButtonElement>('button', {name: 'cancel'})
         const createTemplate = within(editor).getByRole<HTMLButtonElement>('button', {name: 'create'})
@@ -496,27 +496,24 @@ describe('SearchUI autotest scope', () => {
         })
         const form = editor.querySelector<HTMLFormElement>('form')
 
-        expect(editor.id).toBe(editorId)
         expect(editor.getAttribute('role')).toBe('dialog')
         expect(editor.getAttribute('aria-modal')).toBe('true')
         expect(editor.getAttribute('aria-label')).toBeNull()
         expect(document.getElementById(editor.getAttribute('aria-labelledby')!)?.textContent)
             .toBe('react.searchUI.template.newModal.title')
         expect(panel.contains(editor)).toBe(false)
-        expect(newTemplate?.getAttribute('aria-expanded')).toBe('true')
         expect(closeEditor?.getAttribute('aria-label')).toBe('Close')
         expect(cancelTemplate?.type).toBe('button')
         expect(createTemplate?.type).toBe('submit')
         expect(createTemplate?.form).toBe(form)
         expect(templateName.required).toBe(true)
+        expect(templateName.value).toBe('')
 
         fireEvent.click(cancelTemplate as HTMLButtonElement)
 
         await waitFor(() => {
             expect(document.body.querySelector('[data-autotest="template-editor"]')).toBeNull()
-            expect(newTemplate?.getAttribute('aria-expanded')).toBe('false')
         })
-        expect(document.body.contains(panel)).toBe(true)
     })
 
     it('repeats each SearchUI scope on detached add-filter listboxes', async () => {

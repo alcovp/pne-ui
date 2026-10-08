@@ -34,6 +34,12 @@ type SaveSearchUITemplateRequest = AbstractSearchUIRequest & {
     template: SearchUITemplate
 }
 
+type ReorderSearchUITemplatesRequest = {
+    contextName: string
+    /** Every template name of the context, in the new display order. */
+    templateNames: string[]
+}
+
 type GetProjectCurrenciesRequest = {
     searchConditions: CriterionTypeEnum[]
     multigetCriteria: MultigetCriterion[]
@@ -73,6 +79,12 @@ export type SearchUIDefaults = {
     saveSearchTemplate: (request: SaveSearchUITemplateRequest) => Promise<void>
     deleteSearchTemplate: (request: AbstractSearchUIRequest) => Promise<void>
     searchTemplateExists: (request: AbstractSearchUIRequest) => Promise<boolean>
+    /**
+     * Persists the user's template order for one settings context; `getSearchTemplates`
+     * must return templates in that order afterwards. Optional: without it the templates
+     * menu offers no reordering and keeps the order `getSearchTemplates` returns.
+     */
+    reorderSearchTemplates?: (request: ReorderSearchUITemplatesRequest) => Promise<void>
     getProjectAvailableCurrencies: (request: GetProjectCurrenciesRequest) => Promise<AutoCompleteChoiceWithStatus[]>
     getCardTypes: () => Promise<AbstractEntity[]>
     getCurrencies: () => Promise<AbstractEntity[]>

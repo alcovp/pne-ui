@@ -138,6 +138,20 @@ const normalizeSearchUITemplate = (template: SearchUITemplate): SearchUITemplate
     },
 })
 
+const orderTemplatesByName = (
+    templates: SearchUITemplate[],
+    templateNames: string[],
+): SearchUITemplate[] => {
+    const positions = new Map(templateNames.map((name, index) => [name, index]))
+    const positionOf = (template: SearchUITemplate, index: number) =>
+        positions.get(template.name) ?? templateNames.length + index
+
+    return templates
+        .map((template, index) => ({template, position: positionOf(template, index)}))
+        .sort((left, right) => left.position - right.position)
+        .map(({template}) => template)
+}
+
 const sanitizeMultigetCriteria = (
     incoming: MultigetCriterion[],
     activeCriteria: CriterionTypeEnum[],
@@ -595,6 +609,36 @@ export const getSearchUIFiltersActions = (
             })
             // .catch(raiseUIError)
             .catch(console.error)
+    },
+    reorderTemplates: (templateNames: string[]) => {
+        const {defaults, settingsContextName, templates: previous} = get()
+        const reorderSearchTemplates = defaults.reorderSearchTemplates
+        if (!reorderSearchTemplates) {
+            return Promise.reject(new Error('reorderSearchTemplates is not configured'))
+        }
+
+        const reordered = orderTemplatesByName(previous, templateNames)
+        if (reordered.every((template, index) => template === previous[index])) {
+            return Promise.resolve()
+        }
+
+        set((draft) => {
+            draft.templates = reordered
+        })
+        const applied = get().templates
+
+        return reorderSearchTemplates({
+            contextName: settingsContextName,
+            templateNames: reordered.map(template => template.name),
+        }).catch((error: unknown) => {
+            // A later reorder, load, create or delete owns the list now; keep its result.
+            if (get().templates === applied) {
+                set((draft) => {
+                    draft.templates = previous
+                })
+            }
+            throw error
+        })
     },
     setTemplate: (template: SearchUITemplate, options?: SearchUIUpdateOptions) => {
         const defaults = getSearchUIInitialSearchCriteria(get().defaults)

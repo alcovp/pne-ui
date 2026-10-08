@@ -114,6 +114,13 @@ export type SearchUIFiltersActions = {
     createTemplate: (templateName: string) => void
     updateTemplate: (templateName: string) => void
     removeTemplate: (template: SearchUITemplate) => void
+    /**
+     * Applies the order optimistically and persists it through `reorderSearchTemplates`.
+     * Names missing from the list keep their relative order after the listed ones. On a
+     * failed save the previous order comes back, unless the list changed meanwhile, and
+     * the returned promise rejects.
+     */
+    reorderTemplates: (templateNames: string[]) => Promise<void>
     setTemplate: (
         template: SearchUITemplate,
         options?: {

@@ -336,6 +336,81 @@ describe('SearchUIFilters Zustand store', () => {
         expect(localStorage.getItem('last_template_namectx')).toBe('tmpl')
     })
 
+    describe('reorderTemplates', () => {
+        const templateNames = (state = store.getState()) => state.templates.map(template => template.name)
+        const setUpTemplates = (reorderSearchTemplates?: jest.Mock) => {
+            store.setState({
+                defaults: {...initialSearchUIDefaults, reorderSearchTemplates},
+                templates: ['alpha', 'bravo', 'charlie'].map(name => ({
+                    name,
+                    searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                })),
+            })
+        }
+
+        it('applies the order at once and persists every name of the context', async () => {
+            const reorderSearchTemplates = jest.fn().mockResolvedValue(undefined)
+            setUpTemplates(reorderSearchTemplates)
+
+            const saved = store.getState().reorderTemplates(['charlie', 'alpha'])
+
+            // Unlisted templates keep their relative order after the listed ones.
+            expect(templateNames()).toEqual(['charlie', 'alpha', 'bravo'])
+            await expect(saved).resolves.toBeUndefined()
+            expect(reorderSearchTemplates).toHaveBeenCalledWith({
+                contextName: 'ctx',
+                templateNames: ['charlie', 'alpha', 'bravo'],
+            })
+        })
+
+        it('skips the host call when the order does not change', async () => {
+            const reorderSearchTemplates = jest.fn().mockResolvedValue(undefined)
+            setUpTemplates(reorderSearchTemplates)
+            const before = store.getState().templates
+
+            await store.getState().reorderTemplates(['alpha', 'bravo', 'charlie'])
+
+            expect(reorderSearchTemplates).not.toHaveBeenCalled()
+            expect(store.getState().templates).toBe(before)
+        })
+
+        it('restores the previous order and rejects when saving fails', async () => {
+            const failure = new Error('storage down')
+            setUpTemplates(jest.fn().mockRejectedValue(failure))
+
+            const saved = store.getState().reorderTemplates(['bravo', 'alpha', 'charlie'])
+            expect(templateNames()).toEqual(['bravo', 'alpha', 'charlie'])
+
+            await expect(saved).rejects.toBe(failure)
+            expect(templateNames()).toEqual(['alpha', 'bravo', 'charlie'])
+        })
+
+        it('keeps a newer list when an earlier save fails', async () => {
+            let rejectFirst: (error: Error) => void = () => undefined
+            const reorderSearchTemplates = jest.fn()
+                .mockImplementationOnce(() => new Promise<void>((_resolve, reject) => {
+                    rejectFirst = reject
+                }))
+                .mockResolvedValue(undefined)
+            setUpTemplates(reorderSearchTemplates)
+
+            const first = store.getState().reorderTemplates(['bravo', 'alpha', 'charlie'])
+            await store.getState().reorderTemplates(['charlie', 'bravo', 'alpha'])
+            rejectFirst(new Error('late failure'))
+
+            await expect(first).rejects.toThrow('late failure')
+            expect(templateNames()).toEqual(['charlie', 'bravo', 'alpha'])
+        })
+
+        it('rejects without changing the list when the host cannot persist an order', async () => {
+            setUpTemplates()
+            const before = store.getState().templates
+
+            await expect(store.getState().reorderTemplates(['charlie', 'bravo', 'alpha'])).rejects.toThrow()
+            expect(store.getState().templates).toBe(before)
+        })
+    })
+
     it('loads templates', async () => {
         const template: SearchUITemplate = {
             name: 'stored',

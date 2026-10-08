@@ -3,6 +3,7 @@ import {
     PneTableViewOption,
     SearchUIConditionsInput,
     SearchUIDateRangeSpec,
+    SearchUIDefaults,
     SearchUIFiltersConfig,
     SearchUIFiltersProps,
     SearchUIProps,
@@ -28,6 +29,7 @@ const acceptsPersistedTemplateDateRange = (
     _value: SearchUITemplate['searchConditions']['dateRangeSpec'],
 ): void => undefined
 const acceptsFiltersConfig = (_value: SearchUIFiltersConfig): void => undefined
+const acceptsSearchUIDefaults = (_value: Partial<SearchUIDefaults>): void => undefined
 const acceptsViewDataKey = (_value: SearchUIView<Row>['searchDataKey']): void => undefined
 const acceptsViewDisabledCriteria = (
     _value: SearchUIView<Row>['disabledCriteria'],
@@ -78,6 +80,13 @@ acceptsFiltersConfig({
         allowedNames: ['chargeback', 'fraud'],
     },
 })
+acceptsSearchUIDefaults({})
+acceptsSearchUIDefaults({
+    reorderSearchTemplates: async ({contextName, templateNames}) => {
+        void contextName.length
+        void templateNames.join()
+    },
+})
 acceptsViewDataKey('approved-kpis:1,2,3')
 acceptsViewDataKey(4)
 acceptsViewDisabledCriteria([CriterionTypeEnum.THREE_D])
@@ -107,6 +116,8 @@ acceptsInitialFiltersConditions({dateRangeSpec: {dateRangeSpecType: 'TODAY', dat
 acceptsFiltersConfig({transactionTypes: {}})
 // @ts-expect-error Transaction-type database IDs are instance-specific and are not accepted by this config.
 acceptsFiltersConfig({transactionTypes: {allowedIds: [6, 7]}})
+// @ts-expect-error A template order is the full list of template names, not a single moved name.
+acceptsSearchUIDefaults({reorderSearchTemplates: async (_request: {contextName: string, templateName: string}) => undefined})
 // @ts-expect-error Search data identities are stable primitives, not mutable collections.
 acceptsViewDataKey(['kpi-a', 'kpi-b'])
 // @ts-expect-error Views accept known criterion enum values only.

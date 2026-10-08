@@ -794,11 +794,13 @@ Popover и modal рендерятся через React portal вне `search-fil
 [data-autotest="template-editor"][data-autotest-value="orders"]
 ```
 
-`templates-panel` и `template-editor` имеют dialog semantics, а `add-filter-options` — native MUI listbox.
+`templates-panel` — MUI menu (`role="menu"`), `template-editor` — dialog, а `add-filter-options` — native MUI
+listbox.
 Generated IDs из `aria-controls` не хардкодируйте: при необходимости считывайте ID у trigger во время теста;
 стабильным owner locator остаётся `data-autotest` + scope. Строки сохранённых шаблонов отмечены одинаковым
-`template-item` без value; внутри используются `select-template` и `remove-template`. Имя шаблона остаётся
-видимым пользовательским значением и доступным именем, но намеренно не попадает в `data-autotest-value`.
+`template-item` без value; внутри используются `select-template`, `remove-template` и, если хост сохраняет
+порядок, `reorder-template`. Имя шаблона остаётся видимым пользовательским значением и доступным именем, но
+намеренно не попадает в `data-autotest-value`. Действия меню — `create-template` и `update-template`.
 Icon-only закрытие editor имеет `close-template-editor`; поле имени, Create и Cancel остаются стандартными
 required textbox/text buttons и ищутся по role/name внутри scoped editor.
 
@@ -1000,12 +1002,25 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
 [data-autotest="template-editor"][data-autotest-value="orders"]
 ```
 
-Внутри templates panel:
+Внутри templates panel (`role="menu"`):
 
 - строка: `[data-autotest="template-item"]`;
-- применить конкретный шаблон: `button[data-autotest="select-template"][title="<template name>"]`;
+- применить конкретный шаблон: `button[data-autotest="select-template"][title="<template name>"]`
+  (`role="menuitemradio"`, применённый шаблон отмечен `aria-checked="true"`);
 - удалить: сначала найти строку выбранного шаблона, затем внутри неё
-  `button[data-autotest="remove-template"]`.
+  `button[data-autotest="remove-template"]`. Крестик проявляется при наведении, но кликабелен и без него.
+  Если у хоста смонтирован `PneConfirmProvider`, удаление подтверждается в
+  `[data-autotest="alert.container"][data-autotest-value="<scope>"]` кнопкой
+  `[data-autotest="alert.button.submit"]`; без провайдера шаблон удаляется сразу;
+- ручка перетаскивания: `[data-autotest="reorder-template"]` внутри строки, справа перед крестиком. Есть
+  только когда хост передал `reorderSearchTemplates`, шаблонов больше одного и список не отфильтрован; ручка
+  `aria-hidden`, для клавиатуры порядок меняется через Alt+↑/Alt+↓ на `select-template`;
+- поиск: `input[data-autotest="template-search"]` появляется от 10 шаблонов и фильтрует список в браузере;
+  пустой результат — `[data-autotest="template-search-empty"]`;
+- создать шаблон из текущих фильтров: `button[data-autotest="create-template"]` (открывает
+  `template-editor/<scope>`, меню при этом закрывается);
+- сохранить текущие фильтры в применённый шаблон: `button[data-autotest="update-template"]` (есть, только
+  пока шаблон применён).
 
 `template-editor/<scope>` является отдельным dialog portal, а не потомком `templates-panel`. Его close button:
 `button[data-autotest="close-template-editor"]`.
@@ -1578,6 +1593,9 @@ export const TransactionsPage = () => (
             deleteSearchTemplate: request => templatesApi.remove(request),
             // Проверяет, существует ли шаблон с указанным именем
             searchTemplateExists: request => templatesApi.exists(request),
+            // Необязательно: сохраняет порядок шаблонов ({contextName, templateNames} — все имена контекста
+            // в новом порядке). Без него меню не предлагает перетаскивание.
+            reorderSearchTemplates: request => templatesApi.reorder(request),
         }}
     >
         <SearchUI
@@ -1857,6 +1875,22 @@ production-запросе.
 шаблонов не публикует промежуточные критерии. Компонент `SearchUI` соблюдает тот
 же контракт и не вызывает `searchData` сначала с начальными значениями, а затем
 повторно с автоматически восстановленным шаблоном.
+
+### Меню шаблонов и их порядок
+
+Кнопка Templates открывает меню: сохранённые шаблоны (применённый отмечен галочкой), под ними
+«Save as new template» и, пока шаблон применён, «Update “<name>”». Нижние действия закреплены и остаются
+видны при длинном списке. Удаление подтверждается через `PneConfirmProvider`, если хост его смонтировал.
+
+От 10 шаблонов сверху появляется поле поиска: оно получает фокус при открытии и фильтрует список по
+вхождению без учёта регистра, без запросов к хосту. ↓ переводит фокус в список, ↑ с первого шаблона
+возвращает в поле, Enter применяет первое совпадение. Пока список отфильтрован, порядок не меняется.
+
+Если хост передал `reorderSearchTemplates`, у строк справа появляется ручка перетаскивания (мышь и touch), а с
+клавиатуры шаблон двигается Alt+↑/Alt+↓. Новый порядок применяется сразу и уходит в
+`reorderSearchTemplates({contextName, templateNames})` — полный список имён контекста. Хост сохраняет его так,
+чтобы `getSearchTemplates` дальше возвращал шаблоны в этом порядке. Ошибка сохранения возвращает прежний
+порядок и показывает `overlayActions.showTransientError`.
 
 ### Ручной режим поиска (manual search)
 
