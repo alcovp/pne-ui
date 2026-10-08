@@ -242,7 +242,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 {...createAutoTestAttributes(COLUMN_SETTINGS_RESET_AUTOTEST_ID)}
                 disabled={saving || resolvedDraft.isDefault}
                 onClick={handleReset}
-                pneStyle='outlined'
+                pneStyle='neutral'
             >
                 {t('pneTable.columnSettings.reset', {defaultValue: 'Reset to default'})}
             </PneButton>}
@@ -252,6 +252,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 onClick={() => {
                     void handleSave()
                 }}
+                pneStyle='contained'
             >
                 {t('pneTable.columnSettings.save', {defaultValue: 'Save'})}
             </PneButton>}
