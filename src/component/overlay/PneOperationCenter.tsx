@@ -161,6 +161,34 @@ const OperationStatusIcon = ({status}: {status: PneOperationCenterStatus}) => {
     }
 }
 
+type OperationCenterOverallState = 'active' | 'attention' | 'completed'
+
+const getOverallState = (summary: PneOperationCenterSummary): OperationCenterOverallState => {
+    if (summary.attention > 0) return 'attention'
+    if (summary.active > 0) return 'active'
+    return 'completed'
+}
+
+const OVERALL_STATE_COLOR: Record<OperationCenterOverallState, string> = {
+    active: 'primary.main',
+    attention: 'error.main',
+    completed: 'success.main',
+}
+
+const OverallStateIcon = ({
+    state,
+    prefersReducedMotion,
+}: {
+    state: OperationCenterOverallState
+    prefersReducedMotion: boolean
+}) => {
+    if (state === 'attention') return <ErrorOutlineIcon sx={{fontSize: 16}}/>
+    if (state === 'completed') return <CheckCircleOutlineIcon sx={{fontSize: 16}}/>
+    return prefersReducedMotion
+        ? <AutorenewIcon sx={{fontSize: 16}}/>
+        : <CircularProgress color='inherit' size={12} thickness={5}/>
+}
+
 const getStatusColor = (status: PneOperationCenterStatus) => {
     if (status === 'succeeded') return 'success.main'
     if (status === 'failed' || status === 'monitoring-error') return 'error.main'
@@ -231,7 +259,8 @@ export function PneOperationCenter({
             .map(operation => operation.id),
         [operations],
     )
-    const showClearTerminal = terminalIds.length > 0 && onClearTerminal !== undefined
+    // A single finished operation already has its own dismiss control; the bulk command only pays off for two.
+    const showClearTerminal = terminalIds.length > 1 && onClearTerminal !== undefined
 
     const getOperationAccessibleName = React.useCallback((
         operation: PneOperationCenterItem,
@@ -309,6 +338,7 @@ export function PneOperationCenter({
     const listLabel = labels?.list ?? String(t('pne.operationCenter.list', {defaultValue: 'Background operations'}))
     const progressLabel = labels?.progress ?? String(t('pne.operationCenter.progress', {defaultValue: 'Operation progress'}))
 
+    const overallState = getOverallState(summary)
     const summaryParts = [
         summary.active > 0
             ? labels?.activeCount?.(summary.active)
@@ -352,11 +382,11 @@ export function PneOperationCenter({
                     transition: prefersReducedMotion
                         ? 'none'
                         : 'background-color 160ms ease, width 180ms ease',
-                    width: resolvedExpanded ? '400px' : '224px',
+                    width: resolvedExpanded ? '400px' : '256px',
                     '@media (max-width: 639.95px)': {
                         width: resolvedExpanded
                             ? '100%'
-                            : 'min(224px, calc(100vw - 32px))',
+                            : 'min(256px, calc(100vw - 32px))',
                     },
                     ...(!resolvedExpanded ? {
                         WebkitBackdropFilter: 'blur(8px)',
@@ -414,27 +444,60 @@ export function PneOperationCenter({
                     <Typography
                         component='span'
                         id={titleId}
-                        sx={{display: 'block', fontSize: 14, fontWeight: 700, lineHeight: '20px'}}
+                        sx={{
+                            display: 'block',
+                            fontSize: 14,
+                            fontWeight: 700,
+                            lineHeight: '20px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                        }}
                     >
                         {title}
                     </Typography>
-                    <Stack
+                    <Box
                         component='span'
-                        data-pne-operation-center-summary
-                        direction='row'
-                        divider={<Box aria-hidden='true' component='span'>•</Box>}
-                        sx={{
-                            color: 'text.secondary',
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            fontSize: 12,
-                            gap: 0.75,
-                            lineHeight: '18px',
-                            mt: 0.25,
-                        }}
+                        sx={{alignItems: 'flex-start', display: 'flex', gap: 0.75, mt: 0.25}}
                     >
-                        {summaryParts.map((part, index) => <Box component='span' key={index}>{part}</Box>)}
-                    </Stack>
+                        <Box
+                            aria-hidden='true'
+                            component='span'
+                            data-pne-operation-center-state={overallState}
+                            sx={{
+                                alignItems: 'center',
+                                color: OVERALL_STATE_COLOR[overallState],
+                                display: 'inline-flex',
+                                flex: '0 0 auto',
+                                // One summary line high, so the marker stays on the first line when it wraps.
+                                height: 18,
+                                justifyContent: 'center',
+                                width: 16,
+                            }}
+                        >
+                            <OverallStateIcon
+                                prefersReducedMotion={prefersReducedMotion}
+                                state={overallState}
+                            />
+                        </Box>
+                        <Stack
+                            component='span'
+                            data-pne-operation-center-summary
+                            direction='row'
+                            divider={<Box aria-hidden='true' component='span'>•</Box>}
+                            sx={{
+                                color: 'text.secondary',
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                fontSize: 12,
+                                gap: 0.75,
+                                lineHeight: '18px',
+                                minWidth: 0,
+                            }}
+                        >
+                            {summaryParts.map((part, index) => <Box component='span' key={index}>{part}</Box>)}
+                        </Stack>
+                    </Box>
                 </Box>
                 {resolvedExpanded
                     ? <ExpandLessIcon aria-hidden='true' sx={{flex: '0 0 auto'}}/>

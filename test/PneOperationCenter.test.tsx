@@ -87,12 +87,13 @@ describe('PneOperationCenter', () => {
                         actions: [{id: 'cancel', label: 'Cancel'}],
                     }),
                     operation('done', 'succeeded'),
+                    operation('failed', 'failed'),
                 ]}
             />,
         )
 
         const center = document.querySelector<HTMLElement>('[data-pne-operation-center]')!
-        expect(window.getComputedStyle(center).width).toBe('224px')
+        expect(window.getComputedStyle(center).width).toBe('256px')
 
         fireEvent.click(screen.getByRole('button', {name: 'Show background operations'}))
         expect(window.getComputedStyle(center).width).toBe('400px')
@@ -173,6 +174,54 @@ describe('PneOperationCenter', () => {
 
         fireEvent.click(screen.getByRole('button', {name: 'Clear finished'}))
         expect(onClearTerminal).toHaveBeenCalledWith(['success', 'unknown'])
+    })
+
+    it('offers the bulk clear command only when more than one finished operation can be cleared', () => {
+        const view = render(
+            <PneOperationCenter
+                defaultExpanded
+                onClearTerminal={jest.fn()}
+                onDismiss={jest.fn()}
+                operations={[
+                    operation('running', 'running'),
+                    operation('done', 'succeeded'),
+                    operation('protected', 'failed', {dismissible: false}),
+                ]}
+            />,
+        )
+
+        expect(screen.queryByRole('button', {name: 'Clear finished'})).toBeNull()
+        expect(screen.getByRole('button', {name: /Dismiss: Operation done/})).toBeTruthy()
+
+        view.rerender(
+            <PneOperationCenter
+                defaultExpanded
+                onClearTerminal={jest.fn()}
+                onDismiss={jest.fn()}
+                operations={[
+                    operation('done', 'succeeded'),
+                    operation('cancelled', 'cancelled'),
+                ]}
+            />,
+        )
+
+        expect(screen.getByRole('button', {name: 'Clear finished'})).toBeTruthy()
+    })
+
+    it.each<[string, PneOperationCenterStatus[], string]>([
+        ['attention wins over active work', ['running', 'failed', 'succeeded'], 'attention'],
+        ['active work wins over finished work', ['queued', 'succeeded'], 'active'],
+        ['only finished work', ['succeeded', 'cancelled'], 'completed'],
+    ])('marks the summary with the overall state: %s', (_case, statuses, expectedState) => {
+        render(
+            <PneOperationCenter
+                operations={statuses.map((status, index) => operation(`${status}-${index}`, status))}
+            />,
+        )
+
+        const marker = document.querySelector<HTMLElement>('[data-pne-operation-center-state]')!
+        expect(marker.dataset.pneOperationCenterState).toBe(expectedState)
+        expect(marker.getAttribute('aria-hidden')).toBe('true')
     })
 
     it('gives repeated operation commands distinct contextual accessible names', () => {
@@ -269,12 +318,12 @@ describe('PneOperationCenter', () => {
         expect(document.activeElement).toBe(screen.getByRole('button', {name: 'Hide background operations'}))
     })
 
-    it.each([
-        ['clear', 'Clear finished'],
-        ['dismiss', 'Dismiss: Operation done'],
-    ])('restores external focus when %s removes the final operation', async (_command, buttonName) => {
+    it.each<[string, string, PneOperationCenterItem[]]>([
+        ['clear', 'Clear finished', [operation('done', 'succeeded'), operation('failed', 'failed')]],
+        ['dismiss', 'Dismiss: Operation done', [operation('done', 'succeeded')]],
+    ])('restores external focus when %s removes the final operation', async (_command, buttonName, initialOperations) => {
         const ControlledCenter = () => {
-            const [operations, setOperations] = React.useState([operation('done', 'succeeded')])
+            const [operations, setOperations] = React.useState<PneOperationCenterItem[]>(initialOperations)
 
             return (
                 <>
