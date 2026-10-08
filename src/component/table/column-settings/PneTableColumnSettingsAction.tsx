@@ -1,5 +1,5 @@
 import React, {forwardRef} from 'react'
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import {IconButton, SxProps, Theme, Tooltip} from '@mui/material'
 import {useTranslation} from 'react-i18next'
 import PneButton from '../../PneButton'
@@ -55,7 +55,7 @@ const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColum
                 onClick={onClick}
                 pneStyle='outlined'
                 ref={ref}
-                startIcon={<SettingsOutlinedIcon/>}
+                startIcon={<ViewColumnOutlinedIcon/>}
                 sx={sx}
             >
                 {resolvedLabel}
@@ -80,7 +80,7 @@ const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColum
                         ...(Array.isArray(sx) ? sx : [sx]),
                     ]}
                 >
-                    <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
+                    <ViewColumnOutlinedIcon sx={{height: '16px', width: '16px'}}/>
                 </IconButton>
             </span>
         </Tooltip>
