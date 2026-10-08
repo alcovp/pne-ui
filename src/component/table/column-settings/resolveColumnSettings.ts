@@ -23,8 +23,22 @@ const sameIds = (
 ): boolean => left.length === right.length && left.every((id, index) => id === right[index])
 
 /**
- * Throws on a catalog that cannot be configured: empty or with duplicate IDs.
- * Column identity belongs to the consumer, so silent de-duplication would hide a bug.
+ * Allowed shape of a column ID: a letter or digit followed by letters, digits,
+ * dots, underscores or hyphens. IDs travel into storage keys, DOM ids,
+ * Selenium locators and drag identifiers, so anything looser (spaces, colons,
+ * slashes, translated text) breaks at least one of them.
+ */
+export const PNE_TABLE_COLUMN_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
+
+export const isValidPneTableColumnId = (id: unknown): id is PneTableColumnId =>
+    typeof id === 'string' && PNE_TABLE_COLUMN_ID_PATTERN.test(id)
+
+/**
+ * Throws on a catalog that cannot be configured: empty, with duplicate IDs, or
+ * with an ID outside `PNE_TABLE_COLUMN_ID_PATTERN`. Column identity belongs to
+ * the consumer, so silently repairing the catalog would hide a bug; the hook
+ * resolves the catalog on every render, so a bad ID fails the first render and
+ * every page test instead of the first save.
  */
 export const assertPneTableColumnCatalog = (columns: readonly PneTableColumnOption[]): void => {
     if (columns.length === 0) {
@@ -32,6 +46,11 @@ export const assertPneTableColumnCatalog = (columns: readonly PneTableColumnOpti
     }
     const seen = new Set<PneTableColumnId>()
     for (const column of columns) {
+        if (!isValidPneTableColumnId(column.id)) {
+            throw new Error(
+                `PneTable column settings: column ID ${JSON.stringify(column.id)} must match ${PNE_TABLE_COLUMN_ID_PATTERN}`,
+            )
+        }
         if (seen.has(column.id)) {
             throw new Error(`PneTable column settings: duplicate column ID "${column.id}"`)
         }

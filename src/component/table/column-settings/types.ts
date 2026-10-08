@@ -1,4 +1,8 @@
-/** Stable, non-secret column identifier owned by the consumer; never an index or a translated label. */
+/**
+ * Stable, non-secret column identifier owned by the consumer; never an index or
+ * a translated label. Must match `PNE_TABLE_COLUMN_ID_PATTERN`
+ * (`[A-Za-z0-9][A-Za-z0-9._-]*`); the catalog assertion enforces it.
+ */
 export type PneTableColumnId = string
 
 /**

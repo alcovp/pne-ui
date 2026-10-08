@@ -697,7 +697,10 @@ consumer передаёт загруженное значение и колбэ�
 
 - Каталог — массив `PneTableColumnOption` (`id`, текстовый `label`, `defaultVisible`) в порядке по умолчанию.
   `id` стабилен и не зависит от языка и позиции; поля consumer-типа (например, `render`) сохраняются
-  в `visibleColumns`.
+  в `visibleColumns`. `id` обязан соответствовать `PNE_TABLE_COLUMN_ID_PATTERN`
+  (`[A-Za-z0-9][A-Za-z0-9._-]*`): он попадает в ключи хранения, DOM id, Selenium-локаторы и
+  идентификаторы перетаскивания. Пустой каталог, повтор `id` или `id` вне шаблона — ошибка при первом
+  рендере (`assertPneTableColumnCatalog`), а не при сохранении.
 - Значение `PneTableColumnSettingsValue` — `visibleColumnIds` в порядке отображения и `hiddenColumnIds`.
   Колонки каталога, отсутствующие в обоих списках, считаются новыми и показываются; неизвестные `id`
   отбрасываются; значение без видимых колонок заменяется умолчанием.
@@ -705,10 +708,15 @@ consumer передаёт загруженное значение и колбэ�
   окна. Для нескольких view создавайте по одному хуку на view.
 - `PneTableColumnSettingsAction` — кнопка вызова (`variant='icon'` для слота `actions` селектора view,
   `variant='button'` для широкой панели). `PneTableColumnSettingsDialog` — модальное окно: поиск, один
-  чеклист по каталогу, «Reset to default», «Cancel», «Save». Последняя видимая колонка не снимается.
+  чеклист по каталогу, «Reset to default», «Cancel», «Save». Последняя видимая колонка не снимается:
+  её строка заблокирована, подсказка показывается tooltip-ом при наведении.
+- Порядок строк фиксируется при открытии: видимые колонки в порядке отображения, затем скрытые.
+  Переключение галочки строку не двигает, поэтому скрытая и снова включённая колонка остаётся на своём
+  месте; порядок меняют только перетаскивание и «Reset to default». При Save порядок видимых колонок —
+  порядок отмеченных строк в списке.
 - Видимые колонки переставляются перетаскиванием за отдельную ручку (мышь, клавиатура: Space, стрелки,
   Space; тач без задержки). Ручки показываются только у видимых колонок и только без активного поиска;
-  `reorderable={false}` отключает перестановку. Скрытые колонки идут в конце списка без ручек.
+  `reorderable={false}` отключает перестановку. Список растёт с высотой окна и прокручивается сам.
 - `onSave` получает нормализованное значение. Окно закрывается после resolve; при reject остаётся открытым
   с черновиком, сообщение об ошибке показывает consumer.
 - Служебные колонки (выбор строки, действия) в каталог не входят: рендерьте их рядом с `visibleColumns`.
@@ -933,7 +941,7 @@ assertEquals("true", enabled.getAttribute("aria-pressed"));
 | Активная сортировка | `th[aria-sort="ascending"], th[aria-sort="descending"]` | Значение `aria-sort` |
 | Кнопка настройки колонок | `[data-autotest="column-settings"][data-autotest-value="<scope>"]` | Native button `disabled`; `<scope>` задаёт consumer через `autoTestId` |
 | Окно настройки колонок | `[data-autotest="column-settings-dialog"][data-autotest-value="<scope>"]` | Существование `role="dialog"`; внутри `column-settings-search`, `column-settings-reset`, `column-settings-cancel`, `column-settings-save` |
-| Колонка в окне настройки | `input[data-autotest="column-settings-option"][data-autotest-value="<columnId>"]` | Native `checked`, `disabled`; порядок в DOM = порядок отображения, скрытые в конце |
+| Колонка в окне настройки | `input[data-autotest="column-settings-option"][data-autotest-value="<columnId>"]` | Native `checked`, `disabled`; при открытии порядок в DOM = порядок отображения, скрытые в конце; переключение галочки строку не двигает |
 | Ручка перестановки колонки | `button[data-autotest="column-settings-reorder"][data-autotest-value="<columnId>"]` | Есть только у видимых колонок без активного поиска; keyboard: Space, ArrowUp/ArrowDown, Space |
 | Пустой поиск по колонкам | `[data-autotest="column-settings-empty"]` | Наличие строки |
 

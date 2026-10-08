@@ -79,8 +79,11 @@ export type {
     UsePneTableColumnSettingsResult,
 } from '../component/table/column-settings/usePneTableColumnSettings'
 export {
+    PNE_TABLE_COLUMN_ID_PATTERN,
+    assertPneTableColumnCatalog,
     createDefaultPneTableColumnSettings,
     isSamePneTableColumnSettings,
+    isValidPneTableColumnId,
     resolvePneTableColumnSettings,
 } from '../component/table/column-settings/resolveColumnSettings'
 export type {

@@ -1,6 +1,8 @@
 import {
+    PNE_TABLE_COLUMN_ID_PATTERN,
     createDefaultPneTableColumnSettings,
     isSamePneTableColumnSettings,
+    isValidPneTableColumnId,
     resolvePneTableColumnSettings,
     type PneTableColumnOption,
 } from '../src'
@@ -88,6 +90,21 @@ describe('resolvePneTableColumnSettings', () => {
             {id: 'id', label: 'ID'},
             {id: 'id', label: 'Again'},
         ], undefined)).toThrow(/duplicate column ID "id"/)
+    })
+
+    it('rejects column IDs outside the storage-safe pattern', () => {
+        for (const id of ['', ' ', 'card name', 'tx:status', 'a/b', '-lead', '.lead', 'Имя', 'id\n']) {
+            expect(() => resolvePneTableColumnSettings([{id, label: id}], undefined))
+                .toThrow(/column ID .* must match/)
+        }
+        expect(() => resolvePneTableColumnSettings([
+            {id: 'createdDate', label: 'Date'},
+            {id: 'tx.status-2_v', label: 'Status'},
+            {id: '0', label: 'Zero'},
+        ], undefined)).not.toThrow()
+        expect(isValidPneTableColumnId('tx status')).toBe(false)
+        expect(isValidPneTableColumnId(42)).toBe(false)
+        expect(PNE_TABLE_COLUMN_ID_PATTERN.test('merchant.name')).toBe(true)
     })
 })
 

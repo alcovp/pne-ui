@@ -1,4 +1,4 @@
-import React, {ReactNode, useEffect, useMemo, useRef, useState} from 'react'
+import React, {ReactNode, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {
     Box,
     IconButton,
@@ -9,6 +9,7 @@ import {
     ListItemText,
     SxProps,
     Theme,
+    Tooltip,
     Typography,
 } from '@mui/material'
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
@@ -28,11 +29,13 @@ import {PneCheckbox} from '../../PneCheckbox'
 import PneTextField from '../../PneTextField'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
 import useImmediateTouchSensor from '../../non-abstract-entity-selector/useImmediateTouchSensor'
-import type {PneTableColumnId, PneTableColumnOption, PneTableColumnSettingsValue} from './types'
-import {
-    createDefaultPneTableColumnSettings,
-    resolvePneTableColumnSettings,
-} from './resolveColumnSettings'
+import type {
+    PneTableColumnId,
+    PneTableColumnOption,
+    PneTableColumnSettingsValue,
+    PneTableResolvedColumnSettings,
+} from './types'
+import {resolvePneTableColumnSettings} from './resolveColumnSettings'
 
 export const COLUMN_SETTINGS_DIALOG_AUTOTEST_ID = 'column-settings-dialog'
 export const COLUMN_SETTINGS_SEARCH_AUTOTEST_ID = 'column-settings-search'
@@ -77,8 +80,13 @@ export type PneTableColumnSettingsDialogProps<TColumn extends PneTableColumnOpti
     containerSx?: SxProps<Theme>
 }
 
+/**
+ * The list grows with the viewport and scrolls on its own, so the search field
+ * and the actions stay in place. 300px covers the modal chrome around the list
+ * within the surface's 98% height cap; the floor keeps four rows on tiny screens.
+ */
 const listSx: SxProps<Theme> = {
-    maxHeight: '320px',
+    maxHeight: 'max(160px, calc(100vh - 300px))',
     overflowY: 'auto',
     padding: 0,
 }
@@ -87,6 +95,12 @@ const itemSx: SxProps<Theme> = {
     alignItems: 'stretch',
     display: 'flex',
     padding: 0,
+}
+
+const itemBodySx: SxProps<Theme> = {
+    display: 'flex',
+    flex: 1,
+    minWidth: 0,
 }
 
 const itemButtonSx: SxProps<Theme> = {
@@ -117,10 +131,25 @@ const gripSx: SxProps<Theme> = {
 
 const normalizeSearch = (value: string): string => value.trim().toLocaleLowerCase()
 
+/**
+ * One row of the draft. The row order is the list order: it is fixed when the
+ * dialog opens (visible columns in display order, then hidden ones) and changes
+ * only by dragging or Reset, never by toggling a checkbox.
+ */
+type DraftRow = {
+    id: PneTableColumnId
+    visible: boolean
+}
+
 type DraftListItem<TColumn extends PneTableColumnOption> = {
     column: TColumn
     visible: boolean
 }
+
+const toDraftRows = (resolved: PneTableResolvedColumnSettings<PneTableColumnOption>): DraftRow[] => [
+    ...resolved.visibleColumns.map(column => ({id: column.id, visible: true})),
+    ...resolved.hiddenColumns.map(column => ({id: column.id, visible: false})),
+]
 
 type ColumnSettingsFormProps<TColumn extends PneTableColumnOption> = Omit<
     PneTableColumnSettingsDialogProps<TColumn>,
@@ -142,72 +171,91 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
         value,
     } = props
     const {t} = useTranslation()
-    const initial = useMemo(() => resolvePneTableColumnSettings(columns, value), [columns, value])
-    const [draft, setDraft] = useState<PneTableColumnSettingsValue>(initial.value)
+    const [rows, setRows] = useState<DraftRow[]>(() => toDraftRows(resolvePneTableColumnSettings(columns, value)))
     const [search, setSearch] = useState('')
     const [saving, setSaving] = useState(false)
-    const mountedRef = useRef(true)
+    const mountedRef = useRef(false)
 
-    useEffect(() => () => {
-        mountedRef.current = false
+    useEffect(() => {
+        // StrictMode replays mount/unmount, so the flag must be set here, not in the initializer.
+        mountedRef.current = true
+        return () => {
+            mountedRef.current = false
+        }
     }, [])
 
-    const resolvedDraft = useMemo(() => resolvePneTableColumnSettings(columns, draft), [columns, draft])
-    const items = useMemo<DraftListItem<TColumn>[]>(() => [
-        ...resolvedDraft.visibleColumns.map(column => ({column, visible: true})),
-        ...resolvedDraft.hiddenColumns.map(column => ({column, visible: false})),
-    ], [resolvedDraft])
+    const byId = useMemo(() => new Map<PneTableColumnId, TColumn>(columns.map(column => [column.id, column])), [columns])
+
+    /** Drops rows the catalog no longer has and appends catalog columns the draft does not know as visible. */
+    const syncRows = useCallback((current: readonly DraftRow[]): DraftRow[] => {
+        const seen = new Set<PneTableColumnId>()
+        const synced: DraftRow[] = []
+        for (const row of current) {
+            if (byId.has(row.id) && !seen.has(row.id)) {
+                seen.add(row.id)
+                synced.push({...row})
+            }
+        }
+        for (const column of columns) {
+            if (!seen.has(column.id)) {
+                synced.push({id: column.id, visible: true})
+            }
+        }
+        return synced
+    }, [byId, columns])
+
+    const items = useMemo<DraftListItem<TColumn>[]>(
+        () => syncRows(rows).map(row => ({column: byId.get(row.id) as TColumn, visible: row.visible})),
+        [byId, rows, syncRows],
+    )
+    const draftValue = useMemo<PneTableColumnSettingsValue>(() => ({
+        visibleColumnIds: items.filter(item => item.visible).map(item => item.column.id),
+        hiddenColumnIds: items.filter(item => !item.visible).map(item => item.column.id),
+    }), [items])
+    const resolvedDraft = useMemo(() => resolvePneTableColumnSettings(columns, draftValue), [columns, draftValue])
     const normalizedSearch = normalizeSearch(search)
     const filtering = normalizedSearch !== ''
     const filteredItems = filtering
         ? items.filter(item => normalizeSearch(item.column.label).includes(normalizedSearch))
         : items
-    const lastVisibleId: PneTableColumnId | null = resolvedDraft.visibleColumns.length === 1
-        ? resolvedDraft.visibleColumns[0].id
-        : null
-    const visibleCount = resolvedDraft.visibleColumns.length
+    const visibleCount = draftValue.visibleColumnIds.length
+    const lastVisibleId: PneTableColumnId | null = visibleCount === 1 ? draftValue.visibleColumnIds[0] : null
     const dragEnabled = reorderable && !saving && !filtering && visibleCount > 1
 
     const toggle = (id: PneTableColumnId) => {
-        setDraft(current => {
-            const visible = current.visibleColumnIds.includes(id)
-            if (visible) {
-                if (current.visibleColumnIds.length <= 1) {
-                    return current
-                }
-                return {
-                    visibleColumnIds: current.visibleColumnIds.filter(columnId => columnId !== id),
-                    hiddenColumnIds: [...current.hiddenColumnIds, id],
-                }
+        setRows(current => {
+            const synced = syncRows(current)
+            const row = synced.find(candidate => candidate.id === id)
+            if (!row) {
+                return current
             }
-            return {
-                visibleColumnIds: [...current.visibleColumnIds, id],
-                hiddenColumnIds: current.hiddenColumnIds.filter(columnId => columnId !== id),
+            if (row.visible && synced.filter(candidate => candidate.visible).length <= 1) {
+                return current
             }
+            row.visible = !row.visible
+            return synced
         })
     }
 
     const handleDragEnd = (result: DropResult) => {
         const {destination, source} = result
-        if (!destination || destination.droppableId !== DROPPABLE_ID) {
+        if (!destination || destination.droppableId !== DROPPABLE_ID || destination.index === source.index) {
             return
         }
-        // Visible columns occupy the leading list slots in draft order, so list
-        // indices map onto visibleColumnIds; hidden rows are not a valid target.
-        const target = Math.min(destination.index, visibleCount - 1)
-        if (source.index >= visibleCount || target === source.index) {
-            return
-        }
-        setDraft(current => {
-            const visible = [...current.visibleColumnIds]
-            const [moved] = visible.splice(source.index, 1)
-            visible.splice(target, 0, moved)
-            return {...current, visibleColumnIds: visible}
+        // Dragging is enabled only without a filter, so list indices are draft indices.
+        setRows(current => {
+            const synced = syncRows(current)
+            if (source.index >= synced.length) {
+                return current
+            }
+            const [moved] = synced.splice(source.index, 1)
+            synced.splice(Math.min(destination.index, synced.length), 0, moved)
+            return synced
         })
     }
 
     const handleReset = () => {
-        setDraft(createDefaultPneTableColumnSettings(columns))
+        setRows(toDraftRows(resolvePneTableColumnSettings(columns, undefined)))
     }
 
     const handleSave = async () => {
@@ -229,7 +277,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
         }
     }
 
-    const actionLabel = t('pneTable.columnSettings.title', {defaultValue: 'Table settings'})
+    const dialogTitle = t('pneTable.columnSettings.title', {defaultValue: 'Table settings'})
     const searchLabel = t('pneTable.columnSettings.search', {defaultValue: 'Search columns'})
     const lastVisibleHint = t('pneTable.columnSettings.lastVisible', {
         defaultValue: 'At least one column stays visible',
@@ -275,7 +323,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
             }
         }}
         open
-        title={title ?? actionLabel}
+        title={title ?? dialogTitle}
     >
         <Box sx={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
             {searchable ? <PneTextField
@@ -297,7 +345,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 <Droppable droppableId={DROPPABLE_ID} isDropDisabled={!dragEnabled}>
                     {droppable => <List
                         {...droppable.droppableProps}
-                        aria-label={actionLabel}
+                        aria-label={dialogTitle}
                         dense
                         ref={droppable.innerRef}
                         sx={listSx}
@@ -325,37 +373,46 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                                     style={provided.draggableProps.style}
                                     sx={itemSx}
                                 >
-                                    <ListItemButton
-                                        dense
-                                        disabled={saving || locked}
-                                        onClick={() => toggle(column.id)}
-                                        sx={itemButtonSx}
-                                        title={locked ? lastVisibleHint : undefined}
+                                    {/* A disabled button gets no pointer events, so the hint lives on this wrapper. */}
+                                    <Tooltip
+                                        describeChild
+                                        enterDelay={300}
+                                        enterNextDelay={300}
+                                        title={locked ? lastVisibleHint : ''}
                                     >
-                                        <ListItemIcon sx={{minWidth: '36px'}}>
-                                            <PneCheckbox
-                                                checked={visible}
+                                        <Box component='span' sx={itemBodySx}>
+                                            <ListItemButton
+                                                dense
                                                 disabled={saving || locked}
-                                                disableRipple
-                                                edge='start'
-                                                slotProps={{
-                                                    input: {
-                                                        ...createAutoTestAttributes(
-                                                            COLUMN_SETTINGS_OPTION_AUTOTEST_ID,
-                                                            column.id,
-                                                        ),
-                                                        'aria-labelledby': labelId,
-                                                    },
-                                                }}
-                                                tabIndex={-1}
-                                            />
-                                        </ListItemIcon>
-                                        <ListItemText
-                                            id={labelId}
-                                            primary={column.label}
-                                            slotProps={{primary: {noWrap: true}}}
-                                        />
-                                    </ListItemButton>
+                                                onClick={() => toggle(column.id)}
+                                                sx={itemButtonSx}
+                                            >
+                                                <ListItemIcon sx={{minWidth: '36px'}}>
+                                                    <PneCheckbox
+                                                        checked={visible}
+                                                        disabled={saving || locked}
+                                                        disableRipple
+                                                        edge='start'
+                                                        slotProps={{
+                                                            input: {
+                                                                ...createAutoTestAttributes(
+                                                                    COLUMN_SETTINGS_OPTION_AUTOTEST_ID,
+                                                                    column.id,
+                                                                ),
+                                                                'aria-labelledby': labelId,
+                                                            },
+                                                        }}
+                                                        tabIndex={-1}
+                                                    />
+                                                </ListItemIcon>
+                                                <ListItemText
+                                                    id={labelId}
+                                                    primary={column.label}
+                                                    slotProps={{primary: {noWrap: true}}}
+                                                />
+                                            </ListItemButton>
+                                        </Box>
+                                    </Tooltip>
                                     {draggable && provided.dragHandleProps ? <IconButton
                                         {...provided.dragHandleProps}
                                         {...createAutoTestAttributes(COLUMN_SETTINGS_REORDER_AUTOTEST_ID, column.id)}
@@ -389,9 +446,11 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
 /**
  * Modal editor for the visible column set of one table view: a searchable
  * checklist over the catalog with drag reordering of visible columns,
- * "Reset to default", "Cancel" and "Save". The draft is created when the
- * dialog opens and discarded when it closes, so a reopened dialog always
- * starts from the current `value`.
+ * "Reset to default", "Cancel" and "Save". The list order is fixed when the
+ * dialog opens (visible columns in display order, then hidden ones); toggling a
+ * checkbox never moves the row, so a column hidden and shown again keeps its
+ * place. The draft is created when the dialog opens and discarded when it
+ * closes, so a reopened dialog always starts from the current `value`.
  */
 const PneTableColumnSettingsDialog = <TColumn extends PneTableColumnOption = PneTableColumnOption>(
     props: PneTableColumnSettingsDialogProps<TColumn>,

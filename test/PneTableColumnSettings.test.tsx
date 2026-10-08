@@ -176,6 +176,65 @@ describe('PneTableColumnSettingsDialog', () => {
         expect(optionById('name').checked).toBe(true)
     })
 
+    it('keeps every row in place when a column is hidden and shown again', () => {
+        const {onSave} = renderDialog({
+            value: {visibleColumnIds: ['created', 'id', 'name'], hiddenColumnIds: ['email']},
+        })
+
+        fireEvent.click(optionById('id'))
+
+        expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual(['created', 'id', 'name', 'email'])
+        expect(optionInputs().map(input => input.checked)).toEqual([true, false, true, false])
+
+        fireEvent.click(optionById('id'))
+
+        expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual(['created', 'id', 'name', 'email'])
+        expect(optionInputs().map(input => input.checked)).toEqual([true, true, true, false])
+
+        fireEvent.click(optionById('email'))
+        fireEvent.click(button('column-settings-save'))
+
+        expect(onSave).toHaveBeenCalledWith({
+            visibleColumnIds: ['created', 'id', 'name', 'email'],
+            hiddenColumnIds: [],
+        })
+    })
+
+    it('shows the last-visible hint as a tooltip on the locked row', async () => {
+        renderDialog({value: {visibleColumnIds: ['id'], hiddenColumnIds: ['name', 'email', 'created']}})
+        const lockedRow = optionById('id').closest('li') as HTMLElement
+
+        expect(screen.queryByText('At least one column stays visible')).toBeNull()
+
+        fireEvent.mouseOver(lockedRow.querySelector('span') as HTMLElement)
+
+        expect(await screen.findByText('At least one column stays visible')).toBeTruthy()
+    })
+
+    it('re-enables the controls after a failed save when StrictMode replays effects', async () => {
+        let rejectSave: (reason: Error) => void = () => undefined
+        const onSave = jest.fn(() => new Promise<void>((_resolve, reject) => {
+            rejectSave = reject
+        }))
+        const onClose = jest.fn()
+        render(<React.StrictMode>
+            <PneTableColumnSettingsDialog autoTestId='items' columns={columns} onClose={onClose} onSave={onSave} open/>
+        </React.StrictMode>)
+
+        fireEvent.click(optionById('name'))
+        fireEvent.click(button('column-settings-save'))
+        expect(button('column-settings-save').disabled).toBe(true)
+
+        await act(async () => {
+            rejectSave(new Error('offline'))
+            await Promise.resolve()
+        })
+
+        await waitFor(() => expect(button('column-settings-save').disabled).toBe(false))
+        expect(onClose).not.toHaveBeenCalled()
+        expect(optionById('name').checked).toBe(false)
+    })
+
     it('stays open with the draft intact when saving fails', async () => {
         let rejectSave: (reason: Error) => void = () => undefined
         const onSave = jest.fn(() => new Promise<void>((_resolve, reject) => {
@@ -346,5 +405,35 @@ describe('PneTableColumnSettingsDialog reordering', () => {
         renderDialog({value: {visibleColumnIds: ['id'], hiddenColumnIds: ['name', 'email', 'created']}})
 
         expect(grips()).toHaveLength(0)
+    })
+
+    it('gives a re-enabled column a grip in its own place and saves the list order', async () => {
+        const {onSave} = renderDialog({
+            value: {visibleColumnIds: ['id', 'created'], hiddenColumnIds: ['name', 'email']},
+        })
+
+        expect(grips().map(grip => grip.dataset.autotestValue)).toEqual(['id', 'created'])
+
+        fireEvent.click(optionById('name'))
+
+        expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual(['id', 'created', 'name', 'email'])
+        expect(grips().map(grip => grip.dataset.autotestValue)).toEqual(['id', 'created', 'name'])
+
+        const grip = gripFor('name') as HTMLButtonElement
+        act(() => grip.focus())
+        fireEvent.keyDown(grip, {key: ' ', code: 'Space', keyCode: 32})
+        await waitFor(() => expect(grip.closest('[data-rfd-draggable-id]')?.getAttribute('style')).toContain('position: fixed'))
+        fireEvent.keyDown(window, {key: 'ArrowUp', code: 'ArrowUp', keyCode: 38})
+        fireEvent.keyDown(window, {key: 'ArrowUp', code: 'ArrowUp', keyCode: 38})
+        fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})
+
+        await waitFor(() => expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual(['name', 'id', 'created', 'email']))
+
+        fireEvent.click(button('column-settings-save'))
+
+        await waitFor(() => expect(onSave).toHaveBeenCalledWith({
+            visibleColumnIds: ['name', 'id', 'created'],
+            hiddenColumnIds: ['email'],
+        }))
     })
 })
