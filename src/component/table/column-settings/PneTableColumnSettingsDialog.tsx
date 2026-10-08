@@ -242,7 +242,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 {...createAutoTestAttributes(COLUMN_SETTINGS_RESET_AUTOTEST_ID)}
                 disabled={saving || resolvedDraft.isDefault}
                 onClick={handleReset}
-                pneStyle='neutral'
+                pneStyle='text'
             >
                 {t('pneTable.columnSettings.reset', {defaultValue: 'Reset to default'})}
             </PneButton>}
