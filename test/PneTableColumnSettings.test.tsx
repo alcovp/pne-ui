@@ -336,6 +336,9 @@ describe('PneTableColumnSettingsDialog reordering', () => {
         dialog().querySelectorAll<HTMLButtonElement>('[data-autotest="column-settings-reorder"]'),
     )
     const gripFor = (id: string) => grips().find(grip => grip.dataset.autotestValue === id)
+    /** The row lifted by a drag: rendered as a clone outside the dialog with fixed positioning. */
+    const liftedRow = (id: string) => Array.from(document.querySelectorAll<HTMLElement>(`[data-rfd-draggable-id="${id}"]`))
+        .find(row => row.getAttribute('style')?.includes('position: fixed'))
 
     beforeEach(() => {
         jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
@@ -387,7 +390,10 @@ describe('PneTableColumnSettingsDialog reordering', () => {
 
         act(() => grip.focus())
         fireEvent.keyDown(grip, {key: ' ', code: 'Space', keyCode: 32})
-        await waitFor(() => expect(grip.closest('[data-rfd-draggable-id]')?.getAttribute('style')).toContain('position: fixed'))
+        await waitFor(() => expect(liftedRow('id')).toBeTruthy())
+        // The modal container is transformed, so the lifted row must live outside it.
+        expect(dialog().contains(liftedRow('id') as HTMLElement)).toBe(false)
+        expect(document.body.contains(liftedRow('id') as HTMLElement)).toBe(true)
         fireEvent.keyDown(window, {key: 'ArrowDown', code: 'ArrowDown', keyCode: 40})
         fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})
 
@@ -422,7 +428,7 @@ describe('PneTableColumnSettingsDialog reordering', () => {
         const grip = gripFor('name') as HTMLButtonElement
         act(() => grip.focus())
         fireEvent.keyDown(grip, {key: ' ', code: 'Space', keyCode: 32})
-        await waitFor(() => expect(grip.closest('[data-rfd-draggable-id]')?.getAttribute('style')).toContain('position: fixed'))
+        await waitFor(() => expect(liftedRow('name')).toBeTruthy())
         fireEvent.keyDown(window, {key: 'ArrowUp', code: 'ArrowUp', keyCode: 38})
         fireEvent.keyDown(window, {key: 'ArrowUp', code: 'ArrowUp', keyCode: 38})
         fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})

@@ -16,6 +16,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import {
     DragDropContext,
     Draggable,
+    DraggableProvided,
     Droppable,
     DropResult,
     useKeyboardSensor,
@@ -283,6 +284,74 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
         defaultValue: 'At least one column stays visible',
     })
 
+    /** One checklist row; also used for the drag clone, so both render the same markup. */
+    const renderRow = (provided: DraggableProvided, item: DraftListItem<TColumn>) => {
+        const {column, visible} = item
+        const locked = visible && column.id === lastVisibleId
+        const labelId = `pne-column-settings-${column.id}`
+        const draggable = dragEnabled && visible
+        const reorderLabel = t('pneTable.columnSettings.reorder', {
+            name: column.label,
+            defaultValue: 'Reorder {{name}}',
+        })
+
+        return <ListItem
+            {...provided.draggableProps}
+            ref={provided.innerRef}
+            style={provided.draggableProps.style}
+            sx={itemSx}
+        >
+            {/* A disabled button gets no pointer events, so the hint lives on this wrapper. */}
+            <Tooltip
+                describeChild
+                enterDelay={300}
+                enterNextDelay={300}
+                title={locked ? lastVisibleHint : ''}
+            >
+                <Box component='span' sx={itemBodySx}>
+                    <ListItemButton
+                        dense
+                        disabled={saving || locked}
+                        onClick={() => toggle(column.id)}
+                        sx={itemButtonSx}
+                    >
+                        <ListItemIcon sx={{minWidth: '36px'}}>
+                            <PneCheckbox
+                                checked={visible}
+                                disabled={saving || locked}
+                                disableRipple
+                                edge='start'
+                                slotProps={{
+                                    input: {
+                                        ...createAutoTestAttributes(COLUMN_SETTINGS_OPTION_AUTOTEST_ID, column.id),
+                                        'aria-labelledby': labelId,
+                                    },
+                                }}
+                                tabIndex={-1}
+                            />
+                        </ListItemIcon>
+                        <ListItemText
+                            id={labelId}
+                            primary={column.label}
+                            slotProps={{primary: {noWrap: true}}}
+                        />
+                    </ListItemButton>
+                </Box>
+            </Tooltip>
+            {draggable && provided.dragHandleProps ? <IconButton
+                {...provided.dragHandleProps}
+                {...createAutoTestAttributes(COLUMN_SETTINGS_REORDER_AUTOTEST_ID, column.id)}
+                aria-label={reorderLabel}
+                disableRipple
+                style={{touchAction: 'none'}}
+                sx={gripSx}
+                type='button'
+            >
+                <DragIndicatorIcon fontSize='small'/>
+            </IconButton> : null}
+        </ListItem>
+    }
+
     return <PneModal
         {...createAutoTestAttributes(COLUMN_SETTINGS_DIALOG_AUTOTEST_ID, autoTestId)}
         actions={<PneModalActions
@@ -342,7 +411,14 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 onDragEnd={handleDragEnd}
                 sensors={reorderSensors}
             >
-                <Droppable droppableId={DROPPABLE_ID} isDropDisabled={!dragEnabled}>
+                <Droppable
+                    droppableId={DROPPABLE_ID}
+                    isDropDisabled={!dragEnabled}
+                    // The modal container is centered with a CSS transform, which turns it
+                    // into the containing block of the fixed-positioned dragged row and the
+                    // surface clips it. The clone is rendered into document.body instead.
+                    renderClone={(provided, _snapshot, rubric) => renderRow(provided, filteredItems[rubric.source.index])}
+                >
                     {droppable => <List
                         {...droppable.droppableProps}
                         aria-label={dialogTitle}
@@ -350,83 +426,16 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                         ref={droppable.innerRef}
                         sx={listSx}
                     >
-                        {filteredItems.map(({column, visible}, index) => {
-                            const locked = visible && column.id === lastVisibleId
-                            const labelId = `pne-column-settings-${column.id}`
-                            const draggable = dragEnabled && visible
-                            const reorderLabel = t('pneTable.columnSettings.reorder', {
-                                name: column.label,
-                                defaultValue: 'Reorder {{name}}',
-                            })
-
-                            return <Draggable
-                                // The grip is a real button; without this the library refuses to lift from it.
-                                disableInteractiveElementBlocking
-                                draggableId={column.id}
-                                index={index}
-                                isDragDisabled={!draggable}
-                                key={column.id}
-                            >
-                                {provided => <ListItem
-                                    {...provided.draggableProps}
-                                    ref={provided.innerRef}
-                                    style={provided.draggableProps.style}
-                                    sx={itemSx}
-                                >
-                                    {/* A disabled button gets no pointer events, so the hint lives on this wrapper. */}
-                                    <Tooltip
-                                        describeChild
-                                        enterDelay={300}
-                                        enterNextDelay={300}
-                                        title={locked ? lastVisibleHint : ''}
-                                    >
-                                        <Box component='span' sx={itemBodySx}>
-                                            <ListItemButton
-                                                dense
-                                                disabled={saving || locked}
-                                                onClick={() => toggle(column.id)}
-                                                sx={itemButtonSx}
-                                            >
-                                                <ListItemIcon sx={{minWidth: '36px'}}>
-                                                    <PneCheckbox
-                                                        checked={visible}
-                                                        disabled={saving || locked}
-                                                        disableRipple
-                                                        edge='start'
-                                                        slotProps={{
-                                                            input: {
-                                                                ...createAutoTestAttributes(
-                                                                    COLUMN_SETTINGS_OPTION_AUTOTEST_ID,
-                                                                    column.id,
-                                                                ),
-                                                                'aria-labelledby': labelId,
-                                                            },
-                                                        }}
-                                                        tabIndex={-1}
-                                                    />
-                                                </ListItemIcon>
-                                                <ListItemText
-                                                    id={labelId}
-                                                    primary={column.label}
-                                                    slotProps={{primary: {noWrap: true}}}
-                                                />
-                                            </ListItemButton>
-                                        </Box>
-                                    </Tooltip>
-                                    {draggable && provided.dragHandleProps ? <IconButton
-                                        {...provided.dragHandleProps}
-                                        {...createAutoTestAttributes(COLUMN_SETTINGS_REORDER_AUTOTEST_ID, column.id)}
-                                        aria-label={reorderLabel}
-                                        disableRipple
-                                        style={{touchAction: 'none'}}
-                                        sx={gripSx}
-                                        type='button'
-                                    >
-                                        <DragIndicatorIcon fontSize='small'/>
-                                    </IconButton> : null}
-                                </ListItem>}
-                            </Draggable>
-                        })}
+                        {filteredItems.map((item, index) => <Draggable
+                            // The grip is a real button; without this the library refuses to lift from it.
+                            disableInteractiveElementBlocking
+                            draggableId={item.column.id}
+                            index={index}
+                            isDragDisabled={!(dragEnabled && item.visible)}
+                            key={item.column.id}
+                        >
+                            {provided => renderRow(provided, item)}
+                        </Draggable>)}
                         {droppable.placeholder}
                         {filteredItems.length === 0 ? <ListItem
                             {...createAutoTestAttributes(COLUMN_SETTINGS_EMPTY_AUTOTEST_ID)}
