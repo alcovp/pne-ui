@@ -2,9 +2,10 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { Alert, Box, Collapse, Portal, Snackbar, type SnackbarOrigin, useMediaQuery } from '@mui/material'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 import { useOverlayStore } from './overlayStore'
-import type { PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
+import type { PaynetViolationMessageResolver, PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
 import { PermanentOverlayContext } from './PermanentOverlayContext'
 import { OverlayPortalContainerContext } from './OverlayPortalContainerContext'
+import { PaynetErrorPresentationContext } from './PaynetErrorPresentationContext'
 import { registerOverlayHost } from './overlayRuntime'
 
 export type OverlayPortalContainer = Element
@@ -53,6 +54,13 @@ export type OverlayHostProps = {
      * bottom-right overlay slot. OverlayHost does not own or mutate its state.
      */
     operationCenter?: React.ReactNode
+    /**
+     * Host-side text for the constraint violations of a Paynet validation response, used by
+     * every `PaynetErrorContent` this host renders. The library knows the envelope, the host
+     * knows its backend's message formats and translation keys; without a resolver the
+     * server text of each violation is shown. See `PaynetViolationMessageResolver`.
+     */
+    resolveViolationMessage?: PaynetViolationMessageResolver
     children?: React.ReactNode
 }
 
@@ -499,8 +507,10 @@ export function OverlayHost({
     leftOffset = STACK_OFFSET,
     container,
     operationCenter,
+    resolveViolationMessage,
     children,
 }: OverlayHostProps) {
+    const presentationContextValue = useMemo(() => ({ resolveViolationMessage }), [resolveViolationMessage])
     const snackbars = useOverlayStore(state => state.snackbars)
     const removeSnackbar = useOverlayStore(state => state.removeSnackbar)
     const breakpoint = useBreakpoint()
@@ -746,14 +756,16 @@ export function OverlayHost({
 
     return (
         <OverlayPortalContainerContext.Provider value={container}>
-            <PermanentOverlayContext.Provider value={contextValue}>
-                {children}
-                {container === null ? overlayContent : (
-                    <Portal container={container}>
-                        {overlayContent}
-                    </Portal>
-                )}
-            </PermanentOverlayContext.Provider>
+            <PaynetErrorPresentationContext.Provider value={presentationContextValue}>
+                <PermanentOverlayContext.Provider value={contextValue}>
+                    {children}
+                    {container === null ? overlayContent : (
+                        <Portal container={container}>
+                            {overlayContent}
+                        </Portal>
+                    )}
+                </PermanentOverlayContext.Provider>
+            </PaynetErrorPresentationContext.Provider>
         </OverlayPortalContainerContext.Provider>
     )
 }

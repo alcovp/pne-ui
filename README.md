@@ -1423,6 +1423,27 @@ export const App = () => (
   конкретный snackbar (например, после Undo);
 - повторный enqueue с тем же явным `id` игнорируется, пока первый snackbar присутствует. Для замены сначала вызовите `removeSnackbar(id)`.
 
+### Ошибки валидации UI API (`violations[]`)
+
+Ответ Paynet на запрос, не прошедший Bean Validation на сервере, несёт `errorType: VALIDATION_ERROR` и список
+`violations[]` (`property`, `propertyPath`, `message`, `messageFormat`, `messageParams`). `normalizePaynetError`
+сохраняет корректные элементы списка, а `PaynetErrorContent` показывает их под основным сообщением: имя поля
+моноширинным шрифтом и текст нарушения, не больше восьми строк, дальше счётчик `pne.error.moreViolations`.
+
+Текст нарушения библиотека выбирает так: сначала резолвер хоста, затем для шаблона вида `{key}` перевод `t(key, messageParams)`
+через i18next хоста, иначе серверный `message`. Какие форматы сообщений отдаёт бэкенд и под какими ключами лежат переводы,
+знает только приложение-хост, поэтому таблица соответствий живёт там и передаётся пропсом:
+
+```tsx
+<OverlayHost resolveViolationMessage={violation => hostViolationText(violation)}>
+    <ApplicationRoutes />
+</OverlayHost>
+```
+
+Резолвер возвращает `undefined`, чтобы оставить библиотечное поведение для конкретного нарушения. Тот же проп есть у
+`PaynetErrorContent` для inline-рендера. Поля `errorI18N`, `details` и их отображение не меняются: ответ валидации
+без `violations[]` показывается как раньше.
+
 ## PneConfirmProvider
 
 Компоненты вызывают подтверждение через Promise API `usePneConfirm`. Подключайте

@@ -55,6 +55,34 @@ const fixtures = {
             details: 'Template name: Daily settlement',
         }),
     },
+    validationViolations: {
+        id: 'validation-violations',
+        label: 'Validation / violations',
+        description: 'Bean Validation of a UI API call: the host translates the headline and resolves each violation; '
+            + 'without a host resolver the server text is shown.',
+        source: 'Backend',
+        createError: () => ({
+            errorId: 'story-violations-400',
+            messageId: 'react.validation.exception.message',
+            errorType: 'VALIDATION_ERROR',
+            violations: [
+                {
+                    property: 'customerMerchantId',
+                    propertyPath: 'request.customerMerchantId',
+                    message: 'must be greater than 0',
+                    messageFormat: 'must be greater than 0',
+                    messageParams: {},
+                },
+                {
+                    property: 'levelName',
+                    propertyPath: 'request.levelName',
+                    message: 'size must be between 0 and 32',
+                    messageFormat: 'size must be between {min} and {max}',
+                    messageParams: { min: 0, max: 32 },
+                },
+            ],
+        }),
+    },
     missingDetails: {
         id: 'missing-details',
         label: 'Missing details',
@@ -139,6 +167,7 @@ const fixtures = {
 const allFixtures: ErrorFixture[] = [
     fixtures.shortWithDetails,
     fixtures.validationI18n,
+    fixtures.validationViolations,
     fixtures.missingDetails,
     fixtures.structuredDetails,
     fixtures.longStack,
@@ -313,6 +342,7 @@ export const BackendEnvelopes: Story = {
         fixtures: [
             fixtures.shortWithDetails,
             fixtures.validationI18n,
+            fixtures.validationViolations,
             fixtures.missingDetails,
             fixtures.structuredDetails,
         ],

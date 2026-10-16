@@ -14,6 +14,7 @@ i18nForStorybook
                     'react.unexpected.exception.title': 'Error',
                     'react.unexpected.exception.message': 'Unexpected error occurred. Please contact our support and provide them the error id {errorId}',
                     'react.unexpected.exception.unknown-message': 'Internal server error',
+                    'react.validation.exception.message': 'The request contains invalid data',
                     'pne.error.copyErrorId': 'Copy error ID',
                     'pne.error.errorIdCopied': 'Error ID copied',
                     'pne.error.details': 'Details',
