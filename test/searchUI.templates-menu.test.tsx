@@ -98,6 +98,41 @@ describe('SearchUI templates menu', () => {
         expect(panel()?.querySelector('[data-autotest="update-template"]')?.textContent).toBe('Update “Bravo”')
     })
 
+    it('offers the handles once the host provides reorderSearchTemplates after mount', async () => {
+        const getSearchTemplates = jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo', 'Charlie'))
+        const reorderSearchTemplates = jest.fn().mockResolvedValue(undefined)
+        const filters = (defaults: Partial<SearchUIDefaults>) => <SearchUIProvider defaults={{getSearchTemplates, ...defaults}}>
+            <SearchUIFilters
+                autoTestId={SCOPE}
+                settingsContextName={CONTEXT_NAME}
+                possibleCriteria={[]}
+                onFiltersUpdate={jest.fn()}
+                config={{hideShowFiltersButton: true}}
+            />
+        </SearchUIProvider>
+
+        const {rerender} = render(filters({}))
+        const menu = await openMenu()
+        expect(menu.querySelector('[data-autotest="reorder-template"]')).toBeNull()
+
+        // The host learned after mount that the server stores the order: the open menu follows.
+        rerender(filters({reorderSearchTemplates}))
+        await waitFor(() => expect(menu.querySelectorAll('[data-autotest="reorder-template"]')).toHaveLength(3))
+
+        act(() => selectItem('Alpha').focus())
+        pressAlt(selectItem('Alpha'), 'ArrowDown')
+        expect(templateNames()).toEqual(['Bravo', 'Alpha', 'Charlie'])
+        expect(reorderSearchTemplates).toHaveBeenCalledWith({
+            contextName: CONTEXT_NAME,
+            templateNames: ['Bravo', 'Alpha', 'Charlie'],
+        })
+
+        // Taking the callback away hides the handles again without touching the list.
+        rerender(filters({}))
+        await waitFor(() => expect(menu.querySelector('[data-autotest="reorder-template"]')).toBeNull())
+        expect(templateNames()).toEqual(['Bravo', 'Alpha', 'Charlie'])
+    })
+
     it('moves the focused template with Alt+Arrow keys and persists the whole order', async () => {
         const reorderSearchTemplates = jest.fn().mockResolvedValue(undefined)
         renderMenu({reorderSearchTemplates})

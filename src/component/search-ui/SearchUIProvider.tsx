@@ -82,7 +82,9 @@ export type SearchUIDefaults = {
     /**
      * Persists the user's template order for one settings context; `getSearchTemplates`
      * must return templates in that order afterwards. Optional: without it the templates
-     * menu offers no reordering and keeps the order `getSearchTemplates` returns.
+     * menu offers no reordering and keeps the order `getSearchTemplates` returns. The
+     * provider value may change after mount: a mounted menu follows a callback the host
+     * adds or removes later, e.g. once it knows whether the server can store the order.
      */
     reorderSearchTemplates?: (request: ReorderSearchUITemplatesRequest) => Promise<void>
     getProjectAvailableCurrencies: (request: GetProjectCurrenciesRequest) => Promise<AutoCompleteChoiceWithStatus[]>

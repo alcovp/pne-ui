@@ -484,6 +484,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const disabledCriteriaSet = useMemo(() => new Set(disabledCriteria), [disabledCriteria])
 
     const setInitialState = useSearchUIFiltersStore(s => s.setInitialState)
+    const setDefaults = useSearchUIFiltersStore(s => s.setDefaults)
     const loadTemplates = useSearchUIFiltersStore(s => s.loadTemplates)
     const criteria = useSearchUIFiltersStore(s => s.criteria)
     const clearCriteria = useSearchUIFiltersStore(s => s.clearCriteria)
@@ -557,6 +558,14 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         // The keyed store provider remounts this subtree when the search context changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
+
+    useEffect(() => {
+        // The provider value may change after mount, e.g. when the host learns that the
+        // server can persist the template order; equal members leave the store untouched.
+        if (initializedRef.current) {
+            setDefaults(defaults)
+        }
+    }, [defaults, setDefaults])
 
     useEffect(() => {
         if (isEqual(synchronizedExternalConditionsRef.current, searchConditionsState)) {

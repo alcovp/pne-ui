@@ -5,6 +5,7 @@ import {
     SearchUIPrefetchedTransactionSessionStatuses,
     SearchUIRetentionSnapshot,
 } from './type'
+import type {SearchUIDefaults} from '../../SearchUIProvider'
 import {
     AbstractEntity,
     AbstractEntityAllableCollection,
@@ -609,6 +610,19 @@ export const getSearchUIFiltersActions = (
             })
             // .catch(raiseUIError)
             .catch(console.error)
+    },
+    setDefaults: (defaults: SearchUIDefaults) => {
+        const previous = get().defaults
+        const keys = new Set<keyof SearchUIDefaults>([
+            ...(Object.keys(previous) as (keyof SearchUIDefaults)[]),
+            ...(Object.keys(defaults) as (keyof SearchUIDefaults)[]),
+        ])
+        if (Array.from(keys).every(key => Object.is(previous[key], defaults[key]))) {
+            return
+        }
+        set((draft) => {
+            draft.defaults = defaults
+        })
     },
     reorderTemplates: (templateNames: string[]) => {
         const {defaults, settingsContextName, templates: previous} = get()

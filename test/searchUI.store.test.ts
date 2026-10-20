@@ -1281,3 +1281,22 @@ describe('SearchUIFilters Zustand store', () => {
         }))
     })
 })
+
+describe('setDefaults', () => {
+    it('keeps the stored defaults when every member is the same and replaces them otherwise', () => {
+        const store = createSearchUIFiltersStore()
+        store.getState().setInitialState({defaults: initialSearchUIDefaults, onFiltersUpdate: jest.fn()})
+        const stored = store.getState().defaults
+
+        store.getState().setDefaults({...initialSearchUIDefaults})
+        expect(store.getState().defaults).toBe(stored)
+
+        const reorderSearchTemplates = jest.fn().mockResolvedValue(undefined)
+        store.getState().setDefaults({...initialSearchUIDefaults, reorderSearchTemplates})
+        expect(store.getState().defaults).not.toBe(stored)
+        expect(store.getState().defaults.reorderSearchTemplates).toBe(reorderSearchTemplates)
+
+        store.getState().setDefaults({...initialSearchUIDefaults})
+        expect(store.getState().defaults.reorderSearchTemplates).toBeUndefined()
+    })
+})

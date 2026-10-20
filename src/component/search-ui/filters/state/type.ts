@@ -89,6 +89,11 @@ export type SearchUIFiltersState = SearchUIConditions & {
 }
 
 export type SearchUIFiltersActions = {
+    /**
+     * Replaces the host defaults of a mounted instance, e.g. when the host learns after
+     * mount that the server can persist the template order. Equal members are a no-op.
+     */
+    setDefaults: (defaults: SearchUIDefaults) => void
     setInitialState: (
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
