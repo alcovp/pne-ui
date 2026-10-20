@@ -1,4 +1,4 @@
-import type { NormalizedPaynetError } from './types'
+import type { NormalizedPaynetError, PaynetViolation } from './types'
 
 type UnknownRecord = Record<PropertyKey, unknown>
 
@@ -112,6 +112,16 @@ const materializePayload = async (value: unknown): Promise<unknown> => {
     return typeof settled === 'string' ? parseString(settled) : settled
 }
 
+const isViolation = (value: unknown): value is PaynetViolation =>
+    isRecord(value) && typeof value.propertyPath === 'string' && typeof value.message === 'string'
+
+/** Well-formed `ViolationModel` entries only; the presentation never has to guard against junk. */
+const readViolations = (value: unknown): PaynetViolation[] | undefined => {
+    if (!Array.isArray(value)) return undefined
+    const violations = value.filter(isViolation)
+    return violations.length > 0 ? violations : undefined
+}
+
 const stringifyDetails = (value: unknown): string | undefined => {
     if (typeof value === 'string') {
         return value.trim().length > 0 ? value : undefined
@@ -197,6 +207,7 @@ const normalizeResolvedError = async (input: unknown): Promise<NormalizedPaynetE
         ?? readString(sourceRecord, 'type')
     const errorI18N = readString(payloadRecord, 'errorI18N') ?? readString(sourceRecord, 'errorI18N')
     const details = stringifyDetails(payloadRecord?.details ?? sourceRecord?.details)
+    const violations = readViolations(payloadRecord?.violations ?? sourceRecord?.violations)
 
     const primitiveMessage = typeof payload === 'string' && payload.trim().length > 0 ? payload : undefined
     const message = readString(payloadRecord, 'message')
@@ -220,6 +231,7 @@ const normalizeResolvedError = async (input: unknown): Promise<NormalizedPaynetE
         errorType,
         errorI18N,
         httpStatus,
+        violations,
     }
 }
 

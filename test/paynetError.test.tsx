@@ -12,6 +12,9 @@ import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRun
 const translations: Record<string, string> = {
     'react.unexpected.exception.title': 'Error',
     'react.unexpected.exception.message': 'Unexpected error occurred. Please contact our support and provide them the error id {errorId}',
+    'react.validation.exception.message': 'The request contains invalid data',
+    'react.validation.countryCode': 'Unknown country code',
+    'react.validation.size': 'Length must be between {{min}} and {{max}}',
     'duplicate-key.unq_login': 'This login already exists',
     'literal.message.key': 'This translation must not be used',
 }
@@ -20,7 +23,12 @@ const clipboardWriteText = jest.fn<Promise<void>, [string]>()
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, options?: { defaultValue?: string }) => translations[key] ?? options?.defaultValue ?? key,
+        t: (key: string, options?: Record<string, unknown> & { defaultValue?: string }) => {
+            const template = translations[key] ?? options?.defaultValue ?? key
+            return template.replace(/\{\{(\w+)\}\}/g, (placeholder, name: string) => (
+                options && name in options ? String(options[name]) : placeholder
+            ))
+        },
     }),
 }))
 
@@ -121,6 +129,44 @@ describe('Paynet error normalization', () => {
         { config: { signal: { aborted: true } } },
     ])('suppresses canceled requests: %o', async cancellation => {
         await expect(normalizePaynetError(cancellation)).resolves.toBeNull()
+    })
+
+    it('keeps well-formed violations of a validation envelope and drops malformed entries', async () => {
+        const normalized = await normalizePaynetError({
+            errorId: 'validation-9',
+            messageId: 'react.validation.exception.message',
+            errorType: 'VALIDATION_ERROR',
+            violations: [
+                {
+                    property: 'levelName',
+                    propertyPath: 'request.levelName',
+                    message: 'must not be blank',
+                    messageFormat: 'must not be blank',
+                    messageParams: {},
+                },
+                { propertyPath: 'request', message: 'class-level rule' },
+                { propertyPath: 'request.name' },
+                { message: 'no path' },
+                'junk',
+            ],
+        })
+
+        expect(normalized?.violations).toEqual([
+            {
+                property: 'levelName',
+                propertyPath: 'request.levelName',
+                message: 'must not be blank',
+                messageFormat: 'must not be blank',
+                messageParams: {},
+            },
+            { propertyPath: 'request', message: 'class-level rule' },
+        ])
+    })
+
+    it('leaves violations undefined when the envelope has none', async () => {
+        expect((await normalizePaynetError({ errorId: '1', messageId: 'x', violations: [] }))?.violations).toBeUndefined()
+        expect((await normalizePaynetError({ errorId: '1', messageId: 'x', violations: 'no' }))?.violations).toBeUndefined()
+        expect((await normalizePaynetError({ errorId: '1', messageId: 'x' }))?.violations).toBeUndefined()
     })
 
     it('uses a separate internal notification id when the backend has no error id', async () => {
@@ -294,7 +340,7 @@ describe('structured overlay errors', () => {
             overlayActions.showError({
                 error: {
                     errorId: 'missing-message-id',
-                    messageId: 'react.validation.exception.message',
+                    messageId: 'react.untranslated.exception.message',
                     errorI18N: 'duplicate-key.unq_login',
                 },
             })
@@ -302,8 +348,100 @@ describe('structured overlay errors', () => {
 
         expect(await screen.findByText('This login already exists')).toBeTruthy()
         expect(screen.getAllByText('This login already exists')).toHaveLength(1)
-        expect(screen.queryByText('react.validation.exception.message')).toBeNull()
+        expect(screen.queryByText('react.untranslated.exception.message')).toBeNull()
         expect(document.querySelector('[data-name="error-validation-message"]')).toBeNull()
+    })
+
+    it('lists the violations under the message: host resolver first, then a translated template key, then the server text', async () => {
+        render((
+            <OverlayHost
+                container={null}
+                resolveViolationMessage={violation => (violation.messageFormat === 'must not be blank' ? 'Value is required' : undefined)}
+            />
+        ))
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'validation-11',
+                    messageId: 'react.validation.exception.message',
+                    errorType: 'VALIDATION_ERROR',
+                    violations: [
+                        { property: 'levelName', propertyPath: 'request.levelName', message: 'must not be blank', messageFormat: 'must not be blank', messageParams: {} },
+                        { property: 'countriesString', propertyPath: 'request.subEndpoints[1].countriesString', message: '{react.validation.countryCode}', messageFormat: '{react.validation.countryCode}', messageParams: {} },
+                        { property: 'name', propertyPath: 'request.name', message: 'size must be between 0 and 3', messageFormat: '{react.validation.size}', messageParams: { min: 0, max: 3 } },
+                        { property: 'code', propertyPath: 'request.code', message: 'must be a prime number', messageFormat: 'must be a prime number', messageParams: {} },
+                        { propertyPath: 'request', message: 'exactly one default is required', messageFormat: 'exactly one default is required', messageParams: {} },
+                    ],
+                },
+            })
+        })
+
+        await waitFor(() => {
+            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe('The request contains invalid data')
+        })
+        const items = Array.from(document.querySelectorAll<HTMLElement>('[data-name="error-violation"]'))
+        expect(items.map(item => item.textContent)).toEqual([
+            'levelName:Value is required',
+            'countriesString:Unknown country code',
+            'name:Length must be between 0 and 3',
+            'code:must be a prime number',
+            'exactly one default is required',
+        ])
+        expect(items.map(item => item.dataset.propertyPath)).toEqual([
+            'request.levelName',
+            'request.subEndpoints[1].countriesString',
+            'request.name',
+            'request.code',
+            'request',
+        ])
+        expect(document.querySelector('[data-name="error-violations-more"]')).toBeNull()
+        expect(document.querySelector('[data-name="error-details-section"]')).toBeNull()
+    })
+
+    it('collapses a long violation list into a count', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'validation-12',
+                    messageId: 'react.validation.exception.message',
+                    errorType: 'VALIDATION_ERROR',
+                    violations: Array.from({ length: 11 }, (_, index) => ({
+                        property: `field${index}`,
+                        propertyPath: `request.items[${index}].field${index}`,
+                        message: 'must not be null',
+                    })),
+                },
+            })
+        })
+
+        await waitFor(() => {
+            expect(document.querySelectorAll('[data-name="error-violation"]')).toHaveLength(8)
+        })
+        expect(document.querySelector('[data-name="error-violations-more"]')?.textContent).toBe('\u2026 and 3 more')
+    })
+
+    it('shows a validation response without violations exactly as before', async () => {
+        render(<OverlayHost container={null} />)
+
+        act(() => {
+            overlayActions.showError({
+                error: {
+                    errorId: 'validation-13',
+                    messageId: 'react.validation.exception.message',
+                    errorType: 'VALIDATION_ERROR',
+                    errorI18N: 'duplicate-key.unq_login',
+                },
+            })
+        })
+
+        await waitFor(() => {
+            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe('The request contains invalid data')
+        })
+        expect(document.querySelector('[data-name="error-validation-message"]')?.textContent).toBe('This login already exists')
+        expect(document.querySelector('[data-name="error-violations"]')).toBeNull()
     })
 
     it('falls back cleanly when a message requires an error id that is absent', async () => {

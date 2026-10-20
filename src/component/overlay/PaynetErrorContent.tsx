@@ -5,13 +5,20 @@ import { AlertTitle, Box, ButtonBase, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import PneModal, { type PneModalRootProps } from '../PneModal'
 import { OverlayPortalContainerContext } from './OverlayPortalContainerContext'
-import type { NormalizedPaynetError } from './types'
+import { PaynetErrorPresentationContext } from './PaynetErrorPresentationContext'
+import type { NormalizedPaynetError, PaynetViolation, PaynetViolationMessageResolver } from './types'
 
 export type PaynetErrorContentProps = {
     error: NormalizedPaynetError
+    /** Overrides the resolver `OverlayHost` provides; see `PaynetViolationMessageResolver`. */
+    resolveViolationMessage?: PaynetViolationMessageResolver
 }
 
 const MISSING_TRANSLATION = '\u0000pne-missing-translation\u0000'
+/** Violations shown inline before the list collapses into a count. */
+const VIOLATIONS_PREVIEW_MAX = 8
+/** A message template the server could not resolve: `{react.validation.countryCode}`. */
+const UNRESOLVED_TEMPLATE_KEY = /^\{([^{}\s]+)\}$/
 const LONG_DETAILS_CHARACTER_THRESHOLD = 600
 const LONG_DETAILS_LINE_THRESHOLD = 8
 const DETAILS_PREVIEW_MAX_CHARACTERS = 300
@@ -28,6 +35,11 @@ const ERROR_BODY_TEXT_SX = {
 
 const replaceErrorId = (message: string, errorId?: string): string =>
     errorId ? message.split(ERROR_ID_PLACEHOLDER).join(errorId) : message
+
+const unresolvedTemplateKey = (format?: string | null): string | undefined => {
+    const match = format ? UNRESOLVED_TEMPLATE_KEY.exec(format.trim()) : null
+    return match ? match[1] : undefined
+}
 
 const isLongDetails = (details: string): boolean =>
     details.length > LONG_DETAILS_CHARACTER_THRESHOLD
@@ -228,10 +240,12 @@ const renderMessage = (message: string, errorId?: string): React.ReactNode => {
 }
 
 /** Shared rich presentation for Paynet errors in an overlay or inline state. */
-export const PaynetErrorContent = ({ error }: PaynetErrorContentProps) => {
+export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErrorContentProps) => {
     const { t } = useTranslation()
     const [detailsOpen, setDetailsOpen] = React.useState(false)
     const overlayPortalContainer = React.useContext(OverlayPortalContainerContext)
+    const presentation = React.useContext(PaynetErrorPresentationContext)
+    const resolveViolation = resolveViolationMessage ?? presentation.resolveViolationMessage
     const title = t('react.unexpected.exception.title', { defaultValue: 'Error' })
 
     const translateOptional = (key?: string): string | undefined => {
@@ -256,6 +270,27 @@ export const PaynetErrorContent = ({ error }: PaynetErrorContentProps) => {
         : messageTemplate
     const resolvedMessage = replaceErrorId(presentableMessageTemplate, error.errorId)
     const showValidation = translatedValidation && translatedValidation !== resolvedMessage
+
+    // Host policy first, then the library default: a `{key}` template is translated with its
+    // parameters (React escapes the text once, so i18next must not), otherwise the server text.
+    const violationText = (violation: PaynetViolation): string => {
+        const hostText = resolveViolation?.(violation)?.trim()
+        if (hostText) return hostText
+        const key = unresolvedTemplateKey(violation.messageFormat)
+        if (key) {
+            const translated = String(t(key, {
+                ...violation.messageParams,
+                defaultValue: MISSING_TRANSLATION,
+                interpolation: { escapeValue: false },
+            }))
+            if (translated !== MISSING_TRANSLATION && translated.trim().length > 0) return translated
+        }
+        const message = violation.message.trim()
+        return message.length > 0 ? message : key ?? violation.propertyPath
+    }
+    const violations = error.violations ?? []
+    const visibleViolations = violations.slice(0, VIOLATIONS_PREVIEW_MAX)
+    const hiddenViolationCount = violations.length - visibleViolations.length
     const longDetails = Boolean(error.details && isLongDetails(error.details))
     const inlineDetails = error.details && longDetails
         ? createDetailsPreview(error.details)
@@ -292,6 +327,46 @@ export const PaynetErrorContent = ({ error }: PaynetErrorContentProps) => {
                     >
                         {translatedValidation}
                     </Typography>
+                ) : null}
+                {visibleViolations.length > 0 ? (
+                    <Box
+                        component='ul'
+                        data-name='error-violations'
+                        sx={{ fontSize: 13, lineHeight: '18px', m: 0, minWidth: 0, pl: 2.25 }}
+                    >
+                        {visibleViolations.map((violation, index) => (
+                            <li
+                                data-name='error-violation'
+                                data-property-path={violation.propertyPath}
+                                key={`${violation.propertyPath}-${index}`}
+                                style={{ overflowWrap: 'anywhere' }}
+                            >
+                                {violation.property ? (
+                                    <Box
+                                        component='span'
+                                        data-name='error-violation-property'
+                                        sx={{
+                                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                                            fontSize: 12,
+                                            mr: 0.5,
+                                            opacity: 0.8,
+                                        }}
+                                    >
+                                        {violation.property}:
+                                    </Box>
+                                ) : null}
+                                {violationText(violation)}
+                            </li>
+                        ))}
+                        {hiddenViolationCount > 0 ? (
+                            <li data-name='error-violations-more' style={{ listStyle: 'none', marginLeft: -18 }}>
+                                {t('pne.error.moreViolations', {
+                                    count: hiddenViolationCount,
+                                    defaultValue: '\u2026 and {{count}} more',
+                                })}
+                            </li>
+                        ) : null}
+                    </Box>
                 ) : null}
                 {inlineDetails ? (
                     <Box
