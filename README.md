@@ -211,6 +211,14 @@ pointer, label и keyboard activation, но не делает input disabled: о
 для `defaultChecked` commit и rollback полностью принадлежат самому `PneSwitch`. Нативный input во время
 запроса не становится `disabled`, поэтому не теряет focus и сохраняет текущее ON/OFF-состояние.
 
+У заблокированного (`disabled`) `PneSwitch` состояние ON/OFF остаётся различимым в светлой и тёмной теме:
+трек включённого переключателя становится основным цветом с прозрачностью 38%, трек выключенного остаётся
+нейтральным серым. Над заблокированным переключателем курсор `not-allowed`, а при наведении появляется
+нейтральная подсказка `pne.switch.disabledHint` (по умолчанию «Cannot be changed»), без отдельного prop.
+Это касается и `disabled` от `PneField`, но не `readOnly` и не async-запроса. Подсказка рендерится рядом
+с переключателем только пока он заблокирован (якорь Tooltip — скрытый `span`), поэтому сам Switch не
+оборачивается: его DOM, refs, locators и число рендеров не меняются.
+
 Внешний `PneField` передаёт control ID, label/helper-связь, `disabled`, `error` и `aria-required`. Как и у
 `PneTextField`, `required` на `PneField` не включает browser constraint validation; для неё задайте `required`
 самому checkbox или switch. `PneLabeledCheckbox` добавляет локальные `label`, `helperText` и `error`, генерирует
@@ -236,6 +244,8 @@ ID helper text, сохраняет явный `helperTextProps.id` и объед
 display-only вариант задаётся через `readOnly` без пустого callback. Возвращённый из табличного `onChange`
 Promise передаётся в `PneSwitch`, поэтому optimistic/pending/rollback lifecycle работает в status-колонке без
 дополнительных props ячейки.
+Заблокированная ячейка (`disabled`) так же сохраняет различимое ON/OFF и показывает нейтральную подсказку
+`PneSwitch` при наведении.
 
 Props самой ячейки передаются напрямую, а props переключателя — через `switchProps`. В частности, `id`,
 `inputRef`, `name`, `slotProps` и существующие верхнеуровневые `PneSwitch` `data-*` селекторы относятся к

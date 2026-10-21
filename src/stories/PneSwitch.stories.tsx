@@ -238,16 +238,30 @@ const getPreviewOutlineWidth = (
     return 2
 }
 
+// Mirrors the PneSwitch track palette, so the emulated hover and pressed
+// columns stay true to the component in both color modes.
 const getPreviewTrackColor = (
     state: SwitchState,
     checked: boolean,
     theme: Theme,
 ) => {
+    const isDarkMode = theme.palette.mode === 'dark'
+
     if (state === 'hover' || state === 'pressed') {
-        return checked ? theme.palette.primary.dark : '#5E7594'
+        if (checked) {
+            return theme.palette.primary.dark
+        }
+
+        return isDarkMode ? theme.palette.text.secondary : '#5E7594'
     }
 
-    return checked ? theme.palette.primary.main : '#809EAE'
+    if (checked) {
+        return theme.palette.primary.main
+    }
+
+    return isDarkMode
+        ? (theme.palette.pne?.border.control ?? theme.palette.text.secondary)
+        : '#809EAE'
 }
 
 const getSwitchPreviewSx = (
@@ -310,49 +324,57 @@ export const Default: Story = {
     render: (args) => <PneSwitch {...args}/>,
 }
 
-export const Sizes: Story = {
-    render: () => <Box
+const SwitchStateMatrix = () => <Box
+    sx={{
+        height: 380,
+        position: 'relative',
+        width: 518,
+    }}
+>
+    {switchColumns.map(column => <Typography
+        key={column.state}
         sx={{
-            height: 380,
-            position: 'relative',
+            color: 'text.primary',
+            fontSize: 14,
+            fontWeight: 400,
+            left: column.labelLeft,
+            lineHeight: '16px',
+            position: 'absolute',
+            top: 0,
+        }}
+    >
+        {column.label}
+    </Typography>)}
+    <Box
+        sx={{
+            height: 327,
+            left: 0,
+            position: 'absolute',
+            top: 53,
             width: 518,
         }}
     >
-        {switchColumns.map(column => <Typography
-            key={column.state}
+        {switchRows.flatMap(row => switchColumns.map(column => <Box
+            key={`${row.size}-${row.checked ? 'on' : 'off'}-${column.state}`}
             sx={{
-                color: '#000',
-                fontSize: 14,
-                fontWeight: 400,
-                left: column.labelLeft,
-                lineHeight: '16px',
+                left: row.size === 'medium' ? column.mediumLeft : column.smallLeft,
                 position: 'absolute',
-                top: 0,
+                top: row.top,
             }}
         >
-            {column.label}
-        </Typography>)}
-        <Box
-            sx={{
-                height: 327,
-                left: 0,
-                position: 'absolute',
-                top: 53,
-                width: 518,
-            }}
-        >
-            {switchRows.flatMap(row => switchColumns.map(column => <Box
-                key={`${row.size}-${row.checked ? 'on' : 'off'}-${column.state}`}
-                sx={{
-                    left: row.size === 'medium' ? column.mediumLeft : column.smallLeft,
-                    position: 'absolute',
-                    top: row.top,
-                }}
-            >
-                {renderSwitchPreview(column.state, row.size, row.checked)}
-            </Box>))}
-        </Box>
-    </Box>,
+            {renderSwitchPreview(column.state, row.size, row.checked)}
+        </Box>))}
+    </Box>
+</Box>
+
+export const Sizes: Story = {
+    render: () => <SwitchStateMatrix/>,
+}
+
+export const SizesDark: Story = {
+    name: 'Sizes (dark)',
+    globals: {colorMode: 'dark'},
+    render: () => <SwitchStateMatrix/>,
 }
 
 export const WithLabel: Story = {

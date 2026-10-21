@@ -19,7 +19,8 @@ type StatusRow = {
 const initialRows: StatusRow[] = [
     {id: 1, name: 'Primary endpoint', status: true, state: 'interactive'},
     {id: 2, name: 'Fallback endpoint', status: false, state: 'disabled'},
-    {id: 3, name: 'System endpoint', status: true, state: 'readOnly'},
+    {id: 3, name: 'Shared endpoint', status: true, state: 'disabled'},
+    {id: 4, name: 'System endpoint', status: true, state: 'readOnly'},
 ]
 
 type AsyncMutationOutcome = 'resolve' | 'reject' | 'pending'

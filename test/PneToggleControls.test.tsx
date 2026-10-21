@@ -11,6 +11,12 @@ import {
     PneSwitch,
 } from '../src'
 
+jest.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
+    }),
+}))
+
 const getDescriptionIds = (control: HTMLElement): string[] => {
     return control.getAttribute('aria-describedby')?.split(/\s+/).filter(Boolean) ?? []
 }
@@ -924,6 +930,84 @@ describe('PneSwitch', () => {
         ))
 
         removeEventListener.mockRestore()
+    })
+})
+
+describe('PneSwitch disabled state', () => {
+    const rootOf = (name: string) => screen.getByRole('switch', {name}).closest('.MuiSwitch-root') as HTMLElement
+
+    // jsdom ignores selector specificity in getComputedStyle, so the disabled
+    // track colors are read from the switch's own rules.
+    const trackRuleColor = (name: string, switchBaseState: string) => {
+        const rootClasses = Array.from(rootOf(name).classList).filter(className => className.startsWith('css-'))
+        const suffix = `.MuiSwitch-switchBase${switchBaseState}+.MuiSwitch-track`
+        const colors = Array.from(document.styleSheets)
+            .flatMap(sheet => Array.from(sheet.cssRules))
+            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+            .filter(rule => {
+                const selector = rule.selectorText.replace(/\s+/g, '')
+                return rootClasses.some(className => selector.startsWith(`.${className}`)) && selector.endsWith(suffix)
+            })
+            .map(rule => rule.style.getPropertyValue('background-color'))
+            .filter(Boolean)
+
+        return colors[colors.length - 1]
+    }
+
+    it('keeps on and off distinguishable while disabled', () => {
+        const theme = createTheme({palette: {primary: {main: '#0a91bc'}}})
+
+        render(<ThemeProvider theme={theme}>
+            <PneSwitch aria-label='Disabled on' checked disabled/>
+        </ThemeProvider>)
+
+        expect(trackRuleColor('Disabled on', '.Mui-checked.Mui-disabled')).toBe('rgba(10, 145, 188, 0.38)')
+        expect(trackRuleColor('Disabled on', '.Mui-disabled')).toBe('#E6E6E6')
+    })
+
+    it('shows a neutral hint and a not-allowed cursor only for a disabled switch', async () => {
+        render(<>
+            <PneSwitch aria-label='Locked status' checked disabled/>
+            <PneSwitch aria-label='Live status' defaultChecked/>
+            <PneSwitch aria-label='Read-only status' checked readOnly/>
+        </>)
+
+        expect(window.getComputedStyle(rootOf('Locked status')).cursor).toBe('not-allowed')
+        expect(window.getComputedStyle(rootOf('Live status')).cursor).not.toBe('not-allowed')
+        expect(window.getComputedStyle(rootOf('Read-only status')).cursor).not.toBe('not-allowed')
+
+        fireEvent.mouseEnter(rootOf('Live status'))
+        fireEvent.mouseEnter(rootOf('Read-only status'))
+        await act(() => new Promise(resolve => setTimeout(resolve, 200)))
+        expect(screen.queryByRole('tooltip')).toBeNull()
+
+        fireEvent.mouseEnter(rootOf('Locked status'))
+        const tooltip = await screen.findByRole('tooltip')
+
+        expect(tooltip.textContent).toBe('Cannot be changed')
+        // The hint describes the switch; it never replaces its accessible name.
+        expect(screen.getByRole('switch', {name: 'Locked status'})).toBeTruthy()
+
+        fireEvent.mouseLeave(rootOf('Locked status'))
+        await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+    })
+
+    it('follows a disabled PneField and drops the hint once the switch is enabled', async () => {
+        const {rerender} = render(<PneField controlId='archived-switch' disabled label='Archived'>
+            <PneSwitch checked/>
+        </PneField>)
+
+        expect(window.getComputedStyle(rootOf('Archived')).cursor).toBe('not-allowed')
+        fireEvent.mouseEnter(rootOf('Archived'))
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Cannot be changed')
+
+        rerender(<PneField controlId='archived-switch' label='Archived'>
+            <PneSwitch checked onChange={jest.fn()}/>
+        </PneField>)
+
+        await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
+        expect(window.getComputedStyle(rootOf('Archived')).cursor).not.toBe('not-allowed')
+        expect(rootOf('Archived').parentElement?.querySelector('span[hidden]')).toBeNull()
     })
 })
 

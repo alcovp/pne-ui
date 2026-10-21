@@ -20,6 +20,7 @@ i18nForStorybook
                     'pne.error.details': 'Details',
                     'pne.error.showFullDetails': 'Show full details',
                     'pne.error.closeDetails': 'Close details',
+                    'pne.switch.disabledHint': 'Cannot be changed',
                     'react.searchUI.all': 'All',
                     'react.searchUI.allExcluding': 'All excluding',
                     'react.searchUI.none': 'None',

@@ -3,6 +3,12 @@ import type {SwitchOwnerState} from '@mui/material/Switch'
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
 import {PneTableControlCell, PneTableSwitchCell} from '../src'
 
+jest.mock('react-i18next', () => ({
+    useTranslation: () => ({
+        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
+    }),
+}))
+
 const createDeferred = <T,>() => {
     let resolve!: (value: T) => void
     let reject!: (reason?: unknown) => void

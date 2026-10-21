@@ -1,5 +1,5 @@
-import React, {forwardRef, useCallback, useMemo, useRef, useState} from 'react'
-import {Switch, SwitchProps} from '@mui/material'
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react'
+import {Switch, SwitchProps, Tooltip} from '@mui/material'
 import type {SwitchOwnerState} from '@mui/material/Switch'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
 import {alpha, keyframes} from '@mui/material/styles'
@@ -7,6 +7,7 @@ import {useTheme} from '@mui/material/styles'
 import type {SxProps, Theme} from '@mui/material/styles'
 import * as MuiMaterialUtils from '@mui/material/utils'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
+import {useTranslation} from 'react-i18next'
 import {usePneFieldControlProps} from './PneFieldContext'
 import {composeToggleInputSlotProps, moveAriaPropsToInput} from './PneToggleInput'
 
@@ -176,6 +177,12 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         id: props.id,
         required: props.required,
     })
+    const effectiveDisabled = (controlProps.disabled ?? disabled) === true
+    const disabledHintRef = useRef<DisabledHintHandle>(null)
+    const disabledHintRootListeners = useMemo<DisabledHintRootListeners>(() => ({
+        onMouseEnter: event => disabledHintRef.current?.show(event.currentTarget),
+        onMouseLeave: () => disabledHintRef.current?.hide(),
+    }), [])
     const composedInputSlotProps = composeToggleInputSlotProps<SwitchOwnerState>(
         [defaultInputSlotProps, consumerInputSlotProps],
         {
@@ -278,6 +285,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
     const _sx: SxProps<Theme> = [
         switchSxBySize[size],
         pending ? pendingSwitchSx : undefined,
+        effectiveDisabled ? disabledSwitchSx : undefined,
         ...(Array.isArray(sx) ? sx : [sx]),
     ]
     // MUI types still expose the SwitchBase ref as a button although its
@@ -298,16 +306,73 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
             slotProps={{
                 ...slotProps,
                 input: inputSlotProps,
+                // The disabled SwitchBase ignores the pointer, so the hint
+                // listens on the root span, which covers the track and thumb.
+                root: effectiveDisabled
+                    ? MuiMaterialUtils.mergeSlotProps(slotProps?.root, disabledHintRootListeners)
+                    : slotProps?.root,
                 track: MuiMaterialUtils.mergeSlotProps(slotProps?.track, {
                     sx: switchTrackTransitionSx,
                 }),
             }}
             sx={_sx}
         />
+        {effectiveDisabled ? <PneSwitchDisabledHint ref={disabledHintRef}/> : null}
     </DefaultPropsProvider>
 })
 
 PneSwitch.displayName = 'PneSwitch'
+
+const disabledHintEnterDelayMs = 100
+
+type DisabledHintHandle = {
+    show: (anchor: HTMLElement) => void
+    hide: () => void
+}
+
+type DisabledHintRootListeners = {
+    onMouseEnter: React.MouseEventHandler<HTMLSpanElement>
+    onMouseLeave: React.MouseEventHandler<HTMLSpanElement>
+}
+
+/**
+ * The neutral "cannot be changed" hover hint of a disabled switch. It renders
+ * next to the switch rather than around it, so the switch keeps its single
+ * render and its DOM; the hidden span only satisfies the Tooltip child contract
+ * while the popper anchors to the hovered switch root.
+ */
+const PneSwitchDisabledHint = forwardRef<DisabledHintHandle>((_props, ref) => {
+    const {t} = useTranslation()
+    const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+    const enterTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+    useImperativeHandle(ref, () => ({
+        show: element => {
+            clearTimeout(enterTimerRef.current)
+            enterTimerRef.current = setTimeout(() => setAnchor(element), disabledHintEnterDelayMs)
+        },
+        hide: () => {
+            clearTimeout(enterTimerRef.current)
+            setAnchor(null)
+        },
+    }), [])
+
+    useEffect(() => () => clearTimeout(enterTimerRef.current), [])
+
+    return <Tooltip
+        describeChild
+        disableFocusListener
+        disableHoverListener
+        disableTouchListener
+        open={anchor !== null}
+        slotProps={{popper: {anchorEl: anchor}}}
+        title={t('pne.switch.disabledHint', {defaultValue: 'Cannot be changed'})}
+    >
+        <span hidden/>
+    </Tooltip>
+})
+
+PneSwitchDisabledHint.displayName = 'PneSwitchDisabledHint'
 
 const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
     return (typeof value === 'object' && value !== null) || typeof value === 'function'
@@ -377,6 +442,12 @@ const pendingSwitchSx: SxProps<Theme> = theme => ({
     },
 })
 
+// The disabled SwitchBase ignores the pointer, so the root carries the cursor
+// over the whole control, track and thumb included.
+const disabledSwitchSx: SxProps<Theme> = {
+    cursor: 'not-allowed',
+}
+
 const useComponentsWithoutSwitchDefaults = () => {
     const theme = useTheme()
 
@@ -426,6 +497,9 @@ const createSwitchSx = (
         ? theme.palette.action.disabledBackground
         : '#E6E6E6'
     const disabledThumbColor = isDarkMode ? theme.palette.text.disabled : '#fff'
+    // A disabled switch keeps its state readable: "on" stays a faded primary,
+    // "off" stays the neutral disabled track.
+    const disabledCheckedTrackColor = alpha(theme.palette.primary.main, 0.38)
 
     return {
         '--pne-switch-track-height': `${config.trackHeight}px`,
@@ -485,7 +559,7 @@ const createSwitchSx = (
                 },
             },
             '&.Mui-checked.Mui-disabled + .MuiSwitch-track': {
-                backgroundColor: disabledTrackColor,
+                backgroundColor: disabledCheckedTrackColor,
                 opacity: 1,
             },
             '&.Mui-checked.Mui-disabled .MuiSwitch-thumb': {
@@ -495,7 +569,7 @@ const createSwitchSx = (
                 color: disabledThumbColor,
                 opacity: 1,
                 '& + .MuiSwitch-track': {
-                    backgroundColor: disabledTrackColor,
+                    backgroundColor: disabledCheckedTrackColor,
                     opacity: 1,
                 },
                 '& + .MuiSwitch-track::before': {
@@ -509,7 +583,7 @@ const createSwitchSx = (
                 opacity: 1,
             },
             '&.Mui-checked.Mui-disabled:hover + .MuiSwitch-track': {
-                backgroundColor: disabledTrackColor,
+                backgroundColor: disabledCheckedTrackColor,
                 opacity: 1,
             },
             '&.Mui-focusVisible:not(.Mui-disabled) + .MuiSwitch-track::before': {
