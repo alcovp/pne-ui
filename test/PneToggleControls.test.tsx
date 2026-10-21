@@ -992,6 +992,23 @@ describe('PneSwitch disabled state', () => {
         await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
     })
 
+    it('replaces the neutral hint with a specific reason or turns it off', async () => {
+        render(<>
+            <div><PneSwitch aria-label='Mandatory filter' checked disabled disabledHint='The filter is mandatory'/></div>
+            <div><PneSwitch aria-label='Quiet switch' checked disabled disabledHint={false}/></div>
+        </>)
+
+        fireEvent.mouseEnter(rootOf('Quiet switch'))
+        await act(() => new Promise(resolve => setTimeout(resolve, 200)))
+        expect(screen.queryByRole('tooltip')).toBeNull()
+        expect(rootOf('Quiet switch').parentElement?.querySelector('span[hidden]')).toBeNull()
+        // The cursor still tells that the switch is disabled.
+        expect(window.getComputedStyle(rootOf('Quiet switch')).cursor).toBe('not-allowed')
+
+        fireEvent.mouseEnter(rootOf('Mandatory filter'))
+        expect((await screen.findByRole('tooltip')).textContent).toBe('The filter is mandatory')
+    })
+
     it('follows a disabled PneField and drops the hint once the switch is enabled', async () => {
         const {rerender} = render(<PneField controlId='archived-switch' disabled label='Archived'>
             <PneSwitch checked/>

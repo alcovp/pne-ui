@@ -377,6 +377,27 @@ export const SizesDark: Story = {
     render: () => <SwitchStateMatrix/>,
 }
 
+export const DisabledHints: Story = {
+    render: () => <Stack spacing={2}>
+        <FormControlLabel
+            control={<PneSwitch checked disabled/>}
+            label='Default hint'
+        />
+        <FormControlLabel
+            control={<PneSwitch
+                checked
+                disabled
+                disabledHint='The filter is mandatory and cannot be disabled'
+            />}
+            label='Specific reason'
+        />
+        <FormControlLabel
+            control={<PneSwitch disabled disabledHint={false}/>}
+            label='No hint'
+        />
+    </Stack>,
+}
+
 export const WithLabel: Story = {
     render: () => <Stack spacing={2}>
         <FormControlLabel

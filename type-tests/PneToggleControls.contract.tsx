@@ -87,6 +87,16 @@ const validContracts = <>
     />
 </>
 
+const disabledHintContracts = <>
+    <PneSwitch aria-label='Default hint' disabled/>
+    <PneSwitch aria-label='Specific hint' disabled disabledHint='The filter is mandatory'/>
+    <PneSwitch aria-label='Element hint' disabled disabledHint={<span>Shared with other managers</span>}/>
+    <PneSwitch aria-label='No hint' disabled disabledHint={false}/>
+</>
+
+// @ts-expect-error `true` is not a hint; omit the prop to keep the default text.
+const trueDisabledHint = <PneSwitch disabled disabledHint/>
+
 // @ts-expect-error The primary toggle ref points to the MUI span root.
 const wrongCheckboxRootRef = <PneCheckbox ref={invalidRootRef}/>
 
@@ -115,3 +125,5 @@ void wrongLabeledRootRef
 void wrongInputRef
 void unknownCheckboxProp
 void unknownSwitchProp
+void disabledHintContracts
+void trueDisabledHint

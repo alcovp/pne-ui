@@ -23,6 +23,12 @@ type AsyncSwitchChangeHandler = (
 export type PneSwitchChangeHandler = MuiSwitchChangeHandler | AsyncSwitchChangeHandler
 
 export interface PneSwitchProps extends Omit<SwitchProps, 'onChange'> {
+    /**
+     * Hover hint of a disabled switch. By default it is the neutral localized
+     * "Cannot be changed" (`pne.switch.disabledHint`); a node replaces that text
+     * with a specific reason, and `false` turns the hint off.
+     */
+    disabledHint?: Exclude<React.ReactNode, boolean> | false
     inputRef?: React.Ref<HTMLInputElement>
     /**
      * Preserves the MUI callback contract. When the callback returns a thenable,
@@ -61,6 +67,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         checked: checkedProp,
         defaultChecked = false,
         disabled,
+        disabledHint,
         id,
         inputRef,
         onChange,
@@ -178,6 +185,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         required: props.required,
     })
     const effectiveDisabled = (controlProps.disabled ?? disabled) === true
+    const showsDisabledHint = effectiveDisabled && disabledHint !== false
     const disabledHintRef = useRef<DisabledHintHandle>(null)
     const disabledHintRootListeners = useMemo<DisabledHintRootListeners>(() => ({
         onMouseEnter: event => disabledHintRef.current?.show(event.currentTarget),
@@ -308,7 +316,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
                 input: inputSlotProps,
                 // The disabled SwitchBase ignores the pointer, so the hint
                 // listens on the root span, which covers the track and thumb.
-                root: effectiveDisabled
+                root: showsDisabledHint
                     ? MuiMaterialUtils.mergeSlotProps(slotProps?.root, disabledHintRootListeners)
                     : slotProps?.root,
                 track: MuiMaterialUtils.mergeSlotProps(slotProps?.track, {
@@ -317,7 +325,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
             }}
             sx={_sx}
         />
-        {effectiveDisabled ? <PneSwitchDisabledHint ref={disabledHintRef}/> : null}
+        {showsDisabledHint ? <PneSwitchDisabledHint hint={disabledHint} ref={disabledHintRef}/> : null}
     </DefaultPropsProvider>
 })
 
@@ -336,12 +344,15 @@ type DisabledHintRootListeners = {
 }
 
 /**
- * The neutral "cannot be changed" hover hint of a disabled switch. It renders
+ * The hover hint of a disabled switch: the neutral "cannot be changed" text
+ * unless the consumer gives a specific reason. It renders
  * next to the switch rather than around it, so the switch keeps its single
  * render and its DOM; the hidden span only satisfies the Tooltip child contract
  * while the popper anchors to the hovered switch root.
  */
-const PneSwitchDisabledHint = forwardRef<DisabledHintHandle>((_props, ref) => {
+const PneSwitchDisabledHint = forwardRef<DisabledHintHandle, {
+    hint: Exclude<React.ReactNode, boolean>
+}>(({hint}, ref) => {
     const {t} = useTranslation()
     const [anchor, setAnchor] = useState<HTMLElement | null>(null)
     const enterTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -366,7 +377,7 @@ const PneSwitchDisabledHint = forwardRef<DisabledHintHandle>((_props, ref) => {
         disableTouchListener
         open={anchor !== null}
         slotProps={{popper: {anchorEl: anchor}}}
-        title={t('pne.switch.disabledHint', {defaultValue: 'Cannot be changed'})}
+        title={hint ?? t('pne.switch.disabledHint', {defaultValue: 'Cannot be changed'})}
     >
         <span hidden/>
     </Tooltip>

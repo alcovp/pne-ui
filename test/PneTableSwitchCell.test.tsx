@@ -149,6 +149,27 @@ describe('PneTableSwitchCell', () => {
         expect(input.getAttribute('aria-disabled')).toBeNull()
     })
 
+    it('passes a specific disabled hint through switchProps', async () => {
+        render(<table>
+            <tbody>
+                <tr>
+                    <PneTableSwitchCell
+                        aria-label='Shared processor'
+                        checked
+                        disabled
+                        onChange={jest.fn()}
+                        switchProps={{disabledHint: 'Shared with other managers'}}
+                    />
+                </tr>
+            </tbody>
+        </table>)
+
+        const root = screen.getByRole('switch', {name: 'Shared processor'}).closest('.MuiSwitch-root') as HTMLElement
+
+        fireEvent.mouseEnter(root)
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Shared with other managers')
+    })
+
     it('forwards disabled state and keeps a read-only status immutable', async () => {
         const onDisabledChange = jest.fn()
         render(
