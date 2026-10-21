@@ -933,26 +933,51 @@ describe('PneSwitch', () => {
     })
 })
 
+const switchRootOf = (name: string) => screen.getByRole('switch', {name}).closest('.MuiSwitch-root') as HTMLElement
+
+// jsdom has no layout and ignores selector specificity in getComputedStyle, so
+// geometry and color checks read the switch's own rules. The selector suffix is
+// compared without whitespace.
+const switchRuleValue = (name: string, selectorSuffix: string, property: string) => {
+    const rootClasses = Array.from(switchRootOf(name).classList).filter(className => className.startsWith('css-'))
+    const values = Array.from(document.styleSheets)
+        .flatMap(sheet => Array.from(sheet.cssRules))
+        .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+        .filter(rule => {
+            const selector = rule.selectorText.replace(/\s+/g, '')
+            return rootClasses.some(className => selector.startsWith(`.${className}`)) && selector.endsWith(selectorSuffix)
+        })
+        .map(rule => rule.style.getPropertyValue(property))
+        .filter(Boolean)
+
+    return values[values.length - 1]
+}
+
+describe('PneSwitch hit area', () => {
+    it('makes the whole switch clickable and nothing around it', () => {
+        render(<>
+            <PneSwitch aria-label='Small hit area' size='small'/>
+            <PneSwitch aria-label='Medium hit area'/>
+        </>)
+
+        const inputGeometry = (name: string) => [
+            ...['top', 'left', 'width', 'height'].map(property => (
+                switchRuleValue(name, '.MuiSwitch-switchBase.MuiSwitch-input', property)
+            )),
+            // The checked thumb moves right, so the input moves back by the same shift.
+            switchRuleValue(name, '.MuiSwitch-switchBase.Mui-checked.MuiSwitch-input', 'left'),
+        ]
+
+        expect(inputGeometry('Small hit area')).toEqual(['-4px', '-8px', '40px', '24px', '-16px'])
+        expect(inputGeometry('Medium hit area')).toEqual(['-5px', '-12px', '58px', '32px', '-24px'])
+    })
+})
+
 describe('PneSwitch disabled state', () => {
-    const rootOf = (name: string) => screen.getByRole('switch', {name}).closest('.MuiSwitch-root') as HTMLElement
-
-    // jsdom ignores selector specificity in getComputedStyle, so the disabled
-    // track colors are read from the switch's own rules.
-    const trackRuleColor = (name: string, switchBaseState: string) => {
-        const rootClasses = Array.from(rootOf(name).classList).filter(className => className.startsWith('css-'))
-        const suffix = `.MuiSwitch-switchBase${switchBaseState}+.MuiSwitch-track`
-        const colors = Array.from(document.styleSheets)
-            .flatMap(sheet => Array.from(sheet.cssRules))
-            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
-            .filter(rule => {
-                const selector = rule.selectorText.replace(/\s+/g, '')
-                return rootClasses.some(className => selector.startsWith(`.${className}`)) && selector.endsWith(suffix)
-            })
-            .map(rule => rule.style.getPropertyValue('background-color'))
-            .filter(Boolean)
-
-        return colors[colors.length - 1]
-    }
+    const rootOf = switchRootOf
+    const trackRuleColor = (name: string, switchBaseState: string) => (
+        switchRuleValue(name, `.MuiSwitch-switchBase${switchBaseState}+.MuiSwitch-track`, 'background-color')
+    )
 
     it('keeps on and off distinguishable while disabled', () => {
         const theme = createTheme({palette: {primary: {main: '#0a91bc'}}})

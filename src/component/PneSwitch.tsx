@@ -609,6 +609,19 @@ const createSwitchSx = (
             transform: 'scale(1)',
             transitionDuration: '80ms',
         },
+        // The native input is the click target. MUI sizes it to the SwitchBase
+        // (the thumb's height, three thumbs wide), which left dead bands above
+        // and below the track and let it overhang the root on one side. It now
+        // covers exactly the root, following the thumb's checked shift.
+        '& .MuiSwitch-switchBase .MuiSwitch-input': {
+            top: -config.trackTop,
+            left: -config.trackLeft,
+            width: config.rootWidth,
+            height: config.rootHeight,
+        },
+        '& .MuiSwitch-switchBase.Mui-checked .MuiSwitch-input': {
+            left: -(config.trackLeft + config.checkedShift),
+        },
         '& .MuiSwitch-thumb': {
             width: config.thumbSize,
             height: config.thumbSize,
