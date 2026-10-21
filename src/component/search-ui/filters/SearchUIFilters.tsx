@@ -45,7 +45,13 @@ import {
     normalizeAllowedEntityNames,
     resolveAllowedEntityOptions,
 } from './entityOptionRestriction';
-import {getLastSearchUITemplateStorageKey} from './templateStorage';
+import {
+    discardLegacyLastSearchUITemplateName,
+    forgetLastSearchUITemplateName,
+    type LastSearchUITemplateName,
+    readLastSearchUITemplateName,
+    rememberLastSearchUITemplateName,
+} from './templateStorage';
 import {createAutoTestAttributes} from '../../AutoTestAttribute';
 import {SearchUIAutoTestScopeProvider} from './AutoTestScope';
 import {
@@ -361,9 +367,8 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
                 }
             }
 
-            const lastTemplateStorageKey = getLastSearchUITemplateStorageKey(settingsContextName)
-            const lastTemplateName = localStorage.getItem(lastTemplateStorageKey)
-            if (!lastTemplateName) {
+            const lastTemplate = readLastSearchUITemplateName(defaults, settingsContextName)
+            if (!(lastTemplate instanceof Promise) && lastTemplate.name === null) {
                 return {
                     status: 'ready' as const,
                     result: {
@@ -373,14 +378,29 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
                 }
             }
 
-            return {
-                status: 'pending' as const,
-                promise: defaults.getSearchTemplates(settingsContextName)
+            const loadInitialTemplate = (
+                {name: lastTemplateName, legacy}: LastSearchUITemplateName,
+            ): Promise<SearchUIFiltersBootstrapResult> => {
+                if (lastTemplateName === null) {
+                    return Promise.resolve({
+                        retainedSnapshot,
+                        loadTemplatesInBackground: true,
+                    })
+                }
+
+                return defaults.getSearchTemplates(settingsContextName)
                     .then(templates => {
                         const initialTemplate = templates.find(template => template.name === lastTemplateName)
 
                         if (initialTemplate === undefined) {
-                            localStorage.removeItem(lastTemplateStorageKey)
+                            if (legacy) {
+                                discardLegacyLastSearchUITemplateName(settingsContextName)
+                            } else {
+                                void forgetLastSearchUITemplateName(defaults, settingsContextName)
+                            }
+                        } else if (legacy) {
+                            // The browser-kept name proved valid: it moves to the host store.
+                            void rememberLastSearchUITemplateName(defaults, settingsContextName, initialTemplate.name)
                         }
 
                         return {
@@ -390,6 +410,12 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
                             loadTemplatesInBackground: false,
                         }
                     })
+            }
+
+            return {
+                status: 'pending' as const,
+                promise: Promise.resolve(lastTemplate)
+                    .then(loadInitialTemplate)
                     .catch(error => {
                         console.error(error)
                         return {

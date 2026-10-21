@@ -76,7 +76,12 @@ import {
     normalizeRestrictedEntityCollection,
 } from '../entityOptionRestriction'
 import { isSearchUIRetentionSnapshotCompatible } from './retention'
-import { getLastSearchUITemplateStorageKey } from '../templateStorage'
+import {
+    discardLegacyLastSearchUITemplateName,
+    forgetLastSearchUITemplateName,
+    readLastSearchUITemplateName,
+    rememberLastSearchUITemplateName,
+} from '../templateStorage'
 import {
     validateSearchUIFiltersState,
     type SearchUIValidationResult,
@@ -471,11 +476,7 @@ export const getSearchUIFiltersActions = (
             ...conditions
         } = restoredSnapshot
 
-        if (template?.name) {
-            localStorage.setItem(getLastSearchUITemplateStorageKey(get().settingsContextName), template.name)
-        } else {
-            localStorage.removeItem(getLastSearchUITemplateStorageKey(get().settingsContextName))
-        }
+        void rememberLastSearchUITemplateName(get().defaults, get().settingsContextName, template?.name || null)
 
         set(draft => {
             Object.assign(draft, conditions)
@@ -506,7 +507,7 @@ export const getSearchUIFiltersActions = (
         })
     },
     clearCriteria: () => {
-        localStorage.removeItem(getLastSearchUITemplateStorageKey(get().settingsContextName))
+        void forgetLastSearchUITemplateName(get().defaults, get().settingsContextName)
 
         set((draft) => {
             Object.assign(draft, {
@@ -553,7 +554,7 @@ export const getSearchUIFiltersActions = (
             templateName: templateName,
         })
             .then(() => {
-                localStorage.setItem(getLastSearchUITemplateStorageKey(get().settingsContextName), template.name)
+                void rememberLastSearchUITemplateName(get().defaults, get().settingsContextName, template.name)
 
                 set((draft) => {
                     draft.templates.push(template)
@@ -588,12 +589,14 @@ export const getSearchUIFiltersActions = (
             templateName: template.name,
         })
             .then(() => {
-                const lastTemplateName = localStorage.getItem(
-                    getLastSearchUITemplateStorageKey(get().settingsContextName),
-                )
-                if (lastTemplateName && lastTemplateName === template.name) {
-                    localStorage.removeItem(getLastSearchUITemplateStorageKey(get().settingsContextName))
-                }
+                const {defaults, settingsContextName} = get()
+                void Promise.resolve(readLastSearchUITemplateName(defaults, settingsContextName))
+                    .then(({name: lastTemplateName}) => {
+                        if (lastTemplateName === template.name) {
+                            return forgetLastSearchUITemplateName(defaults, settingsContextName)
+                        }
+                        return undefined
+                    })
 
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === template.name)
@@ -670,7 +673,7 @@ export const getSearchUIFiltersActions = (
             )
         }
 
-        localStorage.setItem(getLastSearchUITemplateStorageKey(get().settingsContextName), template.name)
+        void rememberLastSearchUITemplateName(get().defaults, get().settingsContextName, template.name)
 
         set((draft) => {
             Object.assign(draft, defaults)
@@ -708,15 +711,20 @@ export const getSearchUIFiltersActions = (
                     return
                 }
 
-                const lastTemplateName = localStorage.getItem(
-                    getLastSearchUITemplateStorageKey(settingsContextName),
-                )
-                const lastTemplate = normalizedTemplates.find(t => t.name === lastTemplateName)
-                if (lastTemplate) {
-                    get().setTemplate(lastTemplate, { forceSearch: true })
-                } else if (lastTemplateName) {
-                    localStorage.removeItem(getLastSearchUITemplateStorageKey(settingsContextName))
-                }
+                return Promise.resolve(readLastSearchUITemplateName(defaults, settingsContextName))
+                    .then(({name: lastTemplateName, legacy}) => {
+                        const lastTemplate = normalizedTemplates.find(t => t.name === lastTemplateName)
+                        if (lastTemplate) {
+                            // setTemplate remembers the name again, which also moves a browser-kept one to the host.
+                            get().setTemplate(lastTemplate, { forceSearch: true })
+                        } else if (lastTemplateName !== null) {
+                            if (legacy) {
+                                discardLegacyLastSearchUITemplateName(settingsContextName)
+                            } else {
+                                void forgetLastSearchUITemplateName(defaults, settingsContextName)
+                            }
+                        }
+                    })
             })
             // .catch(raiseUIError)
             .catch(console.error)

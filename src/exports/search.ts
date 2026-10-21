@@ -61,7 +61,11 @@ export {
     TransactionSessionStatuses,
     DateRangeSpec,
 } from '../component/search-ui/filters/types'
-export { SearchUIProvider, type SearchUIDefaults } from '../component/search-ui/SearchUIProvider'
+export {
+    SearchUIProvider,
+    type SaveLastSearchUITemplateNameRequest,
+    type SearchUIDefaults,
+} from '../component/search-ui/SearchUIProvider'
 export {
     MultigetSelect,
     MultigetSelectActions,

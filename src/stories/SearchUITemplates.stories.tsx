@@ -85,6 +85,8 @@ const TemplatesStory = ({
 }: TemplatesStoryProps) => {
     const savedRef = useRef<SearchUITemplate[]>(templateNames.map(createStoryTemplate))
     const [savedOrder, setSavedOrder] = useState(() => templateNames.join(' · '))
+    const lastNameRef = useRef<string | null>(null)
+    const [lastName, setLastName] = useState<string | null>(null)
 
     const defaults = useMemo<Partial<SearchUIDefaults>>(() => {
         const respond = () => new Promise(resolve => setTimeout(resolve, latencyMs))
@@ -94,6 +96,16 @@ const TemplatesStory = ({
             getSearchTemplates: async () => {
                 await respond()
                 return [...savedRef.current]
+            },
+            // The fake backend also keeps the last chosen name, so the story never touches localStorage.
+            getLastSearchTemplateName: async () => {
+                await respond()
+                return lastNameRef.current
+            },
+            saveLastSearchTemplateName: async ({templateName}) => {
+                await respond()
+                lastNameRef.current = templateName
+                setLastName(templateName)
             },
             searchTemplateExists: async ({templateName}) => {
                 await respond()
@@ -143,6 +155,8 @@ const TemplatesStory = ({
                     variant='body2'
                 >
                     {'Saved order: '}{savedOrder || '—'}
+                    <br/>
+                    {'Last chosen: '}{lastName ?? '—'}
                 </Typography>
             </Box>
         </SearchUIProvider>
@@ -157,7 +171,8 @@ export default {
             description: {
                 component: 'The templates menu of SearchUI filters. Drag a template by its grip, or focus it and '
                     + 'press Alt+↑ / Alt+↓, to change its position; the host persists the order through '
-                    + '`reorderSearchTemplates`. "Saved order" below shows what the fake backend stored.',
+                    + '`reorderSearchTemplates`. "Saved order" below shows what the fake backend stored; '
+                    + '"Last chosen" is the name it keeps through `saveLastSearchTemplateName`.',
             },
         },
     },

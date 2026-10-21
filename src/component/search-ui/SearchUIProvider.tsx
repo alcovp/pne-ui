@@ -40,6 +40,12 @@ type ReorderSearchUITemplatesRequest = {
     templateNames: string[]
 }
 
+export type SaveLastSearchUITemplateNameRequest = {
+    contextName: string
+    /** `null` forgets the context: the user cleared the filters or deleted the template. */
+    templateName: string | null
+}
+
 type GetProjectCurrenciesRequest = {
     searchConditions: CriterionTypeEnum[]
     multigetCriteria: MultigetCriterion[]
@@ -87,6 +93,18 @@ export type SearchUIDefaults = {
      * adds or removes later, e.g. once it knows whether the server can store the order.
      */
     reorderSearchTemplates?: (request: ReorderSearchUITemplatesRequest) => Promise<void>
+    /**
+     * Host storage of the template name last chosen in a settings context, e.g. on the
+     * server per user. Optional, and the two callbacks go together: without them the name
+     * stays in the browser's `localStorage`, which every user of that browser shares. With
+     * them a name the old mechanism left in `localStorage` moves to the host once, only when
+     * it still names an existing template, and the local key is deleted either way. A
+     * rejected call means the host cannot store the name right now, e.g. the server predates
+     * the feature: that one read or write then uses `localStorage` as before. Resolve with
+     * `null` when nothing is remembered for the context.
+     */
+    getLastSearchTemplateName?: (contextName: string) => Promise<string | null>
+    saveLastSearchTemplateName?: (request: SaveLastSearchUITemplateNameRequest) => Promise<void>
     getProjectAvailableCurrencies: (request: GetProjectCurrenciesRequest) => Promise<AutoCompleteChoiceWithStatus[]>
     getCardTypes: () => Promise<AbstractEntity[]>
     getCurrencies: () => Promise<AbstractEntity[]>
