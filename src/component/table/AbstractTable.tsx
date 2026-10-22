@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useLayoutEffect, useRef, MutableRefObject} from 'react';
+import React, {useState, useLayoutEffect, useRef, MutableRefObject} from 'react';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
@@ -15,6 +15,14 @@ import {Order} from "../../common/pne/type";
 import {useTranslation} from "react-i18next";
 import useDelayedLoading from "./useDelayedLoading";
 import {createAutoTestAttributes} from '../AutoTestAttribute';
+import {
+    countRowColumns,
+    isSameSkeletonColumns,
+    measureColumnWidths,
+    measureSkeletonColumns,
+    SkeletonColumn,
+    SkeletonGeometry,
+} from './tableSkeleton';
 
 const TABLE_AUTOTEST_ID = 'table';
 const TABLE_EMPTY_STATE_AUTOTEST_ID = 'empty-state';
@@ -95,7 +103,10 @@ export type TableProps<D> = {
     lastRow?: React.ReactElement
     paginator?: PaginatorProps
     loading?: boolean
-    /** Identity that makes a structural loading transition visible immediately without remounting controls. */
+    /**
+     * Identity that makes a structural loading transition visible immediately without remounting controls.
+     * The skeleton remembers the geometry of real rows per identity, so one view never lends its columns to another.
+     */
     loadingKey?: string | number
     stickyHeader?: boolean
     showNothingIsFoundRow?: boolean
@@ -106,6 +117,7 @@ export type TableProps<D> = {
     tableSx?: SxProps
     boxSx?: SxProps
     noRowsMessage?: string
+    /** Skeleton row height until the current column structure has been shown with real rows. */
     skeletonRowHeight?: number
     /** Optional controls rendered in the responsive top band, before page-size controls when top pagination exists. */
     toolbar?: React.ReactNode
@@ -160,40 +172,55 @@ const AbstractTable = <D, >(
 
     const containerRef = useRef<HTMLElement>(null);
     const tableContainerRef = useRef<HTMLDivElement>(null);
-    const lastRowHeightRef = useRef<number | undefined>(undefined);
-    const lastHeaderHeightRef = useRef<number>(0);
-    const lastColumnWidthsRef = useRef<number[]>([]);
+    const tableRef = useRef<HTMLTableElement>(null);
+    const skeletonGeometryRef = useRef(new Map<string | number | undefined, SkeletonGeometry>());
     const [columnCount, setColumnCount] = useState(5);
+    const [skeletonColumns, setSkeletonColumns] = useState<SkeletonColumn[]>([]);
 
     const visibleRows = React.useMemo(
         () => data,
         [data, sortOptions?.order, sortOptions?.sortIndex],
     );
 
-    useEffect(() => {
-        if (containerRef?.current) {
-            const header = containerRef.current.querySelector('table thead tr');
-            if (header) {
-                setColumnCount(header.childElementCount);
-            }
+    // The header decides the columns. Measured before paint, so that a switched view
+    // never shows a frame with the previous view's column count.
+    useLayoutEffect(() => {
+        const headerRow = tableRef.current?.tHead?.rows[0];
+        if (!headerRow) {
+            return;
+        }
+
+        setColumnCount(countRowColumns(headerRow));
+        if (showSkeleton) {
+            const columns = measureSkeletonColumns(headerRow);
+            setSkeletonColumns(current => isSameSkeletonColumns(current, columns) ? current : columns);
         }
     });
 
     useLayoutEffect(() => {
-        if (!showSkeleton && tableContainerRef.current && visibleRows.length > 0) {
-            const containerHeight = tableContainerRef.current.offsetHeight;
-            const thead = containerRef.current?.querySelector('table thead');
-            const headerHeight = thead ? thead.getBoundingClientRect().height : 0;
-            lastHeaderHeightRef.current = headerHeight;
-            lastRowHeightRef.current = (containerHeight - headerHeight) / visibleRows.length;
-
-            const headerCells = containerRef.current?.querySelectorAll('table thead tr th');
-            if (headerCells && headerCells.length > 0) {
-                lastColumnWidthsRef.current = Array.from(headerCells).map(
-                    cell => cell.getBoundingClientRect().width
-                );
-            }
+        const table = tableRef.current;
+        const headerRow = table?.tHead?.rows[0];
+        if (showSkeleton || !table || !headerRow || !tableContainerRef.current || visibleRows.length === 0) {
+            return;
         }
+
+        const tableWidth = table.getBoundingClientRect().width;
+        if (tableWidth === 0) {
+            // Not laid out (a hidden table): nothing to learn, keep what was measured before.
+            return;
+        }
+
+        const headerHeight = table.tHead?.getBoundingClientRect().height ?? 0;
+        const rowHeight = (tableContainerRef.current.offsetHeight - headerHeight) / visibleRows.length;
+        const headerColumnCount = countRowColumns(headerRow);
+        const columnWidths = measureColumnWidths(table, headerColumnCount);
+
+        skeletonGeometryRef.current.set(loadingKey, {
+            columnCount: headerColumnCount,
+            columnPercents: columnWidths?.map(width => width * 100 / tableWidth),
+            rowHeight: rowHeight > 0 ? rowHeight : undefined,
+            headerHeight,
+        });
     });
 
     const getPneTablePagination = (
@@ -240,7 +267,11 @@ const AbstractTable = <D, >(
     const skeletonRowCount = paginator?.rowsPerPage || 10;
     const cellPadding = 16; // 8px top + 8px bottom
     const cellBorderHeight = 2; // 1px top + 1px bottom from PneTableRow
-    const actualSkeletonRowHeight = lastRowHeightRef.current ?? skeletonRowHeight;
+    const rememberedGeometry = skeletonGeometryRef.current.get(loadingKey);
+    const skeletonGeometry = rememberedGeometry?.columnCount === columnCount
+        ? rememberedGeometry
+        : undefined;
+    const actualSkeletonRowHeight = skeletonGeometry?.rowHeight ?? skeletonRowHeight;
     const skeletonRowSx: SxProps | undefined = actualSkeletonRowHeight
         ? {
             height: actualSkeletonRowHeight,
@@ -260,8 +291,8 @@ const AbstractTable = <D, >(
     const skeletonItemHeight = actualSkeletonRowHeight
         ? Math.max(16, actualSkeletonRowHeight - cellPadding - cellBorderHeight)
         : undefined;
-    const skeletonTableHeight = showSkeleton && actualSkeletonRowHeight && lastHeaderHeightRef.current > 0
-        ? lastHeaderHeightRef.current + actualSkeletonRowHeight * skeletonRowCount
+    const skeletonTableHeight = showSkeleton && skeletonGeometry?.rowHeight && skeletonGeometry.headerHeight > 0
+        ? skeletonGeometry.headerHeight + skeletonGeometry.rowHeight * skeletonRowCount
         : undefined;
     const hasToolbar = toolbar !== undefined
         && toolbar !== null
@@ -308,18 +339,22 @@ const AbstractTable = <D, >(
     const hasTopPagination = Boolean(paginator?.duplicatePagination)
     const hasTopControls = hasToolbar || hasTopPagination
 
-    const SKELETON_COL_HIDDEN = 30;
-    const SKELETON_COL_NARROW = 120;
-
     const skeletonCellContent = (row: number, col: number) => {
-        const colWidth = lastColumnWidthsRef.current[col];
-        if (colWidth !== undefined && colWidth < SKELETON_COL_HIDDEN) {
+        const column = skeletonColumns[col];
+        if (column?.hidden) {
             return null;
         }
-        const width = colWidth !== undefined && colWidth < SKELETON_COL_NARROW
-            ? '100%'
-            : `${40 + Math.floor((Math.sin(row * 127.1 + col * 311.7) * 43758.5453 % 1 + 1) % 1 * 40)}%`;
-        return <Skeleton variant="rounded" width={width} height={skeletonItemHeight} />;
+        const variation = (Math.sin(row * 127.1 + col * 311.7) * 43758.5453 % 1 + 1) % 1;
+        // Narrow columns keep bars long enough to read as text, yet short enough to show their alignment.
+        const width = column?.narrow
+            ? `${60 + Math.floor(variation * 30)}%`
+            : `${40 + Math.floor(variation * 40)}%`;
+        const style: React.CSSProperties | undefined = column?.align === 'right'
+            ? {marginLeft: 'auto'}
+            : column?.align === 'center'
+                ? {marginLeft: 'auto', marginRight: 'auto'}
+                : undefined;
+        return <Skeleton variant="rounded" width={width} height={skeletonItemHeight} style={style} />;
     };
 
     return <Box
@@ -350,16 +385,17 @@ const AbstractTable = <D, >(
         </Box> : null}
         <TableContainer ref={tableContainerRef}>
             <Table
+                ref={tableRef}
                 aria-busy={showSkeleton}
                 aria-label={tableAriaLabel}
                 aria-labelledby={tableAriaLabelledBy}
                 stickyHeader={stickyHeader}
                 sx={{...tableSx, ...(skeletonTableHeight ? {height: skeletonTableHeight} : {})}}
             >
-                {showSkeleton && lastColumnWidthsRef.current.length > 0 && (
+                {showSkeleton && skeletonGeometry?.columnPercents && (
                     <colgroup>
-                        {lastColumnWidthsRef.current.map((width, i) => (
-                            <col key={i} style={{width}} />
+                        {skeletonGeometry.columnPercents.map((percent, i) => (
+                            <col key={i} style={{width: `${percent}%`}} />
                         ))}
                     </colgroup>
                 )}

@@ -297,6 +297,62 @@ describe('SearchUI table views', () => {
         expect(operationsSearch).toHaveBeenCalledTimes(1)
     })
 
+    it('starts the skeleton of a switched view from the row height that view presets', async () => {
+        type PresetViewId = 'summary' | 'operations'
+        const operations = createDeferred<Row[]>()
+        const views: readonly SearchUIView<Row, PresetViewId>[] = [
+            {
+                id: 'summary',
+                label: 'Summary',
+                searchData: resolvedSearch('Summary row'),
+                createTableHeader: () => <tr><th>Summary header</th></tr>,
+                createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+            },
+            {
+                id: 'operations',
+                label: 'Operations',
+                searchData: () => operations.promise,
+                skeletonRowHeight: 120,
+                createTableHeader: () => <tr><th>Operations header</th></tr>,
+                createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+            },
+        ]
+        const PresetHarness = () => {
+            const [value, setValue] = React.useState<PresetViewId>('summary')
+
+            return <SearchUI<Row, PresetViewId>
+                autoTestId='preset'
+                config={filtersConfig}
+                possibleCriteria={[]}
+                settingsContextName='preset-settings'
+                tableViews={{
+                    'aria-label': 'Preset table view',
+                    onChange: setValue,
+                    value,
+                    views,
+                }}
+            />
+        }
+        render(<PresetHarness/>)
+
+        await waitFor(() => {
+            expect(screen.getByText('Summary row')).toBeTruthy()
+        })
+        fireEvent.click(screen.getByRole('button', {name: 'Operations'}))
+
+        const table = screen.getByRole('table')
+        expect(table.getAttribute('aria-busy')).toBe('true')
+        // 120px rows keep 18px for cell padding and borders.
+        expect(table.querySelector<HTMLElement>('tbody .MuiSkeleton-root')?.style.height).toBe('102px')
+
+        await act(async () => {
+            operations.resolve([{id: 'operations', label: 'Operations row'}])
+        })
+        await waitFor(() => {
+            expect(screen.getByText('Operations row')).toBeTruthy()
+        })
+    })
+
     it('keeps a view-disabled filter value for other views but neutralizes its request value', async () => {
         type FilteredViewId = 'brief' | 'detailed'
         const briefSearch = resolvedSearch('Filtered Brief row')

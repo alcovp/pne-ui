@@ -1,4 +1,4 @@
-import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneCheckbox, PneSwitch, PneTable} from "../index";
+import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneCheckbox, PneSwitch, PneTable, PneTableViewSelector} from "../index";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
 import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
@@ -290,4 +290,136 @@ const FastLoadingWrap = () => {
 
 export const FastLoading: StoryObj<typeof FastLoadingWrap> = {
     render: () => <FastLoadingWrap />,
+};
+
+type OrderStoryView = 'brief' | 'detailed'
+
+type OrderStoryRow = {
+    id: number
+    date: string
+    merchant: string
+    amount: string
+    status: string
+    type: string
+    message: string
+    processor: string
+    card: string
+    details: string
+}
+
+const orderStoryRows: OrderStoryRow[] = Array.from({length: 60}, (_, index) => ({
+    id: 900100 + index,
+    date: `22.10.2026 10:${String(index % 60).padStart(2, '0')}`,
+    merchant: index % 2 ? 'Northwind' : 'Contoso Payments',
+    amount: `${(index * 37.5 + 10).toFixed(2)} USD`,
+    status: index % 3 ? 'Approved' : 'Declined',
+    type: index % 4 ? 'Sale' : 'Refund',
+    message: index % 3 ? 'OK' : 'Insufficient funds',
+    processor: 'Acquirer',
+    card: 'VISA',
+    details: `4745 15** **** ${String(1000 + index)} · John Doe · 10.0.0.${index}`,
+}))
+
+const getOrdersSlow = async (page: number, pageSize: number): Promise<OrderStoryRow[]> => {
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    return orderStoryRows.slice(page * pageSize, page * pageSize + pageSize + 1)
+}
+
+const orderStoryViews = [
+    {id: 'brief', label: 'Brief'},
+    {id: 'detailed', label: 'Detailed'},
+] as const
+
+const rightAligned = (label: string) => <div style={{display: 'flex', justifyContent: 'flex-end'}}>{label}</div>
+const centered = (label: string) => <div style={{display: 'flex', justifyContent: 'center'}}>{label}</div>
+
+/**
+ * Two views of one table with different columns, as on the Orders page. Each view gets
+ * a skeleton of its own columns across the full table, and its bars sit where the header
+ * labels sit: Amount on the right, Card in the middle. Detailed presets its taller rows,
+ * so even its first skeleton has their height.
+ */
+const ViewSwitchSkeletonWrap = () => {
+    const [view, setView] = useState<OrderStoryView>('brief')
+
+    const {
+        loading,
+        paginator,
+        data,
+    } = useTable<OrderStoryRow>({
+        settingsContextName: 'context_view_switch',
+        duplicatePagination: true,
+        resetKey: view,
+        fetchData: ({page, pageSize}) => getOrdersSlow(page, pageSize),
+    })
+
+    const briefHeader = () => <PneTableRow>
+        <PneHeaderTableCell>{'Date'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Merchant'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{rightAligned('Amount')}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Status'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Type'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Message'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Proc'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{centered('Card')}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Details'}</PneHeaderTableCell>
+    </PneTableRow>
+
+    const briefRow = (row: OrderStoryRow) => <PneTableRow key={row.id}>
+        <PneTableCell>{row.date}</PneTableCell>
+        <PneTableCell>{row.id}</PneTableCell>
+        <PneTableCell>{row.merchant}</PneTableCell>
+        <PneTableCell>{rightAligned(row.amount)}</PneTableCell>
+        <PneTableCell>{row.status}</PneTableCell>
+        <PneTableCell>{row.type}</PneTableCell>
+        <PneTableCell>{row.message}</PneTableCell>
+        <PneTableCell>{row.processor}</PneTableCell>
+        <PneTableCell>{centered(row.card)}</PneTableCell>
+        <PneTableCell>{row.details}</PneTableCell>
+    </PneTableRow>
+
+    const detailedHeader = () => <PneTableRow>
+        <PneHeaderTableCell>{'Date'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{rightAligned('Amount')}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Status'}</PneHeaderTableCell>
+        <PneHeaderTableCell>{'Details'}</PneHeaderTableCell>
+    </PneTableRow>
+
+    const detailedRow = (row: OrderStoryRow) => <PneTableRow key={row.id}>
+        <PneTableCell sx={{verticalAlign: 'top', width: '120px'}}>{row.date}</PneTableCell>
+        <PneTableCell sx={{verticalAlign: 'top'}}>{rightAligned(row.amount)}</PneTableCell>
+        <PneTableCell sx={{verticalAlign: 'top'}}>
+            <div>{row.status}</div>
+            <div>{row.type}</div>
+        </PneTableCell>
+        <PneTableCell sx={{verticalAlign: 'top', width: '60%'}}>
+            <div>{row.merchant}</div>
+            <div>{row.details}</div>
+            <div>{row.message}</div>
+        </PneTableCell>
+    </PneTableRow>
+
+    return <Box sx={{background: '#FFFFFF'}}>
+        <PneTable
+            data={data}
+            createRow={view === 'brief' ? briefRow : detailedRow}
+            createTableHeader={view === 'brief' ? briefHeader : detailedHeader}
+            paginator={paginator}
+            loading={loading}
+            loadingKey={view}
+            skeletonRowHeight={view === 'detailed' ? 77 : undefined}
+            toolbar={<PneTableViewSelector
+                aria-label={'Orders view'}
+                value={view}
+                views={orderStoryViews}
+                onChange={setView}
+            />}
+        />
+    </Box>
+}
+
+export const ViewSwitchSkeleton: StoryObj<typeof ViewSwitchSkeletonWrap> = {
+    render: () => <ViewSwitchSkeletonWrap />,
 };

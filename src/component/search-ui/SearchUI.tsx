@@ -180,6 +180,12 @@ export type SearchUIView<
      * `reset` is the backward-compatible default. `restore` recalls state per identity.
      */
     tableStateOnActivate?: SearchUIViewTableStateOnActivate
+    /**
+     * Expected row height of this view in px. The skeleton uses it until the view
+     * has been shown with rows and remembers the real height, so a view with tall
+     * rows does not start from short skeleton rows.
+     */
+    skeletonRowHeight?: number
 }
 
 type SearchUIViewsAccessibleName = {
@@ -410,6 +416,7 @@ const SearchUIContent = <
             paginator={paginator}
             loading={loading}
             loadingKey={tableResetIdentity}
+            skeletonRowHeight={resolvedTable.skeletonRowHeight}
             toolbar={toolbar}
             feedback={feedback}
         />
@@ -745,6 +752,7 @@ type ResolvedSearchUITable<
     searchDataKey?: string | number
     sortOnActivate?: SearchUIViewSort
     tableStateOnActivate?: SearchUIViewTableStateOnActivate
+    skeletonRowHeight?: number
     viewId?: TViewId
 }
 
@@ -792,6 +800,7 @@ const resolveSearchUITable = <
         searchDataKey: activeView.searchDataKey,
         sortOnActivate: activeView.sortOnActivate,
         tableStateOnActivate: activeView.tableStateOnActivate,
+        skeletonRowHeight: activeView.skeletonRowHeight,
         viewId: activeView.id,
     }
 }
