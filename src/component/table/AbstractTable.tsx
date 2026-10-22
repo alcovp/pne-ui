@@ -30,6 +30,9 @@ const TABLE_PAGINATION_AUTOTEST_ID = 'pagination';
 const TABLE_FEEDBACK_AUTOTEST_ID = 'table-feedback';
 const TABLE_TOP_CONTROLS_AUTOTEST_ID = 'table-top-controls';
 const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar';
+// A row with a 20px icon, flag or switch: what the list tables measured on the stands
+// (Orders Brief, Gates, Processors, Merchants). The bare skeleton bar made 34px rows.
+const DEFAULT_SKELETON_ROW_HEIGHT = 37;
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
@@ -117,7 +120,7 @@ export type TableProps<D> = {
     tableSx?: SxProps
     boxSx?: SxProps
     noRowsMessage?: string
-    /** Skeleton row height until the current column structure has been shown with real rows. */
+    /** Skeleton row height until the current column structure has been shown with real rows; 37px by default. */
     skeletonRowHeight?: number
     /** Optional controls rendered in the responsive top band, before page-size controls when top pagination exists. */
     toolbar?: React.ReactNode
@@ -271,7 +274,7 @@ const AbstractTable = <D, >(
     const skeletonGeometry = rememberedGeometry?.columnCount === columnCount
         ? rememberedGeometry
         : undefined;
-    const actualSkeletonRowHeight = skeletonGeometry?.rowHeight ?? skeletonRowHeight;
+    const actualSkeletonRowHeight = skeletonGeometry?.rowHeight ?? skeletonRowHeight ?? DEFAULT_SKELETON_ROW_HEIGHT;
     const skeletonRowSx: SxProps | undefined = actualSkeletonRowHeight
         ? {
             height: actualSkeletonRowHeight,

@@ -18,6 +18,8 @@ type Column = {
     /** Horizontal extent of the label text, as `left:right`. */
     labelBox?: string
     colSpan?: number
+    /** Places the label through a flex wrapper, as the Orders headers do. */
+    justify?: 'center' | 'flex-end'
 }
 
 const BRIEF: Column[] = [
@@ -62,7 +64,11 @@ const renderTable = (
                         data-left={column.left}
                         data-width={column.width}
                     >
-                        <span data-label-box={column.labelBox}>{column.label}</span>
+                        {column.justify
+                            ? <div style={{display: 'flex', justifyContent: column.justify}}>
+                                <span data-label-box={column.labelBox}>{column.label}</span>
+                            </div>
+                            : <span data-label-box={column.labelBox}>{column.label}</span>}
                     </th>
                 ))}
             </tr>
@@ -149,11 +155,11 @@ describe('PneTable skeleton geometry', () => {
         view.rerender(renderTable(DETAILED, {loading: true, loadingKey: 'full', rows: []}))
 
         // Detailed has not been shown with rows yet: its columns follow its own header
-        // across the full table, with as many skeleton cells as header columns.
+        // across the full table, with as many skeleton cells as header columns, in default 37px rows.
         expect(getTable(view.container).getAttribute('aria-busy')).toBe('true')
         expect(getColumnWidths(view.container)).toEqual([])
         expect(getFirstBodyRow(view.container).cells).toHaveLength(2)
-        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['', ''])
+        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['19px', '19px'])
 
         finishLoading(view, DETAILED, 'full')
         view.rerender(renderTable(BRIEF, {loading: true, loadingKey: 'brief', rows: []}))
@@ -243,6 +249,20 @@ describe('PneTable skeleton geometry', () => {
         expect(percent(bars[0])).toBeLessThan(80)
         expect(percent(bars[2])).toBeGreaterThanOrEqual(60)
         expect(percent(bars[2])).toBeLessThan(90)
+    })
+
+    it('takes the alignment from the header styles when a label fills its narrow cell', () => {
+        const view = render(renderTable([
+            {label: 'Card', left: 0, width: 40, labelBox: '0:40', justify: 'center'},
+            {label: 'Amount', left: 40, width: 40, labelBox: '40:80', justify: 'flex-end'},
+            {label: 'Proc', left: 80, width: 40, labelBox: '80:120'},
+        ], {loading: true, rows: []}))
+
+        const bars = getBars(view.container)
+
+        expect([bars[0]?.style.marginLeft, bars[0]?.style.marginRight]).toEqual(['auto', 'auto'])
+        expect([bars[1]?.style.marginLeft, bars[1]?.style.marginRight]).toEqual(['auto', ''])
+        expect([bars[2]?.style.marginLeft, bars[2]?.style.marginRight]).toEqual(['', ''])
     })
 
     it('gives spanned header columns their own skeleton and empty-state cells', () => {

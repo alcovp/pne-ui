@@ -63,10 +63,56 @@ export const measureColumnWidths = (
     return undefined
 }
 
+const JUSTIFY_ALIGN: Readonly<Record<string, SkeletonAlign>> = {
+    center: 'center',
+    end: 'right',
+    'flex-end': 'right',
+    right: 'right',
+}
+
+const TEXT_ALIGN: Readonly<Record<string, SkeletonAlign>> = {
+    '-webkit-center': 'center',
+    '-webkit-right': 'right',
+    center: 'center',
+    end: 'right',
+    right: 'right',
+}
+
+const isFlex = (display: string): boolean => display === 'flex' || display === 'inline-flex'
+
+/**
+ * Alignment that the header styles ask for, from the label up to the cell: a flex
+ * row that centres or right-aligns it, or the text alignment of the first block
+ * that places it. Flex items and inline boxes, a sort label among them, are
+ * placed by their container, so the walk goes on to it.
+ */
+const styledLabelAlign = (cell: HTMLTableCellElement, label: Node, view: Window): SkeletonAlign => {
+    for (let element = label.parentElement; element && cell.contains(element); element = element.parentElement) {
+        const style = view.getComputedStyle(element)
+        if (isFlex(style.display) && !style.flexDirection.startsWith('column')) {
+            const align = JUSTIFY_ALIGN[style.justifyContent]
+            if (align) {
+                return align
+            }
+        }
+
+        const parent = element === cell ? null : element.parentElement
+        const placedByParent = parent !== null
+            && (isFlex(view.getComputedStyle(parent).display) || style.display.startsWith('inline'))
+        if (!placedByParent) {
+            return isFlex(style.display) ? 'left' : TEXT_ALIGN[style.textAlign] ?? 'left'
+        }
+    }
+
+    return 'left'
+}
+
 /**
  * Where the label of a header cell sits in the cell's content box. The visible
  * text is measured rather than the styles that place it: headers align their
- * labels through `text-align`, flex wrappers or sort labels alike.
+ * labels through `text-align`, flex wrappers or sort labels alike. A label that
+ * fills its narrow cell sits everywhere at once; its styles decide then, so that
+ * a centred Card header keeps a centred bar in a 55px column.
  */
 export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => {
     const document = cell.ownerDocument
@@ -77,6 +123,7 @@ export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => 
         return 'left'
     }
 
+    let label: Node | undefined
     let labelLeft = Infinity
     let labelRight = -Infinity
     const walker = document.createTreeWalker(cell, view.NodeFilter.SHOW_TEXT)
@@ -89,12 +136,13 @@ export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => 
         range.selectNodeContents(node)
         const rect = range.getBoundingClientRect()
         if (rect.width > 0) {
+            label = label ?? node
             labelLeft = Math.min(labelLeft, rect.left)
             labelRight = Math.max(labelRight, rect.right)
         }
     }
 
-    if (labelLeft > labelRight) {
+    if (!label) {
         return 'left'
     }
 
@@ -102,6 +150,10 @@ export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => 
     const box = cell.getBoundingClientRect()
     const leftGap = labelLeft - box.left - toPixels(style.borderLeftWidth) - toPixels(style.paddingLeft)
     const rightGap = box.right - toPixels(style.borderRightWidth) - toPixels(style.paddingRight) - labelRight
+
+    if (leftGap <= ALIGN_TOLERANCE && rightGap <= ALIGN_TOLERANCE) {
+        return styledLabelAlign(cell, label, view)
+    }
 
     if (leftGap <= ALIGN_TOLERANCE) {
         return 'left'
