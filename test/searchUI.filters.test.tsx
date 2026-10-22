@@ -36,6 +36,35 @@ describe('SearchUIFilters search button', () => {
         expect(refreshButton.disabled).toBe(false)
     })
 
+    it('hides Refresh on request, e.g. on report pages with nothing to refresh', async () => {
+        const onFiltersUpdate = jest.fn()
+        renderFilters({
+            onFiltersUpdate,
+            config: {
+                hideShowFiltersButton: true,
+                hideTemplatesSelect: true,
+                hideRefreshButton: true,
+            },
+        })
+
+        await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalled())
+        expect(screen.queryByRole('button', {name: 'Refresh'})).toBeNull()
+        expect(document.querySelector('[data-autotest="run-search"]')).toBeNull()
+    })
+
+    it('keeps the manual Search button, the only way to apply the filters, despite hideRefreshButton', async () => {
+        renderFilters({
+            config: {
+                hideShowFiltersButton: true,
+                hideTemplatesSelect: true,
+                hideRefreshButton: true,
+                manualSearch: true,
+            },
+        })
+
+        expect(await screen.findByRole('button', {name: 'react.searchUI.search'})).toBeTruthy()
+    })
+
     it('keeps Search enabled in manual mode when filters are already applied', async () => {
         renderFilters({
             config: {

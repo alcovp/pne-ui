@@ -132,6 +132,11 @@ export type SearchUIFiltersConfig = {
      */
     hideShowFiltersButton?: boolean
     /**
+     * Прячет кнопку Refresh автоматического режима, например на страницах отчётов, где ей нечего обновлять.
+     * Кнопку Search ручного режима (`manualSearch`) флаг не прячет: без неё фильтры не применить.
+     */
+    hideRefreshButton?: boolean
+    /**
      * Дополнительные настройки поведения фильтра по диапазону дат.
      */
     dateRange?: DateRangeCriterionConfig
@@ -519,6 +524,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const conflictingCriteriaGroups = useSearchUIFiltersStore(s => s.config?.conflictingCriteriaGroups)
     const hideTemplatesSelect = useSearchUIFiltersStore(s => s.config?.hideTemplatesSelect)
     const hideShowFiltersButton = useSearchUIFiltersStore(s => s.config?.hideShowFiltersButton)
+    const hideRefreshButton = useSearchUIFiltersStore(s => s.config?.hideRefreshButton)
     const manualSearch = useSearchUIFiltersStore(s => s.config?.manualSearch)
     const triggerSearch = useSearchUIFiltersStore(s => s.triggerSearch)
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
@@ -742,7 +748,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                             /> : null}
                         </SearchUIFiltersHeaderRight>
                     </SearchUIFiltersHeaderMainRow> : null}
-                    <SearchUIFiltersHeaderSearch>
+                    {manualSearch || !hideRefreshButton ? <SearchUIFiltersHeaderSearch>
                         <PneButton
                             {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
                             onClick={triggerSearch}
@@ -755,7 +761,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                                 ? t('react.searchUI.search')
                                 : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
                         </PneButton>
-                    </SearchUIFiltersHeaderSearch>
+                    </SearchUIFiltersHeaderSearch> : null}
                 </SearchUIFiltersHeaderActions>
             </Box>
             <Box id={filtersPanelId} hidden={!showFilters}>

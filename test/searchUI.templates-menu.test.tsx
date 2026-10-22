@@ -2,6 +2,7 @@ import * as React from 'react'
 import {act, fireEvent, render, waitFor, within} from '@testing-library/react'
 
 import {
+    CriterionTypeEnum,
     overlayActions,
     PneConfirmProvider,
     SearchUIFilters,
@@ -248,6 +249,54 @@ describe('SearchUI templates menu', () => {
             contextName: CONTEXT_NAME,
             templateName: 'Charlie',
         })))
+    })
+
+    it('marks the applied template once the filters change and discards the changes', async () => {
+        const onFiltersUpdate = jest.fn()
+        render(<SearchUIProvider
+            defaults={{getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo'))}}
+        >
+            <SearchUIFilters
+                autoTestId={SCOPE}
+                settingsContextName={CONTEXT_NAME}
+                possibleCriteria={[CriterionTypeEnum.STATUS]}
+                onFiltersUpdate={onFiltersUpdate}
+                config={{hideShowFiltersButton: true}}
+            />
+        </SearchUIProvider>)
+        const modifiedDot = () => trigger().querySelector('[data-autotest="template-modified"]')
+        const criteria = () => Array.from(document.body.querySelectorAll('[data-autotest="criterion"]'))
+            .map(criterion => criterion.getAttribute('data-autotest-value'))
+
+        await openMenu(2)
+        fireEvent.click(selectItem('Alpha'))
+        await waitFor(() => expect(trigger().textContent).toBe('Alpha'))
+        expect(modifiedDot()).toBeNull()
+        await openMenu(2)
+        expect(panel()?.querySelector('[data-autotest="discard-template-changes"]')).toBeNull()
+        fireEvent.keyDown(panel() as HTMLElement, {key: 'Escape', code: 'Escape'})
+
+        fireEvent.mouseDown(document.body.querySelector('[data-autotest="add-filter"]') as HTMLElement)
+        const addFilterOptions = await waitFor(() => {
+            const listbox = document.body.querySelector<HTMLElement>(
+                `[data-autotest="add-filter-options"][data-autotest-value="${SCOPE}"]`,
+            )
+            expect(listbox).not.toBeNull()
+            return listbox as HTMLElement
+        })
+        fireEvent.click(within(addFilterOptions).getAllByRole('option')[0])
+
+        await waitFor(() => expect(modifiedDot()).not.toBeNull())
+        expect(criteria()).toEqual([CriterionTypeEnum.STATUS])
+        expect(trigger().textContent).toBe('Alpha, Unsaved changes')
+        expect(trigger().getAttribute('title')).toBe('Alpha · Unsaved changes')
+
+        await openMenu(2)
+        fireEvent.click(panel()?.querySelector('[data-autotest="discard-template-changes"]') as HTMLElement)
+
+        await waitFor(() => expect(modifiedDot()).toBeNull())
+        expect(criteria()).toEqual([])
+        expect(trigger().textContent).toBe('Alpha')
     })
 
     describe('search', () => {

@@ -39,5 +39,6 @@ export const createClearCriteriaUndoSnapshot = (
     csvCharset: state.csvCharset,
     criteria: state.criteria,
     template: state.template,
+    templateBaseline: state.templateBaseline,
     hasUnappliedFilters: state.hasUnappliedFilters,
 })

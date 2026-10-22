@@ -19,7 +19,9 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
 import {useSearchUIFiltersStore} from '../../state/store';
+import {isSearchUITemplateModified} from '../../state/actions';
 import {SearchUITemplate} from "../../types";
 import {overlayActions, PneButton, PneTextField} from '../../../../..';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
@@ -36,6 +38,8 @@ const REMOVE_TEMPLATE_AUTOTEST_ID = 'remove-template';
 const REORDER_TEMPLATE_AUTOTEST_ID = 'reorder-template';
 const CREATE_TEMPLATE_AUTOTEST_ID = 'create-template';
 const UPDATE_TEMPLATE_AUTOTEST_ID = 'update-template';
+const DISCARD_TEMPLATE_CHANGES_AUTOTEST_ID = 'discard-template-changes';
+const TEMPLATE_MODIFIED_AUTOTEST_ID = 'template-modified';
 const TEMPLATE_SEARCH_AUTOTEST_ID = 'template-search';
 const TEMPLATE_SEARCH_EMPTY_AUTOTEST_ID = 'template-search-empty';
 
@@ -99,6 +103,8 @@ const SearchUITemplatesMenu = () => {
     const updateTemplate = useSearchUIFiltersStore(s => s.updateTemplate)
     const templates = useSearchUIFiltersStore(s => s.templates)
     const template = useSearchUIFiltersStore(s => s.template)
+    // The filters no longer match the applied template: a dot marks it, as on an unsaved view.
+    const modified = useSearchUIFiltersStore(isSearchUITemplateModified)
     const canPersistOrder = useSearchUIFiltersStore(s => Boolean(s.defaults.reorderSearchTemplates))
     // Phones keep the trigger at 30vw; the icon would leave the template name no room.
     const showTriggerIcon = useMediaQuery(useTheme().breakpoints.up('sm'), {noSsr: true})
@@ -126,6 +132,7 @@ const SearchUITemplatesMenu = () => {
     const removeTemplateLabel = t('react.searchUI.template.remove', {defaultValue: 'Remove template'})
     const reorderLabel = t('react.searchUI.template.reorder', {defaultValue: 'Drag to reorder'})
     const searchLabel = t('react.searchUI.template.search', {defaultValue: 'Search templates'})
+    const modifiedLabel = t('react.searchUI.template.modified', {defaultValue: 'Unsaved changes'})
 
     // Moving a row can detach its focused element; put focus back on the moved template.
     useLayoutEffect(() => {
@@ -182,6 +189,12 @@ const SearchUITemplatesMenu = () => {
     const handleUpdateTemplate = () => {
         if (template) {
             updateTemplate(template.name)
+        }
+        handleClose()
+    }
+    const handleDiscardTemplateChanges = () => {
+        if (template) {
+            setTemplate(template, { forceSearch: true })
         }
         handleClose()
     }
@@ -280,12 +293,23 @@ const SearchUITemplatesMenu = () => {
             startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon/> : undefined}
             endIcon={<ExpandMoreIcon/>}
             sx={templateTriggerSx}
-            title={placeholder}
+            title={modified ? `${placeholder} · ${modifiedLabel}` : placeholder}
             aria-controls={open ? menuId : undefined}
             aria-expanded={open}
             aria-haspopup={'menu'}
         >
-            <Box sx={templateTriggerLabelSx} component="span">{placeholder}</Box>
+            <Box sx={templateTriggerLabelSx} component="span">
+                <Box sx={templateTriggerNameSx} component="span">{placeholder}</Box>
+                {modified ? <>
+                    <Box
+                        {...createAutoTestAttributes(TEMPLATE_MODIFIED_AUTOTEST_ID)}
+                        component={'span'}
+                        aria-hidden={true}
+                        sx={modifiedDotSx}
+                    />
+                    <Box component={'span'} sx={visuallyHiddenSx}>{`, ${modifiedLabel}`}</Box>
+                </> : null}
+            </Box>
         </PneButton>
         <Box component={'span'} aria-live={'polite'} sx={visuallyHiddenSx}>{announcement}</Box>
         <Menu
@@ -384,6 +408,12 @@ const SearchUITemplatesMenu = () => {
                                             <CheckRoundedIcon fontSize={'small'}/>
                                         </ListItemIcon>
                                         <ListItemText primary={item.name} slotProps={{primary: {noWrap: true}}}/>
+                                        {selected && modified ? <Box
+                                            component={'span'}
+                                            aria-hidden={true}
+                                            title={modifiedLabel}
+                                            sx={rowModifiedDotSx}
+                                        /> : null}
                                     </MenuItem>
                                     {reorderable ? <Box
                                         component={'span'}
@@ -462,6 +492,22 @@ const SearchUITemplatesMenu = () => {
                             interpolation: RAW_NAME_INTERPOLATION,
                         })}
                         slotProps={{primary: {noWrap: true}}}
+                    />
+                </MenuItem> : null}
+                {template && modified ? <MenuItem
+                    {...createAutoTestAttributes(DISCARD_TEMPLATE_CHANGES_AUTOTEST_ID)}
+                    component={'button'}
+                    onClick={handleDiscardTemplateChanges}
+                    title={template.name}
+                    sx={actionItemSx}
+                >
+                    <ListItemIcon>
+                        <UndoRoundedIcon fontSize={'small'}/>
+                    </ListItemIcon>
+                    <ListItemText
+                        primary={t('react.searchUI.template.discardChanges', {
+                            defaultValue: 'Discard changes',
+                        })}
                     />
                 </MenuItem> : null}
             </Box>
@@ -672,8 +718,30 @@ const templateTriggerSx: SxProps = {
 const templateTriggerLabelSx: SxProps = {
     flex: '1 1 auto',
     minWidth: 0,
-    display: 'block',
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '6px',
+}
+
+const templateTriggerNameSx: SxProps = {
+    minWidth: 0,
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+}
+
+const modifiedDotStyle = {
+    backgroundColor: 'primary.main',
+    borderRadius: '50%',
+    flex: '0 0 auto',
+    height: 8,
+    width: 8,
+}
+
+const modifiedDotSx: SxProps<Theme> = modifiedDotStyle
+
+/** Same dot on the applied template in the list; the trigger already tells screen readers. */
+const rowModifiedDotSx: SxProps<Theme> = {
+    ...modifiedDotStyle,
+    ml: 1,
 }

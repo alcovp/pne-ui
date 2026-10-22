@@ -2,7 +2,11 @@ import {
     CriterionTypeEnum,
 } from './types'
 import type {SearchUIFiltersState} from './state/type'
-import {resolveDateOnlyTimeZone} from './dateRangeTimeZone'
+import {
+    isValidSearchUIDate,
+    resolveDateOnlyTimeZone,
+    type SearchUIDateRangeBoundary,
+} from './dateRangeTimeZone'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import timezone from 'dayjs/plugin/timezone'
@@ -13,15 +17,36 @@ dayjs.extend(timezone)
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 
 export const SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED = 'DATE_RANGE_MAX_SPAN_EXCEEDED' as const
+export const SEARCH_UI_DATE_RANGE_INVALID_DATE = 'DATE_RANGE_INVALID_DATE' as const
+export const SEARCH_UI_DATE_RANGE_END_BEFORE_START = 'DATE_RANGE_END_BEFORE_START' as const
 
-export type SearchUIValidationError = {
-    criterion: CriterionTypeEnum.DATE_RANGE | CriterionTypeEnum.DATE_RANGE_ORDERS
-    code: typeof SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED
-    messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded'
-    params: {
-        maxRangeSpanInDays: number
+type SearchUIDateRangeCriterion = CriterionTypeEnum.DATE_RANGE | CriterionTypeEnum.DATE_RANGE_ORDERS
+
+export type SearchUIValidationError =
+    | {
+        criterion: SearchUIDateRangeCriterion
+        code: typeof SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED
+        messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded'
+        params: {
+            maxRangeSpanInDays: number
+        }
     }
-}
+    | {
+        criterion: SearchUIDateRangeCriterion
+        /** A typed exact date is unfinished or does not exist, such as 31.02. */
+        code: typeof SEARCH_UI_DATE_RANGE_INVALID_DATE
+        messageKey: 'react.searchUI.dateRange.invalidDate'
+        params: {
+            boundary: SearchUIDateRangeBoundary
+        }
+    }
+    | {
+        criterion: SearchUIDateRangeCriterion
+        /** The exact end lies before the start; equal ends are a valid range. */
+        code: typeof SEARCH_UI_DATE_RANGE_END_BEFORE_START
+        messageKey: 'react.searchUI.dateRange.endBeforeStart'
+        params: Record<string, never>
+    }
 
 export type SearchUIValidationResult = {
     isValid: boolean
@@ -49,16 +74,48 @@ export const validateSearchUIFiltersState = (
 
     const criterion = getActiveDateRangeCriterion(state.criteria)
     if (
-        maxRangeSpanInDays === undefined
-        || criterion === null
+        criterion === null
         || state.dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT'
     ) {
         return createValidResult()
     }
 
     const [dateFrom, dateTo] = [state.dateRangeSpec.dateFrom, state.dateRangeSpec.dateTo]
-    if (dateFrom === null || dateTo === null) {
+    const exact = state.dateRangeSpec.dateRangeSpecType === 'EXACTLY'
+
+    if (exact) {
+        // Only a typed date can be unfinished or impossible; an empty end is an open range.
+        const invalidBoundaries = ([['from', dateFrom], ['to', dateTo]] as const)
+            .filter(([, date]) => date !== null && !isValidSearchUIDate(date))
+            .map(([boundary]) => boundary)
+        if (invalidBoundaries.length > 0) {
+            return createInvalidResult(invalidBoundaries.map(boundary => ({
+                criterion,
+                code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
+                messageKey: 'react.searchUI.dateRange.invalidDate',
+                params: {boundary},
+            })))
+        }
+
+        if (dateFrom !== null && dateTo !== null && dateTo.getTime() < dateFrom.getTime()) {
+            return createInvalidResult([{
+                criterion,
+                code: SEARCH_UI_DATE_RANGE_END_BEFORE_START,
+                messageKey: 'react.searchUI.dateRange.endBeforeStart',
+                params: {},
+            }])
+        }
+    }
+
+    if (maxRangeSpanInDays === undefined) {
         return createValidResult()
+    }
+
+    if (dateFrom === null || dateTo === null) {
+        // An empty exact end reaches the DATE_INDEPENDENT bound, far beyond any maximum.
+        return exact
+            ? createMaxRangeSpanExceededResult(criterion, maxRangeSpanInDays)
+            : createValidResult()
     }
 
     const exceedsMaximum = isDateOnlyExactRange(state)
@@ -73,15 +130,7 @@ export const validateSearchUIFiltersState = (
         return createValidResult()
     }
 
-    return {
-        isValid: false,
-        errors: [{
-            criterion,
-            code: SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
-            messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded',
-            params: {maxRangeSpanInDays},
-        }],
-    }
+    return createMaxRangeSpanExceededResult(criterion, maxRangeSpanInDays)
 }
 
 const createValidResult = (): SearchUIValidationResult => ({
@@ -89,9 +138,24 @@ const createValidResult = (): SearchUIValidationResult => ({
     errors: [],
 })
 
+const createInvalidResult = (errors: SearchUIValidationError[]): SearchUIValidationResult => ({
+    isValid: false,
+    errors,
+})
+
+const createMaxRangeSpanExceededResult = (
+    criterion: SearchUIDateRangeCriterion,
+    maxRangeSpanInDays: number,
+): SearchUIValidationResult => createInvalidResult([{
+    criterion,
+    code: SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
+    messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded',
+    params: {maxRangeSpanInDays},
+}])
+
 const getActiveDateRangeCriterion = (
     criteria: CriterionTypeEnum[],
-): SearchUIValidationError['criterion'] | null => {
+): SearchUIDateRangeCriterion | null => {
     if (criteria.includes(CriterionTypeEnum.DATE_RANGE)) {
         return CriterionTypeEnum.DATE_RANGE
     }

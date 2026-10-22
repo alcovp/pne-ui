@@ -45,6 +45,31 @@ export const applyDateOnlyTimeZone = (date: Dayjs, timeZone: string | null): Day
     return date.tz(timeZone, true)
 }
 
+export type SearchUIDateRangeBoundary = 'from' | 'to'
+
+/**
+ * Wicket's `DateRange.dateIndependent()`: Paynet holds nothing outside these days. They bound
+ * DATE_INDEPENDENT and an exact range whose start or end is left empty.
+ */
+const DATE_INDEPENDENT_BOUNDS: Readonly<Record<SearchUIDateRangeBoundary, string>> = {
+    from: '2000-01-01T00:00:00',
+    to: '2999-12-31T00:00:00',
+}
+
+/** Midnight of the bound day in the given timezone, or in the browser's own when it is null. */
+export const getDateIndependentBound = (
+    boundary: SearchUIDateRangeBoundary,
+    timeZone: string | null,
+): Date => applyDateOnlyTimeZone(dayjs(DATE_INDEPENDENT_BOUNDS[boundary]), timeZone).toDate()
+
+/**
+ * An exact range keeps a typed date that is unfinished or does not exist (31.02) as an invalid
+ * Date, so validation can report it and no search runs with it.
+ */
+export const isValidSearchUIDate = (date: Date | null): date is Date => (
+    date !== null && !Number.isNaN(date.getTime())
+)
+
 /**
  * Converts a day selected by MUI DateRangePicker into SearchUI state. The picker
  * gives us a local Dayjs value; for date-only filters we store the same calendar
@@ -74,7 +99,7 @@ export const createDateOnlySearchDate = (date: Date, timeZone: string | null): D
  * SearchCriteria uses an exclusive upper boundary for date-only ranges. EXACTLY
  * therefore sends the start of the next business day as dateTo.
  */
-export const createDateOnlySearchEndExclusiveDate = (date: Date | null, timeZone: string | null): Date => {
+export const createDateOnlySearchEndExclusiveDate = (date: Date, timeZone: string | null): Date => {
     if (!timeZone) {
         return dayjs(date)
             .startOf('day')

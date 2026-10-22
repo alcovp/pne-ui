@@ -590,12 +590,12 @@ describe('SearchUI date-range native input Selenium contract', () => {
 
         fireEvent.click(standardFromPicker.querySelector<HTMLElement>(
             '[role="gridcell"][data-autotest="criterion-date-option"]'
-            + '[data-autotest-value="2026-07-03"]',
+            + '[data-autotest-value="2026-07-02"]',
         ) as HTMLElement)
 
         await waitFor(() => {
             expect(standardOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                dateFrom: new Date(2026, 6, 3, 10, 14, 30),
+                dateFrom: new Date(2026, 6, 2, 10, 14, 30),
                 dateTo: standardTo,
             }))
         })

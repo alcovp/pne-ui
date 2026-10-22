@@ -137,6 +137,7 @@ export const getSearchUIFiltersInitialState = (): SearchUIFiltersState => ({
     predefinedCriteria: [],
     exactSearchLabels: [],
     template: null,
+    templateBaseline: null,
     activeTemplateName: null,
     templates: [],
     justAddedCriterion: null,

@@ -35,6 +35,8 @@ export type SearchUIRetentionSnapshot = {
     searchConditions: SearchUIConditions
     appliedSearchCriteria: SearchCriteria | null
     activeTemplateName: string | null
+    /** Absent in a snapshot taken without one: the restored template then starts unchanged. */
+    templateBaseline?: string | null
     hasUnappliedFilters: boolean
     possibleCriteria: CriterionTypeEnum[]
     predefinedCriteria: CriterionTypeEnum[]
@@ -60,6 +62,7 @@ export type SearchUIPrefetchedDataMeta = {
 
 export type SearchUIClearCriteriaUndoSnapshot = SearchUIConditions & {
     template: SearchUITemplate | null
+    templateBaseline: string | null
     hasUnappliedFilters: boolean
 }
 
@@ -71,6 +74,11 @@ export type SearchUIFiltersState = SearchUIConditions & {
     predefinedCriteria: CriterionTypeEnum[]
     exactSearchLabels: ExactCriterionSearchLabelEnum[]
     template: SearchUITemplate | null
+    /**
+     * What the filters decided about the search right after `template` was applied or saved;
+     * the template counts as changed while the filters decide otherwise.
+     */
+    templateBaseline: string | null
     activeTemplateName: string | null
     templates: SearchUITemplate[]
     justAddedCriterion: CriterionTypeEnum | null

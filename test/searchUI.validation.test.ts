@@ -3,6 +3,8 @@ import {getSearchUIFiltersInitialState} from '../src/component/search-ui/filters
 import {createSearchUIFiltersStore} from '../src/component/search-ui/filters/state/store'
 import {initialSearchUIDefaults} from '../src/component/search-ui/SearchUIProvider'
 import {
+    SEARCH_UI_DATE_RANGE_END_BEFORE_START,
+    SEARCH_UI_DATE_RANGE_INVALID_DATE,
     SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
     validateSearchUIFiltersState,
 } from '../src/component/search-ui/filters/validation'
@@ -168,5 +170,90 @@ describe('SearchUI date range validation', () => {
         expect(store.getState().validationResult.isValid).toBe(true)
         expect(onValidationChange).toHaveBeenLastCalledWith({isValid: true, errors: []})
         expect(onFiltersUpdate).toHaveBeenCalledTimes(1)
+    })
+})
+
+const createExactState = (
+    dateFrom: Date | null,
+    dateTo: Date | null,
+    options: {maxRangeSpanInDays?: number, enableTimeSelection?: boolean} = {},
+) => ({
+    ...getSearchUIFiltersInitialState(),
+    criteria: [CriterionTypeEnum.DATE_RANGE],
+    config: {
+        dateRange: {
+            maxRangeSpanInDays: options.maxRangeSpanInDays,
+            enableTimeSelection: options.enableTimeSelection,
+        },
+    },
+    dateRangeSpec: {
+        dateRangeSpecType: 'EXACTLY' as const,
+        dateFrom,
+        dateTo,
+        beforeCount: 0,
+    },
+})
+
+describe('SearchUI typed exact dates', () => {
+    const invalidDate = new Date(Number.NaN)
+
+    it('reports each end that is unfinished or does not exist', () => {
+        expect(validateSearchUIFiltersState(
+            createExactState(invalidDate, new Date('2026-07-02T00:00:00.000Z')),
+        )).toEqual({
+            isValid: false,
+            errors: [{
+                criterion: CriterionTypeEnum.DATE_RANGE,
+                code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
+                messageKey: 'react.searchUI.dateRange.invalidDate',
+                params: {boundary: 'from'},
+            }],
+        })
+        expect(validateSearchUIFiltersState(
+            createExactState(invalidDate, invalidDate),
+        ).errors.map(error => error.params)).toEqual([{boundary: 'from'}, {boundary: 'to'}])
+    })
+
+    it('rejects an end before the start and accepts equal ends', () => {
+        expect(validateSearchUIFiltersState(createExactState(
+            new Date('2026-07-02T00:00:00.000Z'),
+            new Date('2026-07-01T00:00:00.000Z'),
+        ))).toEqual({
+            isValid: false,
+            errors: [{
+                criterion: CriterionTypeEnum.DATE_RANGE,
+                code: SEARCH_UI_DATE_RANGE_END_BEFORE_START,
+                messageKey: 'react.searchUI.dateRange.endBeforeStart',
+                params: {},
+            }],
+        })
+        expect(validateSearchUIFiltersState(createExactState(
+            new Date('2026-07-02T00:00:00.000Z'),
+            new Date('2026-07-02T00:00:00.000Z'),
+        )).isValid).toBe(true)
+        expect(validateSearchUIFiltersState(createExactState(
+            new Date('2026-07-02T10:00:00.000Z'),
+            new Date('2026-07-02T09:59:59.000Z'),
+            {enableTimeSelection: true},
+        )).errors.map(error => error.code)).toEqual([SEARCH_UI_DATE_RANGE_END_BEFORE_START])
+    })
+
+    it('takes a far year for a date', () => {
+        expect(validateSearchUIFiltersState(createExactState(
+            new Date('1800-01-01T00:00:00.000Z'),
+            new Date('3000-01-01T00:00:00.000Z'),
+        ))).toEqual({isValid: true, errors: []})
+    })
+
+    it('accepts an empty end as an open range unless the range has a maximum', () => {
+        expect(validateSearchUIFiltersState(
+            createExactState(new Date('2026-07-01T00:00:00.000Z'), null),
+        ).isValid).toBe(true)
+        expect(validateSearchUIFiltersState(
+            createExactState(null, new Date('2026-07-01T00:00:00.000Z')),
+        ).isValid).toBe(true)
+        expect(validateSearchUIFiltersState(
+            createExactState(new Date('2026-07-01T00:00:00.000Z'), null, {maxRangeSpanInDays: 93}),
+        ).errors.map(error => error.code)).toEqual([SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED])
     })
 })

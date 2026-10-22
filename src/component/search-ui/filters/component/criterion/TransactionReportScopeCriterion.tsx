@@ -24,7 +24,7 @@ export const TransactionReportScopeCriterion = () => {
             value={scope}
             options={TRANSACTION_REPORT_SCOPES}
             onChange={setTransactionReportScopeCriterion}
-            getOptionLabel={value => t(`transactionReportScope.${value}`)}
+            getOptionLabel={value => t(`react.TransactionReportScopeCriterionEnum.${value}`)}
             ariaLabel={t('react.CriterionTypeEnum.TRANSACTION_REPORT_SCOPE')}
         />
         {scope !== 'ALL' ? <PneTextField

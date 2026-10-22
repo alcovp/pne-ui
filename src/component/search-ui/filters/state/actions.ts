@@ -67,6 +67,8 @@ import {
     applyDateOnlyTimeZone,
     createDateOnlySearchDate,
     createDateOnlySearchEndExclusiveDate,
+    getDateIndependentBound,
+    isValidSearchUIDate,
     resolveDateOnlyTimeZone,
     SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../dateRangeTimeZone'
@@ -385,6 +387,8 @@ export const getSearchUIFiltersActions = (
             } else if (retainedSnapshot && isSearchUIRetentionSnapshotCompatible(retainedSnapshot, initialState)) {
                 applyConditionsReducer(draft, retainedSnapshot.searchConditions)
                 draft.activeTemplateName = retainedSnapshot.activeTemplateName
+                // The template itself comes back with loadTemplates, still measured against this.
+                draft.templateBaseline = retainedSnapshot.templateBaseline ?? null
                 draft.restoredFromRetention = true
             } else if (normalizedInitialTemplate !== undefined) {
                 const defaults = getSearchUIInitialSearchCriteria(draft.defaults)
@@ -414,6 +418,9 @@ export const getSearchUIFiltersActions = (
             normalizeRelativeDateRange(set, get)
         }
         ensureTransactionSessionStatusesPrefetched(set, get)
+        if (!get().restoredFromRetention) {
+            captureTemplateBaseline(set, get)
+        }
         const validationResult = syncValidation(set, get, true)
 
         if (get().restoredFromRetention && retainedSnapshot && retainedDraftSearchCriteria) {
@@ -459,6 +466,7 @@ export const getSearchUIFiltersActions = (
 
             if (options?.resetTemplate) {
                 draft.template = null
+                draft.templateBaseline = null
                 draft.activeTemplateName = null
                 draft.skipLastTemplateAutoApply = true
             }
@@ -472,6 +480,7 @@ export const getSearchUIFiltersActions = (
         const restoredSnapshot = cloneDeep(snapshot)
         const {
             template,
+            templateBaseline,
             hasUnappliedFilters,
             ...conditions
         } = restoredSnapshot
@@ -481,6 +490,7 @@ export const getSearchUIFiltersActions = (
         set(draft => {
             Object.assign(draft, conditions)
             draft.template = template
+            draft.templateBaseline = templateBaseline
             draft.activeTemplateName = template?.name ?? null
             ensureCustomerLevelDependenciesReducer(draft)
             normalizeRestrictedTransactionTypesReducer(draft)
@@ -514,6 +524,7 @@ export const getSearchUIFiltersActions = (
                 ...getSearchUIInitialSearchCriteria(draft.defaults),
                 exactSearchLabel: draft.exactSearchLabels[0],
                 template: null,
+                templateBaseline: null,
                 activeTemplateName: null,
                 criteria: draft.predefinedCriteria,
             })
@@ -561,6 +572,7 @@ export const getSearchUIFiltersActions = (
                     draft.template = template
                     draft.activeTemplateName = template.name
                 })
+                captureTemplateBaseline(set, get)
             })
             // .catch(raiseUIError)
             .catch(console.error)
@@ -579,6 +591,7 @@ export const getSearchUIFiltersActions = (
                     draft.template = template
                     draft.activeTemplateName = template.name
                 })
+                captureTemplateBaseline(set, get)
             })
             // .catch(raiseUIError)
             .catch(console.error)
@@ -604,6 +617,7 @@ export const getSearchUIFiltersActions = (
                     if (draft.template?.name === template.name) {
                         Object.assign(draft, getSearchUIInitialSearchCriteria(draft.defaults))
                         draft.template = null
+                        draft.templateBaseline = null
                         draft.activeTemplateName = null
                         draft.criteria = draft.predefinedCriteria
                         ensureCustomerLevelDependenciesReducer(draft)
@@ -682,6 +696,7 @@ export const getSearchUIFiltersActions = (
             applyConditionsReducer(draft, conditions)
         })
         postUpdate(set, get, options)
+        captureTemplateBaseline(set, get)
     },
     loadTemplates: (options) => {
         const settingsContextName = get().settingsContextName
@@ -703,7 +718,13 @@ export const getSearchUIFiltersActions = (
                     set((draft) => {
                         draft.template = activeTemplate
                         draft.activeTemplateName = activeTemplate?.name ?? null
+                        if (activeTemplate === null) {
+                            draft.templateBaseline = null
+                        }
                     })
+                    if (activeTemplate !== null && get().templateBaseline === null) {
+                        captureTemplateBaseline(set, get)
+                    }
                     return
                 }
 
@@ -1351,17 +1372,21 @@ const extractDateFrom = (
     dateRangeSpec: DateRangeSpec,
     useTime: boolean,
     dateOnlyTimeZone: string | null,
+    nonExactTimeZone: string | null,
 ): Date | null => {
     if (dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT') {
-        return dayjs().year(2000).toDate()
+        return getDateIndependentBound('from', nonExactTimeZone)
     }
 
-    if (
-        dateRangeSpec.dateRangeSpecType === 'EXACTLY'
-        && !useTime
-        && dateRangeSpec.dateFrom
-    ) {
-        return createDateOnlySearchDate(dateRangeSpec.dateFrom, dateOnlyTimeZone)
+    if (dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
+        if (dateRangeSpec.dateFrom === null) {
+            // An empty start searches from the beginning, as DATE_INDEPENDENT does.
+            return getDateIndependentBound('from', useTime ? null : dateOnlyTimeZone)
+        }
+
+        if (!useTime && isValidSearchUIDate(dateRangeSpec.dateFrom)) {
+            return createDateOnlySearchDate(dateRangeSpec.dateFrom, dateOnlyTimeZone)
+        }
     }
 
     return dateRangeSpec.dateFrom
@@ -1371,17 +1396,24 @@ const extractDateTo = (
     dateRangeSpec: DateRangeSpec,
     useTime: boolean,
     dateOnlyTimeZone: string | null,
+    nonExactTimeZone: string | null,
 ): Date | null => {
     if (dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT') {
-        return dayjs().year(2999).toDate()
-    } else if (dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
-        if (useTime) {
-            return dateRangeSpec.dateTo
-        }
-        return createDateOnlySearchEndExclusiveDate(dateRangeSpec.dateTo, dateOnlyTimeZone)
-    } else {
-        return dateRangeSpec.dateTo
+        return getDateIndependentBound('to', nonExactTimeZone)
     }
+
+    if (dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
+        if (dateRangeSpec.dateTo === null) {
+            // An empty end searches to the end of time, as DATE_INDEPENDENT does.
+            return getDateIndependentBound('to', useTime ? null : dateOnlyTimeZone)
+        }
+
+        if (!useTime && isValidSearchUIDate(dateRangeSpec.dateTo)) {
+            return createDateOnlySearchEndExclusiveDate(dateRangeSpec.dateTo, dateOnlyTimeZone)
+        }
+    }
+
+    return dateRangeSpec.dateTo
 }
 
 const extractTransactionSessionStatuses = (
@@ -1434,6 +1466,7 @@ function ensureTransactionSessionStatusesPrefetched(
 
         const currentGroup = state.transactionSessionStatusGroup
         const prefetched = prefetchedMap.get(currentGroup) ?? []
+        const templatePristine = isSearchUITemplatePristine(state)
         let statusesUpdated = false
 
         set(draft => {
@@ -1447,6 +1480,7 @@ function ensureTransactionSessionStatusesPrefetched(
         })
 
         if (statusesUpdated) {
+            refreshPristineTemplateBaseline(set, get, templatePristine)
             checkIfFiltersChanged(set, get)
         }
         return
@@ -1462,6 +1496,7 @@ function ensureTransactionSessionStatusesPrefetched(
 
     state.defaults.getTransactionSessionStatuses()
         .then(statusesMap => {
+            const templatePristine = isSearchUITemplatePristine(get())
             let statusesUpdated = false
 
             const statuses = createTransactionSessionStatusesPrefetchedMap(statusesMap)
@@ -1482,6 +1517,7 @@ function ensureTransactionSessionStatusesPrefetched(
             })
 
             if (statusesUpdated) {
+                refreshPristineTemplateBaseline(set, get, templatePristine)
                 checkIfFiltersChanged(set, get)
             }
         })
@@ -1678,6 +1714,7 @@ const syncValidation = (
 const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCriteria => {
     const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(state.criteria, state.config)
     const dateOnlyTimeZone = getConfiguredDateOnlyTimeZone(state.config)
+    const nonExactTimeZone = getNonExactDateRangeTimeZone(state.config, timeSelectionEnabled)
     const customerLevelDependenciesSatisfied = state.criteria.includes(CriterionTypeEnum.CUSTOMER_LEVEL)
         && state.criteria.includes(CriterionTypeEnum.MERCHANT)
         && state.criteria.includes(CriterionTypeEnum.CURRENCY)
@@ -1697,8 +1734,8 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         threeD: extract3D(state.threeD),
         currencies: extractEntitiesIds(state.currencies),
         countries: extractEntitiesIds(state.countries),
-        dateFrom: extractDateFrom(state.dateRangeSpec, timeSelectionEnabled, dateOnlyTimeZone),
-        dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled, dateOnlyTimeZone),
+        dateFrom: extractDateFrom(state.dateRangeSpec, timeSelectionEnabled, dateOnlyTimeZone, nonExactTimeZone),
+        dateTo: extractDateTo(state.dateRangeSpec, timeSelectionEnabled, dateOnlyTimeZone, nonExactTimeZone),
         orderDateType: state.orderDateType,
         cardTypes: extractEntitiesIds(state.cardTypes),
         transactionTypes: extractTransactionTypeIds(state),
@@ -1721,6 +1758,66 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         recurrentFilter: state.recurrentFilter,
         timeZoneOffsetHours: state.timeZoneOffsetHours,
         csvCharset: state.csvCharset,
+    }
+}
+
+/**
+ * What the filters decide about the search, to tell whether they still match the applied
+ * template. A relative range keeps its mode and count, not its dates, which move with the
+ * clock; criteria and multiget selections compare regardless of their order.
+ */
+const getTemplateFingerprint = (state: SearchUIFiltersState): string => {
+    const searchCriteria = extractSearchCriteriaFromState(state)
+    const {dateRangeSpecType, beforeCount} = state.dateRangeSpec
+    const exact = dateRangeSpecType === 'EXACTLY'
+    const counted = dateRangeSpecType === 'DAYS_BEFORE' || dateRangeSpecType === 'HOURS_BEFORE'
+
+    return JSON.stringify({
+        ...searchCriteria,
+        criteria: [...state.criteria].sort(),
+        multigetCriteria: [...searchCriteria.multigetCriteria]
+            .sort((left, right) => left.entityType.localeCompare(right.entityType)),
+        dateRangeSpecType,
+        beforeCount: counted ? beforeCount : null,
+        dateFrom: exact ? searchCriteria.dateFrom : null,
+        dateTo: exact ? searchCriteria.dateTo : null,
+    })
+}
+
+/** The applied template no longer matches the filters, so saving it or discarding the changes makes sense. */
+export const isSearchUITemplateModified = (state: SearchUIFiltersState): boolean => (
+    state.template !== null
+    && state.templateBaseline !== null
+    && getTemplateFingerprint(state) !== state.templateBaseline
+)
+
+const isSearchUITemplatePristine = (state: SearchUIFiltersState): boolean => (
+    state.template !== null
+    && state.templateBaseline !== null
+    && getTemplateFingerprint(state) === state.templateBaseline
+)
+
+const captureTemplateBaseline = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+): void => {
+    const state = get()
+    const templateBaseline = state.template === null ? null : getTemplateFingerprint(state)
+    if (templateBaseline !== state.templateBaseline) {
+        set(draft => {
+            draft.templateBaseline = templateBaseline
+        })
+    }
+}
+
+/** Filling the statuses once they load is not the user's change: a pristine template stays pristine. */
+const refreshPristineTemplateBaseline = (
+    set: ZustandStoreImmerSet<SearchUIFiltersStore>,
+    get: ZustandStoreGet<SearchUIFiltersStore>,
+    templatePristine: boolean,
+): void => {
+    if (templatePristine) {
+        captureTemplateBaseline(set, get)
     }
 }
 

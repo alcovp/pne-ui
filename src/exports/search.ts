@@ -75,8 +75,11 @@ export {
 export { MultigetSelectStoreProvider } from '../component/search-ui/multiget_select/state/IsolatedStoreProvider'
 export { SearchUITemplate } from '../component/search-ui/filters/types'
 export {
+    SEARCH_UI_DATE_RANGE_END_BEFORE_START,
+    SEARCH_UI_DATE_RANGE_INVALID_DATE,
     SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
     type SearchUIValidationError,
     type SearchUIValidationResult,
 } from '../component/search-ui/filters/validation'
+export { type SearchUIDateRangeBoundary } from '../component/search-ui/filters/dateRangeTimeZone'
 export { getSearchUIInitialState } from '../component/search-ui/state/initial'

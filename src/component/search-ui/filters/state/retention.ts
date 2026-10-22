@@ -145,6 +145,7 @@ const createSearchUIRetentionSnapshot = (state: SearchUIFiltersState): SearchUIR
     },
     appliedSearchCriteria: state.appliedSearchCriteria,
     activeTemplateName: state.activeTemplateName,
+    templateBaseline: state.templateBaseline,
     hasUnappliedFilters: state.hasUnappliedFilters,
     possibleCriteria: state.possibleCriteria,
     predefinedCriteria: state.predefinedCriteria,

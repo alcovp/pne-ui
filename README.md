@@ -824,7 +824,8 @@ Generated IDs из `aria-controls` не хардкодируйте: при не�
 стабильным owner locator остаётся `data-autotest` + scope. Строки сохранённых шаблонов отмечены одинаковым
 `template-item` без value; внутри используются `select-template`, `remove-template` и, если хост сохраняет
 порядок, `reorder-template`. Имя шаблона остаётся видимым пользовательским значением и доступным именем, но
-намеренно не попадает в `data-autotest-value`. Действия меню — `create-template` и `update-template`.
+намеренно не попадает в `data-autotest-value`. Действия меню — `create-template`, `update-template` и, пока
+применённый шаблон изменён, `discard-template-changes`.
 Icon-only закрытие editor имеет `close-template-editor`; поле имени, Create и Cancel остаются стандартными
 required textbox/text buttons и ищутся по role/name внутри scoped editor.
 
@@ -1044,7 +1045,15 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
 - создать шаблон из текущих фильтров: `button[data-autotest="create-template"]` (открывает
   `template-editor/<scope>`, меню при этом закрывается);
 - сохранить текущие фильтры в применённый шаблон: `button[data-autotest="update-template"]` (есть, только
-  пока шаблон применён).
+  пока шаблон применён);
+- вернуть фильтры к применённому шаблону: `button[data-autotest="discard-template-changes"]` (есть, только пока
+  фильтры отличаются от него).
+
+Если фильтры отличаются от применённого шаблона, в кнопке `templates` после имени появляется точка
+`[data-autotest="template-modified"]`, а accessible name и `title` получают «Unsaved changes». Сравнивается то,
+что фильтры решают о поиске: значения критериев, набор критериев и для относительного периода — его режим, а не
+даты, которые сдвигаются со временем. Вернули значение как в шаблоне — точка пропадает; сохранение в шаблон или
+`discard-template-changes` тоже её снимают.
 
 `template-editor/<scope>` является отдельным dialog portal, а не потомком `templates-panel`. Его close button:
 `button[data-autotest="close-template-editor"]`.
@@ -1325,6 +1334,25 @@ Picker portal roots:
 
 Не используйте hidden serialized input date picker: контрактом являются visible composite sections и actual
 picker controls.
+
+Поля exact-дат показывают день первым на любом языке, как Wicket `dd.MM.yyyy` и страница заказа:
+`DD.MM.YYYY` без времени и `DD.MM.YYYY HH:mm:ss` со временем. Секции идут в том же порядке (день, месяц, год).
+Календарь говорит на языке интерфейса (`i18n.language`: `en`, `ru`, `fr`, `zh_CN`): названия месяцев и дней,
+первый день недели. Значение `criterion-date-option` остаётся ISO `YYYY-MM-DD`.
+
+Введённая дата проверяется так же, как на странице заказа:
+
+- недописанная (`22.10.____`) или несуществующая (`31.02.2026`) дата — ошибка
+  `DATE_RANGE_INVALID_DATE` (`react.searchUI.dateRange.invalidDate`, `params.boundary`: `from`/`to`).
+  Несуществующая видна сразу, недописанная — когда фокус уходит из поля;
+- конец раньше начала — `DATE_RANGE_END_BEFORE_START` (`react.searchUI.dateRange.endBeforeStart`); равные концы
+  допустимы;
+- год не ограничивается: 3000 и 1800 — обычные даты, красная подсветка MUI за пределами 1900–2099 отключена.
+
+С ошибкой `run-search` заблокирован, `onFiltersUpdate` не вызывается, а результат приходит в
+`onValidationChange`. Пустое начало или конец — не ошибка, а открытая сторона периода: ищется от
+2000-01-01 00:00 или до 2999-12-31 00:00, как `DATE_INDEPENDENT`. В календаре первый выбранный день ждёт второго,
+поиск идёт по готовому диапазону.
 
 ### `PROCESSOR_LOG_ENTRY_TYPE`
 
@@ -1686,10 +1714,15 @@ const config = {
 />
 ```
 
+`DATE_INDEPENDENT` ищет между фиксированными днями Wicket `DateRange.dateIndependent()`: с 2000-01-01 00:00 по
+2999-12-31 00:00, по умолчанию по Москве, при заданном `dateOnlyTimeZone` — в нём; момент нажатия на результат
+не влияет.
+
 Параметр `maxRangeSpanInDays` задаёт включительную верхнюю границу диапазона.
 Он проверяет уже разрешённые границы всех режимов даты; для date-only `EXACTLY`
 пользовательская конечная дата считается включительной. Значение должно быть
-положительным целым числом.
+положительным целым числом. Пустой конец `EXACTLY` открывает период до 2999 года,
+поэтому при заданном максимуме он тоже даёт `DATE_RANGE_MAX_SPAN_EXCEEDED`.
 
 ### Критерии отчёта по транзакциям
 
@@ -1803,6 +1836,12 @@ export const TransactionReportFiltersExample = ({
 `onValidationChange`; результат для бэкенда передаётся в `searchData` как часть
 `SearchParams`.
 
+Подписи вариантов `scope` и `recurrentFilter` библиотека берёт из ключей
+`react.TransactionReportScopeCriterionEnum.<scope>` и
+`react.TransactionRecurrentFilterCriterionEnum.<recurrentFilter>`: Paynet отдаёт React
+только ключи с разрешёнными префиксами, и Wicket-ключи `transactionReportScope.*` /
+`recurrentFilterType.*` в React не попадают.
+
 Поддерживаемые значения специализированных полей:
 
 - `scope`: `ALL`, `SELECTED_BY_SESS_ID`, `SELECTED_BY_PROCESSOR_TX_ID`,
@@ -1836,7 +1875,11 @@ Wicket сразу показывает эти вычисленные значе�
 production-запросе.
 
 Если диапазон невалиден, встроенная кнопка Search/Refresh блокируется и
-`onFiltersUpdate` не публикует невалидный черновик. При валидном изменении пример
+`onFiltersUpdate` не публикует невалидный черновик: хост сохраняет последние валидные
+критерии, поэтому внешнюю кнопку Generate блокируйте по `onValidationChange`, а не по
+наличию дат. Отчёт генерируется внешней кнопкой, и автоматическому режиму обновлять
+нечего: `config.hideRefreshButton: true` прячет его кнопку Refresh. Кнопку Search
+ручного режима флаг не прячет. При валидном изменении пример
 выше сразу синхронизирует актуальные критерии, а внешнюю кнопку Generate блокирует
 через `onValidationChange`.
 

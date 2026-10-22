@@ -17,7 +17,7 @@ export const TransactionRecurrentFilterCriterion = () => {
         value={recurrentFilter}
         options={TRANSACTION_RECURRENT_FILTERS}
         onChange={setTransactionRecurrentFilterCriterion}
-        getOptionLabel={value => t(`recurrentFilterType.${value}`)}
+        getOptionLabel={value => t(`react.TransactionRecurrentFilterCriterionEnum.${value}`)}
         ariaLabel={t('react.CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER')}
     />
 }

@@ -61,9 +61,9 @@ describe('SearchUI transaction report criteria', () => {
 
         expect(transactionIds.tagName).toBe('TEXTAREA')
         expect((transactionIds as HTMLTextAreaElement).rows).toBe(6)
-        expect(screen.getAllByText('transactionReportScope.SELECTED_BY_SESS_ID').length).toBeGreaterThan(0)
+        expect(screen.getAllByText('react.TransactionReportScopeCriterionEnum.SELECTED_BY_SESS_ID').length).toBeGreaterThan(0)
         expect(screen.getByText('advancedSearch.transactionsDatesType.CREATED')).toBeTruthy()
-        expect(screen.getAllByText('recurrentFilterType.RECURRENTS_ONLY').length).toBeGreaterThan(0)
+        expect(screen.getAllByText('react.TransactionRecurrentFilterCriterionEnum.RECURRENTS_ONLY').length).toBeGreaterThan(0)
         expect(screen.getAllByText('GMT +3').length).toBeGreaterThan(0)
         expect(screen.getAllByText('UTF-8-SIG').length).toBeGreaterThan(0)
 
@@ -83,12 +83,12 @@ describe('SearchUI transaction report criteria', () => {
         })))
 
         await selectOption(
-            'transactionReportScope.SELECTED_BY_SESS_ID',
-            'transactionReportScope.SELECTED_BY_TX_RRN',
+            'react.TransactionReportScopeCriterionEnum.SELECTED_BY_SESS_ID',
+            'react.TransactionReportScopeCriterionEnum.SELECTED_BY_TX_RRN',
         )
         await selectOption(
-            'recurrentFilterType.RECURRENTS_ONLY',
-            'recurrentFilterType.NON_RECURRENTS_ONLY',
+            'react.TransactionRecurrentFilterCriterionEnum.RECURRENTS_ONLY',
+            'react.TransactionRecurrentFilterCriterionEnum.NON_RECURRENTS_ONLY',
         )
         await selectOption('GMT +3', 'GMT -5')
         await selectOption('UTF-8-SIG', 'windows-1251')
@@ -114,7 +114,7 @@ describe('SearchUI transaction report criteria', () => {
             }}
         />)
 
-        expect((await screen.findAllByText('transactionReportScope.ALL')).length).toBeGreaterThan(0)
+        expect((await screen.findAllByText('react.TransactionReportScopeCriterionEnum.ALL')).length).toBeGreaterThan(0)
         expect(screen.queryByRole('textbox', {name: 'react.searchUI.transactionIds'})).toBeNull()
     })
 })

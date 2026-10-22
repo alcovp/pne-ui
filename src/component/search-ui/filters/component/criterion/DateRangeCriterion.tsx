@@ -1,18 +1,20 @@
-import React, { ChangeEvent } from 'react'
-import { DateRangeSpecType } from '../../types'
+import React, { ChangeEvent, FocusEvent, useEffect, useMemo, useRef, useState } from 'react'
+import { CriterionTypeEnum, DateRangeSpecType } from '../../types'
 import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect'
 import dayjs, { Dayjs } from 'dayjs'
 import { Box, FormHelperText, SxProps, useMediaQuery } from '@mui/material'
 import { DateRange, DateRangePicker, LocalizationProvider } from '@mui/x-date-pickers-pro'
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { useSearchUIFiltersStore } from '../../state/store'
+import type { FieldRef, PickerChangeHandlerContext } from '@mui/x-date-pickers/models'
+import { useSearchUIFiltersStore, useSearchUIFiltersStoreApi } from '../../state/store'
 import { PneTextField } from '../../../../..'
 import { SearchUIOrderDateTypeSelect } from '../select/SearchUIOrderDateTypeSelect'
 import { filtersInputSx } from './style'
 import {
     createDateOnlyPickerDate,
     createDateOnlyPickerValue,
+    isValidSearchUIDate,
     resolveDateOnlyTimeZone,
 } from '../../dateRangeTimeZone'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
@@ -21,13 +23,31 @@ import {
     createSearchUIOwnedAutoTestAttributes,
     useSearchUIAutoTestScope,
 } from '../../AutoTestScope'
-import {SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED} from '../../validation'
+import {
+    SEARCH_UI_DATE_RANGE_END_BEFORE_START,
+    SEARCH_UI_DATE_RANGE_INVALID_DATE,
+} from '../../validation'
+import {
+    resolveSearchUIPickerLocale,
+    SEARCH_UI_DATE_FORMAT,
+    SEARCH_UI_DATE_TIME_FORMAT,
+} from '../../datePickerLocale'
 
 type Props = {
     showOrdersDateType?: boolean
 }
 
-const DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss'
+type PickerRange = DateRange<Dayjs>
+
+/**
+ * How a commit treats an end the pickers hold as empty:
+ * - `keep`: typing cleared it, and MUI reports a cleared section as an empty date, so the stored
+ *   date stays until the field is left;
+ * - `open`: the calendar left it empty, so the range is open on that side;
+ * - `typed`: the field was left, so its sections tell an empty end from an unfinished one.
+ */
+type EmptyEndCommit = 'keep' | 'open' | 'typed'
+
 const CRITERION_BEFORE_COUNT_AUTOTEST_ID = 'criterion-before-count'
 const CRITERION_DATE_RANGE_AUTOTEST_ID = 'criterion-date-range'
 const CRITERION_DATE_RANGE_PICKER_TOGGLE_AUTOTEST_ID = 'criterion-date-range-picker-toggle'
@@ -41,10 +61,23 @@ const CRITERION_DATE_TIME_TO_PICKER_TOGGLE_AUTOTEST_ID = 'criterion-date-time-to
 const CRITERION_DATE_TIME_FROM_PICKER_AUTOTEST_ID = 'criterion-date-time-from-picker'
 const CRITERION_DATE_TIME_TO_PICKER_AUTOTEST_ID = 'criterion-date-time-to-picker'
 
+/** A typed date that is unfinished or does not exist (31.02); validation reports it. */
+const createInvalidDate = (): Date => new Date(Number.NaN)
+
+const toDateKey = (date: Date | null): string => date === null ? '' : String(date.getTime())
+
+const isSameStoredDate = (left: Date | null, right: Date | null): boolean => toDateKey(left) === toDateKey(right)
+
+const hasTypedSection = (sections: ReadonlyArray<{ value: string }> | undefined): boolean => (
+    !!sections?.some(section => section.value !== '')
+)
+
 export const DateRangeCriterion = (props: Props) => {
-    const {t} = useTranslation()
+    const {t, i18n} = useTranslation()
     const { showOrdersDateType } = props
     const autoTestOwner = useSearchUIAutoTestScope()
+    const storeApi = useSearchUIFiltersStoreApi()
+    const pickerLocale = resolveSearchUIPickerLocale(i18n?.language)
 
     const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
     const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
@@ -54,8 +87,19 @@ export const DateRangeCriterion = (props: Props) => {
     const dateOnlyTimeZone = useSearchUIFiltersStore(
         s => resolveDateOnlyTimeZone(s.config?.dateRange?.dateOnlyTimeZone),
     )
-    const validationError = useSearchUIFiltersStore(s => s.validationResult.errors.find(
-        error => error.code === SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
+    const validationResult = useSearchUIFiltersStore(s => s.validationResult)
+
+    const criterionType = showOrdersDateType
+        ? CriterionTypeEnum.DATE_RANGE_ORDERS
+        : CriterionTypeEnum.DATE_RANGE
+    const dateErrors = validationResult.errors.filter(error => error.criterion === criterionType)
+    const shownError = dateErrors[0]
+    const fromInError = dateErrors.some(error => (
+        error.code === SEARCH_UI_DATE_RANGE_INVALID_DATE && error.params.boundary === 'from'
+    ))
+    const toInError = dateErrors.some(error => (
+        (error.code === SEARCH_UI_DATE_RANGE_INVALID_DATE && error.params.boundary === 'to')
+        || error.code === SEARCH_UI_DATE_RANGE_END_BEFORE_START
     ))
 
     const changeBeforeCount = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -118,9 +162,29 @@ export const DateRangeCriterion = (props: Props) => {
         }),
     }
 
-    const createExactDate = (date: Dayjs | null): Date | null => {
+    const toPickerDate = (date: Date | null): Dayjs | null => {
+        if (date === null) {
+            return null
+        }
+
+        if (!isValidSearchUIDate(date)) {
+            return dayjs(Number.NaN)
+        }
+
+        if (enableTimeSelection) {
+            return dayjs(date)
+        }
+
+        return createDateOnlyPickerValue(date, dateOnlyTimeZone)
+    }
+
+    const toStoredDate = (date: Dayjs | null): Date | null => {
         if (!date) {
             return null
+        }
+
+        if (!date.isValid()) {
+            return createInvalidDate()
         }
 
         if (enableTimeSelection) {
@@ -130,20 +194,116 @@ export const DateRangeCriterion = (props: Props) => {
         return createDateOnlyPickerDate(date, dateOnlyTimeZone)
     }
 
-    const setExactDate = (from: Dayjs | null, to: Dayjs | null) => {
+    // The pickers keep what is being typed or picked; the store gets a date once it means a range.
+    // The key keeps the picker value stable, so MUI does not rebuild the typed sections each render.
+    const keyOfStoredRange = (from: Date | null, to: Date | null) => (
+        `${toDateKey(from)}|${toDateKey(to)}|${enableTimeSelection}|${dateOnlyTimeZone ?? ''}`
+    )
+    const storedKey = keyOfStoredRange(dateRangeSpec.dateFrom, dateRangeSpec.dateTo)
+    const storedRange = useMemo<PickerRange>(
+        () => [toPickerDate(dateRangeSpec.dateFrom), toPickerDate(dateRangeSpec.dateTo)],
+        // The key covers the stored instants and the settings the conversion reads.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [storedKey],
+    )
+    const [pickerRange, setPickerRange] = useState<PickerRange>(storedRange)
+    const pickerRangeRef = useRef<PickerRange>(storedRange)
+    const committedKeyRef = useRef(storedKey)
+    const rangeFieldRef = useRef<FieldRef<PickerRange>>(null)
+    const fromFieldRef = useRef<FieldRef<Dayjs | null>>(null)
+    const toFieldRef = useRef<FieldRef<Dayjs | null>>(null)
+
+    useEffect(() => {
+        // A change from outside (a template, a preset, clearing) replaces what the pickers show;
+        // dates this criterion committed itself leave the typed sections alone.
+        if (storedKey === committedKeyRef.current) {
+            return
+        }
+        committedKeyRef.current = storedKey
+        pickerRangeRef.current = storedRange
+        setPickerRange(storedRange)
+    }, [storedKey, storedRange])
+
+    const showPickerRange = (range: PickerRange) => {
+        pickerRangeRef.current = range
+        setPickerRange(range)
+    }
+
+    /** Only the field sections tell an empty end from an unfinished one: MUI reports null for both. */
+    const readTypedEnds = (): [boolean, boolean] => {
+        if (enableTimeSelection) {
+            return [
+                hasTypedSection(fromFieldRef.current?.getSections()),
+                hasTypedSection(toFieldRef.current?.getSections()),
+            ]
+        }
+
+        const sections = rangeFieldRef.current?.getSections() ?? []
+        return [
+            hasTypedSection(sections.filter(section => section.dateName === 'start')),
+            hasTypedSection(sections.filter(section => section.dateName === 'end')),
+        ]
+    }
+
+    const commitPickerRange = (range: PickerRange, emptyEnds: EmptyEndCommit) => {
+        const stored = storeApi.getState().dateRangeSpec
+        const typedEnds = emptyEnds === 'typed' ? readTypedEnds() : [false, false]
+        const resolve = (date: Dayjs | null, storedDate: Date | null, typed: boolean): Date | null => {
+            if (date !== null) {
+                return toStoredDate(date)
+            }
+            if (emptyEnds === 'keep') {
+                return storedDate
+            }
+            return typed ? createInvalidDate() : null
+        }
+        const dateFrom = resolve(range[0], stored.dateFrom, typedEnds[0])
+        const dateTo = resolve(range[1], stored.dateTo, typedEnds[1])
+
+        if (isSameStoredDate(dateFrom, stored.dateFrom) && isSameStoredDate(dateTo, stored.dateTo)) {
+            return
+        }
+
+        committedKeyRef.current = keyOfStoredRange(dateFrom, dateTo)
         setDateRangeCriterion({
-            ...dateRangeSpec,
-            dateFrom: createExactDate(from),
-            dateTo: createExactDate(to),
+            ...stored,
+            dateFrom,
+            dateTo,
         })
     }
 
-    const handleSetDateRange = (dateRange: DateRange<Dayjs>) => {
-        if (dateRangeSpec.dateRangeSpecType === 'EXACTLY') {
-            setExactDate(dateRange[0], dateRange[1])
-        } else {
-            throw new Error('Impossible')
+    const handleRangeChange = (range: PickerRange, context: PickerChangeHandlerContext<unknown>) => {
+        showPickerRange(range)
+
+        if (context.source === 'field') {
+            commitPickerRange(range, 'keep')
+        } else if ((range[0] === null) === (range[1] === null)) {
+            // A lone first day waits for the second one or for the calendar to close.
+            commitPickerRange(range, 'open')
         }
+    }
+
+    const handleBoundaryChange = (boundary: 'from' | 'to') => (
+        date: Dayjs | null,
+        context: PickerChangeHandlerContext<unknown>,
+    ) => {
+        const range: PickerRange = boundary === 'from'
+            ? [date, pickerRangeRef.current[1]]
+            : [pickerRangeRef.current[0], date]
+        showPickerRange(range)
+        commitPickerRange(range, context.source === 'field' ? 'keep' : 'open')
+    }
+
+    const commitTypedRange = () => {
+        commitPickerRange(pickerRangeRef.current, 'typed')
+    }
+
+    const handleFieldBlur = (event: FocusEvent<HTMLElement>) => {
+        // Moving between the sections of one field is not leaving it.
+        if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) {
+            return
+        }
+        commitTypedRange()
     }
 
     const handleSetDateRangeSpecType = (dateRangeSpecType: DateRangeSpecType) => {
@@ -153,16 +313,6 @@ export const DateRangeCriterion = (props: Props) => {
         })
     }
 
-    const dateRange: DateRange<Dayjs> = enableTimeSelection
-        ? [
-            dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom) : null,
-            dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo) : null,
-        ]
-        : [
-            createDateOnlyPickerValue(dateRangeSpec.dateFrom, dateOnlyTimeZone),
-            createDateOnlyPickerValue(dateRangeSpec.dateTo, dateOnlyTimeZone),
-        ]
-
     const isSmallScreen = useMediaQuery('(max-width:599px)')
     const stackDateTimePickers = enableTimeSelection && isSmallScreen
     const dateTimePickerWrapperSx: SxProps = stackDateTimePickers
@@ -171,6 +321,9 @@ export const DateRangeCriterion = (props: Props) => {
             ...stackedDateTimePickerContainerSx,
         } as SxProps)
         : dateTimePickerContainerSx
+    const dateTimePickerInputSx = (stackDateTimePickers
+        ? {...dateTimePickerFullWidthInputSx, ...fieldErrorSx}
+        : {...filtersInputSx, ...fieldErrorSx}) as SxProps
 
     return <>
         <Box sx={{ display: 'flex', gap: '5px', py: '8px' }}>
@@ -180,15 +333,20 @@ export const DateRangeCriterion = (props: Props) => {
         <Box sx={{ display: 'flex', gap: '5px', pb: withInputNear ? '8px' : 0 }}>
             {withInputNear
                 ? exactDates
-                    ? <LocalizationProvider dateAdapter={AdapterDayjs}>
+                    ? <LocalizationProvider
+                        dateAdapter={AdapterDayjs}
+                        adapterLocale={pickerLocale.adapterLocale}
+                        localeText={pickerLocale.localeText}
+                    >
                         {enableTimeSelection
                             ? <Box sx={dateTimePickerWrapperSx}>
                                 <DateTimePicker
-                                    value={dateRange[0]}
-                                    onChange={from => setExactDate(from, dateRange[1])}
+                                    value={pickerRange[0]}
+                                    onChange={handleBoundaryChange('from')}
+                                    onClose={commitTypedRange}
                                     ampm={false}
                                     views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
-                                    format={DATE_TIME_FORMAT}
+                                    format={SEARCH_UI_DATE_TIME_FORMAT}
                                     timeSteps={{
                                         minutes: 1,
                                         seconds: 1,
@@ -209,6 +367,7 @@ export const DateRangeCriterion = (props: Props) => {
                                             ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
                                             role: 'option',
                                         },
+                                        field: { fieldRef: fromFieldRef },
                                         mobilePaper: exactDateTimeFromPickerAttributes,
                                         openPickerButton: {
                                             ...createAutoTestAttributes(
@@ -222,10 +381,14 @@ export const DateRangeCriterion = (props: Props) => {
                                         },
                                         textField: {
                                             size: 'small',
-                                            sx: stackDateTimePickers ? dateTimePickerFullWidthInputSx : filtersInputSx,
+                                            sx: dateTimePickerInputSx,
                                             variant: 'filled',
+                                            // Replaces MUI's own verdict, which would also paint
+                                            // a year outside 1900-2099 red.
+                                            error: fromInError,
+                                            onBlur: handleFieldBlur,
                                             slotProps: {
-                                                htmlInput: { placeholder: DATE_TIME_FORMAT },
+                                                htmlInput: { placeholder: SEARCH_UI_DATE_TIME_FORMAT },
                                                 input: {
                                                     ...createAutoTestAttributes(
                                                         CRITERION_DATE_TIME_FROM_AUTOTEST_ID,
@@ -238,11 +401,12 @@ export const DateRangeCriterion = (props: Props) => {
                                     }}
                                 />
                                 <DateTimePicker
-                                    value={dateRange[1]}
-                                    onChange={to => setExactDate(dateRange[0], to)}
+                                    value={pickerRange[1]}
+                                    onChange={handleBoundaryChange('to')}
+                                    onClose={commitTypedRange}
                                     ampm={false}
                                     views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
-                                    format={DATE_TIME_FORMAT}
+                                    format={SEARCH_UI_DATE_TIME_FORMAT}
                                     timeSteps={{
                                         minutes: 1,
                                         seconds: 1,
@@ -263,6 +427,7 @@ export const DateRangeCriterion = (props: Props) => {
                                             ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
                                             role: 'option',
                                         },
+                                        field: { fieldRef: toFieldRef },
                                         mobilePaper: exactDateTimeToPickerAttributes,
                                         openPickerButton: {
                                             ...createAutoTestAttributes(
@@ -276,10 +441,12 @@ export const DateRangeCriterion = (props: Props) => {
                                         },
                                         textField: {
                                             size: 'small',
-                                            sx: stackDateTimePickers ? dateTimePickerFullWidthInputSx : filtersInputSx,
+                                            sx: dateTimePickerInputSx,
                                             variant: 'filled',
+                                            error: toInError,
+                                            onBlur: handleFieldBlur,
                                             slotProps: {
-                                                htmlInput: { placeholder: DATE_TIME_FORMAT },
+                                                htmlInput: { placeholder: SEARCH_UI_DATE_TIME_FORMAT },
                                                 input: {
                                                     ...createAutoTestAttributes(
                                                         CRITERION_DATE_TIME_TO_AUTOTEST_ID,
@@ -294,8 +461,10 @@ export const DateRangeCriterion = (props: Props) => {
                             </Box>
                             : <DateRangePicker
                                 sx={dateRangePickerSx}
-                                value={dateRange}
-                                onChange={handleSetDateRange}
+                                value={pickerRange}
+                                onChange={handleRangeChange}
+                                onClose={commitTypedRange}
+                                format={SEARCH_UI_DATE_FORMAT}
                                 slotProps={{
                                     day: ownerState => ({
                                         ...createAutoTestAttributes(
@@ -304,6 +473,7 @@ export const DateRangeCriterion = (props: Props) => {
                                         ),
                                         role: 'gridcell',
                                     }),
+                                    field: { fieldRef: rangeFieldRef },
                                     mobilePaper: exactDateRangePickerAttributes,
                                     openPickerButton: {
                                         ...createAutoTestAttributes(
@@ -318,6 +488,10 @@ export const DateRangeCriterion = (props: Props) => {
                                     textField: {
                                         size: 'small',
                                         sx: dateRangePickerSx,
+                                        // Replaces MUI's own verdict, which would also paint
+                                        // a year outside 1900-2099 red.
+                                        error: dateErrors.length > 0,
+                                        onBlur: handleFieldBlur,
                                         slotProps: {
                                             input: {
                                                 ...createAutoTestAttributes(
@@ -352,10 +526,17 @@ export const DateRangeCriterion = (props: Props) => {
                     />
                 : null}
         </Box>
-        {validationError ? <FormHelperText error role={'alert'} sx={{mt: 0, mb: '8px'}}>
-            {t(validationError.messageKey, validationError.params)}
+        {shownError ? <FormHelperText error role={'alert'} sx={{mt: 0, mb: '8px'}}>
+            {t(shownError.messageKey, shownError.params as Record<string, unknown>)}
         </FormHelperText> : null}
     </>
+}
+
+/** The fields have no visible outline or underline, so an error colors the date itself. */
+const fieldErrorSx = {
+    '& .MuiPickersInputBase-root.Mui-error': {
+        color: 'error.main',
+    },
 }
 
 const dateRangePickerSx: SxProps = {
@@ -383,6 +564,7 @@ const dateRangePickerSx: SxProps = {
     '& .MuiPickersInputBase-sectionsContainer': {
         fontSize: '14px',
     },
+    ...fieldErrorSx,
 }
 
 const dateTimePickerContainerSx: SxProps = {
