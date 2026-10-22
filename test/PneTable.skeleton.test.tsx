@@ -20,6 +20,9 @@ type Column = {
     colSpan?: number
     /** Places the label through a flex wrapper, as the Orders headers do. */
     justify?: 'center' | 'flex-end'
+    /** Box of the text in every body cell of the column, as `left:right:top:bottom`. */
+    cellTextBox?: string
+    cellVerticalAlign?: 'top'
 }
 
 const BRIEF: Column[] = [
@@ -75,7 +78,11 @@ const renderTable = (
         )}
         createRow={item => (
             <tr key={item.id}>
-                {columns.map(column => <td key={column.label}>{item.id}</td>)}
+                {columns.map(column => (
+                    <td key={column.label} style={{verticalAlign: column.cellVerticalAlign}}>
+                        <span data-label-box={column.cellTextBox}>{item.id}</span>
+                    </td>
+                ))}
             </tr>
         )}
     />
@@ -93,6 +100,12 @@ const getFirstBodyRow = (container: HTMLElement) =>
 const getBars = (container: HTMLElement) => Array.from(getFirstBodyRow(container).cells)
     .map(cell => cell.querySelector<HTMLElement>('.MuiSkeleton-root'))
 
+const getLines = (container: HTMLElement) => Array.from(getFirstBodyRow(container).cells)
+    .map(cell => Array.from(cell.querySelectorAll<HTMLElement>('.MuiSkeleton-root')))
+
+// Row height of each view by its header column count; each test may change them.
+let rowHeights: Record<number, number> = {}
+
 describe('PneTable skeleton geometry', () => {
     beforeEach(() => {
         jest.useFakeTimers()
@@ -109,6 +122,7 @@ describe('PneTable skeleton geometry', () => {
             return rect(Number(this.dataset.left ?? 0), 0, Number(this.dataset.width ?? 0), 30)
         })
         // A two-column view has taller rows than a three-column one.
+        rowHeights = {2: 120, 3: 37}
         jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (
             this: HTMLElement,
         ) {
@@ -116,7 +130,8 @@ describe('PneTable skeleton geometry', () => {
                 return 0
             }
 
-            return this.querySelectorAll('thead th').length === 2 ? 160 : 100
+            const rows = this.querySelectorAll('tbody tr').length
+            return 40 + (rowHeights[this.querySelectorAll('thead th').length] ?? 37) * rows
         })
         Object.defineProperty(Range.prototype, 'getBoundingClientRect', {
             configurable: true,
@@ -126,8 +141,8 @@ describe('PneTable skeleton geometry', () => {
                     return rect(0, 0, 0, 0)
                 }
 
-                const [left, right] = box.split(':').map(Number)
-                return rect(left, 0, right - left, 16)
+                const [left, right, top = 0, bottom = 16] = box.split(':').map(Number)
+                return rect(left, top, right - left, bottom - top)
             },
         })
     })
@@ -166,18 +181,21 @@ describe('PneTable skeleton geometry', () => {
 
         expect(getColumnWidths(view.container)).toEqual(['50%', '30%', '20%'])
         expect(getFirstBodyRow(view.container).cells).toHaveLength(3)
-        // Brief rows are (100 - 40) / 1 = 60px high; bars keep 18px of padding and borders.
-        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['42px', '42px', '42px'])
+        // Brief rows are 37px high: one bar per cell, keeping 18px of padding and borders.
+        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['19px', '19px', '19px'])
 
         finishLoading(view, BRIEF, 'brief')
         view.rerender(renderTable(DETAILED, {loading: true, loadingKey: 'full', rows: []}))
 
+        // Detailed rows are 120px high, and their cells held one line of text each.
         expect(getColumnWidths(view.container)).toEqual(['70%', '30%'])
         expect(getFirstBodyRow(view.container).cells).toHaveLength(2)
-        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['102px', '102px'])
+        expect(getLines(view.container).map(lines => lines.map(line => line.style.height)))
+            .toEqual([['12px'], ['12px']])
     })
 
     it('starts a view from its preset row height and then follows its real rows', () => {
+        rowHeights = {2: 37, 3: 37}
         const view = render(renderTable(BRIEF, {loading: false, loadingKey: 'brief', rows: [{id: 'brief'}]}))
 
         view.rerender(renderTable(DETAILED, {
@@ -187,7 +205,12 @@ describe('PneTable skeleton geometry', () => {
             skeletonRowHeight: 90,
         }))
 
-        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['72px', '72px'])
+        // 90px rows fit four 12px lines with 8px gaps; before rows were seen, cells show two to four.
+        for (const lines of getLines(view.container)) {
+            expect(lines.length).toBeGreaterThanOrEqual(2)
+            expect(lines.length).toBeLessThanOrEqual(4)
+            expect(lines.map(line => line.style.height)).toEqual(lines.map(() => '12px'))
+        }
 
         view.rerender(renderTable(DETAILED, {
             loading: false,
@@ -207,8 +230,33 @@ describe('PneTable skeleton geometry', () => {
             skeletonRowHeight: 90,
         }))
 
-        // Real Detailed rows were (160 - 40) / 1 = 120px high.
-        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['102px', '102px'])
+        // Real Detailed rows turned out 37px high: one bar per cell, as the rows had.
+        expect(getLines(view.container).map(lines => lines.map(line => line.style.height)))
+            .toEqual([['19px'], ['19px']])
+    })
+
+    it('draws as many lines as each column had in real rows, aligned like its cells', () => {
+        const columns: Column[] = [
+            {label: 'Date', width: 300, cellTextBox: '0:80:0:56', cellVerticalAlign: 'top'},
+            {label: 'Amount', width: 200, cellTextBox: '0:80:0:16', cellVerticalAlign: 'top'},
+            {label: 'Details', width: 500, cellTextBox: '0:400:0:100', cellVerticalAlign: 'top'},
+        ]
+        rowHeights = {3: 120, 2: 37}
+        const view = render(renderTable(columns, {loading: false, loadingKey: 'full', rows: [{id: 'full'}]}))
+
+        view.rerender(renderTable(DETAILED, {loading: true, loadingKey: 'brief', rows: []}))
+        finishLoading(view, DETAILED, 'brief')
+        view.rerender(renderTable(columns, {loading: true, loadingKey: 'full', rows: []}))
+
+        // Three lines of Date text, one of Amount, five of Details in a 120px row.
+        expect(getLines(view.container).map(lines => lines.length)).toEqual([3, 1, 5])
+        expect(Array.from(getFirstBodyRow(view.container).cells).map(cell => cell.style.verticalAlign))
+            .toEqual(['top', 'top', 'top'])
+        // A paragraph ends with a shorter line.
+        const details = getLines(view.container)[2].map(line => Number.parseFloat(line.style.width))
+        expect(details.slice(0, 4).every(width => width >= 75 && width < 95)).toBe(true)
+        expect(details[4]).toBeGreaterThanOrEqual(35)
+        expect(details[4]).toBeLessThan(65)
     })
 
     it('drops a remembered geometry when the header no longer has as many columns', () => {

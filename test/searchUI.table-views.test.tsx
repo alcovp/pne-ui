@@ -342,8 +342,10 @@ describe('SearchUI table views', () => {
 
         const table = screen.getByRole('table')
         expect(table.getAttribute('aria-busy')).toBe('true')
-        // 120px rows keep 18px for cell padding and borders.
-        expect(table.querySelector<HTMLElement>('tbody .MuiSkeleton-root')?.style.height).toBe('102px')
+        // 120px rows hold several 12px text lines instead of the single bar of a 37px row.
+        const lines = Array.from(table.querySelectorAll<HTMLElement>('tbody tr:first-child .MuiSkeleton-root'))
+        expect(lines.length).toBeGreaterThanOrEqual(3)
+        expect(lines.map(line => line.style.height)).toEqual(lines.map(() => '12px'))
 
         await act(async () => {
             operations.resolve([{id: 'operations', label: 'Operations row'}])

@@ -20,6 +20,15 @@ export type SkeletonGeometry = {
     /** Average height of a real row. */
     rowHeight?: number
     headerHeight: number
+    /** Text of each column in the first real rows; absent when no row has one cell per column. */
+    columnText?: SkeletonColumnText[]
+}
+
+export type SkeletonColumnText = {
+    /** Text lines a typical real cell of the column holds. */
+    lines: number
+    /** Vertical alignment of the real cells, so that the lines sit where their text sat. */
+    verticalAlign: string
 }
 
 export type SkeletonAlign = 'left' | 'center' | 'right'
@@ -36,6 +45,20 @@ export type SkeletonColumn = {
 const HIDDEN_COLUMN_WIDTH = 30
 const NARROW_COLUMN_WIDTH = 120
 const ALIGN_TOLERANCE = 2
+const SAMPLE_ROWS = 5
+
+/** A skeleton text line and the gap below it: one 20px line of table text. */
+export const SKELETON_LINE_HEIGHT = 12
+export const SKELETON_LINE_GAP = 8
+const LINE_PITCH = SKELETON_LINE_HEIGHT + SKELETON_LINE_GAP
+
+/** Skeleton lines that fit in a cell content height; a 37px row takes one. */
+export const linesFitting = (contentHeight: number): number =>
+    Math.max(1, Math.floor((contentHeight + SKELETON_LINE_GAP) / LINE_PITCH))
+
+/** Lines of text a text height holds: a 16px line is one, a 100px Detailed card five. */
+const linesOfText = (height: number): number =>
+    Math.max(1, Math.round((height + SKELETON_LINE_GAP) / LINE_PITCH))
 
 const toPixels = (value: string): number => Number.parseFloat(value) || 0
 
@@ -107,26 +130,27 @@ const styledLabelAlign = (cell: HTMLTableCellElement, label: Node, view: Window)
     return 'left'
 }
 
-/**
- * Where the label of a header cell sits in the cell's content box. The visible
- * text is measured rather than the styles that place it: headers align their
- * labels through `text-align`, flex wrappers or sort labels alike. A label that
- * fills its narrow cell sits everywhere at once; its styles decide then, so that
- * a centred Card header keeps a centred bar in a 55px column.
- */
-export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => {
-    const document = cell.ownerDocument
+type TextBox = {
+    /** First text node with a size, where the style walk of an ambiguous label starts. */
+    label: Node
+    left: number
+    right: number
+    top: number
+    bottom: number
+}
+
+/** The box the visible text of an element covers, or nothing when it shows no text. */
+const measureTextBox = (element: Element): TextBox | undefined => {
+    const document = element.ownerDocument
     const view = document.defaultView
     const range = document.createRange()
 
     if (!view || typeof range.getBoundingClientRect !== 'function') {
-        return 'left'
+        return undefined
     }
 
-    let label: Node | undefined
-    let labelLeft = Infinity
-    let labelRight = -Infinity
-    const walker = document.createTreeWalker(cell, view.NodeFilter.SHOW_TEXT)
+    let box: TextBox | undefined
+    const walker = document.createTreeWalker(element, view.NodeFilter.SHOW_TEXT)
 
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         if (!node.textContent?.trim()) {
@@ -135,17 +159,40 @@ export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => 
 
         range.selectNodeContents(node)
         const rect = range.getBoundingClientRect()
-        if (rect.width > 0) {
-            label = label ?? node
-            labelLeft = Math.min(labelLeft, rect.left)
-            labelRight = Math.max(labelRight, rect.right)
+        if (rect.width <= 0) {
+            continue
         }
+
+        box = box
+            ? {
+                label: box.label,
+                left: Math.min(box.left, rect.left),
+                right: Math.max(box.right, rect.right),
+                top: Math.min(box.top, rect.top),
+                bottom: Math.max(box.bottom, rect.bottom),
+            }
+            : {label: node, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom}
     }
 
-    if (!label) {
+    return box
+}
+
+/**
+ * Where the label of a header cell sits in the cell's content box. The visible
+ * text is measured rather than the styles that place it: headers align their
+ * labels through `text-align`, flex wrappers or sort labels alike. A label that
+ * fills its narrow cell sits everywhere at once; its styles decide then, so that
+ * a centred Card header keeps a centred bar in a 55px column.
+ */
+export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => {
+    const view = cell.ownerDocument.defaultView
+    const text = measureTextBox(cell)
+
+    if (!view || !text) {
         return 'left'
     }
 
+    const {label, left: labelLeft, right: labelRight} = text
     const style = view.getComputedStyle(cell)
     const box = cell.getBoundingClientRect()
     const leftGap = labelLeft - box.left - toPixels(style.borderLeftWidth) - toPixels(style.paddingLeft)
@@ -164,6 +211,37 @@ export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => 
     }
 
     return leftGap > rightGap ? 'right' : 'left'
+}
+
+/**
+ * Text of every column in the first real rows: the median number of lines its
+ * cells hold and their vertical alignment. A Detailed orders row has a three-line
+ * Date, a one-line Amount and a five-line Details card; its skeleton should too.
+ */
+export const measureColumnText = (
+    table: HTMLTableElement,
+    columnCount: number,
+): SkeletonColumnText[] | undefined => {
+    const view = table.ownerDocument.defaultView
+    const rows = Array.from(table.tBodies[0]?.rows ?? [])
+        .filter(row => row.cells.length === columnCount && Array.from(row.cells).every(cell => spanOf(cell) === 1))
+        .slice(0, SAMPLE_ROWS)
+
+    if (!view || rows.length === 0) {
+        return undefined
+    }
+
+    return Array.from({length: columnCount}, (_, column) => {
+        const lines = rows
+            .map(row => measureTextBox(row.cells[column]))
+            .map(text => text ? linesOfText(text.bottom - text.top) : 1)
+            .sort((left, right) => left - right)
+
+        return {
+            lines: lines[Math.floor(lines.length / 2)],
+            verticalAlign: view.getComputedStyle(rows[0].cells[column]).verticalAlign,
+        }
+    })
 }
 
 /**

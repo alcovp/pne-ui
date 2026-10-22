@@ -18,9 +18,15 @@ import {createAutoTestAttributes} from '../AutoTestAttribute';
 import {
     countRowColumns,
     isSameSkeletonColumns,
+    linesFitting,
+    measureColumnText,
     measureColumnWidths,
     measureSkeletonColumns,
+    SKELETON_LINE_GAP,
+    SKELETON_LINE_HEIGHT,
+    SkeletonAlign,
     SkeletonColumn,
+    SkeletonColumnText,
     SkeletonGeometry,
 } from './tableSkeleton';
 
@@ -33,6 +39,11 @@ const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar';
 // A row with a 20px icon, flag or switch: what the list tables measured on the stands
 // (Orders Brief, Gates, Processors, Merchants). The bare skeleton bar made 34px rows.
 const DEFAULT_SKELETON_ROW_HEIGHT = 37;
+const SKELETON_LINE_ALIGN: Record<SkeletonAlign, React.CSSProperties['alignItems']> = {
+    left: 'flex-start',
+    center: 'center',
+    right: 'flex-end',
+};
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
@@ -177,6 +188,8 @@ const AbstractTable = <D, >(
     const tableContainerRef = useRef<HTMLDivElement>(null);
     const tableRef = useRef<HTMLTableElement>(null);
     const skeletonGeometryRef = useRef(new Map<string | number | undefined, SkeletonGeometry>());
+    // Column text is read only when the rows change: it walks every text node of a few rows.
+    const measuredTextRef = useRef<{rows: D[], key: string | number | undefined, text?: SkeletonColumnText[]} | undefined>(undefined);
     const [columnCount, setColumnCount] = useState(5);
     const [skeletonColumns, setSkeletonColumns] = useState<SkeletonColumn[]>([]);
 
@@ -217,12 +230,20 @@ const AbstractTable = <D, >(
         const rowHeight = (tableContainerRef.current.offsetHeight - headerHeight) / visibleRows.length;
         const headerColumnCount = countRowColumns(headerRow);
         const columnWidths = measureColumnWidths(table, headerColumnCount);
+        const measured = measuredTextRef.current;
+        const columnText = measured?.rows === visibleRows
+            && Object.is(measured.key, loadingKey)
+            && measured.text?.length === headerColumnCount
+            ? measured.text
+            : measureColumnText(table, headerColumnCount);
+        measuredTextRef.current = {rows: visibleRows, key: loadingKey, text: columnText};
 
         skeletonGeometryRef.current.set(loadingKey, {
             columnCount: headerColumnCount,
             columnPercents: columnWidths?.map(width => width * 100 / tableWidth),
             rowHeight: rowHeight > 0 ? rowHeight : undefined,
             headerHeight,
+            columnText,
         });
     });
 
@@ -294,6 +315,7 @@ const AbstractTable = <D, >(
     const skeletonItemHeight = actualSkeletonRowHeight
         ? Math.max(16, actualSkeletonRowHeight - cellPadding - cellBorderHeight)
         : undefined;
+    const skeletonLinesFitting = skeletonItemHeight ? linesFitting(skeletonItemHeight) : 1;
     const skeletonTableHeight = showSkeleton && skeletonGeometry?.rowHeight && skeletonGeometry.headerHeight > 0
         ? skeletonGeometry.headerHeight + skeletonGeometry.rowHeight * skeletonRowCount
         : undefined;
@@ -347,17 +369,50 @@ const AbstractTable = <D, >(
         if (column?.hidden) {
             return null;
         }
-        const variation = (Math.sin(row * 127.1 + col * 311.7) * 43758.5453 % 1 + 1) % 1;
+        const variation = (line: number) =>
+            (Math.sin(row * 127.1 + col * 311.7 + line * 74.7) * 43758.5453 % 1 + 1) % 1;
         // Narrow columns keep bars long enough to read as text, yet short enough to show their alignment.
-        const width = column?.narrow
-            ? `${60 + Math.floor(variation * 30)}%`
-            : `${40 + Math.floor(variation * 40)}%`;
-        const style: React.CSSProperties | undefined = column?.align === 'right'
-            ? {marginLeft: 'auto'}
-            : column?.align === 'center'
-                ? {marginLeft: 'auto', marginRight: 'auto'}
-                : undefined;
-        return <Skeleton variant="rounded" width={width} height={skeletonItemHeight} style={style} />;
+        const singleWidth = column?.narrow
+            ? `${60 + Math.floor(variation(0) * 30)}%`
+            : `${40 + Math.floor(variation(0) * 40)}%`;
+
+        if (skeletonLinesFitting === 1) {
+            const style: React.CSSProperties | undefined = column?.align === 'right'
+                ? {marginLeft: 'auto'}
+                : column?.align === 'center'
+                    ? {marginLeft: 'auto', marginRight: 'auto'}
+                    : undefined;
+            return <Skeleton variant="rounded" width={singleWidth} height={skeletonItemHeight} style={style} />;
+        }
+
+        // A tall row gets lines of text: as many as the column had in real rows of this view,
+        // or, before it was seen, most of what fits, a few lines fewer here and there.
+        const remembered = skeletonGeometry?.columnText?.[col]?.lines;
+        const lines = Math.min(
+            skeletonLinesFitting,
+            remembered ?? skeletonLinesFitting - Math.floor(variation(0) * (skeletonLinesFitting + 1) / 2),
+        );
+        return <div
+            style={{
+                alignItems: SKELETON_LINE_ALIGN[column?.align ?? 'left'],
+                display: 'flex',
+                flexDirection: 'column',
+                gap: SKELETON_LINE_GAP,
+            }}
+        >
+            {Array.from({length: lines}, (_, line) => (
+                <Skeleton
+                    key={line}
+                    variant="rounded"
+                    width={lines === 1
+                        ? singleWidth
+                        : line === lines - 1
+                            ? `${35 + Math.floor(variation(line + 1) * 30)}%`
+                            : `${75 + Math.floor(variation(line + 1) * 20)}%`}
+                    height={SKELETON_LINE_HEIGHT}
+                />
+            ))}
+        </div>;
     };
 
     return <Box
@@ -419,6 +474,9 @@ const AbstractTable = <D, >(
                                     <PneTableCell
                                         key={`skeleton-${rowIndex}-${colIndex}`}
                                         sx={skeletonCellSx}
+                                        style={skeletonLinesFitting > 1
+                                            ? {verticalAlign: skeletonGeometry?.columnText?.[colIndex]?.verticalAlign}
+                                            : undefined}
                                     >
                                         {skeletonCellContent(rowIndex, colIndex)}
                                     </PneTableCell>
