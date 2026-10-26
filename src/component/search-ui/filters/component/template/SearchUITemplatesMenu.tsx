@@ -34,6 +34,7 @@ const TEMPLATES_AUTOTEST_ID = 'templates';
 const TEMPLATES_PANEL_AUTOTEST_ID = 'templates-panel';
 const TEMPLATE_ITEM_AUTOTEST_ID = 'template-item';
 const SELECT_TEMPLATE_AUTOTEST_ID = 'select-template';
+const SELECT_DEFAULT_TEMPLATE_AUTOTEST_ID = 'select-default-template';
 const REMOVE_TEMPLATE_AUTOTEST_ID = 'remove-template';
 const REORDER_TEMPLATE_AUTOTEST_ID = 'reorder-template';
 const CREATE_TEMPLATE_AUTOTEST_ID = 'create-template';
@@ -91,7 +92,12 @@ const getRowBackground = (theme: Theme, selected: boolean, state: RowState) => {
     return alpha(theme.palette.primary.main, Math.min(1, theme.palette.action.selectedOpacity + stateOpacity))
 }
 
-const SearchUITemplatesMenu = () => {
+type SearchUITemplatesMenuProps = {
+    /** Back to the page defaults without a template, as the Default item does. */
+    onResetToDefaults: () => void
+}
+
+const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) => {
     const {t} = useTranslation();
     const autoTestScope = useSearchUIAutoTestScope()?.scope
     const menuId = useId()
@@ -117,6 +123,7 @@ const SearchUITemplatesMenu = () => {
     const searchInputRef = useRef<HTMLInputElement>(null)
     const draggingRef = useRef(false)
     const selectItemsRef = useRef(new Map<string, HTMLElement>())
+    const defaultItemRef = useRef<HTMLButtonElement | null>(null)
     const pendingFocusRef = useRef<string | null>(null)
 
     const open = Boolean(anchorEl);
@@ -133,6 +140,8 @@ const SearchUITemplatesMenu = () => {
     const reorderLabel = t('react.searchUI.template.reorder', {defaultValue: 'Drag to reorder'})
     const searchLabel = t('react.searchUI.template.search', {defaultValue: 'Search templates'})
     const modifiedLabel = t('react.searchUI.template.modified', {defaultValue: 'Unsaved changes'})
+    const defaultLabel = t('react.searchUI.default', {defaultValue: 'Default'})
+    const defaultSelected = template === null
 
     // Moving a row can detach its focused element; put focus back on the moved template.
     useLayoutEffect(() => {
@@ -162,6 +171,10 @@ const SearchUITemplatesMenu = () => {
     const handleSelectTemplate = (template: SearchUITemplate) => {
         setTemplate(template, { forceSearch: true })
         handleClose()
+    }
+    const handleSelectDefault = () => {
+        handleClose()
+        onResetToDefaults()
     }
     const handleRemoveTemplate = async (template: SearchUITemplate) => {
         handleClose()
@@ -251,9 +264,13 @@ const SearchUITemplatesMenu = () => {
         // The menu's type-ahead and arrow navigation would otherwise pull focus out of the field.
         event.stopPropagation()
         const firstMatch = visibleTemplates[0]
-        if (event.key === 'ArrowDown' && firstMatch) {
+        // Default leads the list while the search field is empty.
+        const firstItem = filtering
+            ? firstMatch && selectItemsRef.current.get(firstMatch.name)
+            : defaultItemRef.current
+        if (event.key === 'ArrowDown' && firstItem) {
             event.preventDefault()
-            selectItemsRef.current.get(firstMatch.name)?.focus()
+            firstItem.focus()
         } else if (event.key === 'Enter' && filtering && firstMatch) {
             event.preventDefault()
             handleSelectTemplate(firstMatch)
@@ -351,6 +368,26 @@ const SearchUITemplatesMenu = () => {
                     type={'search'}
                     value={query}
                 />
+            </Box> : null}
+            {filtering ? null : <Box component={'li'} role={'none'} sx={getTemplateRowSx(defaultSelected, false)}>
+                <MenuItem
+                    {...createAutoTestAttributes(SELECT_DEFAULT_TEMPLATE_AUTOTEST_ID)}
+                    component={'button'}
+                    ref={defaultItemRef}
+                    role={'menuitemradio'}
+                    aria-checked={defaultSelected}
+                    selected={defaultSelected}
+                    onClick={handleSelectDefault}
+                    sx={selectItemSx}
+                >
+                    <ListItemIcon sx={{color: defaultSelected ? 'primary.main' : 'transparent'}}>
+                        <CheckRoundedIcon fontSize={'small'}/>
+                    </ListItemIcon>
+                    <ListItemText primary={defaultLabel} slotProps={{primary: {noWrap: true}}}/>
+                </MenuItem>
+            </Box>}
+            {!filtering && templates.length > 0 ? <Box component={'li'} role={'none'}>
+                <Divider sx={{my: '4px'}}/>
             </Box> : null}
             {templates.length > 0 ? <DragDropContext
                 enableDefaultSensors={false}

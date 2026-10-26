@@ -263,7 +263,6 @@ describe('SearchUI autotest scope', () => {
 
         const actionIds = [
             'toggle-filters',
-            'clear-all',
             'templates',
             'add-filter',
             'run-search',

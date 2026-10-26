@@ -799,7 +799,8 @@ scope. Таблица ищется от document/page scope, а не внутр�
 - `toggle-filters` — native button; состояние панели находится в `aria-expanded`, связь с панелью — в
   `aria-controls`;
 - `clear-all` и `run-search` — реальные кнопки; доступность запуска поиска проверяется через native `disabled`
-  (`run-search` одинаков для режимов Search и Refresh);
+  (`run-search` одинаков для режимов Search и Refresh). `clear-all` есть только при скрытом меню шаблонов
+  (`hideTemplatesSelect`); с меню к умолчаниям возвращает его пункт `select-default-template`;
 - `templates` — native button с `aria-expanded` и open-state `aria-controls`;
 - `add-filter` — реально кликаемый MUI `role="combobox"`, а не декоративная кнопка над ним; состояние и связь с
   listbox находятся в `aria-expanded` и open-state `aria-controls`;
@@ -824,8 +825,9 @@ Generated IDs из `aria-controls` не хардкодируйте: при не�
 стабильным owner locator остаётся `data-autotest` + scope. Строки сохранённых шаблонов отмечены одинаковым
 `template-item` без value; внутри используются `select-template`, `remove-template` и, если хост сохраняет
 порядок, `reorder-template`. Имя шаблона остаётся видимым пользовательским значением и доступным именем, но
-намеренно не попадает в `data-autotest-value`. Действия меню — `create-template`, `update-template` и, пока
-применённый шаблон изменён, `discard-template-changes`.
+намеренно не попадает в `data-autotest-value`. Список открывает пункт `select-default-template` («Default»).
+Действия меню — `create-template`, `update-template` и, пока применённый шаблон изменён,
+`discard-template-changes`.
 Icon-only закрытие editor имеет `close-template-editor`; поле имени, Create и Cancel остаются стандартными
 required textbox/text buttons и ищутся по role/name внутри scoped editor.
 
@@ -1002,7 +1004,7 @@ Selectors ниже относительны к `search-filters/<scope>`.
 | Action | Selector | Состояние/примечание |
 |---|---|---|
 | Показать/скрыть фильтры | `[data-autotest="toggle-filters"]` | Native button, `aria-expanded`, `aria-controls` |
-| Очистить всё | `[data-autotest="clear-all"]` | Условно присутствует |
+| Очистить всё | `[data-autotest="clear-all"]` | Только при `hideTemplatesSelect`; иначе — `select-default-template` в меню шаблонов |
 | Запустить поиск/refresh | `[data-autotest="run-search"]` | Native `disabled`/`isEnabled()` |
 | Шаблоны | `[data-autotest="templates"]` | Native button, `aria-expanded`, `aria-controls` |
 | Добавить фильтр | `[role="combobox"][data-autotest="add-filter"]` | Кликать actual combobox; `aria-expanded` |
@@ -1029,6 +1031,10 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
 
 Внутри templates panel (`role="menu"`):
 
+- вернуться к умолчаниям страницы без шаблона: `button[data-autotest="select-default-template"]`
+  («Default», `role="menuitemradio"`, первый пункт; `aria-checked="true"`, пока свой шаблон не применён). Он
+  делает то же, что прежний `clear-all`: восстанавливает умолчания, снимает шаблон, забывает его как последний и,
+  если что-то изменилось, показывает undo-snackbar. Пока поле поиска шаблонов не пустое, пункта нет;
 - строка: `[data-autotest="template-item"]`;
 - применить конкретный шаблон: `button[data-autotest="select-template"][title="<template name>"]`
   (`role="menuitemradio"`, применённый шаблон отмечен `aria-checked="true"`);
@@ -1527,8 +1533,8 @@ anchors для этих стандартных действий отсутств
 ## OverlayHost
 
 Компоненты, которые используют `overlayActions` напрямую или косвенно, требуют смонтированный
-`<OverlayHost />` в приложении-хосте. Это касается и `SearchUI`, потому что `Clear all` использует
-undo-snackbar.
+`<OverlayHost />` в приложении-хосте. Это касается и `SearchUI`, потому что пункт `Default` меню шаблонов
+(и `Clear all` при скрытом меню) использует undo-snackbar.
 
 Подключайте `OverlayHost` ровно один раз, обычно рядом с корнем приложения:
 

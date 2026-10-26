@@ -30,7 +30,10 @@ const createTemplates = (...names: string[]): SearchUITemplate[] => names.map(na
     searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
 }))
 
-const renderMenu = (defaults: Partial<SearchUIDefaults> = {}, options: {confirm?: boolean} = {}) => {
+const renderMenu = (
+    defaults: Partial<SearchUIDefaults> = {},
+    options: {confirm?: boolean, contextName?: string} = {},
+) => {
     const filters = <SearchUIProvider
         defaults={{
             getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo', 'Charlie')),
@@ -39,7 +42,7 @@ const renderMenu = (defaults: Partial<SearchUIDefaults> = {}, options: {confirm?
     >
         <SearchUIFilters
             autoTestId={SCOPE}
-            settingsContextName={CONTEXT_NAME}
+            settingsContextName={options.contextName ?? CONTEXT_NAME}
             possibleCriteria={[]}
             onFiltersUpdate={jest.fn()}
             config={{hideShowFiltersButton: true}}
@@ -88,7 +91,7 @@ describe('SearchUI templates menu', () => {
         expect(trigger().getAttribute('aria-controls')).toBe(menu.id)
         expect(menu.getAttribute('role')).toBe('menu')
         expect(within(menu).getAllByRole('menuitemradio').map(item => item.textContent))
-            .toEqual(['Alpha', 'Bravo', 'Charlie'])
+            .toEqual(['Default', 'Alpha', 'Bravo', 'Charlie'])
 
         fireEvent.click(selectItem('Bravo'))
         await waitFor(() => expect(trigger().textContent).toContain('Bravo'))
@@ -297,6 +300,76 @@ describe('SearchUI templates menu', () => {
         await waitFor(() => expect(modifiedDot()).toBeNull())
         expect(criteria()).toEqual([])
         expect(trigger().textContent).toBe('Alpha')
+    })
+
+    describe('Default', () => {
+        const defaultItem = () => document.body.querySelector<HTMLButtonElement>(
+            '[data-autotest="select-default-template"]',
+        )
+
+        // Each test has its own context: SearchUI retains the filters per context between mounts.
+        it('leads the menu and resets to the page defaults with an Undo that brings the template back', async () => {
+            const showUndoSnackbar = jest.spyOn(overlayActions, 'showUndoSnackbar')
+            renderMenu({}, {contextName: `${CONTEXT_NAME}-default-reset`})
+
+            await openMenu()
+            expect(defaultItem()?.getAttribute('aria-checked')).toBe('true')
+            fireEvent.click(selectItem('Bravo'))
+            await waitFor(() => expect(trigger().textContent).toBe('Bravo'))
+
+            await openMenu()
+            expect(defaultItem()?.getAttribute('aria-checked')).toBe('false')
+            fireEvent.click(defaultItem() as HTMLButtonElement)
+
+            await waitFor(() => expect(trigger().textContent).toBe('react.searchUI.template'))
+            expect(showUndoSnackbar).toHaveBeenCalledTimes(1)
+            const {message, onUndo} = showUndoSnackbar.mock.calls[0][0]
+            expect(message).toBe('All filters cleared')
+
+            act(() => onUndo())
+            await waitFor(() => expect(trigger().textContent).toBe('Bravo'))
+        })
+
+        it('offers no Undo when the filters already are the defaults', async () => {
+            const showUndoSnackbar = jest.spyOn(overlayActions, 'showUndoSnackbar')
+            renderMenu({}, {contextName: `${CONTEXT_NAME}-default-noop`})
+
+            await openMenu()
+            fireEvent.click(defaultItem() as HTMLButtonElement)
+            await act(async () => undefined)
+
+            expect(showUndoSnackbar).not.toHaveBeenCalled()
+            expect(trigger().textContent).toBe('react.searchUI.template')
+        })
+
+        it('replaces Clear all, which stays only where the templates menu is hidden', async () => {
+            const renderFilters = (hideTemplatesSelect: boolean) => render(<SearchUIProvider
+                defaults={{getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha'))}}
+            >
+                <SearchUIFilters
+                    autoTestId={SCOPE}
+                    settingsContextName={`${CONTEXT_NAME}-hidden-${hideTemplatesSelect}`}
+                    possibleCriteria={[CriterionTypeEnum.STATUS]}
+                    predefinedCriteria={[CriterionTypeEnum.STATUS]}
+                    onFiltersUpdate={jest.fn()}
+                    config={{
+                        hideShowFiltersButton: true,
+                        hideTemplatesSelect,
+                        removablePredefinedCriteria: [CriterionTypeEnum.STATUS],
+                    }}
+                />
+            </SearchUIProvider>)
+            const clearAll = () => document.body.querySelector('[data-autotest="clear-all"]')
+
+            const withMenu = renderFilters(false)
+            await waitFor(() => expect(document.body.querySelector('[data-autotest="templates"]')).not.toBeNull())
+            expect(clearAll()).toBeNull()
+            withMenu.unmount()
+
+            renderFilters(true)
+            await waitFor(() => expect(clearAll()).not.toBeNull())
+            expect(document.body.querySelector('[data-autotest="templates"]')).toBeNull()
+        })
     })
 
     describe('search', () => {

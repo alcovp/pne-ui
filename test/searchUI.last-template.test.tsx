@@ -195,17 +195,13 @@ describe('SearchUI last chosen template', () => {
             expect(localStorage.getItem(getLastSearchUITemplateStorageKey(context))).toBeNull()
         })
 
-        it('forgets the name on the host when the filters are cleared', async () => {
+        it('forgets the name on the host when Default is chosen', async () => {
             const context = 'host-clear'
             const host = createHostStore(null)
 
             renderFilters(context, host)
             await selectTemplate()
-            fireEvent.click(await waitFor(() => {
-                const button = query<HTMLButtonElement>('[data-autotest="clear-all"]')
-                expect(button).not.toBeNull()
-                return button as HTMLButtonElement
-            }))
+            await clickMenuItem('[data-autotest="select-default-template"]')
             await waitFor(() => expect(host.saveLastSearchTemplateName)
                 .toHaveBeenLastCalledWith({contextName: context, templateName: null}))
         })
