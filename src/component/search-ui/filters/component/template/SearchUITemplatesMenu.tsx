@@ -730,12 +730,13 @@ const templateTriggerNameSx: SxProps = {
     textOverflow: 'ellipsis',
 }
 
+/** The virtual terminal's unsaved-template dot: the same orange whatever the skin's accent colour. */
 const modifiedDotStyle = {
-    backgroundColor: 'primary.main',
+    backgroundColor: '#F2A900',
     borderRadius: '50%',
     flex: '0 0 auto',
-    height: 8,
-    width: 8,
+    height: 6,
+    width: 6,
 }
 
 const modifiedDotSx: SxProps<Theme> = modifiedDotStyle
