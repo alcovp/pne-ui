@@ -303,6 +303,46 @@ describe('SearchUI templates menu', () => {
         expect(trigger().textContent).toBe('Alpha')
     })
 
+    it('takes the dates of a loaded template as the strings the server sends', async () => {
+        const conditions = getSearchUIInitialSearchCriteria(initialSearchUIDefaults)
+        const withDates = (name: string, dateRangeSpecType: string) => ({
+            name,
+            searchConditions: {
+                ...conditions,
+                criteria: [CriterionTypeEnum.DATE_RANGE],
+                dateRangeSpec: {
+                    dateRangeSpecType,
+                    dateFrom: 'Oct 22, 2026, 6:00:00 AM',
+                    dateTo: 'Oct 23, 2026, 6:00:00 AM',
+                    beforeCount: 1,
+                },
+            },
+        })
+        const templates = [withDates('Independent', 'DATE_INDEPENDENT'), withDates('Exact', 'EXACTLY')]
+        render(<SearchUIProvider
+            defaults={{getSearchTemplates: jest.fn().mockResolvedValue(templates as unknown as SearchUITemplate[])}}
+        >
+            <SearchUIFilters
+                autoTestId={SCOPE}
+                settingsContextName={`${CONTEXT_NAME}-string-dates`}
+                possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                onFiltersUpdate={jest.fn()}
+                config={{hideShowFiltersButton: true}}
+            />
+        </SearchUIProvider>)
+
+        await openMenu(2)
+        fireEvent.click(selectItem('Independent'))
+        await waitFor(() => expect(trigger().textContent).toBe('Independent'))
+
+        await openMenu(2)
+        fireEvent.click(selectItem('Exact'))
+        await waitFor(() => expect(trigger().textContent).toBe('Exact'))
+        const field = document.body.querySelector('[data-autotest="criterion-date-range"]')
+        expect(field?.textContent?.replace(/[‎⁨⁩]/g, '')).toContain('22.10.2026')
+    })
+
     describe('Default', () => {
         // Each test has its own context: SearchUI retains the filters per context between mounts.
         it('leads the menu and resets to the page defaults with an Undo that brings the template back', async () => {

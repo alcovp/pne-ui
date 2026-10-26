@@ -64,11 +64,29 @@ export const getDateIndependentBound = (
 
 /**
  * An exact range keeps a typed date that is unfinished or does not exist (31.02) as an invalid
- * Date, so validation can report it and no search runs with it.
+ * Date, so validation can report it and no search runs with it. Anything that is not a Date, such
+ * as a string that slipped in with a template, counts as invalid instead of throwing.
  */
 export const isValidSearchUIDate = (date: Date | null): date is Date => (
-    date !== null && !Number.isNaN(date.getTime())
+    date instanceof Date && !Number.isNaN(date.getTime())
 )
+
+/**
+ * A template comes back from the server as JSON, so its dates are strings (Paynet writes them as
+ * `Oct 22, 2026, 6:00:00 AM`), while the state and the date field hold Date objects. A value that
+ * does not parse becomes an invalid Date for validation to report.
+ */
+export const reviveSearchUIDate = (value: unknown): Date | null => {
+    if (value === null || value === undefined) {
+        return null
+    }
+
+    if (value instanceof Date) {
+        return value
+    }
+
+    return new Date(value as string | number)
+}
 
 /**
  * Converts a day selected by MUI DateRangePicker into SearchUI state. The picker

@@ -70,6 +70,7 @@ import {
     getDateIndependentBound,
     isValidSearchUIDate,
     resolveDateOnlyTimeZone,
+    reviveSearchUIDate,
     SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../dateRangeTimeZone'
 import { getConcreteCustomerLevelMerchantId } from '../customerLevelDependencies'
@@ -138,11 +139,19 @@ const normalizeMultigetCriterion = (multigetCriterion: MultigetCriterion): Multi
     }
 }
 
+/** JSON brought the dates of a saved template as strings; the state and the date field hold Date objects. */
+const reviveDateRangeSpec = (spec: DateRangeSpec): DateRangeSpec => ({
+    ...spec,
+    dateFrom: reviveSearchUIDate(spec.dateFrom),
+    dateTo: reviveSearchUIDate(spec.dateTo),
+})
+
 const normalizeSearchUITemplate = (template: SearchUITemplate): SearchUITemplate => ({
     ...template,
     searchConditions: {
         ...template.searchConditions,
         multigetCriteria: (template.searchConditions.multigetCriteria ?? []).map(normalizeMultigetCriterion),
+        dateRangeSpec: reviveDateRangeSpec(template.searchConditions.dateRangeSpec),
     },
 })
 

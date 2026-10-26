@@ -64,7 +64,14 @@ const CRITERION_DATE_TIME_TO_PICKER_AUTOTEST_ID = 'criterion-date-time-to-picker
 /** A typed date that is unfinished or does not exist (31.02); validation reports it. */
 const createInvalidDate = (): Date => new Date(Number.NaN)
 
-const toDateKey = (date: Date | null): string => date === null ? '' : String(date.getTime())
+/** A value that is not a Date (a string a template brought) gets a key of its own rather than a throw. */
+const toDateKey = (date: Date | null): string => {
+    if (date === null) {
+        return ''
+    }
+
+    return date instanceof Date ? String(date.getTime()) : String(date)
+}
 
 const isSameStoredDate = (left: Date | null, right: Date | null): boolean => toDateKey(left) === toDateKey(right)
 
