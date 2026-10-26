@@ -146,14 +146,19 @@ const reviveDateRangeSpec = (spec: DateRangeSpec): DateRangeSpec => ({
     dateTo: reviveSearchUIDate(spec.dateTo),
 })
 
-const normalizeSearchUITemplate = (template: SearchUITemplate): SearchUITemplate => ({
-    ...template,
-    searchConditions: {
-        ...template.searchConditions,
-        multigetCriteria: (template.searchConditions.multigetCriteria ?? []).map(normalizeMultigetCriterion),
-        dateRangeSpec: reviveDateRangeSpec(template.searchConditions.dateRangeSpec),
-    },
-})
+const normalizeSearchUITemplate = (template: SearchUITemplate): SearchUITemplate => {
+    // An old template may carry no date range at all; the defaults fill it in when it is applied.
+    const {dateRangeSpec} = template.searchConditions
+
+    return {
+        ...template,
+        searchConditions: {
+            ...template.searchConditions,
+            multigetCriteria: (template.searchConditions.multigetCriteria ?? []).map(normalizeMultigetCriterion),
+            ...(dateRangeSpec ? {dateRangeSpec: reviveDateRangeSpec(dateRangeSpec)} : {}),
+        },
+    }
+}
 
 const orderTemplatesByName = (
     templates: SearchUITemplate[],

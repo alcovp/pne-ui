@@ -318,7 +318,13 @@ describe('SearchUI templates menu', () => {
                 },
             },
         })
-        const templates = [withDates('Independent', 'DATE_INDEPENDENT'), withDates('Exact', 'EXACTLY')]
+        // An old template has no date range at all.
+        const {dateRangeSpec: _omitted, ...bareConditions} = conditions
+        const templates = [
+            withDates('Independent', 'DATE_INDEPENDENT'),
+            withDates('Exact', 'EXACTLY'),
+            {name: 'Bare', searchConditions: bareConditions},
+        ]
         render(<SearchUIProvider
             defaults={{getSearchTemplates: jest.fn().mockResolvedValue(templates as unknown as SearchUITemplate[])}}
         >
@@ -332,11 +338,15 @@ describe('SearchUI templates menu', () => {
             />
         </SearchUIProvider>)
 
-        await openMenu(2)
+        await openMenu(3)
+        fireEvent.click(selectItem('Bare'))
+        await waitFor(() => expect(trigger().textContent).toBe('Bare'))
+
+        await openMenu(3)
         fireEvent.click(selectItem('Independent'))
         await waitFor(() => expect(trigger().textContent).toBe('Independent'))
 
-        await openMenu(2)
+        await openMenu(3)
         fireEvent.click(selectItem('Exact'))
         await waitFor(() => expect(trigger().textContent).toBe('Exact'))
         const field = document.body.querySelector('[data-autotest="criterion-date-range"]')
