@@ -1034,7 +1034,9 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
 - вернуться к умолчаниям страницы без шаблона: `button[data-autotest="select-default-template"]`
   («Default», `role="menuitemradio"`, первый пункт; `aria-checked="true"`, пока свой шаблон не применён). Он
   делает то же, что прежний `clear-all`: восстанавливает умолчания, снимает шаблон, забывает его как последний и,
-  если что-то изменилось, показывает undo-snackbar. Пока поле поиска шаблонов не пустое, пункта нет;
+  если что-то изменилось, показывает undo-snackbar «Default filters restored» (`react.searchUI.default.restored`).
+  Умолчания ищутся сразу, как и выбранный шаблон, в том числе при `manualSearch`. Пока поле поиска шаблонов не
+  пустое, пункта нет; стрелка вверх с него уводит в поле поиска;
 - строка: `[data-autotest="template-item"]`;
 - применить конкретный шаблон: `button[data-autotest="select-template"][title="<template name>"]`
   (`role="menuitemradio"`, применённый шаблон отмечен `aria-checked="true"`);
@@ -1891,7 +1893,9 @@ production-запросе.
 
 Если отдельно включить `manualSearch: true`, пользователь должен сначала применить
 изменения встроенной кнопкой Search и только затем запускать Generate: до Search в
-`onFiltersUpdate` остаются последние применённые критерии.
+`onFiltersUpdate` остаются последние применённые критерии. Исключение — готовые наборы:
+выбор шаблона, `Default` и `discard-template-changes` применяются сразу, как и первая
+загрузка страницы; `clear-all` при скрытом меню шаблонов делает так же.
 
 ### Ограничение типов транзакций
 

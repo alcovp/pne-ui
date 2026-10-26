@@ -30,6 +30,7 @@ i18nForStorybook
                     'react.searchUI.filters': 'Filters',
                     'react.searchUI.search': 'Search',
                     'react.searchUI.default': 'Default',
+                    'react.searchUI.default.restored': 'Default filters restored',
                     'react.searchUI.transactionIds': 'Transaction IDs',
                     'react.searchUI.dateRange.maxRangeSpanExceeded': 'Date range must not exceed {{maxRangeSpanInDays}} day(s)',
                     'react.searchUI.dateRange.invalidDate': 'Enter a valid date',

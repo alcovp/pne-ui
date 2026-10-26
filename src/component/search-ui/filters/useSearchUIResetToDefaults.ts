@@ -13,12 +13,20 @@ type PendingResetUndo = {
     baseline: ReturnType<typeof createClearCriteriaUndoSnapshot>
 }
 
+type ResetToDefaultsOptions = {
+    /** What the undo snackbar says: the Default item and Clear all describe the reset differently. */
+    message: string
+}
+
 /**
  * Brings the filters back to the page defaults without a template, so the next visit starts clean
  * too, and offers Undo for a few seconds. The Undo goes away once the filters move on from the
  * reset state. Filters already at their defaults change nothing and get no Undo.
+ *
+ * The defaults are searched at once, in manual mode too: like choosing a template, this picks a
+ * ready search rather than editing a filter.
  */
-export const useSearchUIResetToDefaults = (): (() => void) => {
+export const useSearchUIResetToDefaults = ({message}: ResetToDefaultsOptions): (() => void) => {
     const {t} = useTranslation()
     const filtersStore = useSearchUIFiltersStoreApi()
     const clearCriteria = useSearchUIFiltersStore(s => s.clearCriteria)
@@ -62,7 +70,7 @@ export const useSearchUIResetToDefaults = (): (() => void) => {
         const snapshotBeforeReset = createClearCriteriaUndoSnapshot(filtersStore.getState())
 
         clearPendingUndo()
-        clearCriteria()
+        clearCriteria({forceSearch: true})
 
         const baseline = createClearCriteriaUndoSnapshot(filtersStore.getState())
         if (isEqual(baseline, snapshotBeforeReset)) {
@@ -70,7 +78,7 @@ export const useSearchUIResetToDefaults = (): (() => void) => {
         }
 
         const snackbarId = overlayActions.showUndoSnackbar({
-            message: t('react.searchUI.clearAll.cleared', {defaultValue: 'All filters cleared'}),
+            message,
             undoLabel: t('react.searchUI.undo', {defaultValue: 'Undo'}),
             autoHideMs: UNDO_AUTO_HIDE_MS,
             onUndo: () => {

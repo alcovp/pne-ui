@@ -516,7 +516,7 @@ export const getSearchUIFiltersActions = (
                 : true
         })
     },
-    clearCriteria: () => {
+    clearCriteria: (options?: SearchUIUpdateOptions) => {
         void forgetLastSearchUITemplateName(get().defaults, get().settingsContextName)
 
         set((draft) => {
@@ -530,7 +530,7 @@ export const getSearchUIFiltersActions = (
             })
             ensureCustomerLevelDependenciesReducer(draft)
         })
-        postUpdate(set, get)
+        postUpdate(set, get, options)
     },
     clearCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {

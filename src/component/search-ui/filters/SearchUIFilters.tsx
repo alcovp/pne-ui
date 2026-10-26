@@ -525,7 +525,12 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const filtersPanelId = useId()
     const initializedRef = useRef(false)
     const synchronizedExternalConditionsRef = useRef(searchConditionsState)
-    const resetToDefaults = useSearchUIResetToDefaults()
+    // The Default item says where the filters went, Clear all what it did; only one of them shows.
+    const resetToDefaults = useSearchUIResetToDefaults({
+        message: hideTemplatesSelect
+            ? t('react.searchUI.clearAll.cleared', {defaultValue: 'All filters cleared'})
+            : t('react.searchUI.default.restored', {defaultValue: 'Default filters restored'}),
+    })
 
     useEffect(() => {
         if (initializedRef.current) {

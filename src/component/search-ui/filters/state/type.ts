@@ -120,7 +120,7 @@ export type SearchUIFiltersActions = {
         },
     ) => void
     restoreClearCriteriaSnapshot: (snapshot: SearchUIClearCriteriaUndoSnapshot) => void
-    clearCriteria: () => void
+    clearCriteria: (options?: {forceSearch?: boolean}) => void
     clearCriterion: (criterionType: CriterionTypeEnum) => void
     addCriterion: (criterionType: CriterionTypeEnum) => void
     removeCriterion: (criterionType: CriterionTypeEnum) => void

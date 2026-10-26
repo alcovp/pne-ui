@@ -63,6 +63,7 @@ const selectItem = (name: string) => document.body.querySelector<HTMLButtonEleme
     `[data-autotest="select-template"][title="${name}"]`,
 )!
 const rowOf = (name: string) => selectItem(name).closest<HTMLElement>('[data-autotest="template-item"]')!
+const defaultItem = () => document.body.querySelector<HTMLButtonElement>('[data-autotest="select-default-template"]')
 
 const openMenu = async (expectedCount = 3) => {
     fireEvent.click(trigger())
@@ -303,10 +304,6 @@ describe('SearchUI templates menu', () => {
     })
 
     describe('Default', () => {
-        const defaultItem = () => document.body.querySelector<HTMLButtonElement>(
-            '[data-autotest="select-default-template"]',
-        )
-
         // Each test has its own context: SearchUI retains the filters per context between mounts.
         it('leads the menu and resets to the page defaults with an Undo that brings the template back', async () => {
             const showUndoSnackbar = jest.spyOn(overlayActions, 'showUndoSnackbar')
@@ -324,7 +321,7 @@ describe('SearchUI templates menu', () => {
             await waitFor(() => expect(trigger().textContent).toBe('react.searchUI.template'))
             expect(showUndoSnackbar).toHaveBeenCalledTimes(1)
             const {message, onUndo} = showUndoSnackbar.mock.calls[0][0]
-            expect(message).toBe('All filters cleared')
+            expect(message).toBe('Default filters restored')
 
             act(() => onUndo())
             await waitFor(() => expect(trigger().textContent).toBe('Bravo'))
@@ -369,6 +366,39 @@ describe('SearchUI templates menu', () => {
             renderFilters(true)
             await waitFor(() => expect(clearAll()).not.toBeNull())
             expect(document.body.querySelector('[data-autotest="templates"]')).toBeNull()
+        })
+
+        it('applies the defaults at once in manual mode, as choosing a template does', async () => {
+            jest.spyOn(overlayActions, 'showUndoSnackbar').mockReturnValue('undo')
+            const onFiltersUpdate = jest.fn()
+            const yesterday: SearchUITemplate = {
+                name: 'Yesterday',
+                searchConditions: {
+                    ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+                    criteria: [CriterionTypeEnum.DATE_RANGE],
+                    dateRangeSpec: {dateRangeSpecType: 'YESTERDAY', dateFrom: null, dateTo: null, beforeCount: 1},
+                },
+            }
+            render(<SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([yesterday])}}>
+                <SearchUIFilters
+                    autoTestId={SCOPE}
+                    settingsContextName={`${CONTEXT_NAME}-default-manual`}
+                    possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                    predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                    onFiltersUpdate={onFiltersUpdate}
+                    config={{hideShowFiltersButton: true, manualSearch: true}}
+                />
+            </SearchUIProvider>)
+            await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalledTimes(1))
+
+            await openMenu(1)
+            fireEvent.click(selectItem('Yesterday'))
+            await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalledTimes(2))
+
+            await openMenu(1)
+            fireEvent.click(defaultItem() as HTMLButtonElement)
+            await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalledTimes(3))
+            expect(trigger().textContent).toBe('react.searchUI.template')
         })
     })
 
@@ -437,6 +467,23 @@ describe('SearchUI templates menu', () => {
             await waitFor(() => expect(trigger().textContent).toContain('Hotel'))
             await openMenu(LONG_LIST.length)
             expect(searchField()?.value).toBe('')
+        })
+
+        it('walks from the field through Default into the list and back', async () => {
+            renderLongMenu()
+            await openMenu(LONG_LIST.length)
+            await waitFor(() => expect(document.activeElement).toBe(searchField()))
+
+            fireEvent.keyDown(searchField() as HTMLInputElement, {key: 'ArrowDown', code: 'ArrowDown'})
+            expect(document.activeElement).toBe(defaultItem())
+            fireEvent.keyDown(defaultItem() as HTMLButtonElement, {key: 'ArrowDown', code: 'ArrowDown'})
+            expect(document.activeElement).toBe(selectItem('Alpha'))
+            // Up from the first template stops on Default instead of skipping to the field.
+            fireEvent.keyDown(selectItem('Alpha'), {key: 'ArrowUp', code: 'ArrowUp'})
+            expect(document.activeElement).toBe(defaultItem())
+            // Up from Default goes to the field, not around to the bottom of the menu.
+            fireEvent.keyDown(defaultItem() as HTMLButtonElement, {key: 'ArrowUp', code: 'ArrowUp'})
+            expect(document.activeElement).toBe(searchField())
         })
     })
 })

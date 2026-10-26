@@ -92,6 +92,11 @@ const getRowBackground = (theme: Theme, selected: boolean, state: RowState) => {
     return alpha(theme.palette.primary.main, Math.min(1, theme.palette.action.selectedOpacity + stateOpacity))
 }
 
+/** No modifier held: the arrow is plain navigation, not Alt+arrow reordering or a browser shortcut. */
+const isPlainKey = (event: React.KeyboardEvent): boolean => (
+    !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
+)
+
 type SearchUITemplatesMenuProps = {
     /** Back to the page defaults without a template, as the Default item does. */
     onResetToDefaults: () => void
@@ -235,8 +240,8 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
 
     const handleTemplateKeyDown = (event: React.KeyboardEvent, index: number) => {
         const up = event.key === 'ArrowUp'
-        if (searchable && up && index === 0 && !event.altKey && !event.ctrlKey && !event.metaKey
-            && !event.shiftKey) {
+        // Up from the first match returns to the field only while filtering; otherwise Default sits between.
+        if (searchable && filtering && up && index === 0 && isPlainKey(event)) {
             event.preventDefault()
             event.stopPropagation()
             searchInputRef.current?.focus()
@@ -254,6 +259,16 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         }
         pendingFocusRef.current = templates[index].name
         moveTemplate(index, target)
+    }
+
+    const handleDefaultKeyDown = (event: React.KeyboardEvent) => {
+        // Default leads the list: up from it goes to the search field, not around to the last action.
+        if (!searchable || event.key !== 'ArrowUp' || !isPlainKey(event)) {
+            return
+        }
+        event.preventDefault()
+        event.stopPropagation()
+        searchInputRef.current?.focus()
     }
 
     const handleSearchKeyDown = (event: React.KeyboardEvent) => {
@@ -378,6 +393,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
                     aria-checked={defaultSelected}
                     selected={defaultSelected}
                     onClick={handleSelectDefault}
+                    onKeyDown={handleDefaultKeyDown}
                     sx={selectItemSx}
                 >
                     <ListItemIcon sx={{color: defaultSelected ? 'primary.main' : 'transparent'}}>
@@ -495,7 +511,8 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
                 {t('react.searchUI.template.noMatches', {defaultValue: 'No templates match'})}
             </Box> : null}
             <Box component={'li'} role={'none'} sx={menuFooterSx}>
-                {templates.length > 0 ? <Divider sx={{mb: '4px'}}/> : null}
+                {/* Default, or the search field while filtering, always stands above the actions. */}
+                <Divider sx={{mb: '4px'}}/>
                 <MenuItem
                     {...createAutoTestAttributes(CREATE_TEMPLATE_AUTOTEST_ID)}
                     component={'button'}
