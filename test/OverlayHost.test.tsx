@@ -6,6 +6,7 @@ import {
     OverlayHost,
     overlayActions,
     PAYNET_LEFT_MENU_OVERLAY_OFFSET,
+    PermanentOverlay,
     useOverlayStore,
 } from '../src'
 import { createResponsiveLeftOffsetStyles } from '../src/component/overlay/OverlayHost'
@@ -493,5 +494,25 @@ describe('OverlayHost', () => {
         })
         expect(screen.getByText('Second error')).toBeTruthy()
         expect(screen.queryByText('First error')).toBeNull()
+    })
+
+    it('re-renders a permanent overlay when its render prop changes', async () => {
+        const onSave = jest.fn()
+        const renderHost = (value: string) => (
+            <OverlayHost container={null}>
+                <PermanentOverlay
+                    id='form-actions'
+                    render={() => <button onClick={() => onSave(value)}>Save {value}</button>}
+                />
+            </OverlayHost>
+        )
+
+        const view = render(renderHost('draft'))
+        expect(await screen.findByText('Save draft')).toBeTruthy()
+
+        view.rerender(renderHost('edited'))
+        fireEvent.click(await screen.findByText('Save edited'))
+
+        expect(onSave).toHaveBeenCalledWith('edited')
     })
 })

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react'
+import { useContext, useEffect } from 'react'
 import { PermanentOverlayContext } from './PermanentOverlayContext'
 import type { PermanentOverlayRender, PermanentOverlaySlot } from './types'
 
@@ -18,23 +18,13 @@ type PermanentOverlayProps = {
  */
 export function PermanentOverlay({ id, slot = DEFAULT_SLOT, render, offset, zIndex }: PermanentOverlayProps) {
     const ctx = useContext(PermanentOverlayContext)
-    const renderRef = useRef(render)
 
-    useEffect(() => {
-        renderRef.current = render
-    }, [render])
-
+    // Re-register on every new `render` so the host re-renders the slot with fresh content and closures.
     useEffect(() => {
         if (!ctx) return
-        ctx.register({
-            id,
-            slot,
-            offset,
-            zIndex,
-            render: context => renderRef.current(context),
-        })
+        ctx.register({ id, slot, offset, zIndex, render })
         return () => ctx.unregister(id, slot)
-    }, [ctx, id, slot, offset, zIndex])
+    }, [ctx, id, slot, offset, zIndex, render])
 
     return null
 }
