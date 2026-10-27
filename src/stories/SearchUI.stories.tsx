@@ -35,7 +35,7 @@ import { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, waitFor } from 'storybook/test'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import { Alert, Box, IconButton, Tooltip, Typography } from '@mui/material'
+import { Alert, Box, IconButton, Tooltip } from '@mui/material'
 import { sharesRow } from './tableControlRows'
 
 type DataType = AbstractEntity
@@ -579,7 +579,7 @@ const HookWrap = (props: HookWrapProps) => <OverlayHost>
     <HookWrapContent {...props}/>
 </OverlayHost>
 
-export const HookWrapContent = (props: HookWrapProps) => {
+const HookWrapContent = (props: HookWrapProps) => {
 
     const {
         possibleCriteria = defaultPossibleCriteria,
@@ -846,9 +846,9 @@ export const HookWrapContent = (props: HookWrapProps) => {
     </SearchUIProvider>
 }
 
-// An orders-like filter set for the layout stories: two fixed rows with an eraser only, three
-// removable rows with the cross as well, manual search.
-const layoutStoryPredefinedCriteria: CriterionTypeEnum[] = [
+// The orders-like filter set: two fixed rows with an eraser only, three removable rows with the cross
+// as well, a few more filters left to add.
+const ordersStoryPredefinedCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.DATE_RANGE_ORDERS,
     CriterionTypeEnum.EXACT,
     CriterionTypeEnum.CURRENCY,
@@ -856,18 +856,17 @@ const layoutStoryPredefinedCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.TRANSACTION_TYPES,
 ]
 
-export const layoutStoryArgs = {
+const ordersStoryArgs = {
     possibleCriteria: [
-        ...layoutStoryPredefinedCriteria,
+        ...ordersStoryPredefinedCriteria,
         CriterionTypeEnum.STATUS,
         CriterionTypeEnum.ERROR_CODE,
         CriterionTypeEnum.CARD_TYPES,
         CriterionTypeEnum.COUNTRIES,
         CriterionTypeEnum.PROJECT_CURRENCY,
     ],
-    predefinedCriteria: layoutStoryPredefinedCriteria,
+    predefinedCriteria: ordersStoryPredefinedCriteria,
     config: {
-        manualSearch: true,
         removablePredefinedCriteria: [
             CriterionTypeEnum.CURRENCY,
             CriterionTypeEnum.GATE,
@@ -877,45 +876,9 @@ export const layoutStoryArgs = {
     showVisaButton: false,
 } satisfies HookWrapProps
 
-export const compactLayoutStoryArgs = {
-    ...layoutStoryArgs,
-    config: {
-        ...layoutStoryArgs.config,
-        layout: 'compact',
-    },
-} satisfies HookWrapProps
-
-const layoutCaptionSx = {
-    color: 'text.secondary',
-    fontSize: '13px',
-    letterSpacing: '.04em',
-    px: 2,
-    py: 1,
-    textTransform: 'uppercase',
-}
-
-export const LayoutComparison = () => <OverlayHost>
-    <Box sx={{backgroundColor: '#fff', display: 'flex', flexDirection: 'column', rowGap: 4}}>
-        <Box data-story-section='pne-ui-search-ui-layout-header'>
-            <Typography sx={layoutCaptionSx}>
-                Current layout: the title bar with the actions on its right
-            </Typography>
-            <HookWrapContent {...layoutStoryArgs} settingsContextName='layout-header'/>
-        </Box>
-        <Box data-story-section='pne-ui-search-ui-layout-compact'>
-            <Typography sx={layoutCaptionSx}>
-                Compact layout: no title bar, the actions under the filters, the icons next to the names
-            </Typography>
-            <HookWrapContent {...compactLayoutStoryArgs} settingsContextName='layout-compact'/>
-        </Box>
-    </Box>
-</OverlayHost>
-
 export default {
     title: 'pne-ui/SearchUI',
     component: HookWrap,
-    // Building blocks shared with the #172508 presentation story, not stories of their own.
-    excludeStories: ['HookWrapContent', 'layoutStoryArgs', 'compactLayoutStoryArgs', 'LayoutComparison'],
 } as Meta<typeof HookWrap>
 
 type Story = StoryObj<typeof HookWrap>
@@ -1268,26 +1231,38 @@ export const ManualSearch: Story = {
     },
 }
 
-export const LayoutHeaderVsCompact: Story = {
-    render: () => <LayoutComparison/>,
-}
-
-export const CompactLayout: Story = {
-    args: compactLayoutStoryArgs,
-}
-
-export const CompactLayoutHiddenTemplates: Story = {
+/** A list page in manual mode: the filters wait for Search, as the orders list does. */
+export const OrdersManualSearch: Story = {
     args: {
-        ...compactLayoutStoryArgs,
-        config: {
-            ...compactLayoutStoryArgs.config,
-            hideTemplatesSelect: true,
-        },
+        ...ordersStoryArgs,
+        config: {...ordersStoryArgs.config, manualSearch: true},
     },
 }
 
-export const CompactLayoutCollapsed: Story = {
-    args: compactLayoutStoryArgs,
+/** The same list page in the automatic mode: every change searches at once, the button is Refresh. */
+export const OrdersAutoRefresh: Story = {
+    args: ordersStoryArgs,
+}
+
+/** The virtual cards page: one fixed exact filter, no saved filters, no collapse chevron. */
+export const VirtualCards: Story = {
+    args: {
+        possibleCriteria: [],
+        predefinedCriteria: [CriterionTypeEnum.EXACT],
+        config: {
+            hideTemplatesSelect: true,
+            hideShowFiltersButton: true,
+        },
+        showVisaButton: false,
+    },
+}
+
+/** The filters collapsed by the chevron: the count chip and the actions stay in one row. */
+export const CollapsedFilters: Story = {
+    args: {
+        ...ordersStoryArgs,
+        config: {...ordersStoryArgs.config, manualSearch: true},
+    },
     play: async ({canvasElement}) => {
         const toggle = await waitFor(() => {
             const element = canvasElement.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]')
@@ -1298,8 +1273,12 @@ export const CompactLayoutCollapsed: Story = {
     },
 }
 
-export const CompactLayoutMobile360: Story = {
-    args: compactLayoutStoryArgs,
+/** The list page on a 360px phone: name and icons on one line, the value below, the actions wrap. */
+export const OrdersMobile360: Story = {
+    args: {
+        ...ordersStoryArgs,
+        config: {...ordersStoryArgs.config, manualSearch: true},
+    },
     parameters: {
         viewport: {defaultViewport: 'mobile360'},
     },

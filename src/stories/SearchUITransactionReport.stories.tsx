@@ -16,8 +16,8 @@ import {OverlayHost, PneButton} from '../index'
 
 type Props = {
     invalidRange?: boolean
-    /** The compact layout puts the library's own actions row under the filters, above the host's Generate. */
-    layout?: SearchUIFiltersConfig['layout']
+    /** Overrides of the filters config, for example the report pages' automatic mode without Refresh. */
+    config?: Partial<SearchUIFiltersConfig>
 }
 
 const REPORT_CRITERIA = [
@@ -39,7 +39,7 @@ const FILTERS_CONFIG: SearchUIFiltersConfig = {
     },
 }
 
-export const TransactionReportFilters = ({invalidRange = false, layout = 'header'}: Props) => {
+const TransactionReportFilters = ({invalidRange = false, config}: Props) => {
     const [validationResult, setValidationResult] = useState<SearchUIValidationResult | null>(null)
 
     const initialSearchConditions: Partial<Omit<SearchUIConditionsInput, 'criteria'>> = {
@@ -62,13 +62,13 @@ export const TransactionReportFilters = ({invalidRange = false, layout = 'header
         <SearchUIProvider defaults={{}}>
             <Box sx={{width: 'min(1120px, 100%)', mx: 'auto', py: '16px'}}>
                 <SearchUIFilters
-                    settingsContextName={`storybook-transaction-report-${invalidRange ? 'invalid' : 'valid'}-${layout}`}
+                    settingsContextName={`storybook-transaction-report-${invalidRange ? 'invalid' : 'valid'}-${config ? 'page' : 'manual'}`}
                     possibleCriteria={REPORT_CRITERIA}
                     predefinedCriteria={REPORT_CRITERIA}
                     initialSearchConditions={initialSearchConditions}
                     onFiltersUpdate={() => undefined}
                     onValidationChange={setValidationResult}
-                    config={{...FILTERS_CONFIG, layout}}
+                    config={{...FILTERS_CONFIG, ...config}}
                 />
                 <Box sx={{display: 'flex', alignItems: 'center', gap: '12px', px: '16px', pt: '16px'}}>
                     <PneButton
@@ -93,8 +93,6 @@ export const TransactionReportFilters = ({invalidRange = false, layout = 'header
 export default {
     title: 'pne-ui/SearchUI/Transaction Report',
     component: TransactionReportFilters,
-    // Reused by the #172508 presentation story.
-    excludeStories: ['TransactionReportFilters'],
     parameters: {
         layout: 'fullscreen',
     },
@@ -108,10 +106,15 @@ export const CompleteCriteria: Story = {
     },
 }
 
-export const CompactLayout: Story = {
+/** A report page: automatic mode with Refresh hidden, saved filters on, the host's Generate under the panel. */
+export const ReportPage: Story = {
     args: {
         invalidRange: false,
-        layout: 'compact',
+        config: {
+            manualSearch: false,
+            hideRefreshButton: true,
+            hideTemplatesSelect: false,
+        },
     },
 }
 

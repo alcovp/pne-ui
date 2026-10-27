@@ -5,17 +5,14 @@ import SearchUIFiltersCriterionHeaderRemoveButton from '../button/SearchUIFilter
 import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
-import type {SearchUIFiltersLayout} from '../../layout';
 
 type Props = {
     criterionType: CriterionTypeEnum
-    layout?: SearchUIFiltersLayout
 }
 
 export const CriterionRight = (props: Props) => {
     const {
         criterionType,
-        layout = 'header',
     } = props
     const {t} = useTranslation()
 
@@ -47,26 +44,15 @@ export const CriterionRight = (props: Props) => {
         onClick={remove}
     /> : null
 
-    // Compact rows put the cross left of the eraser: the eraser stays next to the value in every
-    // row, and the remove action sits farther from the control it would take away.
-    return layout === 'compact'
-        ? <Box sx={compactBoxSx}>
-            {removeButton}
-            {clearButton}
-        </Box>
-        : <Box sx={boxSx}>
-            {clearButton}
-            {removeButton}
-        </Box>
+    // The cross goes left of the eraser: the eraser stays next to the value in every row, and the
+    // remove action sits farther from the control it would take away.
+    return <Box sx={boxSx}>
+        {removeButton}
+        {clearButton}
+    </Box>
 }
 
 const boxSx: SxProps = {
-    display: 'flex',
-    ml: 'auto',
-    alignItems: 'center',
-}
-
-const compactBoxSx: SxProps = {
     display: 'flex',
     alignItems: 'center',
 }

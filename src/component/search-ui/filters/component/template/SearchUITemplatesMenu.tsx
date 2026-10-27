@@ -1,5 +1,4 @@
 import React, {useId, useLayoutEffect, useRef, useState} from 'react';
-import type {SearchUIFiltersLayout} from '../../layout';
 import {Box, Divider, InputAdornment, ListItemIcon, ListItemText, Menu, MenuItem, useMediaQuery} from '@mui/material';
 import {alpha, SxProps, Theme, useTheme} from '@mui/material/styles';
 import {
@@ -101,14 +100,9 @@ const isPlainKey = (event: React.KeyboardEvent): boolean => (
 type SearchUITemplatesMenuProps = {
     /** Back to the page defaults without a template, as the Default item does. */
     onResetToDefaults: () => void
-    /** The panel layout: the compact actions row wraps on phones, so the trigger may grow there. */
-    layout?: SearchUIFiltersLayout
 }
 
-const SearchUITemplatesMenu = ({
-    onResetToDefaults,
-    layout = 'header',
-}: SearchUITemplatesMenuProps) => {
+const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) => {
     const {t} = useTranslation();
     const autoTestScope = useSearchUIAutoTestScope()?.scope
     const menuId = useId()
@@ -123,7 +117,7 @@ const SearchUITemplatesMenu = ({
     // The filters no longer match the applied template: a dot marks it, as on an unsaved view.
     const modified = useSearchUIFiltersStore(isSearchUITemplateModified)
     const canPersistOrder = useSearchUIFiltersStore(s => Boolean(s.defaults.reorderSearchTemplates))
-    // Phones keep the trigger at 30vw; the icon would leave the template name no room.
+    // Phones give the trigger little room; the icon would leave the name none.
     const showTriggerIcon = useMediaQuery(useTheme().breakpoints.up('sm'), {noSsr: true})
 
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -331,7 +325,7 @@ const SearchUITemplatesMenu = ({
             pneStyle='neutral'
             startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon/> : undefined}
             endIcon={<ExpandMoreIcon/>}
-            sx={layout === 'compact' ? compactTemplateTriggerSx : templateTriggerSx}
+            sx={templateTriggerSx}
             title={modified ? `${placeholder} · ${modifiedLabel}` : placeholder}
             aria-controls={open ? menuId : undefined}
             aria-expanded={open}
@@ -766,21 +760,15 @@ const visuallyHiddenSx: SxProps = {
 }
 
 const templateTriggerSx: SxProps = {
-    maxWidth: {xs: '30vw', sm: '250px'},
-    width: {xs: '30vw', sm: 'auto'},
+    // The actions row wraps on phones, so the trigger keeps its text there too.
+    maxWidth: {xs: '60vw', sm: '250px'},
+    width: 'auto',
     justifyContent: 'space-between',
     textAlign: 'left',
     px: '12px',
     '& .MuiButton-endIcon': {
         ml: '8px',
     },
-}
-
-// The compact actions row has no neighbours to share a phone line with, so the trigger keeps its text.
-const compactTemplateTriggerSx: SxProps = {
-    ...templateTriggerSx,
-    maxWidth: {xs: '60vw', sm: '250px'},
-    width: 'auto',
 }
 
 const templateTriggerLabelSx: SxProps = {

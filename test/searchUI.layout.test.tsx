@@ -13,7 +13,7 @@ const precedes = (first: Element | null | undefined, second: Element | null | un
     first && second && (first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING),
 )
 
-const renderFilters = (scope: string, layout: 'header' | 'compact') => {
+const renderFilters = (scope: string) => {
     const onFiltersUpdate = jest.fn()
     const utils = render(
         <SearchUIFilters
@@ -25,7 +25,6 @@ const renderFilters = (scope: string, layout: 'header' | 'compact') => {
             initialSearchConditions={{status: 'ENABLED'}}
             onFiltersUpdate={onFiltersUpdate}
             config={{
-                layout,
                 manualSearch: true,
                 removablePredefinedCriteria: [CriterionTypeEnum.CURRENCY],
             }}
@@ -38,9 +37,9 @@ const renderFilters = (scope: string, layout: 'header' | 'compact') => {
     return {...utils, onFiltersUpdate, root}
 }
 
-describe('SearchUIFilters compact layout', () => {
-    it('keeps the action anchors, drops the title and names the region instead', async () => {
-        const {onFiltersUpdate, root, queryByText} = renderFilters('compact-orders', 'compact')
+describe('SearchUIFilters layout', () => {
+    it('keeps the action anchors, has no title and names the region instead', async () => {
+        const {onFiltersUpdate, root, queryByText} = renderFilters('layout-orders')
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
@@ -55,13 +54,11 @@ describe('SearchUIFilters compact layout', () => {
             expect(scope.querySelectorAll(`[data-autotest="${actionId}"]`)).toHaveLength(1)
         }
         expect(scope.querySelector('[data-autotest="clear-all"]')).toBeNull()
-
-        const templates = scope.querySelector<HTMLButtonElement>('[data-autotest="templates"]')
-        expect(templates?.textContent).toContain('Saved filters')
+        expect(scope.querySelector('[data-autotest="templates"]')?.textContent).toContain('Saved filters')
     })
 
     it('collapses the rows through the toggle and keeps the actions row on screen', async () => {
-        const {onFiltersUpdate, root} = renderFilters('compact-collapse', 'compact')
+        const {onFiltersUpdate, root} = renderFilters('layout-collapse')
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
@@ -94,7 +91,7 @@ describe('SearchUIFilters compact layout', () => {
     })
 
     it('puts the cross and the eraser between the name and the value, the cross first', async () => {
-        const {onFiltersUpdate, root} = renderFilters('compact-icons', 'compact')
+        const {onFiltersUpdate, root} = renderFilters('layout-icons')
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
@@ -127,30 +124,19 @@ describe('SearchUIFilters compact layout', () => {
         })
     })
 
-    it('leaves the header layout as it was', async () => {
-        const {onFiltersUpdate, root, getByText} = renderFilters('header-orders', 'header')
+    it('keeps the full name of a criterion in the title of its name cell', async () => {
+        const {onFiltersUpdate, root} = renderFilters('layout-names')
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
         })
 
-        const scope = root() as HTMLElement
-        expect(scope.getAttribute('role')).toBeNull()
-        expect(getByText('react.searchUI.filters')).not.toBeNull()
-        expect(scope.querySelector('[data-autotest="templates"]')?.textContent).toContain('Saved filters')
-
-        const currency = scope.querySelector<HTMLElement>(
-            `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.CURRENCY}"]`,
+        const status = (root() as HTMLElement).querySelector<HTMLElement>(
+            `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.STATUS}"]`,
         )
-        const clear = currency?.querySelector('[data-autotest="clear-criterion"]')
-        const remove = currency?.querySelector('[data-autotest="remove-criterion"]')
+        const name = status?.querySelector('[title]')
 
-        expect(precedes(currency?.querySelector('fieldset'), clear)).toBe(true)
-        expect(precedes(clear, remove)).toBe(true)
-        // The title bar keeps the actions ahead of the rows.
-        expect(precedes(
-            scope.querySelector('[data-autotest="templates"]'),
-            scope.querySelector('[data-autotest="criterion"]'),
-        )).toBe(true)
+        expect(name?.getAttribute('title')).toBe('react.CriterionTypeEnum.STATUS')
+        expect(name?.textContent).toBe('react.CriterionTypeEnum.STATUS')
     })
 })

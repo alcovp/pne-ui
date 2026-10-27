@@ -1,12 +1,5 @@
 import React, {useContext, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {
-    SearchUIFiltersHeaderActions,
-    SearchUIFiltersHeaderLeft,
-    SearchUIFiltersHeaderMainRow,
-    SearchUIFiltersHeaderRight,
-    SearchUIFiltersHeaderSearch,
-} from './styled';
-import {
     CUSTOMER_LEVEL_DEPENDENCIES,
     CriterionTypeEnum,
     DateRangeSpecType,
@@ -58,15 +51,12 @@ import {
     type SearchUIValidationResult,
 } from './validation';
 import {
-    SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
-    SEARCH_UI_FILTERS_COMPACT_COLUMNS,
-    SEARCH_UI_FILTERS_COMPACT_FALLBACK_COLUMNS,
+    SEARCH_UI_FILTERS_COLUMN_GAP,
+    SEARCH_UI_FILTERS_COLUMNS,
+    SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
     SEARCH_UI_FILTERS_NO_SUBGRID,
     SEARCH_UI_FILTERS_PHONE_MEDIA,
-    type SearchUIFiltersLayout,
 } from './layout';
-
-export type {SearchUIFiltersLayout} from './layout';
 
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
@@ -153,10 +143,6 @@ export type SearchUIFiltersConfig = {
      * в автоматическом — «Refresh».
      */
     manualSearch?: boolean
-    /**
-     * Расположение панели, см. {@link SearchUIFiltersLayout}. По умолчанию `header`.
-     */
-    layout?: SearchUIFiltersLayout
 }
 
 /**
@@ -644,10 +630,6 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     // the menu is hidden.
     const showClearAllButton = !showTemplatesMenu && !nothingToClear
     const showAddFilterButton = !allCriteriaAdded
-    const showMainActionsRow = showClearAllButton || showTemplatesMenu || showAddFilterButton
-
-    const layout: SearchUIFiltersLayout = config?.layout ?? 'header'
-    const compact = layout === 'compact'
     const filtersLabel = t('react.searchUI.filters')
 
     const toggleButton = hideShowFiltersButton ? null : <IconButton
@@ -680,10 +662,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     >
         {t('clear.all')}
     </PneButton> : null
-    const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu
-        onResetToDefaults={resetToDefaults}
-        layout={layout}
-    /> : null
+    const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu onResetToDefaults={resetToDefaults}/> : null
     const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
         options={criteriaOptions}
         onChange={criterion => {
@@ -707,108 +686,41 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         <CriterionContainer
             disabled={disabledCriteriaSet.has(criterion)}
             key={criterion}
-            layout={layout}
             type={criterion}
         />
     ) : null
 
-    if (compact) {
-        // No title bar: the criteria rows and the actions row share one grid, so the actions line up
-        // with the values column. The collapsible panel wraps the rows without a box of its own, and
-        // the actions row stays outside it, so the chevron survives the collapse.
-        const hasActions = Boolean(
-            toggleButton || countChip || clearAllButton || templatesMenu || addFilterButton || searchButton,
-        )
-
-        return <SearchUIAutoTestScopeProvider scope={autoTestId}>
-            <Box
-                {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
-                role={'region'}
-                aria-label={filtersLabel}
-                sx={compactRootSx}
-            >
-                <Box id={filtersPanelId} hidden={!showFilters} sx={compactPanelSx}>
-                    {criteriaRows}
-                </Box>
-                {hasActions ? <Box sx={compactActionsRowSx}>
-                    <Box sx={compactActionsLeadSx}>
-                        {toggleButton}
-                        {countChip}
-                    </Box>
-                    <Box sx={compactActionsSx}>
-                        {clearAllButton}
-                        {templatesMenu}
-                        {addFilterButton}
-                        {searchButton}
-                    </Box>
-                </Box> : null}
-            </Box>
-        </SearchUIAutoTestScopeProvider>
-    }
+    // No title bar: the criteria rows and the actions row share one grid, so the actions line up
+    // with the values column. The collapsible panel wraps the rows without a box of its own, and
+    // the actions row stays outside it, so the chevron survives the collapse.
+    const hasActions = Boolean(
+        toggleButton || countChip || clearAllButton || templatesMenu || addFilterButton || searchButton,
+    )
 
     return <SearchUIAutoTestScopeProvider scope={autoTestId}>
         <Box
             {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
-            sx={{px: '16px'}}
+            role={'region'}
+            aria-label={filtersLabel}
+            sx={rootSx}
         >
-            <Box sx={headerSx}>
-                <Box sx={headerPrimaryRowSx}>
-                    {toggleButton}
-                    <Box sx={titleSx} component={'span'}>{filtersLabel}</Box>
-                    {countChip}
-                </Box>
-                <SearchUIFiltersHeaderActions>
-                    {showMainActionsRow ? <SearchUIFiltersHeaderMainRow>
-                        <SearchUIFiltersHeaderLeft>
-                            {clearAllButton}
-                        </SearchUIFiltersHeaderLeft>
-                        <SearchUIFiltersHeaderRight>
-                            {templatesMenu}
-                            {addFilterButton}
-                        </SearchUIFiltersHeaderRight>
-                    </SearchUIFiltersHeaderMainRow> : null}
-                    {searchButton ? <SearchUIFiltersHeaderSearch>
-                        {searchButton}
-                    </SearchUIFiltersHeaderSearch> : null}
-                </SearchUIFiltersHeaderActions>
-            </Box>
-            <Box id={filtersPanelId} hidden={!showFilters}>
+            <Box id={filtersPanelId} hidden={!showFilters} sx={panelSx}>
                 {criteriaRows}
             </Box>
+            {hasActions ? <Box sx={actionsRowSx}>
+                <Box sx={actionsLeadSx}>
+                    {toggleButton}
+                    {countChip}
+                </Box>
+                <Box sx={actionsSx}>
+                    {clearAllButton}
+                    {templatesMenu}
+                    {addFilterButton}
+                    {searchButton}
+                </Box>
+            </Box> : null}
         </Box>
     </SearchUIAutoTestScopeProvider>
-}
-
-const titleSx: SxProps = {
-    display: 'flex',
-    lineHeight: '32px',
-    fontSize: '20px',
-    fontWeight: '700',
-    color: '#323745', //TODO theme это должно приходить из темы
-}
-
-const headerSx: SxProps = {
-    display: 'flex',
-    alignItems: 'center',
-    columnGap: '12px',
-    width: '100%',
-    py: '15px',
-    '@media (max-width: 599px)': {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        rowGap: '8px',
-    },
-}
-
-const headerPrimaryRowSx: SxProps = {
-    display: 'flex',
-    alignItems: 'center',
-    columnGap: '12px',
-    flexWrap: 'nowrap',
-    width: 'auto',
-    '@media (max-width: 599px)': {
-        width: '100%',
-    },
 }
 
 const nowrapButtonSx: SxProps = {
@@ -819,11 +731,11 @@ const nowrapChipSx: SxProps = {
     whiteSpace: 'nowrap',
 }
 
-const compactRootSx: SxProps = {
+const rootSx: SxProps = {
     px: '16px',
     display: 'grid',
-    gridTemplateColumns: SEARCH_UI_FILTERS_COMPACT_COLUMNS,
-    columnGap: SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
+    gridTemplateColumns: SEARCH_UI_FILTERS_COLUMNS,
+    columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,
     alignItems: 'center',
     [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
         gridTemplateColumns: 'minmax(0, 1fr)',
@@ -831,22 +743,22 @@ const compactRootSx: SxProps = {
 }
 
 // The rows are grid items of the root; `hidden` must still win over `display: contents`.
-const compactPanelSx: SxProps = {
+const panelSx: SxProps = {
     display: 'contents',
     '&[hidden]': {
         display: 'none',
     },
 }
 
-const compactActionsRowSx: SxProps = {
+const actionsRowSx: SxProps = {
     gridColumn: '1 / -1',
     display: 'grid',
     gridTemplateColumns: 'subgrid',
     alignItems: 'center',
     py: '6px',
     [SEARCH_UI_FILTERS_NO_SUBGRID]: {
-        gridTemplateColumns: SEARCH_UI_FILTERS_COMPACT_FALLBACK_COLUMNS,
-        columnGap: SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
+        gridTemplateColumns: SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
+        columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,
     },
     [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
         display: 'flex',
@@ -855,7 +767,7 @@ const compactActionsRowSx: SxProps = {
     },
 }
 
-const compactActionsLeadSx: SxProps = {
+const actionsLeadSx: SxProps = {
     gridColumn: 1,
     display: 'flex',
     alignItems: 'center',
@@ -863,7 +775,7 @@ const compactActionsLeadSx: SxProps = {
     minWidth: 0,
 }
 
-const compactActionsSx: SxProps = {
+const actionsSx: SxProps = {
     gridColumn: 3,
     display: 'flex',
     alignItems: 'center',
