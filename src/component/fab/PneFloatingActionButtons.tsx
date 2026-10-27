@@ -188,6 +188,7 @@ export function PneFloatingActionButtons({
                                         className='pne-fab'
                                         color='primary'
                                         size='small'
+                                        disabled={item.disabled}
                                         onClick={() => handleAction(item)}
                                         aria-label={typeof title === 'string' ? title : resolvedFabActionLabel}
                                         sx={fabSx}
