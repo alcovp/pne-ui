@@ -21,6 +21,7 @@ export type {
 export {
     SearchUIFilters,
     type SearchUIFiltersConfig,
+    type SearchUIFiltersLayout,
     type SearchUIFiltersProps,
     type DateRangeCriterionConfig,
     type TransactionTypesCriterionConfig,

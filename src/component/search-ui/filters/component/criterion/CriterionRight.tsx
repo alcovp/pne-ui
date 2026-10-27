@@ -5,14 +5,17 @@ import SearchUIFiltersCriterionHeaderRemoveButton from '../button/SearchUIFilter
 import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
+import type {SearchUIFiltersLayout} from '../../layout';
 
 type Props = {
     criterionType: CriterionTypeEnum
+    layout?: SearchUIFiltersLayout
 }
 
 export const CriterionRight = (props: Props) => {
     const {
-        criterionType
+        criterionType,
+        layout = 'header',
     } = props
     const {t} = useTranslation()
 
@@ -35,20 +38,35 @@ export const CriterionRight = (props: Props) => {
     const clearLabel = `${t('react.searchUI.criterion.clear', {defaultValue: 'Clear filter'})}: ${criterionLabel}`
     const removeLabel = `${t('react.searchUI.criterion.remove', {defaultValue: 'Remove filter'})}: ${criterionLabel}`
 
-    return <Box sx={boxSx}>
-        <SearchUIFiltersCriterionHeaderClearButton
-            ariaLabel={clearLabel}
-            onClick={clear}
-        />
-        {hasRemoveButton && <SearchUIFiltersCriterionHeaderRemoveButton
-            ariaLabel={removeLabel}
-            onClick={remove}
-        />}
-    </Box>
+    const clearButton = <SearchUIFiltersCriterionHeaderClearButton
+        ariaLabel={clearLabel}
+        onClick={clear}
+    />
+    const removeButton = hasRemoveButton ? <SearchUIFiltersCriterionHeaderRemoveButton
+        ariaLabel={removeLabel}
+        onClick={remove}
+    /> : null
+
+    // Compact rows put the cross left of the eraser: the eraser stays next to the value in every
+    // row, and the remove action sits farther from the control it would take away.
+    return layout === 'compact'
+        ? <Box sx={compactBoxSx}>
+            {removeButton}
+            {clearButton}
+        </Box>
+        : <Box sx={boxSx}>
+            {clearButton}
+            {removeButton}
+        </Box>
 }
 
 const boxSx: SxProps = {
     display: 'flex',
     ml: 'auto',
+    alignItems: 'center',
+}
+
+const compactBoxSx: SxProps = {
+    display: 'flex',
     alignItems: 'center',
 }

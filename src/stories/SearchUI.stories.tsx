@@ -35,7 +35,7 @@ import { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, waitFor } from 'storybook/test'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import { Alert, Box, IconButton, Tooltip } from '@mui/material'
+import { Alert, Box, IconButton, Tooltip, Typography } from '@mui/material'
 import { sharesRow } from './tableControlRows'
 
 type DataType = AbstractEntity
@@ -575,7 +575,11 @@ const TableSelectionViewsWrap = () => {
     </Box>
 }
 
-const HookWrap = (props: HookWrapProps) => {
+const HookWrap = (props: HookWrapProps) => <OverlayHost>
+    <HookWrapContent {...props}/>
+</OverlayHost>
+
+const HookWrapContent = (props: HookWrapProps) => {
 
     const {
         possibleCriteria = defaultPossibleCriteria,
@@ -670,179 +674,242 @@ const HookWrap = (props: HookWrapProps) => {
         }
     }, [transactionSessionStatusesScenario])
 
-    return <OverlayHost>
-        <SearchUIProvider
-            defaults={{
-                getDefaultCurrency: (): AbstractEntity => ({
-                    id: 99,
-                    displayName: 'BBB',
-                }),
-                getMatchLinkedItems: async () => {
-                    await new Promise(resolve => setTimeout(resolve, 400))
+    return <SearchUIProvider
+        defaults={{
+            getDefaultCurrency: (): AbstractEntity => ({
+                id: 99,
+                displayName: 'BBB',
+            }),
+            getMatchLinkedItems: async () => {
+                await new Promise(resolve => setTimeout(resolve, 400))
 
-                    return mockGateEntities
-                },
-                getCountries: async () => {
-                    return [
-                        { id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS' },
-                        { id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX' },
-                    ] satisfies Country[]
-                },
-                getCurrencies: async () => {
-                    return [
-                        { id: 1, displayName: 'USD' },
-                        { id: 2, displayName: 'RUB' },
-                        { id: 99, displayName: 'BBB' },
-                    ]
-                },
-                getCustomerLevels: async ({ merchantId, currencyIds }) => {
-                    const levels = [
-                        {
-                            level: { id: 1, displayName: `Regular (merchant ${merchantId})` },
-                            currencyIds: [1, 2],
-                        },
-                        {
-                            level: { id: 2, displayName: `VIP (merchant ${merchantId})` },
-                            currencyIds: [1],
-                        },
-                    ]
+                return mockGateEntities
+            },
+            getCountries: async () => {
+                return [
+                    { id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS' },
+                    { id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX' },
+                ] satisfies Country[]
+            },
+            getCurrencies: async () => {
+                return [
+                    { id: 1, displayName: 'USD' },
+                    { id: 2, displayName: 'RUB' },
+                    { id: 99, displayName: 'BBB' },
+                ]
+            },
+            getCustomerLevels: async ({ merchantId, currencyIds }) => {
+                const levels = [
+                    {
+                        level: { id: 1, displayName: `Regular (merchant ${merchantId})` },
+                        currencyIds: [1, 2],
+                    },
+                    {
+                        level: { id: 2, displayName: `VIP (merchant ${merchantId})` },
+                        currencyIds: [1],
+                    },
+                ]
 
-                    return levels
-                        .filter(item => currencyIds.length === 0
+                return levels
+                    .filter(item => currencyIds.length === 0
                             || item.currencyIds.some(currencyId => currencyIds.includes(currencyId)))
-                        .map(item => item.level)
-                },
-                getCardTypes: async () => {
-                    return [
-                        visaCardType,
-                        { id: 2, displayName: 'MASTERCARD' },
-                        { id: 99, displayName: 'UNIONPAY' },
-                    ]
-                },
-                getProjectAvailableCurrencies: async () => {
-                    return [
-                        { choiceId: 1, displayName: 'USD', description: '', status: 'E' },
-                        { choiceId: 2, displayName: 'RUB', description: '', status: 'E' },
-                        { choiceId: 99, displayName: 'BBB', description: '', status: 'E' },
-                    ] satisfies AutoCompleteChoiceWithStatus[]
-                },
-                showGatesCriterion: () => true,
-                showProjectsCriterion: () => true,
-                getProcessorLogEntryTypes: async () => {
-                    return [
-                        { id: 1, displayName: 'One' },
-                        { id: 2, displayName: 'Second' },
-                        { id: 99, displayName: '33333' },
-                    ]
-                },
-                getTransactionTypes: async () => {
-                    return [
-                        { id: 611, displayName: 'chargeback' },
-                        { id: 722, displayName: 'fraud' },
-                        { id: 833, displayName: 'sale' },
-                    ]
-                },
-                getTransactionStatuses: async () => {
-                    return [
-                        { id: 1, displayName: 'One' },
-                        { id: 2, displayName: 'Second' },
-                        { id: 99, displayName: '33333' },
-                    ]
-                },
-                getTransactionMarkerTypes: async () => {
-                    return [
-                        { id: 1, displayName: 'Fraud alerts' },
-                        { id: 2, displayName: 'Manual review' },
-                        { id: 3, displayName: 'Auto' },
-                    ]
-                },
-                getRecurringPaymentTypes: async () => {
-                    return [
-                        { id: 1, displayName: 'Subscription' },
-                        { id: 2, displayName: 'Installment' },
-                    ]
-                },
-                getRecurringPaymentStatuses: async () => {
-                    return [
-                        { id: 1, displayName: 'Active' },
-                        { id: 2, displayName: 'Paused' },
-                        { id: 3, displayName: 'Cancelled' },
-                    ]
-                },
-                getMFOTypes: async () => {
-                    return [
-                        { id: 1, displayName: 'MFO type 1' },
-                        { id: 2, displayName: 'MFO type 2' },
-                    ]
-                },
-                searchErrorCodes: async request => {
-                    return [
-                        { choiceId: 1, displayName: 'Timeout', description: 'External code: 05' },
-                        { choiceId: 2, displayName: 'Timeout', description: 'External code: 51' },
-                        { choiceId: 99, displayName: 'Timeout', description: 'External code: 54' },
-                    ]
-                },
-                ...transactionSessionStatusesDefaults,
-            }}
-        >
-            {showVisaButton ? (
-                <div style={{ marginBottom: 16 }}>
-                    <PneButton
-                        pneStyle='contained'
-                        size={'small'}
-                        onClick={onAddVisaCardType}
-                    >
-                        {'Apply VISA card filter'}
-                    </PneButton>
-                </div>
-            ) : null}
-            <SearchUI<DataType>
-                tableParams={{
-                    duplicatePagination: true,
-                    rowsPerPageOptions: [1, 5, 8],
-                    displayOptions: {
-                        pageSize: 5,
+                    .map(item => item.level)
+            },
+            getCardTypes: async () => {
+                return [
+                    visaCardType,
+                    { id: 2, displayName: 'MASTERCARD' },
+                    { id: 99, displayName: 'UNIONPAY' },
+                ]
+            },
+            getProjectAvailableCurrencies: async () => {
+                return [
+                    { choiceId: 1, displayName: 'USD', description: '', status: 'E' },
+                    { choiceId: 2, displayName: 'RUB', description: '', status: 'E' },
+                    { choiceId: 99, displayName: 'BBB', description: '', status: 'E' },
+                ] satisfies AutoCompleteChoiceWithStatus[]
+            },
+            showGatesCriterion: () => true,
+            showProjectsCriterion: () => true,
+            getProcessorLogEntryTypes: async () => {
+                return [
+                    { id: 1, displayName: 'One' },
+                    { id: 2, displayName: 'Second' },
+                    { id: 99, displayName: '33333' },
+                ]
+            },
+            getTransactionTypes: async () => {
+                return [
+                    { id: 611, displayName: 'chargeback' },
+                    { id: 722, displayName: 'fraud' },
+                    { id: 833, displayName: 'sale' },
+                ]
+            },
+            getTransactionStatuses: async () => {
+                return [
+                    { id: 1, displayName: 'One' },
+                    { id: 2, displayName: 'Second' },
+                    { id: 99, displayName: '33333' },
+                ]
+            },
+            getTransactionMarkerTypes: async () => {
+                return [
+                    { id: 1, displayName: 'Fraud alerts' },
+                    { id: 2, displayName: 'Manual review' },
+                    { id: 3, displayName: 'Auto' },
+                ]
+            },
+            getRecurringPaymentTypes: async () => {
+                return [
+                    { id: 1, displayName: 'Subscription' },
+                    { id: 2, displayName: 'Installment' },
+                ]
+            },
+            getRecurringPaymentStatuses: async () => {
+                return [
+                    { id: 1, displayName: 'Active' },
+                    { id: 2, displayName: 'Paused' },
+                    { id: 3, displayName: 'Cancelled' },
+                ]
+            },
+            getMFOTypes: async () => {
+                return [
+                    { id: 1, displayName: 'MFO type 1' },
+                    { id: 2, displayName: 'MFO type 2' },
+                ]
+            },
+            searchErrorCodes: async request => {
+                return [
+                    { choiceId: 1, displayName: 'Timeout', description: 'External code: 05' },
+                    { choiceId: 2, displayName: 'Timeout', description: 'External code: 51' },
+                    { choiceId: 99, displayName: 'Timeout', description: 'External code: 54' },
+                ]
+            },
+            ...transactionSessionStatusesDefaults,
+        }}
+    >
+        {showVisaButton ? (
+            <div style={{ marginBottom: 16 }}>
+                <PneButton
+                    pneStyle='contained'
+                    size={'small'}
+                    onClick={onAddVisaCardType}
+                >
+                    {'Apply VISA card filter'}
+                </PneButton>
+            </div>
+        ) : null}
+        <SearchUI<DataType>
+            tableParams={{
+                duplicatePagination: true,
+                rowsPerPageOptions: [1, 5, 8],
+                displayOptions: {
+                    pageSize: 5,
                     // sortAsc: true,
                     // sortColumnIndex: 1
-                    },
-                }}
-                settingsContextName={settingsContextName}
-                exactSearchLabels={[
+                },
+            }}
+            settingsContextName={settingsContextName}
+            exactSearchLabels={[
                 // ExactCriterionSearchLabelEnum.ALL,
-                    ExactCriterionSearchLabelEnum.ID,
-                    ExactCriterionSearchLabelEnum.NAME,
-                ]}
-                possibleCriteria={possibleCriteria}
-                predefinedCriteria={predefinedCriteria}
-                config={filtersConfig}
-                searchData={(searchParams) => {
-                    console.log(JSON.stringify({
-                        searchLabel: searchParams.exactSearchLabel,
-                        searchString: searchParams.exactSearchValue,
-                        orderDateType: searchParams.orderDateType,
-                        processorLogEntryType: searchParams.processorLogEntryType,
-                    }, null, 4))
-                    return Service.getList(searchParams)
-                }}
-                dataUseState={[data, setData]}
-                initialSearchConditions={initialSearchConditions}
-                searchConditions={searchConditions}
-                createTableHeader={(headerParams) =>
-                    <PneTableRow>
-                        <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
-                        <PneHeaderTableCell>{'header2'}</PneHeaderTableCell>
-                    </PneTableRow>
-                }
-                createTableRow={(item) =>
-                    <PneTableRow key={item.id}>
-                        <PneTableCell>{item.id}</PneTableCell>
-                        <PneTableCell>{item.displayName}</PneTableCell>
-                    </PneTableRow>
-                }
-            />
-        </SearchUIProvider>
-    </OverlayHost>
+                ExactCriterionSearchLabelEnum.ID,
+                ExactCriterionSearchLabelEnum.NAME,
+            ]}
+            possibleCriteria={possibleCriteria}
+            predefinedCriteria={predefinedCriteria}
+            config={filtersConfig}
+            searchData={(searchParams) => {
+                console.log(JSON.stringify({
+                    searchLabel: searchParams.exactSearchLabel,
+                    searchString: searchParams.exactSearchValue,
+                    orderDateType: searchParams.orderDateType,
+                    processorLogEntryType: searchParams.processorLogEntryType,
+                }, null, 4))
+                return Service.getList(searchParams)
+            }}
+            dataUseState={[data, setData]}
+            initialSearchConditions={initialSearchConditions}
+            searchConditions={searchConditions}
+            createTableHeader={(headerParams) =>
+                <PneTableRow>
+                    <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
+                    <PneHeaderTableCell>{'header2'}</PneHeaderTableCell>
+                </PneTableRow>
+            }
+            createTableRow={(item) =>
+                <PneTableRow key={item.id}>
+                    <PneTableCell>{item.id}</PneTableCell>
+                    <PneTableCell>{item.displayName}</PneTableCell>
+                </PneTableRow>
+            }
+        />
+    </SearchUIProvider>
 }
+
+// An orders-like filter set for the layout stories: two fixed rows with an eraser only, three
+// removable rows with the cross as well, manual search.
+const layoutStoryPredefinedCriteria: CriterionTypeEnum[] = [
+    CriterionTypeEnum.DATE_RANGE_ORDERS,
+    CriterionTypeEnum.EXACT,
+    CriterionTypeEnum.CURRENCY,
+    CriterionTypeEnum.GATE,
+    CriterionTypeEnum.TRANSACTION_TYPES,
+]
+
+const layoutStoryArgs = {
+    possibleCriteria: [
+        ...layoutStoryPredefinedCriteria,
+        CriterionTypeEnum.STATUS,
+        CriterionTypeEnum.ERROR_CODE,
+        CriterionTypeEnum.CARD_TYPES,
+        CriterionTypeEnum.COUNTRIES,
+        CriterionTypeEnum.PROJECT_CURRENCY,
+    ],
+    predefinedCriteria: layoutStoryPredefinedCriteria,
+    config: {
+        manualSearch: true,
+        removablePredefinedCriteria: [
+            CriterionTypeEnum.CURRENCY,
+            CriterionTypeEnum.GATE,
+            CriterionTypeEnum.TRANSACTION_TYPES,
+        ],
+    },
+    showVisaButton: false,
+} satisfies HookWrapProps
+
+const compactLayoutStoryArgs = {
+    ...layoutStoryArgs,
+    config: {
+        ...layoutStoryArgs.config,
+        layout: 'compact',
+    },
+} satisfies HookWrapProps
+
+const layoutCaptionSx = {
+    color: 'text.secondary',
+    fontSize: '13px',
+    letterSpacing: '.04em',
+    px: 2,
+    py: 1,
+    textTransform: 'uppercase',
+}
+
+const LayoutComparison = () => <OverlayHost>
+    <Box sx={{backgroundColor: '#fff', display: 'flex', flexDirection: 'column', rowGap: 4}}>
+        <Box data-story-section='pne-ui-search-ui-layout-header'>
+            <Typography sx={layoutCaptionSx}>
+                Current layout: the title bar with the actions on its right
+            </Typography>
+            <HookWrapContent {...layoutStoryArgs} settingsContextName='layout-header'/>
+        </Box>
+        <Box data-story-section='pne-ui-search-ui-layout-compact'>
+            <Typography sx={layoutCaptionSx}>
+                Compact layout: no title bar, the actions under the filters, the icons next to the names
+            </Typography>
+            <HookWrapContent {...compactLayoutStoryArgs} settingsContextName='layout-compact'/>
+        </Box>
+    </Box>
+</OverlayHost>
 
 export default {
     title: 'pne-ui/SearchUI',
@@ -1196,6 +1263,43 @@ export const ManualSearch: Story = {
             removablePredefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
         },
         showVisaButton: false,
+    },
+}
+
+export const LayoutHeaderVsCompact: Story = {
+    render: () => <LayoutComparison/>,
+}
+
+export const CompactLayout: Story = {
+    args: compactLayoutStoryArgs,
+}
+
+export const CompactLayoutHiddenTemplates: Story = {
+    args: {
+        ...compactLayoutStoryArgs,
+        config: {
+            ...compactLayoutStoryArgs.config,
+            hideTemplatesSelect: true,
+        },
+    },
+}
+
+export const CompactLayoutCollapsed: Story = {
+    args: compactLayoutStoryArgs,
+    play: async ({canvasElement}) => {
+        const toggle = await waitFor(() => {
+            const element = canvasElement.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]')
+            expect(element).not.toBeNull()
+            return element as HTMLButtonElement
+        })
+        await userEvent.click(toggle)
+    },
+}
+
+export const CompactLayoutMobile360: Story = {
+    args: compactLayoutStoryArgs,
+    parameters: {
+        viewport: {defaultViewport: 'mobile360'},
     },
 }
 

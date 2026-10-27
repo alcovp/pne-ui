@@ -30,8 +30,8 @@ const SearchUIFiltersCriterionHeaderRemoveButton = (props: IProps) => {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
         >
-            <path d="M12 4L4 12" stroke="#809EAE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 4L12 12" stroke="#809EAE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M12 4L4 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M4 4L12 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
     </SearchUIFiltersCriterionHeaderButton>
 }

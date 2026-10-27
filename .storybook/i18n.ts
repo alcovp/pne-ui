@@ -35,6 +35,7 @@ i18nForStorybook
                     'react.searchUI.dateRange.maxRangeSpanExceeded': 'Date range must not exceed {{maxRangeSpanInDays}} day(s)',
                     'react.searchUI.dateRange.invalidDate': 'Enter a valid date',
                     'react.searchUI.dateRange.endBeforeStart': 'The end date is before the start date',
+                    'react.searchUI.savedFilters': 'Saved filters',
                     'react.searchUI.template': 'Template',
                     'react.searchUI.template.create': 'Create new',
                     'react.searchUI.template.update': 'Update',

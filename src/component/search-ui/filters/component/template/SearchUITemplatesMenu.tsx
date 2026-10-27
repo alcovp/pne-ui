@@ -1,4 +1,5 @@
 import React, {useId, useLayoutEffect, useRef, useState} from 'react';
+import type {SearchUIFiltersLayout} from '../../layout';
 import {Box, Divider, InputAdornment, ListItemIcon, ListItemText, Menu, MenuItem, useMediaQuery} from '@mui/material';
 import {alpha, SxProps, Theme, useTheme} from '@mui/material/styles';
 import {
@@ -100,9 +101,17 @@ const isPlainKey = (event: React.KeyboardEvent): boolean => (
 type SearchUITemplatesMenuProps = {
     /** Back to the page defaults without a template, as the Default item does. */
     onResetToDefaults: () => void
+    /** The panel layout: the compact actions row wraps on phones, so the trigger may grow there. */
+    layout?: SearchUIFiltersLayout
+    /** Trigger text while no template is applied; defaults to the "Template" key. */
+    triggerLabel?: string
 }
 
-const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) => {
+const SearchUITemplatesMenu = ({
+    onResetToDefaults,
+    layout = 'header',
+    triggerLabel,
+}: SearchUITemplatesMenuProps) => {
     const {t} = useTranslation();
     const autoTestScope = useSearchUIAutoTestScope()?.scope
     const menuId = useId()
@@ -140,7 +149,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         : templates
     // A move inside a filtered subset has no clear place among the hidden templates.
     const reorderable = canPersistOrder && templates.length > 1 && !filtering
-    const placeholder = template?.name || t('react.searchUI.template');
+    const placeholder = template?.name || triggerLabel || t('react.searchUI.template');
     const removeTemplateLabel = t('react.searchUI.template.remove', {defaultValue: 'Remove template'})
     const reorderLabel = t('react.searchUI.template.reorder', {defaultValue: 'Drag to reorder'})
     const searchLabel = t('react.searchUI.template.search', {defaultValue: 'Search templates'})
@@ -324,7 +333,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
             pneStyle='neutral'
             startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon/> : undefined}
             endIcon={<ExpandMoreIcon/>}
-            sx={templateTriggerSx}
+            sx={layout === 'compact' ? compactTemplateTriggerSx : templateTriggerSx}
             title={modified ? `${placeholder} · ${modifiedLabel}` : placeholder}
             aria-controls={open ? menuId : undefined}
             aria-expanded={open}
@@ -767,6 +776,13 @@ const templateTriggerSx: SxProps = {
     '& .MuiButton-endIcon': {
         ml: '8px',
     },
+}
+
+// The compact actions row has no neighbours to share a phone line with, so the trigger keeps its text.
+const compactTemplateTriggerSx: SxProps = {
+    ...templateTriggerSx,
+    maxWidth: {xs: '60vw', sm: '250px'},
+    width: 'auto',
 }
 
 const templateTriggerLabelSx: SxProps = {

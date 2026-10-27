@@ -16,6 +16,8 @@ import {OverlayHost, PneButton} from '../index'
 
 type Props = {
     invalidRange?: boolean
+    /** The compact layout puts the library's own actions row under the filters, above the host's Generate. */
+    layout?: SearchUIFiltersConfig['layout']
 }
 
 const REPORT_CRITERIA = [
@@ -37,7 +39,7 @@ const FILTERS_CONFIG: SearchUIFiltersConfig = {
     },
 }
 
-const TransactionReportFilters = ({invalidRange = false}: Props) => {
+const TransactionReportFilters = ({invalidRange = false, layout = 'header'}: Props) => {
     const [validationResult, setValidationResult] = useState<SearchUIValidationResult | null>(null)
 
     const initialSearchConditions: Partial<Omit<SearchUIConditionsInput, 'criteria'>> = {
@@ -60,13 +62,13 @@ const TransactionReportFilters = ({invalidRange = false}: Props) => {
         <SearchUIProvider defaults={{}}>
             <Box sx={{width: 'min(1120px, 100%)', mx: 'auto', py: '16px'}}>
                 <SearchUIFilters
-                    settingsContextName={`storybook-transaction-report-${invalidRange ? 'invalid' : 'valid'}`}
+                    settingsContextName={`storybook-transaction-report-${invalidRange ? 'invalid' : 'valid'}-${layout}`}
                     possibleCriteria={REPORT_CRITERIA}
                     predefinedCriteria={REPORT_CRITERIA}
                     initialSearchConditions={initialSearchConditions}
                     onFiltersUpdate={() => undefined}
                     onValidationChange={setValidationResult}
-                    config={FILTERS_CONFIG}
+                    config={{...FILTERS_CONFIG, layout}}
                 />
                 <Box sx={{display: 'flex', alignItems: 'center', gap: '12px', px: '16px', pt: '16px'}}>
                     <PneButton
@@ -101,6 +103,13 @@ type Story = StoryObj<typeof TransactionReportFilters>
 export const CompleteCriteria: Story = {
     args: {
         invalidRange: false,
+    },
+}
+
+export const CompactLayout: Story = {
+    args: {
+        invalidRange: false,
+        layout: 'compact',
     },
 }
 

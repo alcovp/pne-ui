@@ -57,6 +57,16 @@ import {
     assertValidMaxRangeSpanInDays,
     type SearchUIValidationResult,
 } from './validation';
+import {
+    SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
+    SEARCH_UI_FILTERS_COMPACT_COLUMNS,
+    SEARCH_UI_FILTERS_COMPACT_FALLBACK_COLUMNS,
+    SEARCH_UI_FILTERS_NO_SUBGRID,
+    SEARCH_UI_FILTERS_PHONE_MEDIA,
+    type SearchUIFiltersLayout,
+} from './layout';
+
+export type {SearchUIFiltersLayout} from './layout';
 
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
@@ -139,9 +149,14 @@ export type SearchUIFiltersConfig = {
     transactionTypes?: TransactionTypesCriterionConfig
     /**
      * Включает ручной режим поиска: при изменении фильтров запрос не отправляется автоматически.
-     * Кнопка в шапке панели остается видимой всегда: в ручном режиме это «Search», в автоматическом — «Refresh».
+     * Кнопка в строке действий панели остается видимой всегда: в ручном режиме это «Search»,
+     * в автоматическом — «Refresh».
      */
     manualSearch?: boolean
+    /**
+     * Расположение панели, см. {@link SearchUIFiltersLayout}. По умолчанию `header`.
+     */
+    layout?: SearchUIFiltersLayout
 }
 
 /**
@@ -631,6 +646,111 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const showAddFilterButton = !allCriteriaAdded
     const showMainActionsRow = showClearAllButton || showTemplatesMenu || showAddFilterButton
 
+    const layout: SearchUIFiltersLayout = config?.layout ?? 'header'
+    const compact = layout === 'compact'
+    const filtersLabel = t('react.searchUI.filters')
+
+    const toggleButton = hideShowFiltersButton ? null : <IconButton
+        {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
+        onClick={() => setShowFilters(prev => !prev)}
+        size={'small'}
+        color={'primary'}
+        aria-label={filtersLabel}
+        aria-controls={filtersPanelId}
+        aria-expanded={showFilters}
+    >
+        <ExpandMoreIcon
+            fontSize={'small'}
+            sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
+        />
+    </IconButton>
+    const countChip = showFiltersCountChip ? <Chip
+        size={'small'}
+        color={'primary'}
+        variant={'outlined'}
+        label={criteria.length}
+        sx={nowrapChipSx}
+    /> : null
+    const clearAllButton = showClearAllButton ? <PneButton
+        {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
+        onClick={resetToDefaults}
+        pneStyle='neutral'
+        size={'small'}
+        sx={nowrapButtonSx}
+    >
+        {t('clear.all')}
+    </PneButton> : null
+    const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu
+        onResetToDefaults={resetToDefaults}
+        layout={layout}
+        // The compact layout names the menu after what it holds, saved sets of filters;
+        // the title bar keeps the familiar "Template".
+        triggerLabel={compact
+            ? t('react.searchUI.savedFilters', {defaultValue: 'Saved filters'})
+            : undefined}
+    /> : null
+    const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
+        options={criteriaOptions}
+        onChange={criterion => {
+            setShowFilters(true)
+            addCriterion(criterion)
+        }}
+    /> : null
+    const searchButton = manualSearch || !hideRefreshButton ? <PneButton
+        {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
+        onClick={triggerSearch}
+        pneStyle='contained'
+        size={'small'}
+        disabled={searchLoading || !validationResult.isValid}
+        sx={nowrapButtonSx}
+    >
+        {manualSearch
+            ? t('react.searchUI.search')
+            : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
+    </PneButton> : null
+    const criteriaRows = showFilters ? criteria.map((criterion) =>
+        <CriterionContainer
+            disabled={disabledCriteriaSet.has(criterion)}
+            key={criterion}
+            layout={layout}
+            type={criterion}
+        />
+    ) : null
+
+    if (compact) {
+        // No title bar: the criteria rows and the actions row share one grid, so the actions line up
+        // with the values column. The collapsible panel wraps the rows without a box of its own, and
+        // the actions row stays outside it, so the chevron survives the collapse.
+        const hasActions = Boolean(
+            toggleButton || countChip || clearAllButton || templatesMenu || addFilterButton || searchButton,
+        )
+
+        return <SearchUIAutoTestScopeProvider scope={autoTestId}>
+            <Box
+                {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
+                role={'region'}
+                aria-label={filtersLabel}
+                sx={compactRootSx}
+            >
+                <Box id={filtersPanelId} hidden={!showFilters} sx={compactPanelSx}>
+                    {criteriaRows}
+                </Box>
+                {hasActions ? <Box sx={compactActionsRowSx}>
+                    <Box sx={compactActionsLeadSx}>
+                        {toggleButton}
+                        {countChip}
+                    </Box>
+                    <Box sx={compactActionsSx}>
+                        {clearAllButton}
+                        {templatesMenu}
+                        {addFilterButton}
+                        {searchButton}
+                    </Box>
+                </Box> : null}
+            </Box>
+        </SearchUIAutoTestScopeProvider>
+    }
+
     return <SearchUIAutoTestScopeProvider scope={autoTestId}>
         <Box
             {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
@@ -638,77 +758,27 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         >
             <Box sx={headerSx}>
                 <Box sx={headerPrimaryRowSx}>
-                    {hideShowFiltersButton ? null : <IconButton
-                        {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
-                        onClick={() => setShowFilters(prev => !prev)}
-                        size={'small'}
-                        color={'primary'}
-                        aria-label={t('react.searchUI.filters')}
-                        aria-controls={filtersPanelId}
-                        aria-expanded={showFilters}
-                    >
-                        <ExpandMoreIcon
-                            fontSize={'small'}
-                            sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
-                        />
-                    </IconButton>}
-                    <Box sx={titleSx} component={'span'}>{t('react.searchUI.filters')}</Box>
-                    {showFiltersCountChip ? <Chip
-                        size={'small'}
-                        color={'primary'}
-                        variant={'outlined'}
-                        label={criteria.length}
-                        sx={nowrapChipSx}
-                    /> : null}
+                    {toggleButton}
+                    <Box sx={titleSx} component={'span'}>{filtersLabel}</Box>
+                    {countChip}
                 </Box>
                 <SearchUIFiltersHeaderActions>
                     {showMainActionsRow ? <SearchUIFiltersHeaderMainRow>
                         <SearchUIFiltersHeaderLeft>
-                            {showClearAllButton ? <PneButton
-                                {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
-                                onClick={resetToDefaults}
-                                pneStyle='neutral'
-                                size={'small'}
-                                sx={nowrapButtonSx}
-                            >
-                                {t('clear.all')}
-                            </PneButton> : null}
+                            {clearAllButton}
                         </SearchUIFiltersHeaderLeft>
                         <SearchUIFiltersHeaderRight>
-                            {showTemplatesMenu ? <SearchUITemplatesMenu onResetToDefaults={resetToDefaults}/> : null}
-                            {showAddFilterButton ? <SearchUIAddFilter
-                                options={criteriaOptions}
-                                onChange={criterion => {
-                                    setShowFilters(true)
-                                    addCriterion(criterion)
-                                }}
-                            /> : null}
+                            {templatesMenu}
+                            {addFilterButton}
                         </SearchUIFiltersHeaderRight>
                     </SearchUIFiltersHeaderMainRow> : null}
-                    {manualSearch || !hideRefreshButton ? <SearchUIFiltersHeaderSearch>
-                        <PneButton
-                            {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
-                            onClick={triggerSearch}
-                            pneStyle='contained'
-                            size={'small'}
-                            disabled={searchLoading || !validationResult.isValid}
-                            sx={nowrapButtonSx}
-                        >
-                            {manualSearch
-                                ? t('react.searchUI.search')
-                                : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
-                        </PneButton>
+                    {searchButton ? <SearchUIFiltersHeaderSearch>
+                        {searchButton}
                     </SearchUIFiltersHeaderSearch> : null}
                 </SearchUIFiltersHeaderActions>
             </Box>
             <Box id={filtersPanelId} hidden={!showFilters}>
-                {showFilters ? criteria.map((criterion) =>
-                    <CriterionContainer
-                        disabled={disabledCriteriaSet.has(criterion)}
-                        key={criterion}
-                        type={criterion}
-                    />
-                ) : null}
+                {criteriaRows}
             </Box>
         </Box>
     </SearchUIAutoTestScopeProvider>
@@ -752,6 +822,62 @@ const nowrapButtonSx: SxProps = {
 
 const nowrapChipSx: SxProps = {
     whiteSpace: 'nowrap',
+}
+
+const compactRootSx: SxProps = {
+    px: '16px',
+    display: 'grid',
+    gridTemplateColumns: SEARCH_UI_FILTERS_COMPACT_COLUMNS,
+    columnGap: SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
+    alignItems: 'center',
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        gridTemplateColumns: 'minmax(0, 1fr)',
+    },
+}
+
+// The rows are grid items of the root; `hidden` must still win over `display: contents`.
+const compactPanelSx: SxProps = {
+    display: 'contents',
+    '&[hidden]': {
+        display: 'none',
+    },
+}
+
+const compactActionsRowSx: SxProps = {
+    gridColumn: '1 / -1',
+    display: 'grid',
+    gridTemplateColumns: 'subgrid',
+    alignItems: 'center',
+    py: '6px',
+    [SEARCH_UI_FILTERS_NO_SUBGRID]: {
+        gridTemplateColumns: SEARCH_UI_FILTERS_COMPACT_FALLBACK_COLUMNS,
+        columnGap: SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
+    },
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+    },
+}
+
+const compactActionsLeadSx: SxProps = {
+    gridColumn: 1,
+    display: 'flex',
+    alignItems: 'center',
+    columnGap: '12px',
+    minWidth: 0,
+}
+
+const compactActionsSx: SxProps = {
+    gridColumn: 3,
+    display: 'flex',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: '8px',
+    minWidth: 0,
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        flex: '1 1 100%',
+    },
 }
 
 

@@ -450,7 +450,7 @@ const SearchUIContent = <
             searchLoading={loading}
         />
         <Divider/>
-        <Box sx={tableBoxSx}>
+        <Box sx={config?.layout === 'compact' ? compactTableBoxSx : tableBoxSx}>
             {table}
         </Box>
     </>
@@ -879,6 +879,11 @@ const initialDisplayOptions: TableDisplayOptions = {
 
 const tableBoxSx: SxProps = {
     p: '16px 16px 0 16px',
+}
+
+// The compact filters end with their own actions row, so the table needs less air above it.
+const compactTableBoxSx: SxProps = {
+    p: '8px 16px 0 16px',
 }
 
 /**

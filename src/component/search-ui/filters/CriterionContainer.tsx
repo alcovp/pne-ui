@@ -35,11 +35,19 @@ import { TransactionDateTypeCriterion } from './component/criterion/TransactionD
 import { TransactionRecurrentFilterCriterion } from './component/criterion/TransactionRecurrentFilterCriterion'
 import { TimeZoneCriterion } from './component/criterion/TimeZoneCriterion'
 import { CsvCharsetCriterion } from './component/criterion/CsvCharsetCriterion'
+import {
+    SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
+    SEARCH_UI_FILTERS_COMPACT_FALLBACK_COLUMNS,
+    SEARCH_UI_FILTERS_NO_SUBGRID,
+    SEARCH_UI_FILTERS_PHONE_MEDIA,
+    type SearchUIFiltersLayout,
+} from './layout'
 
 const CRITERION_AUTOTEST_ID = 'criterion'
 
 interface IProps {
     disabled?: boolean
+    layout?: SearchUIFiltersLayout
     type: CriterionTypeEnum
 }
 
@@ -47,8 +55,10 @@ export const CriterionContainer = (props: IProps) => {
 
     const {
         disabled = false,
+        layout = 'header',
         type,
     } = props
+    const compact = layout === 'compact'
     const {t} = useTranslation()
     const disabledTitle = disabled
         ? t('react.searchUI.criterion.notAvailableInView', {
@@ -168,14 +178,21 @@ export const CriterionContainer = (props: IProps) => {
         throw new Error('Can\'t be')
     }
 
+    // The compact row keeps the icons between the name and the value, in DOM order too, so the
+    // keyboard reaches them before the control they act on.
+    const actions = <Box sx={compact ? compactCriterionActionsWrapperSx : criterionRightWrapperSx}>
+        <CriterionRight criterionType={type} layout={layout}/>
+    </Box>
+
     return <SearchUICriterionAutoTestScopeProvider criterionType={type}>
         <Box
             {...createAutoTestAttributes(CRITERION_AUTOTEST_ID, type)}
-            sx={criterionSx}
+            sx={compact ? compactCriterionSx : criterionSx}
         >
             <Box sx={criterionLeftWrapperSx}>
                 <CriterionLeft criterionType={type}/>
             </Box>
+            {compact ? actions : null}
             <Box
                 aria-disabled={disabled || undefined}
                 aria-label={disabledAriaLabel}
@@ -200,9 +217,7 @@ export const CriterionContainer = (props: IProps) => {
                     {renderCriterion()}
                 </Box>
             </Box>
-            <Box sx={criterionRightWrapperSx}>
-                <CriterionRight criterionType={type}/>
-            </Box>
+            {compact ? null : actions}
         </Box>
     </SearchUICriterionAutoTestScopeProvider>
 }
@@ -229,9 +244,35 @@ const criterionSx: SxProps = {
     },
 }
 
+// One row of the compact grid: a subgrid shares the root's name, icons and values columns.
+const compactCriterionSx: SxProps = {
+    gridColumn: '1 / -1',
+    display: 'grid',
+    gridTemplateColumns: 'subgrid',
+    alignItems: 'center',
+    minHeight: '40px',
+    borderTop: '1px solid #EFF2F5',
+    [SEARCH_UI_FILTERS_NO_SUBGRID]: {
+        gridTemplateColumns: SEARCH_UI_FILTERS_COMPACT_FALLBACK_COLUMNS,
+        columnGap: SEARCH_UI_FILTERS_COMPACT_COLUMN_GAP,
+    },
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        gridTemplateColumns: 'minmax(0, 1fr) auto',
+        gridTemplateAreas: `
+            "left right"
+            "content content"
+        `,
+        columnGap: '8px',
+        rowGap: '8px',
+        paddingTop: '8px',
+        paddingBottom: '8px',
+    },
+}
+
 const criterionLeftWrapperSx: SxProps = {
     display: 'flex',
     alignItems: 'center',
+    minWidth: 0,
     '@media (max-width: 599px)': {
         gridArea: 'left',
     },
@@ -265,5 +306,15 @@ const criterionRightWrapperSx: SxProps = {
         gridArea: 'right',
         marginLeft: 0,
         justifyContent: 'flex-end',
+    },
+}
+
+// The icons column: a lone eraser keeps to the value side, the cross sits left of it.
+const compactCriterionActionsWrapperSx: SxProps = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        gridArea: 'right',
     },
 }
