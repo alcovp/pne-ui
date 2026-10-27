@@ -272,8 +272,8 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 case 'availableList':
                     setAvailableList((prev) => {
                         const temp = [...prev];
-                        const [removed] = temp.splice(source.index, 1);
-                        temp.splice(destination.index, 0, removed);
+                        const [removed] = temp.splice(prev.indexOf(visibleAvailableList[source.index]), 1);
+                        temp.splice(toAvailableInsertIndex(temp, destination.index), 0, removed);
                         return temp;
                     });
                     break;
@@ -305,7 +305,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 const sourceList = [...addedList];
                 const destList = [...availableList];
                 const [removed] = sourceList.splice(result.source.index, 1);
-                destList.splice(destination.index, 0, removed);
+                destList.splice(toAvailableInsertIndex(destList, destination.index), 0, removed);
                 setAvailableList(destList);
                 setAddedList(sourceList);
                 if (textRepresentation) {
@@ -321,7 +321,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
             } else {
                 const sourceList = [...availableList];
                 const destList = [...addedList];
-                const [removed] = sourceList.splice(result.source.index, 1);
+                const [removed] = sourceList.splice(availableList.indexOf(visibleAvailableList[result.source.index]), 1);
                 destList.splice(destination.index, 0, removed);
                 setAvailableList(sourceList);
                 setAddedList(destList);
@@ -411,6 +411,18 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         return optionRenderer ? optionRenderer(option) : option
     };
 
+    const isVisibleAvailable = (item: AbstractEntity) => renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase());
+    const visibleAvailableList = availableList.filter(isVisibleAvailable);
+
+    // Available-list draggables are indexed within the search-filtered view; map a drop index onto the full list.
+    const toAvailableInsertIndex = (list: AbstractEntity[], visibleIndex: number) => {
+        const visible = list.filter(isVisibleAvailable);
+        if (visibleIndex < visible.length) {
+            return list.indexOf(visible[visibleIndex]);
+        }
+        return visible.length ? list.indexOf(visible[visible.length - 1]) + 1 : list.length;
+    };
+
     const onChangeParentDate = () => {
         let mapped: T[] = [];
         let unmapped: T[] = [];
@@ -493,8 +505,6 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         </Draggable>
     );
 
-    const visibleAvailableList = availableList.filter(item => renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase()));
-
     const HeightPreservingItem: React.FunctionComponent<HTMLAttributes<HTMLDivElement>> = ({children, ...props}) => {
         return (
             <div {...props} style={{minHeight: '32px'}}>
@@ -569,14 +579,14 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                         <ItemEntitySelector
                                             handleClick={() => {
                                                 if (disableMoving !== 'AVAILABLE') {
-                                                    onListChange(availableList[rubric.source.index], 'AVAILABLE');
+                                                    onListChange(visibleAvailableList[rubric.source.index], 'AVAILABLE');
                                                 }
                                             }}
                                             provided={provided}
-                                            item={availableList[rubric.source.index]}
-                                            name={renderOption(availableList[rubric.source.index].displayName)}
+                                            item={visibleAvailableList[rubric.source.index]}
+                                            name={renderOption(visibleAvailableList[rubric.source.index].displayName)}
                                             itemAttributes={getItemAttributes?.(
-                                                availableList[rubric.source.index],
+                                                visibleAvailableList[rubric.source.index],
                                                 'AVAILABLE',
                                             )}
                                         />
