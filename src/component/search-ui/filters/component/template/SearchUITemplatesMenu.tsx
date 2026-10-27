@@ -103,14 +103,11 @@ type SearchUITemplatesMenuProps = {
     onResetToDefaults: () => void
     /** The panel layout: the compact actions row wraps on phones, so the trigger may grow there. */
     layout?: SearchUIFiltersLayout
-    /** Trigger text while no template is applied; defaults to the "Template" key. */
-    triggerLabel?: string
 }
 
 const SearchUITemplatesMenu = ({
     onResetToDefaults,
     layout = 'header',
-    triggerLabel,
 }: SearchUITemplatesMenuProps) => {
     const {t} = useTranslation();
     const autoTestScope = useSearchUIAutoTestScope()?.scope
@@ -149,10 +146,11 @@ const SearchUITemplatesMenu = ({
         : templates
     // A move inside a filtered subset has no clear place among the hidden templates.
     const reorderable = canPersistOrder && templates.length > 1 && !filtering
-    const placeholder = template?.name || triggerLabel || t('react.searchUI.template');
-    const removeTemplateLabel = t('react.searchUI.template.remove', {defaultValue: 'Remove template'})
+    // "Saved filters": the key kept its name when the texts moved away from "template".
+    const placeholder = template?.name || t('react.searchUI.template', {defaultValue: 'Saved filters'});
+    const removeTemplateLabel = t('react.searchUI.template.remove', {defaultValue: 'Remove filter set'})
     const reorderLabel = t('react.searchUI.template.reorder', {defaultValue: 'Drag to reorder'})
-    const searchLabel = t('react.searchUI.template.search', {defaultValue: 'Search templates'})
+    const searchLabel = t('react.searchUI.template.search', {defaultValue: 'Search saved filters'})
     const modifiedLabel = t('react.searchUI.template.modified', {defaultValue: 'Unsaved changes'})
     const defaultLabel = t('react.searchUI.default', {defaultValue: 'Default'})
     const defaultSelected = template === null
@@ -195,9 +193,9 @@ const SearchUITemplatesMenu = ({
         if (confirm) {
             const accepted = await confirm.confirmDelete({
                 autoTestValue: autoTestScope,
-                title: t('react.searchUI.template.delete', {defaultValue: 'Delete template'}),
+                title: t('react.searchUI.template.delete', {defaultValue: 'Delete filter set'}),
                 message: t('react.searchUI.template.deleteMessage', {
-                    defaultValue: 'Template “{{name}}” will be permanently deleted. This action can’t be undone.',
+                    defaultValue: 'Filter set “{{name}}” will be permanently deleted. This action can’t be undone.',
                     name: template.name,
                     interpolation: RAW_NAME_INTERPOLATION,
                 }),
@@ -241,7 +239,7 @@ const SearchUITemplatesMenu = ({
             console.error(error)
             overlayActions.showTransientError({
                 message: t('react.searchUI.template.reorderError', {
-                    defaultValue: 'Couldn’t save the template order. Try again.',
+                    defaultValue: 'Couldn’t save the order of the filter sets. Try again.',
                 }),
             })
         })
@@ -517,7 +515,7 @@ const SearchUITemplatesMenu = ({
                 role={'none'}
                 sx={searchEmptySx}
             >
-                {t('react.searchUI.template.noMatches', {defaultValue: 'No templates match'})}
+                {t('react.searchUI.template.noMatches', {defaultValue: 'No saved filters match'})}
             </Box> : null}
             <Box component={'li'} role={'none'} sx={menuFooterSx}>
                 {/* Default, or the search field while filtering, always stands above the actions. */}
@@ -534,7 +532,7 @@ const SearchUITemplatesMenu = ({
                     </ListItemIcon>
                     <ListItemText
                         primary={t('react.searchUI.template.saveAsNew', {
-                            defaultValue: 'Save as new template',
+                            defaultValue: 'Save as new filter set',
                         })}
                     />
                 </MenuItem>

@@ -683,11 +683,6 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu
         onResetToDefaults={resetToDefaults}
         layout={layout}
-        // The compact layout names the menu after what it holds, saved sets of filters;
-        // the title bar keeps the familiar "Template".
-        triggerLabel={compact
-            ? t('react.searchUI.savedFilters', {defaultValue: 'Saved filters'})
-            : undefined}
     /> : null
     const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
         options={criteriaOptions}

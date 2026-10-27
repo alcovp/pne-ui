@@ -58,7 +58,6 @@ describe('SearchUIFilters compact layout', () => {
 
         const templates = scope.querySelector<HTMLButtonElement>('[data-autotest="templates"]')
         expect(templates?.textContent).toContain('Saved filters')
-        expect(templates?.textContent).not.toContain('react.searchUI.template')
     })
 
     it('collapses the rows through the toggle and keeps the actions row on screen', async () => {
@@ -138,8 +137,7 @@ describe('SearchUIFilters compact layout', () => {
         const scope = root() as HTMLElement
         expect(scope.getAttribute('role')).toBeNull()
         expect(getByText('react.searchUI.filters')).not.toBeNull()
-        expect(scope.querySelector('[data-autotest="templates"]')?.textContent)
-            .toContain('react.searchUI.template')
+        expect(scope.querySelector('[data-autotest="templates"]')?.textContent).toContain('Saved filters')
 
         const currency = scope.querySelector<HTMLElement>(
             `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.CURRENCY}"]`,

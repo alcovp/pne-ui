@@ -180,7 +180,7 @@ describe('SearchUI templates menu', () => {
 
         await waitFor(() => expect(templateNames()).toEqual(['Alpha', 'Bravo', 'Charlie']))
         expect(showTransientError).toHaveBeenCalledWith({
-            message: 'Couldn’t save the template order. Try again.',
+            message: 'Couldn’t save the order of the filter sets. Try again.',
         })
     })
 
@@ -218,7 +218,7 @@ describe('SearchUI templates menu', () => {
             expect(result).not.toBeNull()
             return result as HTMLElement
         })
-        expect(dialog.textContent).toContain('Template “Bravo” will be permanently deleted.')
+        expect(dialog.textContent).toContain('Filter set “Bravo” will be permanently deleted.')
 
         fireEvent.click(dialog.querySelector('[data-autotest="alert.button.cancel"]') as HTMLElement)
         await waitFor(() => expect(document.body.querySelector('[data-autotest="alert.container"]')).toBeNull())
@@ -368,7 +368,7 @@ describe('SearchUI templates menu', () => {
             expect(defaultItem()?.getAttribute('aria-checked')).toBe('false')
             fireEvent.click(defaultItem() as HTMLButtonElement)
 
-            await waitFor(() => expect(trigger().textContent).toBe('react.searchUI.template'))
+            await waitFor(() => expect(trigger().textContent).toBe('Saved filters'))
             expect(showUndoSnackbar).toHaveBeenCalledTimes(1)
             const {message, onUndo} = showUndoSnackbar.mock.calls[0][0]
             expect(message).toBe('Default filters restored')
@@ -386,7 +386,7 @@ describe('SearchUI templates menu', () => {
             await act(async () => undefined)
 
             expect(showUndoSnackbar).not.toHaveBeenCalled()
-            expect(trigger().textContent).toBe('react.searchUI.template')
+            expect(trigger().textContent).toBe('Saved filters')
         })
 
         it('replaces Clear all, which stays only where the templates menu is hidden', async () => {
@@ -448,7 +448,7 @@ describe('SearchUI templates menu', () => {
             await openMenu(1)
             fireEvent.click(defaultItem() as HTMLButtonElement)
             await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalledTimes(3))
-            expect(trigger().textContent).toBe('react.searchUI.template')
+            expect(trigger().textContent).toBe('Saved filters')
         })
     })
 
@@ -477,7 +477,7 @@ describe('SearchUI templates menu', () => {
             const menu = await openMenu(LONG_LIST.length)
 
             await waitFor(() => expect(document.activeElement).toBe(searchField()))
-            expect(searchField()?.getAttribute('aria-label')).toBe('Search templates')
+            expect(searchField()?.getAttribute('aria-label')).toBe('Search saved filters')
             expect(menu.querySelectorAll('[data-autotest="reorder-template"]')).toHaveLength(LONG_LIST.length)
 
             fireEvent.change(searchField() as HTMLInputElement, {target: {value: '  bRAvo '}})
@@ -491,7 +491,7 @@ describe('SearchUI templates menu', () => {
             fireEvent.change(searchField() as HTMLInputElement, {target: {value: 'zulu'}})
             expect(templateNames()).toEqual([])
             expect(menu.querySelector('[data-autotest="template-search-empty"]')?.textContent)
-                .toBe('No templates match')
+                .toBe('No saved filters match')
             // Filtering happens in the browser: the list was loaded once.
             expect(getSearchTemplates).toHaveBeenCalledTimes(1)
         })

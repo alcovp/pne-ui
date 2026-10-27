@@ -408,7 +408,7 @@ describe('SearchUI autotest scope', () => {
             .toBe(selectTemplate)
         expect(removeTemplate?.tagName).toBe('BUTTON')
         expect(removeTemplate?.type).toBe('button')
-        expect(removeTemplate?.getAttribute('aria-label')).toBe('Remove template: Saved orders')
+        expect(removeTemplate?.getAttribute('aria-label')).toBe('Remove filter set: Saved orders')
 
         fireEvent.click(selectTemplate as HTMLButtonElement)
 
@@ -475,7 +475,7 @@ describe('SearchUI autotest scope', () => {
         })
         const newTemplate = panel.querySelector<HTMLButtonElement>('[data-autotest="create-template"]')
 
-        expect(within(panel).getByRole('menuitem', {name: 'Save as new template'})).toBe(newTemplate)
+        expect(within(panel).getByRole('menuitem', {name: 'Save as new filter set'})).toBe(newTemplate)
         expect(newTemplate?.getAttribute('aria-haspopup')).toBe('dialog')
 
         fireEvent.click(newTemplate as HTMLButtonElement)

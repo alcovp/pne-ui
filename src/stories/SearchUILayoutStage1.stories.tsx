@@ -157,8 +157,9 @@ const Presentation = () => <Box sx={{p: 4, maxWidth: 1400, bgcolor: '#fff', font
                 есть кольцо фокуса. Крестик больше не красит SVG жёстко, тёмная тема берёт свой цвет.
             </Item>
             <Item status='done'>
-                Кнопка шаблонов без выбранного шаблона подписана «Saved filters» (ключ
-                react.searchUI.savedFilters). Имя применённого шаблона показывается как раньше.
+                Тексты семейства «Template» переименованы: кнопка «Saved filters», сущность в меню и
+                диалогах «filter set» / «набор». Значения ключей react.searchUI.template* сменены в
+                paynet-i18n R3.36.142 (EN, RU) и в defaultValue библиотеки, сами ключи те же.
             </Item>
             <Item status='done'>
                 SearchUI в compact оставляет над таблицей 8 px вместо 16; общий AbstractTable не тронут.
@@ -233,19 +234,17 @@ const Presentation = () => <Box sx={{p: 4, maxWidth: 1400, bgcolor: '#fff', font
 
     <Section title='Вопросы перед этапом 2'>
         <List ordered>
-            <Item status='open'>
-                Отчётные страницы (Performance Report, 9 отчётов Вероники, endpoint groups): в compact две
-                строки кнопок подряд. Делать слот действий хоста в строке библиотеки, чтобы Generate/Preview
-                встали справа от Search? Предлагаю: да, этап 2.
+            <Item status='done'>
+                Слот действий хоста для отчётных страниц: снят 27.10. На отчётах Search прячется через
+                hideRefreshButton, в демо он был только из-за manualSearch в истории.
             </Item>
-            <Item status='open'>
-                Название «Saved filters» утверждаем? Тогда ключ react.searchUI.savedFilters EN/RU уходит в
-                paynet-i18n R3.36.142. Пункты меню переименовывать целиком или оставить «Template»?
+            <Item status='done'>
+                Название «Saved filters» и переименование всего семейства: утверждено и сделано 27.10.
             </Item>
-            <Item status='open'>
-                Включение compact в хосте: все React-страницы сразу одной правкой или по одной, начиная с
-                Orders? Переключатель по экземпляру, дашборд и отчёты Вероники остаются на header, пока не
-                включат сами. Предлагаю: все страницы хоста сразу, в ветке react от R3.36.17.
+            <Item status='done'>
+                Решение владельца 27.10: двух раскладок не будет, новая становится единственной.
+                Переключатель config.layout живёт только как наш инструмент сравнения и удаляется в конце
+                работ, перед стабильным выпуском.
             </Item>
             <Item status='open'>
                 Ширина колонки названий: по самому длинному названию до 240 px (сейчас) или фиксированная
@@ -259,9 +258,8 @@ const Presentation = () => <Box sx={{p: 4, maxWidth: 1400, bgcolor: '#fff', font
                 Цель 289 px на Orders: отвечаем Евгению, что библиотека даёт ~28 px, а остальное у панели
                 статистики и крошек? Или ищем ещё?
             </Item>
-            <Item status='open'>
-                Когда compact становится умолчанием библиотеки и header уходит: после обкатки на стендах,
-                мажорной версией?
+            <Item status='done'>
+                Снят вместе с решением о единственной раскладке.
             </Item>
         </List>
     </Section>
