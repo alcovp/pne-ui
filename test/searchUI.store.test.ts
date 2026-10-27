@@ -82,6 +82,64 @@ describe('SearchUIFilters Zustand store', () => {
         expect(state.justAddedCriterion).toBe(CriterionTypeEnum.CURRENCY)
     })
 
+    describe('actions targeting a missing item', () => {
+        const templateNamed = (name: string): SearchUITemplate => ({
+            name,
+            searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults) as SearchUITemplate['searchConditions'],
+        })
+
+        it('removeCriterion leaves other criteria alone', () => {
+            store.setState({ criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY] })
+
+            store.getState().removeCriterion(CriterionTypeEnum.GATE)
+
+            expect(store.getState().criteria).toEqual([CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY])
+        })
+
+        it('removeTemplate called twice removes only that template', async () => {
+            const [a, b] = [templateNamed('a'), templateNamed('b')]
+            store.setState({ templates: [a, b] })
+
+            store.getState().removeTemplate(a)
+            store.getState().removeTemplate(a)
+            await flushPromises()
+
+            expect(store.getState().templates.map(t => t.name)).toEqual(['b'])
+        })
+
+        it('updateTemplate still activates a template that is no longer in the list', async () => {
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+            try {
+                store.setState({ templates: [] })
+
+                store.getState().updateTemplate('gone')
+                await flushPromises()
+
+                expect(consoleError).not.toHaveBeenCalled()
+                expect(store.getState().activeTemplateName).toBe('gone')
+            } finally {
+                consoleError.mockRestore()
+            }
+        })
+
+        it('setMultigetCriterion keeps a selection without an existing entry', () => {
+            store.setState({ criteria: [CriterionTypeEnum.GATE], multigetCriteria: [] })
+            const criterion = {
+                entityType: LinkedEntityTypeEnum.GATE,
+                filterType: MultichoiceFilterTypeEnum.ALL,
+                searchString: '',
+                selectedItems: '1',
+                selectedItemNames: 'Gate 1',
+                deselectedItems: '',
+                deselectedItemNames: '',
+            }
+
+            store.getState().setMultigetCriterion(criterion)
+
+            expect(store.getState().multigetCriteria).toEqual([criterion])
+        })
+    })
+
     describe('default TODAY date range', () => {
         const expectedToday = () => {
             const today = dayjs().startOf('day')

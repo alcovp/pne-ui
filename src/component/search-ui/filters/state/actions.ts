@@ -575,7 +575,9 @@ export const getSearchUIFiltersActions = (
         set((draft) => {
             clearCriterionReducer(draft, criterionType)
             const index = draft.criteria.findIndex(c => c === criterionType)
-            draft.criteria.splice(index, 1)
+            if (index >= 0) {
+                draft.criteria.splice(index, 1)
+            }
         })
         postUpdate(set, get)
     },
@@ -609,7 +611,9 @@ export const getSearchUIFiltersActions = (
             .then(() => {
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === templateName)
-                    draft.templates[index].searchConditions = template.searchConditions
+                    if (index >= 0) {
+                        draft.templates[index].searchConditions = template.searchConditions
+                    }
                     draft.template = template
                     draft.activeTemplateName = template.name
                 })
@@ -635,7 +639,9 @@ export const getSearchUIFiltersActions = (
 
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === template.name)
-                    draft.templates.splice(index, 1)
+                    if (index >= 0) {
+                        draft.templates.splice(index, 1)
+                    }
                     if (draft.template?.name === template.name) {
                         Object.assign(draft, getSearchUIInitialSearchCriteria(draft.defaults))
                         draft.template = null
@@ -782,7 +788,11 @@ export const getSearchUIFiltersActions = (
                 ? getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
                 : null
             const index = draft.multigetCriteria.findIndex(c => c.entityType === criterion.entityType)
-            draft.multigetCriteria[index] = criterion
+            if (index >= 0) {
+                draft.multigetCriteria[index] = criterion
+            } else {
+                draft.multigetCriteria.push(criterion)
+            }
 
             if (
                 criterion.entityType === LinkedEntityTypeEnum.MERCHANT
