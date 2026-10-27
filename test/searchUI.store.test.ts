@@ -81,6 +81,49 @@ describe('SearchUIFilters Zustand store', () => {
         expect(state.justAddedCriterion).toBe(CriterionTypeEnum.CURRENCY)
     })
 
+    describe.each([
+        ['clearCriteria', () => store.getState().clearCriteria()],
+        ['removing the active template', async () => {
+            const template: SearchUITemplate = { name: 'active', searchConditions: {} as SearchUITemplate['searchConditions'] }
+            store.setState({ templates: [template], template })
+            store.getState().removeTemplate(template)
+            await flushPromises()
+        }],
+    ] as const)('resetting to predefined criteria via %s', (_name, reset) => {
+        it('re-creates multiget entries for predefined multiget criteria', async () => {
+            store.setState({
+                predefinedCriteria: [CriterionTypeEnum.GATE],
+                criteria: [CriterionTypeEnum.GATE, CriterionTypeEnum.PROJECT],
+            })
+
+            await reset()
+
+            const state = store.getState()
+            expect(state.criteria).toEqual([CriterionTypeEnum.GATE])
+            expect(state.multigetCriteria).toEqual([
+                expect.objectContaining({ entityType: LinkedEntityTypeEnum.GATE }),
+            ])
+        })
+
+        it('keeps customer level dependencies out of predefined criteria', async () => {
+            store.setState({
+                possibleCriteria: [CriterionTypeEnum.MERCHANT, CriterionTypeEnum.CURRENCY],
+                predefinedCriteria: [CriterionTypeEnum.CUSTOMER_LEVEL],
+                criteria: [CriterionTypeEnum.CUSTOMER_LEVEL],
+            })
+
+            await reset()
+
+            const state = store.getState()
+            expect(state.predefinedCriteria).toEqual([CriterionTypeEnum.CUSTOMER_LEVEL])
+            expect(state.criteria).toEqual(expect.arrayContaining([
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+                CriterionTypeEnum.MERCHANT,
+                CriterionTypeEnum.CURRENCY,
+            ]))
+        })
+    })
+
     it('adds customer level together with merchant and currency dependencies', () => {
         store.setState({
             possibleCriteria: [

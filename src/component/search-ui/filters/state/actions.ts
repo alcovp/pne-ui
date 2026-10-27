@@ -249,6 +249,15 @@ const ensureCustomerLevelDependenciesReducer = (
     CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
 }
 
+// Expects multigetCriteria to be already reset; copies predefinedCriteria so later pushes don't leak into it.
+const resetToPredefinedCriteriaReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+): void => {
+    draft.criteria = [...draft.predefinedCriteria]
+    draft.criteria.forEach(criterion => addInitialMultigetCriterionReducer(draft, criterion))
+    ensureCustomerLevelDependenciesReducer(draft)
+}
+
 const normalizeRestrictedTransactionTypesReducer = (
     draft: WritableDraft<SearchUIFiltersStore>,
 ): void => {
@@ -540,9 +549,8 @@ export const getSearchUIFiltersActions = (
                 template: null,
                 templateBaseline: null,
                 activeTemplateName: null,
-                criteria: draft.predefinedCriteria,
             })
-            ensureCustomerLevelDependenciesReducer(draft)
+            resetToPredefinedCriteriaReducer(draft)
         })
         postUpdate(set, get, options)
     },
@@ -633,8 +641,7 @@ export const getSearchUIFiltersActions = (
                         draft.template = null
                         draft.templateBaseline = null
                         draft.activeTemplateName = null
-                        draft.criteria = draft.predefinedCriteria
-                        ensureCustomerLevelDependenciesReducer(draft)
+                        resetToPredefinedCriteriaReducer(draft)
                     }
                 })
                 postUpdate(set, get)
