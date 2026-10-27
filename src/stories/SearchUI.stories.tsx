@@ -579,7 +579,7 @@ const HookWrap = (props: HookWrapProps) => <OverlayHost>
     <HookWrapContent {...props}/>
 </OverlayHost>
 
-const HookWrapContent = (props: HookWrapProps) => {
+export const HookWrapContent = (props: HookWrapProps) => {
 
     const {
         possibleCriteria = defaultPossibleCriteria,
@@ -856,7 +856,7 @@ const layoutStoryPredefinedCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.TRANSACTION_TYPES,
 ]
 
-const layoutStoryArgs = {
+export const layoutStoryArgs = {
     possibleCriteria: [
         ...layoutStoryPredefinedCriteria,
         CriterionTypeEnum.STATUS,
@@ -877,7 +877,7 @@ const layoutStoryArgs = {
     showVisaButton: false,
 } satisfies HookWrapProps
 
-const compactLayoutStoryArgs = {
+export const compactLayoutStoryArgs = {
     ...layoutStoryArgs,
     config: {
         ...layoutStoryArgs.config,
@@ -894,7 +894,7 @@ const layoutCaptionSx = {
     textTransform: 'uppercase',
 }
 
-const LayoutComparison = () => <OverlayHost>
+export const LayoutComparison = () => <OverlayHost>
     <Box sx={{backgroundColor: '#fff', display: 'flex', flexDirection: 'column', rowGap: 4}}>
         <Box data-story-section='pne-ui-search-ui-layout-header'>
             <Typography sx={layoutCaptionSx}>
@@ -914,6 +914,8 @@ const LayoutComparison = () => <OverlayHost>
 export default {
     title: 'pne-ui/SearchUI',
     component: HookWrap,
+    // Building blocks shared with the #172508 presentation story, not stories of their own.
+    excludeStories: ['HookWrapContent', 'layoutStoryArgs', 'compactLayoutStoryArgs', 'LayoutComparison'],
 } as Meta<typeof HookWrap>
 
 type Story = StoryObj<typeof HookWrap>

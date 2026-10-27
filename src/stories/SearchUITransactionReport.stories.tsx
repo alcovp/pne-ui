@@ -39,7 +39,7 @@ const FILTERS_CONFIG: SearchUIFiltersConfig = {
     },
 }
 
-const TransactionReportFilters = ({invalidRange = false, layout = 'header'}: Props) => {
+export const TransactionReportFilters = ({invalidRange = false, layout = 'header'}: Props) => {
     const [validationResult, setValidationResult] = useState<SearchUIValidationResult | null>(null)
 
     const initialSearchConditions: Partial<Omit<SearchUIConditionsInput, 'criteria'>> = {
@@ -93,6 +93,8 @@ const TransactionReportFilters = ({invalidRange = false, layout = 'header'}: Pro
 export default {
     title: 'pne-ui/SearchUI/Transaction Report',
     component: TransactionReportFilters,
+    // Reused by the #172508 presentation story.
+    excludeStories: ['TransactionReportFilters'],
     parameters: {
         layout: 'fullscreen',
     },
