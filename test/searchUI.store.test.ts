@@ -14,6 +14,7 @@ import {
     applyDateOnlyTimeZone,
     createDateOnlyPickerDate,
     createDateOnlyPickerValue,
+    SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../src/component/search-ui/filters/dateRangeTimeZone'
 import {
     createClearCriteriaUndoSnapshot,
@@ -79,6 +80,39 @@ describe('SearchUIFilters Zustand store', () => {
         const state = store.getState()
         expect(state.criteria).toContain(CriterionTypeEnum.CURRENCY)
         expect(state.justAddedCriterion).toBe(CriterionTypeEnum.CURRENCY)
+    })
+
+    describe('default TODAY date range', () => {
+        const expectedToday = () => {
+            const today = dayjs().startOf('day')
+            return {
+                dateFrom: today.tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+                dateTo: today.add(1, 'day').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+            }
+        }
+
+        it('is computed at call time, not frozen at module load', () => {
+            jest.useFakeTimers().setSystemTime(new Date('2030-01-15T12:00:00.000Z'))
+
+            expect(getSearchUIInitialSearchCriteria(initialSearchUIDefaults).dateRangeSpec)
+                .toEqual(expect.objectContaining(expectedToday()))
+        })
+
+        it('is reset to the current day by clearCriteria', () => {
+            jest.useFakeTimers().setSystemTime(new Date('2030-01-15T12:00:00.000Z'))
+
+            store.getState().clearCriteria()
+
+            expect(store.getState().dateRangeSpec).toEqual(expect.objectContaining(expectedToday()))
+        })
+
+        it('uses the local day, not the UTC day', () => {
+            // Already July 16 east of UTC (e.g. Moscow); only catches regressions when run outside UTC.
+            jest.useFakeTimers().setSystemTime(new Date('2030-07-15T23:30:00.000Z'))
+
+            expect(getSearchUIInitialSearchCriteria(initialSearchUIDefaults).dateRangeSpec)
+                .toEqual(expect.objectContaining(expectedToday()))
+        })
     })
 
     describe.each([

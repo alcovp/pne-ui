@@ -52,8 +52,8 @@ import {
     getSearchUIInitialSearchCriteria,
     searchUICountriesInitialAllableCollection,
     searchUIInitialAllableCollection,
-    searchUIInitialDateFrom,
-    searchUIInitialDateTo,
+    getSearchUIInitialDateFrom,
+    getSearchUIInitialDateTo,
 } from './initial'
 import { WritableDraft } from 'immer/src/internal'
 // import {raiseUIError} from '../../../../../error';
@@ -1890,9 +1890,9 @@ const calculateNonExactDates = (
     const nowServer = timeZone ? dayjs().utc().tz(timeZone) : dayjs()
 
     let from: Dayjs = dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom)
-        : dayjs(searchUIInitialDateFrom)
+        : getSearchUIInitialDateFrom()
     let to: Dayjs = dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo)
-        : dayjs(searchUIInitialDateTo)
+        : getSearchUIInitialDateTo()
 
     // endOf мы тут используем только при работе с месяцами или неделями. в случае дня, бд не различает начало и конец
     // поэтом указываем начало следующего дня
