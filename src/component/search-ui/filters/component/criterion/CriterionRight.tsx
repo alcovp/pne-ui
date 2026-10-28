@@ -5,6 +5,7 @@ import SearchUIFiltersCriterionHeaderRemoveButton from '../button/SearchUIFilter
 import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
+import {SEARCH_UI_FILTERS_ICON_GAP} from '../../layout';
 
 type Props = {
     criterionType: CriterionTypeEnum
@@ -55,4 +56,5 @@ export const CriterionRight = (props: Props) => {
 const boxSx: SxProps = {
     display: 'flex',
     alignItems: 'center',
+    columnGap: SEARCH_UI_FILTERS_ICON_GAP,
 }

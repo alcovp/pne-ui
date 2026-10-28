@@ -642,7 +642,8 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         count: criteria.length,
     })
 
-    const toggleButton = hideShowFiltersButton ? null : <Tooltip
+    // Nothing to fold without criteria: the chevron waits for the first one, which Add filter unfolds.
+    const toggleButton = hideShowFiltersButton || !someCriteriaAdded ? null : <Tooltip
         disableInteractive
         enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
@@ -697,7 +698,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         pneStyle='contained'
         size={'small'}
         disabled={searchLoading || !validationResult.isValid}
-        sx={nowrapButtonSx}
+        sx={searchButtonSx}
     >
         {manualSearch
             ? t('react.searchUI.search')
@@ -753,6 +754,14 @@ const nowrapButtonSx: SxProps = {
 
 const nowrapChipSx: SxProps = {
     whiteSpace: 'nowrap',
+}
+
+// On phones the main button takes the rest of its line, alone or after the others.
+const searchButtonSx: SxProps = {
+    whiteSpace: 'nowrap',
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        flexGrow: 1,
+    },
 }
 
 const rootSx: SxProps = {

@@ -243,10 +243,11 @@ describe('SearchUI multiget outer Selenium contract', () => {
         expect(firstPanel.id).not.toBe(secondPanel.id)
         expect(firstPanel.getAttribute('aria-label')).toBeNull()
         expect(secondPanel.getAttribute('aria-label')).toBeNull()
+        // The dialog edits one filter and carries its name, as the row does.
         expect(document.getElementById(firstPanel.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('advancedSearch.addCriteria')
+            .toBe('react.CriterionTypeEnum.GATE')
         expect(document.getElementById(secondPanel.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('advancedSearch.addCriteria')
+            .toBe('react.CriterionTypeEnum.GATE')
         expect(firstPanel.getAttribute('aria-modal')).toBe('true')
         expect(firstCriterion.contains(firstPanel)).toBe(false)
         expect(secondCriterion.contains(secondPanel)).toBe(false)

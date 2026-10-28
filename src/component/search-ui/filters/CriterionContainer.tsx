@@ -1,6 +1,7 @@
 import React from 'react'
 import { CriterionTypeEnum, LinkedEntityTypeEnum } from './types'
 import { Box, SxProps } from '@mui/material'
+import type { Theme } from '@mui/material/styles'
 import { ExactSearchCriterion } from './component/criterion/ExactSearchCriterion'
 import { StatusCriterion } from './component/criterion/StatusCriterion'
 import { OtpStatusCriterion } from './component/criterion/OtpStatusCriterion'
@@ -215,14 +216,16 @@ export const CriterionContainer = (props: IProps) => {
     </SearchUICriterionAutoTestScopeProvider>
 }
 
-// One row of the panel grid: a subgrid shares the root's name, icons and values columns.
-const criterionSx: SxProps = {
+// One row of the panel grid: a subgrid shares the root's name, icons and values columns. The
+// separator is the table's row line, so dark mode gets its colour; without the PNE theme the light
+// one stands in.
+const criterionSx: SxProps<Theme> = {
     gridColumn: '1 / -1',
     display: 'grid',
     gridTemplateColumns: 'subgrid',
     alignItems: 'center',
     minHeight: '40px',
-    borderTop: '1px solid #EFF2F5',
+    borderTop: theme => `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
     [SEARCH_UI_FILTERS_NO_SUBGRID]: {
         gridTemplateColumns: SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
         columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,

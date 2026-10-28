@@ -45,6 +45,9 @@ const SearchUIAddFilter = (props: Props) => {
             value={null}
             getOptionLabel={optionRenderer}
             MenuProps={{
+                // Under the button from its left edge, as the saved filters menu opens.
+                anchorOrigin: {vertical: 'bottom', horizontal: 'left'},
+                transformOrigin: {vertical: 'top', horizontal: 'left'},
                 slotProps: {
                     list: createAutoTestAttributes(ADD_FILTER_OPTIONS_AUTOTEST_ID, autoTestScope),
                 },

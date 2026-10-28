@@ -35,6 +35,8 @@ export type PneSemanticPalette = {
         control: string
     }
     text: {
+        /** Labels and names that must read at full strength, such as filter names. */
+        default: string
         muted: string
     }
     brand: PneBrandPalette
@@ -73,6 +75,7 @@ const PNE_LIGHT_COLORS = Object.freeze({
     borderSubtle: '#F1F5FA',
     borderDefault: '#E1E7EF',
     borderControl: '#B0B7C3',
+    textDefault: '#38434D',
     textMuted: '#809EAE',
 })
 
@@ -236,6 +239,7 @@ const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPal
             control: PNE_LIGHT_COLORS.borderControl,
         },
     text: {
+        default: mode === 'dark' ? PNE_DARK_COLORS.textPrimary : PNE_LIGHT_COLORS.textDefault,
         muted: mode === 'dark' ? PNE_DARK_COLORS.textMuted : PNE_LIGHT_COLORS.textMuted,
     },
     brand: createBrandPalette(seed, mode),

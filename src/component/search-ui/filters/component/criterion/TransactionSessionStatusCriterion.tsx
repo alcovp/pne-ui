@@ -1,5 +1,6 @@
 import React from 'react'
 import { Box, Chip, FormControlLabel, SxProps } from '@mui/material'
+import type { Theme } from '@mui/material/styles'
 import { PneCheckbox, PneModal, PneSelect, useModal } from '../../../../..'
 import { useSearchUIFiltersStore } from '../../state/store'
 import { TransactionSessionGroup, TransactionSessionStatus } from '../../types'
@@ -227,9 +228,9 @@ const checkboxesSx: SxProps = {
     flexDirection: 'column',
 }
 
-const checkboxItemSx: SxProps = {
+const checkboxItemSx: SxProps<Theme> = {
     '&:not(:last-of-type)': {
-        borderBottom: '1px solid #EFF2F5',
+        borderBottom: theme => `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
     },
 }
 

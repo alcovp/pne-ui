@@ -50,7 +50,8 @@ export const MultigetCriterionPanel = (props: IProps) => {
     const triggerLabel = `${t('react.searchUI.multiget.edit', {
         defaultValue: 'Edit filter',
     })}: ${criterionLabel}`
-    const modalTitle = t('advancedSearch.addCriteria')
+    // The dialog edits one filter: its name is the title, as on the row.
+    const modalTitle = criterionLabel
 
     useEffect(() => {
         if (justAddedCriterion === criterionType) {

@@ -15,7 +15,7 @@ const precedes = (first: Element | null | undefined, second: Element | null | un
     first && second && (first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING),
 )
 
-const renderFilters = (scope: string) => {
+const renderFilters = (scope: string, {allRemovable = false} = {}) => {
     const onFiltersUpdate = jest.fn()
     const utils = render(
         <SearchUIFilters
@@ -28,7 +28,9 @@ const renderFilters = (scope: string) => {
             onFiltersUpdate={onFiltersUpdate}
             config={{
                 manualSearch: true,
-                removablePredefinedCriteria: [CriterionTypeEnum.CURRENCY],
+                removablePredefinedCriteria: allRemovable
+                    ? [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]
+                    : [CriterionTypeEnum.CURRENCY],
             }}
         />,
     )
@@ -181,19 +183,65 @@ describe('SearchUIFilters layout', () => {
         expect(getByText('2').getAttribute('aria-hidden')).toBe('true')
     })
 
-    it('keeps the full name of a criterion in the title of its name cell', async () => {
+    it('shows the full name of a criterion in a tooltip only when the column cuts it', async () => {
         const {onFiltersUpdate, root} = renderFilters('layout-names')
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
         })
 
-        const status = (root() as HTMLElement).querySelector<HTMLElement>(
-            `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.STATUS}"]`,
-        )
-        const name = status?.querySelector('[title]')
+        const scope = root() as HTMLElement
+        const nameCell = (type: CriterionTypeEnum) => scope.querySelector<HTMLElement>(
+            `[data-autotest="criterion"][data-autotest-value="${type}"]`,
+        )?.children[0].firstElementChild as HTMLElement
+        const status = nameCell(CriterionTypeEnum.STATUS)
+        const currency = nameCell(CriterionTypeEnum.CURRENCY)
+        expect(status.textContent).toBe('react.CriterionTypeEnum.STATUS')
+        expect(status.getAttribute('title')).toBeNull()
 
-        expect(name?.getAttribute('title')).toBe('react.CriterionTypeEnum.STATUS')
-        expect(name?.textContent).toBe('react.CriterionTypeEnum.STATUS')
+        // jsdom has no layout: the cut is staged through the sizes the cell measures.
+        Object.defineProperty(currency, 'scrollWidth', {value: 300, configurable: true})
+        Object.defineProperty(currency, 'clientWidth', {value: 150, configurable: true})
+        fireEvent.mouseEnter(currency)
+        fireEvent.mouseOver(currency)
+        expect((await screen.findByRole('tooltip')).textContent).toBe('react.CriterionTypeEnum.CURRENCY')
+        fireEvent.mouseLeave(currency)
+        await waitFor(() => {
+            expect(screen.queryByRole('tooltip')).toBeNull()
+        })
+
+        Object.defineProperty(status, 'scrollWidth', {value: 100, configurable: true})
+        Object.defineProperty(status, 'clientWidth', {value: 150, configurable: true})
+        fireEvent.mouseEnter(status)
+        fireEvent.mouseOver(status)
+        await new Promise(resolve => setTimeout(resolve, 400))
+        expect(screen.queryByRole('tooltip')).toBeNull()
+    })
+
+    it('drops the chevron while no criterion is on the panel and brings it back with the first one', async () => {
+        const {onFiltersUpdate, root, getByText} = renderFilters('layout-empty', {allRemovable: true})
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        expect(scope.querySelector('[data-autotest="toggle-filters"]')).not.toBeNull()
+        for (const remove of Array.from(scope.querySelectorAll<HTMLButtonElement>('[data-autotest="remove-criterion"]'))) {
+            fireEvent.click(remove)
+        }
+        await waitFor(() => {
+            expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
+        })
+        expect(scope.querySelector('[data-autotest="toggle-filters"]')).toBeNull()
+        expect(scope.querySelector('[data-autotest="add-filter"]')).not.toBeNull()
+
+        fireEvent.mouseDown(scope.querySelector('[data-autotest="add-filter"]') as HTMLElement)
+        fireEvent.click(await screen.findByRole('option', {name: 'THREE_D'}))
+        await waitFor(() => {
+            expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(1)
+        })
+        expect(scope.querySelector('[data-autotest="toggle-filters"]')).not.toBeNull()
+        expect(getByText('react.CriterionTypeEnum.THREE_D')).toBeTruthy()
     })
 })
