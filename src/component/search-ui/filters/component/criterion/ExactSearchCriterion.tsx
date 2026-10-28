@@ -38,7 +38,7 @@ export const ExactSearchCriterion = () => {
                 },
             }}
         />
-        <Box component={'span'} sx={{display: 'inline-block', color: '#8A94A6'}}>{t('in')}</Box>
+        <Box component={'span'} sx={{display: 'inline-block', color: theme => theme.palette.pne?.text.muted ?? '#808080'}}>{t('in')}</Box>
         <SearchUIExactSearchLabelSelect
             value={exactSearchLabel}
             options={exactSearchLabels}

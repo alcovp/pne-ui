@@ -2244,7 +2244,10 @@ return (
 ```
 
 Новые роли доступны в `theme.palette.pne`: `surface.sunken/subtle/raised`,
-`border.subtle/default/control`, `text.default/muted` и `brand`. В `brand` исходный `seed/fill` отделён от автоматически
+`border.subtle/default/control`, `text.default/muted`, `control.foreground/foregroundHover/foregroundDisabled/activeBackground`
+и `brand`. Группа `control` — нейтральные серые второстепенных элементов управления (пагинация и виды
+таблицы, стрелка сортировки, значки панели фильтров, выключенная дорожка `PneSwitch`): одинаковые при любом
+скине, в покое не ниже 3:1 к странице. В `brand` исходный `seed/fill` отделён от автоматически
 адаптированного `foreground`; используйте `foreground` для ссылок, иконок и заголовков на тёмных surfaces,
 а `fill/onFill/fillBorder` — для залитых controls. `createPneThemeOptions` возвращает те же чистые MUI
 `ThemeOptions`, если consumer должен сам вызвать свою `createTheme`.

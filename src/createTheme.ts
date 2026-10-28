@@ -39,6 +39,18 @@ export type PneSemanticPalette = {
         default: string
         muted: string
     }
+    /**
+     * Secondary controls: pagination, the table view selector, the sort arrow, the filter icons,
+     * the off switch track. Neutral greys, so every skin reads the same; the resting colour keeps
+     * at least 3:1 against the page.
+     */
+    control: {
+        foreground: string
+        foregroundHover: string
+        foregroundDisabled: string
+        /** The pressed-in control: the current page, the chosen view, a hovered action. */
+        activeBackground: string
+    }
     brand: PneBrandPalette
 }
 
@@ -76,7 +88,11 @@ const PNE_LIGHT_COLORS = Object.freeze({
     borderDefault: '#E1E7EF',
     borderControl: '#B0B7C3',
     textDefault: '#38434D',
-    textMuted: '#809EAE',
+    textMuted: '#808080',
+    controlForeground: '#808080',
+    controlForegroundHover: '#5C5C5C',
+    controlForegroundDisabled: '#C4C4C4',
+    controlActiveBackground: '#F0F0F0',
 })
 
 const MISSING_COLOR = '#FF00DC'
@@ -242,6 +258,19 @@ const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPal
         default: mode === 'dark' ? PNE_DARK_COLORS.textPrimary : PNE_LIGHT_COLORS.textDefault,
         muted: mode === 'dark' ? PNE_DARK_COLORS.textMuted : PNE_LIGHT_COLORS.textMuted,
     },
+    control: mode === 'dark'
+        ? {
+            foreground: PNE_DARK_COLORS.textSecondary,
+            foregroundHover: PNE_DARK_COLORS.textPrimary,
+            foregroundDisabled: PNE_DARK_COLORS.textDisabled,
+            activeBackground: PNE_DARK_COLORS.surfaceSubtle,
+        }
+        : {
+            foreground: PNE_LIGHT_COLORS.controlForeground,
+            foregroundHover: PNE_LIGHT_COLORS.controlForegroundHover,
+            foregroundDisabled: PNE_LIGHT_COLORS.controlForegroundDisabled,
+            activeBackground: PNE_LIGHT_COLORS.controlActiveBackground,
+        },
     brand: createBrandPalette(seed, mode),
 })
 

@@ -500,10 +500,13 @@ const createSwitchSx = (
     const trackFeedbackColor = alpha(theme.palette.primary.main, 0.1)
     const isDarkMode = theme.palette.mode === 'dark'
     const thumbColor = isDarkMode ? theme.palette.text.primary : '#fff'
+    // Off, the track is a secondary control: the neutral control grey of the palette.
     const trackColor = isDarkMode
         ? (theme.palette.pne?.border.control ?? theme.palette.text.secondary)
-        : '#809EAE'
-    const trackHoverColor = isDarkMode ? theme.palette.text.secondary : '#5E7594'
+        : (theme.palette.pne?.control.foreground ?? '#808080')
+    const trackHoverColor = isDarkMode
+        ? theme.palette.text.secondary
+        : (theme.palette.pne?.control.foregroundHover ?? '#5C5C5C')
     const disabledTrackColor = isDarkMode
         ? theme.palette.action.disabledBackground
         : '#E6E6E6'

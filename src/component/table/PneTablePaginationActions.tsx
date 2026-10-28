@@ -129,12 +129,9 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     } = paginator;
 
     const theme = usePneTheme()
-    const controlTextColor = theme.palette.mode === 'dark'
-        ? theme.palette.text.secondary
-        : TABLE_CONTROL_TEXT_COLOR
-    const activeBackgroundColor = theme.palette.mode === 'dark'
-        ? theme.palette.pne.surface.subtle
-        : TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
+    const controlTextColor = theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR
+    const activeBackgroundColor = theme.palette.pne?.control.activeBackground
+        ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
 
     const buttonStyle = {
         width: `${CONTROL_SIZE}px`,
@@ -144,7 +141,6 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         fontWeight: 700,
         fontSize: '12px',
         lineHeight: '16px',
-        //TODO тут цвет из темы - основной
         color: controlTextColor,
         '&:hover': {
             background: activeBackgroundColor,
@@ -175,7 +171,6 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         fontWeight: 700,
         fontSize: '12px',
         lineHeight: '16px',
-        //TODO тут цвет из темы - основной
         color: controlTextColor,
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',

@@ -80,12 +80,9 @@ const groupSx: SxProps<Theme> = {
 }
 
 const viewButtonSx: SxProps<Theme> = theme => {
-    const activeBackgroundColor = theme.palette.mode === 'dark'
-        ? theme.palette.pne.surface.subtle
-        : TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
-    const controlTextColor = theme.palette.mode === 'dark'
-        ? theme.palette.text.secondary
-        : TABLE_CONTROL_TEXT_COLOR
+    const activeBackgroundColor = theme.palette.pne?.control.activeBackground
+        ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
+    const controlTextColor = theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR
 
     return {
         border: 0,
@@ -195,15 +192,12 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
                     height: '40px',
                     [`& .${iconButtonClasses.root}`]: {
                         borderRadius: '4px !important',
-                        color: theme.palette.mode === 'dark'
-                            ? theme.palette.text.secondary
-                            : TABLE_CONTROL_TEXT_COLOR,
+                        color: theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR,
                         height: '40px',
                         width: '40px',
                         '&:hover': {
-                            backgroundColor: theme.palette.mode === 'dark'
-                                ? theme.palette.pne.surface.subtle
-                                : TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
+                            backgroundColor: theme.palette.pne?.control.activeBackground
+                                ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
                         },
                     },
                 })}

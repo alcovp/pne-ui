@@ -61,6 +61,28 @@ describe('createPneTheme', () => {
         expect(theme.palette.pne.border.subtle).toBe('#F1F5FA')
     })
 
+    it.each(['light', 'dark'] as const)('gives %s secondary controls a neutral grey that reads on the page', mode => {
+        const theme = createPneTheme(createSkin('#D25A5B'), {colorMode: mode})
+        const {control, text} = theme.palette.pne
+        const page = theme.palette.background.paper
+        const isNeutral = (hex: string) => /^#([0-9a-f]{2})\1\1$/i.test(hex)
+
+        // No tint of its own: the same grey under a red, green or blue skin.
+        for (const colour of [control.foreground, control.foregroundHover, text.muted]) {
+            expect(isNeutral(colour)).toBe(true)
+        }
+        // The resting control keeps the 3:1 floor for interface elements, hover stands out more.
+        expect(getContrastRatio(control.foreground, page)).toBeGreaterThanOrEqual(3)
+        expect(getContrastRatio(control.foregroundHover, page))
+            .toBeGreaterThan(getContrastRatio(control.foreground, page))
+        // Disabled stays visibly weaker than the resting control.
+        expect(getContrastRatio(control.foregroundDisabled, page))
+            .toBeLessThan(getContrastRatio(control.foreground, page))
+        // The pressed-in background is a step off the page, still far from the control colour.
+        expect(getContrastRatio(control.activeBackground, page)).toBeLessThan(1.5)
+        expect(getContrastRatio(control.foreground, control.activeBackground)).toBeGreaterThanOrEqual(3)
+    })
+
     it.each([
         '#000000',
         '#111111',

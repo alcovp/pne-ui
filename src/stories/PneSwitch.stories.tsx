@@ -252,7 +252,9 @@ const getPreviewTrackColor = (
             return theme.palette.primary.dark
         }
 
-        return isDarkMode ? theme.palette.text.secondary : '#5E7594'
+        return isDarkMode
+            ? theme.palette.text.secondary
+            : (theme.palette.pne?.control.foregroundHover ?? '#5C5C5C')
     }
 
     if (checked) {
@@ -261,7 +263,7 @@ const getPreviewTrackColor = (
 
     return isDarkMode
         ? (theme.palette.pne?.border.control ?? theme.palette.text.secondary)
-        : '#809EAE'
+        : (theme.palette.pne?.control.foreground ?? '#808080')
 }
 
 const getSwitchPreviewSx = (

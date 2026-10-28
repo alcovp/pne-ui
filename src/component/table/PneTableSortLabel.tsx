@@ -2,6 +2,7 @@ import React from 'react';
 import {SxProps, type Theme} from '@mui/material/styles';
 import {TableSortLabel, tableSortLabelClasses, TableSortLabelProps} from '@mui/material';
 import {TableSortOptions} from './AbstractTable';
+import {TABLE_CONTROL_TEXT_COLOR} from './tableControlColors';
 
 type TableSortLabelPropsOmittingUnion = 'active' | 'direction' | 'onClick'
 
@@ -30,7 +31,7 @@ const PneTableSortLabel = (props: PneTableSortLabelProps) => {
             [`&.${tableSortLabelClasses.active}`]: {
                 color: (theme: Theme) => theme.palette.mode === 'dark'
                     ? theme.palette.pne.brand.foreground
-                    : '#809EAE',
+                    : (theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR),
             }
         },
         ...(Array.isArray(sx) ? sx : [sx])

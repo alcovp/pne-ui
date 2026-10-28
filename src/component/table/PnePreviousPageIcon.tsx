@@ -1,4 +1,6 @@
 import React from 'react';
+import {useTheme} from '@mui/material/styles';
+import {TABLE_CONTROL_DISABLED_TEXT_COLOR, TABLE_CONTROL_TEXT_COLOR} from './tableControlColors';
 
 interface IProps {
     disabled: boolean
@@ -9,7 +11,10 @@ const PnePreviousPageIcon = (props: IProps) => {
         disabled
     } = props;
 
-    const color = disabled ? '#dae5ed' : '#809EAE';
+    const control = useTheme().palette.pne?.control
+    const color = disabled
+        ? (control?.foregroundDisabled ?? TABLE_CONTROL_DISABLED_TEXT_COLOR)
+        : (control?.foreground ?? TABLE_CONTROL_TEXT_COLOR);
 
     return (
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

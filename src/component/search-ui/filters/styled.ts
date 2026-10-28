@@ -7,9 +7,9 @@ import {TABLE_CONTROL_TEXT_COLOR} from '../../table/tableControlColors';
  */
 export const SEARCH_UI_FILTERS_TOOLTIP_DELAY = 300;
 
-// Muted at rest, the text colour under the pointer or the keyboard focus; the icons take the
-// colour through `stroke: currentColor`, so dark mode follows the palette. Without the PNE theme
-// (plain MUI theme in tests) the light colours stand in.
+// The control grey at rest, the text colour under the pointer or the keyboard focus; the icons
+// take the colour through `stroke: currentColor`, so dark mode follows the palette. Without the
+// PNE theme (plain MUI theme in tests) the light colours stand in.
 export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({theme}) => ({
     position: 'relative',
     display: 'flex',
@@ -25,7 +25,7 @@ export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({the
     width: '24px',
     cursor: 'pointer',
     font: 'inherit',
-    color: theme.palette.pne?.text.muted ?? TABLE_CONTROL_TEXT_COLOR,
+    color: theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR,
     stroke: 'currentColor',
     transition: 'color .15s ease',
     '&:hover, &:focus-visible': {
