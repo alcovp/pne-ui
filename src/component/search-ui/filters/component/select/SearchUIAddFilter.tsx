@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {CriterionTypeEnum} from '../../types';
 import {Box, SxProps} from '@mui/material';
+import type {Theme} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {PneButton, PneSelect} from '../../../../..';
@@ -71,7 +72,9 @@ const addFilterButtonSx: SxProps = {
     },
 }
 
-const selectSx: SxProps = {
+// The select lies transparent over the button and takes the focus; its keyboard focus is drawn as a
+// ring around the button, the same ring as on the criterion icons.
+const selectSx: SxProps<Theme> = {
     position: 'absolute',
     top: '50%',
     left: '50%',
@@ -84,6 +87,11 @@ const selectSx: SxProps = {
     '& .MuiSelect-select': {
         height: '100%',
         paddingY: 0,
+        borderRadius: '4px',
+    },
+    '& .MuiSelect-select:focus-visible': {
+        outline: theme => `2px solid ${theme.palette.primary.main}`,
+        outlineOffset: '1px',
     },
     '& .MuiOutlinedInput-notchedOutline': {
         borderColor: 'transparent !important',

@@ -1,11 +1,13 @@
 import * as React from 'react'
-import {fireEvent, render, waitFor} from '@testing-library/react'
+import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 
 import {CriterionTypeEnum, SearchUIFilters} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
+        t: (key: string, options?: {defaultValue?: string} & Record<string, unknown>) => (
+            options?.defaultValue?.replace(/{{(\w+)}}/g, (_, name: string) => String(options[name])) ?? key
+        ),
     }),
 }))
 
@@ -122,6 +124,58 @@ describe('SearchUIFilters layout', () => {
         await waitFor(() => {
             expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(1)
         })
+    })
+
+    it('shows what the icons and the chevron do in tooltips, keeping their names', async () => {
+        const {onFiltersUpdate, root} = renderFilters('layout-tooltips')
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        const currency = scope.querySelector<HTMLElement>(
+            `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.CURRENCY}"]`,
+        )
+        for (const iconId of ['remove-criterion', 'clear-criterion']) {
+            const icon = currency?.querySelector<HTMLElement>(`[data-autotest="${iconId}"]`) as HTMLElement
+
+            fireEvent.mouseOver(icon)
+            const tooltip = await screen.findByRole('tooltip')
+            expect(tooltip.textContent).toBe(icon.getAttribute('aria-label'))
+            fireEvent.mouseLeave(icon)
+            await waitFor(() => {
+                expect(screen.queryByRole('tooltip')).toBeNull()
+            })
+        }
+
+        const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
+        fireEvent.mouseOver(toggle)
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Hide filters')
+
+        fireEvent.click(toggle)
+
+        await waitFor(() => {
+            expect(screen.getByRole('tooltip').textContent).toBe('Show filters')
+        })
+        // The tooltip hints at the click; the name stays, the state is in aria-expanded.
+        expect(toggle.getAttribute('aria-label')).toBe('react.searchUI.filters')
+        expect(toggle.getAttribute('aria-expanded')).toBe('false')
+    })
+
+    it('reads the collapsed count as a number of filters', async () => {
+        const {onFiltersUpdate, root, getByText} = renderFilters('layout-count')
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        fireEvent.click(scope.querySelector('[data-autotest="toggle-filters"]') as HTMLButtonElement)
+
+        expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
+        expect(getByText('Filters: 2')).toBeTruthy()
+        expect(getByText('2').getAttribute('aria-hidden')).toBe('true')
     })
 
     it('keeps the full name of a criterion in the title of its name cell', async () => {

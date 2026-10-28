@@ -1,5 +1,6 @@
 import React from 'react';
-import {SearchUIFiltersCriterionHeaderButton} from '../../styled';
+import {Tooltip} from '@mui/material';
+import {SEARCH_UI_FILTERS_TOOLTIP_DELAY, SearchUIFiltersCriterionHeaderButton} from '../../styled';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 
 const REMOVE_CRITERION_AUTOTEST_ID = 'remove-criterion';
@@ -15,25 +16,32 @@ const SearchUIFiltersCriterionHeaderRemoveButton = (props: IProps) => {
         onClick,
     } = props
 
-    return <SearchUIFiltersCriterionHeaderButton
-        {...createAutoTestAttributes(REMOVE_CRITERION_AUTOTEST_ID)}
-        type={'button'}
-        aria-label={ariaLabel}
-        onClick={onClick}
+    // The icon alone does not say what it does: the tooltip shows the same text as the label.
+    return <Tooltip
+        enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+        enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+        title={ariaLabel}
     >
-        <svg
-            aria-hidden={true}
-            focusable={false}
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+        <SearchUIFiltersCriterionHeaderButton
+            {...createAutoTestAttributes(REMOVE_CRITERION_AUTOTEST_ID)}
+            type={'button'}
+            aria-label={ariaLabel}
+            onClick={onClick}
         >
-            <path d="M12 4L4 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M4 4L12 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-    </SearchUIFiltersCriterionHeaderButton>
+            <svg
+                aria-hidden={true}
+                focusable={false}
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <path d="M12 4L4 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4 4L12 12" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+        </SearchUIFiltersCriterionHeaderButton>
+    </Tooltip>
 }
 
 export default SearchUIFiltersCriterionHeaderRemoveButton;

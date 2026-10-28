@@ -15,7 +15,7 @@ import {
     useSearchUIFiltersStore,
     useSearchUIFiltersStoreContext,
 } from './state/store';
-import {Box, Chip, IconButton, SxProps} from '@mui/material';
+import {Box, Chip, IconButton, SxProps, Tooltip} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import isEqual from 'lodash/isEqual';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
@@ -57,6 +57,7 @@ import {
     SEARCH_UI_FILTERS_NO_SUBGRID,
     SEARCH_UI_FILTERS_PHONE_MEDIA,
 } from './layout';
+import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled';
 
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
@@ -631,26 +632,45 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const showClearAllButton = !showTemplatesMenu && !nothingToClear
     const showAddFilterButton = !allCriteriaAdded
     const filtersLabel = t('react.searchUI.filters')
+    // The chevron keeps its name and reports the state through aria-expanded; the tooltip tells a
+    // pointer user what the click will do.
+    const toggleHint = showFilters
+        ? t('react.searchUI.filters.hide', {defaultValue: 'Hide filters'})
+        : t('react.searchUI.filters.show', {defaultValue: 'Show filters'})
+    const filtersCountLabel = t('react.searchUI.filters.count', {
+        defaultValue: 'Filters: {{count}}',
+        count: criteria.length,
+    })
 
-    const toggleButton = hideShowFiltersButton ? null : <IconButton
-        {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
-        onClick={() => setShowFilters(prev => !prev)}
-        size={'small'}
-        color={'primary'}
-        aria-label={filtersLabel}
-        aria-controls={filtersPanelId}
-        aria-expanded={showFilters}
+    const toggleButton = hideShowFiltersButton ? null : <Tooltip
+        enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+        enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+        title={toggleHint}
     >
-        <ExpandMoreIcon
-            fontSize={'small'}
-            sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
-        />
-    </IconButton>
+        <IconButton
+            {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
+            onClick={() => setShowFilters(prev => !prev)}
+            size={'small'}
+            color={'primary'}
+            aria-label={filtersLabel}
+            aria-controls={filtersPanelId}
+            aria-expanded={showFilters}
+        >
+            <ExpandMoreIcon
+                fontSize={'small'}
+                sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
+            />
+        </IconButton>
+    </Tooltip>
+    // A bare number says nothing to a screen reader: it reads the hidden text instead.
     const countChip = showFiltersCountChip ? <Chip
         size={'small'}
         color={'primary'}
         variant={'outlined'}
-        label={criteria.length}
+        label={<>
+            <span aria-hidden={true}>{criteria.length}</span>
+            <Box component={'span'} sx={visuallyHiddenSx}>{filtersCountLabel}</Box>
+        </>}
         sx={nowrapChipSx}
     /> : null
     const clearAllButton = showClearAllButton ? <PneButton
@@ -696,6 +716,9 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const hasActions = Boolean(
         toggleButton || countChip || clearAllButton || templatesMenu || addFilterButton || searchButton,
     )
+    // Without rows on screen there is no values column to line up with: the chevron, the count and
+    // the actions follow each other instead of leaving the empty name and icon columns between them.
+    const rowsShown = showFilters && criteria.length > 0
 
     return <SearchUIAutoTestScopeProvider scope={autoTestId}>
         <Box
@@ -707,7 +730,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             <Box id={filtersPanelId} hidden={!showFilters} sx={panelSx}>
                 {criteriaRows}
             </Box>
-            {hasActions ? <Box sx={actionsRowSx}>
+            {hasActions ? <Box sx={rowsShown ? actionsRowSx : compactActionsRowSx}>
                 <Box sx={actionsLeadSx}>
                     {toggleButton}
                     {countChip}
@@ -750,6 +773,14 @@ const panelSx: SxProps = {
     },
 }
 
+// Phones: one flow from the chevron to the last action, wrapped as the width allows; the lead and
+// actions boxes dissolve into it.
+const phoneActionsRowSx = {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '8px',
+}
+
 const actionsRowSx: SxProps = {
     gridColumn: '1 / -1',
     display: 'grid',
@@ -760,11 +791,19 @@ const actionsRowSx: SxProps = {
         gridTemplateColumns: SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
         columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,
     },
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '8px',
-    },
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: phoneActionsRowSx,
+}
+
+// Collapsed rows, or none at all: the actions go right after the chevron and the count.
+const compactActionsRowSx: SxProps = {
+    gridColumn: '1 / -1',
+    display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    columnGap: '16px',
+    rowGap: '8px',
+    py: '6px',
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: phoneActionsRowSx,
 }
 
 const actionsLeadSx: SxProps = {
@@ -773,6 +812,9 @@ const actionsLeadSx: SxProps = {
     alignItems: 'center',
     columnGap: '12px',
     minWidth: 0,
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        display: 'contents',
+    },
 }
 
 const actionsSx: SxProps = {
@@ -783,8 +825,20 @@ const actionsSx: SxProps = {
     gap: '8px',
     minWidth: 0,
     [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        flex: '1 1 100%',
+        display: 'contents',
     },
+}
+
+const visuallyHiddenSx: SxProps = {
+    border: 0,
+    clip: 'rect(0 0 0 0)',
+    height: '1px',
+    margin: '-1px',
+    overflow: 'hidden',
+    padding: 0,
+    position: 'absolute',
+    whiteSpace: 'nowrap',
+    width: '1px',
 }
 
 

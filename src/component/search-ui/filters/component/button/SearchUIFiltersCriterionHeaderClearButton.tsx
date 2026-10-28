@@ -1,5 +1,6 @@
 import React from 'react';
-import {SearchUIFiltersCriterionHeaderButton} from '../../styled';
+import {Tooltip} from '@mui/material';
+import {SEARCH_UI_FILTERS_TOOLTIP_DELAY, SearchUIFiltersCriterionHeaderButton} from '../../styled';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 
 const CLEAR_CRITERION_AUTOTEST_ID = 'clear-criterion';
@@ -15,15 +16,22 @@ const SearchUIFiltersCriterionHeaderClearButton = (props: IProps) => {
         onClick,
     } = props;
 
+    // The icon alone does not say what it does: the tooltip shows the same text as the label.
     return (
-        <SearchUIFiltersCriterionHeaderButton
-            {...createAutoTestAttributes(CLEAR_CRITERION_AUTOTEST_ID)}
-            type={'button'}
-            aria-label={ariaLabel}
-            onClick={onClick}
+        <Tooltip
+            enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+            enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+            title={ariaLabel}
         >
-            <EraseIcon/>
-        </SearchUIFiltersCriterionHeaderButton>
+            <SearchUIFiltersCriterionHeaderButton
+                {...createAutoTestAttributes(CLEAR_CRITERION_AUTOTEST_ID)}
+                type={'button'}
+                aria-label={ariaLabel}
+                onClick={onClick}
+            >
+                <EraseIcon/>
+            </SearchUIFiltersCriterionHeaderButton>
+        </Tooltip>
     );
 }
 

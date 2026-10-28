@@ -1,10 +1,14 @@
 import {styled as themedStyled} from '@mui/material/styles';
 import {TABLE_CONTROL_TEXT_COLOR} from '../../table/tableControlColors';
 
+/** Hover delay of the panel's tooltips, as on the table column settings action. */
+export const SEARCH_UI_FILTERS_TOOLTIP_DELAY = 300;
+
 // Muted at rest, the text colour under the pointer or the keyboard focus; the icons take the
 // colour through `stroke: currentColor`, so dark mode follows the palette. Without the PNE theme
 // (plain MUI theme in tests) the light colours stand in.
 export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({theme}) => ({
+    position: 'relative',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -27,5 +31,23 @@ export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({the
     '&:focus-visible': {
         outline: `2px solid ${theme.palette.primary.main}`,
         outlineOffset: '1px',
+    },
+    // 24px is small for a finger: on touch screens the target grows by 8px outwards, never into the
+    // neighbouring icon, and the icons look the same.
+    '@media (pointer: coarse)': {
+        '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: '-8px',
+            right: 0,
+            bottom: '-8px',
+            left: 0,
+        },
+        '&:first-of-type::before': {
+            left: '-8px',
+        },
+        '&:last-of-type::before': {
+            right: '-8px',
+        },
     },
 }));
