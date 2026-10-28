@@ -1,7 +1,10 @@
 import {styled as themedStyled} from '@mui/material/styles';
 import {TABLE_CONTROL_TEXT_COLOR} from '../../table/tableControlColors';
 
-/** Hover delay of the panel's tooltips, as on the table column settings action. */
+/**
+ * Hover delay of the panel's tooltips, as on the table column settings action. The tooltips are
+ * not interactive: one may lie over the icons of the next row and must not catch their clicks.
+ */
 export const SEARCH_UI_FILTERS_TOOLTIP_DELAY = 300;
 
 // Muted at rest, the text colour under the pointer or the keyboard focus; the icons take the

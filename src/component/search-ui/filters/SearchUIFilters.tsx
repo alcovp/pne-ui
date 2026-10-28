@@ -643,6 +643,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     })
 
     const toggleButton = hideShowFiltersButton ? null : <Tooltip
+        disableInteractive
         enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         title={toggleHint}

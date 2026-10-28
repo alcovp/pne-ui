@@ -19,6 +19,7 @@ const SearchUIFiltersCriterionHeaderClearButton = (props: IProps) => {
     // The icon alone does not say what it does: the tooltip shows the same text as the label.
     return (
         <Tooltip
+            disableInteractive
             enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
             enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
             title={ariaLabel}

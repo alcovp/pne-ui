@@ -143,6 +143,9 @@ describe('SearchUIFilters layout', () => {
             fireEvent.mouseOver(icon)
             const tooltip = await screen.findByRole('tooltip')
             expect(tooltip.textContent).toBe(icon.getAttribute('aria-label'))
+            // It may cover the next row's icons: it lets the pointer through to them.
+            expect(tooltip.classList.contains('MuiTooltip-popper')).toBe(true)
+            expect(tooltip.classList.contains('MuiTooltip-popperInteractive')).toBe(false)
             fireEvent.mouseLeave(icon)
             await waitFor(() => {
                 expect(screen.queryByRole('tooltip')).toBeNull()
