@@ -557,9 +557,6 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             }),
             ...initialSearchConditionsState,
         }, hasExternalSearchConditions ? undefined : retainedSnapshot, {
-            normalizeInitialDateRange:
-                initialSearchConditionsState?.dateRangeSpec !== undefined
-                || searchConditionsState?.dateRangeSpec !== undefined,
             templates,
             initialTemplate: hasExternalSearchConditions ? undefined : initialTemplate,
             initialConditions: hasExternalSearchConditions ? searchConditionsState : undefined,

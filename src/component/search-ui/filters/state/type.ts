@@ -106,7 +106,6 @@ export type SearchUIFiltersActions = {
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
         options?: {
-            normalizeInitialDateRange?: boolean
             templates?: SearchUITemplate[]
             initialTemplate?: SearchUITemplate
             initialConditions?: Partial<SearchUIConditions>

@@ -63,12 +63,9 @@ export const getSearchUIInitialGrouping = (defaults: SearchUIDefaults): Grouping
     ],
 })
 
-export const searchUIInitialDateFrom: Dayjs = Object.freeze<Dayjs>(
-    dayjs().utc().startOf('day')
-)
-export const searchUIInitialDateTo: Dayjs = Object.freeze<Dayjs>(
-    dayjs().utc().startOf('day').add(1, 'day')
-)
+/** Midnight of the browser's current day, taken at each call: a module-level value would freeze "today" at load time. */
+export const getSearchUIInitialDateFrom = (): Dayjs => dayjs().startOf('day')
+export const getSearchUIInitialDateTo = (): Dayjs => getSearchUIInitialDateFrom().add(1, 'day')
 
 export const searchUIInitialAllableCollection: AbstractEntityAllableCollection =
     Object.freeze<AbstractEntityAllableCollection>({
@@ -98,8 +95,8 @@ export const getSearchUIInitialSearchCriteria = (defaults: SearchUIDefaults): Re
         orderDateType: 'SESSION_STATUS_CHANGED',
         dateRangeSpec: {
             dateRangeSpecType: 'TODAY',
-            dateFrom: searchUIInitialDateFrom.tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
-            dateTo: searchUIInitialDateTo.tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+            dateFrom: getSearchUIInitialDateFrom().tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+            dateTo: getSearchUIInitialDateTo().tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
             beforeCount: 1,
         },
         cardTypes: searchUIInitialAllableCollection,

@@ -14,6 +14,7 @@ import {
     applyDateOnlyTimeZone,
     createDateOnlyPickerDate,
     createDateOnlyPickerValue,
+    SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../src/component/search-ui/filters/dateRangeTimeZone'
 import {
     createClearCriteriaUndoSnapshot,
@@ -25,10 +26,15 @@ import {
 } from '../src/component/search-ui/filters/state/retention'
 import {
     getSearchUIFiltersInitialState,
+    getSearchUIInitialDateFrom,
+    getSearchUIInitialDateTo,
     getSearchUIInitialSearchCriteria,
 } from '../src/component/search-ui/filters/state/initial'
 import { initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProvider'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
+
+dayjs.extend(utc)
 
 const flushPromises = () => new Promise(resolve => setTimeout(resolve, 0))
 
@@ -913,8 +919,6 @@ describe('SearchUIFilters Zustand store', () => {
                 dateTo: null,
                 beforeCount: 30,
             },
-        }, undefined, {
-            normalizeInitialDateRange: true,
         })
 
         expect(store.getState().dateRangeSpec).toMatchObject({
@@ -1279,6 +1283,57 @@ describe('SearchUIFilters Zustand store', () => {
         expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
             transactionSessionStatuses: 'AUTHORIZED,CHARGED',
         }))
+    })
+
+    describe('the default TODAY range', () => {
+        const expectedToday = () => ({
+            dateRangeSpecType: 'TODAY',
+            dateFrom: dayjs().startOf('day').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+            dateTo: dayjs().startOf('day').add(1, 'day').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+        })
+
+        it('is computed when asked for, not once at module load', () => {
+            jest.useFakeTimers().setSystemTime(new Date('2030-01-15T12:00:00.000Z'))
+
+            expect(getSearchUIInitialSearchCriteria(initialSearchUIDefaults).dateRangeSpec)
+                .toEqual(expect.objectContaining(expectedToday()))
+        })
+
+        it('comes back as the current day after Default', () => {
+            jest.useFakeTimers().setSystemTime(new Date('2030-01-15T12:00:00.000Z'))
+
+            store.getState().clearCriteria()
+
+            expect(store.getState().dateRangeSpec).toEqual(expect.objectContaining(expectedToday()))
+        })
+
+        it('takes the day in the browser zone, not in UTC', () => {
+            // Jest cannot switch the zone; the mode of the value says which day it is taken in.
+            jest.useFakeTimers().setSystemTime(new Date('2030-07-16T02:30:00.000Z'))
+
+            const from = getSearchUIInitialDateFrom()
+            expect(from.isUTC()).toBe(false)
+            expect(from.format('YYYY-MM-DD HH:mm')).toBe(`${dayjs().format('YYYY-MM-DD')} 00:00`)
+            expect(getSearchUIInitialDateTo().diff(from, 'day')).toBe(1)
+        })
+
+        it('is normalized by the configured date-only time zone at initialization', () => {
+            store.getState().setInitialState({
+                defaults: initialSearchUIDefaults,
+                settingsContextName: 'ctx',
+                possibleCriteria: [CriterionTypeEnum.DATE_RANGE],
+                predefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
+                criteria: [CriterionTypeEnum.DATE_RANGE],
+                config: {dateRange: {dateOnlyTimeZone: 'local'}},
+                onFiltersUpdate: () => undefined,
+            })
+
+            expect(store.getState().dateRangeSpec).toEqual(expect.objectContaining({
+                dateRangeSpecType: 'TODAY',
+                dateFrom: dayjs().startOf('day').toDate(),
+                dateTo: dayjs().startOf('day').add(1, 'day').toDate(),
+            }))
+        })
     })
 })
 

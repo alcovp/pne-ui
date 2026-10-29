@@ -52,8 +52,8 @@ import {
     getSearchUIInitialSearchCriteria,
     searchUICountriesInitialAllableCollection,
     searchUIInitialAllableCollection,
-    searchUIInitialDateFrom,
-    searchUIInitialDateTo,
+    getSearchUIInitialDateFrom,
+    getSearchUIInitialDateTo,
 } from './initial'
 import { WritableDraft } from 'immer/src/internal'
 // import {raiseUIError} from '../../../../../error';
@@ -368,7 +368,6 @@ export const getSearchUIFiltersActions = (
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
         options?: {
-            normalizeInitialDateRange?: boolean
             templates?: SearchUITemplate[]
             initialTemplate?: SearchUITemplate
             initialConditions?: Partial<SearchUIConditions>
@@ -425,10 +424,8 @@ export const getSearchUIFiltersActions = (
 
         syncCriterionAvailability(set, get)
         normalizeRetainedDateRange(set, get)
-        if (
-            !get().restoredFromRetention
-            && (options?.normalizeInitialDateRange || normalizedInitialTemplate !== undefined)
-        ) {
+        if (!get().restoredFromRetention) {
+            // A relative range takes the dates of the configured time zone here, as whenever it is set later.
             normalizeRelativeDateRange(set, get)
         }
         ensureTransactionSessionStatusesPrefetched(set, get)
@@ -1883,9 +1880,9 @@ const calculateNonExactDates = (
     const nowServer = timeZone ? dayjs().utc().tz(timeZone) : dayjs()
 
     let from: Dayjs = dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom)
-        : dayjs(searchUIInitialDateFrom)
+        : getSearchUIInitialDateFrom()
     let to: Dayjs = dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo)
-        : dayjs(searchUIInitialDateTo)
+        : getSearchUIInitialDateTo()
 
     // endOf мы тут используем только при работе с месяцами или неделями. в случае дня, бд не различает начало и конец
     // поэтом указываем начало следующего дня
