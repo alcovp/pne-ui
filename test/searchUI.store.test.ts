@@ -1485,6 +1485,68 @@ describe('SearchUIFilters Zustand store', () => {
             }))
         })
     })
+
+    describe('actions aimed at a missing item', () => {
+        const templateNamed = (name: string): SearchUITemplate => ({
+            name,
+            searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults) as SearchUITemplate['searchConditions'],
+        })
+
+        it('removeCriterion leaves the other criteria alone', () => {
+            store.setState({criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]})
+
+            store.getState().removeCriterion(CriterionTypeEnum.GATE)
+
+            expect(store.getState().criteria).toEqual([CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY])
+        })
+
+        it('removeTemplate twice removes only that template', async () => {
+            const [a, b] = [templateNamed('a'), templateNamed('b')]
+            store.setState({templates: [a, b]})
+
+            store.getState().removeTemplate(a)
+            store.getState().removeTemplate(a)
+            await flushPromises()
+
+            expect(store.getState().templates.map(template => template.name)).toEqual(['b'])
+        })
+
+        it('updateTemplate lists a template the list had lost once the server has saved it', async () => {
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+            try {
+                store.setState({templates: [templateNamed('other')]})
+
+                store.getState().updateTemplate('gone')
+                await flushPromises()
+
+                expect(consoleError).not.toHaveBeenCalled()
+                expect(store.getState().templates.map(template => template.name)).toEqual(['other', 'gone'])
+                expect(store.getState().activeTemplateName).toBe('gone')
+            } finally {
+                consoleError.mockRestore()
+            }
+        })
+
+        it('setMultigetCriterion adds the entry of an active criterion and drops the one of an absent criterion', () => {
+            const gate = {
+                entityType: LinkedEntityTypeEnum.GATE,
+                filterType: MultichoiceFilterTypeEnum.ALL,
+                searchString: '',
+                selectedItems: '1',
+                selectedItemNames: 'Gate 1',
+                deselectedItems: '',
+                deselectedItemNames: '',
+            }
+            store.setState({criteria: [CriterionTypeEnum.GATE], multigetCriteria: []})
+            store.getState().setMultigetCriterion(gate)
+            expect(store.getState().multigetCriteria).toEqual([gate])
+
+            store.setState({criteria: [], multigetCriteria: []})
+            store.getState().setMultigetCriterion(gate)
+            expect(store.getState().multigetCriteria).toEqual([])
+            expect(Object.keys(store.getState().multigetCriteria)).toEqual([])
+        })
+    })
 })
 
 describe('setDefaults', () => {

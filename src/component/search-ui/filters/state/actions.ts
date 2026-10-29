@@ -372,6 +372,11 @@ const refillTransactionSessionStatusesReducer = (
     draft.transactionSessionStatuses = copyTransactionSessionStatuses(prefetched)
 }
 
+const isLinkedEntityCriterionActive = (
+    criteria: CriterionTypeEnum[],
+    entityType: LinkedEntityTypeEnum,
+): boolean => criteria.some(criterion => getLinkedEntityTypeByCriterion(criterion) === entityType)
+
 const restoreAppliedSearchCriteria = (
     snapshot: SearchUIRetentionSnapshot,
     retainedDraftSearchCriteria: SearchCriteria,
@@ -603,8 +608,7 @@ export const getSearchUIFiltersActions = (
     removeCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
             clearCriterionReducer(draft, criterionType)
-            const index = draft.criteria.findIndex(c => c === criterionType)
-            draft.criteria.splice(index, 1)
+            draft.criteria = draft.criteria.filter(criterion => criterion !== criterionType)
         })
         postUpdate(set, get)
     },
@@ -638,7 +642,12 @@ export const getSearchUIFiltersActions = (
             .then(() => {
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === templateName)
-                    draft.templates[index].searchConditions = template.searchConditions
+                    if (index >= 0) {
+                        draft.templates[index].searchConditions = template.searchConditions
+                    } else {
+                        // Saved under a name the list had lost, e.g. after a deletion elsewhere: the server has it now.
+                        draft.templates.push(template)
+                    }
                     draft.template = template
                     draft.activeTemplateName = template.name
                 })
@@ -666,7 +675,9 @@ export const getSearchUIFiltersActions = (
                 const pageDefaults = cloneDeep(get().pageDefaults)
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === template.name)
-                    draft.templates.splice(index, 1)
+                    if (index >= 0) {
+                        draft.templates.splice(index, 1)
+                    }
                     if (draft.template?.name === template.name) {
                         resetToPageDefaultsReducer(draft, pageDefaults)
                     }
@@ -812,7 +823,14 @@ export const getSearchUIFiltersActions = (
                 ? getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
                 : null
             const index = draft.multigetCriteria.findIndex(c => c.entityType === criterion.entityType)
-            draft.multigetCriteria[index] = criterion
+            if (index >= 0) {
+                draft.multigetCriteria[index] = criterion
+            } else if (isLinkedEntityCriterionActive(draft.criteria, criterion.entityType)) {
+                draft.multigetCriteria.push(criterion)
+            } else {
+                // The criterion went away meanwhile; an entry of its own would still reach the search.
+                return
+            }
 
             if (
                 criterion.entityType === LinkedEntityTypeEnum.MERCHANT
