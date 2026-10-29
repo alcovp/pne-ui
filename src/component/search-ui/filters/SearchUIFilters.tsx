@@ -546,6 +546,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             exactSearchLabels: exactSearchLabels,
             exactSearchLabel: exactSearchLabels[0],
             criteria: predefinedCriteria,
+            pageDefaults: initialSearchConditionsState ?? {},
             config: config,
             onFiltersUpdate: onFiltersUpdate,
             onValidationChange: onValidationChange ?? (() => undefined),

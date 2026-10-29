@@ -5,11 +5,13 @@ import {
     ExactCriterionSearchLabelEnum,
     LinkedEntityTypeEnum,
     MultichoiceFilterTypeEnum,
+    SearchUIConditions,
     SearchUITemplate,
+    TransactionSessionGroup,
     TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../src/component/search-ui/filters/types'
-import type { SearchUIRetentionSnapshot } from '../src/component/search-ui/filters/state/type'
+import type { SearchUIFiltersState, SearchUIRetentionSnapshot } from '../src/component/search-ui/filters/state/type'
 import {
     applyDateOnlyTimeZone,
     createDateOnlyPickerDate,
@@ -1283,6 +1285,154 @@ describe('SearchUIFilters Zustand store', () => {
         expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
             transactionSessionStatuses: 'AUTHORIZED,CHARGED',
         }))
+    })
+
+    describe('reset to the page defaults', () => {
+        const merchantSelection = {
+            entityType: LinkedEntityTypeEnum.MERCHANT,
+            filterType: MultichoiceFilterTypeEnum.NONE,
+            searchString: '',
+            selectedItems: '7',
+            selectedItemNames: 'Merchant 7',
+            deselectedItems: '',
+            deselectedItemNames: '',
+        }
+        const thisMonth: DateRangeSpec = {dateRangeSpecType: 'THIS_MONTH', dateFrom: null, dateTo: null, beforeCount: 1}
+        const today: DateRangeSpec = {dateRangeSpecType: 'TODAY', dateFrom: null, dateTo: null, beforeCount: 1}
+        const approvedStatuses = () => [createTransactionSessionStatus('A1'), createTransactionSessionStatus('A2')]
+        const prefetchedStatuses = () => ({
+            transactionSessionStatuses: new Map<TransactionSessionGroup, TransactionSessionStatus[]>([
+                ['APPROVED', approvedStatuses()],
+            ]),
+        })
+
+        const initialize = (
+            predefinedCriteria: CriterionTypeEnum[],
+            pageDefaults: Partial<SearchUIConditions> = {},
+            state: Partial<SearchUIFiltersState> = {},
+        ) => {
+            store.getState().setInitialState({
+                defaults: initialSearchUIDefaults,
+                settingsContextName: 'ctx',
+                possibleCriteria: [CriterionTypeEnum.PROJECT, CriterionTypeEnum.MERCHANT, CriterionTypeEnum.CURRENCY],
+                predefinedCriteria,
+                criteria: predefinedCriteria,
+                exactSearchLabels: [ExactCriterionSearchLabelEnum.ALL, ExactCriterionSearchLabelEnum.NAME],
+                exactSearchLabel: ExactCriterionSearchLabelEnum.ALL,
+                pageDefaults,
+                ...pageDefaults,
+                onFiltersUpdate: () => undefined,
+                ...state,
+            })
+        }
+
+        describe.each([
+            ['Default', async () => {
+                store.getState().clearCriteria()
+            }],
+            ['deleting the active template', async () => {
+                const template: SearchUITemplate = {
+                    name: 'active',
+                    searchConditions: {} as SearchUITemplate['searchConditions'],
+                }
+                store.setState({templates: [template], template, activeTemplateName: template.name})
+                store.getState().removeTemplate(template)
+                await flushPromises()
+            }],
+        ] as const)('via %s', (_name, reset) => {
+            it('brings back the page conditions, the predefined selection and the first exact label', async () => {
+                initialize([CriterionTypeEnum.MERCHANT, CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.EXACT], {
+                    dateRangeSpec: thisMonth,
+                    multigetCriteria: [merchantSelection],
+                })
+                store.getState().addCriterion(CriterionTypeEnum.PROJECT)
+                store.getState().setDateRangeCriterion(today)
+                store.getState().setExactCriterionSearchLabel(ExactCriterionSearchLabelEnum.NAME)
+                store.getState().setMultigetCriterion({...merchantSelection, selectedItems: '8', selectedItemNames: 'Merchant 8'})
+
+                await reset()
+
+                const state = store.getState()
+                expect(state.criteria).toEqual([CriterionTypeEnum.MERCHANT, CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.EXACT])
+                expect(state.multigetCriteria).toEqual([merchantSelection])
+                expect(state.dateRangeSpec).toEqual({
+                    ...thisMonth,
+                    dateFrom: dayjs().startOf('month').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+                    dateTo: dayjs().endOf('month').add(1, 'day').startOf('day').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+                })
+                expect(state.exactSearchLabel).toBe(ExactCriterionSearchLabelEnum.ALL)
+                expect(state.template).toBeNull()
+                expect(state.activeTemplateName).toBeNull()
+            })
+
+            it('re-creates the entry of a predefined multiget criterion the page gave no selection for', async () => {
+                initialize([CriterionTypeEnum.MERCHANT])
+                store.getState().addCriterion(CriterionTypeEnum.PROJECT)
+                store.getState().setMultigetCriterion(merchantSelection)
+
+                await reset()
+
+                expect(store.getState().criteria).toEqual([CriterionTypeEnum.MERCHANT])
+                expect(store.getState().multigetCriteria).toEqual([expect.objectContaining({
+                    entityType: LinkedEntityTypeEnum.MERCHANT,
+                    selectedItems: '',
+                })])
+            })
+
+            it('keeps the customer level dependencies out of the predefined criteria', async () => {
+                initialize([CriterionTypeEnum.CUSTOMER_LEVEL])
+
+                await reset()
+
+                expect(store.getState().predefinedCriteria).toEqual([CriterionTypeEnum.CUSTOMER_LEVEL])
+                expect(store.getState().criteria).toEqual([
+                    CriterionTypeEnum.CUSTOMER_LEVEL,
+                    CriterionTypeEnum.MERCHANT,
+                    CriterionTypeEnum.CURRENCY,
+                ])
+            })
+
+            it('fills the predefined transaction session statuses again', async () => {
+                initialize([CriterionTypeEnum.TRANSACTION_SESSION_STATUS], {}, {prefetchedData: prefetchedStatuses()})
+                expect(store.getState().transactionSessionStatuses).toEqual(approvedStatuses())
+                store.getState().setTransactionSessionStatusesCriterion([
+                    createTransactionSessionStatus('A1', false),
+                    createTransactionSessionStatus('A2'),
+                ])
+
+                await reset()
+
+                expect(store.getState().transactionSessionStatuses).toEqual(approvedStatuses())
+            })
+        })
+
+        it('fills the statuses of the session status criterion added again after Default', () => {
+            initialize([], {}, {
+                possibleCriteria: [CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
+                prefetchedData: prefetchedStatuses(),
+            })
+            store.getState().addCriterion(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
+            expect(store.getState().transactionSessionStatuses).toEqual(approvedStatuses())
+
+            store.getState().clearCriteria()
+            store.getState().addCriterion(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
+
+            expect(store.getState().transactionSessionStatuses).toEqual(approvedStatuses())
+        })
+
+        it('keeps the host array and the predefined criteria apart from the active criteria at initialization', () => {
+            const predefinedCriteria = [CriterionTypeEnum.CUSTOMER_LEVEL]
+            initialize(predefinedCriteria)
+
+            expect(predefinedCriteria).toEqual([CriterionTypeEnum.CUSTOMER_LEVEL])
+            expect(Object.isFrozen(predefinedCriteria)).toBe(false)
+            expect(store.getState().predefinedCriteria).toEqual([CriterionTypeEnum.CUSTOMER_LEVEL])
+            expect(store.getState().criteria).toEqual([
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+                CriterionTypeEnum.MERCHANT,
+                CriterionTypeEnum.CURRENCY,
+            ])
+        })
     })
 
     describe('the default TODAY range', () => {

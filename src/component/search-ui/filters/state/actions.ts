@@ -330,6 +330,48 @@ const applyConditionsReducer = (
     normalizeRestrictedTransactionTypesReducer(draft)
 }
 
+/**
+ * Back to what the page started with: its predefined criteria and `initialSearchConditions`, without
+ * a template. The conditions go the way an applied template's do, so the multiget entries, the customer
+ * level dependencies and the restricted transaction types come out as on the first load.
+ */
+const resetToPageDefaultsReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+    pageDefaults: Partial<SearchUIConditions>,
+): void => {
+    draft.template = null
+    draft.templateBaseline = null
+    draft.activeTemplateName = null
+    applyConditionsReducer(draft, {
+        ...getSearchUIInitialSearchCriteria(draft.defaults),
+        exactSearchLabel: draft.exactSearchLabels[0],
+        ...pageDefaults,
+        criteria: [],
+    })
+    refillTransactionSessionStatusesReducer(draft)
+}
+
+/** The first load fills an empty statuses list from the prefetched ones; a reset or a re-added criterion gets the same. */
+const refillTransactionSessionStatusesReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+): void => {
+    if (
+        !draft.criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
+        || draft.transactionSessionStatuses.length > 0
+    ) {
+        return
+    }
+
+    const prefetched = draft.prefetchedData.transactionSessionStatuses?.get(draft.transactionSessionStatusGroup)
+    if (prefetched === undefined) {
+        // Not loaded yet: the load fills them in, as on the first visit.
+        draft.prefetchedDataMeta.transactionSessionStatusesPrefilled = false
+        return
+    }
+
+    draft.transactionSessionStatuses = copyTransactionSessionStatuses(prefetched)
+}
+
 const restoreAppliedSearchCriteria = (
     snapshot: SearchUIRetentionSnapshot,
     retainedDraftSearchCriteria: SearchCriteria,
@@ -388,6 +430,9 @@ export const getSearchUIFiltersActions = (
             }
 
             Object.assign(draft, initialState)
+            // The host may hand one array over as both; keep them apart and leave the host's array alone.
+            draft.criteria = [...draft.criteria]
+            draft.predefinedCriteria = [...draft.predefinedCriteria]
 
             if (normalizedTemplates !== undefined) {
                 draft.templates = normalizedTemplates
@@ -529,18 +574,12 @@ export const getSearchUIFiltersActions = (
     },
     clearCriteria: (options?: SearchUIUpdateOptions) => {
         void forgetLastSearchUITemplateName(get().defaults, get().settingsContextName)
+        const pageDefaults = cloneDeep(get().pageDefaults)
 
         set((draft) => {
-            Object.assign(draft, {
-                ...getSearchUIInitialSearchCriteria(draft.defaults),
-                exactSearchLabel: draft.exactSearchLabels[0],
-                template: null,
-                templateBaseline: null,
-                activeTemplateName: null,
-                criteria: draft.predefinedCriteria,
-            })
-            ensureCustomerLevelDependenciesReducer(draft)
+            resetToPageDefaultsReducer(draft, pageDefaults)
         })
+        normalizeRelativeDateRange(set, get)
         postUpdate(set, get, options)
     },
     clearCriterion: (criterionType: CriterionTypeEnum) => {
@@ -556,6 +595,7 @@ export const getSearchUIFiltersActions = (
                 CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
             }
             addCriterionReducer(draft, criterionType)
+            refillTransactionSessionStatusesReducer(draft)
         })
         get().setJustAddedCriterion(criterionType)
         postUpdate(set, get)
@@ -622,18 +662,18 @@ export const getSearchUIFiltersActions = (
                         return undefined
                     })
 
+                const wasActive = get().template?.name === template.name
+                const pageDefaults = cloneDeep(get().pageDefaults)
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === template.name)
                     draft.templates.splice(index, 1)
                     if (draft.template?.name === template.name) {
-                        Object.assign(draft, getSearchUIInitialSearchCriteria(draft.defaults))
-                        draft.template = null
-                        draft.templateBaseline = null
-                        draft.activeTemplateName = null
-                        draft.criteria = draft.predefinedCriteria
-                        ensureCustomerLevelDependenciesReducer(draft)
+                        resetToPageDefaultsReducer(draft, pageDefaults)
                     }
                 })
+                if (wasActive) {
+                    normalizeRelativeDateRange(set, get)
+                }
                 postUpdate(set, get)
             })
             // .catch(raiseUIError)
