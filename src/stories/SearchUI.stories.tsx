@@ -780,9 +780,13 @@ const HookWrapContent = (props: HookWrapProps) => {
             },
             searchErrorCodes: async request => {
                 return [
-                    { choiceId: 1, displayName: 'Timeout', description: 'External code: 05' },
-                    { choiceId: 2, displayName: 'Timeout', description: 'External code: 51' },
-                    { choiceId: 99, displayName: 'Timeout', description: 'External code: 54' },
+                    { choiceId: 1, displayName: 'Timeout', description: 'EXTERNAL:1 Timeout 05' },
+                    { choiceId: 2, displayName: 'Timeout', description: 'EXTERNAL:2 Timeout 51' },
+                    {
+                        choiceId: 99,
+                        displayName: 'Referenced transaction can not be captured (cut off time reached)',
+                        description: 'EXTERNAL:99 Referenced transaction can not be captured (cut off time reached) 700.300.400',
+                    },
                 ]
             },
             ...transactionSessionStatusesDefaults,

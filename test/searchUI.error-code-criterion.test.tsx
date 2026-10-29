@@ -98,7 +98,7 @@ describe('SearchUI Error Code Selenium contract', () => {
                             errorCode: {
                                 choiceId: 1,
                                 displayName: 'Timeout',
-                                description: 'External code: 05',
+                                description: 'EXTERNAL:1 Timeout 05',
                             },
                         }}
                         onFiltersUpdate={firstOnFiltersUpdate}
@@ -117,7 +117,7 @@ describe('SearchUI Error Code Selenium contract', () => {
                             errorCode: {
                                 choiceId: 2,
                                 displayName: 'Timeout',
-                                description: 'External code: 51',
+                                description: 'EXTERNAL:2 Timeout 51',
                             },
                         }}
                         onFiltersUpdate={secondOnFiltersUpdate}
@@ -151,8 +151,15 @@ describe('SearchUI Error Code Selenium contract', () => {
 
         openErrorCode(firstInput)
 
+        // An empty query asks for a query instead of asking the server.
         await waitFor(() => {
-            expect(firstSearchErrorCodes).toHaveBeenCalledWith({searchString: ''})
+            expect(document.body.textContent).toContain('Start typing an error code or message')
+        })
+        expect(firstSearchErrorCodes).not.toHaveBeenCalled()
+        fireEvent.change(firstInput, {target: {value: 'Tim'}})
+
+        await waitFor(() => {
+            expect(firstSearchErrorCodes).toHaveBeenCalledWith({searchString: 'Tim'})
             expect(firstInput.getAttribute('aria-busy')).toBe('true')
         })
 
@@ -167,8 +174,8 @@ describe('SearchUI Error Code Selenium contract', () => {
         expect(firstPanel && firstCriterion.contains(firstPanel)).toBe(false)
 
         const firstOptions: AutoCompleteChoice[] = [
-            {choiceId: 1, displayName: 'Timeout', description: 'External code: 05'},
-            {choiceId: 3, displayName: 'Declined', description: 'External code: 54'},
+            {choiceId: 1, displayName: 'Timeout', description: 'EXTERNAL:1 Timeout 05'},
+            {choiceId: 3, displayName: 'Declined', description: 'EXTERNAL:3 Declined 54'},
         ]
 
         await act(async () => {
@@ -200,8 +207,8 @@ describe('SearchUI Error Code Selenium contract', () => {
         expect(firstListbox?.querySelector(
             '[data-autotest="criterion-error-code-option"][data-autotest-value="3"]',
         )?.getAttribute('aria-selected')).toBe('false')
-        expect(firstPanel?.textContent).toContain('External code: 05')
-        expect(firstPanel?.textContent).toContain('External code: 54')
+        expect(firstPanel?.textContent).toContain('EXTERNAL · 1 · 05')
+        expect(firstPanel?.textContent).toContain('EXTERNAL · 3 · 54')
 
         const declinedOption = firstListbox?.querySelector<HTMLElement>(
             '[role="option"][data-autotest="criterion-error-code-option"]'
@@ -224,15 +231,17 @@ describe('SearchUI Error Code Selenium contract', () => {
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()
 
         openErrorCode(secondInput)
+        expect(secondSearchErrorCodes).not.toHaveBeenCalled()
+        fireEvent.change(secondInput, {target: {value: 'Tim'}})
 
         await waitFor(() => {
-            expect(secondSearchErrorCodes).toHaveBeenCalledWith({searchString: ''})
+            expect(secondSearchErrorCodes).toHaveBeenCalledWith({searchString: 'Tim'})
             expect(secondInput.getAttribute('aria-busy')).toBe('true')
         })
 
         const secondOptions: AutoCompleteChoice[] = [
-            {choiceId: 2, displayName: 'Timeout', description: 'External code: 51'},
-            {choiceId: 4, displayName: 'Declined', description: 'External code: 57'},
+            {choiceId: 2, displayName: 'Timeout', description: 'EXTERNAL:2 Timeout 51'},
+            {choiceId: 4, displayName: 'Declined', description: 'EXTERNAL:4 Declined 57'},
         ]
 
         await act(async () => {
@@ -276,7 +285,8 @@ describe('SearchUI Error Code Selenium contract', () => {
                 errorCode: null,
             }))
         })
-        expect(secondInput.value).toBe('Timeout')
+        // The second instance keeps its typed query and its value: the first clear did not reach it.
+        expect(secondInput.value).toBe('Tim')
         expect(secondInput.getAttribute('data-autotest-value')).toBe('2')
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()
     })
@@ -310,9 +320,10 @@ describe('SearchUI Error Code Selenium contract', () => {
         openErrorCode(input)
 
         await waitFor(() => {
-            expect(searchErrorCodes).toHaveBeenCalledWith({searchString: ''})
-            expect(input.getAttribute('aria-busy')).toBe('true')
+            expect(document.body.textContent).toContain('Start typing an error code or message')
         })
+        expect(searchErrorCodes).not.toHaveBeenCalled()
+        expect(input.getAttribute('aria-busy')).toBe('false')
 
         fireEvent.change(input, {target: {value: 'E42'}})
 

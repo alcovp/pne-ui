@@ -1,12 +1,13 @@
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import React, { useContext } from 'react'
-import { Box, SxProps, Typography } from '@mui/material'
+import { Box, SxProps } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
 import { useSearchUIFiltersStore } from '../../state/store'
 import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
 import { AutoCompleteChoice, PneAsyncAutocomplete } from '../../../../..'
 import { useTranslation } from 'react-i18next'
 import { createAutoTestAttributes } from '../../../../AutoTestAttribute'
+import { formatErrorCodeIdentifiers, highlightQuery } from './errorCodeOption'
 import {
     createSearchUIOwnedAutoTestAttributes,
     useSearchUIAutoTestScope,
@@ -28,6 +29,10 @@ export const ErrorCodeCriterion = () => {
     const inputAriaLabel = t('react.CriterionTypeEnum.ERROR_CODE', {
         defaultValue: 'Error code',
     })
+    // The server answers an empty query with nothing: the list asks for a query instead of "No options".
+    const typeToSearchText = t('react.searchUI.errorCode.typeToSearch', {
+        defaultValue: 'Start typing an error code or message',
+    })
 
     return <PneAsyncAutocomplete<AutoCompleteChoice>
         value={errorCode}
@@ -46,9 +51,9 @@ export const ErrorCodeCriterion = () => {
                 CRITERION_ERROR_CODE_PANEL_AUTOTEST_ID,
                 autoTestOwner,
             ),
-            // The list keeps room for the descriptions and opens from the field's left edge, as the
-            // other menus of the panel do; the field itself is narrow.
-            popper: {sx: {minWidth: '320px'}, placement: 'bottom-start'},
+            // The list is wide enough for most messages on one line, within a 360px screen, and opens
+            // from the field's left edge, as the other menus of the panel do; the field itself is narrow.
+            popper: {sx: popperSx, placement: 'bottom-start'},
             listbox: {
                 ...createSearchUIOwnedAutoTestAttributes(
                     CRITERION_ERROR_CODE_OPTIONS_AUTOTEST_ID,
@@ -56,30 +61,35 @@ export const ErrorCodeCriterion = () => {
                 ),
                 'aria-label': inputAriaLabel,
                 'aria-labelledby': undefined,
+                sx: listboxSx,
             },
         }}
-        renderOption={(props, option) => React.createElement(
-            'li',
-            {
-                ...props,
-                ...createAutoTestAttributes(
-                    CRITERION_ERROR_CODE_OPTION_AUTOTEST_ID,
-                    option.choiceId,
-                ),
-            },
-            <>
+        renderOption={(props, option, state) => {
+            const identifiers = formatErrorCodeIdentifiers(option.description, option.displayName)
+            // The input holds the chosen name once a code is chosen: nothing to highlight then.
+            const name = state.inputValue === errorCode?.displayName
+                ? option.displayName
+                : highlightQuery(option.displayName, state.inputValue)
+
+            return React.createElement(
+                'li',
+                {
+                    ...props,
+                    ...createAutoTestAttributes(
+                        CRITERION_ERROR_CODE_OPTION_AUTOTEST_ID,
+                        option.choiceId,
+                    ),
+                },
                 <Box sx={optionContentSx}>
-                    <Typography component="span" variant="body2">
-                        {option.displayName}
-                    </Typography>
-                    {option.description && (
-                        <Typography component="span" variant="caption" color="text.secondary">
-                            {option.description}
-                        </Typography>
-                    )}
-                </Box>
-            </>,
-        )}
+                    <Box component={'span'} sx={optionNameSx} title={option.displayName}>{name}</Box>
+                    {identifiers === null
+                        ? null
+                        : <Box component={'span'} sx={optionIdentifiersSx}>{identifiers}</Box>}
+                </Box>,
+            )
+        }}
+        minQueryLength={1}
+        minQueryLengthText={typeToSearchText}
         placeholder={t('search')}
         // The panel's one chevron: 16px in the field's text colour, as on the buttons and the chips.
         popupIcon={<ExpandMoreIcon sx={{fontSize: '16px'}}/>}
@@ -124,9 +134,46 @@ const fieldSx: SxProps<Theme> = {
 
 export default ErrorCodeCriterion
 
+// A row: the message, at most two lines, and under it the identifiers in the muted grey; a thin
+// line between rows as between the criteria. The list opens at the field's left edge and stays
+// within a 360px screen.
+const listboxSx: SxProps<Theme> = {
+    '& .MuiAutocomplete-option': {
+        padding: '8px 16px',
+        alignItems: 'flex-start',
+    },
+    '& .MuiAutocomplete-option + .MuiAutocomplete-option': {
+        borderTop: theme => `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
+    },
+}
+
+const popperSx = {
+    minWidth: 'min(420px, calc(100vw - 32px))',
+}
+
 const optionContentSx = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    py: '4px',
+    rowGap: '2px',
+    minWidth: 0,
+    width: '100%',
+}
+
+const optionNameSx: SxProps<Theme> = {
+    fontSize: '14px',
+    lineHeight: '20px',
+    color: 'text.primary',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: 'vertical',
+    overflow: 'hidden',
+    overflowWrap: 'anywhere',
+}
+
+const optionIdentifiersSx: SxProps<Theme> = {
+    fontSize: '12px',
+    lineHeight: '16px',
+    color: theme => theme.palette.pne?.text.muted ?? '#808080',
+    overflowWrap: 'anywhere',
 }
