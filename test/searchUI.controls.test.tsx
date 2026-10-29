@@ -79,6 +79,20 @@ describe('SearchUIFilters criterion controls', () => {
         // jsdom drops `color: inherit`; the chip's colour on the chevron is checked in a browser.
     })
 
+    it('paints the criterion icons in the control grey', async () => {
+        const {onFiltersUpdate, criterion} = renderControls()
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalledTimes(2)
+        })
+
+        const eraser = criterion(CriterionTypeEnum.EXACT).querySelector<HTMLButtonElement>(
+            '[data-autotest="clear-criterion"]',
+        ) as HTMLButtonElement
+        // #8A8A8A: 3.5:1 on white, the same token as the pagination arrows.
+        expect(getComputedStyle(eraser).color).toBe('rgb(138, 138, 138)')
+    })
+
     it('marks a focused pill input with the panel focus ring', async () => {
         const {onFiltersUpdate, criterion} = renderControls()
 

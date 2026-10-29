@@ -1,6 +1,6 @@
 import {styled as themedStyled} from '@mui/material/styles';
 import type {Theme} from '@mui/material/styles';
-import {TABLE_CONTROL_TEXT_COLOR} from '../../table/tableControlColors';
+import {TABLE_CONTROL_HOVER_TEXT_COLOR, TABLE_CONTROL_TEXT_COLOR} from '../../table/tableControlColors';
 
 /**
  * Hover delay of the panel's tooltips, as on the table column settings action. The tooltips are
@@ -25,9 +25,11 @@ export const searchUIFocusRingSx = {
     outlineOffset: '1px',
 };
 
-// The control grey at rest, the text colour under the pointer or the keyboard focus; the icons
-// take the colour through `stroke: currentColor`, so dark mode follows the palette. Without the
-// PNE theme (plain MUI theme in tests) the light colours stand in.
+// The control grey at rest (3.5:1 on white, a margin over the 3:1 floor for the thin strokes; 3:1 still
+// holds on the active control background of the table)
+// and the darker control grey under the pointer or the keyboard focus, the same pair as on the
+// pagination arrows; the icons take the colour through `stroke: currentColor`, so dark mode follows
+// the palette. Without the PNE theme (plain MUI theme in tests) the light colours stand in.
 export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({theme}) => ({
     position: 'relative',
     display: 'flex',
@@ -47,7 +49,7 @@ export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({the
     stroke: 'currentColor',
     transition: 'color .15s ease',
     '&:hover, &:focus-visible': {
-        color: theme.palette.text.primary,
+        color: theme.palette.pne?.control.foregroundHover ?? TABLE_CONTROL_HOVER_TEXT_COLOR,
     },
     '&:focus-visible': createSearchUIFocusRing(theme),
     // 24px is small for a finger: on touch screens the target grows by 8px outwards, never into the

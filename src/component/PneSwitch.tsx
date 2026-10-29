@@ -503,7 +503,7 @@ const createSwitchSx = (
     // Off, the track is a secondary control: the neutral control grey of the palette.
     const trackColor = isDarkMode
         ? (theme.palette.pne?.border.control ?? theme.palette.text.secondary)
-        : (theme.palette.pne?.control.foreground ?? '#808080')
+        : (theme.palette.pne?.control.foreground ?? '#8A8A8A')
     const trackHoverColor = isDarkMode
         ? theme.palette.text.secondary
         : (theme.palette.pne?.control.foregroundHover ?? '#5C5C5C')

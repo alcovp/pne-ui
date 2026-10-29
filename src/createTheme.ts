@@ -89,7 +89,7 @@ const PNE_LIGHT_COLORS = Object.freeze({
     borderControl: '#B0B7C3',
     textDefault: '#38434D',
     textMuted: '#808080',
-    controlForeground: '#808080',
+    controlForeground: '#8A8A8A',
     controlForegroundHover: '#5C5C5C',
     controlForegroundDisabled: '#C4C4C4',
     controlActiveBackground: '#F0F0F0',
