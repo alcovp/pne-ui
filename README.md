@@ -803,8 +803,8 @@ scope. Таблица ищется от document/page scope, а не внутр�
   (`run-search` одинаков для режимов Search и Refresh). `clear-all` есть только при скрытом меню шаблонов
   (`hideTemplatesSelect`); с меню к умолчаниям возвращает его пункт `select-default-template`;
 - `templates` — native button с `aria-expanded` и open-state `aria-controls`;
-- `add-filter` — реально кликаемый MUI `role="combobox"`, а не декоративная кнопка над ним; состояние и связь с
-  listbox находятся в `aria-expanded` и open-state `aria-controls`;
+- `add-filter` — native button с меню, как `templates`: `aria-haspopup="menu"`, `aria-expanded` и open-state
+  `aria-controls`;
 - `clear-criterion` и `remove-criterion` — native `button type="button"` внутри соответствующего
   `criterion/<raw type>`; remove отсутствует у non-removable predefined-критерия.
 
@@ -825,8 +825,7 @@ Popover и modal рендерятся через React portal вне `search-fil
 [data-autotest="template-editor"][data-autotest-value="orders"]
 ```
 
-`templates-panel` — MUI menu (`role="menu"`), `template-editor` — dialog, а `add-filter-options` — native MUI
-listbox.
+`templates-panel` и `add-filter-options` — MUI menu (`role="menu"`), `template-editor` — dialog.
 Generated IDs из `aria-controls` не хардкодируйте: при необходимости считывайте ID у trigger во время теста;
 стабильным owner locator остаётся `data-autotest` + scope. Строки сохранённых шаблонов отмечены одинаковым
 `template-item` без value; внутри используются `select-template`, `remove-template` и, если хост сохраняет
@@ -1013,16 +1012,16 @@ Selectors ниже относительны к `search-filters/<scope>`.
 | Очистить всё | `[data-autotest="clear-all"]` | Только при `hideTemplatesSelect`; иначе — `select-default-template` в меню шаблонов |
 | Запустить поиск/refresh | `[data-autotest="run-search"]` | Native `disabled`/`isEnabled()` |
 | Шаблоны | `[data-autotest="templates"]` | Native button, `aria-expanded`, `aria-controls` |
-| Добавить фильтр | `[role="combobox"][data-autotest="add-filter"]` | Кликать actual combobox; `aria-expanded` |
+| Добавить фильтр | `[data-autotest="add-filter"]` | Native button, `aria-haspopup="menu"`, `aria-expanded`, `aria-controls` |
 | Очистить критерий | `[data-autotest="clear-criterion"]` | Native button внутри criterion root |
 | Удалить критерий | `[data-autotest="remove-criterion"]` | Отсутствует у non-removable predefined criterion |
 
 `clear-all`, templates, add-filter и отдельные criterion actions могут отсутствовать из-за config или текущего
 состояния. Это условный UI, а не нарушение locator contract.
 
-Внутри `add-filter-options/<scope>` конкретный доступный критерий сейчас выбирается как `[role="option"]` по
-computed accessible name в фиксированной locale. Отдельного raw `data-autotest-value=<CriterionTypeEnum>` у
-этих options пока нет; это явно известное исключение из raw-ID контракта.
+Внутри `add-filter-options/<scope>` пункты меню — `[data-autotest="add-filter-option"]` с raw
+`data-autotest-value="<CriterionTypeEnum>"` (`role="menuitem"`); их accessible name — переведённое название
+критерия.
 
 #### Общие portals
 
@@ -1724,7 +1723,20 @@ export const TransactionsPage = () => (
   в автоматическом режиме) стоят под критериями ровно по колонке значений; шеврон свёртки — в той же
   строке слева. Строка действий остаётся на экране и при свёрнутых критериях.
 - Когда строк на экране нет (критерии свёрнуты или их нет вовсе), выравнивать не по чему: кнопки идут
-  сразу за пилюлей шеврона.
+  сразу за пилюлей шеврона. Переезжают они плавно: при сворачивании сдвигаются к пилюле вместе со
+  складывающимися строками, при разворачивании — обратно в колонку значений, за те же 200 мс
+  (`prefers-reduced-motion` выключает и это). Первый критерий, добавленный через `Add filter`, тоже
+  сдвигает их плавно.
+- Фокус с клавиатуры выглядит одинаково на всех элементах панели: кольцо 2px цвета `primary.main` с
+  отступом 1px по форме элемента — на значках, пилюле шеврона, полях-пилюлях, полях дат, полях
+  автодополнения, чипах-дропдаунах, чипах-переключателях и ссылках-триггерах (`createSearchUIFocusRing` /
+  `searchUIFocusRingSx` в `filters/styled.ts`; для элементов критериев правило лежит в `CriterionContainer`).
+  Кнопки строки действий — обычные `PneButton` и показывают стандартный фокус кнопки MUI; `Add filter` —
+  такая же кнопка с меню, как `Saved filters`, а не прозрачный select поверх кнопки.
+- Шеврон у выпадающих элементов один: `ExpandMore` 16px в цвете текста элемента — на `Saved filters`,
+  `Add filter`, чипах-дропдаунах критериев (`in …`, тип диапазона дат, тип даты заказа, валюта проекта,
+  тип даты группировки, тип записи, страна) и в поле кода ошибки (`chipChevronSx` в
+  `component/select/style.ts`).
 - Шеврон — пилюля 28px с зоной нажатия 40px по высоте; в свёрнутом виде в ней же стоит число критериев,
   так что шеврон и счётчик — одна цель. Она называется `Filters` и сообщает состояние через
   `aria-expanded`; подсказка говорит, что сделает нажатие: `Hide filters` или `Show filters`. Пока

@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import {ORDER_DATE_TYPES} from '../../types';
 import {Box, Chip, SxProps} from '@mui/material';
+import type {Theme} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {selectUnderChipSx} from './style';
+import {chipChevronSx, selectUnderChipSx} from './style';
 import {PneSelect} from '../../../../..';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {
@@ -29,7 +30,7 @@ export const SearchUIOrderDateTypeSelect = () => {
         defaultValue: 'Order date type',
     })
 
-    const selectSx: SxProps = {
+    const selectSx: SxProps<Theme> = {
         flexShrink: 0,
         width: '100%',
         [`& fieldset`]: {
@@ -43,7 +44,7 @@ export const SearchUIOrderDateTypeSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMoreIcon/>}
+            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
             label={optionRenderer(orderDateType)}
             size={'small'}
             aria-hidden={true}

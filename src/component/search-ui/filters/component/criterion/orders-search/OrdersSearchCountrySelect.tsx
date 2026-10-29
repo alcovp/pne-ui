@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {Box, Chip} from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {useSearchUIFiltersStore} from "../../../state/store";
-import {selectUnderChipSx} from '../../select/style';
+import {chipChevronSx, selectUnderChipSx} from '../../select/style';
 import PneSelect from '../../../../../dropdown/PneSelect';
 import {SearchUIDefaultsContext} from "../../../../SearchUIProvider";
 import {Country} from '../../../../../../common';
@@ -71,7 +71,7 @@ export const OrdersSearchCountrySelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={openSelect}
-            deleteIcon={<ExpandMoreIcon/>}
+            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
             label={selectedCountry?.displayName ?? t('react.searchUI.countrySelectPlaceholder')}
             size={'small'}
             aria-hidden={true}

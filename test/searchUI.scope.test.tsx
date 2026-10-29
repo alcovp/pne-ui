@@ -297,8 +297,9 @@ describe('SearchUI autotest scope', () => {
         expect(controlledPanel && ordersScope.contains(controlledPanel)).toBe(true)
         expect(controlledPanel?.hidden).toBe(false)
         expect(templates?.getAttribute('aria-expanded')).toBe('false')
-        expect(addFilter?.getAttribute('role')).toBe('combobox')
-        expect(addFilter?.getAttribute('aria-label')).toBe('react.searchUI.addCriterion')
+        expect(addFilter?.tagName).toBe('BUTTON')
+        expect(addFilter?.getAttribute('aria-haspopup')).toBe('menu')
+        expect(addFilter?.textContent).toBe('react.searchUI.addCriterion')
         expect(addFilter?.getAttribute('aria-expanded')).toBe('false')
         expect(runSearch?.disabled).toBe(false)
         expect(loadingRunSearch?.disabled).toBe(true)
@@ -549,7 +550,7 @@ describe('SearchUI autotest scope', () => {
         for (const filterScope of filterScopes) {
             const addFilter = filterScope.querySelector<HTMLElement>('[data-autotest="add-filter"]')
 
-            fireEvent.mouseDown(addFilter as HTMLElement)
+            fireEvent.click(addFilter as HTMLElement)
         }
 
         await waitFor(() => {
@@ -565,7 +566,7 @@ describe('SearchUI autotest scope', () => {
             expect(addFilter?.getAttribute('aria-expanded')).toBe('true')
             expect(listbox?.getAttribute('data-autotest')).toBe('add-filter-options')
             expect(listbox?.getAttribute('data-autotest-value')).toBe(scope)
-            expect(listbox?.getAttribute('role')).toBe('listbox')
+            expect(listbox?.getAttribute('role')).toBe('menu')
             expect(listbox && filterScope.contains(listbox)).toBe(false)
         }
     })

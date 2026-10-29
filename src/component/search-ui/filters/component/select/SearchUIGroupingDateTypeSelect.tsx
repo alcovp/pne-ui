@@ -3,7 +3,7 @@ import {GROUPING_DATE_TYPES} from '../../types';
 import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
-import {selectUnderChipSx} from './style';
+import {chipChevronSx, selectUnderChipSx} from './style';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {PneSelect} from '../../../../..';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
@@ -32,7 +32,7 @@ const SearchUIGroupingDateTypeSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMoreIcon/>}
+            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
             label={optionRenderer(dateType)}
             size={'small'}
             aria-hidden={true}

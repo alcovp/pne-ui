@@ -64,10 +64,41 @@ import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled';
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
 const FILTERS_COUNT_AUTOTEST_ID = 'filters-count';
-/** The fold transition of the criteria rows; the fallback timer runs a little longer. */
-const COLLAPSE_DURATION_MS = 200
 const CLEAR_FILTERS_AUTOTEST_ID = 'clear-all';
 const RUN_SEARCH_AUTOTEST_ID = 'run-search';
+
+/** The fold transition of the criteria rows; the fallback timer runs a little longer. */
+const COLLAPSE_DURATION_MS = 200
+
+type Point = {left: number; top: number}
+
+const prefersReducedMotion = () => (
+    typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+)
+
+/**
+ * Slides an element from where it was to where the layout has just put it, over the fold duration
+ * (the FLIP technique): the element starts translated back to its old place and the transition
+ * carries it to the new one. The inline transition stays; the next slide resets it first.
+ */
+const slideFrom = (element: HTMLElement, from: Point) => {
+    element.style.transition = 'none'
+    element.style.transform = ''
+    const to = element.getBoundingClientRect()
+    const dx = from.left - to.left
+    const dy = from.top - to.top
+    if (to.width === 0 || (dx === 0 && dy === 0) || prefersReducedMotion()) {
+        element.style.transition = ''
+        return
+    }
+    element.style.transform = `translate(${dx}px, ${dy}px)`
+    // The start position must be laid out before the transition begins.
+    void element.offsetWidth
+    element.style.transition = `transform ${COLLAPSE_DURATION_MS}ms ease`
+    element.style.transform = ''
+}
 
 /**
  * Дополнительные настройки критерия диапазона дат.
@@ -612,6 +643,17 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const validationResult = useSearchUIFiltersStore(s => s.validationResult)
 
     const [showFilters, setShowFilters] = useState(!collapsed)
+    const actionsRef = useRef<HTMLDivElement>(null)
+    const actionsSlideFromRef = useRef<Point | null>(null)
+
+    // Where the actions stand before a change that moves them: a fold, an unfold or the first
+    // criterion. The slide starts there once the layout has settled. On phones the actions box
+    // dissolves into the row (display: contents) and has no place of its own: no slide.
+    const captureActionsPosition = () => {
+        const element = actionsRef.current
+        const rect = element?.getBoundingClientRect()
+        actionsSlideFromRef.current = rect && rect.width > 0 ? {left: rect.left, top: rect.top} : null
+    }
     const panelRef = useRef<HTMLDivElement | null>(null)
     const {phase, onTransitionEnd} = useCollapsibleRows(showFilters, panelRef)
     const filtersPanelId = useId()
@@ -732,6 +774,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         if (shown === showFilters) {
             return
         }
+        captureActionsPosition()
         setShowFilters(shown)
         void rememberSearchUIFiltersCollapsed(defaults, settingsContextName, !shown)
     }
@@ -780,6 +823,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
         options={criteriaOptions}
         onChange={criterion => {
+            captureActionsPosition()
             setFiltersShown(true)
             addCriterion(criterion)
         }}
@@ -811,9 +855,28 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const hasActions = Boolean(
         toggleButton || clearAllButton || templatesMenu || addFilterButton || searchButton,
     )
-    // Without rows on screen there is no values column to line up with: the chevron, the count and
-    // the actions follow each other instead of leaving the empty name and icon columns between them.
-    const rowsShown = rowsMounted && criteria.length > 0
+    // Folded, or without criteria, there is no values column to line up with: the chevron, the
+    // count and the actions follow each other instead of leaving the empty name and icon columns
+    // between them. The switch happens as the fold starts and as the rows mount for the unfold, so
+    // the actions slide while the rows fold or unfold.
+    const actionsInColumns = showFilters && rowsMounted && criteria.length > 0
+
+    // The slide starts once the layout has settled: for an unfold that is when the rows are mounted
+    // and the name column has its width back.
+    useLayoutEffect(() => {
+        const from = actionsSlideFromRef.current
+        if (!from) {
+            return
+        }
+        if (showFilters && criteria.length > 0 && !rowsMounted) {
+            return
+        }
+        actionsSlideFromRef.current = null
+        const element = actionsRef.current
+        if (element) {
+            slideFrom(element, from)
+        }
+    })
 
     return <SearchUIAutoTestScopeProvider scope={autoTestId}>
         <Box
@@ -833,11 +896,11 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                     {criteriaRows}
                 </Box>
             </Box>
-            {hasActions ? <Box sx={rowsShown ? actionsRowSx : compactActionsRowSx}>
+            {hasActions ? <Box sx={actionsInColumns ? actionsRowSx : compactActionsRowSx}>
                 <Box sx={actionsLeadSx}>
                     {toggleButton}
                 </Box>
-                <Box sx={actionsSx}>
+                <Box ref={actionsRef} sx={actionsSx}>
                     {clearAllButton}
                     {templatesMenu}
                     {addFilterButton}

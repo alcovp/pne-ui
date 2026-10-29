@@ -1,3 +1,4 @@
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import React, { useContext } from 'react'
 import { Box, Typography } from '@mui/material'
 import { useSearchUIFiltersStore } from '../../state/store'
@@ -76,8 +77,13 @@ export const ErrorCodeCriterion = () => {
             </>,
         )}
         placeholder={t('search')}
+        // The panel's one chevron: 16px in the field's text colour, as on the buttons and the chips.
+        popupIcon={<ExpandMoreIcon sx={{fontSize: '16px'}}/>}
         sx={{
             width: '300px',
+            '& .MuiAutocomplete-popupIndicator': {
+                color: 'inherit',
+            },
             '& .MuiSvgIcon-root.MuiSelect-icon': {
                 display: 'none',
             },

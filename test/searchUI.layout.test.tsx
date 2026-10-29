@@ -303,12 +303,144 @@ describe('SearchUIFilters layout', () => {
         expect(scope.querySelector('[data-autotest="toggle-filters"]')).toBeNull()
         expect(scope.querySelector('[data-autotest="add-filter"]')).not.toBeNull()
 
-        fireEvent.mouseDown(scope.querySelector('[data-autotest="add-filter"]') as HTMLElement)
-        fireEvent.click(await screen.findByRole('option', {name: 'THREE_D'}))
+        fireEvent.click(scope.querySelector('[data-autotest="add-filter"]') as HTMLElement)
+        fireEvent.click(await screen.findByRole('menuitem', {name: 'THREE_D'}))
         await waitFor(() => {
             expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(1)
         })
         expect(scope.querySelector('[data-autotest="toggle-filters"]')).not.toBeNull()
         expect(getByText('react.CriterionTypeEnum.THREE_D')).toBeTruthy()
+    })
+})
+
+const rectAt = (left: number): DOMRect => ({
+    x: left,
+    y: 0,
+    left,
+    top: 0,
+    width: 200,
+    height: 28,
+    right: left + 200,
+    bottom: 28,
+    toJSON: () => ({}),
+} as DOMRect)
+
+describe('SearchUIFilters actions row', () => {
+    afterEach(() => {
+        jest.restoreAllMocks()
+    })
+
+    it('adds a filter through a button with a menu, as the saved filters trigger does', async () => {
+        const {onFiltersUpdate, root} = renderFilters('layout-add-filter')
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        const addFilter = scope.querySelector<HTMLButtonElement>('[data-autotest="add-filter"]') as HTMLButtonElement
+        const templates = scope.querySelector<HTMLButtonElement>('[data-autotest="templates"]') as HTMLButtonElement
+
+        expect(addFilter.tagName).toBe('BUTTON')
+        expect(addFilter.getAttribute('aria-haspopup')).toBe('menu')
+        expect(addFilter.getAttribute('aria-expanded')).toBe('false')
+        expect(addFilter.textContent).toBe('react.searchUI.addCriterion')
+        // The same MUI button as the saved filters trigger, so both show the same focus.
+        expect(addFilter.className).toContain('MuiButton-root')
+        expect(templates.className).toContain('MuiButton-root')
+        expect(scope.querySelector('[role="combobox"][data-autotest="add-filter"]')).toBeNull()
+
+        fireEvent.click(addFilter)
+        const menu = await waitFor(() => {
+            const list = document.body.querySelector<HTMLElement>(
+                '[data-autotest="add-filter-options"][data-autotest-value="layout-add-filter"]',
+            )
+            expect(list).not.toBeNull()
+            return list as HTMLElement
+        })
+        expect(menu.getAttribute('role')).toBe('menu')
+        expect(addFilter.getAttribute('aria-expanded')).toBe('true')
+        expect(addFilter.getAttribute('aria-controls')).toBe(menu.id)
+        const option = menu.querySelector<HTMLElement>(
+            '[data-autotest="add-filter-option"][data-autotest-value="THREE_D"]',
+        )
+        expect(option?.getAttribute('role')).toBe('menuitem')
+        expect(option?.textContent).toBe('THREE_D')
+
+        fireEvent.keyDown(menu, {key: 'Escape', code: 'Escape'})
+        await waitFor(() => {
+            expect(document.body.querySelector('[data-autotest="add-filter-options"]')).toBeNull()
+        })
+        expect(addFilter.getAttribute('aria-expanded')).toBe('false')
+
+        // The arrow keys open the menu as they open a native select.
+        fireEvent.keyDown(addFilter, {key: 'ArrowDown', code: 'ArrowDown'})
+        await waitFor(() => {
+            expect(document.body.querySelector('[data-autotest="add-filter-options"]')).not.toBeNull()
+        })
+        fireEvent.click(document.body.querySelector(
+            '[data-autotest="add-filter-option"][data-autotest-value="THREE_D"]',
+        ) as HTMLElement)
+        await waitFor(() => {
+            expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(3)
+        })
+        expect(document.body.querySelector('[data-autotest="add-filter-options"]')).toBeNull()
+    })
+
+    it('slides the actions along as the rows fold and unfold, unless motion is reduced', async () => {
+        const {onFiltersUpdate, root} = renderFilters('layout-slide')
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
+        const templates = scope.querySelector<HTMLElement>('[data-autotest="templates"]') as HTMLElement
+        const actions = templates.parentElement as HTMLElement
+        const transforms: string[] = []
+        jest.spyOn(actions.style, 'transform', 'set').mockImplementation(value => {
+            transforms.push(value)
+        })
+        // jsdom lays nothing out: the actions stand at x=300 in the values column and at x=80 right
+        // after the chevron. The first reading is the capture before the change.
+        const rect = jest.spyOn(actions, 'getBoundingClientRect')
+
+        rect.mockImplementationOnce(() => rectAt(300)).mockImplementation(() => rectAt(80))
+        fireEvent.click(toggle)
+        await waitFor(() => {
+            expect(toggle.getAttribute('aria-expanded')).toBe('false')
+        })
+        expect(transforms).toEqual(['', 'translate(220px, 0px)', ''])
+        expect(actions.style.transition).toBe('transform 200ms ease')
+
+        transforms.length = 0
+        actions.style.transition = ''
+        rect.mockReset()
+        rect.mockImplementationOnce(() => rectAt(80)).mockImplementation(() => rectAt(300))
+        fireEvent.click(toggle)
+        await waitFor(() => {
+            expect(toggle.getAttribute('aria-expanded')).toBe('true')
+        })
+        expect(transforms).toEqual(['', 'translate(-220px, 0px)', ''])
+        expect(actions.style.transition).toBe('transform 200ms ease')
+
+        transforms.length = 0
+        actions.style.transition = ''
+        rect.mockReset()
+        rect.mockImplementationOnce(() => rectAt(300)).mockImplementation(() => rectAt(80))
+        window.matchMedia = jest.fn().mockImplementation((query: string) => ({
+            matches: query === '(prefers-reduced-motion: reduce)',
+            media: query,
+            addEventListener: jest.fn(),
+            removeEventListener: jest.fn(),
+        })) as unknown as typeof window.matchMedia
+        fireEvent.click(toggle)
+        await waitFor(() => {
+            expect(toggle.getAttribute('aria-expanded')).toBe('false')
+        })
+        expect(transforms).toEqual([''])
+        expect(actions.style.transition).toBe('')
+        delete (window as {matchMedia?: unknown}).matchMedia
     })
 })

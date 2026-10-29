@@ -42,6 +42,7 @@ import {
     SEARCH_UI_FILTERS_NO_SUBGRID,
     SEARCH_UI_FILTERS_PHONE_MEDIA,
 } from './layout'
+import {searchUIFocusRingSx} from './styled'
 
 const CRITERION_AUTOTEST_ID = 'criterion'
 
@@ -216,6 +217,14 @@ export const CriterionContainer = (props: IProps) => {
     </SearchUICriterionAutoTestScopeProvider>
 }
 
+const CRITERION_FOCUS_SELECTOR = [
+    '& .MuiFilledInput-root.Mui-focused',
+    '& .MuiPickersInputBase-root.Mui-focused',
+    '& .MuiAutocomplete-root .MuiOutlinedInput-root.Mui-focused',
+    '& .MuiChip-clickable.Mui-focusVisible',
+    '& .MuiLink-root.MuiLink-button.Mui-focusVisible',
+].join(', ')
+
 // One row of the panel grid: a subgrid shares the root's name, icons and values columns. The
 // separator is the table's row line, so dark mode gets its colour; without the PNE theme the light
 // one stands in.
@@ -226,6 +235,10 @@ const criterionSx: SxProps<Theme> = {
     alignItems: 'center',
     minHeight: '40px',
     borderTop: theme => `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
+    // One focus mark for the controls of every criterion: the pill inputs, the date fields, the
+    // autocomplete fields, the clickable chips and the link triggers draw the panel's ring; MUI
+    // draws no ring on the first three here (no underline, no border) and its own on the others.
+    [CRITERION_FOCUS_SELECTOR]: searchUIFocusRingSx,
     [SEARCH_UI_FILTERS_NO_SUBGRID]: {
         gridTemplateColumns: SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
         columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,

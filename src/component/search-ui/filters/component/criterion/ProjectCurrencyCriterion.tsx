@@ -3,7 +3,7 @@ import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, Chip, FormControlLabel, FormGroup, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import Typography from '@mui/material/Typography';
-import {selectUnderChipSx} from '../select/style';
+import {chipChevronSx, selectUnderChipSx} from '../select/style';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {AbstractEntity, PneCheckbox, PneSelect} from '../../../../..';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
@@ -92,7 +92,7 @@ export const ProjectCurrencyCriterion = () => {
         <Box sx={{position: 'relative'}}>
             <Chip
                 onDelete={openSelect}
-                deleteIcon={<ExpandMoreIcon/>}
+                deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
                 label={currency.displayName}
                 size={'small'}
                 aria-hidden={true}

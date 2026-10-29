@@ -4,7 +4,7 @@ import React, {ReactNode, useState} from 'react'
 
 import {PneSelect} from '../../../../..'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
-import {selectUnderChipSx} from './style'
+import {chipChevronSx, selectUnderChipSx} from './style'
 
 const CRITERION_OPTION_AUTOTEST_ID = 'criterion-option'
 const CRITERION_SELECT_AUTOTEST_ID = 'criterion-select'
@@ -34,7 +34,7 @@ export const SearchUIEnumChipSelect = <T extends string, >(props: Props<T>) => {
         return <Box sx={{position: 'relative', display: 'inline-flex', flexShrink: 0}}>
             <Chip
                 onDelete={() => setOpen(true)}
-                deleteIcon={<ExpandMoreIcon/>}
+                deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
                 label={getOptionLabel(value)}
                 size={'small'}
             />

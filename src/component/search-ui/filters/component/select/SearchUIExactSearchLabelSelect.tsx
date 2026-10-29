@@ -3,7 +3,7 @@ import {ExactCriterionSearchLabelEnum} from '../../types';
 import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {selectUnderChipSx} from './style';
+import {chipChevronSx, selectUnderChipSx} from './style';
 import {PneSelect} from '../../../../..';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {
@@ -36,7 +36,7 @@ const SearchUIExactSearchLabelSelect = (props: IProps) => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMoreIcon/>}
+            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
             label={optionRenderer(value)}
             size={'small'}
             aria-hidden={true}

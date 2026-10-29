@@ -1,10 +1,11 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {DATE_RANGE_SPEC_TYPES, DateRangeSpecType} from '../../types'
 import {Box, Chip, SxProps} from '@mui/material'
+import type {Theme} from '@mui/material/styles'
 import {useTranslation} from 'react-i18next'
 import {useSearchUIFiltersStore} from '../../state/store'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import {selectUnderChipSx} from './style'
+import {chipChevronSx, selectUnderChipSx} from './style'
 import {PneSelect} from '../../../../..'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 import {
@@ -51,7 +52,7 @@ const SearchUIDateRangeSpecTypeSelect = () => {
         || dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE'
         || dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
 
-    const selectSx: SxProps = {
+    const selectSx: SxProps<Theme> = {
         flexShrink: 0,
         width: withInputNear ? '50%' : '100%',
         [`& fieldset`]: {
@@ -72,7 +73,7 @@ const SearchUIDateRangeSpecTypeSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMoreIcon/>}
+            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
             label={optionRenderer(dateRangeSpec.dateRangeSpecType)}
             size={'small'}
             aria-hidden={true}

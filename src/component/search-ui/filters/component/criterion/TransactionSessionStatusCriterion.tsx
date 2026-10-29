@@ -6,6 +6,7 @@ import { useSearchUIFiltersStore } from '../../state/store'
 import { TransactionSessionGroup, TransactionSessionStatus } from '../../types'
 import { useTranslation } from 'react-i18next'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {searchUIFocusRingSx} from '../../styled'
 import {
     createSearchUIOwnedAutoTestAttributes,
     useSearchUIAutoTestScope,
@@ -193,8 +194,9 @@ export const TransactionSessionStatusCriterion = () => {
 
 export default TransactionSessionStatusCriterion
 
-const containerSx: SxProps = {
+const containerSx: SxProps<Theme> = {
     appearance: 'none',
+    '&:focus-visible': searchUIFocusRingSx,
     background: 'transparent',
     border: 0,
     color: 'inherit',
@@ -205,7 +207,9 @@ const containerSx: SxProps = {
     cursor: 'pointer',
     padding: 0,
     textAlign: 'left',
-    width: '100%',
+    // As wide as its chips, so the focus ring hugs the trigger rather than the whole value column.
+    width: 'fit-content',
+    maxWidth: '100%',
     m: '8px 0',
 }
 

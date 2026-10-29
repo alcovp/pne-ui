@@ -186,9 +186,11 @@ const chipsSx: SxProps = {
     m: '8px 0',
 }
 
+// As wide as its content, so the focus ring hugs the link rather than the whole value column.
 const linkSx: SxProps = {
     display: 'flex',
-    width: '100%',
+    width: 'fit-content',
+    maxWidth: '100%',
     fontSize: '13px',
 }
 

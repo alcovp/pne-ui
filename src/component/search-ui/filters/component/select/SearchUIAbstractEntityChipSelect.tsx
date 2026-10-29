@@ -8,7 +8,7 @@ import {
     createSearchUIOwnedAutoTestAttributes,
     useSearchUIAutoTestScope,
 } from '../../AutoTestScope'
-import { selectUnderChipSx } from './style'
+import {chipChevronSx, selectUnderChipSx} from './style'
 
 interface AutoTestContract {
     controlId: string
@@ -67,7 +67,7 @@ const SearchUIAbstractEntityChipSelect = (props: IProps) => {
         <Chip
             disabled={disabled}
             onDelete={openSelect}
-            deleteIcon={<ExpandMoreIcon/>}
+            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
             label={value?.displayName ?? placeholder}
             size={'small'}
             aria-hidden={autoTest ? true : undefined}

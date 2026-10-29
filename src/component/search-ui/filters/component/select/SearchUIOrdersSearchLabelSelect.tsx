@@ -56,7 +56,7 @@ export const SearchUIOrdersSearchLabelSelect = () => {
                         <Box component={'span'} sx={labelTipSx}>{labelTip}</Box>
                     </>}
                 </Box>
-                <ExpandMoreIcon aria-hidden={true} fontSize={'small'}/>
+                <ExpandMoreIcon aria-hidden={true} sx={triggerChevronSx}/>
             </Box>}
             size={'small'}
             role={'combobox'}
@@ -79,6 +79,13 @@ const triggerLabelSx = {
     display: 'inline-flex',
     alignItems: 'center',
     columnGap: '4px',
+}
+
+// The panel's one chevron: 16px as on the buttons, and 4px from the chip's edge as on the chip
+// dropdowns (the label's 8px padding less 4px).
+const triggerChevronSx = {
+    fontSize: '16px',
+    mr: '-4px',
 }
 
 const labelTipSx = {

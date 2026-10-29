@@ -280,7 +280,7 @@ describe('SearchUI templates menu', () => {
         expect(panel()?.querySelector('[data-autotest="discard-template-changes"]')).toBeNull()
         fireEvent.keyDown(panel() as HTMLElement, {key: 'Escape', code: 'Escape'})
 
-        fireEvent.mouseDown(document.body.querySelector('[data-autotest="add-filter"]') as HTMLElement)
+        fireEvent.click(document.body.querySelector('[data-autotest="add-filter"]') as HTMLElement)
         const addFilterOptions = await waitFor(() => {
             const listbox = document.body.querySelector<HTMLElement>(
                 `[data-autotest="add-filter-options"][data-autotest-value="${SCOPE}"]`,
@@ -288,7 +288,7 @@ describe('SearchUI templates menu', () => {
             expect(listbox).not.toBeNull()
             return listbox as HTMLElement
         })
-        fireEvent.click(within(addFilterOptions).getAllByRole('option')[0])
+        fireEvent.click(within(addFilterOptions).getAllByRole('menuitem')[0])
 
         await waitFor(() => expect(modifiedDot()).not.toBeNull())
         expect(criteria()).toEqual([CriterionTypeEnum.STATUS])
