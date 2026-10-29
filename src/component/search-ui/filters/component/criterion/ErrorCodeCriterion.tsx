@@ -1,6 +1,7 @@
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import React, { useContext } from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, SxProps, Typography } from '@mui/material'
+import type { Theme } from '@mui/material/styles'
 import { useSearchUIFiltersStore } from '../../state/store'
 import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
 import { AutoCompleteChoice, PneAsyncAutocomplete } from '../../../../..'
@@ -45,6 +46,9 @@ export const ErrorCodeCriterion = () => {
                 CRITERION_ERROR_CODE_PANEL_AUTOTEST_ID,
                 autoTestOwner,
             ),
+            // The list keeps room for the descriptions and opens from the field's left edge, as the
+            // other menus of the panel do; the field itself is narrow.
+            popper: {sx: {minWidth: '320px'}, placement: 'bottom-start'},
             listbox: {
                 ...createSearchUIOwnedAutoTestAttributes(
                     CRITERION_ERROR_CODE_OPTIONS_AUTOTEST_ID,
@@ -79,27 +83,43 @@ export const ErrorCodeCriterion = () => {
         placeholder={t('search')}
         // The panel's one chevron: 16px in the field's text colour, as on the buttons and the chips.
         popupIcon={<ExpandMoreIcon sx={{fontSize: '16px'}}/>}
-        sx={{
-            width: '300px',
-            '& .MuiAutocomplete-popupIndicator': {
-                color: 'inherit',
-            },
-            '& .MuiSvgIcon-root.MuiSelect-icon': {
-                display: 'none',
-            },
-            '& .MuiSelect-select': {
-                height: '100%',
-                paddingY: 0,
-            },
-            '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: 'transparent !important',
-            },
-            '& .MuiSelect-select.MuiInputBase-input.MuiOutlinedInput-input': {
-                height: '100%',
-                fontSize: '0',
-            },
-        }}
+        variant={'filled'}
+        sx={fieldSx}
     />
+}
+
+// The field looks like the other dropdowns of the panel: the 24px pill of the Exact search input, the
+// chevron and the clear cross inside it on the right. MUI's filled autocomplete sizes are overridden
+// with a doubled root selector, as its own padding rules carry the popup and clear icon classes.
+const fieldSx: SxProps<Theme> = {
+    width: '220px',
+    '&& .MuiInputBase-root.MuiFilledInput-root.MuiAutocomplete-inputRoot': {
+        height: '24px',
+        borderRadius: '16px',
+        padding: '0 48px 0 12px',
+    },
+    '& .MuiFilledInput-root::before, & .MuiFilledInput-root::after': {
+        display: 'none',
+    },
+    '&&& .MuiAutocomplete-input.MuiFilledInput-input': {
+        padding: '3px 0',
+        height: '18px',
+        fontSize: '13px',
+        lineHeight: '18px',
+    },
+    '& .MuiAutocomplete-endAdornment': {
+        right: '6px',
+        top: '50%',
+        transform: 'translateY(-50%)',
+    },
+    '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
+        padding: '2px',
+        margin: 0,
+        color: 'inherit',
+    },
+    '& .MuiAutocomplete-clearIndicator .MuiSvgIcon-root': {
+        fontSize: '16px',
+    },
 }
 
 export default ErrorCodeCriterion
