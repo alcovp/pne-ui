@@ -76,7 +76,9 @@ const addFilterButtonSx: SxProps = {
 }
 
 // The select lies transparent over the button and takes the focus; its keyboard focus is drawn as a
-// ring around the button, the same ring as on the criterion icons.
+// ring around the button, the same ring as on the criterion icons. The small input root is shorter
+// than the button, so it is stretched to the button's box: the ring then hugs the button, not a
+// strip at its top.
 const selectSx: SxProps<Theme> = {
     position: 'absolute',
     top: '50%',
@@ -86,6 +88,9 @@ const selectSx: SxProps<Theme> = {
     height: '100%',
     '& .MuiSvgIcon-root.MuiSelect-icon': {
         display: 'none',
+    },
+    '& .MuiInputBase-root.MuiOutlinedInput-root.MuiSelect-root': {
+        height: '100%',
     },
     '& .MuiSelect-select': {
         height: '100%',
