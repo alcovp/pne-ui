@@ -260,4 +260,48 @@ describe('AbstractEntitySelector drag handles', () => {
             expect(onChange).not.toHaveBeenCalled()
         })
     })
+    describe.each([undefined, false])('with an active search, virtualized = %s', virtualized => {
+        // "r" hides Email: Role and Rank sit at visible indexes 0 and 1, but at 1 and 2 in the full list.
+        const renderSearched = () => {
+            const onChange = jest.fn()
+            render(<AbstractEntitySelector
+                list={[{id: 3, displayName: 'Email'}, {id: 4, displayName: 'Role'}, {id: 5, displayName: 'Rank'}]}
+                selected={selected}
+                virtualized={virtualized}
+                elementAttributes={{
+                    addedColumn: {'data-testid': 'added'},
+                    availableColumn: {'data-testid': 'available'},
+                    searchInput: {'data-testid': 'search'},
+                }}
+                onChange={onChange}
+            />)
+            fireEvent.change(screen.getByTestId('search'), {target: {value: 'r'}})
+            return onChange
+        }
+
+        const keyboardDrag = async (name: string, key: 'ArrowDown' | 'ArrowRight') => {
+            const handle = within(screen.getByTestId('available')).getByRole('button', {name})
+            act(() => handle.focus())
+            fireEvent.keyDown(handle, {key: ' ', code: 'Space', keyCode: 32})
+            await waitFor(() => expect(document.querySelector('[data-rfd-draggable-id][style*="position: fixed"]')).not.toBeNull())
+            fireEvent.keyDown(window, {key, code: key, keyCode: key === 'ArrowDown' ? 40 : 39})
+            fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})
+        }
+
+        it('reorders the dragged visible item and leaves the hidden one in place', async () => {
+            const onChange = renderSearched()
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2], [3, 4, 5]]))
+            expect(within(screen.getByTestId('available')).queryByRole('button', {name: 'Email'})).toBeNull()
+            await keyboardDrag('Role', 'ArrowDown')
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2], [3, 5, 4]]))
+        })
+
+        it('transfers the dragged visible item, not the one at its index in the full list', async () => {
+            const onChange = renderSearched()
+            await waitFor(() => expect(lastIds(onChange)).toEqual([[1, 2], [3, 4, 5]]))
+            await keyboardDrag('Rank', 'ArrowRight')
+            await waitFor(() => expect(lastIds(onChange)?.[1]).toEqual([3, 4]))
+            expect(lastIds(onChange)?.[0]).toContain(5)
+        })
+    })
 })

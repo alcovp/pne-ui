@@ -272,8 +272,11 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 case 'availableList':
                     setAvailableList((prev) => {
                         const temp = [...prev];
-                        const [removed] = temp.splice(source.index, 1);
-                        temp.splice(destination.index, 0, removed);
+                        const [removed] = temp.splice(availableIndexOf(prev, source.index), 1);
+                        if (removed === undefined) {
+                            return prev;
+                        }
+                        temp.splice(availableInsertIndex(temp, destination.index), 0, removed);
                         return temp;
                     });
                     break;
@@ -305,7 +308,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 const sourceList = [...addedList];
                 const destList = [...availableList];
                 const [removed] = sourceList.splice(result.source.index, 1);
-                destList.splice(destination.index, 0, removed);
+                destList.splice(availableInsertIndex(destList, destination.index), 0, removed);
                 setAvailableList(destList);
                 setAddedList(sourceList);
                 if (textRepresentation) {
@@ -321,7 +324,10 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
             } else {
                 const sourceList = [...availableList];
                 const destList = [...addedList];
-                const [removed] = sourceList.splice(result.source.index, 1);
+                const [removed] = sourceList.splice(availableIndexOf(availableList, result.source.index), 1);
+                if (removed === undefined) {
+                    return;
+                }
                 destList.splice(destination.index, 0, removed);
                 setAvailableList(sourceList);
                 setAddedList(destList);
@@ -411,6 +417,44 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         return optionRenderer ? optionRenderer(option) : option
     };
 
+    const isVisibleAvailable = (item: AbstractEntity) => (
+        renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase())
+    );
+    // The available column lists only the items matching the search, so its drag indexes count visible items.
+    const visibleAvailableList = availableList.filter(isVisibleAvailable);
+
+    /** Index in the full available list of the visible item at `visibleIndex`; the list length when there is none. */
+    const availableIndexOf = (list: AbstractEntity[], visibleIndex: number): number => {
+        let seen = 0;
+        for (let index = 0; index < list.length; index++) {
+            if (!isVisibleAvailable(list[index])) {
+                continue;
+            }
+            if (seen === visibleIndex) {
+                return index;
+            }
+            seen += 1;
+        }
+        return list.length;
+    };
+
+    /** Where a drop at visible position `visibleIndex` lands: before that visible item, or right after the last one. */
+    const availableInsertIndex = (list: AbstractEntity[], visibleIndex: number): number => {
+        let seen = 0;
+        let lastVisible = -1;
+        for (let index = 0; index < list.length; index++) {
+            if (!isVisibleAvailable(list[index])) {
+                continue;
+            }
+            if (seen === visibleIndex) {
+                return index;
+            }
+            seen += 1;
+            lastVisible = index;
+        }
+        return lastVisible >= 0 ? lastVisible + 1 : list.length;
+    };
+
     const onChangeParentDate = () => {
         let mapped: T[] = [];
         let unmapped: T[] = [];
@@ -493,8 +537,6 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         </Draggable>
     );
 
-    const visibleAvailableList = availableList.filter(item => renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase()));
-
     const HeightPreservingItem: React.FunctionComponent<HTMLAttributes<HTMLDivElement>> = ({children, ...props}) => {
         return (
             <div {...props} style={{minHeight: '32px'}}>
@@ -569,14 +611,14 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                         <ItemEntitySelector
                                             handleClick={() => {
                                                 if (disableMoving !== 'AVAILABLE') {
-                                                    onListChange(availableList[rubric.source.index], 'AVAILABLE');
+                                                    onListChange(visibleAvailableList[rubric.source.index], 'AVAILABLE');
                                                 }
                                             }}
                                             provided={provided}
-                                            item={availableList[rubric.source.index]}
-                                            name={renderOption(availableList[rubric.source.index].displayName)}
+                                            item={visibleAvailableList[rubric.source.index]}
+                                            name={renderOption(visibleAvailableList[rubric.source.index].displayName)}
                                             itemAttributes={getItemAttributes?.(
-                                                availableList[rubric.source.index],
+                                                visibleAvailableList[rubric.source.index],
                                                 'AVAILABLE',
                                             )}
                                         />
