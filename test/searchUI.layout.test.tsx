@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 
-import {CriterionTypeEnum, SearchUIFilters} from '../src'
+import {CriterionTypeEnum, SearchUIFilters, SearchUIProvider, type SearchUIDefaults} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -15,25 +15,27 @@ const precedes = (first: Element | null | undefined, second: Element | null | un
     first && second && (first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING),
 )
 
-const renderFilters = (scope: string, {allRemovable = false} = {}) => {
+const renderFilters = (
+    scope: string,
+    {allRemovable = false, defaults}: {allRemovable?: boolean, defaults?: Partial<SearchUIDefaults>} = {},
+) => {
     const onFiltersUpdate = jest.fn()
-    const utils = render(
-        <SearchUIFilters
-            autoTestId={scope}
-            settingsContextName={`${scope}-context`}
-            // THREE_D stays available, so the Add filter button has something to offer.
-            possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D]}
-            predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
-            initialSearchConditions={{status: 'ENABLED'}}
-            onFiltersUpdate={onFiltersUpdate}
-            config={{
-                manualSearch: true,
-                removablePredefinedCriteria: allRemovable
-                    ? [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]
-                    : [CriterionTypeEnum.CURRENCY],
-            }}
-        />,
-    )
+    const filters = <SearchUIFilters
+        autoTestId={scope}
+        settingsContextName={`${scope}-context`}
+        // THREE_D stays available, so the Add filter button has something to offer.
+        possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D]}
+        predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
+        initialSearchConditions={{status: 'ENABLED'}}
+        onFiltersUpdate={onFiltersUpdate}
+        config={{
+            manualSearch: true,
+            removablePredefinedCriteria: allRemovable
+                ? [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]
+                : [CriterionTypeEnum.CURRENCY],
+        }}
+    />
+    const utils = render(defaults ? <SearchUIProvider defaults={defaults}>{filters}</SearchUIProvider> : filters)
     const root = () => utils.container.querySelector<HTMLElement>(
         `[data-autotest="search-filters"][data-autotest-value="${scope}"]`,
     )
@@ -82,7 +84,10 @@ describe('SearchUIFilters layout', () => {
         fireEvent.click(toggle as HTMLButtonElement)
 
         expect(toggle?.getAttribute('aria-expanded')).toBe('false')
-        expect(panel?.hidden).toBe(true)
+        // The rows fold with a transition and leave the DOM once it is over.
+        await waitFor(() => {
+            expect(panel?.hidden).toBe(true)
+        })
         expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
         expect(scope.querySelector('[data-autotest="toggle-filters"]')).not.toBeNull()
         expect(scope.querySelector('[data-autotest="templates"]')).not.toBeNull()
@@ -90,8 +95,66 @@ describe('SearchUIFilters layout', () => {
 
         fireEvent.click(toggle as HTMLButtonElement)
 
-        expect(panel?.hidden).toBe(false)
+        expect(toggle?.getAttribute('aria-expanded')).toBe('true')
+        await waitFor(() => {
+            expect(panel?.hidden).toBe(false)
+        })
         expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
+    })
+
+    it('remembers the fold with the host and opens folded when the host says so', async () => {
+        const getSearchFiltersCollapsed = jest.fn().mockResolvedValue(true)
+        const saveSearchFiltersCollapsed = jest.fn().mockResolvedValue(undefined)
+        const {onFiltersUpdate, root} = renderFilters('layout-folded', {
+            defaults: {getSearchFiltersCollapsed, saveSearchFiltersCollapsed},
+        })
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        expect(getSearchFiltersCollapsed).toHaveBeenCalledWith('layout-folded-context')
+        // Folded from the first render: no rows, the count in the pill.
+        expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
+        const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
+        expect(toggle.getAttribute('aria-expanded')).toBe('false')
+        expect(toggle.querySelector('[data-autotest="filters-count"]')?.textContent).toBe('2')
+
+        fireEvent.click(toggle)
+        expect(saveSearchFiltersCollapsed).toHaveBeenCalledWith({contextName: 'layout-folded-context', collapsed: false})
+        await waitFor(() => {
+            expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
+        })
+
+        fireEvent.click(toggle)
+        expect(saveSearchFiltersCollapsed).toHaveBeenLastCalledWith({contextName: 'layout-folded-context', collapsed: true})
+        expect(saveSearchFiltersCollapsed).toHaveBeenCalledTimes(2)
+    })
+
+    it('opens expanded and carries on when the host cannot answer about the fold', async () => {
+        const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+        const {onFiltersUpdate, root} = renderFilters('layout-fold-unavailable', {
+            defaults: {
+                getSearchFiltersCollapsed: jest.fn().mockRejectedValue(new Error('older server')),
+                saveSearchFiltersCollapsed: jest.fn().mockRejectedValue(new Error('older server')),
+            },
+        })
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
+        fireEvent.click(scope.querySelector('[data-autotest="toggle-filters"]') as HTMLButtonElement)
+        await waitFor(() => {
+            expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
+        })
+        await waitFor(() => {
+            expect(warn).toHaveBeenCalledTimes(2)
+        })
+        warn.mockRestore()
     })
 
     it('puts the cross and the eraser between the name and the value, the cross first', async () => {
@@ -168,19 +231,23 @@ describe('SearchUIFilters layout', () => {
         expect(toggle.getAttribute('aria-expanded')).toBe('false')
     })
 
-    it('reads the collapsed count as a number of filters', async () => {
-        const {onFiltersUpdate, root, getByText} = renderFilters('layout-count')
+    it('shows the number of folded criteria inside the toggle and nowhere while expanded', async () => {
+        const {onFiltersUpdate, root} = renderFilters('layout-count')
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
         })
 
         const scope = root() as HTMLElement
-        fireEvent.click(scope.querySelector('[data-autotest="toggle-filters"]') as HTMLButtonElement)
+        const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
+        expect(toggle.querySelector('[data-autotest="filters-count"]')).toBeNull()
 
-        expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
-        expect(getByText('Filters: 2')).toBeTruthy()
-        expect(getByText('2').getAttribute('aria-hidden')).toBe('true')
+        fireEvent.click(toggle)
+
+        expect(toggle.querySelector('[data-autotest="filters-count"]')?.textContent).toBe('2')
+        await waitFor(() => {
+            expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
+        })
     })
 
     it('shows the full name of a criterion in a tooltip only when the column cuts it', async () => {

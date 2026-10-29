@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useId, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {
     CUSTOMER_LEVEL_DEPENDENCIES,
     CriterionTypeEnum,
@@ -15,7 +15,8 @@ import {
     useSearchUIFiltersStore,
     useSearchUIFiltersStoreContext,
 } from './state/store';
-import {Box, Chip, IconButton, SxProps, Tooltip} from '@mui/material';
+import {Box, ButtonBase, SxProps, Tooltip} from '@mui/material';
+import {alpha, type Theme} from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import isEqual from 'lodash/isEqual';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
@@ -45,6 +46,7 @@ import {
     rememberLastSearchUITemplateName,
 } from './templateStorage';
 import {createAutoTestAttributes} from '../../AutoTestAttribute';
+import {readSearchUIFiltersCollapsed, rememberSearchUIFiltersCollapsed} from './collapsedStorage';
 import {SearchUIAutoTestScopeProvider} from './AutoTestScope';
 import {
     assertValidMaxRangeSpanInDays,
@@ -61,6 +63,9 @@ import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled';
 
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
+const FILTERS_COUNT_AUTOTEST_ID = 'filters-count';
+/** The fold transition of the criteria rows; the fallback timer runs a little longer. */
+const COLLAPSE_DURATION_MS = 200
 const CLEAR_FILTERS_AUTOTEST_ID = 'clear-all';
 const RUN_SEARCH_AUTOTEST_ID = 'run-search';
 
@@ -310,6 +315,29 @@ type SearchUIFiltersBootstrapResult = {
     templates?: SearchUITemplate[]
     initialTemplate?: SearchUITemplate
     loadTemplatesInBackground: boolean
+    /** The user folded this panel last time, per the host store. */
+    collapsed?: boolean
+}
+
+/**
+ * Joins the host's answer about the fold to the bootstrap: a synchronous answer keeps a
+ * synchronous bootstrap synchronous, a promise makes the first render wait for it, so the
+ * panel never opens expanded and folds a moment later.
+ */
+const withCollapsed = (
+    work: SearchUIFiltersBootstrapWork,
+    collapsed: boolean | Promise<boolean>,
+): SearchUIFiltersBootstrapWork => {
+    if (!(collapsed instanceof Promise)) {
+        return work.status === 'ready'
+            ? {status: 'ready', result: {...work.result, collapsed}}
+            : {status: 'pending', promise: work.promise.then(result => ({...result, collapsed}))}
+    }
+    const resultPromise = work.status === 'ready' ? Promise.resolve(work.result) : work.promise
+    return {
+        status: 'pending',
+        promise: Promise.all([resultPromise, collapsed]).then(([result, folded]) => ({...result, collapsed: folded})),
+    }
 }
 
 type SearchUIFiltersBootstrapWork =
@@ -334,7 +362,7 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
     useEffect(() => {
         let active = true
 
-        bootstrapWorkRef.current ??= (() => {
+        bootstrapWorkRef.current ??= withCollapsed((() => {
             const hasExternalSearchConditions = searchConditions !== undefined
                 && Object.keys(searchConditions).length > 0
             const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
@@ -425,7 +453,7 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
                         }
                     }),
             }
-        })()
+        })(), config?.hideShowFiltersButton ? false : readSearchUIFiltersCollapsed(defaults, settingsContextName))
 
         const bootstrapWork = bootstrapWorkRef.current
         if (bootstrapWork.status === 'pending') {
@@ -462,6 +490,65 @@ type InitializedSearchUIFiltersContentProps = SearchUIFiltersProps & {
     templates?: SearchUITemplate[]
     initialTemplate?: SearchUITemplate
     loadTemplatesInBackground: boolean
+    collapsed?: boolean
+}
+
+/**
+ * `mounting`: the rows are in the DOM at zero height; `opening`: the height grows; `open`: at
+ * rest, the panel no longer clips; `closing`: the height shrinks; `closed`: the rows are gone.
+ */
+type CollapsiblePhase = 'closed' | 'mounting' | 'opening' | 'open' | 'closing'
+
+/**
+ * The criteria rows fold with a height transition on the panel. They stay mounted while the
+ * panel closes and leave the DOM once it is shut, as they did before the animation; on opening
+ * they mount at zero height, that height is laid out, and the next frame lets it grow. Without a
+ * transition end (reduced motion, jsdom) a timer finishes the phase.
+ */
+const useCollapsibleRows = (shown: boolean, panelRef: React.RefObject<HTMLDivElement | null>) => {
+    const [phase, setPhase] = useState<CollapsiblePhase>(shown ? 'open' : 'closed')
+
+    // Before the paint, so the zero-height rows never show at full height for a frame.
+    useLayoutEffect(() => {
+        setPhase(current => {
+            if (shown) {
+                return current === 'open' || current === 'opening' ? current : 'mounting'
+            }
+            return current === 'closed' ? current : 'closing'
+        })
+    }, [shown])
+
+    useEffect(() => {
+        if (phase === 'mounting') {
+            const frame = requestAnimationFrame(() => {
+                // The zero-height state must be laid out before the growth, or nothing animates.
+                void panelRef.current?.offsetHeight
+                setPhase(current => current === 'mounting' ? 'opening' : current)
+            })
+            return () => cancelAnimationFrame(frame)
+        }
+        if (phase === 'opening' || phase === 'closing') {
+            const timer = setTimeout(
+                () => setPhase(current => current === phase ? (phase === 'opening' ? 'open' : 'closed') : current),
+                COLLAPSE_DURATION_MS + 50,
+            )
+            return () => clearTimeout(timer)
+        }
+        return undefined
+    }, [phase, panelRef])
+
+    const onTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+        if (event.target !== event.currentTarget || event.propertyName !== 'grid-template-rows') {
+            return
+        }
+        setPhase(current => {
+            if (current === 'opening') return 'open'
+            if (current === 'closing') return 'closed'
+            return current
+        })
+    }
+
+    return {phase, onTransitionEnd}
 }
 
 const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersContentProps) => {
@@ -484,6 +571,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         templates,
         initialTemplate,
         loadTemplatesInBackground,
+        collapsed = false,
     } = props
 
     const defaults = useContext(SearchUIDefaultsContext)
@@ -523,7 +611,9 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const filtersState = useSearchUIFiltersStore(s => s)
     const validationResult = useSearchUIFiltersStore(s => s.validationResult)
 
-    const [showFilters, setShowFilters] = useState(true)
+    const [showFilters, setShowFilters] = useState(!collapsed)
+    const panelRef = useRef<HTMLDivElement | null>(null)
+    const {phase, onTransitionEnd} = useCollapsibleRows(showFilters, panelRef)
     const filtersPanelId = useId()
     const initializedRef = useRef(false)
     const synchronizedExternalConditionsRef = useRef(searchConditionsState)
@@ -637,44 +727,46 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const toggleHint = showFilters
         ? t('react.searchUI.filters.hide', {defaultValue: 'Hide filters'})
         : t('react.searchUI.filters.show', {defaultValue: 'Show filters'})
-    const filtersCountLabel = t('react.searchUI.filters.count', {
-        defaultValue: 'Filters: {{count}}',
-        count: criteria.length,
-    })
+    // The fold is remembered by the host per user and context; expanding through Add filter counts too.
+    const setFiltersShown = (shown: boolean) => {
+        if (shown === showFilters) {
+            return
+        }
+        setShowFilters(shown)
+        void rememberSearchUIFiltersCollapsed(defaults, settingsContextName, !shown)
+    }
 
     // Nothing to fold without criteria: the chevron waits for the first one, which Add filter unfolds.
+    // One pill holds the chevron and, while folded, the number of criteria: one target, easy to hit.
     const toggleButton = hideShowFiltersButton || !someCriteriaAdded ? null : <Tooltip
         disableInteractive
         enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         title={toggleHint}
     >
-        <IconButton
+        <ButtonBase
             {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
-            onClick={() => setShowFilters(prev => !prev)}
-            size={'small'}
-            color={'primary'}
+            onClick={() => setFiltersShown(!showFilters)}
+            // The hover tint and the focus ring do the feedback; a round ripple sits badly in a pill.
+            disableRipple
             aria-label={filtersLabel}
             aria-controls={filtersPanelId}
             aria-expanded={showFilters}
+            sx={toggleSx}
         >
             <ExpandMoreIcon
                 fontSize={'small'}
                 sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
             />
-        </IconButton>
+            {showFiltersCountChip ? <Box
+                {...createAutoTestAttributes(FILTERS_COUNT_AUTOTEST_ID)}
+                component={'span'}
+                sx={filtersCountSx}
+            >
+                {criteria.length}
+            </Box> : null}
+        </ButtonBase>
     </Tooltip>
-    // A bare number says nothing to a screen reader: it reads the hidden text instead.
-    const countChip = showFiltersCountChip ? <Chip
-        size={'small'}
-        color={'primary'}
-        variant={'outlined'}
-        label={<>
-            <span aria-hidden={true}>{criteria.length}</span>
-            <Box component={'span'} sx={visuallyHiddenSx}>{filtersCountLabel}</Box>
-        </>}
-        sx={nowrapChipSx}
-    /> : null
     const clearAllButton = showClearAllButton ? <PneButton
         {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
         onClick={resetToDefaults}
@@ -688,7 +780,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
         options={criteriaOptions}
         onChange={criterion => {
-            setShowFilters(true)
+            setFiltersShown(true)
             addCriterion(criterion)
         }}
     /> : null
@@ -704,7 +796,8 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             ? t('react.searchUI.search')
             : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
     </PneButton> : null
-    const criteriaRows = showFilters ? criteria.map((criterion) =>
+    const rowsMounted = phase !== 'closed'
+    const criteriaRows = rowsMounted ? criteria.map((criterion) =>
         <CriterionContainer
             disabled={disabledCriteriaSet.has(criterion)}
             key={criterion}
@@ -713,14 +806,14 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     ) : null
 
     // No title bar: the criteria rows and the actions row share one grid, so the actions line up
-    // with the values column. The collapsible panel wraps the rows without a box of its own, and
-    // the actions row stays outside it, so the chevron survives the collapse.
+    // with the values column. The collapsible panel passes the columns through, and the actions
+    // row stays outside it, so the chevron survives the collapse.
     const hasActions = Boolean(
-        toggleButton || countChip || clearAllButton || templatesMenu || addFilterButton || searchButton,
+        toggleButton || clearAllButton || templatesMenu || addFilterButton || searchButton,
     )
     // Without rows on screen there is no values column to line up with: the chevron, the count and
     // the actions follow each other instead of leaving the empty name and icon columns between them.
-    const rowsShown = showFilters && criteria.length > 0
+    const rowsShown = rowsMounted && criteria.length > 0
 
     return <SearchUIAutoTestScopeProvider scope={autoTestId}>
         <Box
@@ -729,13 +822,20 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             aria-label={filtersLabel}
             sx={rootSx}
         >
-            <Box id={filtersPanelId} hidden={!showFilters} sx={panelSx}>
-                {criteriaRows}
+            <Box
+                id={filtersPanelId}
+                ref={panelRef}
+                hidden={!rowsMounted}
+                onTransitionEnd={onTransitionEnd}
+                sx={getPanelSx(phase)}
+            >
+                <Box sx={panelInnerSx}>
+                    {criteriaRows}
+                </Box>
             </Box>
             {hasActions ? <Box sx={rowsShown ? actionsRowSx : compactActionsRowSx}>
                 <Box sx={actionsLeadSx}>
                     {toggleButton}
-                    {countChip}
                 </Box>
                 <Box sx={actionsSx}>
                     {clearAllButton}
@@ -752,8 +852,48 @@ const nowrapButtonSx: SxProps = {
     whiteSpace: 'nowrap',
 }
 
-const nowrapChipSx: SxProps = {
-    whiteSpace: 'nowrap',
+// The fold toggle: a 28px pill with the chevron and, folded, the count; the hit area reaches
+// 40px tall and 4px past the pill on each side.
+const toggleSx: SxProps<Theme> = {
+    position: 'relative',
+    display: 'inline-flex',
+    alignItems: 'center',
+    columnGap: '4px',
+    height: '28px',
+    minWidth: '28px',
+    px: '6px',
+    borderRadius: '4px',
+    color: 'primary.main',
+    '&:hover': {
+        backgroundColor: theme => alpha(theme.palette.primary.main, 0.1),
+    },
+    '&.Mui-focusVisible': {
+        outline: theme => `2px solid ${theme.palette.primary.main}`,
+        outlineOffset: '1px',
+    },
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: '-6px',
+        right: '-4px',
+        bottom: '-6px',
+        left: '-4px',
+    },
+}
+
+const filtersCountSx: SxProps = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    boxSizing: 'border-box',
+    minWidth: '20px',
+    height: '20px',
+    px: '5px',
+    borderRadius: '10px',
+    border: '1px solid currentColor',
+    fontSize: '12px',
+    fontWeight: 700,
+    lineHeight: 1,
 }
 
 // On phones the main button takes the rest of its line, alone or after the others.
@@ -775,11 +915,40 @@ const rootSx: SxProps = {
     },
 }
 
-// The rows are grid items of the root; `hidden` must still win over `display: contents`.
-const panelSx: SxProps = {
-    display: 'contents',
+// The panel is a row of the root grid that passes the columns through and folds by animating its
+// single row track between 0fr and 1fr; the inner box may shrink to nothing, so the fold clips.
+// Only at rest and open does the panel stop clipping, for the focus rings at its edges.
+const getPanelSx = (phase: CollapsiblePhase): SxProps<Theme> => ({
+    gridColumn: '1 / -1',
+    display: 'grid',
+    gridTemplateColumns: 'subgrid',
+    gridTemplateRows: phase === 'opening' || phase === 'open' ? '1fr' : '0fr',
+    overflow: phase === 'open' ? 'visible' : 'hidden',
+    transition: `grid-template-rows ${COLLAPSE_DURATION_MS}ms ease`,
+    '@media (prefers-reduced-motion: reduce)': {
+        transition: 'none',
+    },
     '&[hidden]': {
         display: 'none',
+    },
+    [SEARCH_UI_FILTERS_NO_SUBGRID]: {
+        gridTemplateColumns: 'minmax(0, 1fr)',
+    },
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        gridTemplateColumns: 'minmax(0, 1fr)',
+    },
+})
+
+const panelInnerSx: SxProps = {
+    gridColumn: '1 / -1',
+    display: 'grid',
+    gridTemplateColumns: 'subgrid',
+    minHeight: 0,
+    [SEARCH_UI_FILTERS_NO_SUBGRID]: {
+        gridTemplateColumns: 'minmax(0, 1fr)',
+    },
+    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
+        gridTemplateColumns: 'minmax(0, 1fr)',
     },
 }
 
@@ -839,17 +1008,6 @@ const actionsSx: SxProps = {
     },
 }
 
-const visuallyHiddenSx: SxProps = {
-    border: 0,
-    clip: 'rect(0 0 0 0)',
-    height: '1px',
-    margin: '-1px',
-    overflow: 'hidden',
-    padding: 0,
-    position: 'absolute',
-    whiteSpace: 'nowrap',
-    width: '1px',
-}
 
 
 /**

@@ -46,6 +46,12 @@ export type SaveLastSearchUITemplateNameRequest = {
     templateName: string | null
 }
 
+export type SaveSearchUIFiltersCollapsedRequest = {
+    contextName: string
+    /** `true` keeps the criteria rows folded away; `false` is the default and forgets the context. */
+    collapsed: boolean
+}
+
 type GetProjectCurrenciesRequest = {
     searchConditions: CriterionTypeEnum[]
     multigetCriteria: MultigetCriterion[]
@@ -105,6 +111,16 @@ export type SearchUIDefaults = {
      */
     getLastSearchTemplateName?: (contextName: string) => Promise<string | null>
     saveLastSearchTemplateName?: (request: SaveLastSearchUITemplateNameRequest) => Promise<void>
+    /**
+     * Host storage of whether the user folded the filters panel of a settings context, e.g. on
+     * the server per user next to the last chosen template name. Optional, and the two callbacks
+     * go together: without them the panel opens expanded on every mount and the fold lives in
+     * memory only. Resolve with `null` or `false` when nothing is remembered (expanded). A
+     * rejected call means the host cannot store the state right now: that mount keeps the
+     * state in memory and carries on.
+     */
+    getSearchFiltersCollapsed?: (contextName: string) => Promise<boolean | null>
+    saveSearchFiltersCollapsed?: (request: SaveSearchUIFiltersCollapsedRequest) => Promise<void>
     getProjectAvailableCurrencies: (request: GetProjectCurrenciesRequest) => Promise<AutoCompleteChoiceWithStatus[]>
     getCardTypes: () => Promise<AbstractEntity[]>
     getCurrencies: () => Promise<AbstractEntity[]>

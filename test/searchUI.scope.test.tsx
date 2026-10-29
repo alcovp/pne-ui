@@ -310,7 +310,10 @@ describe('SearchUI autotest scope', () => {
         fireEvent.click(toggleFilters as HTMLButtonElement)
 
         expect(toggleFilters?.getAttribute('aria-expanded')).toBe('false')
-        expect(controlledPanel?.hidden).toBe(true)
+        // The rows fold with a transition and leave the DOM once it is over.
+        await waitFor(() => {
+            expect(controlledPanel?.hidden).toBe(true)
+        })
         expect(ordersScope.querySelector('[data-autotest="criterion"]')).toBeNull()
     })
 

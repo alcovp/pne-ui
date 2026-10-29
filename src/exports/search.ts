@@ -64,6 +64,7 @@ export {
 export {
     SearchUIProvider,
     type SaveLastSearchUITemplateNameRequest,
+    type SaveSearchUIFiltersCollapsedRequest,
     type SearchUIDefaults,
 } from '../component/search-ui/SearchUIProvider'
 export {

@@ -30,7 +30,6 @@ i18nForStorybook
                     'react.searchUI.filters': 'Filters',
                     'react.searchUI.filters.show': 'Show filters',
                     'react.searchUI.filters.hide': 'Hide filters',
-                    'react.searchUI.filters.count': 'Filters: {{count}}',
                     'react.searchUI.criterion.clear': 'Clear filter',
                     'react.searchUI.criterion.remove': 'Remove filter',
                     'react.searchUI.search': 'Search',
