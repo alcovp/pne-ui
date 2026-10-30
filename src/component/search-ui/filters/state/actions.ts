@@ -1793,7 +1793,10 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         projectCurrencyId: state.projectCurrency.currency.id,
         projectCurrencyConvert: state.projectCurrency.convertToUserCurrency,
         groupTypes: extractGroupTypes(state.grouping),
-        multigetCriteria: state.multigetCriteria,
+        // Only what the user sees: a selection without its criterion never reaches the search.
+        multigetCriteria: state.multigetCriteria.filter(selection => (
+            isLinkedEntityCriterionActive(state.criteria, selection.entityType)
+        )),
         recurrenceTypes: extractEntitiesIds(state.recurrenceTypes),
         recurrenceStatuses: extractEntitiesIds(state.recurrenceStatuses),
         mfoConfigurationTypes: extractEntitiesIds(state.mfoConfigurationTypes),

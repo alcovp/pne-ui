@@ -1527,6 +1527,25 @@ describe('SearchUIFilters Zustand store', () => {
             }
         })
 
+        it('sends only the selections of active criteria', () => {
+            store.setState({
+                criteria: [CriterionTypeEnum.STATUS],
+                multigetCriteria: [{
+                    entityType: LinkedEntityTypeEnum.GATE,
+                    filterType: MultichoiceFilterTypeEnum.NONE,
+                    searchString: '',
+                    selectedItems: '1',
+                    selectedItemNames: 'Gate 1',
+                    deselectedItems: '',
+                    deselectedItemNames: '',
+                }],
+            })
+
+            store.getState().triggerSearch()
+
+            expect(store.getState().appliedSearchCriteria?.multigetCriteria).toEqual([])
+        })
+
         it('setMultigetCriterion adds the entry of an active criterion and drops the one of an absent criterion', () => {
             const gate = {
                 entityType: LinkedEntityTypeEnum.GATE,
