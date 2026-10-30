@@ -96,7 +96,7 @@ describe('PneTable control size', () => {
         expect(window.getComputedStyle(toolbar).minHeight).toBe('32px')
     })
 
-    it('wraps the toolbar groups and the selection controls onto rows 4px apart', () => {
+    it('wraps the toolbar groups onto rows 4px apart and keeps everything of the selection 4px apart', () => {
         const {container} = renderTable({
             paginator,
             toolbar: <PneTableToolbar
@@ -109,7 +109,7 @@ describe('PneTable control size', () => {
         expect(window.getComputedStyle(container.querySelector('[data-autotest="table-control-bar"]') as Element).gap)
             .toBe('4px 8px')
         expect(window.getComputedStyle(container.querySelector('[data-autotest="selection-controls"]') as Element).gap)
-            .toBe('4px 8px')
+            .toBe('4px')
     })
 
     it('draws the column settings icon as a 32px square', () => {

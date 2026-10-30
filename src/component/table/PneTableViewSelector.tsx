@@ -17,6 +17,7 @@ import {
     TABLE_CONTROL_TEXT_COLOR,
 } from './tableControlColors'
 import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from './tableControlMetrics'
+import {createTableControlTextButtonStyle} from './tableControlButtonStyle'
 
 const TABLE_VIEWS_AUTOTEST_ID = 'table-views'
 const TABLE_VIEW_AUTOTEST_ID = 'table-view'
@@ -87,19 +88,13 @@ const viewButtonSx: SxProps<Theme> = theme => {
     const controlTextColor = theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR
 
     return {
+        ...createTableControlTextButtonStyle(theme),
         border: 0,
         borderRadius: '4px !important',
-        color: controlTextColor,
         flex: '1 1 auto',
-        fontWeight: 'bold',
-        height: `${TABLE_CONTROL_SIZE}px`,
-        letterSpacing: '0.46px',
-        lineHeight: '22px',
         minWidth: 0,
         overflow: 'hidden',
-        padding: '0 10px',
         textOverflow: 'ellipsis',
-        textTransform: 'none',
         whiteSpace: 'nowrap',
         [`&.${toggleButtonClasses.selected}`]: {
             backgroundColor: activeBackgroundColor,
@@ -114,10 +109,6 @@ const viewButtonSx: SxProps<Theme> = theme => {
         '&:hover': {
             backgroundColor: activeBackgroundColor,
             borderRadius: '4px',
-        },
-        '&.Mui-focusVisible': {
-            outline: `2px solid ${theme.palette.primary.main}`,
-            outlineOffset: '-2px',
         },
     }
 }

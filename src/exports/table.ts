@@ -8,6 +8,8 @@ export { default as PneTableToolbar } from '../component/table/PneTableToolbar'
 export type { PneTableToolbarProps } from '../component/table/PneTableToolbar'
 export { default as PneTableSelectionControls } from '../component/table/PneTableSelectionControls'
 export type { PneTableSelectionControlsProps } from '../component/table/PneTableSelectionControls'
+export { default as PneTableControlButton } from '../component/table/PneTableControlButton'
+export type { PneTableControlButtonProps } from '../component/table/PneTableControlButton'
 export { default as PneTableSelectionCell } from '../component/table/PneTableSelectionCell'
 export type {
     PneTableSelectionCellProps,

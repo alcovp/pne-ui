@@ -123,4 +123,24 @@ describe('PneTableToolbar', () => {
         expect(screen.getByRole('status').textContent).toBe('3 rows selected')
         expect(screen.getByRole('button', {name: 'Clear'})).not.toBeNull()
     })
+
+    it('draws the summary as a 32px grey line and leaves it out while nothing is selected', () => {
+        const {rerender} = render(
+            <PneTableSelectionControls
+                actions={<button type='button'>Select all</button>}
+                summary='Selected: 3'
+            />,
+        )
+
+        const summary = window.getComputedStyle(screen.getByRole('status'))
+        expect(summary.minHeight).toBe('32px')
+        expect(summary.fontSize).toBe('14px')
+        expect(summary.color).toBe('rgb(92, 92, 92)')
+
+        rerender(<PneTableSelectionControls actions={<button type='button'>Select all</button>}/>)
+
+        expect(screen.queryByRole('status')).toBeNull()
+        expect(document.querySelector('[data-autotest="selection-summary"]')).toBeNull()
+        expect(screen.getByRole('button', {name: 'Select all'})).not.toBeNull()
+    })
 })

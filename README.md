@@ -540,6 +540,14 @@ DOM-позиции или пользовательских/секретных д
 а строки, на которые полоса переносится на узком экране, — через 4px. Иконки в квадратах 16px;
 кнопки-иконки, которые хост кладёт в `actions` вида, библиотека приводит к тем же 32px.
 
+Свои кнопки полосы (выбор строк, меню массовых действий) — `PneTableControlButton`: текстовая кнопка 32px как
+вид `PneTableViewSelector` (жирная подпись серым `pne.control.foreground`, без рамки и тени, серая подложка
+при наведении, кольцо фокуса внутри), цвета скина не берёт. `menu` добавляет шеврон 16px, `emphasis='strong'`
+даёт включённой кнопке тёмно-серый `pne.control.foregroundHover` (главное действие выбора), выключенная —
+светло-серая `pne.control.foregroundDisabled` при любом `emphasis`. `PneTableSelectionControls` ставит всё через
+4px; счётчик (`summary`) — строка 32px, 14px тёмно-серым; без `summary` его нет вовсе, так что пока ничего не
+выбрано, его можно не передавать.
+
 #### Выбор строк
 
 `useTableSelection` хранит выбор в одной из двух взаимоисключающих форм:
@@ -967,7 +975,7 @@ assertEquals("true", enabled.getAttribute("aria-pressed"));
 | Общая полоса контролов | `[data-autotest="table-control-bar"]` | Раскладка определяется CSS; состояние в атрибуте не публикуется |
 | Выбор текущей страницы | `input[data-autotest="page-selection"]` | Native `checked`, `disabled`, `aria-checked="mixed"` |
 | Выбор строки | `input[data-autotest="row-selection"]` | Native `checked`, `disabled`; consumer может задать `autoTestId`/`autoTestValue` |
-| Selection summary/actions | `[data-autotest="selection-summary"]`, `[data-autotest="selection-actions"]` | Summary является polite live status; `selection-actions` — прозрачная группа (`display: contents`) без собственного бокса, действия внутри неё надо адресовать напрямую |
+| Selection summary/actions | `[data-autotest="selection-summary"]`, `[data-autotest="selection-actions"]` | Summary является polite live status и есть только тогда, когда страница его передаёт (обычно — пока что-то выбрано); `selection-actions` — прозрачная группа (`display: contents`) без собственного бокса, действия внутри неё надо адресовать напрямую |
 | Пустой результат | `[data-autotest="empty-state"]` | Наличие существующей empty row |
 | Загрузка | Semantic `table` | `aria-busy="true|false"` |
 | Активная сортировка | `th[aria-sort="ascending"], th[aria-sort="descending"]` | Значение `aria-sort` |
