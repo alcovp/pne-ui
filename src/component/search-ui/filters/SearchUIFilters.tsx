@@ -728,7 +728,9 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             : t('react.searchUI.default.restored', {defaultValue: 'Default filters restored'}),
     })
 
-    useEffect(() => {
+    // Before the paint: the store gets its criteria in the same frame as the panel, so the panel never
+    // shows its actions row alone for a moment before the rows (or after a skeleton with rows).
+    useLayoutEffect(() => {
         if (initializedRef.current) {
             return
         }
