@@ -1,7 +1,6 @@
 import React from 'react'
 import { CriterionTypeEnum, LinkedEntityTypeEnum } from './types'
-import { Box, SxProps } from '@mui/material'
-import type { Theme } from '@mui/material/styles'
+import { Box } from '@mui/material'
 import { ExactSearchCriterion } from './component/criterion/ExactSearchCriterion'
 import { StatusCriterion } from './component/criterion/StatusCriterion'
 import { OtpStatusCriterion } from './component/criterion/OtpStatusCriterion'
@@ -37,12 +36,11 @@ import { TransactionRecurrentFilterCriterion } from './component/criterion/Trans
 import { TimeZoneCriterion } from './component/criterion/TimeZoneCriterion'
 import { CsvCharsetCriterion } from './component/criterion/CsvCharsetCriterion'
 import {
-    SEARCH_UI_FILTERS_COLUMN_GAP,
-    SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
-    SEARCH_UI_FILTERS_NO_SUBGRID,
-    SEARCH_UI_FILTERS_PHONE_MEDIA,
-} from './layout'
-import {searchUIFocusRingSx} from './styled'
+    criterionActionsWrapperSx,
+    criterionContentWrapperSx,
+    criterionLeftWrapperSx,
+    criterionSx,
+} from './criterionRowSx'
 
 const CRITERION_AUTOTEST_ID = 'criterion'
 
@@ -217,61 +215,6 @@ export const CriterionContainer = (props: IProps) => {
     </SearchUICriterionAutoTestScopeProvider>
 }
 
-const CRITERION_FOCUS_SELECTOR = [
-    '& .MuiFilledInput-root.Mui-focused',
-    '& .MuiPickersInputBase-root.Mui-focused',
-    '& .MuiAutocomplete-root .MuiOutlinedInput-root.Mui-focused',
-    '& .MuiChip-clickable.Mui-focusVisible',
-    '& .MuiLink-root.MuiLink-button.Mui-focusVisible',
-].join(', ')
-
-// One row of the panel grid: a subgrid shares the root's name, icons and values columns. The
-// separator is the table's row line, so dark mode gets its colour; without the PNE theme the light
-// one stands in.
-const criterionSx: SxProps<Theme> = {
-    gridColumn: '1 / -1',
-    display: 'grid',
-    gridTemplateColumns: 'subgrid',
-    alignItems: 'center',
-    minHeight: '40px',
-    borderTop: theme => `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
-    // One focus mark for the controls of every criterion: the pill inputs, the date fields, the
-    // autocomplete fields, the clickable chips and the link triggers draw the panel's ring; MUI
-    // draws no ring on the first three here (no underline, no border) and its own on the others.
-    [CRITERION_FOCUS_SELECTOR]: searchUIFocusRingSx,
-    [SEARCH_UI_FILTERS_NO_SUBGRID]: {
-        gridTemplateColumns: SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
-        columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,
-    },
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        gridTemplateColumns: 'minmax(0, 1fr) auto',
-        gridTemplateAreas: `
-            "left right"
-            "content content"
-        `,
-        columnGap: '8px',
-        rowGap: '8px',
-        paddingTop: '8px',
-        paddingBottom: '8px',
-    },
-}
-
-const criterionLeftWrapperSx: SxProps = {
-    display: 'flex',
-    alignItems: 'center',
-    minWidth: 0,
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        gridArea: 'left',
-    },
-}
-
-const criterionContentWrapperSx = {
-    minWidth: 0,
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        gridArea: 'content',
-    },
-}
-
 const criterionFieldsetSx = {
     border: 0,
     margin: 0,
@@ -284,12 +227,3 @@ const disabledCriterionContentSx = {
     pointerEvents: 'none',
 }
 
-// The icons column: a lone eraser keeps to the value side, the cross sits left of it.
-const criterionActionsWrapperSx: SxProps = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        gridArea: 'right',
-    },
-}

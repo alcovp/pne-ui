@@ -54,12 +54,18 @@ import {
     type SearchUIValidationResult,
 } from './validation';
 import {
-    SEARCH_UI_FILTERS_COLUMN_GAP,
-    SEARCH_UI_FILTERS_COLUMNS,
-    SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
     SEARCH_UI_FILTERS_NO_SUBGRID,
     SEARCH_UI_FILTERS_PHONE_MEDIA,
 } from './layout';
+import {
+    actionsLeadSx,
+    actionsRowSx,
+    actionsSx,
+    compactActionsRowSx,
+    rootSx,
+    searchButtonSx,
+} from './panelSx';
+import {SearchUIFiltersSkeleton, type SearchUIFiltersSkeletonAction} from './SearchUIFiltersSkeleton';
 import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled';
 
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
@@ -329,7 +335,7 @@ const RestrictedTransactionTypesSearchUIFiltersContent = (
     }
 
     if (loadState.status === 'loading') {
-        return null
+        return <SearchUIFiltersLoading {...filtersProps}/>
     }
 
     return <SearchUIFiltersBootstrap
@@ -392,10 +398,10 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
     const bootstrapWorkRef = useRef<SearchUIFiltersBootstrapWork | null>(null)
     const [bootstrapResult, setBootstrapResult] = useState<SearchUIFiltersBootstrapResult | null>(null)
 
-    useEffect(() => {
-        let active = true
-
-        bootstrapWorkRef.current ??= withCollapsed((() => {
+    // The work starts on the first render: whatever the host already knows (peeks, no remembered set)
+    // makes it ready at once, and the panel shows on its first frame instead of a promise round later.
+    if (bootstrapWorkRef.current === null) {
+        bootstrapWorkRef.current = withCollapsed((() => {
             const hasExternalSearchConditions = searchConditions !== undefined
                 && Object.keys(searchConditions).length > 0
             const implied = resolveImpliedCriteria(
@@ -492,33 +498,77 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
                     }),
             }
         })(), config?.hideShowFiltersButton ? false : readSearchUIFiltersCollapsed(defaults, settingsContextName))
+    }
+    // The keyed store provider remounts this subtree when the search context changes, so the work of
+    // one mount never serves another; the ref also survives the StrictMode effect replay.
+    const bootstrapWork = bootstrapWorkRef.current
 
-        const bootstrapWork = bootstrapWorkRef.current
-        if (bootstrapWork.status === 'pending') {
-            bootstrapWork.promise.then(result => {
-                if (active) {
-                    setBootstrapResult(result)
-                }
-            })
-        } else {
-            setBootstrapResult(bootstrapWork.result)
+    useEffect(() => {
+        if (bootstrapWork.status !== 'pending') {
+            return
         }
+
+        let active = true
+        bootstrapWork.promise.then(result => {
+            if (active) {
+                setBootstrapResult(result)
+            }
+        })
 
         return () => {
             active = false
         }
-        // The keyed store provider remounts this subtree when the search context changes.
-        // The promise ref deliberately survives the StrictMode effect replay.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [])
+    }, [bootstrapWork])
 
-    if (bootstrapResult === null) {
-        return null
+    const result = bootstrapWork.status === 'ready' ? bootstrapWork.result : bootstrapResult
+    if (result === null) {
+        return <SearchUIFiltersLoading {...props}/>
     }
 
     return <InitializedSearchUIFiltersContent
         {...props}
-        {...bootstrapResult}
+        {...result}
+    />
+}
+
+/**
+ * The skeleton in the panel's place while the host answers: folded as the host remembers it when it
+ * already knows (a host still loading gets the open panel), and open with a row per predefined filter,
+ * which the filter set chosen last time may change by a few rows once it arrives.
+ */
+const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
+    const {
+        settingsContextName,
+        possibleCriteria = [],
+        predefinedCriteria = [],
+        initialSearchConditions,
+        config,
+    } = props
+    const defaults = useContext(SearchUIDefaultsContext)
+    const collapsed = !config?.hideShowFiltersButton
+        && defaults.peekSearchFiltersCollapsed?.(settingsContextName) === true
+    const implied = resolveImpliedCriteria(
+        predefinedCriteria,
+        possibleCriteria,
+        toSearchUIConditionsState(initialSearchConditions, 'initialSearchConditions', false),
+    )
+    const rows = filterAvailableCriteria(defaults, implied.predefinedCriteria).length
+    const available = filterAvailableCriteria(defaults, [
+        ...new Set([...possibleCriteria, ...implied.predefinedCriteria]),
+    ]).length
+    // The widths of Saved filters, Add filter and Search in English, the usual language here.
+    const actions: SearchUIFiltersSkeletonAction[] = [
+        ...(config?.hideTemplatesSelect ? [] : [{width: 146}]),
+        ...(available > rows ? [{width: 103}] : []),
+        ...(config?.manualSearch || !config?.hideRefreshButton ? [{width: 80, main: true}] : []),
+    ]
+
+    return <SearchUIFiltersSkeleton
+        actions={actions}
+        autoTestId={props.autoTestId ?? settingsContextName}
+        collapsed={collapsed}
+        rows={rows}
+        toggle={!config?.hideShowFiltersButton && (collapsed || rows > 0)}
     />
 }
 
@@ -977,25 +1027,6 @@ const filtersCountSx: SxProps = {
     lineHeight: 1,
 }
 
-// On phones the main button takes the rest of its line, alone or after the others.
-const searchButtonSx: SxProps = {
-    whiteSpace: 'nowrap',
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        flexGrow: 1,
-    },
-}
-
-const rootSx: SxProps = {
-    px: '16px',
-    display: 'grid',
-    gridTemplateColumns: SEARCH_UI_FILTERS_COLUMNS,
-    columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,
-    alignItems: 'center',
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        gridTemplateColumns: 'minmax(0, 1fr)',
-    },
-}
-
 // The panel is a row of the root grid that passes the columns through and folds by animating its
 // single row track between 0fr and 1fr; the inner box may shrink to nothing, so the fold clips.
 // Only at rest and open does the panel stop clipping, for the focus rings at its edges.
@@ -1032,64 +1063,6 @@ const panelInnerSx: SxProps = {
         gridTemplateColumns: 'minmax(0, 1fr)',
     },
 }
-
-// Phones: one flow from the chevron to the last action, wrapped as the width allows; the lead and
-// actions boxes dissolve into it.
-const phoneActionsRowSx = {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-}
-
-const actionsRowSx: SxProps = {
-    gridColumn: '1 / -1',
-    display: 'grid',
-    gridTemplateColumns: 'subgrid',
-    alignItems: 'center',
-    py: '6px',
-    [SEARCH_UI_FILTERS_NO_SUBGRID]: {
-        gridTemplateColumns: SEARCH_UI_FILTERS_FALLBACK_COLUMNS,
-        columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,
-    },
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: phoneActionsRowSx,
-}
-
-// Collapsed rows, or none at all: the actions go right after the chevron and the count.
-const compactActionsRowSx: SxProps = {
-    gridColumn: '1 / -1',
-    display: 'flex',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    columnGap: '16px',
-    rowGap: '8px',
-    py: '6px',
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: phoneActionsRowSx,
-}
-
-const actionsLeadSx: SxProps = {
-    gridColumn: 1,
-    display: 'flex',
-    alignItems: 'center',
-    columnGap: '12px',
-    minWidth: 0,
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        display: 'contents',
-    },
-}
-
-const actionsSx: SxProps = {
-    gridColumn: 3,
-    display: 'flex',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: '8px',
-    minWidth: 0,
-    [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
-        display: 'contents',
-    },
-}
-
-
 
 /**
  * Фильтрует список критериев в соответствии с доступностью, предоставленной настройками по умолчанию.

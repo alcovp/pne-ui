@@ -18,7 +18,10 @@ export const getLastSearchUITemplateStorageKey = (settingsContextName: string): 
     LAST_TEMPLATE_NAME_STORAGE_KEY_PREFIX + settingsContextName
 )
 
-type LastSearchUITemplateHost = Pick<SearchUIDefaults, 'getLastSearchTemplateName' | 'saveLastSearchTemplateName'>
+type LastSearchUITemplateHost = Pick<
+    SearchUIDefaults,
+    'getLastSearchTemplateName' | 'saveLastSearchTemplateName' | 'peekLastSearchTemplateName'
+>
 
 export type LastSearchUITemplateName = {
     name: string | null
@@ -30,10 +33,25 @@ export type LastSearchUITemplateName = {
     legacy: boolean
 }
 
-const hasHostStore = (defaults: LastSearchUITemplateHost): defaults is Required<LastSearchUITemplateHost> => (
+const hasHostStore = (
+    defaults: LastSearchUITemplateHost,
+): defaults is LastSearchUITemplateHost & Required<Pick<
+    LastSearchUITemplateHost,
+    'getLastSearchTemplateName' | 'saveLastSearchTemplateName'
+>> => (
     typeof defaults.getLastSearchTemplateName === 'function'
     && typeof defaults.saveLastSearchTemplateName === 'function'
 )
+
+const fromHostName = (hostName: string | null, key: string): LastSearchUITemplateName => {
+    if (hostName) {
+        // The host copy wins; the browser key, shared by every user of the browser, retires.
+        localStorage.removeItem(key)
+        return {name: hostName, legacy: false}
+    }
+    const browserName = localStorage.getItem(key)
+    return {name: browserName, legacy: browserName !== null}
+}
 
 const writeBrowserName = (key: string, templateName: string | null): void => {
     if (templateName === null) {
@@ -56,16 +74,14 @@ export const readLastSearchUITemplateName = (
         return {name: localStorage.getItem(key), legacy: false}
     }
 
+    // A host that already knows the answer gives it at once, so the panel needs no promise round.
+    const peeked = defaults.peekLastSearchTemplateName?.(settingsContextName)
+    if (peeked !== undefined) {
+        return fromHostName(peeked, key)
+    }
+
     return defaults.getLastSearchTemplateName(settingsContextName)
-        .then((hostName): LastSearchUITemplateName => {
-            if (hostName) {
-                // The host copy wins; the browser key, shared by every user of the browser, retires.
-                localStorage.removeItem(key)
-                return {name: hostName, legacy: false}
-            }
-            const browserName = localStorage.getItem(key)
-            return {name: browserName, legacy: browserName !== null}
-        })
+        .then(hostName => fromHostName(hostName, key))
         .catch((error: unknown): LastSearchUITemplateName => {
             console.warn('SearchUI: the host cannot read the last template name; using the browser storage', error)
             return {name: localStorage.getItem(key), legacy: false}

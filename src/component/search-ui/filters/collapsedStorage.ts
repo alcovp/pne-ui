@@ -7,11 +7,17 @@ import type {SearchUIDefaults} from '../SearchUIProvider'
  * browser: a page without a host store opens expanded every time.
  */
 
-type SearchUIFiltersCollapsedHost = Pick<SearchUIDefaults, 'getSearchFiltersCollapsed' | 'saveSearchFiltersCollapsed'>
+type SearchUIFiltersCollapsedHost = Pick<
+    SearchUIDefaults,
+    'getSearchFiltersCollapsed' | 'saveSearchFiltersCollapsed' | 'peekSearchFiltersCollapsed'
+>
 
 const hasHostStore = (
     defaults: SearchUIFiltersCollapsedHost,
-): defaults is Required<SearchUIFiltersCollapsedHost> => (
+): defaults is SearchUIFiltersCollapsedHost & Required<Pick<
+    SearchUIFiltersCollapsedHost,
+    'getSearchFiltersCollapsed' | 'saveSearchFiltersCollapsed'
+>> => (
     typeof defaults.getSearchFiltersCollapsed === 'function'
     && typeof defaults.saveSearchFiltersCollapsed === 'function'
 )
@@ -26,6 +32,12 @@ export const readSearchUIFiltersCollapsed = (
 ): boolean | Promise<boolean> => {
     if (!hasHostStore(defaults)) {
         return false
+    }
+
+    // A host that already knows the answer gives it at once, so the panel needs no promise round.
+    const peeked = defaults.peekSearchFiltersCollapsed?.(settingsContextName)
+    if (peeked !== undefined) {
+        return peeked === true
     }
 
     return defaults.getSearchFiltersCollapsed(settingsContextName)

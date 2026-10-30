@@ -112,6 +112,12 @@ export type SearchUIDefaults = {
     getLastSearchTemplateName?: (contextName: string) => Promise<string | null>
     saveLastSearchTemplateName?: (request: SaveLastSearchUITemplateNameRequest) => Promise<void>
     /**
+     * Optional synchronous look into the same host store: the name, or `null` for none, once the
+     * host knows it (e.g. loaded at application start), and `undefined` while it does not. With it a
+     * panel whose answers are already known renders on its first frame instead of a promise later.
+     */
+    peekLastSearchTemplateName?: (contextName: string) => string | null | undefined
+    /**
      * Host storage of whether the user folded the filters panel of a settings context, e.g. on
      * the server per user next to the last chosen template name. Optional, and the two callbacks
      * go together: without them the panel opens expanded on every mount and the fold lives in
@@ -121,6 +127,8 @@ export type SearchUIDefaults = {
      */
     getSearchFiltersCollapsed?: (contextName: string) => Promise<boolean | null>
     saveSearchFiltersCollapsed?: (request: SaveSearchUIFiltersCollapsedRequest) => Promise<void>
+    /** Optional synchronous look into the same host store, as `peekLastSearchTemplateName`. */
+    peekSearchFiltersCollapsed?: (contextName: string) => boolean | null | undefined
     getProjectAvailableCurrencies: (request: GetProjectCurrenciesRequest) => Promise<AutoCompleteChoiceWithStatus[]>
     getCardTypes: () => Promise<AbstractEntity[]>
     getCurrencies: () => Promise<AbstractEntity[]>
