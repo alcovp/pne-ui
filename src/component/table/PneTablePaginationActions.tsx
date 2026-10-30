@@ -12,6 +12,7 @@ import {
 } from "./tableControlColors";
 import {usePneTheme} from "../../usePneTheme";
 import {measureNaturalWidth} from "./measureNaturalWidth";
+import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from "./tableControlMetrics";
 
 interface IPaginationActionsProps {
     count: number
@@ -28,8 +29,8 @@ interface IPaginationActionsProps {
     toolbarElementType?: unknown
 }
 
-const CONTROL_SIZE = 40
-const CONTROL_GAP = 8
+/** Between the navigation, the toolbar and the page sizes, and between the rows they wrap onto. */
+const GROUP_GAP = 8
 const DISPLAYED_ROWS_MAX_WIDTH = 120
 
 /**
@@ -134,8 +135,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
 
     const buttonStyle = {
-        width: `${CONTROL_SIZE}px`,
-        height: `${CONTROL_SIZE}px`,
+        width: `${TABLE_CONTROL_SIZE}px`,
+        height: `${TABLE_CONTROL_SIZE}px`,
         flexShrink: 0,
         borderRadius: '4px',
         fontWeight: 700,
@@ -163,8 +164,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         flex: '0 1 auto',
         width: 'auto',
         maxWidth: `${DISPLAYED_ROWS_MAX_WIDTH}px`,
-        minWidth: `${CONTROL_SIZE}px`,
-        height: `${CONTROL_SIZE}px`,
+        minWidth: `${TABLE_CONTROL_SIZE}px`,
+        height: `${TABLE_CONTROL_SIZE}px`,
         overflow: 'hidden',
         borderRadius: '4px',
         background: activeBackgroundColor,
@@ -234,7 +235,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const toolbarRef = useRef<HTMLDivElement>(null)
     const measuredThreshold = useControlRowThreshold(
         {navigation: navigationRef, pageSizes: pageSizesRef, toolbar: toolbarRef},
-        CONTROL_GAP,
+        GROUP_GAP,
     )
     const toolbarRowBreakpoint = controlRowBreakpoints?.toolbar ?? measuredThreshold
 
@@ -244,6 +245,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         ref={navigationRef}
         sx={{
             display: 'flex',
+            gap: `${TABLE_CONTROL_GAP}px`,
             gridArea: 'navigation',
             justifySelf: 'start',
             /* Holds the start of the row when the pagination group wraps. */
@@ -308,6 +310,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         sx={{
             display: 'flex',
             flexWrap: 'wrap',
+            gap: `${TABLE_CONTROL_GAP}px`,
             gridArea: 'sizes',
             justifyContent: 'flex-end',
             justifySelf: 'end',
@@ -338,7 +341,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             [`@container (width < ${toolbarRowBreakpoint}px)`]: {
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: `${CONTROL_GAP}px`,
+                gap: `${GROUP_GAP}px`,
                 gridArea: 'pagination',
                 justifyContent: 'flex-end',
                 minWidth: 0,
@@ -366,7 +369,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             sx={{
                 alignItems: 'center',
                 display: 'grid',
-                gap: `${CONTROL_GAP}px`,
+                gap: `${GROUP_GAP}px`,
                 gridTemplateAreas: hasToolbar
                     ? '"navigation toolbar sizes"'
                     : '"navigation sizes"',

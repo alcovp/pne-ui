@@ -313,7 +313,7 @@ const tableViewSettingsAction = <Tooltip title='View settings'>
     <IconButton
         aria-label='View settings'
         size='small'
-        sx={{borderRadius: '4px', height: '40px', padding: '8px', width: '40px'}}
+        sx={{borderRadius: '4px', height: '32px', padding: '8px', width: '32px'}}
     >
         <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
     </IconButton>
@@ -1092,8 +1092,8 @@ export const TableViewsMobile360: Story = {
         }
 
         const settingsRect = settingsAction.getBoundingClientRect()
-        if (settingsRect.width !== 40 || settingsRect.height !== 40) {
-            throw new Error('View settings must match the 40x40px pagination controls at 360px')
+        if (settingsRect.width !== 32 || settingsRect.height !== 32) {
+            throw new Error('View settings must match the 32x32px pagination controls at 360px')
         }
     },
     render: () => <TableViewsWrap/>,

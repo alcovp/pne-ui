@@ -4,6 +4,7 @@ import {IconButton, SxProps, Theme, Tooltip} from '@mui/material'
 import {useTranslation} from 'react-i18next'
 import PneButton from '../../PneButton'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
+import {TABLE_CONTROL_SIZE} from '../tableControlMetrics'
 
 export const COLUMN_SETTINGS_ACTION_AUTOTEST_ID = 'column-settings'
 
@@ -11,7 +12,7 @@ export type PneTableColumnSettingsActionProps = {
     /** Opens the column settings dialog. */
     onClick: React.MouseEventHandler<HTMLButtonElement>
     /**
-     * `icon` renders a 40px icon button with a tooltip and fits the
+     * `icon` renders a 32px icon button with a tooltip and fits the
      * `PneTableViewSelector` actions slot. `button` renders an outlined text
      * button with the icon for wide layouts. Defaults to `icon`.
      */
@@ -26,9 +27,9 @@ export type PneTableColumnSettingsActionProps = {
 
 const iconButtonSx: SxProps<Theme> = {
     borderRadius: '4px',
-    height: '40px',
+    height: `${TABLE_CONTROL_SIZE}px`,
     padding: '8px',
-    width: '40px',
+    width: `${TABLE_CONTROL_SIZE}px`,
 }
 
 /**

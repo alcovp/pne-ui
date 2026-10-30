@@ -186,7 +186,7 @@ describe('PneTableViewSelector', () => {
         expect(detailedButtonStyle.whiteSpace).toBe('nowrap')
     })
 
-    it('keeps simultaneous selectors isolated and preserves the Orders geometry', () => {
+    it('keeps simultaneous selectors isolated and keeps the compact 32px geometry', () => {
         render(<>
             <ControlledSelector
                 actions={<span><IconButton
@@ -221,22 +221,30 @@ describe('PneTableViewSelector', () => {
         const settingsButtonStyle = window.getComputedStyle(
             screen.getByRole('button', {name: 'First settings'}),
         )
+        const actionsStyle = window.getComputedStyle(firstRoot.querySelector(
+            '[data-autotest="table-view-actions"]',
+        ) as HTMLElement)
 
-        expect(rootStyle.height).toBe('40px')
+        expect(rootStyle.height).toBe('32px')
         expect(rootStyle.maxWidth).toBe('100%')
         expect(rootStyle.minWidth).toBe('0')
         expect(rootStyle.padding).toBe('')
         expect(rootStyle.borderWidth).toBe('')
         expect(groupStyle.minWidth).toBe('0')
-        expect(groupStyle.height).toBe('40px')
+        expect(groupStyle.height).toBe('32px')
+        // The views stand apart from each other, like the actions after the divider.
+        expect(groupStyle.gap).toBe('4px')
+        expect(actionsStyle.gap).toBe('4px')
+        expect(actionsStyle.height).toBe('32px')
         expect(buttonStyle.borderRadius).toBe('4px')
-        expect(buttonStyle.height).toBe('40px')
+        expect(buttonStyle.height).toBe('32px')
+        expect(buttonStyle.padding).toBe('0px 10px')
         expect(buttonStyle.color).toBe('rgb(138, 138, 138)')
         expect(buttonStyle.overflow).toBe('hidden')
         expect(buttonStyle.textTransform).toBe('none')
         expect(selectedButtonStyle.backgroundColor).toBe('rgb(240, 240, 240)')
         expect(selectedButtonStyle.color).toBe('rgb(138, 138, 138)')
-        expect(dividerStyle.height).toBe('24px')
+        expect(dividerStyle.height).toBe('20px')
         expect(dividerStyle.marginLeft).toBe('4px')
         expect(dividerStyle.marginRight).toBe('4px')
         expect({
@@ -245,8 +253,8 @@ describe('PneTableViewSelector', () => {
             width: settingsButtonStyle.width,
         }).toEqual({
             borderRadius: '4px',
-            height: '40px',
-            width: '40px',
+            height: '32px',
+            width: '32px',
         })
         expect(window.getComputedStyle(
             within(first).getByRole('button', {name: 'Full'}),

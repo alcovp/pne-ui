@@ -16,6 +16,7 @@ import {
     TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
     TABLE_CONTROL_TEXT_COLOR,
 } from './tableControlColors'
+import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from './tableControlMetrics'
 
 const TABLE_VIEWS_AUTOTEST_ID = 'table-views'
 const TABLE_VIEW_AUTOTEST_ID = 'table-view'
@@ -62,7 +63,7 @@ export type PneTableViewSelectorProps<TViewId extends string = string> = Omit<
 const rootSx: SxProps<Theme> = {
     alignItems: 'center',
     display: 'flex',
-    height: '40px',
+    height: `${TABLE_CONTROL_SIZE}px`,
     maxWidth: '100%',
     minWidth: 0,
 }
@@ -70,7 +71,8 @@ const rootSx: SxProps<Theme> = {
 const groupSx: SxProps<Theme> = {
     display: 'flex',
     flex: '1 1 auto',
-    height: '40px',
+    gap: `${TABLE_CONTROL_GAP}px`,
+    height: `${TABLE_CONTROL_SIZE}px`,
     minWidth: 0,
     overflow: 'hidden',
     [`& .${toggleButtonGroupClasses.grouped}`]: {
@@ -90,11 +92,12 @@ const viewButtonSx: SxProps<Theme> = theme => {
         color: controlTextColor,
         flex: '1 1 auto',
         fontWeight: 'bold',
-        height: '40px',
+        height: `${TABLE_CONTROL_SIZE}px`,
         letterSpacing: '0.46px',
         lineHeight: '22px',
         minWidth: 0,
         overflow: 'hidden',
+        padding: '0 10px',
         textOverflow: 'ellipsis',
         textTransform: 'none',
         whiteSpace: 'nowrap',
@@ -181,7 +184,7 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
         {hasActions ? <>
             <Divider
                 orientation='vertical'
-                sx={{flexShrink: 0, height: '24px', mx: '4px'}}
+                sx={{flexShrink: 0, height: '20px', mx: '4px'}}
             />
             <Box
                 {...createAutoTestAttributes(TABLE_VIEW_ACTIONS_AUTOTEST_ID)}
@@ -189,12 +192,13 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
                     alignItems: 'center',
                     display: 'flex',
                     flexShrink: 0,
-                    height: '40px',
+                    gap: `${TABLE_CONTROL_GAP}px`,
+                    height: `${TABLE_CONTROL_SIZE}px`,
                     [`& .${iconButtonClasses.root}`]: {
                         borderRadius: '4px !important',
                         color: theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR,
-                        height: '40px',
-                        width: '40px',
+                        height: `${TABLE_CONTROL_SIZE}px`,
+                        width: `${TABLE_CONTROL_SIZE}px`,
                         '&:hover': {
                             backgroundColor: theme.palette.pne?.control.activeBackground
                                 ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,

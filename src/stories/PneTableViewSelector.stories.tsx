@@ -50,7 +50,7 @@ const settingsAction = <Tooltip
     <IconButton
         aria-label='Full View Settings'
         size='small'
-        sx={{borderRadius: '4px', height: '40px', padding: '8px', width: '40px'}}
+        sx={{borderRadius: '4px', height: '32px', padding: '8px', width: '32px'}}
     >
         <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
     </IconButton>

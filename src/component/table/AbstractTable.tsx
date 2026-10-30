@@ -11,6 +11,7 @@ import PneTableRow from './PneTableRow';
 import PneTableCell from './PneTableCell';
 import PneTablePagination from './PneTablePagination';
 import PneTablePaginationActions from './PneTablePaginationActions';
+import {TABLE_CONTROL_SIZE} from './tableControlMetrics';
 import {Order} from "../../common/pne/type";
 import {useTranslation} from "react-i18next";
 import useDelayedLoading from "./useDelayedLoading";
@@ -137,7 +138,7 @@ export type TableProps<D> = {
     toolbar?: React.ReactNode
     toolbarSx?: SxProps
     /**
-     * Styles of both pagination rows (top and bottom). Each row keeps 6px above and below its 40px
+     * Styles of both pagination rows (top and bottom). Each row keeps 6px above and below its 32px
      * controls by default: `'& .MuiTablePagination-toolbar': {marginTop: 0, marginBottom: 0}` removes them.
      */
     paginationSx?: SxProps
@@ -361,7 +362,7 @@ const AbstractTable = <D, >(
                 },
                 insidePagination
                     ? {flex: '1 1 auto'}
-                    : {marginBottom: '6px', marginTop: '6px', minHeight: '40px'},
+                    : {marginBottom: '6px', marginTop: '6px', minHeight: `${TABLE_CONTROL_SIZE}px`},
                 ...(Array.isArray(toolbarSx) ? toolbarSx : [toolbarSx]),
             ]}
         >
