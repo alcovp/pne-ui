@@ -6,6 +6,10 @@ import {
     PneTableViewSelector,
 } from '../src'
 
+jest.mock('react-i18next', () => ({
+    useTranslation: () => ({t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key}),
+}))
+
 type ViewId = 'brief' | 'full' | 'risk'
 
 const views: readonly PneTableViewOption<ViewId>[] = [

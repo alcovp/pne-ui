@@ -880,13 +880,13 @@ const initialDisplayOptions: TableDisplayOptions = {
     sortAsc: true,
 }
 
-// The filters end with their own actions row and a divider, so the table needs little air: 4px
-// from the divider to the top pagination row and nothing between it and the table head, 4px from the
+// The filters end with their own actions row and a divider, so the table needs little air: 6px
+// from the divider to the top pagination row and nothing between it and the table head, 6px from the
 // last row to the bottom pagination row and nothing under it (Evgeniy Sinev in #171399: the density
 // comes from the space around the pagination). The sides keep 16px: on phones, tablets and with the
 // left menu it is the only gutter of the page.
 const tableBoxSx: SxProps = {
-    p: '4px 16px 0 16px',
+    p: '6px 16px 0 16px',
 }
 
 const tableFrameSx: SxProps = {
@@ -907,7 +907,7 @@ const tablePaginationSx: {top: SxProps, bottom: SxProps} = {
     },
     bottom: {
         '& .MuiToolbar-root.MuiTablePagination-toolbar': {
-            marginTop: '4px',
+            marginTop: '6px',
             marginBottom: 0,
         },
     },

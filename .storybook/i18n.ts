@@ -21,6 +21,8 @@ i18nForStorybook
                     'pne.error.showFullDetails': 'Show full details',
                     'pne.error.closeDetails': 'Close details',
                     'pne.switch.disabledHint': 'Cannot be changed',
+                    'pneTable.views.switchTo': 'Switch to {{view}}',
+                    'pneTable.views.current': '{{view}} — current view',
                     'react.searchUI.all': 'All',
                     'react.searchUI.allExcluding': 'All excluding',
                     'react.searchUI.none': 'None',

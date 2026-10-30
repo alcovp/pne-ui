@@ -1,6 +1,6 @@
 import React, {forwardRef} from 'react'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import {ButtonBase, ButtonBaseProps, SxProps, Theme} from '@mui/material'
+import {ButtonBase, ButtonBaseProps, SxProps, Theme, Tooltip} from '@mui/material'
 import {createTableControlTextButtonStyle} from './tableControlButtonStyle'
 import {
     TABLE_CONTROL_DISABLED_TEXT_COLOR,
@@ -16,6 +16,11 @@ export type PneTableControlButtonProps = Omit<ButtonBaseProps, 'children' | 'sx'
      * bulk actions of a selection. A disabled button looks the same either way.
      */
     emphasis?: 'normal' | 'strong'
+    /**
+     * Hint shown on hover and keyboard focus, after the same 300ms as the table settings button. It also
+     * shows on a disabled button, which is where an explanation is needed most.
+     */
+    tooltip?: React.ReactNode
     sx?: SxProps<Theme>
 }
 
@@ -31,10 +36,11 @@ const PneTableControlButton = forwardRef<HTMLButtonElement, PneTableControlButto
             emphasis = 'normal',
             menu = false,
             sx,
+            tooltip,
             ...buttonProps
         } = props
 
-        return <ButtonBase
+        const button = <ButtonBase
             {...buttonProps}
             ref={ref}
             sx={[
@@ -57,6 +63,16 @@ const PneTableControlButton = forwardRef<HTMLButtonElement, PneTableControlButto
             {children}
             {menu ? <ExpandMoreIcon aria-hidden sx={{fontSize: '16px'}}/> : null}
         </ButtonBase>
+
+        if (tooltip === undefined || tooltip === null || typeof tooltip === 'boolean' || tooltip === '') {
+            return button
+        }
+
+        // The hint describes the button rather than naming it, so its visible label stays its name.
+        return <Tooltip describeChild enterDelay={300} enterNextDelay={300} title={tooltip}>
+            {/* A disabled button takes no pointer events: the wrapper hears the pointer for it. */}
+            <span style={{display: 'inline-flex', flexShrink: 0}}>{button}</span>
+        </Tooltip>
     },
 )
 

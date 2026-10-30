@@ -1,10 +1,14 @@
 import * as React from 'react'
-import {render, screen} from '@testing-library/react'
+import {fireEvent, render, screen} from '@testing-library/react'
 
 import {PneTableControlButton, PneTableViewSelector, PneThemeProvider, Skin} from '../src'
 
 jest.mock('react-i18next', () => ({
-    useTranslation: () => ({t: (key: string) => key}),
+    useTranslation: () => ({
+        // Interpolates like i18next with the library defaults, so the hints read as in the application.
+        t: (_key: string, options?: {defaultValue?: string, view?: string}) =>
+            (options?.defaultValue ?? _key).replace('{{view}}', options?.view ?? ''),
+    }),
 }))
 
 const style = (name: string) => window.getComputedStyle(screen.getByRole('button', {name}))
@@ -64,5 +68,65 @@ describe('PneTableControlButton', () => {
         }
         expect(button.color).toBe('rgb(138, 138, 138)')
         expect(button.backgroundColor).not.toBe('rgb(198, 40, 40)')
+    })
+
+    it('explains itself on hover, keeping its label as its name', async () => {
+        render(<PneTableControlButton tooltip='Select all rows found by the filters'>Select all</PneTableControlButton>)
+
+        fireEvent.mouseOver(screen.getByRole('button', {name: 'Select all'}))
+
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Select all rows found by the filters')
+        expect(screen.getByRole('button', {name: 'Select all'})).not.toBeNull()
+    })
+
+    it('explains itself when disabled too', async () => {
+        render(<PneTableControlButton disabled menu tooltip='Select rows to run an operation on them'>
+            Actions
+        </PneTableControlButton>)
+
+        // A disabled button ignores the pointer; its wrapper hears it.
+        fireEvent.mouseOver(screen.getByRole('button', {name: 'Actions'}).parentElement as HTMLElement)
+
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Select rows to run an operation on them')
+    })
+})
+
+describe('PneTableViewSelector hints', () => {
+    const renderViews = () => render(<PneTableViewSelector
+        aria-label='Views'
+        onChange={jest.fn()}
+        value='brief'
+        views={[
+            {id: 'brief', label: 'Brief'},
+            {id: 'full', label: 'Full'},
+            {id: 'detailed', label: 'Detailed (0)', disabled: true},
+        ]}
+    />)
+
+    it('offers to switch to another view', async () => {
+        renderViews()
+
+        fireEvent.mouseOver(screen.getByRole('button', {name: 'Full'}))
+
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Switch to Full')
+    })
+
+    it('marks the chosen view as the current one', async () => {
+        renderViews()
+
+        fireEvent.mouseOver(screen.getByRole('button', {name: 'Brief'}))
+
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Brief — current view')
+        expect(screen.getByRole('button', {name: 'Brief'}).getAttribute('aria-pressed')).toBe('true')
+    })
+
+    it('gives a disabled view no hint', async () => {
+        renderViews()
+
+        fireEvent.mouseOver(screen.getByRole('button', {name: 'Detailed (0)'}).parentElement as HTMLElement)
+        fireEvent.mouseOver(screen.getByRole('button', {name: 'Detailed (0)'}))
+
+        await new Promise(resolve => setTimeout(resolve, 400))
+        expect(screen.queryByRole('tooltip')).toBeNull()
     })
 })

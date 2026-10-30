@@ -1,4 +1,5 @@
 import React, {forwardRef, ReactNode, Ref} from 'react'
+import {useTranslation} from 'react-i18next'
 import {
     Box,
     BoxProps,
@@ -10,6 +11,7 @@ import {
     ToggleButtonGroup,
     toggleButtonClasses,
     toggleButtonGroupClasses,
+    Tooltip,
 } from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
 import {
@@ -18,6 +20,9 @@ import {
 } from './tableControlColors'
 import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from './tableControlMetrics'
 import {createTableControlTextButtonStyle} from './tableControlButtonStyle'
+
+// View names go into the hints as they are: React escapes them, i18next must not escape them again.
+const RAW_VIEW_NAME = {escapeValue: false}
 
 const TABLE_VIEWS_AUTOTEST_ID = 'table-views'
 const TABLE_VIEW_AUTOTEST_ID = 'table-view'
@@ -129,6 +134,7 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
         views,
         ...rootProps
     } = props
+    const {t} = useTranslation()
     const hasActions = actions !== undefined
         && actions !== null
         && typeof actions !== 'boolean'
@@ -160,7 +166,7 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
                     }
                 }
 
-                return <ToggleButton
+                const button = <ToggleButton
                     {...createAutoTestAttributes(TABLE_VIEW_AUTOTEST_ID, view.id)}
                     disabled={view.disabled}
                     key={view.id}
@@ -170,6 +176,34 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
                 >
                     {view.label}
                 </ToggleButton>
+                const name = typeof view.label === 'string' || typeof view.label === 'number'
+                    ? String(view.label)
+                    : undefined
+
+                // A disabled view gets no hint: there is nothing to switch to.
+                if (name === undefined || view.disabled) {
+                    return button
+                }
+
+                return <Tooltip
+                    describeChild
+                    enterDelay={300}
+                    enterNextDelay={300}
+                    key={view.id}
+                    title={view.id === value
+                        ? t('pneTable.views.current', {
+                            defaultValue: '{{view}} — current view',
+                            interpolation: RAW_VIEW_NAME,
+                            view: name,
+                        })
+                        : t('pneTable.views.switchTo', {
+                            defaultValue: 'Switch to {{view}}',
+                            interpolation: RAW_VIEW_NAME,
+                            view: name,
+                        })}
+                >
+                    {button}
+                </Tooltip>
             })}
         </ToggleButtonGroup>
         {hasActions ? <>
