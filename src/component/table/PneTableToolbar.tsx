@@ -1,6 +1,7 @@
 import React from 'react'
 import {Box, BoxProps, SxProps, Theme} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
+import {TABLE_CONTROL_GAP} from './tableControlMetrics'
 
 type PneTableToolbarAccessibleName =
     | {
@@ -22,7 +23,7 @@ export type PneTableToolbarProps = Omit<
     persistent?: React.ReactNode
 }
 
-/** Gap between the control groups, and between the rows they wrap onto. */
+/** Gap between the control groups in one row; the rows they wrap onto stand closer. */
 const CONTROL_GROUP_GAP = 8
 
 /**
@@ -75,7 +76,7 @@ const PneTableToolbar = (props: PneTableToolbarProps) => {
                 alignItems: 'center',
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: `${CONTROL_GROUP_GAP}px`,
+                gap: `${TABLE_CONTROL_GAP}px ${CONTROL_GROUP_GAP}px`,
                 justifyContent: 'flex-end',
                 minWidth: 0,
                 width: '100%',

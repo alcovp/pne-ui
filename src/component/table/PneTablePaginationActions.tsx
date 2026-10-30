@@ -29,8 +29,10 @@ interface IPaginationActionsProps {
     toolbarElementType?: unknown
 }
 
-/** Between the navigation, the toolbar and the page sizes, and between the rows they wrap onto. */
+/** Between the navigation, the toolbar and the page sizes in one row; their rows stand closer. */
 const GROUP_GAP = 8
+/** `gap` of a box whose groups wrap: rows first, then the groups within a row. */
+const WRAPPING_GAP = `${TABLE_CONTROL_GAP}px ${GROUP_GAP}px`
 const DISPLAYED_ROWS_MAX_WIDTH = 120
 
 /**
@@ -341,7 +343,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             [`@container (width < ${toolbarRowBreakpoint}px)`]: {
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: `${GROUP_GAP}px`,
+                gap: WRAPPING_GAP,
                 gridArea: 'pagination',
                 justifyContent: 'flex-end',
                 minWidth: 0,
@@ -369,7 +371,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             sx={{
                 alignItems: 'center',
                 display: 'grid',
-                gap: `${GROUP_GAP}px`,
+                gap: WRAPPING_GAP,
                 gridTemplateAreas: hasToolbar
                     ? '"navigation toolbar sizes"'
                     : '"navigation sizes"',

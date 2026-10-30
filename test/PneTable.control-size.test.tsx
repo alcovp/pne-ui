@@ -4,6 +4,8 @@ import {render, screen} from '@testing-library/react'
 import {
     PneTable,
     PneTableColumnSettingsAction,
+    PneTableSelectionControls,
+    PneTableToolbar,
     type PaginatorProps,
 } from '../src'
 
@@ -71,6 +73,9 @@ describe('PneTable control size', () => {
                 .toBe('4px')
             expect(window.getComputedStyle(band.querySelector('[data-autotest="page-sizes"]') as Element).gap)
                 .toBe('4px')
+            // Groups in one row stand 8px apart; on a narrow screen the rows they wrap onto stand 4px apart.
+            expect(window.getComputedStyle(band.querySelector('[data-autotest="pagination-actions"]') as Element).gap)
+                .toBe('4px 8px')
         }
 
         // jsdom resolves rules by source order, not by specificity, so MUI's own 52px toolbar rule, inserted
@@ -89,6 +94,22 @@ describe('PneTable control size', () => {
 
         const toolbar = container.querySelector('[data-autotest="table-toolbar"]') as Element
         expect(window.getComputedStyle(toolbar).minHeight).toBe('32px')
+    })
+
+    it('wraps the toolbar groups and the selection controls onto rows 4px apart', () => {
+        const {container} = renderTable({
+            paginator,
+            toolbar: <PneTableToolbar
+                aria-label='Table controls'
+                contextual={<PneTableSelectionControls summary='2 selected' actions={<button type='button'>Clear</button>}/>}
+                persistent={<button type='button'>View</button>}
+            />,
+        })
+
+        expect(window.getComputedStyle(container.querySelector('[data-autotest="table-control-bar"]') as Element).gap)
+            .toBe('4px 8px')
+        expect(window.getComputedStyle(container.querySelector('[data-autotest="selection-controls"]') as Element).gap)
+            .toBe('4px 8px')
     })
 
     it('draws the column settings icon as a 32px square', () => {

@@ -5,5 +5,8 @@
  */
 export const TABLE_CONTROL_SIZE = 32
 
-/** Space between neighbouring controls of one group. The groups themselves keep 8px between them. */
+/**
+ * Space between neighbouring controls of one group, and between the rows a band wraps onto on a narrow
+ * screen. Groups standing in one row keep 8px between them.
+ */
 export const TABLE_CONTROL_GAP = 4

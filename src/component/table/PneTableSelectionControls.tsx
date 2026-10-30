@@ -1,6 +1,7 @@
 import React from 'react'
 import {Box, BoxProps} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
+import {TABLE_CONTROL_GAP} from './tableControlMetrics'
 
 export type PneTableSelectionControlsProps = Omit<
     BoxProps,
@@ -28,7 +29,8 @@ const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
                 alignItems: 'center',
                 display: 'flex',
                 flexWrap: 'wrap',
-                gap: '8px',
+                // Rows wrapped on a narrow screen stand as close as the other rows of the band.
+                gap: `${TABLE_CONTROL_GAP}px 8px`,
                 justifyContent: 'flex-end',
                 maxWidth: '100%',
                 minWidth: 0,

@@ -138,10 +138,11 @@ export type TableProps<D> = {
     toolbar?: React.ReactNode
     toolbarSx?: SxProps
     /**
-     * Styles of both pagination rows (top and bottom). Each row keeps 6px above and below its 32px
-     * controls by default: `'& .MuiTablePagination-toolbar': {marginTop: 0, marginBottom: 0}` removes them.
+     * Styles of the top and the bottom pagination rows. Each row keeps 6px above and below its 32px
+     * controls by default; `{top: {'& .MuiToolbar-root.MuiTablePagination-toolbar': {marginTop: 0,
+     * marginBottom: 0}}}` removes them around the top row.
      */
-    paginationSx?: SxProps
+    paginationSx?: {top?: SxProps, bottom?: SxProps}
     /** Optional full-width feedback rendered above, and independently from, the responsive top controls. */
     feedback?: React.ReactNode
 }
@@ -292,7 +293,7 @@ const AbstractTable = <D, >(
                 page={paginator.page}
                 onPageChange={paginator.onPageChange}
                 ActionsComponent={StablePaginationActions}
-                sx={paginationSx}
+                sx={paginationSx?.[position]}
             />
         </PaginationActionsContext.Provider>;
     }

@@ -27,7 +27,7 @@ const renderSearchUI = (duplicatePagination: boolean) => render(
 )
 
 describe('SearchUI table spacing', () => {
-    it('sets the table 6px under the divider, with nothing around the pagination rows or under the table', async () => {
+    it('sets the table 4px under the divider and the bottom pagination 4px under the last row', async () => {
         const {container} = renderSearchUI(true)
 
         const table = await waitFor(() => {
@@ -39,19 +39,21 @@ describe('SearchUI table spacing', () => {
         const divider = tableBox.previousElementSibling as HTMLElement
 
         expect(divider.tagName).toBe('HR')
-        // 6px under the divider, the 16px gutter on the sides, nothing at the bottom.
-        expect(getComputedStyle(tableBox).paddingTop).toBe('6px')
+        // 4px under the divider, the 16px gutter on the sides, nothing at the bottom.
+        expect(getComputedStyle(tableBox).paddingTop).toBe('4px')
         expect(getComputedStyle(tableBox).paddingLeft).toBe('16px')
         expect(getComputedStyle(tableBox).paddingRight).toBe('16px')
         expect(getComputedStyle(tableBox).paddingBottom).toBe('0px')
         expect(getComputedStyle(table).paddingBottom).toBe('0px')
 
-        const toolbars = Array.from(table.querySelectorAll<HTMLElement>('.MuiTablePagination-toolbar'))
-        expect(toolbars).toHaveLength(2)
-        for (const toolbar of toolbars) {
-            expect(getComputedStyle(toolbar).marginTop).toBe('0px')
-            expect(getComputedStyle(toolbar).marginBottom).toBe('0px')
-        }
+        const toolbar = (position: 'top' | 'bottom') => table.querySelector<HTMLElement>(
+            `[data-autotest="pagination"][data-autotest-value="${position}"] .MuiTablePagination-toolbar`,
+        ) as HTMLElement
+        // The top row touches the table head; the bottom row keeps 4px from the last row.
+        expect(getComputedStyle(toolbar('top')).marginTop).toBe('0px')
+        expect(getComputedStyle(toolbar('top')).marginBottom).toBe('0px')
+        expect(getComputedStyle(toolbar('bottom')).marginTop).toBe('4px')
+        expect(getComputedStyle(toolbar('bottom')).marginBottom).toBe('0px')
     })
 
     it('keeps the default pagination spacing of a table outside SearchUI', async () => {
