@@ -190,8 +190,9 @@ describe('SearchUI last chosen template', () => {
 
             renderFilters(context, host)
             await selectTemplate()
+            // With the rows the template shows: the host may keep them for the next loading skeleton.
             await waitFor(() => expect(host.saveLastSearchTemplateName)
-                .toHaveBeenCalledWith({contextName: context, templateName: TEMPLATE_NAME}))
+                .toHaveBeenCalledWith({contextName: context, templateName: TEMPLATE_NAME, criteriaCount: 1}))
             expect(localStorage.getItem(getLastSearchUITemplateStorageKey(context))).toBeNull()
         })
 

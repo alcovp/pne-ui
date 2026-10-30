@@ -93,14 +93,20 @@ export const rememberLastSearchUITemplateName = (
     defaults: LastSearchUITemplateHost,
     settingsContextName: string,
     templateName: string | null,
+    criteriaCount?: number,
 ): Promise<void> => {
     const key = getLastSearchUITemplateStorageKey(settingsContextName)
     if (!hasHostStore(defaults)) {
+        // The browser keeps the name only: the count is for the host store and its skeleton.
         writeBrowserName(key, templateName)
         return Promise.resolve()
     }
 
-    return defaults.saveLastSearchTemplateName({contextName: settingsContextName, templateName})
+    return defaults.saveLastSearchTemplateName({
+        contextName: settingsContextName,
+        templateName,
+        ...(templateName !== null && criteriaCount !== undefined ? {criteriaCount} : {}),
+    })
         .then(() => {
             localStorage.removeItem(key)
         })

@@ -526,8 +526,6 @@ export const getSearchUIFiltersActions = (
             ...conditions
         } = restoredSnapshot
 
-        void rememberLastSearchUITemplateName(get().defaults, get().settingsContextName, template?.name || null)
-
         set(draft => {
             Object.assign(draft, conditions)
             draft.template = template
@@ -537,6 +535,13 @@ export const getSearchUIFiltersActions = (
             normalizeRestrictedTransactionTypesReducer(draft)
         })
         syncCriterionAvailability(set, get)
+        // With the rows the template brings back, for the skeleton of the next page load.
+        void rememberLastSearchUITemplateName(
+            get().defaults,
+            get().settingsContextName,
+            template?.name || null,
+            get().criteria.length,
+        )
 
         const currentSearchCriteria = extractSearchCriteriaFromState(get())
         const validationResult = syncValidation(set, get)
@@ -600,7 +605,12 @@ export const getSearchUIFiltersActions = (
             templateName: templateName,
         })
             .then(() => {
-                void rememberLastSearchUITemplateName(get().defaults, get().settingsContextName, template.name)
+                void rememberLastSearchUITemplateName(
+                    get().defaults,
+                    get().settingsContextName,
+                    template.name,
+                    get().criteria.length,
+                )
 
                 set((draft) => {
                     draft.templates.push(template)
@@ -632,6 +642,12 @@ export const getSearchUIFiltersActions = (
                     draft.activeTemplateName = template.name
                 })
                 captureTemplateBaseline(set, get)
+                void rememberLastSearchUITemplateName(
+                    get().defaults,
+                    get().settingsContextName,
+                    template.name,
+                    get().criteria.length,
+                )
             })
             // .catch(raiseUIError)
             .catch(console.error)
@@ -729,8 +745,6 @@ export const getSearchUIFiltersActions = (
             )
         }
 
-        void rememberLastSearchUITemplateName(get().defaults, get().settingsContextName, template.name)
-
         set((draft) => {
             Object.assign(draft, defaults)
             draft.template = template
@@ -738,6 +752,13 @@ export const getSearchUIFiltersActions = (
             applyConditionsReducer(draft, conditions)
         })
         postUpdate(set, get, options)
+        // With the rows the template shows, for the skeleton of the next page load.
+        void rememberLastSearchUITemplateName(
+            get().defaults,
+            get().settingsContextName,
+            template.name,
+            get().criteria.length,
+        )
         captureTemplateBaseline(set, get)
     },
     loadTemplates: (options) => {

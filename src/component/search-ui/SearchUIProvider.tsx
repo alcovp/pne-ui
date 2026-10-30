@@ -44,6 +44,12 @@ export type SaveLastSearchUITemplateNameRequest = {
     contextName: string
     /** `null` forgets the context: the user cleared the filters or deleted the template. */
     templateName: string | null
+    /**
+     * Criteria rows of the panel with this template applied, when SearchUI knows them. A host that keeps
+     * it next to the name and gives it back through `peekLastSearchTemplateCriteriaCount` lets the next
+     * page load draw its skeleton as tall as the panel will be.
+     */
+    criteriaCount?: number
 }
 
 export type SaveSearchUIFiltersCollapsedRequest = {
@@ -117,6 +123,12 @@ export type SearchUIDefaults = {
      * panel whose answers are already known renders on its first frame instead of a promise later.
      */
     peekLastSearchTemplateName?: (contextName: string) => string | null | undefined
+    /**
+     * Optional synchronous look at the criteria rows of the last chosen template, as saved with its name:
+     * a number once the host knows it, `null` or `undefined` when it has none (e.g. a name kept before the
+     * count existed). The loading skeleton then draws a row per predefined criterion instead.
+     */
+    peekLastSearchTemplateCriteriaCount?: (contextName: string) => number | null | undefined
     /**
      * Host storage of whether the user folded the filters panel of a settings context, e.g. on
      * the server per user next to the last chosen template name. Optional, and the two callbacks

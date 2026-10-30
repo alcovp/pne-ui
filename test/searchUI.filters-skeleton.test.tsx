@@ -64,9 +64,11 @@ const renderFilters = (scope: string, defaults: Partial<SearchUIDefaults>) => {
 const hostStores = (options: {
     collapsed?: boolean | null | undefined
     lastTemplate?: string | null | undefined
+    lastTemplateRows?: number | null
     templates?: Promise<SearchUITemplate[]>
     collapsedAnswer?: Promise<boolean | null>
 }): Partial<SearchUIDefaults> => ({
+    peekLastSearchTemplateCriteriaCount: jest.fn(() => options.lastTemplateRows),
     getSearchFiltersCollapsed: jest.fn(() => options.collapsedAnswer ?? Promise.resolve(options.collapsed ?? null)),
     saveSearchFiltersCollapsed: jest.fn().mockResolvedValue(undefined),
     peekSearchFiltersCollapsed: jest.fn(() => options.collapsed),
@@ -160,5 +162,50 @@ describe('SearchUIFilters loading skeleton', () => {
         await waitFor(() => expect(panel()).not.toBeNull())
         expect(skeleton()).toBeNull()
         expect(panel()?.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
+    })
+
+    it('draws as many rows as the chosen set had when the host kept the number with its name', async () => {
+        const templates = deferred<SearchUITemplate[]>()
+        const {panel, skeletonRows} = renderFilters('skeleton-counted', hostStores({
+            collapsed: false,
+            lastTemplate: TEMPLATE_NAME,
+            lastTemplateRows: 3,
+            templates: templates.promise,
+        }))
+
+        // Three rows, not the predefined two: the skeleton is as tall as the panel will be.
+        expect(skeletonRows()).toBe(3)
+
+        await act(async () => templates.resolve([{
+            ...template,
+            searchConditions: {
+                ...template.searchConditions,
+                criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
+            },
+        }]))
+        await waitFor(() => expect(panel()?.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(3))
+    })
+
+    it('tells a host without a count how many rows the set it opened with shows', async () => {
+        const host = hostStores({collapsed: false, lastTemplate: TEMPLATE_NAME})
+        renderFilters('skeleton-remember', host)
+
+        // A name kept before the counts existed: the panel tells its rows on the first visit.
+        await waitFor(() => expect(host.saveLastSearchTemplateName).toHaveBeenCalled())
+        // The set brings STATUS, the page keeps CURRENCY: two rows.
+        expect(host.saveLastSearchTemplateName).toHaveBeenLastCalledWith({
+            contextName: 'skeleton-remember-context',
+            templateName: TEMPLATE_NAME,
+            criteriaCount: 2,
+        })
+    })
+
+    it('leaves a host alone when it already keeps the right count', async () => {
+        const host = hostStores({collapsed: false, lastTemplate: TEMPLATE_NAME, lastTemplateRows: 2})
+        const {panel} = renderFilters('skeleton-count-kept', host)
+
+        await waitFor(() => expect(panel()).not.toBeNull())
+        await new Promise(resolve => setTimeout(resolve, 20))
+        expect(host.saveLastSearchTemplateName).not.toHaveBeenCalled()
     })
 })

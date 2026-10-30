@@ -14,6 +14,7 @@ import {useTranslation} from 'react-i18next';
 import {
     useSearchUIFiltersStore,
     useSearchUIFiltersStoreContext,
+    useSearchUIFiltersStoreApi,
 } from './state/store';
 import {Box, ButtonBase, SxProps, Tooltip} from '@mui/material';
 import {alpha, type Theme} from '@mui/material/styles';
@@ -533,8 +534,8 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
 
 /**
  * The skeleton in the panel's place while the host answers: folded as the host remembers it when it
- * already knows (a host still loading gets the open panel), and open with a row per predefined filter,
- * which the filter set chosen last time may change by a few rows once it arrives.
+ * already knows (a host still loading gets the open panel), and open with as many rows as the filter
+ * set chosen last time had, when the host kept that number, or a row per predefined filter otherwise.
  */
 const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
     const {
@@ -552,7 +553,14 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
         possibleCriteria,
         toSearchUIConditionsState(initialSearchConditions, 'initialSearchConditions', false),
     )
-    const rows = filterAvailableCriteria(defaults, implied.predefinedCriteria).length
+    const predefinedRows = filterAvailableCriteria(defaults, implied.predefinedCriteria).length
+    // The rows of the filter set chosen last time, when the host kept them with its name; a name kept
+    // before the count existed has none, and the predefined criteria stand in for the set.
+    const lastTemplateName = defaults.peekLastSearchTemplateName?.(settingsContextName)
+    const lastTemplateRows = typeof lastTemplateName === 'string'
+        ? defaults.peekLastSearchTemplateCriteriaCount?.(settingsContextName)
+        : undefined
+    const rows = typeof lastTemplateRows === 'number' && lastTemplateRows >= 0 ? lastTemplateRows : predefinedRows
     const available = filterAvailableCriteria(defaults, [
         ...new Set([...possibleCriteria, ...implied.predefinedCriteria]),
     ]).length
@@ -689,6 +697,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     ])
     const disabledCriteriaSet = useMemo(() => new Set(disabledCriteria), [disabledCriteria])
 
+    const storeApi = useSearchUIFiltersStoreApi()
     const setInitialState = useSearchUIFiltersStore(s => s.setInitialState)
     const setDefaults = useSearchUIFiltersStore(s => s.setDefaults)
     const loadTemplates = useSearchUIFiltersStore(s => s.loadTemplates)
@@ -770,6 +779,21 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         })
         if (loadTemplatesInBackground) {
             loadTemplates({autoApplyLastTemplate: false})
+        }
+        // A template chosen before the host kept row counts, or with another number of rows since (a
+        // release changed the page's filters), gets its count now: the next page load draws its skeleton
+        // as tall as the panel. Only a host that keeps counts is told.
+        const {activeTemplateName, criteria: initialCriteria} = storeApi.getState()
+        if (typeof defaults.peekLastSearchTemplateCriteriaCount === 'function'
+            && initialTemplate !== undefined
+            && activeTemplateName === initialTemplate.name
+            && defaults.peekLastSearchTemplateCriteriaCount(settingsContextName) !== initialCriteria.length) {
+            void rememberLastSearchUITemplateName(
+                defaults,
+                settingsContextName,
+                activeTemplateName,
+                initialCriteria.length,
+            )
         }
         // The keyed store provider remounts this subtree when the search context changes.
         // eslint-disable-next-line react-hooks/exhaustive-deps
