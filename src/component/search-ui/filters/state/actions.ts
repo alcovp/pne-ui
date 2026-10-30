@@ -74,6 +74,7 @@ import {
     SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../dateRangeTimeZone'
 import { getConcreteCustomerLevelMerchantId } from '../customerLevelDependencies'
+import { getLinkedEntityTypeByCriterion, isLinkedEntityCriterionActive } from '../linkedEntityCriteria'
 import {
     extractRestrictedEntityIds,
     normalizeRestrictedEntityCollection,
@@ -93,22 +94,6 @@ import {
 dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(isoWeek)
-
-const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
-    [CriterionTypeEnum.ENDPOINT]: LinkedEntityTypeEnum.ENDPOINT,
-    [CriterionTypeEnum.PROJECT]: LinkedEntityTypeEnum.PROJECT,
-    [CriterionTypeEnum.COMPANY]: LinkedEntityTypeEnum.COMPANY,
-    [CriterionTypeEnum.GATE]: LinkedEntityTypeEnum.GATE,
-    [CriterionTypeEnum.DEALER]: LinkedEntityTypeEnum.DEALER,
-    [CriterionTypeEnum.MANAGER]: LinkedEntityTypeEnum.MANAGER,
-    [CriterionTypeEnum.MERCHANT]: LinkedEntityTypeEnum.MERCHANT,
-    [CriterionTypeEnum.PROCESSOR]: LinkedEntityTypeEnum.PROCESSOR,
-    [CriterionTypeEnum.RESELLER]: LinkedEntityTypeEnum.RESELLER,
-}
-
-const getLinkedEntityTypeByCriterion = (criterion: CriterionTypeEnum): LinkedEntityTypeEnum | null => {
-    return criterionToLinkedEntityMap[criterion] ?? null
-}
 
 const isConfiguredCriterion = (
     draft: WritableDraft<SearchUIFiltersStore>,
@@ -346,7 +331,7 @@ const resetToPageDefaultsReducer = (
         ...getSearchUIInitialSearchCriteria(draft.defaults),
         exactSearchLabel: draft.exactSearchLabels[0],
         ...pageDefaults,
-        criteria: [],
+        criteria: pageDefaults.criteria ?? [],
     })
     refillTransactionSessionStatusesReducer(draft)
 }
@@ -371,11 +356,6 @@ const refillTransactionSessionStatusesReducer = (
 
     draft.transactionSessionStatuses = copyTransactionSessionStatuses(prefetched)
 }
-
-const isLinkedEntityCriterionActive = (
-    criteria: CriterionTypeEnum[],
-    entityType: LinkedEntityTypeEnum,
-): boolean => criteria.some(criterion => getLinkedEntityTypeByCriterion(criterion) === entityType)
 
 const restoreAppliedSearchCriteria = (
     snapshot: SearchUIRetentionSnapshot,

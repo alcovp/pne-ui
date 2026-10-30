@@ -1845,6 +1845,13 @@ export const TransactionReportFiltersExample = ({
 `onValidationChange`; результат для бэкенда передаётся в `searchData` как часть
 `SearchParams`.
 
+Выбор в `initialSearchConditions.multigetCriteria` подразумевает свой критерий: он
+активен с первой загрузки и возвращается по «Default». Критерий из `possibleCriteria`
+при этом остаётся удаляемым, а критерий, которого нет ни в `predefinedCriteria`, ни в
+`possibleCriteria`, показывается как предопределённый, и в не-production сборке в
+консоль уходит ошибка с именем контекста: объявите его в `predefinedCriteria`. В поиск
+уходят только выборы активных критериев, невидимого фильтра не бывает.
+
 Подписи вариантов `scope` и `recurrentFilter` библиотека берёт из ключей
 `react.TransactionReportScopeCriterionEnum.<scope>` и
 `react.TransactionRecurrentFilterCriterionEnum.<recurrentFilter>`: Paynet отдаёт React

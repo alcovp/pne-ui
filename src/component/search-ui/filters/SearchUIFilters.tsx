@@ -39,6 +39,7 @@ import {
 } from './state/retention';
 import type {SearchUIRetentionSnapshot} from './state/type';
 import {toSearchUIConditionsState} from './publicConditions';
+import {resolveImpliedCriteria} from './impliedCriteria';
 import type {AbstractEntity} from '../../../common/paynet/type';
 import {
     normalizeAllowedEntityNames,
@@ -320,6 +321,7 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
         possibleCriteria = [],
         predefinedCriteria = [],
         exactSearchLabels = [],
+        initialSearchConditions,
         searchConditions,
         config,
         allowedTransactionTypes,
@@ -335,10 +337,15 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
         bootstrapWorkRef.current ??= (() => {
             const hasExternalSearchConditions = searchConditions !== undefined
                 && Object.keys(searchConditions).length > 0
+            const implied = resolveImpliedCriteria(
+                predefinedCriteria,
+                possibleCriteria,
+                toSearchUIConditionsState(initialSearchConditions, 'initialSearchConditions', false),
+            )
             const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
                 ...new Set([
                     ...possibleCriteria,
-                    ...predefinedCriteria,
+                    ...implied.predefinedCriteria,
                 ]),
             ])
             const retainedSnapshot = hasExternalSearchConditions
@@ -347,7 +354,7 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
             const retainedSnapshotCompatible = retainedSnapshot !== undefined
                 && isSearchUIRetentionSnapshotCompatible(retainedSnapshot, {
                     possibleCriteria: adjustedPossibleCriteria,
-                    predefinedCriteria,
+                    predefinedCriteria: implied.predefinedCriteria,
                     exactSearchLabels,
                     config,
                     prefetchedData: allowedTransactionTypes === undefined
@@ -497,11 +504,16 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         'searchConditions',
         true,
     ), [searchConditions])
+    const implied = useMemo(() => resolveImpliedCriteria(
+        predefinedCriteria,
+        possibleCriteria,
+        initialSearchConditionsState,
+    ), [predefinedCriteria, possibleCriteria, initialSearchConditionsState])
 
     const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
         ...new Set([
             ...possibleCriteria,
-            ...predefinedCriteria
+            ...implied.predefinedCriteria
         ])
     ])
     const disabledCriteriaSet = useMemo(() => new Set(disabledCriteria), [disabledCriteria])
@@ -538,15 +550,23 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         }
         initializedRef.current = true
 
+        if (process.env.NODE_ENV !== 'production' && implied.undeclaredCriteria.length > 0) {
+            console.error(
+                `[pne-ui] SearchUI "${settingsContextName}": initialSearchConditions.multigetCriteria selects `
+                + `${implied.undeclaredCriteria.join(', ')}, which neither predefinedCriteria nor possibleCriteria `
+                + 'declares; the criterion is shown as predefined. Declare it in predefinedCriteria.',
+            )
+        }
+
         setInitialState({
             defaults: defaults,
             settingsContextName: settingsContextName,
             possibleCriteria: adjustedPossibleCriteria,
-            predefinedCriteria: predefinedCriteria,
+            predefinedCriteria: implied.predefinedCriteria,
             exactSearchLabels: exactSearchLabels,
             exactSearchLabel: exactSearchLabels[0],
-            criteria: predefinedCriteria,
-            pageDefaults: initialSearchConditionsState ?? {},
+            criteria: [...implied.predefinedCriteria, ...implied.defaultCriteria],
+            pageDefaults: {...initialSearchConditionsState, criteria: implied.defaultCriteria},
             config: config,
             onFiltersUpdate: onFiltersUpdate,
             onValidationChange: onValidationChange ?? (() => undefined),
@@ -594,7 +614,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const someCriteriaAdded = criteria.length > 0
     const showFiltersCountChip = someCriteriaAdded && !showFilters
     const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
-    const nonRemovablePredefinedCriteria = predefinedCriteria.filter(
+    const nonRemovablePredefinedCriteria = implied.predefinedCriteria.filter(
         criterion => !removablePredefinedCriteria.includes(criterion),
     )
     const nothingToClear = criteria.every(criterion => nonRemovablePredefinedCriteria.includes(criterion))
