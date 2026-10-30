@@ -52,8 +52,8 @@ import {
     getSearchUIInitialSearchCriteria,
     searchUICountriesInitialAllableCollection,
     searchUIInitialAllableCollection,
-    searchUIInitialDateFrom,
-    searchUIInitialDateTo,
+    getSearchUIInitialDateFrom,
+    getSearchUIInitialDateTo,
 } from './initial'
 import { WritableDraft } from 'immer/src/internal'
 // import {raiseUIError} from '../../../../../error';
@@ -74,6 +74,7 @@ import {
     SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../dateRangeTimeZone'
 import { getConcreteCustomerLevelMerchantId } from '../customerLevelDependencies'
+import { getLinkedEntityTypeByCriterion, isLinkedEntityCriterionActive } from '../linkedEntityCriteria'
 import {
     extractRestrictedEntityIds,
     normalizeRestrictedEntityCollection,
@@ -93,22 +94,6 @@ import {
 dayjs.extend(utc)
 dayjs.extend(timezone)
 dayjs.extend(isoWeek)
-
-const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
-    [CriterionTypeEnum.ENDPOINT]: LinkedEntityTypeEnum.ENDPOINT,
-    [CriterionTypeEnum.PROJECT]: LinkedEntityTypeEnum.PROJECT,
-    [CriterionTypeEnum.COMPANY]: LinkedEntityTypeEnum.COMPANY,
-    [CriterionTypeEnum.GATE]: LinkedEntityTypeEnum.GATE,
-    [CriterionTypeEnum.DEALER]: LinkedEntityTypeEnum.DEALER,
-    [CriterionTypeEnum.MANAGER]: LinkedEntityTypeEnum.MANAGER,
-    [CriterionTypeEnum.MERCHANT]: LinkedEntityTypeEnum.MERCHANT,
-    [CriterionTypeEnum.PROCESSOR]: LinkedEntityTypeEnum.PROCESSOR,
-    [CriterionTypeEnum.RESELLER]: LinkedEntityTypeEnum.RESELLER,
-}
-
-const getLinkedEntityTypeByCriterion = (criterion: CriterionTypeEnum): LinkedEntityTypeEnum | null => {
-    return criterionToLinkedEntityMap[criterion] ?? null
-}
 
 const isConfiguredCriterion = (
     draft: WritableDraft<SearchUIFiltersStore>,
@@ -330,6 +315,48 @@ const applyConditionsReducer = (
     normalizeRestrictedTransactionTypesReducer(draft)
 }
 
+/**
+ * Back to what the page started with: its predefined criteria and `initialSearchConditions`, without
+ * a template. The conditions go the way an applied template's do, so the multiget entries, the customer
+ * level dependencies and the restricted transaction types come out as on the first load.
+ */
+const resetToPageDefaultsReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+    pageDefaults: Partial<SearchUIConditions>,
+): void => {
+    draft.template = null
+    draft.templateBaseline = null
+    draft.activeTemplateName = null
+    applyConditionsReducer(draft, {
+        ...getSearchUIInitialSearchCriteria(draft.defaults),
+        exactSearchLabel: draft.exactSearchLabels[0],
+        ...pageDefaults,
+        criteria: pageDefaults.criteria ?? [],
+    })
+    refillTransactionSessionStatusesReducer(draft)
+}
+
+/** The first load fills an empty statuses list from the prefetched ones; a reset or a re-added criterion gets the same. */
+const refillTransactionSessionStatusesReducer = (
+    draft: WritableDraft<SearchUIFiltersStore>,
+): void => {
+    if (
+        !draft.criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
+        || draft.transactionSessionStatuses.length > 0
+    ) {
+        return
+    }
+
+    const prefetched = draft.prefetchedData.transactionSessionStatuses?.get(draft.transactionSessionStatusGroup)
+    if (prefetched === undefined) {
+        // Not loaded yet: the load fills them in, as on the first visit.
+        draft.prefetchedDataMeta.transactionSessionStatusesPrefilled = false
+        return
+    }
+
+    draft.transactionSessionStatuses = copyTransactionSessionStatuses(prefetched)
+}
+
 const restoreAppliedSearchCriteria = (
     snapshot: SearchUIRetentionSnapshot,
     retainedDraftSearchCriteria: SearchCriteria,
@@ -368,7 +395,6 @@ export const getSearchUIFiltersActions = (
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
         options?: {
-            normalizeInitialDateRange?: boolean
             templates?: SearchUITemplate[]
             initialTemplate?: SearchUITemplate
             initialConditions?: Partial<SearchUIConditions>
@@ -389,6 +415,9 @@ export const getSearchUIFiltersActions = (
             }
 
             Object.assign(draft, initialState)
+            // The host may hand one array over as both; keep them apart and leave the host's array alone.
+            draft.criteria = [...draft.criteria]
+            draft.predefinedCriteria = [...draft.predefinedCriteria]
 
             if (normalizedTemplates !== undefined) {
                 draft.templates = normalizedTemplates
@@ -425,10 +454,8 @@ export const getSearchUIFiltersActions = (
 
         syncCriterionAvailability(set, get)
         normalizeRetainedDateRange(set, get)
-        if (
-            !get().restoredFromRetention
-            && (options?.normalizeInitialDateRange || normalizedInitialTemplate !== undefined)
-        ) {
+        if (!get().restoredFromRetention) {
+            // A relative range takes the dates of the configured time zone here, as whenever it is set later.
             normalizeRelativeDateRange(set, get)
         }
         ensureTransactionSessionStatusesPrefetched(set, get)
@@ -532,18 +559,12 @@ export const getSearchUIFiltersActions = (
     },
     clearCriteria: (options?: SearchUIUpdateOptions) => {
         void forgetLastSearchUITemplateName(get().defaults, get().settingsContextName)
+        const pageDefaults = cloneDeep(get().pageDefaults)
 
         set((draft) => {
-            Object.assign(draft, {
-                ...getSearchUIInitialSearchCriteria(draft.defaults),
-                exactSearchLabel: draft.exactSearchLabels[0],
-                template: null,
-                templateBaseline: null,
-                activeTemplateName: null,
-                criteria: draft.predefinedCriteria,
-            })
-            ensureCustomerLevelDependenciesReducer(draft)
+            resetToPageDefaultsReducer(draft, pageDefaults)
         })
+        normalizeRelativeDateRange(set, get)
         postUpdate(set, get, options)
     },
     clearCriterion: (criterionType: CriterionTypeEnum) => {
@@ -559,6 +580,7 @@ export const getSearchUIFiltersActions = (
                 CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
             }
             addCriterionReducer(draft, criterionType)
+            refillTransactionSessionStatusesReducer(draft)
         })
         get().setJustAddedCriterion(criterionType)
         postUpdate(set, get)
@@ -566,8 +588,7 @@ export const getSearchUIFiltersActions = (
     removeCriterion: (criterionType: CriterionTypeEnum) => {
         set((draft) => {
             clearCriterionReducer(draft, criterionType)
-            const index = draft.criteria.findIndex(c => c === criterionType)
-            draft.criteria.splice(index, 1)
+            draft.criteria = draft.criteria.filter(criterion => criterion !== criterionType)
         })
         postUpdate(set, get)
     },
@@ -601,7 +622,12 @@ export const getSearchUIFiltersActions = (
             .then(() => {
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === templateName)
-                    draft.templates[index].searchConditions = template.searchConditions
+                    if (index >= 0) {
+                        draft.templates[index].searchConditions = template.searchConditions
+                    } else {
+                        // Saved under a name the list had lost, e.g. after a deletion elsewhere: the server has it now.
+                        draft.templates.push(template)
+                    }
                     draft.template = template
                     draft.activeTemplateName = template.name
                 })
@@ -625,18 +651,20 @@ export const getSearchUIFiltersActions = (
                         return undefined
                     })
 
+                const wasActive = get().template?.name === template.name
+                const pageDefaults = cloneDeep(get().pageDefaults)
                 set((draft) => {
                     const index = draft.templates.findIndex(t => t.name === template.name)
-                    draft.templates.splice(index, 1)
+                    if (index >= 0) {
+                        draft.templates.splice(index, 1)
+                    }
                     if (draft.template?.name === template.name) {
-                        Object.assign(draft, getSearchUIInitialSearchCriteria(draft.defaults))
-                        draft.template = null
-                        draft.templateBaseline = null
-                        draft.activeTemplateName = null
-                        draft.criteria = draft.predefinedCriteria
-                        ensureCustomerLevelDependenciesReducer(draft)
+                        resetToPageDefaultsReducer(draft, pageDefaults)
                     }
                 })
+                if (wasActive) {
+                    normalizeRelativeDateRange(set, get)
+                }
                 postUpdate(set, get)
             })
             // .catch(raiseUIError)
@@ -775,7 +803,14 @@ export const getSearchUIFiltersActions = (
                 ? getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
                 : null
             const index = draft.multigetCriteria.findIndex(c => c.entityType === criterion.entityType)
-            draft.multigetCriteria[index] = criterion
+            if (index >= 0) {
+                draft.multigetCriteria[index] = criterion
+            } else if (isLinkedEntityCriterionActive(draft.criteria, criterion.entityType)) {
+                draft.multigetCriteria.push(criterion)
+            } else {
+                // The criterion went away meanwhile; an entry of its own would still reach the search.
+                return
+            }
 
             if (
                 criterion.entityType === LinkedEntityTypeEnum.MERCHANT
@@ -1758,7 +1793,10 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         projectCurrencyId: state.projectCurrency.currency.id,
         projectCurrencyConvert: state.projectCurrency.convertToUserCurrency,
         groupTypes: extractGroupTypes(state.grouping),
-        multigetCriteria: state.multigetCriteria,
+        // Only what the user sees: a selection without its criterion never reaches the search.
+        multigetCriteria: state.multigetCriteria.filter(selection => (
+            isLinkedEntityCriterionActive(state.criteria, selection.entityType)
+        )),
         recurrenceTypes: extractEntitiesIds(state.recurrenceTypes),
         recurrenceStatuses: extractEntitiesIds(state.recurrenceStatuses),
         mfoConfigurationTypes: extractEntitiesIds(state.mfoConfigurationTypes),
@@ -1883,9 +1921,9 @@ const calculateNonExactDates = (
     const nowServer = timeZone ? dayjs().utc().tz(timeZone) : dayjs()
 
     let from: Dayjs = dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom)
-        : dayjs(searchUIInitialDateFrom)
+        : getSearchUIInitialDateFrom()
     let to: Dayjs = dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo)
-        : dayjs(searchUIInitialDateTo)
+        : getSearchUIInitialDateTo()
 
     // endOf мы тут используем только при работе с месяцами или неделями. в случае дня, бд не различает начало и конец
     // поэтом указываем начало следующего дня

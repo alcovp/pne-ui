@@ -72,6 +72,8 @@ export type SearchUIFiltersState = SearchUIConditions & {
     settingsContextName: string
     possibleCriteria: CriterionTypeEnum[]
     predefinedCriteria: CriterionTypeEnum[]
+    /** What the page started with, its `initialSearchConditions`; Default and deleting the active template return to it. */
+    pageDefaults: Partial<SearchUIConditions>
     exactSearchLabels: ExactCriterionSearchLabelEnum[]
     template: SearchUITemplate | null
     /**
@@ -106,7 +108,6 @@ export type SearchUIFiltersActions = {
         state: Partial<SearchUIFiltersState> & Pick<SearchUIFiltersState, 'defaults'>,
         retainedSnapshot?: SearchUIRetentionSnapshot,
         options?: {
-            normalizeInitialDateRange?: boolean
             templates?: SearchUITemplate[]
             initialTemplate?: SearchUITemplate
             initialConditions?: Partial<SearchUIConditions>

@@ -1038,7 +1038,8 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
 
 - вернуться к умолчаниям страницы без шаблона: `button[data-autotest="select-default-template"]`
   («Default», `role="menuitemradio"`, первый пункт; `aria-checked="true"`, пока свой шаблон не применён). Он
-  делает то же, что прежний `clear-all`: восстанавливает умолчания, снимает шаблон, забывает его как последний и,
+  делает то же, что прежний `clear-all`: восстанавливает умолчания страницы (предопределённые критерии и
+  `initialSearchConditions`), снимает шаблон, забывает его как последний и,
   если что-то изменилось, показывает undo-snackbar «Default filters restored» (`react.searchUI.default.restored`).
   Умолчания ищутся сразу, как и выбранный шаблон, в том числе при `manualSearch`. Пока поле поиска шаблонов не
   пустое, пункта нет; стрелка вверх с него уводит в поле поиска;
@@ -1913,6 +1914,13 @@ export const TransactionReportFiltersExample = ({
 `predefinedCriteria`, `initialSearchConditions`, `config` и
 `onValidationChange`; результат для бэкенда передаётся в `searchData` как часть
 `SearchParams`.
+
+Выбор в `initialSearchConditions.multigetCriteria` подразумевает свой критерий: он
+активен с первой загрузки и возвращается по «Default». Критерий из `possibleCriteria`
+при этом остаётся удаляемым, а критерий, которого нет ни в `predefinedCriteria`, ни в
+`possibleCriteria`, показывается как предопределённый, и в не-production сборке в
+консоль уходит ошибка с именем контекста: объявите его в `predefinedCriteria`. В поиск
+уходят только выборы активных критериев, невидимого фильтра не бывает.
 
 Подписи вариантов `scope` и `recurrentFilter` библиотека берёт из ключей
 `react.TransactionReportScopeCriterionEnum.<scope>` и
