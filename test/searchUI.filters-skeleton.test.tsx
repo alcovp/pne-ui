@@ -38,13 +38,18 @@ const deferred = <T, >() => {
     return {promise, resolve}
 }
 
-const renderFilters = (scope: string, defaults: Partial<SearchUIDefaults>) => {
+const renderFilters = (
+    scope: string,
+    defaults: Partial<SearchUIDefaults>,
+    options: {hiddenCriteria?: CriterionTypeEnum[]} = {},
+) => {
     const utils = render(<SearchUIProvider defaults={defaults}>
         <SearchUIFilters
             autoTestId={scope}
             settingsContextName={`${scope}-context`}
             possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D]}
             predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
+            hiddenCriteria={options.hiddenCriteria}
             onFiltersUpdate={jest.fn()}
             config={{manualSearch: true}}
         />
@@ -184,6 +189,42 @@ describe('SearchUIFilters loading skeleton', () => {
             },
         }]))
         await waitFor(() => expect(panel()?.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(3))
+    })
+
+    it('leaves out a row the view hides, counted in every set', async () => {
+        const templates = deferred<SearchUITemplate[]>()
+        const {panel, skeletonRows} = renderFilters('skeleton-hidden-counted', hostStores({
+            collapsed: false,
+            lastTemplate: TEMPLATE_NAME,
+            lastTemplateRows: 3,
+            templates: templates.promise,
+        }), {hiddenCriteria: [CriterionTypeEnum.CURRENCY]})
+
+        // CURRENCY is predefined and cannot be removed: every set has it, and the view never shows it.
+        expect(skeletonRows()).toBe(2)
+
+        await act(async () => templates.resolve([{
+            ...template,
+            searchConditions: {
+                ...template.searchConditions,
+                criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
+            },
+        }]))
+        await waitFor(() => expect(panel()?.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2))
+        expect(panel()?.querySelector('[data-autotest="criterion"][data-autotest-value="CURRENCY"]')).toBeNull()
+    })
+
+    it('leaves out a predefined row the view hides while the set loads', async () => {
+        const templates = deferred<SearchUITemplate[]>()
+        const {skeletonRows} = renderFilters('skeleton-hidden-predefined', hostStores({
+            collapsed: false,
+            lastTemplate: TEMPLATE_NAME,
+            templates: templates.promise,
+        }), {hiddenCriteria: [CriterionTypeEnum.CURRENCY]})
+
+        expect(skeletonRows()).toBe(1)
+
+        await act(async () => templates.resolve([template]))
     })
 
     it('tells a host without a count how many rows the set it opened with shows', async () => {

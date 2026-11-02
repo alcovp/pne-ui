@@ -56,4 +56,36 @@ describe('SearchUI date range layout', () => {
         expect(getComputedStyle(row).alignItems).toBe('center')
         expect(['', '0px']).toContain(getComputedStyle(countField).marginLeft)
     })
+
+    it.each([
+        ['a valid', {dateRangeSpecType: 'THIS_MONTH'}, false],
+        ['an end before the start', {
+            dateRangeSpecType: 'EXACTLY',
+            dateFrom: new Date(2026, 0, 10),
+            dateTo: new Date(2026, 0, 5),
+        }, true],
+    ] as const)('shows a hidden date range with %s value only when it blocks the search', async (
+        _name,
+        dateRangeSpec,
+        shown,
+    ) => {
+        const {container} = render(
+            <SearchUIFilters
+                settingsContextName={`hidden-date-range-${String(shown)}`}
+                possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.DATE_RANGE]}
+                predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.DATE_RANGE]}
+                hiddenCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                initialSearchConditions={{dateRangeSpec}}
+                onFiltersUpdate={jest.fn()}
+                config={filtersConfig}
+            />,
+        )
+
+        await waitFor(() => expect(
+            container.querySelector('[data-autotest="criterion"][data-autotest-value="STATUS"]'),
+        ).not.toBeNull())
+        expect(container.querySelector(
+            '[data-autotest="criterion"][data-autotest-value="DATE_RANGE"]',
+        ) !== null).toBe(shown)
+    })
 })

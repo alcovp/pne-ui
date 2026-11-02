@@ -832,6 +832,9 @@ scope. Таблица ищется от document/page scope, а не внутр�
 
 Часть roots/actions условна: критерий, `clear-all`, `remove-criterion`, templates и add-filter могут отсутствовать
 из-за `config` или текущего состояния. Такое отсутствие является состоянием UI, а не ошибкой locator contract.
+Критерий из `hiddenCriteria` активного вида таблицы не имеет root `criterion` и не предлагается в add-filter;
+исключение — значение, которое блокирует поиск (ошибка валидации): тогда строка остаётся. Критерий из
+`disabledCriteria` остаётся в DOM с `aria-disabled="true"` на значении.
 
 У панели нет полосы с заголовком «Filters»: root `search-filters` имеет `role="region"` с этим именем,
 `toggle-filters`, `templates`, `add-filter` и `run-search` стоят в строке действий под критериями, а

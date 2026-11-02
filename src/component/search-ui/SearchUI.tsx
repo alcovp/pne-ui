@@ -168,6 +168,13 @@ export type SearchUIView<
      * presented as applied to this view.
      */
     disabledCriteria?: readonly CriterionTypeEnum[]
+    /**
+     * Criteria absent while this view is active: no row, no place in the filters count or in Add
+     * filter. As with `disabledCriteria`, their values stay in the shared filter context for another
+     * view and searchData receives neutral values. A hidden criterion whose value blocks the search
+     * still shows its row, so the reason for the disabled search stays in sight.
+     */
+    hiddenCriteria?: readonly CriterionTypeEnum[]
     /** Defaults to the common safe sort; preserving another view's sort must be explicit. */
     sortOnActivate?: SearchUIViewSort
     /**
@@ -319,15 +326,29 @@ const SearchUIContent = <
         () => JSON.parse(disabledCriteriaKey) as CriterionTypeEnum[],
         [disabledCriteriaKey],
     )
+    const hiddenCriteriaKey = JSON.stringify(resolvedTable.hiddenCriteria ?? [])
+    const effectiveHiddenCriteria = useMemo<readonly CriterionTypeEnum[]>(
+        () => JSON.parse(hiddenCriteriaKey) as CriterionTypeEnum[],
+        [hiddenCriteriaKey],
+    )
     const effectiveSearchCriteria = useMemo(
-        () => searchCriteria === null || effectiveDisabledCriteria.length === 0
-            ? searchCriteria
-            : neutralizeDisabledCriteria(searchCriteria, effectiveDisabledCriteria),
-        [effectiveDisabledCriteria, searchCriteria],
+        () => {
+            const inactiveCriteria = [...effectiveDisabledCriteria, ...effectiveHiddenCriteria]
+            return searchCriteria === null || inactiveCriteria.length === 0
+                ? searchCriteria
+                : neutralizeDisabledCriteria(searchCriteria, inactiveCriteria)
+        },
+        [effectiveDisabledCriteria, effectiveHiddenCriteria, searchCriteria],
     )
     const fetchDataExtraDeps = useMemo(
-        () => [effectiveSearchCriteria, filtersContextReady, resolvedTable.viewId, disabledCriteriaKey],
-        [effectiveSearchCriteria, filtersContextReady, resolvedTable.viewId, disabledCriteriaKey],
+        () => [
+            effectiveSearchCriteria,
+            filtersContextReady,
+            resolvedTable.viewId,
+            disabledCriteriaKey,
+            hiddenCriteriaKey,
+        ],
+        [effectiveSearchCriteria, filtersContextReady, resolvedTable.viewId, disabledCriteriaKey, hiddenCriteriaKey],
     )
 
     const {
@@ -441,6 +462,7 @@ const SearchUIContent = <
         <SearchUIFiltersContent
             autoTestId={autoTestId}
             disabledCriteria={effectiveDisabledCriteria}
+            hiddenCriteria={effectiveHiddenCriteria}
             settingsContextName={settingsContextName}
             possibleCriteria={possibleCriteria}
             predefinedCriteria={predefinedCriteria}
@@ -752,6 +774,7 @@ type ResolvedSearchUITable<
     createTableRow: SearchUITableRowFactory<D, TKey, TViewId>
     actions?: React.ReactNode
     disabledCriteria?: readonly CriterionTypeEnum[]
+    hiddenCriteria?: readonly CriterionTypeEnum[]
     searchDataKey?: string | number
     sortOnActivate?: SearchUIViewSort
     tableStateOnActivate?: SearchUIViewTableStateOnActivate
@@ -800,6 +823,7 @@ const resolveSearchUITable = <
         createTableRow: activeView.createTableRow,
         actions: activeView.actions,
         disabledCriteria: activeView.disabledCriteria,
+        hiddenCriteria: activeView.hiddenCriteria,
         searchDataKey: activeView.searchDataKey,
         sortOnActivate: activeView.sortOnActivate,
         tableStateOnActivate: activeView.tableStateOnActivate,

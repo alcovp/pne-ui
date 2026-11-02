@@ -214,6 +214,12 @@ export type SearchUIFiltersProps = {
      */
     disabledCriteria?: readonly CriterionTypeEnum[]
     /**
+     * Criteria absent in the current consumer mode: no row, not counted, not offered by Add filter;
+     * their values stay stored. A hidden criterion whose value blocks the search keeps its row, so
+     * the reason for the disabled search stays in sight.
+     */
+    hiddenCriteria?: readonly CriterionTypeEnum[]
+    /**
      * Критерии, которые активируются автоматически.
      */
     predefinedCriteria?: CriterionTypeEnum[]
@@ -542,6 +548,7 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
         settingsContextName,
         possibleCriteria = [],
         predefinedCriteria = [],
+        hiddenCriteria = [],
         initialSearchConditions,
         config,
     } = props
@@ -553,17 +560,24 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
         possibleCriteria,
         toSearchUIConditionsState(initialSearchConditions, 'initialSearchConditions', false),
     )
-    const predefinedRows = filterAvailableCriteria(defaults, implied.predefinedCriteria).length
+    const availablePredefined = filterAvailableCriteria(defaults, implied.predefinedCriteria)
+    const predefinedRows = availablePredefined.filter(criterion => !hiddenCriteria.includes(criterion)).length
     // The rows of the filter set chosen last time, when the host kept them with its name; a name kept
-    // before the count existed has none, and the predefined criteria stand in for the set.
+    // before the count existed has none, and the predefined criteria stand in for the set. The count
+    // covers every row; a hidden predefined criterion that cannot be removed is in every set.
+    const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
+    const hiddenInEverySet = availablePredefined.filter(criterion => hiddenCriteria.includes(criterion)
+        && !removablePredefinedCriteria.includes(criterion)).length
     const lastTemplateName = defaults.peekLastSearchTemplateName?.(settingsContextName)
     const lastTemplateRows = typeof lastTemplateName === 'string'
         ? defaults.peekLastSearchTemplateCriteriaCount?.(settingsContextName)
         : undefined
-    const rows = typeof lastTemplateRows === 'number' && lastTemplateRows >= 0 ? lastTemplateRows : predefinedRows
+    const rows = typeof lastTemplateRows === 'number' && lastTemplateRows >= 0
+        ? Math.max(0, lastTemplateRows - hiddenInEverySet)
+        : predefinedRows
     const available = filterAvailableCriteria(defaults, [
         ...new Set([...possibleCriteria, ...implied.predefinedCriteria]),
-    ]).length
+    ]).filter(criterion => !hiddenCriteria.includes(criterion)).length
     // The widths of Saved filters, Add filter and Search in English, the usual language here.
     const actions: SearchUIFiltersSkeletonAction[] = [
         ...(config?.hideTemplatesSelect ? [] : [{width: 146}]),
@@ -655,6 +669,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         possibleCriteria = [],
         predefinedCriteria = [],
         disabledCriteria = [],
+        hiddenCriteria = [],
         exactSearchLabels = [],
         initialSearchConditions,
         searchConditions,
@@ -696,6 +711,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         ])
     ])
     const disabledCriteriaSet = useMemo(() => new Set(disabledCriteria), [disabledCriteria])
+    const hiddenCriteriaSet = useMemo(() => new Set(hiddenCriteria), [hiddenCriteria])
 
     const storeApi = useSearchUIFiltersStoreApi()
     const setInitialState = useSearchUIFiltersStore(s => s.setInitialState)
@@ -821,7 +837,12 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         }
     }, [hasExternalSearchConditions, searchConditionsState, updateConditions])
 
-    const someCriteriaAdded = criteria.length > 0
+    // A hidden criterion that blocks the search keeps its row: an error out of sight would leave the
+    // search disabled for no visible reason.
+    const blockingCriteria = new Set<CriterionTypeEnum>(validationResult.errors.map(error => error.criterion))
+    const visibleCriteria = criteria.filter(criterion => !hiddenCriteriaSet.has(criterion)
+        || blockingCriteria.has(criterion))
+    const someCriteriaAdded = visibleCriteria.length > 0
     const showFiltersCountChip = someCriteriaAdded && !showFilters
     const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
     const nonRemovablePredefinedCriteria = implied.predefinedCriteria.filter(
@@ -831,6 +852,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const criteriaOptions = adjustedPossibleCriteria
         .filter(criterion => !criteria.includes(criterion))
         .filter(criterion => !disabledCriteriaSet.has(criterion))
+        .filter(criterion => !hiddenCriteriaSet.has(criterion))
         .filter(possibleC => {
             const criteriaToAdd = possibleC === CriterionTypeEnum.CUSTOMER_LEVEL
                 ? [possibleC, ...CUSTOMER_LEVEL_DEPENDENCIES]
@@ -900,7 +922,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                 component={'span'}
                 sx={filtersCountSx}
             >
-                {criteria.length}
+                {visibleCriteria.length}
             </Box> : null}
         </ButtonBase>
     </Tooltip>
@@ -935,7 +957,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
     </PneButton> : null
     const rowsMounted = phase !== 'closed'
-    const criteriaRows = rowsMounted ? criteria.map((criterion) =>
+    const criteriaRows = rowsMounted ? visibleCriteria.map((criterion) =>
         <CriterionContainer
             disabled={disabledCriteriaSet.has(criterion)}
             key={criterion}
@@ -953,7 +975,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     // count and the actions follow each other instead of leaving the empty name and icon columns
     // between them. The switch happens as the fold starts and as the rows mount for the unfold, so
     // the actions slide while the rows fold or unfold.
-    const actionsInColumns = showFilters && rowsMounted && criteria.length > 0
+    const actionsInColumns = showFilters && rowsMounted && visibleCriteria.length > 0
 
     // The slide starts once the layout has settled: for an unfold that is when the rows are mounted
     // and the name column has its width back.
@@ -962,7 +984,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         if (!from) {
             return
         }
-        if (showFilters && criteria.length > 0 && !rowsMounted) {
+        if (showFilters && visibleCriteria.length > 0 && !rowsMounted) {
             return
         }
         actionsSlideFromRef.current = null

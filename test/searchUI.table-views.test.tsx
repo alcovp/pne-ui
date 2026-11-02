@@ -448,6 +448,68 @@ describe('SearchUI table views', () => {
         })).toBeNull()
     })
 
+    it('hides a view-hidden filter, keeps its value for other views and neutralizes its request value', async () => {
+        type HiddenViewId = 'brief' | 'detailed'
+        const briefSearch = resolvedSearch('Hidden Brief row')
+        const detailedSearch = resolvedSearch('Hidden Detailed row')
+
+        const HiddenViewsHarness = () => {
+            const [value, setValue] = React.useState<HiddenViewId>('brief')
+            const views: readonly SearchUIView<Row, HiddenViewId>[] = [
+                {
+                    id: 'brief',
+                    label: 'Hidden Brief',
+                    hiddenCriteria: [CriterionTypeEnum.THREE_D, CriterionTypeEnum.STATUS],
+                    searchData: briefSearch,
+                    createTableHeader: () => <tr><th>Hidden Brief header</th></tr>,
+                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                },
+                {
+                    id: 'detailed',
+                    label: 'Hidden Detailed',
+                    searchData: detailedSearch,
+                    createTableHeader: () => <tr><th>Hidden Detailed header</th></tr>,
+                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                },
+            ]
+
+            return <SearchUI<Row, HiddenViewId, string>
+                config={filtersConfig}
+                initialSearchConditions={{threeD: ThreeDCriterionEnum.YES}}
+                possibleCriteria={[CriterionTypeEnum.THREE_D, CriterionTypeEnum.STATUS]}
+                predefinedCriteria={[CriterionTypeEnum.THREE_D]}
+                settingsContextName='view-hidden-filter-settings'
+                tableViews={{
+                    'aria-label': 'Hidden views',
+                    onChange: setValue,
+                    value,
+                    views,
+                }}
+            />
+        }
+
+        const {container} = render(<HiddenViewsHarness/>)
+        const threeDRow = () => container.querySelector('[data-autotest="criterion"][data-autotest-value="THREE_D"]')
+        const addFilter = () => container.querySelector('[data-autotest="add-filter"]')
+
+        await waitFor(() => expect(screen.getByText('Hidden Brief row')).toBeTruthy())
+        expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: null}))
+        expect(threeDRow()).toBeNull()
+        // STATUS, the one filter left to add, is hidden as well: Add filter has nothing to offer.
+        expect(addFilter()).toBeNull()
+
+        fireEvent.click(screen.getByRole('button', {name: 'Hidden Detailed'}))
+        await waitFor(() => expect(screen.getByText('Hidden Detailed row')).toBeTruthy())
+        expect(detailedSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: true}))
+        expect(threeDRow()).not.toBeNull()
+        expect(addFilter()).not.toBeNull()
+
+        fireEvent.click(screen.getByRole('button', {name: 'Hidden Brief'}))
+        await waitFor(() => expect(briefSearch).toHaveBeenCalledTimes(2))
+        expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: null}))
+        expect(threeDRow()).toBeNull()
+    })
+
     it('composes the selector into the responsive top pagination band when enabled', async () => {
         const onSettings = jest.fn()
         const {container} = render(<TableViewsHarness
