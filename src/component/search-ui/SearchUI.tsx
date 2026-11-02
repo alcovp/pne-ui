@@ -866,6 +866,7 @@ const createTableViewSelector = <
     const options: readonly PneTableViewOption<TViewId>[] = views.map(view => ({
         id: view.id,
         label: view.label,
+        name: view.name,
         disabled: view.disabled,
         onClick: view.onClick,
     }))

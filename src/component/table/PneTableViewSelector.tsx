@@ -31,6 +31,11 @@ const TABLE_VIEW_ACTIONS_AUTOTEST_ID = 'table-view-actions'
 export type PneTableViewOption<TViewId extends string = string> = {
     id: TViewId
     label: ReactNode
+    /**
+     * The view's plain name for its hints («Switch to …», «… — current view») when the label carries
+     * more than the name, such as a count. A string label is the name by default.
+     */
+    name?: string
     disabled?: boolean
     /**
      * Called for every enabled view-button click, including the already selected view.
@@ -176,9 +181,9 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
                 >
                     {view.label}
                 </ToggleButton>
-                const name = typeof view.label === 'string' || typeof view.label === 'number'
+                const name = view.name ?? (typeof view.label === 'string' || typeof view.label === 'number'
                     ? String(view.label)
-                    : undefined
+                    : undefined)
 
                 // A disabled view gets no hint: there is nothing to switch to.
                 if (name === undefined || view.disabled) {

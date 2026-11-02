@@ -111,6 +111,22 @@ describe('PneTableViewSelector hints', () => {
         expect((await screen.findByRole('tooltip')).textContent).toBe('Switch to Full')
     })
 
+    it('names a view without the count its label carries', async () => {
+        render(<PneTableViewSelector
+            aria-label='Views'
+            onChange={jest.fn()}
+            value='brief'
+            views={[
+                {id: 'brief', label: 'Brief'},
+                {id: 'detailed', label: 'Detailed (2)', name: 'Detailed'},
+            ]}
+        />)
+
+        fireEvent.mouseOver(screen.getByRole('button', {name: 'Detailed (2)'}))
+
+        expect((await screen.findByRole('tooltip')).textContent).toBe('Switch to Detailed')
+    })
+
     it('marks the chosen view as the current one', async () => {
         renderViews()
 
