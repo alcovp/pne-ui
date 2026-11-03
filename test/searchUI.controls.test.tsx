@@ -93,6 +93,31 @@ describe('SearchUIFilters criterion controls', () => {
         expect(getComputedStyle(eraser).color).toBe('rgb(138, 138, 138)')
     })
 
+    it('darkens the criterion icons with the row under the pointer', async () => {
+        const {onFiltersUpdate, criterion} = renderControls()
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalledTimes(2)
+        })
+
+        const eraser = criterion(CriterionTypeEnum.EXACT).querySelector<HTMLButtonElement>(
+            '[data-autotest="clear-criterion"]',
+        ) as HTMLButtonElement
+        const eraserClass = Array.from(eraser.classList).find(name => name.startsWith('css-')) as string
+        // jsdom applies no :hover: the rule itself is checked. The row (the `criterion` root) under
+        // the pointer, the icon under the pointer and the keyboard focus share the darker grey.
+        const hoverRules = Array.from(document.styleSheets)
+            .flatMap(sheet => Array.from(sheet.cssRules))
+            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+            .filter(rule => rule.selectorText.includes(eraserClass) && rule.selectorText.includes(':hover'))
+        expect(hoverRules.length).toBeGreaterThan(0)
+        const rowHover = hoverRules.find(rule => rule.selectorText.includes('[data-autotest="criterion"]:hover'))
+        expect(rowHover).toBeDefined()
+        // #5C5C5C, as under the pointer on the icon itself.
+        expect(rowHover?.style.getPropertyValue('color').replace(/\s/g, '').toLowerCase())
+            .toMatch(/^(#5c5c5c|rgb\(92,92,92\))$/)
+    })
+
     it('marks a focused pill input with the panel focus ring', async () => {
         const {onFiltersUpdate, criterion} = renderControls()
 

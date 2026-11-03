@@ -48,7 +48,10 @@ export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({the
     color: theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR,
     stroke: 'currentColor',
     transition: 'color .15s ease',
-    '&:hover, &:focus-visible': {
+    // Under the pointer or the keyboard focus, and with the whole row under the pointer: the icons
+    // column is narrow, and the row tells which icons are about to be used. The row is the
+    // criterion root, the one with the `criterion` locator.
+    '[data-autotest="criterion"]:hover &, &:hover, &:focus-visible': {
         color: theme.palette.pne?.control.foregroundHover ?? TABLE_CONTROL_HOVER_TEXT_COLOR,
     },
     '&:focus-visible': createSearchUIFocusRing(theme),
