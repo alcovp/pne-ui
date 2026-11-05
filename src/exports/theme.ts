@@ -17,6 +17,13 @@ export {
     type PneButtonVariantColors,
 } from '../buttonPalette'
 export {
+    createPneCheckboxPalette,
+    type PneCheckboxPalette,
+    type PneCheckboxState,
+    type PneCheckboxStateColors,
+    type PneCheckboxValueColors,
+} from '../checkboxPalette'
+export {
     createPneSwitchPalette,
     type PneSwitchPalette,
     type PneSwitchState,

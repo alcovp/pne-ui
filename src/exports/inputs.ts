@@ -54,7 +54,7 @@ export type {
 } from '../common/paynet/dropdown'
 
 export { PneCheckbox } from '../component/PneCheckbox'
-export type { PneCheckboxProps } from '../component/PneCheckbox'
+export type { PneCheckboxProps, PneCheckboxSize } from '../component/PneCheckbox'
 export { PneLabeledCheckbox } from '../component/PneLabeledCheckbox'
 export type { PneLabeledCheckboxProps } from '../component/PneLabeledCheckbox'
 export { default as PneSwitch } from '../component/PneSwitch'

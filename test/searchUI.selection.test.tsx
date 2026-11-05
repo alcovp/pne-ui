@@ -402,6 +402,7 @@ describe('SearchUI table selection', () => {
         expect(onSelectionChange).not.toHaveBeenCalled()
     })
 
+    // Three reloads of a 51-row table take about 4-6 s under jsdom, too close to the 5 s default.
     it('preserves selection through pagination, page-size, and sort requests', async () => {
         const firstPage = Array.from({length: 51}, (_, index) => ({
             id: index + 1,
@@ -446,7 +447,7 @@ describe('SearchUI table selection', () => {
         expect(searchData).toHaveBeenLastCalledWith(expect.objectContaining({orderBy: 1}))
         expect((returnedCheckbox as HTMLInputElement).checked).toBe(true)
         expect(screen.getByText('1 selected (explicit)')).toBeTruthy()
-    })
+    }, 15_000)
 
     it('disables retained old rows while changed applied criteria are loading', async () => {
         let resolveChangedSearch!: (value: Row[]) => void
