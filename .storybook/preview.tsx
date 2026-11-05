@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import {PneThemeProvider, Skin, type PneColorMode} from "../src";
 import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 import { withContext } from './decorators/withContext';
+import { HostPageStyles } from './hostPage';
 import { STORYBOOK_DEFAULT_SKIN, skinColorOf } from './skins';
 
 const defaultSkin: Skin = {
@@ -129,22 +130,25 @@ const preview = {
     },
     decorators: [
         withContext,
-        (Story, context) => (
-            <PneThemeProvider
-                skin={{...defaultSkin, experimentalColor: skinColorOf(context.globals.skin)}}
-                mode={(context.globals.colorMode ?? 'light') as PneColorMode}
-            >
-                <Box
-                    sx={{
-                        backgroundColor: 'background.default',
-                        color: 'text.primary',
-                        minHeight: '100vh',
-                    }}
+        (Story, context) => {
+            const mode = (context.globals.colorMode ?? 'light') as PneColorMode;
+            return (
+                <PneThemeProvider
+                    skin={{...defaultSkin, experimentalColor: skinColorOf(context.globals.skin)}}
+                    mode={mode}
                 >
-                    <Story/>
-                </Box>
-            </PneThemeProvider>
-        ),
+                    <HostPageStyles mode={mode}/>
+                    {/* The light page is the host one from HostPageStyles, the dark one is the theme's. */}
+                    <Box
+                        sx={mode === 'dark'
+                            ? {backgroundColor: 'background.default', color: 'text.primary', minHeight: '100vh'}
+                            : {minHeight: '100vh'}}
+                    >
+                        <Story/>
+                    </Box>
+                </PneThemeProvider>
+            );
+        },
     ],
 };
 
