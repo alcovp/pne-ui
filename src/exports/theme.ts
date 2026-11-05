@@ -16,6 +16,13 @@ export {
     type PneButtonVariant,
     type PneButtonVariantColors,
 } from '../buttonPalette'
+export {
+    createPneSwitchPalette,
+    type PneSwitchPalette,
+    type PneSwitchState,
+    type PneSwitchStateColors,
+    type PneSwitchValueColors,
+} from '../switchPalette'
 export {PNE_NEUTRAL_RAMP, PNE_STATUS_COLORS} from '../themeColors'
 export {
     PneThemeProvider,

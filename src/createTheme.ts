@@ -14,6 +14,7 @@ import {
     createPneLinkColor,
     type PneButtonPalette,
 } from './buttonPalette'
+import {createPneSwitchPalette, type PneSwitchPalette} from './switchPalette'
 import {PNE_DARK_COLORS, PNE_LIGHT_COLORS, type PneColorMode} from './themeColors'
 
 export {PNE_DARK_COLORS} from './themeColors'
@@ -66,6 +67,8 @@ export type PneSemanticPalette = {
     ramp: PneBrandRamp
     /** Button colours by UI Kit role. */
     button: PneButtonPalette
+    /** Switch colours by UI Kit role. */
+    switch: PneSwitchPalette
     /** The outer 2px of the keyboard focus ring; the 2px gap inside takes the page colour. */
     focusRing: string
     /** Link text on the page. */
@@ -186,6 +189,7 @@ const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPal
         ...createSemanticSurfaces(seed, mode),
         ramp,
         button: createPneButtonPalette(ramp, mode),
+        switch: createPneSwitchPalette(ramp, mode),
         focusRing: createPneFocusRing(ramp, mode),
         link: createPneLinkColor(ramp, mode),
     }
@@ -201,7 +205,7 @@ export const resolvePneSemanticPalette = (theme: Theme): PneSemanticPalette =>
 const createSemanticSurfaces = (
     seed: string,
     mode: PneColorMode,
-): Omit<PneSemanticPalette, 'ramp' | 'button' | 'focusRing' | 'link'> => ({
+): Omit<PneSemanticPalette, 'ramp' | 'button' | 'switch' | 'focusRing' | 'link'> => ({
     surface: mode === 'dark'
         ? {
             sunken: PNE_DARK_COLORS.surfaceSunken,

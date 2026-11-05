@@ -969,7 +969,7 @@ describe('PneSwitch hit area', () => {
         ]
 
         expect(inputGeometry('Small hit area')).toEqual(['-4px', '-8px', '40px', '24px', '-16px'])
-        expect(inputGeometry('Medium hit area')).toEqual(['-5px', '-12px', '58px', '32px', '-24px'])
+        expect(inputGeometry('Medium hit area')).toEqual(['-6px', '-13px', '58px', '32px', '-25px'])
     })
 })
 
@@ -986,8 +986,9 @@ describe('PneSwitch disabled state', () => {
             <PneSwitch aria-label='Disabled on' checked disabled/>
         </ThemeProvider>)
 
-        expect(trackRuleColor('Disabled on', '.Mui-checked.Mui-disabled')).toBe('rgba(10, 145, 188, 0.38)')
-        expect(trackRuleColor('Disabled on', '.Mui-disabled')).toBe('#E6E6E6')
+        // UI Kit: the disabled on track is Neutral/400, the off track Neutral/100.
+        expect(trackRuleColor('Disabled on', '.Mui-checked.Mui-disabled')).toBe('#A2AEB9')
+        expect(trackRuleColor('Disabled on', '.Mui-disabled')).toBe('#EBEDF0')
     })
 
     it('shows a neutral hint and a not-allowed cursor only for a disabled switch', async () => {

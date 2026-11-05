@@ -48,6 +48,9 @@ const DARK_SURFACES = [
 const readsOn = (color: string, surfaces: readonly string[]): boolean =>
     surfaces.every(surface => getContrastRatio(color, surface) >= MIN_UI_CONTRAST)
 
+/** Whether a fill is distinguishable (3:1) from every dark-theme surface. */
+export const readsOnDarkSurfaces = (color: string): boolean => readsOn(color, DARK_SURFACES)
+
 /** Rule 1: the first step from `step` away from the page that reads at 3:1 on the page surfaces. */
 export const readableBrandStep = (
     ramp: PneBrandRamp,
@@ -61,7 +64,7 @@ export const readableBrandStep = (
 }
 
 /** The step at least as far from the page as `floor`: the darker one in light, the lighter in dark. */
-const atLeast = (step: PneBrandRampStep, floor: PneBrandRampStep, mode: PneColorMode): PneBrandRampStep =>
+export const deeperStep = (step: PneBrandRampStep, floor: PneBrandRampStep, mode: PneColorMode): PneBrandRampStep =>
     (mode === 'dark' ? Math.min(step, floor) : Math.max(step, floor)) as PneBrandRampStep
 
 /** Rule 3: the label colour on a fill. */
@@ -73,7 +76,7 @@ export const labelOnFill = (fill: string, mode: PneColorMode): string => {
 }
 
 /** Rule 2: hover and pressed steps of a brand fill. */
-const fillStateSteps = (ramp: PneBrandRamp, mode: PneColorMode): {hover: PneBrandRampStep, pressed: PneBrandRampStep} => {
+export const brandFillSteps = (ramp: PneBrandRamp, mode: PneColorMode): {hover: PneBrandRampStep, pressed: PneBrandRampStep} => {
     const darkerIsVisible = getContrastRatio(ramp[500], ramp[600]) >= DISTINCT_STEP_CONTRAST
     if (mode === 'dark') return {hover: 400, pressed: darkerIsVisible ? 600 : 300}
     return darkerIsVisible ? {hover: 600, pressed: 700} : {hover: 400, pressed: 300}
@@ -86,7 +89,7 @@ const filled = (fill: string, mode: PneColorMode, border = TRANSPARENT): PneButt
 })
 
 const createPrimary = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariantColors => {
-    const steps = fillStateSteps(ramp, mode)
+    const steps = brandFillSteps(ramp, mode)
     // In the dark theme a fill that does not read on the surfaces gets a ring that does.
     const ring = mode === 'dark' && !readsOn(ramp[500], DARK_SURFACES)
         ? ramp[readableBrandStep(ramp, 500, mode)]
@@ -107,13 +110,13 @@ const createOutline = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariant
         const text = readableBrandStep(ramp, 300, mode)
         return {
             default: {fill: TRANSPARENT, border: ramp[border], text: ramp[text]},
-            hover: {fill: TRANSPARENT, border: ramp[atLeast(300, border, mode)], text: ramp[text]},
-            pressed: {fill: TRANSPARENT, border: ramp[atLeast(300, border, mode)], text: ramp[atLeast(200, text, mode)]},
+            hover: {fill: TRANSPARENT, border: ramp[deeperStep(300, border, mode)], text: ramp[text]},
+            pressed: {fill: TRANSPARENT, border: ramp[deeperStep(300, border, mode)], text: ramp[deeperStep(200, text, mode)]},
             disabled: {fill: TRANSPARENT, border: PNE_DARK_COLORS.textDisabled, text: PNE_DARK_COLORS.textDisabled},
         }
     }
     const base = readableBrandStep(ramp, 500, mode)
-    const pressed = atLeast(700, base, mode)
+    const pressed = deeperStep(700, base, mode)
     return {
         default: {fill: TRANSPARENT, border: ramp[base], text: ramp[base]},
         hover: {fill: TRANSPARENT, border: ramp[pressed], text: ramp[base]},
@@ -140,7 +143,7 @@ const createText = (mode: PneColorMode): PneButtonVariantColors => mode === 'dar
 const createSoft = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariantColors => {
     if (mode === 'dark') {
         const text = ramp[readableBrandStep(ramp, 300, mode)]
-        const pressedText = ramp[atLeast(200, readableBrandStep(ramp, 300, mode), mode)]
+        const pressedText = ramp[deeperStep(200, readableBrandStep(ramp, 300, mode), mode)]
         return {
             default: {fill: TRANSPARENT, border: TRANSPARENT, text},
             hover: {fill: alpha(text, 0.10), border: TRANSPARENT, text},
@@ -152,7 +155,7 @@ const createSoft = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariantCol
     return {
         default: {fill: TRANSPARENT, border: TRANSPARENT, text: ramp[base]},
         hover: {fill: ramp[50], border: TRANSPARENT, text: ramp[base]},
-        pressed: {fill: ramp[100], border: TRANSPARENT, text: ramp[atLeast(700, base, mode)]},
+        pressed: {fill: ramp[100], border: TRANSPARENT, text: ramp[deeperStep(700, base, mode)]},
         disabled: {fill: TRANSPARENT, border: TRANSPARENT, text: PNE_NEUTRAL_RAMP[400]},
     }
 }

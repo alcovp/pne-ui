@@ -2,12 +2,15 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo,
 import {Switch, SwitchProps, Tooltip} from '@mui/material'
 import type {SwitchOwnerState} from '@mui/material/Switch'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
-import {alpha, keyframes} from '@mui/material/styles'
+import {keyframes} from '@mui/material/styles'
 import {useTheme} from '@mui/material/styles'
 import type {SxProps, Theme} from '@mui/material/styles'
+import type {SystemStyleObject} from '@mui/system'
 import * as MuiMaterialUtils from '@mui/material/utils'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
 import {useTranslation} from 'react-i18next'
+import {resolvePneSemanticPalette} from '../createTheme'
+import type {PneSwitchStateColors} from '../switchPalette'
 import {usePneFieldControlProps} from './PneFieldContext'
 import {composeToggleInputSlotProps, moveAriaPropsToInput} from './PneToggleInput'
 
@@ -36,6 +39,8 @@ export interface PneSwitchProps extends Omit<SwitchProps, 'onChange'> {
      * and rolls back if the thenable rejects.
      */
     onChange?: PneSwitchChangeHandler
+    /** A state pinned for specimens; product code never sets it. */
+    'data-pne-state'?: 'hover' | 'pressed' | 'focus' | 'loading'
 }
 
 type SwitchInputSlotProps = NonNullable<NonNullable<SwitchProps['slotProps']>['input']>
@@ -76,6 +81,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         sx,
         size = 'medium',
         slotProps,
+        'data-pne-state': pinnedState,
         ...rest
     } = themedProps
     const [confirmedChecked, setConfirmedChecked] = MuiMaterialUtils.useControlled({
@@ -296,6 +302,13 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         effectiveDisabled ? disabledSwitchSx : undefined,
         ...(Array.isArray(sx) ? sx : [sx]),
     ]
+    // State marks on the root span, where the colour rules and specimens read them; MUI
+    // hands unknown props to the SwitchBase, not to the root.
+    const pneRootAttributes = {
+        'data-pne-loading': pending || undefined,
+        'data-pne-readonly': readOnly && !pending ? true : undefined,
+        'data-pne-state': pinnedState,
+    }
     // MUI types still expose the SwitchBase ref as a button although its
     // runtime root is a span. Keep the corrected public ref at the PNE edge.
     const muiRootRef = ref as React.Ref<HTMLButtonElement>
@@ -316,9 +329,12 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
                 input: inputSlotProps,
                 // The disabled SwitchBase ignores the pointer, so the hint
                 // listens on the root span, which covers the track and thumb.
-                root: showsDisabledHint
-                    ? MuiMaterialUtils.mergeSlotProps(slotProps?.root, disabledHintRootListeners)
-                    : slotProps?.root,
+                root: MuiMaterialUtils.mergeSlotProps(
+                    showsDisabledHint
+                        ? MuiMaterialUtils.mergeSlotProps(slotProps?.root, disabledHintRootListeners)
+                        : slotProps?.root,
+                    pneRootAttributes,
+                ),
                 track: MuiMaterialUtils.mergeSlotProps(slotProps?.track, {
                     sx: switchTrackTransitionSx,
                 }),
@@ -391,15 +407,9 @@ const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
         : false
 }
 
-const pendingRipple = keyframes({
-    from: {
-        opacity: 0.32,
-        transform: 'scale(1)',
-    },
-    to: {
-        opacity: 0,
-        transform: 'scale(1.28)',
-    },
+const spinnerRotation = keyframes({
+    from: {transform: 'rotate(0deg)'},
+    to: {transform: 'rotate(360deg)'},
 })
 
 const switchTrackTransitionSx: SxProps<Theme> = theme => ({
@@ -412,46 +422,14 @@ const switchTrackTransitionSx: SxProps<Theme> = theme => ({
     },
 })
 
-const revealStaticPendingOutline = keyframes({
-    to: {
-        opacity: 0.32,
-    },
-})
-
-const pendingSwitchSx: SxProps<Theme> = theme => ({
+// The pending switch keeps its colours and spins a ring inside the knob (UI Kit Switcher
+// Loading); the knob already shows the requested value.
+const pendingSwitchSx: SxProps<Theme> = {
     cursor: 'progress',
-    position: 'relative',
     '& .MuiSwitch-switchBase': {
         cursor: 'progress',
     },
-    '&::before, &::after': {
-        animation: `${pendingRipple} 1200ms ease-out 400ms infinite`,
-        border: `2px solid ${theme.palette.primary.main}`,
-        borderRadius: 40,
-        boxSizing: 'border-box',
-        content: '""',
-        height: 'calc(var(--pne-switch-track-height) + 4px)',
-        left: 'calc(var(--pne-switch-track-left) - 2px)',
-        opacity: 0,
-        pointerEvents: 'none',
-        position: 'absolute',
-        top: 'calc(var(--pne-switch-track-top) - 2px)',
-        transformOrigin: 'center',
-        width: 'calc(var(--pne-switch-track-width) + 4px)',
-    },
-    '&::after': {
-        animationDelay: '1000ms',
-    },
-    '@media (prefers-reduced-motion: reduce)': {
-        '&::before': {
-            animation: `${revealStaticPendingOutline} 1ms linear 400ms forwards`,
-            transform: 'none',
-        },
-        '&::after': {
-            display: 'none',
-        },
-    },
-})
+}
 
 // The disabled SwitchBase ignores the pointer, so the root carries the cursor
 // over the whole control, track and thumb included.
@@ -482,136 +460,111 @@ const useComponentsWithoutSwitchDefaults = () => {
     }, [theme.components])
 }
 
-const createSwitchSx = (
-    config: {
-        rootWidth: number
-        rootHeight: number
-        trackLeft: number
-        trackTop: number
-        trackWidth: number
-        trackHeight: number
-        thumbSize: number
-        thumbPadding: number
-        checkedShift: number
-        focusOutlineWidth: number
-        pressedOutlineWidth: number
+type SwitchSizeConfig = {
+    rootWidth: number
+    rootHeight: number
+    trackLeft: number
+    trackTop: number
+    trackWidth: number
+    trackHeight: number
+    thumbSize: number
+    thumbPadding: number
+    checkedShift: number
+    spinnerInset: number
+    spinnerStroke: number
+}
+
+const ring = (color: string): string => color === 'transparent' ? 'none' : `inset 0 0 0 1px ${color}`
+
+type SwitchColorRules = Record<string, SystemStyleObject<Theme>>
+
+/**
+ * Track and knob colours of one value for the switch bases matched by `switchBase`. The track
+ * stays opaque: MUI fades it (0.38, checked 0.5, disabled 0.12) with rules these outweigh.
+ */
+const valueColorsSx = (switchBase: string, colors: PneSwitchStateColors): SwitchColorRules => ({
+    [`${switchBase} + .MuiSwitch-track`]: {
+        backgroundColor: colors.track,
+        boxShadow: ring(colors.ring),
+        opacity: 1,
     },
-): SxProps<Theme> => theme => {
-    const trackFeedbackColor = alpha(theme.palette.primary.main, 0.1)
-    const isDarkMode = theme.palette.mode === 'dark'
-    const thumbColor = isDarkMode ? theme.palette.text.primary : '#fff'
-    // Off, the track is a secondary control: the neutral control grey of the palette.
-    const trackColor = isDarkMode
-        ? (theme.palette.pne?.border.control ?? theme.palette.text.secondary)
-        : (theme.palette.pne?.control.foreground ?? '#8A8A8A')
-    const trackHoverColor = isDarkMode
-        ? theme.palette.text.secondary
-        : (theme.palette.pne?.control.foregroundHover ?? '#5C5C5C')
-    const disabledTrackColor = isDarkMode
-        ? theme.palette.action.disabledBackground
-        : '#E6E6E6'
-    const disabledThumbColor = isDarkMode ? theme.palette.text.disabled : '#fff'
-    // A disabled switch keeps its state readable: "on" stays a faded primary,
-    // "off" stays the neutral disabled track.
-    const disabledCheckedTrackColor = alpha(theme.palette.primary.main, 0.38)
+    [`${switchBase} .MuiSwitch-thumb`]: {
+        backgroundColor: colors.knob,
+    },
+})
+
+const INTERACTIVE_ROOT = '&:not([data-pne-readonly]):not([data-pne-loading]):not([data-pne-state="loading"])'
+const INTERACTIVE_BASE = '.MuiSwitch-switchBase:not(.Mui-disabled)'
+
+const createSwitchSx = (config: SwitchSizeConfig): SxProps<Theme> => theme => {
+    const pne = resolvePneSemanticPalette(theme)
+    const colors = pne.switch
+    const focusRing = `0 0 0 2px ${theme.palette.background.default}, 0 0 0 4px ${pne.focusRing}`
+    // The ring sits `spinnerInset` inside the knob (12px in the 16px knob, 8px in the 12px one).
+    // Lengths are strings on purpose: sx reads bare numbers of margin props as theme spacing.
+    const spinner = (color: string): SystemStyleObject<Theme> => ({
+        animation: `${spinnerRotation} 800ms linear infinite`,
+        border: `${config.spinnerStroke}px solid ${color}`,
+        borderRadius: '50%',
+        borderRightColor: 'transparent',
+        boxSizing: 'border-box',
+        content: '""',
+        inset: `${config.spinnerInset}px`,
+        position: 'absolute',
+        '@media (prefers-reduced-motion: reduce)': {
+            animation: 'none',
+        },
+    })
+
+    // Colours by UI Kit role: value × state. Later rules win over earlier ones. Collected into
+    // one plain record: spreading the MUI style type many times is too heavy for tsc.
+    const colorRules: SwitchColorRules = Object.assign(
+        {},
+        valueColorsSx('& .MuiSwitch-switchBase', colors.off.default),
+        valueColorsSx('& .MuiSwitch-switchBase.Mui-checked', colors.on.default),
+        valueColorsSx(`${INTERACTIVE_ROOT}:hover ${INTERACTIVE_BASE}`, colors.off.hover),
+        valueColorsSx(`${INTERACTIVE_ROOT}:hover ${INTERACTIVE_BASE}.Mui-checked`, colors.on.hover),
+        valueColorsSx('&[data-pne-state="hover"] .MuiSwitch-switchBase', colors.off.hover),
+        valueColorsSx('&[data-pne-state="hover"] .MuiSwitch-switchBase.Mui-checked', colors.on.hover),
+        valueColorsSx(`${INTERACTIVE_ROOT}:active ${INTERACTIVE_BASE}`, colors.off.pressed),
+        valueColorsSx(`${INTERACTIVE_ROOT}:active ${INTERACTIVE_BASE}.Mui-checked`, colors.on.pressed),
+        valueColorsSx('&[data-pne-state="pressed"] .MuiSwitch-switchBase', colors.off.pressed),
+        valueColorsSx('&[data-pne-state="pressed"] .MuiSwitch-switchBase.Mui-checked', colors.on.pressed),
+        valueColorsSx('&[data-pne-readonly] .MuiSwitch-switchBase', colors.off.readOnly),
+        valueColorsSx('&[data-pne-readonly] .MuiSwitch-switchBase.Mui-checked', colors.on.readOnly),
+        valueColorsSx('& .MuiSwitch-switchBase.Mui-disabled', colors.off.disabled),
+        valueColorsSx('& .MuiSwitch-switchBase.Mui-checked.Mui-disabled', colors.on.disabled),
+    )
 
     return {
-        '--pne-switch-track-height': `${config.trackHeight}px`,
-        '--pne-switch-track-left': `${config.trackLeft}px`,
-        '--pne-switch-track-top': `${config.trackTop}px`,
-        '--pne-switch-track-width': `${config.trackWidth}px`,
         width: config.rootWidth,
         height: config.rootHeight,
         padding: 0,
         overflow: 'visible',
-        '&:hover .MuiSwitch-track::before, & .MuiSwitch-switchBase:hover + .MuiSwitch-track::before': {
-            boxShadow: `0 0 0 2px ${trackFeedbackColor}`,
-            opacity: 1,
-            transform: 'scale(1)',
-        },
-        '&:active .MuiSwitch-track::before, & .MuiSwitch-switchBase:active + .MuiSwitch-track::before': {
-            boxShadow: `0 0 0 ${config.pressedOutlineWidth}px ${trackFeedbackColor}`,
-            opacity: 1,
-            transform: 'scale(1)',
-            transitionDuration: '80ms',
-        },
         '& .MuiSwitch-switchBase': {
             top: config.trackTop,
             left: config.trackLeft,
             padding: `${config.thumbPadding}px`,
-            color: thumbColor,
             '&.Mui-checked': {
                 transform: `translateX(${config.checkedShift}px)`,
-                color: thumbColor,
-                '& + .MuiSwitch-track': {
-                    backgroundColor: 'primary.main',
-                    opacity: 1,
-                },
-            },
-            '&:hover + .MuiSwitch-track': {
-                backgroundColor: trackHoverColor,
-                opacity: 1,
-            },
-            '&.Mui-checked:hover + .MuiSwitch-track': {
-                backgroundColor: 'primary.dark',
-                opacity: 1,
             },
             '&.Mui-disabled': {
-                color: disabledThumbColor,
                 opacity: 1,
-                '& .MuiSwitch-thumb': {
-                    backgroundColor: disabledThumbColor,
-                },
-                '& + .MuiSwitch-track': {
-                    backgroundColor: disabledTrackColor,
-                    opacity: 1,
-                },
-                '& + .MuiSwitch-track::before': {
-                    boxShadow: 'none',
-                    opacity: 0,
-                    transform: 'scale(1)',
-                },
-            },
-            '&.Mui-checked.Mui-disabled + .MuiSwitch-track': {
-                backgroundColor: disabledCheckedTrackColor,
-                opacity: 1,
-            },
-            '&.Mui-checked.Mui-disabled .MuiSwitch-thumb': {
-                backgroundColor: disabledThumbColor,
-            },
-            '&.Mui-checked.Mui-disabled': {
-                color: disabledThumbColor,
-                opacity: 1,
-                '& + .MuiSwitch-track': {
-                    backgroundColor: disabledCheckedTrackColor,
-                    opacity: 1,
-                },
-                '& + .MuiSwitch-track::before': {
-                    boxShadow: 'none',
-                    opacity: 0,
-                    transform: 'scale(1)',
-                },
-            },
-            '&.Mui-disabled:hover + .MuiSwitch-track': {
-                backgroundColor: disabledTrackColor,
-                opacity: 1,
-            },
-            '&.Mui-checked.Mui-disabled:hover + .MuiSwitch-track': {
-                backgroundColor: disabledCheckedTrackColor,
-                opacity: 1,
-            },
-            '&.Mui-focusVisible:not(.Mui-disabled) + .MuiSwitch-track::before': {
-                boxShadow: `0 0 0 ${config.focusOutlineWidth}px ${trackFeedbackColor}`,
-                opacity: 1,
-                transform: 'scale(1)',
             },
         },
-        '&:active .MuiSwitch-switchBase.Mui-focusVisible:not(.Mui-disabled) + .MuiSwitch-track::before, & .MuiSwitch-switchBase.Mui-focusVisible:not(.Mui-disabled):active + .MuiSwitch-track::before': {
-            boxShadow: `0 0 0 ${config.pressedOutlineWidth}px ${trackFeedbackColor}`,
+        ...colorRules,
+        '& .MuiSwitch-switchBase.Mui-focusVisible:not(.Mui-disabled) + .MuiSwitch-track::before, &[data-pne-state="focus"] .MuiSwitch-switchBase + .MuiSwitch-track::before': {
+            boxShadow: focusRing,
             opacity: 1,
-            transform: 'scale(1)',
-            transitionDuration: '80ms',
         },
+        '&[data-pne-readonly]': {
+            cursor: 'default',
+            '& .MuiSwitch-switchBase': {
+                cursor: 'default',
+            },
+        },
+        '&[data-pne-loading] .MuiSwitch-thumb::after, &[data-pne-state="loading"] .MuiSwitch-thumb::after': spinner(colors.spinner.off),
+        '&[data-pne-loading] .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb::after, &[data-pne-state="loading"] .MuiSwitch-switchBase.Mui-checked .MuiSwitch-thumb::after': spinner(colors.spinner.on),
         // The native input is the click target. MUI sizes it to the SwitchBase
         // (the thumb's height, three thumbs wide), which left dead bands above
         // and below the track and let it overhang the root on one side. It now
@@ -629,7 +582,9 @@ const createSwitchSx = (
             width: config.thumbSize,
             height: config.thumbSize,
             borderRadius: '50%',
-            boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.2)',
+            boxShadow: colors.knobShadow,
+            position: 'relative',
+            transition: 'background-color 140ms linear',
         },
         '& .MuiSwitch-track': {
             position: 'absolute',
@@ -638,8 +593,6 @@ const createSwitchSx = (
             width: config.trackWidth,
             height: config.trackHeight,
             borderRadius: 40,
-            backgroundColor: trackColor,
-            opacity: 1,
             overflow: 'visible',
             '&::before': {
                 borderRadius: 'inherit',
@@ -650,14 +603,14 @@ const createSwitchSx = (
                 opacity: 0,
                 pointerEvents: 'none',
                 position: 'absolute',
-                transform: 'scale(1)',
-                transformOrigin: 'center',
-                transition: 'box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms cubic-bezier(0.4, 0, 0.2, 1), transform 150ms cubic-bezier(0.4, 0, 0.2, 1)',
+                transition: 'box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1), opacity 150ms cubic-bezier(0.4, 0, 0.2, 1)',
             },
         },
     }
 }
 
+// UI Kit Switcher: md 32×20 track with a 16px knob inset by 2, xs 24×16 with 12; the hit
+// areas (root) are 58×32 and 40×24 as in Figma.
 const switchSxBySize: Record<PneSwitchSize, SxProps<Theme>> = {
     small: createSwitchSx({
         rootWidth: 40,
@@ -669,21 +622,21 @@ const switchSxBySize: Record<PneSwitchSize, SxProps<Theme>> = {
         thumbSize: 12,
         thumbPadding: 2,
         checkedShift: 8,
-        focusOutlineWidth: 2,
-        pressedOutlineWidth: 4,
+        spinnerInset: 2,
+        spinnerStroke: 1.25,
     }),
     medium: createSwitchSx({
         rootWidth: 58,
         rootHeight: 32,
-        trackLeft: 12,
-        trackTop: 5,
-        trackWidth: 34,
-        trackHeight: 22,
+        trackLeft: 13,
+        trackTop: 6,
+        trackWidth: 32,
+        trackHeight: 20,
         thumbSize: 16,
-        thumbPadding: 3,
+        thumbPadding: 2,
         checkedShift: 12,
-        focusOutlineWidth: 4,
-        pressedOutlineWidth: 6,
+        spinnerInset: 2,
+        spinnerStroke: 1.5,
     }),
 }
 
