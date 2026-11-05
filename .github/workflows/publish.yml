@@ -4,6 +4,11 @@ on:
   push:
     tags:
       - 'npm/v*'
+  # A tag push now and then creates no run at all (5.0.0-rc.0 and rc.1, 2026-11-05), and release
+  # tags cannot be deleted or moved. Start such a run by hand: Actions, Publish pne-ui, Run workflow,
+  # and pick the release tag (not a branch) under "Use workflow from". The validation rejects any
+  # other ref. GitHub offers the button once this file is on the default branch.
+  workflow_dispatch:
 
 permissions: {}
 
@@ -33,8 +38,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           package-manager-cache: false
-      - name: Verify pinned npm
-        run: test "$(npm --version)" = "11.9.0"
       - name: Validate release tag
         run: node scripts/release-ci.mjs validate
       - name: Install dependencies
@@ -76,12 +79,19 @@ jobs:
         with:
           node-version-file: .nvmrc
           package-manager-cache: false
-      - name: Verify pinned npm
-        run: test "$(npm --version)" = "11.9.0"
+      - name: Check that npm can publish through OIDC
+        # Trusted publishing needs npm 11.5.1 or newer; npm itself comes with Node from .nvmrc.
+        run: >-
+          node -e 'const [major, minor, patch] = process.argv[1].split(".").map(Number);
+          if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) {
+          console.error(`npm ${process.argv[1]} cannot publish through OIDC; 11.5.1 or newer is required`);
+          process.exit(1) }' "$(npm --version)"
       - name: Download checked archive from this run
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: release-package
           path: .release
       - name: Verify and publish the exact archive
+        # Ends with `npm publish`. npm shows a trusted-publish version minutes later, so the job
+        # does not wait for it; `yarn release:status` reads the registry afterwards.
         run: node scripts/release-ci.mjs publish
