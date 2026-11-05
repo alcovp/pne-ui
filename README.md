@@ -484,6 +484,18 @@ type Region = {code: string; title: string; disabled: boolean}
 свойства задаются через API Autocomplete. Имя input автоматически переносится на portal listbox; это работает
 для собственного `label`, внешнего `PneField`, `aria-label` и `aria-labelledby`.
 
+Вид (UI Kit: поле и Dropdown list, у `PneAsyncAutocomplete` такой же). Поле — как у `PneTextField`. Шеврон и крестик
+очистки — тонкие значки UI Kit 14px цвета значения, на местах значков MUI (крестик MUI показывает при наведении и в
+фокусе). Значения `multiple` — бейджи UI Kit: скругление 4, белые с кольцом Neutral/200, тонкий крестик удаления.
+Список — панель UI Kit, как у `PneSelect`: строки со скруглением 4, подсветка Neutral/50, выбранная строка
+одиночного списка — Brand/50 с галочкой. В списке `multiple` в каждой строке флажок PneCheckbox, выбранные строки не
+подкрашиваются. Строки, которые рисует потребитель (`renderOption`), остаются его: в списке `multiple` их выбранные
+строки подкрашиваются, потому что флажок у них может быть свой. Подписи групп `groupBy` — 12px Neutral/600 с линией
+между группами; строки «загрузка» и «ничего не найдено» — по центру, Neutral/600, ошибка загрузки
+`PneAsyncAutocomplete` — красным. Высота строк и размер текста — как у MUI. Свои `popupIcon`, `clearIcon`, значок
+удаления в `slotProps.chip` и `sx` в `slotProps.paper` по-прежнему можно передать. Цвета — `theme.palette.pne.dropdown`.
+`data-pne-state="hover" | "focus"` закрепляет состояние поля для образцов в Storybook; в коде продукта не задаётся.
+
 ## PneAsyncAutocomplete
 
 `PneAsyncAutocomplete` владеет remote options, loading и отключением локальной MUI-фильтрации. Loader получает

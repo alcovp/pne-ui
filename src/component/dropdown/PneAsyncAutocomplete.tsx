@@ -27,6 +27,7 @@ import {
     PneBuiltInAutocompleteOption,
 } from '../../common/paynet/dropdown'
 import PneTextField from '../PneTextField'
+import {PneChevronDownIcon, PneCloseIcon, pneAutocompleteFieldSx} from './dropdownLook'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from '../PneFieldContext'
 import type {
     PneAutocompleteBuiltInProps,
@@ -40,6 +41,7 @@ import {
     resolveAutocompleteListboxName,
     sanitizeAutocompleteHtmlInputProps,
     withAutocompleteListboxName,
+    withAutocompleteLook,
     withoutAutocompleteRootSlot,
 } from './PneAutocompleteShared'
 
@@ -282,7 +284,9 @@ const PneAsyncAutocompleteImplementation = <
     const props = rawProps as typeof rawProps & {as?: unknown; component?: unknown}
     const {
         as: _as,
+        clearIcon,
         component: _component,
+        'data-pne-state': pinnedState,
         defaultOpen = false,
         disabled,
         error,
@@ -309,6 +313,7 @@ const PneAsyncAutocompleteImplementation = <
         onOpen,
         open: controlledOpen,
         placeholder,
+        popupIcon,
         ref,
         reloadKey,
         required,
@@ -396,6 +401,7 @@ const PneAsyncAutocompleteImplementation = <
     const resolvedSlots = withoutAutocompleteRootSlot(slots)
     const innerSx: SxProps = [
         dropDownSx,
+        pneAutocompleteFieldSx,
         ...(Array.isArray(sx) ? sx : [sx]),
     ]
 
@@ -697,6 +703,7 @@ const PneAsyncAutocompleteImplementation = <
             ref={ref}
             renderInput={params => <PneTextField
                 {...params}
+                data-pne-state={pinnedState}
                 error={controlProps.error ?? false}
                 helperText={helperText}
                 inputRef={inputRef}
@@ -731,8 +738,13 @@ const PneAsyncAutocompleteImplementation = <
                 }}
                 variant={variant}
             />}
+            clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon'/>}
+            popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon'/>}
             size={size}
-            slotProps={resolvedSlotProps}
+            slotProps={withAutocompleteLook(resolvedSlotProps, {
+                ownRows: rest.renderOption !== undefined,
+                status: loadState,
+            })}
             slots={resolvedSlots}
             sx={innerSx}
         />

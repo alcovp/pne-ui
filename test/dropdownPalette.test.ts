@@ -20,6 +20,8 @@ describe('createPneDropdownPalette', () => {
             check: '#007DFF',
         })
         expect(colors.chevron).toEqual({default: '#41556B', disabled: '#A2AEB9'})
+        expect(colors.status).toEqual({text: '#7C8B9B', error: '#C8283B'})
+        expect(colors.chip).toEqual({fill: '#FFFFFF', ring: '#C9D2D9', text: '#41556B', remove: '#7C8B9B'})
     })
 
     it('is exposed through the theme', () => {
@@ -28,9 +30,14 @@ describe('createPneDropdownPalette', () => {
         expect(theme.palette.pne.dropdown.option.selected).toBe('#F2F8FF')
     })
 
-    it('takes the check from the brand step that reads on the page (rule 1)', () => {
+    it('takes the check from a brand step that reads on the page (rule 1) and on the picked row tint', () => {
         for (const skin of ['#007dff', '#79ceef', '#f0b90a']) {
-            expect(getContrastRatio(palette(skin).option.check, '#FFFFFF')).toBeGreaterThanOrEqual(3)
+            const light = palette(skin)
+            expect(getContrastRatio(light.option.check, '#FFFFFF')).toBeGreaterThanOrEqual(3)
+            expect(getContrastRatio(light.option.check, light.option.selected)).toBeGreaterThanOrEqual(3)
+            const dark = palette(skin, 'dark')
+            expect(getContrastRatio(dark.option.check, '#1C1C1C')).toBeGreaterThanOrEqual(3)
+            expect(getContrastRatio(dark.option.check, dark.option.selected)).toBeGreaterThanOrEqual(3)
         }
         expect(getContrastRatio(palette('#000000', 'dark').option.check, '#1C1C1C')).toBeGreaterThanOrEqual(3)
     })

@@ -13,6 +13,7 @@ import {
     PneBuiltInAutocompleteOption,
 } from '../../common/paynet/dropdown'
 import PneTextField from '../PneTextField'
+import {PneChevronDownIcon, PneCloseIcon, pneAutocompleteFieldSx} from './dropdownLook'
 import {usePneFieldControlProps} from '../PneFieldContext'
 import {
     areAutocompleteOptionsEqualBy,
@@ -22,6 +23,7 @@ import {
     resolveAutocompleteListboxName,
     sanitizeAutocompleteHtmlInputProps,
     withAutocompleteListboxName,
+    withAutocompleteLook,
     withoutAutocompleteRootSlot,
 } from './PneAutocompleteShared'
 
@@ -105,6 +107,8 @@ type PneAutocompleteBaseProps<
     ref?: React.Ref<HTMLDivElement>
     /** Safe attributes merged onto the actual native input. MUI owns its state and event handlers. */
     htmlInputProps?: PneAutocompleteHtmlInputProps
+    /** A field state pinned for specimens; product code never sets it. */
+    'data-pne-state'?: 'hover' | 'focus'
     /** The root slot is fixed so the root ref always targets an HTMLDivElement. */
     slots?: PneAutocompleteSlots<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
     slotProps?: PneAutocompleteSlotProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
@@ -332,7 +336,9 @@ const PneAutocompleteImplementation = <
     const props = rawProps as typeof rawProps & {as?: unknown; component?: unknown}
     const {
         as: _as,
+        clearIcon,
         component: _component,
+        'data-pne-state': pinnedState,
         disabled,
         error,
         fullWidth,
@@ -345,6 +351,7 @@ const PneAutocompleteImplementation = <
         isOptionEqualToValue,
         label,
         placeholder,
+        popupIcon,
         ref,
         required,
         size = 'small',
@@ -402,6 +409,7 @@ const PneAutocompleteImplementation = <
     const resolvedSlots = withoutAutocompleteRootSlot(slots)
     const innerSx: SxProps = [
         dropDownSx,
+        pneAutocompleteFieldSx,
         ...(Array.isArray(sx) ? sx : [sx]),
     ]
 
@@ -416,6 +424,7 @@ const PneAutocompleteImplementation = <
         ref={ref}
         renderInput={params => <PneTextField
             {...params}
+            data-pne-state={pinnedState}
             error={controlProps.error ?? false}
             helperText={helperText}
             inputRef={inputRef}
@@ -431,8 +440,10 @@ const PneAutocompleteImplementation = <
             }}
             variant={variant}
         />}
+        clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon'/>}
+        popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon'/>}
         size={size}
-        slotProps={resolvedSlotProps}
+        slotProps={withAutocompleteLook(resolvedSlotProps, {ownRows: rest.renderOption !== undefined})}
         slots={resolvedSlots}
         sx={innerSx}
     />

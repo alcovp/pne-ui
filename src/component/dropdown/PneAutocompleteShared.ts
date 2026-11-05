@@ -1,11 +1,13 @@
-import type React from 'react'
+import * as React from 'react'
 import type {AutocompleteProps} from '@mui/material'
 import type {ChipTypeMap} from '@mui/material/Chip'
 import type {
     PneAutocompleteKey,
     PneAutocompleteOption,
 } from '../../common/paynet/dropdown'
+import type {SxProps, Theme} from '@mui/material/styles'
 import {mergeAriaDescribedBy} from '../PneFieldContext'
+import {PneCloseIcon, pneAutocompletePaperSx} from './dropdownLook'
 
 type PneAutocompleteDataAttributes = {
     [attribute: `data-${string}`]: string | number | boolean | undefined
@@ -176,6 +178,49 @@ export const withAutocompleteListboxName = <
         FreeSolo,
         ChipComponent
     >['slotProps']
+}
+
+/**
+ * The UI Kit look of an autocomplete's popup and chips: the Dropdown list look on the paper (first, so
+ * the consumer's paper `sx` still wins), the load status on the paper for the service rows, a mark on
+ * the listbox when the consumer renders the rows, and the thin remove cross on the value chips unless
+ * the consumer gives a delete icon.
+ */
+// Generic in the slot props type only, so TypeScript does not decompose the MUI Autocomplete generics
+// here: a version typed by them added 1.5M type instantiations and pushed `yarn build` past its heap.
+export const withAutocompleteLook = <S>(slotProps: S, look: {ownRows: boolean, status?: string}): S => {
+    const safeSlotProps = (slotProps ?? {}) as Record<string, unknown>
+    const {chip, listbox, paper} = safeSlotProps
+    const addLook = (resolvedPaper: unknown) => {
+        const paperProps = (resolvedPaper ?? {}) as Record<string, unknown>
+        const consumerSx = paperProps.sx as SxProps<Theme> | undefined
+
+        return {
+            ...paperProps,
+            ...(look.status === undefined ? {} : {'data-pne-status': look.status}),
+            sx: [pneAutocompletePaperSx, ...(Array.isArray(consumerSx) ? consumerSx : [consumerSx])],
+        }
+    }
+    const markRows = (resolvedListbox: unknown) => look.ownRows
+        ? {...resolvedListbox as Record<string, unknown> | undefined, 'data-pne-rows': 'own'}
+        : resolvedListbox
+
+    return {
+        ...safeSlotProps,
+        listbox: typeof listbox === 'function'
+            ? (ownerState: unknown) => markRows(listbox(ownerState))
+            : markRows(listbox),
+        paper: typeof paper === 'function'
+            ? (ownerState: unknown) => addLook(paper(ownerState))
+            : addLook(paper),
+        // MUI spreads the chip slot props as they are, so a function stays the consumer's own.
+        chip: typeof chip === 'function'
+            ? chip
+            : {
+                deleteIcon: React.createElement(PneCloseIcon, {className: 'PneAutocomplete-icon'}),
+                ...chip as Record<string, unknown> | undefined,
+            },
+    } as unknown as S
 }
 
 export const sanitizeAutocompleteHtmlInputProps = (
