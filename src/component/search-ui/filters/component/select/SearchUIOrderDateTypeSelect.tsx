@@ -6,7 +6,7 @@ import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {chipChevronSx, selectUnderChipSx} from './style';
-import {PneSelect} from '../../../../..';
+import PneSelect from '../../../../dropdown/PneSelect';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {
     createSearchUIOwnedAutoTestAttributes,

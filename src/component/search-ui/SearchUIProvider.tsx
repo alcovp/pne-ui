@@ -5,7 +5,7 @@ import {
     AutoCompleteChoiceWithStatus,
     Country,
     Status,
-} from '../..'
+} from '../../common/paynet/type'
 import {
     CriterionTypeEnum,
     CustomerLevel,

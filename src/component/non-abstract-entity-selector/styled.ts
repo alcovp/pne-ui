@@ -1,5 +1,5 @@
 import {styled} from '@mui/system';
-import {PneHeaderTableCell} from "../../index";
+import PneHeaderTableCell from "../table/PneHeaderTableCell";
 import {ListItem, ListItemButton} from '@mui/material';
 
 export const HeaderWrapper = styled('div')`

@@ -85,4 +85,24 @@ export default [
             ],
         },
     },
+    {
+        // Library code imports the module that declares a symbol. The barrels (src/index.ts,
+        // src/exports/*, a folder's index) re-export everything, so importing them from inside src
+        // closes import cycles: before 5.0 SearchUI went through '../..' and tied 61 modules together.
+        files: ['src/**/*.{ts,tsx}'],
+        ignores: ['src/index.ts', 'src/exports/**', 'src/stories/**', 'src/**/*.stories.tsx'],
+        rules: {
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            regex: '^(\\.\\./)*\\.\\.?(/index)?$|(^|/)exports(/|$)',
+                            message: 'Import the module that declares the symbol, not a pne-ui barrel: barrels close import cycles.',
+                        },
+                    ],
+                },
+            ],
+        },
+    },
 ]

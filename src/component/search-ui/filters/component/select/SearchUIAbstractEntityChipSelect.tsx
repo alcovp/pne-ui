@@ -2,7 +2,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { Box, Chip } from '@mui/material'
 import React, { ReactNode, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AbstractEntity, PneSelect } from '../../../../..'
+import { AbstractEntity } from '../../../../../common/paynet/type'
+import PneSelect from '../../../../dropdown/PneSelect'
 import { createAutoTestAttributes } from '../../../../AutoTestAttribute'
 import {
     createSearchUIOwnedAutoTestAttributes,

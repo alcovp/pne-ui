@@ -8,7 +8,7 @@ import {
     TransactionSessionGroup,
 } from '../types'
 import {SearchUIFiltersState} from './type';
-import {AbstractEntityAllableCollection} from '../../../..';
+import {AbstractEntityAllableCollection} from '../../../../common/paynet/type';
 import type {Dayjs} from 'dayjs';
 import {dayjs} from '../dayjsSetup';
 import {initialSearchUIDefaults, SearchUIDefaults} from "../../SearchUIProvider";

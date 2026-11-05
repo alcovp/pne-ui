@@ -1,4 +1,4 @@
-import {WritableDraft} from 'immer/src/internal';
+import type {Draft} from 'immer';
 
 export const exhaustiveCheck = (value: never | never[]) => {
     return value
@@ -42,11 +42,11 @@ export type ZustandStoreImmerSet<STORE> = {
         nextStateOrUpdater:
             | STORE
             | Partial<STORE>
-            | ((state: WritableDraft<STORE>) => void),
+            | ((state: Draft<STORE>) => void),
         shouldReplace?: false,
     ): void
     (
-        nextStateOrUpdater: STORE | ((state: WritableDraft<STORE>) => void),
+        nextStateOrUpdater: STORE | ((state: Draft<STORE>) => void),
         shouldReplace: true,
     ): void
 }

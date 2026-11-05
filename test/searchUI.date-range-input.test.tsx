@@ -317,7 +317,8 @@ describe('SearchUI date-range native input Selenium contract', () => {
         expect(consoleLog.mock.calls.every(call => (
             String(call[0]).includes('[mui-x-telemetry]')
         ))).toBe(true)
-    })
+        // Opening both MUI X calendars in jsdom takes 4.5–5.2 s here, around Jest's default 5 s.
+    }, 15_000)
 
     it('keeps the date-only picker scope on its mobile dialog', async () => {
         Object.defineProperty(window, 'matchMedia', {

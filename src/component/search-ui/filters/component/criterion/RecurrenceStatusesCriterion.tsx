@@ -2,7 +2,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
-import {AbstractEntity} from '../../../../..';
+import {AbstractEntity} from '../../../../../common/paynet/type';
 
 export const RecurrenceStatusesCriterion = () => {
     const [availableOptions, setAvailableOptions] = useState<AbstractEntity[]>([])

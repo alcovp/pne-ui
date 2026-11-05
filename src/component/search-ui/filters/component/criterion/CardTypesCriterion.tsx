@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
-import {AbstractEntity} from '../../../../..';
+import {AbstractEntity} from '../../../../../common/paynet/type';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 
 export const CardTypesCriterion = () => {

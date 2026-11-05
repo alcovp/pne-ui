@@ -3,7 +3,8 @@ import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank'
 import {Chip, SxProps} from '@mui/material'
 import React, {useMemo} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Country, PneAutocomplete} from '../../../../..'
+import {Country} from '../../../../../common/paynet/type'
+import PneAutocomplete from '../../../../dropdown/PneAutocomplete'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 import {
     createSearchUIOwnedAutoTestAttributes,

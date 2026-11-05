@@ -5,7 +5,7 @@ import {
     AutoCompleteChoice,
     Country,
     Status,
-} from '../../..';
+} from '../../../common/paynet/type';
 
 export enum CriterionTypeEnum {
     EXACT = 'EXACT',

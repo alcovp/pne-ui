@@ -3,7 +3,8 @@ import {useSearchUIFiltersStore} from '../../state/store';
 import SearchUIGroupingDateTypeSelect from '../select/SearchUIGroupingDateTypeSelect';
 import {useTranslation} from 'react-i18next';
 import {Box, Chip, Link, SxProps} from '@mui/material';
-import {AbstractEntitySelectModal, useModal} from '../../../../..';
+import {AbstractEntitySelectModal} from '../../../../non-abstract-entity-selector/AbstractEntitySelectModal';
+import useModal from '../../../../useModal';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {
     createSearchUIOwnedAutoTestAttributes,

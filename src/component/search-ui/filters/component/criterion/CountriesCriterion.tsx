@@ -1,5 +1,5 @@
 import React, {useContext, useEffect, useState} from 'react'
-import {Country} from '../../../../..'
+import {Country} from '../../../../../common/paynet/type'
 import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
 import {useSearchUIFiltersStore} from '../../state/store'
 import SearchUICountriesSelect from '../select/SearchUICountriesSelect'

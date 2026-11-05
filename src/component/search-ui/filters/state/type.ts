@@ -23,7 +23,11 @@ import {
     TransactionSessionGroup,
     TransactionSessionStatus,
 } from '../types';
-import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} from '../../../..';
+import {
+    AbstractEntity,
+    AbstractEntityAllableCollection,
+    AutoCompleteChoice,
+} from '../../../../common/paynet/type';
 import {SearchUIFiltersConfig} from '../SearchUIFilters';
 import {SearchUIDefaults} from '../../SearchUIProvider';
 import type {EntityOptionRestrictionFingerprint} from '../entityOptionRestriction';

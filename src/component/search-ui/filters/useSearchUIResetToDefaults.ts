@@ -1,7 +1,7 @@
 import {useEffect, useRef} from 'react'
 import {useTranslation} from 'react-i18next'
 import isEqual from 'lodash/isEqual'
-import {overlayActions} from '../../..'
+import {overlayActions} from '../../overlay/overlayStore'
 import {useSearchUIFiltersStore, useSearchUIFiltersStoreApi} from './state/store'
 import {createClearCriteriaUndoSnapshot} from './state/undo'
 

@@ -3,7 +3,7 @@ import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSe
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, SxProps} from '@mui/material';
-import {PneTextField} from '../../../../..';
+import PneTextField from '../../../../PneTextField';
 import { filtersInputSx } from './style';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 

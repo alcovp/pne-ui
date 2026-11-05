@@ -2,7 +2,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {Box, Chip, SxProps} from '@mui/material'
 import React, {ReactNode, useState} from 'react'
 
-import {PneSelect} from '../../../../..'
+import PneSelect from '../../../../dropdown/PneSelect'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 import {chipChevronSx, selectUnderChipSx} from './style'
 

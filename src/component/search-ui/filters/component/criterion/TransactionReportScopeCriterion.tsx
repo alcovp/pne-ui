@@ -1,7 +1,7 @@
 import React from 'react'
 import {Box, SxProps} from '@mui/material'
 import {useTranslation} from 'react-i18next'
-import {PneTextField} from '../../../../..'
+import PneTextField from '../../../../PneTextField'
 import {TRANSACTION_REPORT_SCOPES} from '../../types'
 import {useSearchUIFiltersStore} from '../../state/store'
 import {SearchUIEnumChipSelect} from '../select/SearchUIEnumChipSelect'

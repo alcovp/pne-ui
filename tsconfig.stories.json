@@ -4,11 +4,6 @@
         "declaration": false,
         "moduleResolution": "Bundler",
         "noEmit": true,
-        "paths": {
-            "immer/src/internal": [
-                "./node_modules/immer/src/internal.ts"
-            ]
-        },
         "rootDir": ".",
         "sourceMap": false
     },

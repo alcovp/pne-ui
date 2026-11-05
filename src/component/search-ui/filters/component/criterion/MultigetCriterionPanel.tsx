@@ -3,7 +3,8 @@ import {CriterionTypeEnum, LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, Mult
 import {Box, Chip, Link, SxProps} from '@mui/material';
 import {MultigetSelect, MultigetSelectActions} from '../../../multiget_select/MultigetSelect';
 import {useSearchUIFiltersStore} from '../../state/store';
-import {PneModal, useModal} from '../../../../..';
+import PneModal from '../../../../PneModal';
+import useModal from '../../../../useModal';
 import {MultigetSelectStoreProvider} from "../../../multiget_select/state/IsolatedStoreProvider";
 import {useTranslation} from "react-i18next";
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';

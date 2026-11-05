@@ -1,6 +1,7 @@
 import React, {ChangeEvent} from 'react';
 import {useSearchUIFiltersStore} from "../../../state/store";
-import {exhaustiveCheck, PneTextField} from "../../../../../../index";
+import {exhaustiveCheck} from "../../../../../../common/pne/type";
+import PneTextField from "../../../../../PneTextField";
 import {SxProps} from "@mui/material";
 import {useTranslation} from "react-i18next";
 import {OrdersSearchLabelsConfig} from "../../../state/actions";

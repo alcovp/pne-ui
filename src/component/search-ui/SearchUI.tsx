@@ -18,21 +18,18 @@ import {
 } from './filters/types'
 import { Box, Divider, SxProps } from '@mui/material'
 import { GetPagedOrderedSortedListRequest, Order } from '../../common'
+import { ITableCreateHeaderParams } from '../table/AbstractTable'
+import PneTable from '../table/PneTable'
+import PneTableToolbar from '../table/PneTableToolbar'
 import {
-    PneTable,
-    PneTableToolbar,
     PneTableViewOption,
     PneTableViewSelector,
     PneTableViewSelectorProps,
-    ITableCreateHeaderParams,
-    TableRowId,
-    TableSelectionUpdate,
-    TableDisplayOptions,
-    UseTableSelectionParams,
-    useTable,
-    useTableSelection,
-} from '../..'
-import { UseTableParams } from '../table/useTable'
+} from '../table/PneTableViewSelector'
+import { TableRowId, TableSelectionUpdate } from '../table/tableSelection'
+import { TableDisplayOptions } from '../table/type'
+import useTable, { UseTableParams } from '../table/useTable'
+import useTableSelection, { UseTableSelectionParams } from '../table/useTableSelection'
 import { useSearchUIFiltersStore } from './filters/state/store'
 import { SearchUIFiltersStoreProvider } from './filters/state/SearchUIFiltersStoreProvider'
 import type {SearchUIValidationResult} from './filters/validation'

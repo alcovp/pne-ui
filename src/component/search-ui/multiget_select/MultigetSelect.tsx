@@ -2,11 +2,16 @@ import React, {useContext, useEffect} from 'react'
 import {Alert, Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types'
 import {useTranslation} from 'react-i18next'
-import {AbstractEntity, PneButton, PneModalActions, PneSwitch, PneTextField} from '../../..'
+import {AbstractEntity} from '../../../common/paynet/type'
+import PneButton from '../../PneButton'
+import PneModalActions from '../../PneModalActions'
+import PneSwitch from '../../PneSwitch'
+import PneTextField from '../../PneTextField'
 import {SearchUIDefaultsContext} from '../SearchUIProvider'
 import {useMultigetSelectStore} from './state/store'
 import {MultigetSearchLabel} from './state/type'
 import {MultigetSelectTable} from './MultigetSelectTable'
+import {MULTIGET_PAGE_SIZE} from './constants'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
 // import {raiseUIError} from '../../../../error'; //TODO migration
 
@@ -29,8 +34,6 @@ export type MultigetSelectActionsProps = Pick<
 > & {
     sx?: SxProps
 }
-
-export const MULTIGET_PAGE_SIZE = 10
 
 export const MultigetSelect = (props: MultigetSelectProps) => {
     const {

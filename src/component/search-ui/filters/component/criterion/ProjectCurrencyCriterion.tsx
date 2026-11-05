@@ -5,7 +5,9 @@ import {useTranslation} from 'react-i18next';
 import Typography from '@mui/material/Typography';
 import {chipChevronSx, selectUnderChipSx} from '../select/style';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {AbstractEntity, PneCheckbox, PneSelect} from '../../../../..';
+import {AbstractEntity} from '../../../../../common/paynet/type';
+import PneSelect from '../../../../dropdown/PneSelect';
+import {PneCheckbox} from '../../../../PneCheckbox';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {

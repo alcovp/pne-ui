@@ -11,11 +11,9 @@ import {
     AbstractEntityAllableCollection,
     AllableCollection,
     AutoCompleteChoice,
-    exhaustiveCheck,
     Status,
-    ZustandStoreGet,
-    ZustandStoreImmerSet,
-} from '../../../..'
+} from '../../../../common/paynet/type'
+import { exhaustiveCheck, ZustandStoreGet, ZustandStoreImmerSet } from '../../../../common/pne/type'
 import {
     CountryAllableCollection,
     CUSTOMER_LEVEL_DEPENDENCIES,
@@ -55,7 +53,7 @@ import {
     getSearchUIInitialDateFrom,
     getSearchUIInitialDateTo,
 } from './initial'
-import { WritableDraft } from 'immer/src/internal'
+import type { Draft } from 'immer'
 // import {raiseUIError} from '../../../../../error';
 import type { Dayjs } from 'dayjs'
 import { dayjs } from '../dayjsSetup'
@@ -90,7 +88,7 @@ import {
 } from '../validation'
 
 const isConfiguredCriterion = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     criterion: CriterionTypeEnum,
 ): boolean => draft.possibleCriteria.includes(criterion) || draft.predefinedCriteria.includes(criterion)
 
@@ -195,7 +193,7 @@ type SearchUIConditionsUpdateOptions = SearchUIUpdateOptions & {
 }
 
 const addCriterionReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     criterion: CriterionTypeEnum,
     configuredOnly = false,
 ): void => {
@@ -219,7 +217,7 @@ const addCriterionReducer = (
 }
 
 const ensureCustomerLevelDependenciesReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
 ): void => {
     if (!draft.criteria.includes(CriterionTypeEnum.CUSTOMER_LEVEL)) {
         return
@@ -229,7 +227,7 @@ const ensureCustomerLevelDependenciesReducer = (
 }
 
 const normalizeRestrictedTransactionTypesReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
 ): void => {
     const allowedTransactionTypes = draft.prefetchedData.allowedTransactionTypes
     if (allowedTransactionTypes === undefined) {
@@ -243,7 +241,7 @@ const normalizeRestrictedTransactionTypesReducer = (
 }
 
 const applyConditionsReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     conditions: Partial<SearchUIConditions>,
 ): void => {
     const {
@@ -315,7 +313,7 @@ const applyConditionsReducer = (
  * level dependencies and the restricted transaction types come out as on the first load.
  */
 const resetToPageDefaultsReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     pageDefaults: Partial<SearchUIConditions>,
 ): void => {
     draft.template = null
@@ -332,7 +330,7 @@ const resetToPageDefaultsReducer = (
 
 /** The first load fills an empty statuses list from the prefetched ones; a reset or a re-added criterion gets the same. */
 const refillTransactionSessionStatusesReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
 ): void => {
     if (
         !draft.criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
@@ -1106,7 +1104,7 @@ export const getSearchUIFiltersActions = (
 })
 
 const addInitialMultigetCriterionReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     criterionType: CriterionTypeEnum,
 ): void => {
     switch (criterionType) {
@@ -1173,7 +1171,7 @@ const addInitialMultigetCriterionReducer = (
 }
 
 const clearCriterionReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     criterionType: CriterionTypeEnum,
 ): void => {
     switch (criterionType) {
@@ -1304,7 +1302,7 @@ const clearCriterionReducer = (
 }
 
 const removeMultigetCriterionReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     entityType: LinkedEntityTypeEnum,
 ): void => {
     const index = draft.multigetCriteria.findIndex(c => c.entityType === entityType)
@@ -1691,7 +1689,7 @@ const syncCriterionAvailability = (
 }
 
 const restorePredefinedCriterionReducer = (
-    draft: WritableDraft<SearchUIFiltersStore>,
+    draft: Draft<SearchUIFiltersStore>,
     criterion: CriterionTypeEnum,
 ): void => {
     addInitialMultigetCriterionReducer(draft, criterion)

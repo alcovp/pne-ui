@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { CustomerLevel } from '../../../../..'
+import { CustomerLevel } from '../../types'
 import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
 import { getConcreteCustomerLevelMerchantId } from '../../customerLevelDependencies'
 import { useSearchUIFiltersStore } from '../../state/store'
