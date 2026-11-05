@@ -57,10 +57,8 @@ import {
 } from './initial'
 import { WritableDraft } from 'immer/src/internal'
 // import {raiseUIError} from '../../../../../error';
-import dayjs, { Dayjs } from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-import isoWeek from 'dayjs/plugin/isoWeek'
+import type { Dayjs } from 'dayjs'
+import { dayjs } from '../dayjsSetup'
 import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
 import {
@@ -90,10 +88,6 @@ import {
     validateSearchUIFiltersState,
     type SearchUIValidationResult,
 } from '../validation'
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
-dayjs.extend(isoWeek)
 
 const isConfiguredCriterion = (
     draft: WritableDraft<SearchUIFiltersStore>,

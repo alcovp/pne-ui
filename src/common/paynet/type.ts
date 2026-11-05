@@ -1,8 +1,9 @@
-import {z} from 'zod';
-import {AbstractEntitySchema, AutoCompleteChoiceSchema, CountrySchema, StateSchema} from "./schema";
 import {isObject, Order} from "../pne";
 
-export type AbstractEntity = z.infer<typeof AbstractEntitySchema>
+export type AbstractEntity = {
+    id: number
+    displayName: string
+}
 
 export const isAbstractEntity = (value: unknown): value is AbstractEntity => {
     if (!isObject(value)) {
@@ -27,7 +28,11 @@ export function assertAbstractEntity(value: unknown): asserts value is AbstractE
     }
 }
 
-export type AutoCompleteChoice = z.infer<typeof AutoCompleteChoiceSchema>
+export type AutoCompleteChoice = {
+    choiceId: number
+    displayName: string
+    description?: string | undefined
+}
 
 export const isIAutoCompleteChoice = (value: unknown): value is AutoCompleteChoice => {
     if (!isObject(value)) {
@@ -78,8 +83,19 @@ export type AbstractEntityAllableCollection = AllableCollection<AbstractEntity>
 export type AutoCompleteChoiceAllableCollection = AllableCollection<AutoCompleteChoice>
 
 
-export type Country = z.infer<typeof CountrySchema>
-export type State = z.infer<typeof StateSchema>
+export type Country = {
+    id: number
+    displayName: string
+    theCode: string
+    theCode3: string
+}
+
+/** For states, there is only one iso code in the DB table. */
+export type State = {
+    id: number
+    displayName: string
+    theCode: string
+}
 
 export interface IMappedAbstractEntity {
     id: number

@@ -9,14 +9,10 @@ import {
 } from '../types'
 import {SearchUIFiltersState} from './type';
 import {AbstractEntityAllableCollection} from '../../../..';
-import dayjs, {Dayjs} from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import timezone from 'dayjs/plugin/timezone';
+import type {Dayjs} from 'dayjs';
+import {dayjs} from '../dayjsSetup';
 import {initialSearchUIDefaults, SearchUIDefaults} from "../../SearchUIProvider";
 import { SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE } from '../dateRangeTimeZone';
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
 
 export const getSearchUIInitialProjectCurrency = (defaults: SearchUIDefaults): Readonly<ProjectCurrency> => {
     return Object.freeze<ProjectCurrency>({

@@ -7,12 +7,7 @@ import {
     resolveDateOnlyTimeZone,
     type SearchUIDateRangeBoundary,
 } from './dateRangeTimeZone'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
+import { dayjs } from './dayjsSetup'
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 

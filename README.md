@@ -10,7 +10,7 @@
 Установите `pne-ui` вместе с peer-зависимостями:
 
 ```bash
-yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9.0.1 @mui/system@^9.0.1 @mui/x-date-pickers-pro@^9 @mui/icons-material@^9.0.1 i18next@^23 react@^19 react-dom@^19 react-i18next@^11
+yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9.0.1 @mui/system@^9.0.1 @mui/x-date-pickers@^9 @mui/x-date-pickers-pro@^9 @mui/icons-material@^9.0.1 dayjs@^1.11.10 i18next@^23 react@^19 react-dom@^19 react-i18next@^11
 ```
 
 `pne-ui` требует React 19 и MUI 9.0.1 или новее в пределах major 9. React 18, MUI 9.0.0 и предыдущие
@@ -22,12 +22,23 @@ major-версии MUI не входят в поддерживаемый peer co
 - `@emotion/styled@^11`
 - `@mui/material@>=9.0.1 <10`
 - `@mui/system@>=9.0.1 <10`
+- `@mui/x-date-pickers@^9`
 - `@mui/x-date-pickers-pro@^9`
+- `dayjs@^1.11.10`
 - `@mui/icons-material@>=9.0.1 <10`
 - `i18next@^23`
 - `react@^19`
 - `react-dom@^19`
 - `react-i18next@^11`
+
+`@mui/x-date-pickers` и `@mui/x-date-pickers-pro` держите одной версии: пикеры SearchUI берут контекст
+локализации из обоих пакетов, вторая копия базового пакета этот контекст не видит. `dayjs` тоже берётся
+у приложения: SearchUI один раз ставит на него плагины `utc`, `timezone` и `isoWeek`.
+
+С 5.0 `dayjs` и `@mui/x-date-pickers` стали peer-зависимостями, а zod-схемы `AbstractEntitySchema`,
+`AutoCompleteChoiceSchema`, `CountrySchema` и `StateSchema` больше не экспортируются. Типы `AbstractEntity`,
+`AutoCompleteChoice`, `Country` и `State` остались прежними; приложению, которое валидирует ответы
+zod-схемами, нужны свои схемы.
 
 ## PneBreadcrumbs
 

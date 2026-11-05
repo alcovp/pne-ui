@@ -1,9 +1,5 @@
-import dayjs, { Dayjs } from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import timezone from 'dayjs/plugin/timezone'
-
-dayjs.extend(utc)
-dayjs.extend(timezone)
+import type { Dayjs } from 'dayjs'
+import { dayjs } from './dayjsSetup'
 
 export const SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE = 'Europe/Moscow'
 export const SEARCH_UI_DATE_ONLY_LOCAL_TIME_ZONE = 'local'

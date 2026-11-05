@@ -9,7 +9,7 @@ Layers and directories
 ----------------------
 - `src/common`: types, utilities, and validation schemas.
   - `common/pne`: core helpers (`ensure`, `exhaustiveCheck`, `Order`, Zustand setter types).
-  - `common/paynet`: domain types and zod schemas (`AbstractEntity`, `AutoCompleteChoice`, pagination requests).
+  - `common/paynet`: domain types and type guards (`AbstractEntity`, `AutoCompleteChoice`, pagination requests).
 - `src/component`: UI components.
   - Base controls: `PneButton`, `PneTextField`, `PneCheckbox`, `PneSwitch`, modals.
   - Dropdown/autocomplete: `component/dropdown`.
