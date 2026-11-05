@@ -5,6 +5,7 @@ import type {OverridableComponent, OverrideProps} from '@mui/material/Overridabl
 import {FormControl, FormHelperText, FormLabel} from '@mui/material'
 import type {SxProps, Theme} from '@mui/material/styles'
 import * as React from 'react'
+import {resolvePneSemanticPalette} from '../createTheme'
 import {
     mergeAriaIds,
     PneFieldContext,
@@ -235,19 +236,7 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
                 ref={labelRef}
                 required={required}
                 sx={[
-                    {
-                        alignSelf: 'flex-start',
-                        color: error ? 'error.main' : 'text.secondary',
-                        fontSize: '0.875rem',
-                        lineHeight: '20px',
-                        maxWidth: '100%',
-                        '&.Mui-focused': {
-                            color: error ? 'error.main' : 'text.secondary',
-                        },
-                        '& .MuiFormLabel-asterisk': {
-                            color: 'error.main',
-                        },
-                    },
+                    fieldLabelSx,
                     ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
                     ...(Array.isArray(labelSlotSx) ? labelSlotSx : [labelSlotSx]),
                 ]}
@@ -264,9 +253,7 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
                 id={helperTextId}
                 ref={helperTextRef}
                 sx={[
-                    {
-                        mx: '14px',
-                    },
+                    fieldHelperTextSx,
                     ...(Array.isArray(helperTextSx) ? helperTextSx : [helperTextSx]),
                     ...(Array.isArray(helperTextSlotSx) ? helperTextSlotSx : [helperTextSlotSx]),
                 ]}
@@ -275,6 +262,41 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
             </FormHelperText>
             : null}
     </FormControl>
+}
+
+// UI Kit field label: it keeps its colour on focus and in error, where the helper text turns red.
+const fieldLabelSx: SxProps<Theme> = theme => {
+    const field = resolvePneSemanticPalette(theme).field
+    return {
+        alignSelf: 'flex-start',
+        color: field.text.label,
+        fontSize: '0.875rem',
+        lineHeight: '20px',
+        maxWidth: '100%',
+        '&.Mui-focused, &.Mui-error': {
+            color: field.text.label,
+        },
+        '&.Mui-disabled': {
+            color: field.text.disabled,
+        },
+        '& .MuiFormLabel-asterisk': {
+            color: 'error.main',
+        },
+    }
+}
+
+const fieldHelperTextSx: SxProps<Theme> = theme => {
+    const field = resolvePneSemanticPalette(theme).field
+    return {
+        mx: '14px',
+        color: field.helper.text,
+        '&.Mui-error': {
+            color: field.helper.error,
+        },
+        '&.Mui-disabled': {
+            color: field.text.disabled,
+        },
+    }
 }
 
 const normalizeId = (value: unknown): string | undefined => {

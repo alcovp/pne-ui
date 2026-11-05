@@ -7,6 +7,7 @@ import { PermanentOverlayContext } from './PermanentOverlayContext'
 import { OverlayPortalContainerContext } from './OverlayPortalContainerContext'
 import { PaynetErrorPresentationContext } from './PaynetErrorPresentationContext'
 import { registerOverlayHost } from './overlayRuntime'
+import {PneLegacyLook} from '../legacy/legacyLook'
 
 export type OverlayPortalContainer = Element
 
@@ -289,7 +290,9 @@ const ManagedSnackbar = ({
                 elevation={1}
                 onClose={remove}
                 severity={snack.variant ?? 'info'}
-                action={snack.action}
+                // The snackbar keeps its 4.x look in pne-ui 5 for now, its action buttons too
+                // (see legacy/legacyLook.tsx).
+                action={snack.action != null ? <PneLegacyLook>{snack.action}</PneLegacyLook> : snack.action}
                 sx={{
                     boxSizing: 'border-box',
                     position: 'relative',

@@ -20,6 +20,7 @@ import {
 import PneTextField from '../PneTextField';
 import PneButton from '../PneButton';
 import ClearIcon from '@mui/icons-material/Clear'
+import {withPneLegacyLook} from '../legacy/legacyLook'
 
 const immediateDragSensors = [useMouseSensor, useKeyboardSensor, useImmediateTouchSensor];
 
@@ -130,7 +131,7 @@ const checkInitialType = (item: AbstractEntitySelectorProp): string | undefined 
     return undefined
 }
 
-export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(props: React.PropsWithChildren<IAbstractEntityOptions<T>>) => {
+const AbstractEntitySelectorContent = <T extends AbstractEntitySelectorProp>(props: React.PropsWithChildren<IAbstractEntityOptions<T>>) => {
     const {
         reset,
         list,
@@ -735,3 +736,6 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         </>
     );
 };
+
+// AbstractEntitySelector keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
+export const AbstractEntitySelector = withPneLegacyLook(AbstractEntitySelectorContent, 'AbstractEntitySelector')

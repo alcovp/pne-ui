@@ -6,6 +6,8 @@ import type {SystemStyleObject} from '@mui/system'
 import * as React from 'react'
 import type {PneButtonStateColors, PneButtonVariant} from '../buttonPalette'
 import {resolvePneSemanticPalette} from '../createTheme'
+import {usePneLegacyLook} from './legacy/legacyLook'
+import {PneButtonLegacy} from './legacy/PneButtonLegacy'
 
 /**
  * The PNE UI action button (UI Kit Button: Variant × Size × State). `contained` is the single
@@ -112,7 +114,7 @@ const resolveVariant = (pneStyle: PneButtonStyle | undefined): PneButtonVariant 
 }
 
 // https://mui.com/material-ui/guides/typescript/#complications-with-the-component-prop
-const PneButtonImplementation = <C extends React.ElementType = 'button'>(
+const PneButtonUiKit = <C extends React.ElementType = 'button'>(
     props: PneButtonProps<C, {component?: C}>,
 ) => {
     const {
@@ -169,6 +171,14 @@ const PneButtonImplementation = <C extends React.ElementType = 'button'>(
     >
         {children}
     </Button>
+}
+
+// Inside a composite that keeps its 4.x look (see legacy/legacyLook.tsx) the button draws the 4.x look.
+const PneButtonImplementation = <C extends React.ElementType = 'button'>(
+    props: PneButtonProps<C, {component?: C}>,
+) => {
+    const Implementation = (usePneLegacyLook() ? PneButtonLegacy : PneButtonUiKit) as React.ElementType
+    return <Implementation {...props}/>
 }
 
 const PneButton = PneButtonImplementation as PneButtonComponent

@@ -2,10 +2,17 @@ import React, {forwardRef, useId, useMemo} from 'react'
 import {TextField, TextFieldOwnerState, TextFieldProps} from '@mui/material'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
 import {useTheme} from '@mui/material/styles'
+import type {SxProps, Theme} from '@mui/material/styles'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
+import {resolvePneSemanticPalette} from '../createTheme'
+import type {PneFieldStateColors} from '../fieldPalette'
+import {usePneLegacyLook} from './legacy/legacyLook'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from './PneFieldContext'
 
-export type PneTextFieldProps = TextFieldProps
+export type PneTextFieldProps = TextFieldProps & {
+    /** A state pinned for specimens; product code never sets it. */
+    'data-pne-state'?: 'hover' | 'focus'
+}
 
 type PneTextFieldSlotProps = NonNullable<PneTextFieldProps['slotProps']>
 type PneTextFieldSlotName = keyof PneTextFieldSlotProps
@@ -64,17 +71,20 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
     const resolvedError = controlProps.error ?? error
     const resolvedFullWidth = controlProps.fullWidth ?? fullWidth
     const resolvedId = controlProps.id ?? id ?? generatedId
+    const hasLabel = label !== undefined && label !== null && label !== ''
+    // Inside a composite that keeps its 4.x look the field stays the plain MUI one.
+    const legacy = usePneLegacyLook()
     const resolvedSlotProps = createResolvedSlotProps({
         ariaLabel,
         ariaDescribedBy,
         ariaRequired: controlProps.ariaRequired,
         controlAriaDescribedBy: controlProps.ariaDescribedBy,
         controlAriaInvalid: controlProps.ariaInvalid,
-        controlAriaLabelledBy: label !== undefined && label !== null && label !== ''
+        controlAriaLabelledBy: hasLabel
             ? ariaLabelledBy
             : controlProps.ariaLabelledBy,
         controlId: resolvedId,
-        controlLabelId: label !== undefined && label !== null && label !== ''
+        controlLabelId: hasLabel
             ? undefined
             : controlProps.labelId,
         defaultHelperTextId: `${resolvedId}-helper-text`,
@@ -91,6 +101,8 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
             error={resolvedError}
             fullWidth={resolvedFullWidth}
             helperText={helperText}
+            // A filled box without its own label (PneField puts one above) centres the text.
+            hiddenLabel={!legacy && themedProps.variant === 'filled' && !hasLabel ? true : undefined}
             id={resolvedId}
             label={label}
             ref={ref}
@@ -98,7 +110,7 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
             select={select}
             size={size}
             slotProps={resolvedSlotProps}
-            sx={sx}
+            sx={[legacy ? undefined : textFieldSx, ...(Array.isArray(sx) ? sx : [sx])]}
             {...rest}
         />
     </DefaultPropsProvider>
@@ -121,6 +133,74 @@ interface CreateResolvedSlotPropsOptions {
     hasHelperText: boolean
     select: boolean
     slotProps?: PneTextFieldProps['slotProps']
+}
+
+const stateColors = (colors: PneFieldStateColors): Record<string, string> => ({
+    '--pne-field-fill': colors.fill,
+    '--pne-field-ring': colors.ring,
+})
+
+// Autocompletes get the field look in their own step.
+const OUTLINED = '.MuiOutlinedInput-root.MuiInputBase-root:not(.MuiAutocomplete-inputRoot)'
+// A filled box whose underline the consumer turned off keeps its own look (the SearchUI filter pills).
+const FILLED = '.MuiFilledInput-root.MuiFilledInput-underline:not(.MuiAutocomplete-inputRoot)'
+// Hover changes nothing on a focused, invalid or disabled box.
+const HOVER = ':hover:not(.Mui-disabled):not(.Mui-focused):not(.Mui-error)'
+
+/**
+ * The UI Kit field look on MUI's outlined and filled inputs: colours only, the MUI geometry and
+ * the floating label stay. Each state sets the box's fill and ring as custom properties; later
+ * states win (hover, focus, error, disabled), as in the UI Kit.
+ */
+const textFieldSx: SxProps<Theme> = theme => {
+    const field = resolvePneSemanticPalette(theme).field
+    return {
+        [`& ${OUTLINED}`]: {
+            ...stateColors(field.outlined.default),
+            backgroundColor: 'var(--pne-field-fill)',
+        },
+        [`& ${OUTLINED}${HOVER}, &[data-pne-state="hover"] ${OUTLINED}`]: stateColors(field.outlined.hover),
+        [`& ${OUTLINED}.Mui-focused, &[data-pne-state="focus"] ${OUTLINED}`]: stateColors(field.outlined.focus),
+        [`& ${OUTLINED}.Mui-error`]: stateColors(field.outlined.error),
+        [`& ${OUTLINED}.Mui-disabled`]: stateColors(field.outlined.disabled),
+        [`& ${OUTLINED} .MuiOutlinedInput-notchedOutline`]: {
+            borderColor: 'var(--pne-field-ring)',
+            borderWidth: '1px',
+        },
+        [`& ${FILLED}`]: {
+            ...stateColors(field.fill.default),
+            backgroundColor: 'var(--pne-field-fill)',
+            borderRadius: '4px',
+            boxShadow: 'inset 0 0 0 1px var(--pne-field-ring)',
+            '&::before, &::after': {
+                display: 'none',
+            },
+        },
+        [`& ${FILLED}${HOVER}, &[data-pne-state="hover"] ${FILLED}`]: stateColors(field.fill.hover),
+        [`& ${FILLED}.Mui-focused, &[data-pne-state="focus"] ${FILLED}`]: stateColors(field.fill.focus),
+        [`& ${FILLED}.Mui-error`]: stateColors(field.fill.error),
+        [`& ${FILLED}.Mui-disabled`]: stateColors(field.fill.disabled),
+        [`& ${OUTLINED} .MuiInputBase-input, & ${FILLED} .MuiInputBase-input`]: {
+            color: field.text.value,
+        },
+        [`& ${OUTLINED} .MuiInputBase-input::placeholder, & ${FILLED} .MuiInputBase-input::placeholder`]: {
+            color: field.text.placeholder,
+            opacity: 1,
+        },
+        [`& ${OUTLINED} .MuiInputBase-input.Mui-disabled, & ${FILLED} .MuiInputBase-input.Mui-disabled`]: {
+            color: field.text.disabled,
+            WebkitTextFillColor: field.text.disabled,
+        },
+        '& .MuiFormHelperText-root': {
+            color: field.helper.text,
+        },
+        '& .MuiFormHelperText-root.Mui-error': {
+            color: field.helper.error,
+        },
+        '& .MuiFormHelperText-root.Mui-disabled': {
+            color: field.text.disabled,
+        },
+    }
 }
 
 const useComponentsWithoutTextFieldDefaults = () => {

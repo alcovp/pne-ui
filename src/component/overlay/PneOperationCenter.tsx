@@ -27,6 +27,7 @@ import {alpha, type SxProps, type Theme} from '@mui/material/styles'
 import {useTranslation} from 'react-i18next'
 import PneButton from '../PneButton'
 import {PneSurface} from '../internal/PneSurface'
+import {withPneLegacyLook} from '../legacy/legacyLook'
 
 export type PneOperationCenterStatus =
     | 'starting'
@@ -200,7 +201,7 @@ const getStatusColor = (status: PneOperationCenterStatus) => {
  * Controlled presentation for application-owned background operations.
  * The component deliberately owns no operation registry, polling, retry, or persistence logic.
  */
-export function PneOperationCenter({
+function PneOperationCenterContent({
     operations,
     expanded,
     defaultExpanded = false,
@@ -718,5 +719,8 @@ export function PneOperationCenter({
         </PneSurface>
     )
 }
+
+// PneOperationCenter keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
+export const PneOperationCenter = withPneLegacyLook(PneOperationCenterContent, 'PneOperationCenter')
 
 export default PneOperationCenter

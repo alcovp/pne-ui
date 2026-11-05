@@ -14,6 +14,7 @@ import * as React from 'react'
 
 import {createAutoTestAttributes} from './AutoTestAttribute'
 import PneButton from './PneButton'
+import {withPneLegacyLook} from './legacy/legacyLook'
 
 type PneBreadcrumbBaseItem = {
     /** Stable identity used for React keys and default autotest locators. */
@@ -161,7 +162,7 @@ const getMeasurementKey = (items: readonly PneBreadcrumbItem[]): string => {
     }).join('|')
 }
 
-export const PneBreadcrumbs = ({
+const PneBreadcrumbsContent = ({
     ariaLabel = 'breadcrumb',
     items,
     linkComponent: LinkComponent = 'a',
@@ -469,3 +470,6 @@ export const PneBreadcrumbs = ({
         </Box>
     </>
 }
+
+// PneBreadcrumbs keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
+export const PneBreadcrumbs = withPneLegacyLook(PneBreadcrumbsContent, 'PneBreadcrumbs')

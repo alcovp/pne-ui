@@ -4,6 +4,7 @@ import type {SwitchOwnerState} from '@mui/material/Switch'
 import PneSwitch, {PneSwitchProps} from '../PneSwitch'
 import {AutoTestValue, createAutoTestAttributes} from '../AutoTestAttribute'
 import PneTableControlCell from './PneTableControlCell'
+import {withPneLegacyLook} from '../legacy/legacyLook'
 
 export type TableSwitchAccessibleName =
     | {
@@ -160,4 +161,5 @@ const PneTableSwitchCell = forwardRef<HTMLTableCellElement, PneTableSwitchCellPr
 
 PneTableSwitchCell.displayName = 'PneTableSwitchCell'
 
-export default PneTableSwitchCell
+// PneTableSwitchCell keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
+export default withPneLegacyLook(PneTableSwitchCell, 'PneTableSwitchCell')

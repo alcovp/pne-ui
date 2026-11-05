@@ -5,6 +5,7 @@ import {useTranslation} from 'react-i18next'
 import PneButton from '../../PneButton'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
 import {TABLE_CONTROL_SIZE} from '../tableControlMetrics'
+import {withPneLegacyLook} from '../../legacy/legacyLook'
 
 export const COLUMN_SETTINGS_ACTION_AUTOTEST_ID = 'column-settings'
 
@@ -88,4 +89,5 @@ const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColum
     },
 )
 
-export default PneTableColumnSettingsAction
+// PneTableColumnSettingsAction keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
+export default withPneLegacyLook(PneTableColumnSettingsAction, 'PneTableColumnSettingsAction')

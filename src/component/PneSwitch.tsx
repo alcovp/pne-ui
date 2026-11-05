@@ -11,6 +11,8 @@ import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
 import {useTranslation} from 'react-i18next'
 import {resolvePneSemanticPalette} from '../createTheme'
 import type {PneSwitchStateColors} from '../switchPalette'
+import {usePneLegacyLook} from './legacy/legacyLook'
+import {legacyPendingSwitchSx, legacySwitchSxBySize} from './legacy/switchLegacySx'
 import {usePneFieldControlProps} from './PneFieldContext'
 import {composeToggleInputSlotProps, moveAriaPropsToInput} from './PneToggleInput'
 
@@ -296,9 +298,11 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         )
     }
 
+    // Inside a composite that keeps its 4.x look the switch draws the 4.x look too.
+    const legacy = usePneLegacyLook()
     const _sx: SxProps<Theme> = [
-        switchSxBySize[size],
-        pending ? pendingSwitchSx : undefined,
+        legacy ? legacySwitchSxBySize[size] : switchSxBySize[size],
+        pending ? (legacy ? legacyPendingSwitchSx : pendingSwitchSx) : undefined,
         effectiveDisabled ? disabledSwitchSx : undefined,
         ...(Array.isArray(sx) ? sx : [sx]),
     ]

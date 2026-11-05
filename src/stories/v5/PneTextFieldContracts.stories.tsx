@@ -2,10 +2,10 @@ import * as React from "react";
 import {MenuItem, Stack, Typography} from "@mui/material";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
 import {expect, waitFor, within} from "storybook/test";
-import {PneField, PneTextField} from "../index";
+import {PneField, PneTextField} from "../../index";
 
 export default {
-    title: "pne-ui/PneTextField",
+    title: "pne-ui 5/PneTextField/Contracts",
     component: PneTextField,
     parameters: {
         docs: {

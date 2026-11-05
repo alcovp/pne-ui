@@ -487,7 +487,7 @@ export const CompactSelectionCells: Story = {
         selectionInputs.forEach(input => {
             const cell = input.closest<HTMLElement>('th, td')
             const root = input.closest<HTMLElement>('.MuiCheckbox-root')
-            const icon = root?.querySelector<SVGSVGElement>('.PneCheckbox-box')
+            const icon = root?.querySelector<SVGSVGElement>('.MuiSvgIcon-root')
 
             if (!cell || !root || !icon) {
                 throw new Error('Selection cell must render a checkbox root and icon')
@@ -503,8 +503,8 @@ export const CompactSelectionCells: Story = {
             if (rootRect.width !== 36 || rootRect.height !== 36) {
                 throw new Error('Selection checkbox root must remain 36x36px')
             }
-            if (iconRect.width !== 16 || iconRect.height !== 16) {
-                throw new Error('Selection checkbox box must be the small UI Kit box, 16x16px')
+            if (iconRect.width !== 20 || iconRect.height !== 20) {
+                throw new Error('Selection checkbox icon must remain 20x20px')
             }
         })
 

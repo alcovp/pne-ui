@@ -399,6 +399,7 @@ describe('SearchUI date-range native input Selenium contract', () => {
         ))).toBe(true)
     })
 
+    // Two full pickers under jsdom: about 9-9.5 s alone (master 4.8.1 too), past 10 s in a loaded full run.
     it('separates exact date-time fields and their owner-scoped pickers', async () => {
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
         const consoleLog = jest.spyOn(console, 'log').mockImplementation(() => undefined)
@@ -658,5 +659,5 @@ describe('SearchUI date-range native input Selenium contract', () => {
         expect(consoleLog.mock.calls.every(call => (
             String(call[0]).includes('[mui-x-telemetry]')
         ))).toBe(true)
-    }, 10_000)
+    }, 20_000)
 })

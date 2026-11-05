@@ -68,6 +68,7 @@ import {
 } from './panelSx';
 import {SearchUIFiltersSkeleton, type SearchUIFiltersSkeletonAction} from './SearchUIFiltersSkeleton';
 import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled';
+import {withPneLegacyLook} from '../../legacy/legacyLook'
 
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
@@ -267,7 +268,7 @@ export const SearchUIFilters = (props: SearchUIFiltersProps) => {
     </SearchUIFiltersStoreProvider>
 }
 
-export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
+const SearchUIFiltersPanelContent = (props: SearchUIFiltersProps) => {
     // Keep runtime validation at the public render boundary even when asynchronous
     // bootstrap work delays mounting the initialized filters subtree.
     toSearchUIConditionsState(props.initialSearchConditions, 'initialSearchConditions', false)
@@ -1148,3 +1149,6 @@ export const filterAvailableCriteria = (
         criterion !== CriterionTypeEnum.CUSTOMER_LEVEL || customerLevelDependenciesAvailable
     ))
 }
+
+// SearchUIFiltersContent keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
+export const SearchUIFiltersContent = withPneLegacyLook(SearchUIFiltersPanelContent, 'SearchUIFiltersContent')
