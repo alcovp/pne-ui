@@ -6,6 +6,7 @@ import {
     type ThemeOptions,
 } from '@mui/material/styles'
 import {Skin} from './common/paynet/skin'
+import {mixHex, normalizeHexColor} from './color'
 
 export type PneColorMode = 'light' | 'dark'
 
@@ -95,7 +96,6 @@ const PNE_LIGHT_COLORS = Object.freeze({
     controlActiveBackground: '#F0F0F0',
 })
 
-const MISSING_COLOR = '#FF00DC'
 const MIN_FOREGROUND_CONTRAST = 4.5
 const MIN_CONTROL_BOUNDARY_CONTRAST = 3
 const DARK_FOREGROUND_SURFACES = [
@@ -105,38 +105,6 @@ const DARK_FOREGROUND_SURFACES = [
     PNE_DARK_COLORS.surfaceSubtle,
     PNE_DARK_COLORS.surfaceRaised,
 ] as const
-
-const normalizeHexColor = (value: string | undefined): string => {
-    const color = value?.trim()
-    if (!color) return MISSING_COLOR
-
-    const shortMatch = /^#([0-9a-f]{3})$/i.exec(color)
-    if (shortMatch) {
-        return `#${shortMatch[1].split('').map(part => `${part}${part}`).join('')}`.toUpperCase()
-    }
-
-    return /^#[0-9a-f]{6}$/i.test(color) ? color.toUpperCase() : MISSING_COLOR
-}
-
-const hexToRgb = (color: string): [number, number, number] => {
-    const value = Number.parseInt(color.slice(1), 16)
-    return [value >> 16, (value >> 8) & 255, value & 255]
-}
-
-const rgbToHex = (red: number, green: number, blue: number): string =>
-    `#${[red, green, blue]
-        .map(channel => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, '0'))
-        .join('')}`.toUpperCase()
-
-const mixHex = (color: string, target: '#000000' | '#FFFFFF', amount: number): string => {
-    const sourceChannels = hexToRgb(color)
-    const targetChannels = hexToRgb(target)
-    return rgbToHex(
-        sourceChannels[0] + (targetChannels[0] - sourceChannels[0]) * amount,
-        sourceChannels[1] + (targetChannels[1] - sourceChannels[1]) * amount,
-        sourceChannels[2] + (targetChannels[2] - sourceChannels[2]) * amount,
-    )
-}
 
 const hasMinimumContrast = (
     foreground: string,

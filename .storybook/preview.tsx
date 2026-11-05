@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import {PneThemeProvider, Skin, type PneColorMode} from "../src";
 import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
 import { withContext } from './decorators/withContext';
+import { STORYBOOK_DEFAULT_SKIN, skinColorOf } from './skins';
 
 const defaultSkin: Skin = {
     'headerBackgroundColor': '#18547b',
@@ -34,7 +35,8 @@ const defaultSkin: Skin = {
     'subMenuItemHoverBackgroundColor': '#116fa9',
     'footerBackgroundColor': '#18547b',
     'footerTextColor': '#fff',
-    'experimentalColor': '#0a91bc'
+    // Replaced by the Skin toolbar choice; the default is the UI Kit (Claude) blue.
+    'experimentalColor': skinColorOf(STORYBOOK_DEFAULT_SKIN)
 }
 
 const customViewports = {
@@ -91,6 +93,9 @@ const customViewports = {
 
 const preview = {
     globalTypes: {
+        skin: {
+            description: 'Skin colour, chosen with the skin tool in the toolbar (skin-addon)',
+        },
         colorMode: {
             description: 'PNE color mode',
             toolbar: {
@@ -104,6 +109,7 @@ const preview = {
         },
     },
     initialGlobals: {
+        skin: STORYBOOK_DEFAULT_SKIN,
         colorMode: 'light',
     },
     parameters: {
@@ -125,7 +131,7 @@ const preview = {
         withContext,
         (Story, context) => (
             <PneThemeProvider
-                skin={defaultSkin}
+                skin={{...defaultSkin, experimentalColor: skinColorOf(context.globals.skin)}}
                 mode={(context.globals.colorMode ?? 'light') as PneColorMode}
             >
                 <Box

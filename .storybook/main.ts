@@ -5,7 +5,8 @@ const config: StorybookConfig = {
     addons: [
         "@storybook/addon-links",
         "@storybook/addon-docs",
-        "@storybook/addon-webpack5-compiler-swc"
+        "@storybook/addon-webpack5-compiler-swc",
+        "./skin-addon/preset.js"
     ],
     framework: {
         name: "@storybook/react-webpack5",
