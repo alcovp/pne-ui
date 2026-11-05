@@ -1,11 +1,18 @@
-import {Button} from '@mui/material'
-import type {ButtonProps, ButtonTypeMap} from '@mui/material/Button'
+import {Button, CircularProgress} from '@mui/material'
+import type {ButtonTypeMap} from '@mui/material/Button'
 import type {OverridableComponent, OverrideProps} from '@mui/material/OverridableComponent'
-import {alpha} from '@mui/material/styles'
 import type {SxProps, Theme} from '@mui/material/styles'
 import type {SystemStyleObject} from '@mui/system'
 import * as React from 'react'
+import type {PneButtonStateColors, PneButtonVariant} from '../buttonPalette'
+import {resolvePneSemanticPalette} from '../createTheme'
 
+/**
+ * The PNE UI action button (UI Kit Button: Variant × Size × State). `contained` is the single
+ * main action on a page, `outlined` and `text` are secondary, `error` is for removals,
+ * `warning` is a non-destructive caution, and the four soft styles (`neutral`, `neutralText`,
+ * `primaryLight`, `white`) have a brand label and no fill at rest, for tables and toolbars.
+ */
 export type PneButtonStyle =
     | 'contained'
     | 'outlined'
@@ -17,17 +24,28 @@ export type PneButtonStyle =
     | 'warning'
     | 'white'
 
+/** small 24px (tables, groups) · medium 32px (forms) · large 40px (page primary). */
 export type PneButtonSize = 'small' | 'medium' | 'large'
+
+/** A state pinned for specimens through `data-pne-state`; product code never sets it. */
+export type PneButtonSpecimenState = 'hover' | 'pressed' | 'focus'
 
 type PneButtonOwnProps = {
     /** Canonical PNE appearance preset. */
     pneStyle?: PneButtonStyle
     /** PNE buttons intentionally support only the three design-system sizes. */
     size?: PneButtonSize
+    /**
+     * A request is running: a spinner takes the start icon slot, the end icon hides, clicks are
+     * blocked and the resting colours stay. Give such a button a start icon, so its width does
+     * not change.
+     */
+    loading?: boolean
     /** Use `pneStyle`; raw MUI colors are not part of the PneButton contract. */
     color?: never
     /** Use `pneStyle`; raw MUI variants are not part of the PneButton contract. */
     variant?: never
+    'data-pne-state'?: PneButtonSpecimenState
 }
 
 type PneButtonTypeMap<
@@ -49,68 +67,48 @@ type PneButtonComponent = ((
     props: {href: string} & OverrideProps<PneButtonTypeMap, 'a'>,
 ) => React.JSX.Element) & OverridableComponent<PneButtonTypeMap>
 
+export const PNE_BUTTON_FONT_FAMILY = '"Roboto", "Helvetica Neue", Arial, sans-serif'
+
+const BUTTON_VARIANT: Record<PneButtonStyle, PneButtonVariant> = {
+    contained: 'primary',
+    outlined: 'outline',
+    text: 'text',
+    error: 'destructive',
+    warning: 'warning',
+    neutral: 'soft',
+    neutralText: 'soft',
+    primaryLight: 'soft',
+    white: 'soft',
+}
+
 type ButtonSizeConfig = {
     height: number
-    verticalPadding: number
-    horizontalPadding: number
-    iconNearPadding: number
-    iconFarPadding: number
-    iconOnlyPadding: number
-    gap: number
+    paddingBlock: number
+    paddingInline: number
+    fontSize: number
+    lineHeight: number
+    /** One icon scale for every button, as in UI Kit: 14 · 16 · 18. */
+    icon: number
 }
 
-const buttonMinWidth = 64
-const outlinedBorderWidth = 1
-
-type ResolvedButtonStyle = {
-    color: NonNullable<ButtonProps['color']>
-    variant: NonNullable<ButtonProps['variant']>
+// UI Kit sizes: control height, padding, Roboto Medium label, icon glyph.
+const BUTTON_SIZE: Record<PneButtonSize, ButtonSizeConfig> = {
+    small: {height: 24, paddingBlock: 4, paddingInline: 8, fontSize: 12, lineHeight: 16, icon: 14},
+    medium: {height: 32, paddingBlock: 6, paddingInline: 12, fontSize: 13, lineHeight: 18, icon: 16},
+    large: {height: 40, paddingBlock: 10, paddingInline: 16, fontSize: 14, lineHeight: 20, icon: 18},
 }
 
-const buttonStyleConfig: Record<PneButtonStyle, ResolvedButtonStyle> = {
-    contained: {color: 'primary', variant: 'contained'},
-    outlined: {color: 'primary', variant: 'outlined'},
-    error: {color: 'error', variant: 'outlined'},
-    text: {color: 'primary', variant: 'text'},
-    neutral: {color: 'pneNeutral', variant: 'contained'},
-    neutralText: {color: 'pneNeutral', variant: 'text'},
-    primaryLight: {color: 'pnePrimaryLight', variant: 'contained'},
-    warning: {color: 'pneWarningLight', variant: 'contained'},
-    white: {color: 'pneWhite', variant: 'contained'},
-}
+const BUTTON_ICON_GAP = 4
 
-const buttonSizeConfig: Record<PneButtonSize, ButtonSizeConfig> = {
-    small: {
-        height: 28,
-        verticalPadding: 4,
-        horizontalPadding: 16,
-        iconNearPadding: 12,
-        iconFarPadding: 16,
-        iconOnlyPadding: 6,
-        gap: 4,
-    },
-    medium: {
-        height: 32,
-        verticalPadding: 6,
-        horizontalPadding: 20,
-        iconNearPadding: 16,
-        iconFarPadding: 20,
-        iconOnlyPadding: 8,
-        gap: 8,
-    },
-    large: {
-        height: 40,
-        verticalPadding: 10,
-        horizontalPadding: 20,
-        iconNearPadding: 16,
-        iconFarPadding: 20,
-        iconOnlyPadding: 10,
-        gap: 8,
-    },
-}
+const isPneButtonSize = (size: unknown): size is PneButtonSize =>
+    size === 'small' || size === 'medium' || size === 'large'
 
-const isPneButtonSize = (size: ButtonProps['size']): size is PneButtonSize => {
-    return size === 'small' || size === 'medium' || size === 'large'
+const resolveVariant = (pneStyle: PneButtonStyle | undefined): PneButtonVariant => {
+    if (pneStyle === undefined) return 'primary'
+    const variant = BUTTON_VARIANT[pneStyle]
+    if (variant !== undefined) return variant
+    console.warn(`Unknown pneStyle: ${String(pneStyle)}`)
+    return 'primary'
 }
 
 // https://mui.com/material-ui/guides/typescript/#complications-with-the-component-prop
@@ -124,8 +122,10 @@ const PneButtonImplementation = <C extends React.ElementType = 'button'>(
         color,
         size = 'large',
         pneStyle,
+        loading = false,
         startIcon,
         endIcon,
+        onClick,
         ...rest
     } = props
 
@@ -135,231 +135,113 @@ const PneButtonImplementation = <C extends React.ElementType = 'button'>(
         console.warn('PneButton ignores variant/color; use the canonical pneStyle prop')
     }
 
-    const resolvedStyle = resolveButtonStyle(pneStyle)
-
-    const hasStartIcon = Boolean(startIcon)
-    const hasEndIcon = Boolean(endIcon)
+    const resolvedVariant = resolveVariant(pneStyle)
     const hasChildren = React.Children.count(children) > 0
-    const iconOnly = !hasChildren && (hasStartIcon || hasEndIcon)
+    const iconOnly = !hasChildren && Boolean(startIcon || endIcon)
+    const spinner = <CircularProgress color='inherit' size={BUTTON_SIZE[resolvedSize].icon} thickness={5}/>
+
+    const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+        if (loading) {
+            event.preventDefault()
+            return
+        }
+        onClick?.(event)
+    }
 
     const _sx: SxProps<Theme> = [
-        createButtonSx({
-            color: resolvedStyle.color,
-            hasEndIcon,
-            hasStartIcon,
-            iconOnly,
-            size: resolvedSize,
-            variant: resolvedStyle.variant,
-        }),
-        ...(Array.isArray(sx) ? sx : [sx])
+        createButtonSx({iconOnly, size: resolvedSize, variant: resolvedVariant}),
+        ...(Array.isArray(sx) ? sx : [sx]),
     ]
 
     return <Button
         sx={_sx}
-        variant={resolvedStyle.variant}
-        color={resolvedStyle.color}
+        variant='text'
         size={resolvedSize}
-        startIcon={startIcon}
-        endIcon={endIcon}
+        disableElevation
+        startIcon={loading ? spinner : startIcon}
+        endIcon={loading ? undefined : endIcon}
+        aria-busy={loading || undefined}
+        data-pne-variant={resolvedVariant}
+        data-pne-size={resolvedSize}
+        data-pne-loading={loading || undefined}
+        onClick={handleClick}
         {...rest}
     >
         {children}
     </Button>
 }
 
-const resolveButtonStyle = (pneStyle: PneButtonStyle | undefined): ResolvedButtonStyle => {
-    if (pneStyle === undefined) {
-        return buttonStyleConfig.contained
-    }
-
-    const resolvedStyle = buttonStyleConfig[pneStyle]
-    if (resolvedStyle !== undefined) {
-        return resolvedStyle
-    }
-
-    console.warn(`Unknown pneStyle: ${String(pneStyle)}`)
-    return buttonStyleConfig.contained
-}
-
 const PneButton = PneButtonImplementation as PneButtonComponent
+
+const ring = (border: string): string | undefined =>
+    border === 'transparent' ? undefined : `inset 0 0 0 1px ${border}`
+
+const stateSx = (colors: PneButtonStateColors): SystemStyleObject<Theme> => ({
+    backgroundColor: colors.fill,
+    color: colors.text,
+    boxShadow: ring(colors.border) ?? 'none',
+})
 
 const createButtonSx = (
     options: {
-        color: ButtonProps['color']
-        hasEndIcon: boolean
-        hasStartIcon: boolean
         iconOnly: boolean
         size: PneButtonSize
-        variant: ButtonProps['variant']
+        variant: PneButtonVariant
     },
 ): SxProps<Theme> => theme => {
-    const config = buttonSizeConfig[options.size]
-    const iconOnlyPadding = config.iconOnlyPadding
-    const iconOnlySize = 16 + iconOnlyPadding * 2
+    const config = BUTTON_SIZE[options.size]
+    const pne = resolvePneSemanticPalette(theme)
+    const colors = pne.button[options.variant]
+    const focusRing = [
+        ring(colors.default.border),
+        `0 0 0 2px ${theme.palette.background.default}`,
+        `0 0 0 4px ${pne.focusRing}`,
+    ].filter(Boolean).join(', ')
 
     return {
-        ...createButtonBaseSx(config, options, iconOnlyPadding, iconOnlySize),
-        ...createPrimaryButtonColorSx(theme, options.variant, options.color),
-    } as SystemStyleObject<Theme>
-}
-
-const createButtonBaseSx = (
-    config: ButtonSizeConfig,
-    options: {
-        hasEndIcon: boolean
-        hasStartIcon: boolean
-        iconOnly: boolean
-        variant: ButtonProps['variant']
-    },
-    iconOnlyPadding: number,
-    iconOnlySize: number,
-): SystemStyleObject<Theme> => {
-    const padding = getButtonPadding(config, options, iconOnlyPadding)
-
-    return {
+        ...stateSx(colors.default),
+        border: 'none',
         borderRadius: '4px',
-        boxShadow: 'none',
         boxSizing: 'border-box',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '14px',
-        fontWeight: 400,
-        gap: options.iconOnly ? 0 : `${config.gap}px`,
-        height: options.iconOnly ? `${iconOnlySize}px` : 'auto',
-        lineHeight: '20px',
-        minHeight: options.iconOnly ? `${iconOnlySize}px` : `${config.height}px`,
-        minWidth: options.iconOnly ? `${iconOnlySize}px` : `${buttonMinWidth}px`,
-        padding,
+        fontFamily: PNE_BUTTON_FONT_FAMILY,
+        fontSize: `${config.fontSize}px`,
+        fontWeight: 500,
+        gap: options.iconOnly ? 0 : `${BUTTON_ICON_GAP}px`,
+        height: options.iconOnly ? `${config.height}px` : 'auto',
+        lineHeight: `${config.lineHeight}px`,
+        minHeight: `${config.height}px`,
+        minWidth: options.iconOnly ? `${config.height}px` : '0px',
+        padding: options.iconOnly ? 0 : `${config.paddingBlock}px ${config.paddingInline}px`,
+        textAlign: 'center',
         textTransform: 'none',
-        ...(options.iconOnly ? {width: `${iconOnlySize}px`} : {}),
-        '&:hover': {
-            boxShadow: 'none',
+        transition: 'background-color 120ms linear, box-shadow 120ms linear, color 120ms linear',
+        whiteSpace: 'normal',
+        ...(options.iconOnly ? {width: `${config.height}px`, flexShrink: 0} : {}),
+        '&:hover, &[data-pne-state="hover"]': stateSx(colors.hover),
+        '&:active, &[data-pne-state="pressed"]': stateSx(colors.pressed),
+        '&.Mui-focusVisible, &[data-pne-state="focus"]': {
+            ...stateSx(colors.default),
+            boxShadow: focusRing,
         },
-        '&:active': {
-            boxShadow: 'none',
+        '&[data-pne-loading="true"]': {
+            ...stateSx(colors.default),
+            cursor: 'progress',
+            pointerEvents: 'none',
         },
+        '&.Mui-disabled': stateSx(colors.disabled),
         '&&& .MuiButton-startIcon, &&& .MuiButton-endIcon': {
             display: 'inline-flex',
             marginLeft: 0,
             marginRight: 0,
         },
         '&&& .MuiButton-startIcon > *:nth-of-type(1), &&& .MuiButton-endIcon > *:nth-of-type(1)': {
-            fontSize: 16,
+            fontSize: config.icon,
         },
         '&&& .MuiButton-startIcon svg, &&& .MuiButton-endIcon svg': {
-            height: 16,
-            width: 16,
+            height: config.icon,
+            width: config.icon,
         },
-    }
-}
-
-const getButtonPadding = (
-    config: ButtonSizeConfig,
-    options: {
-        hasEndIcon: boolean
-        hasStartIcon: boolean
-        iconOnly: boolean
-        variant: ButtonProps['variant']
-    },
-    iconOnlyPadding: number,
-) => {
-    if (options.iconOnly) {
-        return `${iconOnlyPadding}px`
-    }
-
-    const compensateBorder = options.variant === 'outlined'
-    const verticalPadding = getButtonPaddingValue(config.verticalPadding, compensateBorder)
-    const horizontalPadding = getButtonPaddingValue(config.horizontalPadding, compensateBorder)
-    const iconNearPadding = getButtonPaddingValue(config.iconNearPadding, compensateBorder)
-    const iconFarPadding = getButtonPaddingValue(config.iconFarPadding, compensateBorder)
-
-    if (options.hasStartIcon) {
-        return `${verticalPadding}px ${iconFarPadding}px ${verticalPadding}px ${iconNearPadding}px`
-    }
-
-    if (options.hasEndIcon) {
-        return `${verticalPadding}px ${iconNearPadding}px ${verticalPadding}px ${iconFarPadding}px`
-    }
-
-    return `${verticalPadding}px ${horizontalPadding}px`
-}
-
-const getButtonPaddingValue = (padding: number, compensateBorder: boolean) => {
-    return compensateBorder ? padding - outlinedBorderWidth : padding
-}
-
-const createPrimaryButtonColorSx = (
-    theme: Theme,
-    variant: ButtonProps['variant'],
-    color: ButtonProps['color'],
-): SystemStyleObject<Theme> => {
-    if (color !== 'primary') {
-        return {}
-    }
-
-    const feedbackBackgroundColor = alpha(theme.palette.primary.main, 0.1)
-    const isDarkMode = theme.palette.mode === 'dark'
-    const disabledBackground = isDarkMode ? theme.palette.action.disabledBackground : '#B0B7C3'
-    const disabledForeground = isDarkMode ? theme.palette.text.disabled : '#fff'
-    const disabledOutline = isDarkMode ? theme.palette.text.disabled : '#B0B7C3'
-    const brand = theme.palette.pne?.brand
-
-    if (variant === 'contained') {
-        const fill = brand?.fill ?? theme.palette.primary.main
-        const fillHover = isDarkMode && brand ? brand.fillHover : theme.palette.primary.dark
-        const onFill = brand?.onFill ?? theme.palette.primary.contrastText
-        const fillBorder = brand?.fillBorder ?? 'transparent'
-        const fillBoundary = fillBorder === 'transparent'
-            ? 'none'
-            : `inset 0 0 0 1px ${fillBorder}`
-        return {
-            backgroundColor: fill,
-            color: onFill,
-            boxShadow: fillBoundary,
-            '&:hover, &:active': {
-                backgroundColor: fillHover,
-                boxShadow: fillBoundary,
-            },
-            '&.Mui-disabled': {
-                backgroundColor: disabledBackground,
-                color: disabledForeground,
-                boxShadow: 'none',
-            },
-        }
-    }
-
-    if (variant === 'outlined') {
-        return {
-            backgroundColor: 'transparent',
-            borderColor: theme.palette.primary.main,
-            color: theme.palette.primary.main,
-            '&:hover, &:active': {
-                backgroundColor: feedbackBackgroundColor,
-                borderColor: theme.palette.primary.dark,
-                color: theme.palette.primary.dark,
-            },
-            '&.Mui-disabled': {
-                backgroundColor: 'transparent',
-                borderColor: disabledOutline,
-                color: disabledOutline,
-            },
-        }
-    }
-
-    if (variant === 'text') {
-        return {
-            color: theme.palette.primary.main,
-            '&:hover, &:active': {
-                backgroundColor: feedbackBackgroundColor,
-                color: theme.palette.primary.dark,
-            },
-            '&.Mui-disabled': {
-                backgroundColor: 'transparent',
-                color: disabledOutline,
-            },
-        }
-    }
-
-    return {}
+    } as SystemStyleObject<Theme>
 }
 
 export default PneButton

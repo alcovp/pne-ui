@@ -7,8 +7,17 @@ import {
 } from '@mui/material/styles'
 import {Skin} from './common/paynet/skin'
 import {mixHex, normalizeHexColor} from './color'
+import {createPneBrandRamp, type PneBrandRamp} from './brandRamp'
+import {
+    createPneButtonPalette,
+    createPneFocusRing,
+    createPneLinkColor,
+    type PneButtonPalette,
+} from './buttonPalette'
+import {PNE_DARK_COLORS, PNE_LIGHT_COLORS, type PneColorMode} from './themeColors'
 
-export type PneColorMode = 'light' | 'dark'
+export {PNE_DARK_COLORS} from './themeColors'
+export type {PneColorMode} from './themeColors'
 
 export type PneBrandPalette = {
     seed: string
@@ -53,48 +62,20 @@ export type PneSemanticPalette = {
         activeBackground: string
     }
     brand: PneBrandPalette
+    /** The brand ramp of the skin, steps 0…1000; 500 is the skin colour. */
+    ramp: PneBrandRamp
+    /** Button colours by UI Kit role. */
+    button: PneButtonPalette
+    /** The outer 2px of the keyboard focus ring; the 2px gap inside takes the page colour. */
+    focusRing: string
+    /** Link text on the page. */
+    link: string
 }
 
 export type PneCreateThemeOptions = Omit<ThemeOptions, 'skin'> & {
     /** PNE color mode. `palette.mode` remains supported for compatibility. */
     colorMode?: PneColorMode
 }
-
-export const PNE_DARK_COLORS = Object.freeze({
-    backgroundDefault: '#121212',
-    backgroundPaper: '#1C1C1C',
-    surfaceSunken: '#181818',
-    surfaceSubtle: '#242424',
-    surfaceRaised: '#292929',
-    borderSubtle: 'rgba(255,255,255,0.035)',
-    borderDefault: '#484848',
-    borderControl: '#707070',
-    textPrimary: '#F2F2F2',
-    textSecondary: '#B8B8B8',
-    textMuted: '#949494',
-    textDisabled: '#7A7A7A',
-    divider: 'rgba(255,255,255,0.12)',
-    actionHover: 'rgba(255,255,255,0.08)',
-    actionSelected: 'rgba(255,255,255,0.16)',
-    actionFocus: 'rgba(255,255,255,0.12)',
-    actionDisabled: 'rgba(255,255,255,0.30)',
-    actionDisabledBackground: 'rgba(255,255,255,0.12)',
-})
-
-const PNE_LIGHT_COLORS = Object.freeze({
-    surfaceSunken: '#F8FAFC',
-    surfaceSubtle: '#F1F5FA',
-    surfaceRaised: '#FFFFFF',
-    borderSubtle: '#F1F5FA',
-    borderDefault: '#E1E7EF',
-    borderControl: '#B0B7C3',
-    textDefault: '#38434D',
-    textMuted: '#808080',
-    controlForeground: '#8A8A8A',
-    controlForegroundHover: '#5C5C5C',
-    controlForegroundDisabled: '#C4C4C4',
-    controlActiveBackground: '#F0F0F0',
-})
 
 const MIN_FOREGROUND_CONTRAST = 4.5
 const MIN_CONTROL_BOUNDARY_CONTRAST = 3
@@ -199,7 +180,28 @@ const createBrandPalette = (seed: string, mode: PneColorMode): PneBrandPalette =
     }
 }
 
-const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPalette => ({
+const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPalette => {
+    const ramp = createPneBrandRamp(seed)
+    return {
+        ...createSemanticSurfaces(seed, mode),
+        ramp,
+        button: createPneButtonPalette(ramp, mode),
+        focusRing: createPneFocusRing(ramp, mode),
+        link: createPneLinkColor(ramp, mode),
+    }
+}
+
+/** The PNE palette of a theme; one is built from `primary.main` for a theme made without `createPneTheme`. */
+export const resolvePneSemanticPalette = (theme: Theme): PneSemanticPalette =>
+    theme.palette.pne ?? createSemanticPalette(
+        normalizeHexColor(theme.palette.primary.main),
+        theme.palette.mode === 'dark' ? 'dark' : 'light',
+    )
+
+const createSemanticSurfaces = (
+    seed: string,
+    mode: PneColorMode,
+): Omit<PneSemanticPalette, 'ramp' | 'button' | 'focusRing' | 'link'> => ({
     surface: mode === 'dark'
         ? {
             sunken: PNE_DARK_COLORS.surfaceSunken,

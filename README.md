@@ -71,20 +71,33 @@ major-версии MUI не входят в поддерживаемый peer co
 
 ## PneButton
 
-`pneStyle` — единственный публичный способ выбрать PNE-вариант кнопки. Низкоуровневые MUI props `variant` и
-`color` намеренно исключены из TypeScript API, чтобы они не конфликтовали с design-system preset.
+Кнопка UI Kit (Claude): Variant × Size × State. `pneStyle` — единственный публичный способ выбрать
+вариант. Низкоуровневые MUI props `variant` и `color` намеренно исключены из TypeScript API.
 
-| `pneStyle` | Эквивалент прежнего MUI API |
-|---|---|
-| `contained` или prop не задан | `variant="contained" color="primary"` |
-| `outlined` | `variant="outlined" color="primary"` |
-| `error` | `variant="outlined" color="error"` |
-| `text` | `variant="text" color="primary"` |
-| `neutral` | `variant="contained" color="pneNeutral"` |
-| `neutralText` | `variant="text" color="pneNeutral"` |
-| `primaryLight` | `variant="contained" color="pnePrimaryLight"` |
-| `warning` | `variant="contained" color="pneWarningLight"` |
-| `white` | `variant="contained" color="pneWhite"` |
+| `pneStyle` | Вариант UI Kit | Назначение |
+|---|---|---|
+| `contained` или prop не задан | Primary | единственное главное действие на странице |
+| `outlined` | Secondary | второстепенное действие: кольцо цвета бренда, без заливки |
+| `text` | Tertiary | нейтральная кнопка, как вкладка светлой группы без Active |
+| `error` | Destructive | удаление, красная заливка |
+| `warning` | Warning | неразрушающее предупреждение, оранжевая заливка |
+| `neutral`, `neutralText`, `primaryLight`, `white` | Soft | подпись цвета бренда без заливки в покое, для таблиц и панелей |
+
+Размеры: `small` 24 px (таблицы, группы), `medium` 32 px (формы), `large` 40 px (главное действие
+страницы, по умолчанию). Подпись Roboto Medium 12/13/14 px, иконки 14/16/18 px, радиус 4 px. Рамки —
+внутренние кольца в 1 px, поэтому наведение и фокус не сдвигают раскладку. Подпись переносится на
+вторую строку, многоточия нет. Кнопка без детей и с иконкой — квадрат со стороной в высоту.
+
+Цвета берутся из `theme.palette.pne.button[variant][state]` (роли `btn-*` UI Kit) и выводятся из
+одного цвета скина (`experimentalColor`) по шкале `theme.palette.pne.ramp`. Три правила держат любой
+скин в рабочем виде: цвет бренда как текст или кольцо берёт первую ступень, читаемую на странице (3:1);
+у почти чёрного скина наведение и нажатие светлеют; подпись на заливке белая при 3:1, иначе тёмная.
+
+`loading` показывает спиннер на месте стартовой иконки, прячет конечную, блокирует клики и сохраняет
+цвета покоя. Давайте такой кнопке стартовую иконку, тогда её ширина не меняется.
+
+`data-pne-state="hover" | "pressed" | "focus"` закрепляет состояние для образцов в Storybook; в коде
+продукта атрибут не задаётся.
 
 Компонент сохраняет polymorphic MUI-контракт для `component` и `href`; типы DOM props, событий и `ref`
 выводятся из фактического root element. Это поведение рассчитано на React 19 ref-as-prop.

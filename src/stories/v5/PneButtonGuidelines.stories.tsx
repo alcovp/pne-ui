@@ -1,5 +1,5 @@
 import * as React from "react";
-import {PneButton, PNE_ACTION_SPACING, pneActionSpacing} from "../index";
+import {PneButton, PNE_ACTION_SPACING, pneActionSpacing} from "../../index";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -7,86 +7,14 @@ import DirectionsRunIcon from "@mui/icons-material/DirectionsRun";
 import {Box, Divider, Typography} from "@mui/material";
 import {alpha} from "@mui/material/styles";
 import type {SxProps, Theme} from "@mui/material/styles";
-import CustomIconWrapper from "../component/CustomIconWrapper";
+import CustomIconWrapper from "../../component/CustomIconWrapper";
 
 export default {
-    title: "pne-ui/PneButton",
+    title: "pne-ui 5/PneButton/Guidelines",
     component: PneButton,
 } as Meta<typeof PneButton>;
 
 type Story = StoryObj<typeof PneButton>;
-
-const BUTTON_TEXT = "Push me!";
-const BUTTON_ALERT_TEXT = "Click!";
-
-export const Default: Story = {
-    args: {
-        onClick: () => alert(BUTTON_ALERT_TEXT),
-        children: BUTTON_TEXT,
-    },
-};
-
-export const Medium: Story = {
-    args: {
-        ...Default.args,
-        size: 'medium',
-    },
-};
-
-export const Small: Story = {
-    args: {
-        ...Default.args,
-        size: 'small',
-    },
-};
-
-export const Primary: Story = {
-    args: {
-        ...Default.args,
-    },
-};
-
-export const Neutral: Story = {
-    args: {
-        ...Default.args,
-        pneStyle: 'neutral',
-    },
-};
-
-export const White: Story = {
-    args: {
-        ...Default.args,
-        pneStyle: 'white',
-    },
-};
-
-export const PrimaryLight: Story = {
-    args: {
-        ...Default.args,
-        pneStyle: 'primaryLight',
-    },
-};
-
-export const WarningLight: Story = {
-    args: {
-        ...Default.args,
-        pneStyle: 'warning',
-    },
-};
-
-export const StartIcon: Story = {
-    args: {
-        ...Primary.args,
-        startIcon: <DirectionsRunIcon/>,
-    },
-};
-
-export const EndIcon: Story = {
-    args: {
-        ...Primary.args,
-        endIcon: <DirectionsRunIcon/>,
-    },
-};
 
 type UsageGuidelineProps = {
     title: string
