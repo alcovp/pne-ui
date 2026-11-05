@@ -33,6 +33,10 @@ export const selectUnderChipSx: SystemStyleObject<Theme> = {
     '& .MuiOutlinedInput-notchedOutline': {
         borderColor: 'transparent !important',
     },
+    // The pne-ui 5 field paints the outlined box white; over a chip the box stays see-through.
+    '& .MuiOutlinedInput-root.MuiInputBase-root': {
+        backgroundColor: 'transparent',
+    },
     '& .MuiSelect-select.MuiInputBase-input.MuiOutlinedInput-input': {
         height: '100%',
         fontSize: '0',

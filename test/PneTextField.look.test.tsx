@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {render} from '@testing-library/react'
+import {MenuItem} from '@mui/material'
+import {fireEvent, render, screen} from '@testing-library/react'
 
 import {PneField, PneTextField, PneThemeProvider, type Skin} from '../src'
 
@@ -76,6 +77,31 @@ describe('PneTextField (UI Kit look)', () => {
         expect(ruleValue(root, `${OUTLINED} .MuiInputBase-input::placeholder, ${FILLED} .MuiInputBase-input::placeholder`, 'color')).toBe('#7C8B9B')
         expect(ruleValue(root, '& .MuiFormHelperText-root', 'color')).toBe('#7C8B9B')
         expect(ruleValue(root, '& .MuiFormHelperText-root.Mui-error', 'color')).toBe('#C8283B')
+    })
+
+    it('draws the PneSelect chevron and list in select mode', () => {
+        const {root} = renderField(<PneTextField label='Server' onChange={() => undefined} select value='a'>
+            <MenuItem value='a'>Email</MenuItem>
+        </PneTextField>)
+
+        expect(root.querySelector('.MuiSelect-icon')?.getAttribute('data-testid')).toBe('PneChevronDownIcon')
+        fireEvent.mouseDown(screen.getByRole('combobox'), {button: 0})
+        const menu = document.querySelector<HTMLElement>('.MuiMenu-root')!
+        expect(ruleValue(menu, '& .MuiMenu-paper', 'border-radius')).toBe('8px')
+    })
+
+    it('keeps the browser list of a native select', () => {
+        const {root} = renderField(<PneTextField
+            label='Server'
+            onChange={() => undefined}
+            select
+            slotProps={{select: {native: true}}}
+            value='a'
+        >
+            <option value='a'>Email</option>
+        </PneTextField>)
+
+        expect(root.querySelector('[data-testid="PneChevronDownIcon"]')).toBeNull()
     })
 
     it('marks a pinned specimen state on the root', () => {

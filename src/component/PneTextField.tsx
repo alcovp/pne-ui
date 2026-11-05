@@ -1,11 +1,10 @@
 import React, {forwardRef, useId, useMemo} from 'react'
-import {TextField, TextFieldOwnerState, TextFieldProps} from '@mui/material'
+import {type MenuProps, TextField, TextFieldOwnerState, TextFieldProps} from '@mui/material'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
 import {useTheme} from '@mui/material/styles'
-import type {SxProps, Theme} from '@mui/material/styles'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
-import {resolvePneSemanticPalette} from '../createTheme'
-import type {PneFieldStateColors} from '../fieldPalette'
+import {PneChevronDownIcon, pneSelectIconSx, withPneDropdownMenuLook} from './dropdown/dropdownLook'
+import {pneFieldBoxSx} from './fieldLook'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from './PneFieldContext'
 
 export type PneTextFieldProps = TextFieldProps & {
@@ -107,7 +106,7 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
             select={select}
             size={size}
             slotProps={resolvedSlotProps}
-            sx={[textFieldSx, ...(Array.isArray(sx) ? sx : [sx])]}
+            sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
             {...rest}
         />
     </DefaultPropsProvider>
@@ -130,73 +129,6 @@ interface CreateResolvedSlotPropsOptions {
     hasHelperText: boolean
     select: boolean
     slotProps?: PneTextFieldProps['slotProps']
-}
-
-const stateColors = (colors: PneFieldStateColors): Record<string, string> => ({
-    '--pne-field-fill': colors.fill,
-    '--pne-field-ring': colors.ring,
-})
-
-// The second class outranks MUI's own state rules on the box (one class plus a state).
-const OUTLINED = '.MuiOutlinedInput-root.MuiInputBase-root'
-const FILLED = '.MuiFilledInput-root.MuiInputBase-root'
-// Hover changes nothing on a focused, invalid or disabled box.
-const HOVER = ':hover:not(.Mui-disabled):not(.Mui-focused):not(.Mui-error)'
-
-/**
- * The UI Kit field look on MUI's outlined and filled inputs: colours only, the MUI geometry and
- * the floating label stay. Each state sets the box's fill and ring as custom properties; later
- * states win (hover, focus, error, disabled), as in the UI Kit.
- */
-const textFieldSx: SxProps<Theme> = theme => {
-    const field = resolvePneSemanticPalette(theme).field
-    return {
-        [`& ${OUTLINED}`]: {
-            ...stateColors(field.outlined.default),
-            backgroundColor: 'var(--pne-field-fill)',
-        },
-        [`& ${OUTLINED}${HOVER}, &[data-pne-state="hover"] ${OUTLINED}`]: stateColors(field.outlined.hover),
-        [`& ${OUTLINED}.Mui-focused, &[data-pne-state="focus"] ${OUTLINED}`]: stateColors(field.outlined.focus),
-        [`& ${OUTLINED}.Mui-error`]: stateColors(field.outlined.error),
-        [`& ${OUTLINED}.Mui-disabled`]: stateColors(field.outlined.disabled),
-        [`& ${OUTLINED} .MuiOutlinedInput-notchedOutline`]: {
-            borderColor: 'var(--pne-field-ring)',
-            borderWidth: '1px',
-        },
-        [`& ${FILLED}`]: {
-            ...stateColors(field.fill.default),
-            backgroundColor: 'var(--pne-field-fill)',
-            borderRadius: '4px',
-            boxShadow: 'inset 0 0 0 1px var(--pne-field-ring)',
-            '&::before, &::after': {
-                display: 'none',
-            },
-        },
-        [`& ${FILLED}${HOVER}, &[data-pne-state="hover"] ${FILLED}`]: stateColors(field.fill.hover),
-        [`& ${FILLED}.Mui-focused, &[data-pne-state="focus"] ${FILLED}`]: stateColors(field.fill.focus),
-        [`& ${FILLED}.Mui-error`]: stateColors(field.fill.error),
-        [`& ${FILLED}.Mui-disabled`]: stateColors(field.fill.disabled),
-        [`& ${OUTLINED} .MuiInputBase-input, & ${FILLED} .MuiInputBase-input`]: {
-            color: field.text.value,
-        },
-        [`& ${OUTLINED} .MuiInputBase-input::placeholder, & ${FILLED} .MuiInputBase-input::placeholder`]: {
-            color: field.text.placeholder,
-            opacity: 1,
-        },
-        [`& ${OUTLINED} .MuiInputBase-input.Mui-disabled, & ${FILLED} .MuiInputBase-input.Mui-disabled`]: {
-            color: field.text.disabled,
-            WebkitTextFillColor: field.text.disabled,
-        },
-        '& .MuiFormHelperText-root': {
-            color: field.helper.text,
-        },
-        '& .MuiFormHelperText-root.Mui-error': {
-            color: field.helper.error,
-        },
-        '& .MuiFormHelperText-root.Mui-disabled': {
-            color: field.text.disabled,
-        },
-    }
 }
 
 const useComponentsWithoutTextFieldDefaults = () => {
@@ -628,6 +560,7 @@ const withSelectAccessibility = (
 
     return {
         ...slotProps,
+        ...withSelectLook(slotProps),
         ...(options.forceDisabled ? {disabled: true} : {}),
         ...(options.forceAriaInvalid ? {error: true} : {}),
         id: options.controlId,
@@ -636,6 +569,19 @@ const withSelectAccessibility = (
             ? {'aria-describedby': options.ariaDescribedBy}
             : {}),
         ...(resolvedDisplayProps ? {SelectDisplayProps: resolvedDisplayProps} : {}),
+    }
+}
+
+// A select-mode field draws the PneSelect chevron and list (UI Kit) unless the consumer gives its own icon;
+// a native select keeps the browser's list.
+const withSelectLook = (slotProps: ResolvedSlotProps | undefined): ResolvedSlotProps => {
+    if (slotProps?.native === true) {
+        return {}
+    }
+
+    return {
+        IconComponent: slotProps?.IconComponent ?? PneChevronDownIcon,
+        MenuProps: withPneDropdownMenuLook(getPropsObject(slotProps?.MenuProps) as Partial<MenuProps> | undefined),
     }
 }
 

@@ -208,7 +208,8 @@ const { ref, ...field } = controllerField
 ошибка остаётся видна и в фокусе. Значение — Neutral/900, подсказка внутри поля — Neutral/600, helper text —
 Neutral/600, в ошибке Error/650. Цвета берутся из `theme.palette.pne.field`, тёмная тема — на нейтралях pne-ui.
 Высоты, размер текста и плавающая подпись MUI не менялись. Вид получает каждое поле, в том числе внутри
-автокомплитов и фильтров SearchUI. `data-pne-state="hover" | "focus"` закрепляет состояние для образцов в Storybook;
+автокомплитов и фильтров SearchUI. В режиме `select` поле рисует шеврон и список как `PneSelect` (свой
+`IconComponent` и `native` остаются за потребителем). `data-pne-state="hover" | "focus"` закрепляет состояние для образцов в Storybook;
 в коде продукта атрибут не задаётся.
 
 У `PneField` подпись над полем остаётся цвета текста и в ошибке (красным становится helper text), у `disabled` —
@@ -440,6 +441,17 @@ combobox/listbox roles, keyboard/pointer handlers, identity или open/close li
 При миграции object options передавайте в `value` сам выбранный объект или `null`, а не замаскированный через cast
 numeric/string ID. `getOptionLabel`, `getOptionProps`, `getOptionDisabled`, `renderOption` и `renderValue` теперь
 работают с исходным `T`, а не с нормализованным `{value, label}`.
+
+Вид (UI Kit: поле с шевроном и Dropdown list). Поле выглядит как `PneTextField`: те же цвета `outlined` и `filled`,
+кольцо по состояниям, цвет значения и подсказки; пока список открыт, поле остаётся в фокусе. Шеврон UI Kit 14px (как
+у Input в дизайн-системе Claude, на месте иконки MUI и так же переворачивается) — цвета значения, у `disabled`
+бледный; свой `IconComponent` по-прежнему можно передать, он сохраняет свой размер. Список — панель UI Kit: радиус 8, 4px от поля и 4px внутри, тонкое кольцо и тень всплывающей панели.
+Строки со скруглением 4: наведение и подсветка с клавиатуры — Neutral/50, выбранная строка — Brand/50 с галочкой в
+конце (галочку рисует CSS, в значение поля она не попадает), `disabled` — бледный текст без прозрачности MUI. Высота
+строки и размер текста — как у MUI. Цвета берутся из `theme.palette.pne.dropdown` и `field`, тёмная тема — на
+нейтралях pne-ui. `sx` из `MenuProps` применяется после вида списка. `data-pne-state="hover" | "focus"` на
+`PneSelect` и `data-pne-state="hover"` на строке (через `getOptionProps`) закрепляют состояние для образцов в
+Storybook; в коде продукта атрибут не задаётся.
 
 ## PneAutocomplete
 

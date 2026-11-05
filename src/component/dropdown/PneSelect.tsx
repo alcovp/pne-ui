@@ -13,7 +13,11 @@ import {
     SelectProps,
     SelectVariants,
 } from '@mui/material'
+import type {SxProps, Theme} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../createTheme'
+import {pneFieldBoxSx} from '../fieldLook'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from '../PneFieldContext'
+import {PneChevronDownIcon, pneSelectIconSx, withPneDropdownMenuLook} from './dropdownLook'
 
 export type PneSelectKey = string | number
 
@@ -273,6 +277,8 @@ type PneSelectBaseProps<T extends PneSelectOptionValue, K extends PneSelectKey> 
         type?: never
         children?: never
         variant?: SelectVariants
+        /** A state pinned for specimens; product code never sets it. */
+        'data-pne-state'?: 'hover' | 'focus'
         getOptionKey: (option: T) => K
         getOptionLabel: (option: T) => string
     }
@@ -336,6 +342,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         'aria-labelledby': ariaLabelledBy,
         'aria-required': ariaRequired,
         children: _children,
+        'data-pne-state': pinnedState,
         defaultValue: _defaultValue,
         disabled,
         displayEmpty,
@@ -345,6 +352,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         getOptionKey,
         getOptionLabel,
         getOptionProps,
+        IconComponent,
         id,
         input: _input,
         inputComponent: _inputComponent,
@@ -488,7 +496,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
             }
             : {}),
     }
-    const resolvedMenuProps = sanitizeMenuProps(MenuProps)
+    const resolvedMenuProps = withPneDropdownMenuLook(sanitizeMenuProps(MenuProps))
 
     const handleChange = (event: SelectChangeEvent<string>) => {
         const key = event.target.value
@@ -512,7 +520,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         if (selectedOption === null) {
             return <Box
                 component='span'
-                sx={{color: 'text.secondary'}}
+                sx={placeholderSx}
             >
                 {placeholder}
             </Box>
@@ -522,12 +530,15 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
     }
 
     return <FormControl
+        data-pne-state={pinnedState}
         size={size}
         variant={variant}
         disabled={controlProps.disabled}
         error={controlProps.error}
+        // A filled box without its own label (PneField puts one above) centres the value, as PneTextField.
+        hiddenLabel={variant === 'filled' && !hasLabel ? true : undefined}
         required={controlProps.required}
-        sx={sx}
+        sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
         fullWidth={controlProps.fullWidth ?? true}
     >
         {hasLabel ? <InputLabel id={internalLabelId}>{label}</InputLabel> : null}
@@ -535,6 +546,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
             ref={ref}
             aria-describedby={mergedAriaDescribedBy}
             displayEmpty={displayEmpty ?? shouldRenderValue}
+            IconComponent={IconComponent ?? PneChevronDownIcon}
             id={controlProps.id}
             labelId={listenerLabelId}
             onChange={handleChange}
@@ -569,6 +581,10 @@ const PneSelect = PneSelectImplementation as PneSelectComponent
 PneSelect.displayName = 'PneSelect'
 
 export default PneSelect
+
+const placeholderSx: SxProps<Theme> = theme => ({
+    color: resolvePneSemanticPalette(theme).field.text.placeholder,
+})
 
 const sanitizeMenuProps = (menuProps: PneSelectMenuProps | undefined): Partial<MenuProps> | undefined => {
     if (!menuProps) {
