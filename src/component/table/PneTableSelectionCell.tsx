@@ -3,7 +3,6 @@ import {SxProps, TableCellProps, Theme} from '@mui/material'
 import {PneCheckbox} from '../PneCheckbox'
 import {AutoTestValue, createAutoTestAttributes} from '../AutoTestAttribute'
 import PneTableControlCell from './PneTableControlCell'
-import {withPneLegacyLook} from '../legacy/legacyLook'
 
 export type SelectionCheckboxAccessibleName =
     | {
@@ -90,5 +89,4 @@ const PneTableSelectionCell = (props: PneTableSelectionCellProps) => {
     </PneTableControlCell>
 }
 
-// PneTableSelectionCell keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
-export default withPneLegacyLook(PneTableSelectionCell, 'PneTableSelectionCell')
+export default PneTableSelectionCell

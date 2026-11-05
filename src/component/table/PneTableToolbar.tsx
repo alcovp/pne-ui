@@ -2,7 +2,6 @@ import React from 'react'
 import {Box, BoxProps, SxProps, Theme} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
 import {TABLE_CONTROL_GAP} from './tableControlMetrics'
-import {withPneLegacyLook} from '../legacy/legacyLook'
 
 type PneTableToolbarAccessibleName =
     | {
@@ -102,5 +101,4 @@ const PneTableToolbar = (props: PneTableToolbarProps) => {
     </Box>
 }
 
-// PneTableToolbar keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
-export default withPneLegacyLook(PneTableToolbar, 'PneTableToolbar')
+export default PneTableToolbar

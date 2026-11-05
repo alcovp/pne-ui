@@ -22,8 +22,8 @@ const ruleValue = (element: Element, selector: string, property: string): string
     return values[values.length - 1]
 }
 
-const OUTLINED_BOX = '.MuiOutlinedInput-root.MuiInputBase-root:not(.MuiAutocomplete-inputRoot)'
-const FILLED_BOX = '.MuiFilledInput-root.MuiFilledInput-underline:not(.MuiAutocomplete-inputRoot)'
+const OUTLINED_BOX = '.MuiOutlinedInput-root.MuiInputBase-root'
+const FILLED_BOX = '.MuiFilledInput-root.MuiInputBase-root'
 const OUTLINED = `& ${OUTLINED_BOX}`
 const FILLED = `& ${FILLED_BOX}`
 const HOVER = ':hover:not(.Mui-disabled):not(.Mui-focused):not(.Mui-error)'
@@ -67,13 +67,6 @@ describe('PneTextField (UI Kit look)', () => {
 
         const labelled = renderField(<PneTextField label='Name' variant='filled'/>)
         expect(labelled.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(false)
-    })
-
-    it('leaves a filled box with its underline turned off to its consumer, as the SearchUI pills', () => {
-        const {root} = renderField(<PneTextField aria-label='Pill' slotProps={{input: {disableUnderline: true}}} variant='filled'/>)
-        const box = root.querySelector('.MuiFilledInput-root')!
-
-        expect(box.classList.contains('MuiFilledInput-underline')).toBe(false)
     })
 
     it('colours the value, placeholder and helper text by UI Kit role', () => {

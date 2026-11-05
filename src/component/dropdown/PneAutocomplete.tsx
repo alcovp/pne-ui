@@ -24,7 +24,6 @@ import {
     withAutocompleteListboxName,
     withoutAutocompleteRootSlot,
 } from './PneAutocompleteShared'
-import {withPneLegacyLook} from '../legacy/legacyLook'
 
 export type {PneAutocompleteHtmlInputProps} from './PneAutocompleteShared'
 
@@ -443,5 +442,4 @@ const PneAutocomplete = PneAutocompleteImplementation as PneAutocompleteComponen
 
 PneAutocomplete.displayName = 'PneAutocomplete'
 
-// PneAutocomplete keeps its 4.x look until its own pne-ui 5 step (see legacy/legacyLook.tsx).
-export default withPneLegacyLook(PneAutocomplete, 'PneAutocomplete')
+export default PneAutocomplete

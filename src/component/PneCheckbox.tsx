@@ -7,7 +7,6 @@ import type {SxProps, Theme} from '@mui/material/styles'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
 import type {PneCheckboxPalette, PneCheckboxState} from '../checkboxPalette'
 import {resolvePneSemanticPalette} from '../createTheme'
-import {usePneLegacyLook} from './legacy/legacyLook'
 import {usePneFieldControlProps} from './PneFieldContext'
 import {composeToggleInputSlotProps, moveAriaPropsToInput} from './PneToggleInput'
 
@@ -45,7 +44,8 @@ export const PneCheckbox = forwardRef<HTMLSpanElement, PneCheckboxProps>((props,
         checkedIcon,
         'data-pne-state': pinnedState,
         disabled,
-        disableRipple,
+        // The box shows hover, press and focus itself (UI Kit); an explicit false brings MUI's back.
+        disableRipple = true,
         icon,
         id,
         indeterminate = false,
@@ -87,13 +87,11 @@ export const PneCheckbox = forwardRef<HTMLSpanElement, PneCheckboxProps>((props,
             readOnly,
         },
     ) as CheckboxInputSlotProps
-    // Inside a composite that keeps its 4.x look the checkbox stays the plain MUI one.
-    const legacy = usePneLegacyLook()
     // The error look follows the field error and an explicit aria-invalid alike.
     const invalid = controlProps.error === true || isAriaInvalid(inputAriaProps['aria-invalid'])
 
     const _sx: SxProps<Theme> = [
-        legacy ? undefined : checkboxSx,
+        checkboxSx,
         ...(Array.isArray(sx) ? sx : [sx]),
     ]
     // MUI still declares Checkbox's forwarded ref as a button even though
@@ -103,17 +101,16 @@ export const PneCheckbox = forwardRef<HTMLSpanElement, PneCheckboxProps>((props,
     return <DefaultPropsProvider value={componentsWithoutCheckboxDefaults}>
         <Checkbox
             {...rootProps}
-            checkedIcon={checkedIcon ?? (legacy ? undefined : <PneCheckboxBox value='on'/>)}
+            checkedIcon={checkedIcon ?? <PneCheckboxBox value='on'/>}
             data-pne-error={invalid || undefined}
             data-pne-readonly={readOnly || undefined}
             data-pne-state={pinnedState}
-            // The box shows hover, press and focus itself (UI Kit); an explicit false brings MUI's back.
-            disableRipple={disableRipple ?? !legacy}
+            disableRipple={disableRipple}
             disabled={controlProps.disabled ?? disabled}
-            icon={icon ?? (legacy ? undefined : <PneCheckboxBox value='off'/>)}
+            icon={icon ?? <PneCheckboxBox value='off'/>}
             id={controlProps.id ?? id}
             indeterminate={indeterminate}
-            indeterminateIcon={indeterminateIcon ?? (legacy ? undefined : <PneCheckboxBox value='indeterminate'/>)}
+            indeterminateIcon={indeterminateIcon ?? <PneCheckboxBox value='indeterminate'/>}
             readOnly={readOnly}
             ref={muiRootRef}
             required={controlProps.required ?? required}

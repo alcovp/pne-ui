@@ -12,7 +12,6 @@ import PneModal, {
     PneModalContainerProps,
 } from "../PneModal";
 import PneModalActions from '../PneModalActions';
-import {withPneLegacyLook} from '../legacy/legacyLook'
 
 interface IProps<T extends AbstractEntitySelectorProp> {
     open: boolean;
@@ -39,7 +38,7 @@ interface IProps<T extends AbstractEntitySelectorProp> {
     elementAttributes?: IAbstractEntityOptions<T>['elementAttributes'];
 }
 
-const AbstractEntitySelectModalContent = <T extends AbstractEntitySelectorProp>(props: IProps<T>) => {
+export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(props: IProps<T>) => {
     const {
         open,
         onClose,
@@ -154,6 +153,3 @@ const AbstractEntitySelectModalContent = <T extends AbstractEntitySelectorProp>(
         </PneModal>
     );
 };
-
-// AbstractEntitySelectModal keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
-export const AbstractEntitySelectModal = withPneLegacyLook(AbstractEntitySelectModalContent, 'AbstractEntitySelectModal')

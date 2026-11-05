@@ -3,7 +3,6 @@ import {Box, BoxProps, Theme} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
 import {TABLE_CONTROL_HOVER_TEXT_COLOR} from './tableControlColors'
 import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from './tableControlMetrics'
-import {withPneLegacyLook} from '../legacy/legacyLook'
 
 export type PneTableSelectionControlsProps = Omit<
     BoxProps,
@@ -81,5 +80,4 @@ const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
     </Box>
 }
 
-// PneTableSelectionControls keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
-export default withPneLegacyLook(PneTableSelectionControls, 'PneTableSelectionControls')
+export default PneTableSelectionControls

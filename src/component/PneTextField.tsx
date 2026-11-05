@@ -6,7 +6,6 @@ import type {SxProps, Theme} from '@mui/material/styles'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
 import {resolvePneSemanticPalette} from '../createTheme'
 import type {PneFieldStateColors} from '../fieldPalette'
-import {usePneLegacyLook} from './legacy/legacyLook'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from './PneFieldContext'
 
 export type PneTextFieldProps = TextFieldProps & {
@@ -72,8 +71,6 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
     const resolvedFullWidth = controlProps.fullWidth ?? fullWidth
     const resolvedId = controlProps.id ?? id ?? generatedId
     const hasLabel = label !== undefined && label !== null && label !== ''
-    // Inside a composite that keeps its 4.x look the field stays the plain MUI one.
-    const legacy = usePneLegacyLook()
     const resolvedSlotProps = createResolvedSlotProps({
         ariaLabel,
         ariaDescribedBy,
@@ -102,7 +99,7 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
             fullWidth={resolvedFullWidth}
             helperText={helperText}
             // A filled box without its own label (PneField puts one above) centres the text.
-            hiddenLabel={!legacy && themedProps.variant === 'filled' && !hasLabel ? true : undefined}
+            hiddenLabel={themedProps.variant === 'filled' && !hasLabel ? true : undefined}
             id={resolvedId}
             label={label}
             ref={ref}
@@ -110,7 +107,7 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
             select={select}
             size={size}
             slotProps={resolvedSlotProps}
-            sx={[legacy ? undefined : textFieldSx, ...(Array.isArray(sx) ? sx : [sx])]}
+            sx={[textFieldSx, ...(Array.isArray(sx) ? sx : [sx])]}
             {...rest}
         />
     </DefaultPropsProvider>
@@ -140,10 +137,9 @@ const stateColors = (colors: PneFieldStateColors): Record<string, string> => ({
     '--pne-field-ring': colors.ring,
 })
 
-// Autocompletes get the field look in their own step.
-const OUTLINED = '.MuiOutlinedInput-root.MuiInputBase-root:not(.MuiAutocomplete-inputRoot)'
-// A filled box whose underline the consumer turned off keeps its own look (the SearchUI filter pills).
-const FILLED = '.MuiFilledInput-root.MuiFilledInput-underline:not(.MuiAutocomplete-inputRoot)'
+// The second class outranks MUI's own state rules on the box (one class plus a state).
+const OUTLINED = '.MuiOutlinedInput-root.MuiInputBase-root'
+const FILLED = '.MuiFilledInput-root.MuiInputBase-root'
 // Hover changes nothing on a focused, invalid or disabled box.
 const HOVER = ':hover:not(.Mui-disabled):not(.Mui-focused):not(.Mui-error)'
 

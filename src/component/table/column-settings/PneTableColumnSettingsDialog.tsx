@@ -37,7 +37,6 @@ import type {
     PneTableResolvedColumnSettings,
 } from './types'
 import {resolvePneTableColumnSettings} from './resolveColumnSettings'
-import {withPneLegacyLook} from '../../legacy/legacyLook'
 
 export const COLUMN_SETTINGS_DIALOG_AUTOTEST_ID = 'column-settings-dialog'
 export const COLUMN_SETTINGS_SEARCH_AUTOTEST_ID = 'column-settings-search'
@@ -474,5 +473,4 @@ const PneTableColumnSettingsDialog = <TColumn extends PneTableColumnOption = Pne
     return <ColumnSettingsForm {...formProps}/>
 }
 
-// PneTableColumnSettingsDialog keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
-export default withPneLegacyLook(PneTableColumnSettingsDialog, 'PneTableColumnSettingsDialog')
+export default PneTableColumnSettingsDialog

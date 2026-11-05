@@ -42,7 +42,6 @@ import {
     withAutocompleteListboxName,
     withoutAutocompleteRootSlot,
 } from './PneAutocompleteShared'
-import {withPneLegacyLook} from '../legacy/legacyLook'
 
 export type PneAsyncAutocompleteLoadReason = 'open' | 'input' | 'clear' | 'reload'
 
@@ -842,5 +841,4 @@ const PneAsyncAutocomplete = PneAsyncAutocompleteImplementation as PneAsyncAutoc
 
 PneAsyncAutocomplete.displayName = 'PneAsyncAutocomplete'
 
-// PneAsyncAutocomplete keeps its 4.x look until its own pne-ui 5 step (see legacy/legacyLook.tsx).
-export default withPneLegacyLook(PneAsyncAutocomplete, 'PneAsyncAutocomplete')
+export default PneAsyncAutocomplete

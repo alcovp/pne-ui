@@ -8,7 +8,6 @@ import {
     SelectionCheckboxAccessibleName,
     selectionCheckboxSx,
 } from './PneTableSelectionCell'
-import {withPneLegacyLook} from '../legacy/legacyLook'
 
 export type PneTableSelectionHeaderCellProps = Omit<
     TableCellProps,
@@ -88,5 +87,4 @@ const PneTableSelectionHeaderCell = (props: PneTableSelectionHeaderCellProps) =>
     </PneHeaderTableCell>
 }
 
-// PneTableSelectionHeaderCell keeps its 4.x look in pne-ui 5 for now (see legacy/legacyLook.tsx).
-export default withPneLegacyLook(PneTableSelectionHeaderCell, 'PneTableSelectionHeaderCell')
+export default PneTableSelectionHeaderCell
