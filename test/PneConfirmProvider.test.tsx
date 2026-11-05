@@ -75,8 +75,7 @@ describe('PneConfirmProvider', () => {
         fireEvent.click(screen.getByRole('button', { name: 'Open confirm' }))
         const submit = await waitFor(() => autoTestNode('alert.button.submit'))
 
-        expect(submit.className).toContain('MuiButton-colorError')
-        expect(submit.className).toContain('MuiButton-outlined')
+        expect(submit.getAttribute('data-pne-variant')).toBe('destructive')
         fireEvent.click(submit)
 
         await waitFor(() => expect(onResult).toHaveBeenCalledWith(true))
@@ -175,14 +174,14 @@ describe('PneConfirmProvider', () => {
 
         expect(await screen.findByText('Inherited defaults')).toBeTruthy()
         expect(screen.getByRole('dialog', { name: 'Default title' })).toBeTruthy()
-        expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').getAttribute('data-pne-variant')).toBe('destructive')
         expect(autoTestNode('alert.button.submit').textContent).toBe('Proceed')
         expect(document.querySelector("[data-autotest='alert.button.cancel']")).toBeNull()
         fireEvent.click(autoTestNode('alert.button.submit'))
 
         expect(await screen.findByText('Explicit overrides')).toBeTruthy()
         expect(screen.getByRole('dialog', { name: 'Override title' })).toBeTruthy()
-        expect(autoTestNode('alert.button.submit').className).not.toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').getAttribute('data-pne-variant')).not.toBe('destructive')
         expect(autoTestNode('alert.button.submit').textContent).toBe('Accept')
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Dismiss')
     })
@@ -212,13 +211,13 @@ describe('PneConfirmProvider', () => {
         })
 
         expect(await screen.findByText('Destructive action')).toBeTruthy()
-        expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').getAttribute('data-pne-variant')).toBe('destructive')
         expect(autoTestNode('alert.button.submit').textContent).toBe('Proceed')
         fireEvent.click(autoTestNode('alert.button.submit'))
         await expect(destructiveResult!).resolves.toBe(true)
 
         expect(await screen.findByText('Delete item')).toBeTruthy()
-        expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').getAttribute('data-pne-variant')).toBe('destructive')
         expect(autoTestNode('alert.button.submit').textContent).toBe('Delete')
         fireEvent.click(autoTestNode('alert.button.cancel'))
         await expect(deleteResult!).resolves.toBe(false)
@@ -260,7 +259,7 @@ describe('PneConfirmProvider', () => {
 
         expect(await screen.findByText('Delete configured item')).toBeTruthy()
         expect(screen.getByRole('dialog', { name: 'Call title' })).toBeTruthy()
-        expect(autoTestNode('alert.button.submit').className).toContain('MuiButton-colorError')
+        expect(autoTestNode('alert.button.submit').getAttribute('data-pne-variant')).toBe('destructive')
         expect(autoTestNode('alert.button.submit').textContent).toBe('Remove')
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Call cancel')
     })
