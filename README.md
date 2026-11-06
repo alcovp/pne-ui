@@ -7,41 +7,64 @@
 
 ## Установка
 
-Установите `pne-ui` вместе с peer-зависимостями:
+`pne-ui` рассчитан на приложения экосистемы Paynet: React 19, MUI 9, react-i18next. Всё, что библиотека
+использует вместе с приложением, объявлено в `peerDependencies` и должно стоять в приложении одной
+копией. Свои пакеты (`zustand`, `immer`, `react-virtuoso`, `@hello-pangea/dnd`, `react-imask`, `lodash`,
+`tslib`) она приносит сама.
+
+В приложении, где React, MUI и react-i18next уже есть, добавьте библиотеку и то, чего ещё нет:
 
 ```bash
-yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9.0.1 @mui/system@^9.0.1 @mui/x-date-pickers@^9 @mui/x-date-pickers-pro@^9 @mui/icons-material@^9.0.1 dayjs@^1.11.10 i18next@^23 react@^19 react-dom@^19 react-i18next@^11
+yarn add pne-ui @mui/x-date-pickers @mui/x-date-pickers-pro dayjs
 ```
 
-`pne-ui` требует React 19 и MUI 9.0.1 или новее в пределах major 9. React 18, MUI 9.0.0 и предыдущие
-major-версии MUI не входят в поддерживаемый peer contract.
+Версии берите по правилам приложения (наши приложения пинят точные версии), `@mui/x-date-pickers` и
+`@mui/x-date-pickers-pro` — одной и той же. В пустом проекте добавьте так же все пакеты из таблицы.
+
+| Peer | Диапазон |
+|---|---|
+| `react`, `react-dom` | `^19` |
+| `@mui/material`, `@mui/system`, `@mui/icons-material` | `>=9.0.1 <10` |
+| `@mui/x-date-pickers`, `@mui/x-date-pickers-pro` | `^9`, одна версия у обоих |
+| `dayjs` | `^1.11.10` |
+| `@emotion/react`, `@emotion/styled` | `^11` |
+| `i18next` | `>=21 <26` |
+| `react-i18next` | `>=11 <17` |
+
+После установки проверьте:
+
+```bash
+yarn explain peer-requirements   # ни одной строки с ✘
+yarn why @mui/x-date-pickers     # одна версия, та же, что у @mui/x-date-pickers-pro
+```
+
+Вторая проверка важна: `@mui/x-date-pickers-pro` зависит от базового пакета по диапазону, и при точных
+пинах в приложении Yarn может поставить ему отдельную, более новую копию. Тогда пикеры SearchUI не находят
+контекст локализации и падают при рендере. Лечится одной версией базового пакета, в Yarn — записью в
+`resolutions`:
+
+```json
+"resolutions": {
+    "@mui/x-date-pickers": "9.14.0"
+}
+```
+
+При обновлении MUI X меняйте обе зависимости и эту запись вместе. Так же ведут себя caret-диапазоны
+собственных зависимостей `pne-ui` (`immer`, `zustand`, `react-virtuoso`): если приложение пинит эти пакеты
+точно, Yarn поставит вторую копию для `pne-ui`, пока диапазон не закреплён
+(`yarn set resolution 'immer@npm:^10.0.3' npm:<версия приложения>` или `resolutions`).
+
+Диапазонный пикер SearchUI — компонент MUI X Pro: ключ лицензии ставит приложение
+(`LicenseInfo.setLicenseKey` из `@mui/x-license`), иначе пикер рисует водяной знак.
 
 Сборка приходит без транспиляции у потребителя: синтаксис ES2021, встроенные API не новее ES2022.
 Это Chrome 93+, Firefox 92+, Safari и iOS Safari 15.4+.
 
-Необходимые peer-зависимости и минимальные версии:
-
-- `@emotion/react@^11`
-- `@emotion/styled@^11`
-- `@mui/material@>=9.0.1 <10`
-- `@mui/system@>=9.0.1 <10`
-- `@mui/x-date-pickers@^9`
-- `@mui/x-date-pickers-pro@^9`
-- `dayjs@^1.11.10`
-- `@mui/icons-material@>=9.0.1 <10`
-- `i18next@^23`
-- `react@^19`
-- `react-dom@^19`
-- `react-i18next@^11`
-
-`@mui/x-date-pickers` и `@mui/x-date-pickers-pro` держите одной версии: пикеры SearchUI берут контекст
-локализации из обоих пакетов, вторая копия базового пакета этот контекст не видит. `dayjs` тоже берётся
-у приложения: SearchUI один раз ставит на него плагины `utc`, `timezone` и `isoWeek`.
-
 С 5.0 `dayjs` и `@mui/x-date-pickers` стали peer-зависимостями, а zod-схемы `AbstractEntitySchema`,
 `AutoCompleteChoiceSchema`, `CountrySchema` и `StateSchema` больше не экспортируются. Типы `AbstractEntity`,
 `AutoCompleteChoice`, `Country` и `State` остались прежними; приложению, которое валидирует ответы
-zod-схемами, нужны свои схемы.
+zod-схемами, нужны свои схемы. `dayjs` берётся у приложения: SearchUI один раз ставит на него плагины
+`utc`, `timezone` и `isoWeek`.
 
 ## PneBreadcrumbs
 
