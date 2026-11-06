@@ -273,9 +273,11 @@ describe('SearchUIFilters layout', () => {
         fireEvent.mouseOver(currency)
         expect((await screen.findByRole('tooltip')).textContent).toBe('react.CriterionTypeEnum.CURRENCY')
         fireEvent.mouseLeave(currency)
+        // The tooltip leaves through a transition on real timers; on a loaded CI runner it outlived
+        // waitFor's default second (rc.7 check run), so the wait is generous.
         await waitFor(() => {
             expect(screen.queryByRole('tooltip')).toBeNull()
-        })
+        }, {timeout: 5000})
 
         Object.defineProperty(status, 'scrollWidth', {value: 100, configurable: true})
         Object.defineProperty(status, 'clientWidth', {value: 150, configurable: true})
