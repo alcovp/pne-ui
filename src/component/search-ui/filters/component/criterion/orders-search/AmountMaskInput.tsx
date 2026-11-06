@@ -26,7 +26,10 @@ export const AmountMaskInput = React.forwardRef<HTMLInputElement, MaskProps>(
             //  - true => сохраняется "сырой" формат ("12345.67")
             //  - "typed" => число как число (напр. 12345.67)
             unmask={true}
-            onAccept={(value) => onChange({target: {name: props.name, value}})}
+            // `unmask` is true, so the accepted value is the raw string. The annotation also keeps the
+            // CJS build (Node16 resolution) quiet: react-imask's types import './input' without an
+            // extension, which that resolution cannot follow, so IMaskInput is `any` there.
+            onAccept={(value: string) => onChange({target: {name: props.name, value}})}
             inputRef={ref}
         />
     }

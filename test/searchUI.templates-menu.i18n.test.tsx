@@ -14,13 +14,18 @@ void hostLikeI18n.use(initReactI18next).init({
     resources: {en: {translation: {}}},
     interpolation: {escapeValue: true},
 })
+// Under exports-aware module resolution the `i18n` type comes from i18next's ESM declarations, a shim of
+// type aliases, while react-i18next 11 augments the CommonJS declarations with `reportNamespaces`:
+// the two interfaces do not merge, so the provider sees a different `i18n` than `createInstance` returns.
+// `initReactI18next` installs `reportNamespaces` at runtime; only the types disagree.
+const providerI18n = hostLikeI18n as unknown as React.ComponentProps<typeof I18nextProvider>['i18n']
 
 it('shows template names in interpolated menu labels as typed', async () => {
     const template: SearchUITemplate = {
         name: 'EU/UK <cards> & "fees"',
         searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
     }
-    render(<I18nextProvider i18n={hostLikeI18n}>
+    render(<I18nextProvider i18n={providerI18n}>
         <SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([template])}}>
             <SearchUIFilters
                 autoTestId='escaping'

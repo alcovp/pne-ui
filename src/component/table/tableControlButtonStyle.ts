@@ -1,4 +1,5 @@
 import {Theme} from '@mui/material'
+import type {SystemStyleObject} from '@mui/system'
 import {
     TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
     TABLE_CONTROL_TEXT_COLOR,
@@ -10,7 +11,7 @@ import {TABLE_CONTROL_SIZE} from './tableControlMetrics'
  * in the control grey, no border and no shadow, the pressed-in grey under the pointer and the focus ring
  * inside the button. Skin-neutral: the colours come from the PNE control palette, never from the skin.
  */
-export const createTableControlTextButtonStyle = (theme: Theme) => ({
+export const createTableControlTextButtonStyle = (theme: Theme): SystemStyleObject<Theme> => ({
     ...theme.typography.button,
     borderRadius: '4px',
     color: theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR,
