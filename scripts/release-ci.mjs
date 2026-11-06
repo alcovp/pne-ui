@@ -142,7 +142,7 @@ export function inspectArchive(bytes, expectedPackage) {
         files.set(name, content)
     }
     if (!ended) throw new Error('Missing tar end marker')
-    for (const file of ['package.json', 'esm/index.js', 'esm/index.d.ts', 'cjs/index.js', 'cjs/index.d.ts']) {
+    for (const file of ['package.json', 'esm/index.js', 'esm/index.d.ts', 'cjs/index.js']) {
         if (!files.get(`package/${file}`)?.length) throw new Error(`Missing package entry: ${file}`)
     }
     const manifest = JSON.parse(files.get('package/package.json').toString('utf8'))

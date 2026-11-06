@@ -16,6 +16,9 @@ yarn add pne-ui @emotion/react@^11 @emotion/styled@^11 @mui/material@^9.0.1 @mui
 `pne-ui` требует React 19 и MUI 9.0.1 или новее в пределах major 9. React 18, MUI 9.0.0 и предыдущие
 major-версии MUI не входят в поддерживаемый peer contract.
 
+Сборка приходит без транспиляции у потребителя: синтаксис ES2021, встроенные API не новее ES2022.
+Это Chrome 93+, Firefox 92+, Safari и iOS Safari 15.4+.
+
 Необходимые peer-зависимости и минимальные версии:
 
 - `@emotion/react@^11`

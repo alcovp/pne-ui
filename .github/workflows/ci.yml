@@ -1,0 +1,39 @@
+name: Check pne-ui
+
+# Every branch push and pull request gets the same build and checks as a release, without
+# publication. Release tags go through publish.yml instead.
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+
+permissions: {}
+
+# A newer push to the same ref makes the older check pointless.
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Build and check
+    if: github.repository == 'alcovp/pne-ui'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Set up the runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Install dependencies
+        run: node .yarn/releases/yarn-4.2.2.cjs install --immutable
+      - name: Build and run every check
+        run: node .yarn/releases/yarn-4.2.2.cjs check

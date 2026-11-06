@@ -2,8 +2,8 @@
 
 Публикацию запускает отправка annotated git-тега `npm/v<version>` в `origin`. Единственный workflow
 [publish.yml](../.github/workflows/publish.yml) проверяет код, собирает библиотеку и публикует полученный
-архив через npm Trusted Publishing / OIDC. Обычные push веток не запускают CI или публикацию; GitHub Release
-не нужен. Ручной запуск workflow нужен только тогда, когда push тега не создал run (см. ниже).
+архив через npm Trusted Publishing / OIDC. Push веток и pull request запускают только проверки
+[ci.yml](../.github/workflows/ci.yml), без публикации; GitHub Release не нужен. Ручной запуск workflow нужен только тогда, когда push тега не создал run (см. ниже).
 
 Этот процесс требует однократного подключения npm/GitHub, описанного ниже. Наличие scripts и workflow
 в локальной ветке само по себе не означает, что удалённые настройки уже выполнены.

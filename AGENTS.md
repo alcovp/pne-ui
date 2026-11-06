@@ -24,7 +24,7 @@ Releases
 - Read `docs/releasing.md` before release work. Use the explicit `release:prepare`, `release:send`, and `release:status` commands.
 - `release:prepare` changes the local version and creates a local commit/tag. `release:send` pushes the branch and selected release tag to origin, triggering npm publication; treat it as release authorization, not a routine sync.
 - `release:send --dry-run` does not push. `release:status` is read-only. Never run a real prepare/send just to check the tooling.
-- Ordinary branch pushes do not run release checks. CI publication uses the single tag-triggered `publish.yml` (a manual run on the same tag covers a push that created no run); RC goes to `next`, stable to `latest` from `master`.
+- Branch pushes and pull requests run `ci.yml` (build and every check, no publication). CI publication uses the single tag-triggered `publish.yml` (a manual run on the same tag covers a push that created no run); RC goes to `next`, stable to `latest` from `master`.
 
 Search and edits
 ----------------

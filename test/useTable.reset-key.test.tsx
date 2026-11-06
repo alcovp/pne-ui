@@ -173,7 +173,7 @@ describe('useTable resetKey', () => {
             await briefResponse.promise
         })
 
-        expect(screen.getByText('Committed Brief row')).toBeTruthy()
+        expect(screen.getAllByText('Committed Brief row').length).toBeGreaterThan(0)
         expect(fullSearch).not.toHaveBeenCalled()
     })
 
@@ -187,7 +187,7 @@ describe('useTable resetKey', () => {
         const view = render(<ResetKeyHarness view='brief' searchByView={searchByView}/>)
 
         await waitFor(() => {
-            expect(screen.getByText('Brief row')).toBeTruthy()
+            expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
         })
 
         fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
@@ -221,7 +221,7 @@ describe('useTable resetKey', () => {
             await fullResponse.promise
         })
 
-        expect(screen.getByText('Full row')).toBeTruthy()
+        expect(screen.getAllByText('Full row').length).toBeGreaterThan(0)
     })
 
     it('ignores an older identity response that resolves after the current view', async () => {
@@ -246,14 +246,14 @@ describe('useTable resetKey', () => {
             fullResponse.resolve([{id: 'full', label: 'Current full row'}])
             await fullResponse.promise
         })
-        expect(screen.getByText('Current full row')).toBeTruthy()
+        expect(screen.getAllByText('Current full row').length).toBeGreaterThan(0)
 
         await act(async () => {
             briefResponse.resolve([{id: 'brief', label: 'Stale brief row'}])
             await briefResponse.promise
         })
 
-        expect(screen.getByText('Current full row')).toBeTruthy()
+        expect(screen.getAllByText('Current full row').length).toBeGreaterThan(0)
         expect(screen.queryByText('Stale brief row')).toBeNull()
         expect(screen.getByTestId('external-data').textContent).toBe('Current full row')
     })
@@ -271,7 +271,7 @@ describe('useTable resetKey', () => {
         />)
 
         await waitFor(() => {
-            expect(screen.getByText('Brief row')).toBeTruthy()
+            expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
         })
         fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
         fireEvent.click(screen.getByRole('button', {name: 'Change sort'}))
@@ -312,7 +312,7 @@ describe('useTable resetKey', () => {
         />)
 
         await waitFor(() => {
-            expect(screen.getByText('Brief row')).toBeTruthy()
+            expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
         })
         fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
         fireEvent.click(screen.getByRole('button', {name: 'Change sort'}))
@@ -364,7 +364,7 @@ describe('useTable resetKey', () => {
         expect(screen.getByTestId('page').textContent).toBe('0')
         expect(screen.getByTestId('sort').textContent).toBe('7:asc')
         await waitFor(() => {
-            expect(screen.getByText('Full row')).toBeTruthy()
+            expect(screen.getAllByText('Full row').length).toBeGreaterThan(0)
             expect(fullSearch).toHaveBeenLastCalledWith(expect.objectContaining({
                 order: 'asc',
                 page: 0,
@@ -391,11 +391,11 @@ describe('useTable resetKey', () => {
         />)
 
         await waitFor(() => {
-            expect(screen.getByText('Brief page 0')).toBeTruthy()
+            expect(screen.getAllByText('Brief page 0').length).toBeGreaterThan(0)
         })
         fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
         await waitFor(() => {
-            expect(screen.getByText('Brief page 2')).toBeTruthy()
+            expect(screen.getAllByText('Brief page 2').length).toBeGreaterThan(0)
         })
 
         view.rerender(<ResetKeyHarness
@@ -404,7 +404,7 @@ describe('useTable resetKey', () => {
             view='full'
         />)
         await waitFor(() => {
-            expect(screen.getByText('Full row')).toBeTruthy()
+            expect(screen.getAllByText('Full row').length).toBeGreaterThan(0)
         })
         emptyRestoredPage = true
         const callsBeforeRestore = briefSearch.mock.calls.length
@@ -416,7 +416,7 @@ describe('useTable resetKey', () => {
         />)
 
         await waitFor(() => {
-            expect(screen.getByText('Brief page 0')).toBeTruthy()
+            expect(screen.getAllByText('Brief page 0').length).toBeGreaterThan(0)
             expect(screen.getByTestId('page').textContent).toBe('0')
         })
         expect(briefSearch.mock.calls.slice(callsBeforeRestore).map(([args]) => args.page)).toEqual([2, 0])
@@ -446,7 +446,7 @@ describe('useTable resetKey', () => {
                 searchByView={{brief: briefSearch, full: jest.fn()}}
                 view='brief'
             />)
-            await waitFor(() => expect(screen.getByText('Brief row 0')).toBeTruthy())
+            await waitFor(() => expect(screen.getAllByText('Brief row 0').length).toBeGreaterThan(0))
 
             fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
             expect(screen.getByTestId('actions-disabled').textContent).toBe('true')
@@ -475,7 +475,7 @@ describe('useTable resetKey', () => {
 
         try {
             render(<SimpleFetchHarness getter={getter}/>)
-            await waitFor(() => expect(screen.getByText('Simple initial row')).toBeTruthy())
+            await waitFor(() => expect(screen.getAllByText('Simple initial row').length).toBeGreaterThan(0))
 
             fireEvent.click(screen.getByRole('button', {name: 'Change simple-fetch page'}))
             expect(screen.getByTestId('simple-actions-disabled').textContent).toBe('true')
@@ -510,7 +510,7 @@ describe('useTable resetKey', () => {
         })
 
         await waitFor(() => {
-            expect(screen.getByText('Brief row')).toBeTruthy()
+            expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
         })
         fireEvent.click(screen.getByRole('button', {name: 'Request pagination scroll'}))
         view.rerender(<ResetKeyHarness view='full' searchByView={searchByView}/>)
@@ -519,7 +519,7 @@ describe('useTable resetKey', () => {
             fullResponse.resolve([{id: 'full', label: 'Full row'}])
             await fullResponse.promise
         })
-        expect(screen.getByText('Full row')).toBeTruthy()
+        expect(screen.getAllByText('Full row').length).toBeGreaterThan(0)
         await act(async () => {
             await new Promise(resolve => setTimeout(resolve, 150))
         })

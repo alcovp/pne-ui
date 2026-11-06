@@ -10,22 +10,16 @@
         "**/*.stories.tsx"
     ],
     "compilerOptions": {
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
         "module": "ESNext",
-        "target": "ESNext",
+        "target": "ES2021",
         "lib": [
             "dom",
-            "esnext"
+            "dom.iterable",
+            "ES2022"
         ],
         "importHelpers": true,
         "declaration": true,
-        "sourceMap": true,
         "rootDir": "./src",
-        "rootDirs": [
-            "./src",
-            "./dev"
-        ],
         "outDir": "./esm",
         "strict": true,
         "noImplicitReturns": true,
@@ -42,8 +36,7 @@
         "strictNullChecks": true,
         "strictFunctionTypes": true,
         "types": [
-            "node",
-            "jest"
+            "node"
         ],
     }
 }

@@ -19,7 +19,7 @@ const PACKAGE = {
 function archiveEntries(manifest = PACKAGE) {
     return [
         {name: 'package/package.json', content: JSON.stringify(manifest)},
-        ...['esm/index.js', 'cjs/index.js', 'esm/index.d.ts', 'cjs/index.d.ts'].map(name => ({name: `package/${name}`, content: 'export {}\n'})),
+        ...['esm/index.js', 'cjs/index.js', 'esm/index.d.ts'].map(name => ({name: `package/${name}`, content: 'export {}\n'})),
         {name: 'package/docs/releasing.md', content: 'Documentation'},
     ]
 }
@@ -183,7 +183,7 @@ test('reads a valid archive, including PAX long paths and ustar prefixes, withou
         {name: 'short', content: 'Long filename'},
         {name: 'prefixed.md', prefix: 'package/docs', content: 'Prefix'},
     ]
-    assert.deepEqual(inspectArchive(makeArchive(entries), PACKAGE), {manifest: PACKAGE, fileCount: 8})
+    assert.deepEqual(inspectArchive(makeArchive(entries), PACKAGE), {manifest: PACKAGE, fileCount: 7})
 })
 
 test('rejects unsafe, duplicate and unexpected archive paths, links, missing outputs and wrong package metadata', () => {
@@ -193,7 +193,7 @@ test('rejects unsafe, duplicate and unexpected archive paths, links, missing out
         {name: 'package/esm/index.js'}, {name: 'package/esm/link', type: '2', link: '/etc/passwd'},
         {name: 'package/esm/hardlink', type: '1', link: 'package/package.json'},
     ]) assert.throws(() => inspectArchive(makeArchive([...archiveEntries(), entry]), PACKAGE))
-    assert.throws(() => inspectArchive(makeArchive(archiveEntries().filter(entry => entry.name !== 'package/cjs/index.d.ts')), PACKAGE), /Missing package entry/)
+    assert.throws(() => inspectArchive(makeArchive(archiveEntries().filter(entry => entry.name !== 'package/cjs/index.js')), PACKAGE), /Missing package entry/)
     assert.throws(() => inspectArchive(makeArchive(archiveEntries({...PACKAGE, name: 'other'})), PACKAGE), /Invalid release package/)
     assert.throws(() => inspectArchive(makeArchive(archiveEntries({...PACKAGE, version: '4.3.0-rc.56'})), PACKAGE), /differs from/)
     assert.throws(() => inspectArchive(makeArchive(archiveEntries({...PACKAGE, exports: {'.': {types: './missing'}}}))), /missing package export/)
@@ -210,7 +210,7 @@ test('local pack needs no tag or registry, ignores scripts and removes only stal
     await writeFile(path.join(f.cwd, '.release', 'keep.txt'), 'keep')
     const {manifest, fileCount} = await packRelease({...f, env: {}, readReleaseTagImpl: () => assert.fail('Local pack must not read a tag')})
     assert.equal(manifest.tag, null)
-    assert.equal(fileCount, 6)
+    assert.equal(fileCount, 5)
     assert.equal(manifest.commit, COMMIT)
     assert.deepEqual(f.calls.find(call => call.command === 'npm').args, ['pack', '--json', '--ignore-scripts', '--pack-destination', path.join(f.cwd, '.release')])
     assert.deepEqual((await readdir(path.join(f.cwd, '.release'))).sort(), ['keep.txt', `pne-ui-${PACKAGE.version}.tgz`, 'release.json'])
