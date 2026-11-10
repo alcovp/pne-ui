@@ -2573,6 +2573,8 @@ RC публикуются под `next`; стабильные версии — �
 Сначала требуется однократная настройка доверия npm/GitHub и доставка нового workflow на релизные ветки.
 Подробные команды, ограничения и порядок внедрения описаны в [docs/releasing.md](docs/releasing.md).
 Локальный Storybook остаётся доступен через `yarn storybook` и `yarn build-storybook`; Chromatic не используется.
+`yarn storybook:check` открывает каждую story в headless Chrome в трёх видах, а с `--baseline origin/master`
+перечисляет stories, чья картинка изменилась.
 
 [npm-url]: https://www.npmjs.com/package/pne-ui
 

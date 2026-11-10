@@ -149,5 +149,9 @@ npm trust github pne-ui --repo alcovp/pne-ui --file publish.yml --env npm-releas
 
 `yarn storybook` и `yarn build-storybook` продолжают работать без Chromatic. Stories и документация
 компонентов сохранены; удалён только сервис публикации визуальных snapshot и его addon.
+Вместо него `yarn storybook:check --baseline origin/master` собирает Storybook рабочей копии и указанной
+ревизии, открывает каждую story в headless Chrome в трёх видах (светлый, тёмный, почти чёрный skin) и
+перечисляет stories, чья картинка изменилась. Без `--baseline` он падает только на ошибках и неудачных
+play-функциях; так, без картинок (`--no-pictures`), его на каждый push запускает `ci.yml`.
 Сборка, проверки и публикация теперь вызываются явно: старые составные aliases, одновременно
 повышавшие номер и делавшие `npm publish`, не являются интерфейсом релиза.

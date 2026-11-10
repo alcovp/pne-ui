@@ -18,13 +18,14 @@ Core commands
 - Type-check public contracts: `yarn typecheck:contracts`
 - Type-check stories: `yarn typecheck:stories`
 - Storybook: `yarn storybook` (dev) / `yarn build-storybook`
+- Storybook in a browser: `yarn storybook:check` builds Storybook and opens every story in headless Chrome in three views (light, dark, near-black skin); it fails on errors and failed play functions. `--baseline origin/master` also lists the stories whose picture changed; `--help` shows the rest.
 
 Releases
 --------
 - Read `docs/releasing.md` before release work. Use the explicit `release:prepare`, `release:send`, and `release:status` commands.
 - `release:prepare` changes the local version and creates a local commit/tag. `release:send` pushes the branch and selected release tag to origin, triggering npm publication; treat it as release authorization, not a routine sync.
 - `release:send --dry-run` does not push. `release:status` is read-only. Never run a real prepare/send just to check the tooling.
-- Branch pushes and pull requests run `ci.yml` (build and every check, no publication). CI publication uses the single tag-triggered `publish.yml` (a manual run on the same tag covers a push that created no run); RC goes to `next`, stable to `latest` from `master`.
+- Branch pushes and pull requests run `ci.yml` (build and every check in one job, `storybook:check` without pictures in another; no publication). CI publication uses the single tag-triggered `publish.yml` (a manual run on the same tag covers a push that created no run); RC goes to `next`, stable to `latest` from `master`.
 
 Search and edits
 ----------------
@@ -36,7 +37,8 @@ Before changing things
 ----------------------
 - Keep peer compatibility: React 19 and MUI 9.
 - If you touch public API, update exports in `src/index.ts` (and the grouped barrels in `src/exports/`) and adjust stories if needed.
-- Prefer running `yarn lint` and `yarn test` after changes; for UI-heavy work, `yarn build-storybook` is helpful when possible.
+- Prefer running `yarn lint` and `yarn test` after changes; for UI work, run `yarn storybook:check` (it builds Storybook itself), with `--baseline origin/master` when the look may change.
+- `storybook:check` takes the picture of a story once its play function is done and the page has been still for 0.6 s; it does not move the clock. A story that changes its look later, on a timer (a slow load), needs a play function that waits for the look its picture is to show; a look that passes (a skeleton) gets a story of its own whose data never arrives.
 
 Notable specifics
 -----------------

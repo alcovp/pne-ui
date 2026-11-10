@@ -1,7 +1,7 @@
 name: Check pne-ui
 
 # Every branch push and pull request gets the same build and checks as a release, without
-# publication. Release tags go through publish.yml instead.
+# publication, and every story is opened in a browser. Release tags go through publish.yml instead.
 on:
   push:
     branches:
@@ -37,3 +37,39 @@ jobs:
         run: node .yarn/releases/yarn-4.2.2.cjs install --immutable
       - name: Build and run every check
         run: node .yarn/releases/yarn-4.2.2.cjs check
+
+  # Runs next to the checks above, so neither waits for the other. Chrome comes with the runner
+  # image. Pictures are not compared here: that needs a baseline and is a local step.
+  storybook:
+    name: Open every story in a browser
+    if: github.repository == 'alcovp/pne-ui'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the commit
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - name: Set up the runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Install dependencies
+        run: node .yarn/releases/yarn-4.2.2.cjs install --immutable
+      - name: Build Storybook and open every story
+        run: node .yarn/releases/yarn-4.2.2.cjs storybook:check --no-pictures
+      - name: Upload the report of a failed check
+        if: failure()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: storybook-check
+          path: |
+            node_modules/.cache/storybook-check/report.html
+            node_modules/.cache/storybook-check/report.json
+            node_modules/.cache/storybook-check/build-current.log
+          include-hidden-files: true
+          if-no-files-found: ignore
+          retention-days: 7
