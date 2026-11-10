@@ -19,6 +19,7 @@ Core commands
 - Type-check stories: `yarn typecheck:stories`
 - Storybook: `yarn storybook` (dev) / `yarn build-storybook`
 - Storybook in a browser: `yarn storybook:check` builds Storybook and opens every story in headless Chrome in three views (light, dark, near-black skin); it fails on errors and failed play functions. `--baseline origin/master` also lists the stories whose picture changed; `--help` shows the rest.
+- Usage map: `yarn usage:map <application checkout>...` reports which public names and props the given applications use and which nobody imports.
 
 Releases
 --------

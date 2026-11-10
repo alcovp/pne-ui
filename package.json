@@ -38,6 +38,7 @@
         "storybook": "storybook dev -p 6006",
         "build-storybook": "storybook build",
         "storybook:check": "node scripts/storybook-check.mjs",
+        "usage:map": "node scripts/usage-map.mjs",
         "typecheck:contracts": "tsc --project tsconfig.contracts.json",
         "typecheck:stories": "tsc --project tsconfig.stories.json",
         "check:built": "yarn typecheck:api && yarn test && yarn test:release && yarn lint && yarn typecheck:contracts && yarn typecheck:stories",
