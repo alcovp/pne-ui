@@ -1,9 +1,6 @@
 import {act, renderHook} from '@testing-library/react'
-import {
-    createEmptyTableSelection,
-    type TableSelectionModel,
-    useTableSelection,
-} from '../src'
+import {type TableSelectionModel, useTableSelection} from '../src'
+import {createEmptyTableSelection} from '../src/component/table/tableSelection'
 
 type Row = {
     id: number

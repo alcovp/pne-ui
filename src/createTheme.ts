@@ -497,7 +497,7 @@ const createBaseThemeOptions = (skin: Skin, mode: PneColorMode): ThemeOptions =>
     }
 }
 
-export const createPneThemeOptions = (
+const createPneThemeOptions = (
     skin: Skin,
     options: PneCreateThemeOptions = {},
 ): ThemeOptions => {

@@ -1,6 +1,5 @@
 export {
     createPneTheme,
-    createPneThemeOptions,
     PNE_DARK_COLORS,
     resolvePneSemanticPalette,
     type PneBrandPalette,
@@ -8,38 +7,31 @@ export {
     type PneCreateThemeOptions,
     type PneSemanticPalette,
 } from '../createTheme'
-export {
-    createPneButtonPalette,
-    type PneButtonPalette,
-    type PneButtonState,
-    type PneButtonStateColors,
-    type PneButtonVariant,
-    type PneButtonVariantColors,
+export type {
+    PneButtonPalette,
+    PneButtonState,
+    PneButtonStateColors,
+    PneButtonVariant,
+    PneButtonVariantColors,
 } from '../buttonPalette'
-export {
-    createPneCheckboxPalette,
-    type PneCheckboxPalette,
-    type PneCheckboxState,
-    type PneCheckboxStateColors,
-    type PneCheckboxValueColors,
+export type {
+    PneCheckboxPalette,
+    PneCheckboxState,
+    PneCheckboxStateColors,
+    PneCheckboxValueColors,
 } from '../checkboxPalette'
-export {
-    createPneDropdownPalette,
-    type PneDropdownPalette,
-} from '../dropdownPalette'
-export {
-    createPneFieldPalette,
-    type PneFieldPalette,
-    type PneFieldState,
-    type PneFieldStateColors,
-    type PneFieldVariantColors,
+export type {PneDropdownPalette} from '../dropdownPalette'
+export type {
+    PneFieldPalette,
+    PneFieldState,
+    PneFieldStateColors,
+    PneFieldVariantColors,
 } from '../fieldPalette'
-export {
-    createPneSwitchPalette,
-    type PneSwitchPalette,
-    type PneSwitchState,
-    type PneSwitchStateColors,
-    type PneSwitchValueColors,
+export type {
+    PneSwitchPalette,
+    PneSwitchState,
+    PneSwitchStateColors,
+    PneSwitchValueColors,
 } from '../switchPalette'
 export {PNE_NEUTRAL_RAMP, PNE_STATUS_COLORS} from '../themeColors'
 export {
@@ -55,4 +47,4 @@ export {
     type PneBrandRampStep,
 } from '../brandRamp'
 export {Skin} from '../common/paynet/skin'
-export {PNE_ACTION_SPACING, pneActionSpacing, PneActionSpacingStyles} from '../actionSpacing'
+export {pneActionSpacing, PneActionSpacingStyles} from '../actionSpacing'

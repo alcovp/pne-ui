@@ -66,6 +66,30 @@ yarn why @mui/x-date-pickers     # одна версия, та же, что у @
 zod-схемами, нужны свои схемы. `dayjs` берётся у приложения: SearchUI один раз ставит на него плагины
 `utc`, `timezone` и `isoWeek`.
 
+С 5.0 из публичного API сняты внутренние помощники библиотеки:
+
+- компонент `AutoTestAttribute` удалён: якорь ставит `createAutoTestAttributes` (см. «Якоря для автотестов»);
+- функции модели выбора строк (`createEmptyTableSelection`, `setTableRowSelected`, `setTablePageSelected`,
+  `selectAllMatchingTableRows`, `clearTableSelection`, `isTableRowSelected`, `getTableSelectionCount`,
+  `getTableSelectionPageState`) — моделью владеет `useTableSelection`;
+- помощники настройки колонок (`resolvePneTableColumnSettings`, `createDefaultPneTableColumnSettings`,
+  `isSamePneTableColumnSettings`, `assertPneTableColumnCatalog`, `isValidPneTableColumnId`,
+  `PNE_TABLE_COLUMN_ID_PATTERN`) — ими владеет `usePneTableColumnSettings`;
+- списки значений критериев SearchUI (`CSV_CHARSETS`, `CUSTOMER_LEVEL_DEPENDENCIES`, `ORDER_SEARCH_LABELS`,
+  `OTP_STATUS_CRITERION_VALUES`, `TIME_ZONE_OFFSET_HOURS`, `TRANSACTION_DATE_TYPES`,
+  `TRANSACTION_RECURRENT_FILTERS`, `TRANSACTION_REPORT_SCOPES`) и константы кодов ошибок
+  `SEARCH_UI_DATE_RANGE_*` — значения описаны типами (`CsvCharset`, `OrderSearchLabel`,
+  `SearchUIValidationError` и другими);
+- `getOptionLabel`, `getOptionKey`, `isOptionEqualToValue`, `dropDownSx`, `assertAbstractEntity`,
+  `assertIAutoCompleteChoice`, `isMappedAbstractEntity`, `useBreakpoint`, `resolveBreakpoint`,
+  `DEFAULT_BREAKPOINTS`;
+- `createPneThemeOptions` — тему строит `createPneTheme`;
+- `createPneButtonPalette`, `createPneCheckboxPalette`, `createPneDropdownPalette`, `createPneFieldPalette`,
+  `createPneSwitchPalette` — готовые палитры компонентов лежат в `theme.palette.pne`;
+- `PNE_ACTION_SPACING` — расстояния даёт `pneActionSpacing`.
+
+Все типы, кроме `AutoTestAttributeProps`, экспортируются по-прежнему.
+
 ## PneBreadcrumbs
 
 `PneBreadcrumbs` — общий визуальный компонент хлебных крошек для host-приложения и микрофронтов. Он не
@@ -608,14 +632,9 @@ export const OrdersTable = () => (
 `false` сохраняются как явные значения. Используйте только стабильные несекретные идентификаторы; состояние
 `disabled`, `checked`, `selected` и похожие состояния проверяйте через нативные DOM/ARIA-свойства.
 
-`AutoTestAttribute` остаётся compatibility API для существующего кода. Он принимает ровно одного React child:
-
-- DOM-элемент получает атрибуты без дополнительного узла;
-- custom component обязан передать неизвестные DOM props на нужный элемент;
-- React Fragment временно оборачивается в `div` для обратной совместимости.
-
-Поэтому во внутренней реализации новых компонентов библиотеки используйте `createAutoTestAttributes`, а не
-wrapper-компонент.
+Компонент-обёртка `AutoTestAttribute` удалён из библиотеки. Вместо `<AutoTestAttribute id="…" value={…}>`
+вокруг элемента разверните `createAutoTestAttributes(id, value)` на самом элементе; custom component обязан
+передать неизвестные DOM props на нужный элемент.
 
 ### PneTable
 
@@ -853,10 +872,9 @@ consumer передаёт загруженное значение и колбэ�
 
 - Каталог — массив `PneTableColumnOption` (`id`, текстовый `label`, `defaultVisible`) в порядке по умолчанию.
   `id` стабилен и не зависит от языка и позиции; поля consumer-типа (например, `render`) сохраняются
-  в `visibleColumns`. `id` обязан соответствовать `PNE_TABLE_COLUMN_ID_PATTERN`
-  (`[A-Za-z0-9][A-Za-z0-9._-]*`): он попадает в ключи хранения, DOM id, Selenium-локаторы и
-  идентификаторы перетаскивания. Пустой каталог, повтор `id` или `id` вне шаблона — ошибка при первом
-  рендере (`assertPneTableColumnCatalog`), а не при сохранении.
+  в `visibleColumns`. `id` обязан соответствовать шаблону `[A-Za-z0-9][A-Za-z0-9._-]*`: он попадает
+  в ключи хранения, DOM id, Selenium-локаторы и идентификаторы перетаскивания. Пустой каталог, повтор `id`
+  или `id` вне шаблона — ошибка при первом рендере, а не при сохранении.
 - Значение `PneTableColumnSettingsValue` — `visibleColumnIds` в порядке отображения и `hiddenColumnIds`.
   Колонки каталога, отсутствующие в обоих списках, считаются новыми и показываются; неизвестные `id`
   отбрасываются; значение без видимых колонок заменяется умолчанием.
@@ -2465,8 +2483,36 @@ return (
 таблицы, стрелка сортировки, значки панели фильтров, выключенная дорожка `PneSwitch`): одинаковые при любом
 скине, в покое не ниже 3:1 к странице. В `brand` исходный `seed/fill` отделён от автоматически
 адаптированного `foreground`; используйте `foreground` для ссылок, иконок и заголовков на тёмных surfaces,
-а `fill/onFill/fillBorder` — для залитых controls. `createPneThemeOptions` возвращает те же чистые MUI
-`ThemeOptions`, если consumer должен сам вызвать свою `createTheme`.
+а `fill/onFill/fillBorder` — для залитых controls.
+
+### Цвета темы
+
+Цвета компонентов `pne-ui` 5 собраны из трёх шкал UI Kit. Приложению они нужны, когда собственный элемент
+должен попасть в тон компонентам библиотеки:
+
+- `theme.palette.pne.ramp` — шкала бренда скина, шаги `PNE_BRAND_RAMP_STEPS` (от `0` до `1000`): `0` — белый,
+  `500` — цвет скина, `1000` — самый тёмный. Вне темы ту же шкалу строит `createPneBrandRamp(skinColor)`
+  из одного цвета скина;
+- `PNE_NEUTRAL_RAMP` — нейтральная шкала, шаги от `0` до `950`, одинаковая для всех скинов;
+- `PNE_STATUS_COLORS` — шкалы `error` и `warning`, одинаковые для всех скинов;
+- `theme.palette.pne.button`, `.switch`, `.checkbox`, `.field` и `.dropdown` — готовые цвета компонентов
+  по ролям UI Kit и состояниям, уже подобранные под светлую и тёмную схему; `focusRing` и `link` — цвет
+  кольца фокуса и текста ссылки.
+
+Шкалы от схемы не зависят, поэтому для своего элемента берите готовую роль, а не шаг шкалы: роль остаётся
+читаемой и в тёмной схеме, и при любом скине. `resolvePneSemanticPalette(theme)` возвращает
+`theme.palette.pne`, а для темы, созданной без `createPneTheme`, строит такую же палитру из `primary.main`.
+
+```tsx
+import {useTheme} from '@mui/material'
+import {resolvePneSemanticPalette} from 'pne-ui'
+
+const OwnChip = ({children}: {children: React.ReactNode}) => {
+    const {fill, border, text} = resolvePneSemanticPalette(useTheme()).button.soft.default
+
+    return <span style={{background: fill, color: text, boxShadow: `inset 0 0 0 1px ${border}`}}>{children}</span>
+}
+```
 
 ## OverlayHost и уведомления
 

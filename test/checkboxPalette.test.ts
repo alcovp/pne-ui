@@ -1,6 +1,7 @@
 import {getContrastRatio} from '@mui/material/styles'
 
-import {createPneBrandRamp, createPneCheckboxPalette, createPneTheme, type Skin} from '../src'
+import {createPneBrandRamp, createPneTheme, type Skin} from '../src'
+import {createPneCheckboxPalette} from '../src/checkboxPalette'
 
 const palette = (skinColor: string, mode: 'light' | 'dark' = 'light') =>
     createPneCheckboxPalette(createPneBrandRamp(skinColor), mode)

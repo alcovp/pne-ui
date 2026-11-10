@@ -27,9 +27,7 @@ export {
 } from '../component/search-ui/filters/SearchUIFilters'
 export {
     CriterionTypeEnum,
-    CSV_CHARSETS,
     type CsvCharset,
-    CUSTOMER_LEVEL_DEPENDENCIES,
     CustomerLevel,
     DATE_RANGE_SPEC_TYPES,
     ExactCriterionSearchLabelEnum,
@@ -38,9 +36,7 @@ export {
     LinkedEntityTypeEnum,
     MultichoiceFilterTypeEnum,
     MultigetCriterion,
-    ORDER_SEARCH_LABELS,
     OrderSearchLabel,
-    OTP_STATUS_CRITERION_VALUES,
     type OtpStatusCriterion,
     type OtpStatusSearchValue,
     SearchCriteria,
@@ -48,11 +44,7 @@ export {
     SearchUIConditions,
     SearchUIConditionsInput,
     SearchUIDateRangeSpec,
-    TIME_ZONE_OFFSET_HOURS,
     type TimeZoneOffsetHours,
-    TRANSACTION_DATE_TYPES,
-    TRANSACTION_RECURRENT_FILTERS,
-    TRANSACTION_REPORT_SCOPES,
     type TransactionDateType,
     type TransactionRecurrentFilter,
     type TransactionReportScope,
@@ -75,12 +67,9 @@ export {
 } from '../component/search-ui/multiget_select/MultigetSelect'
 export { MultigetSelectStoreProvider } from '../component/search-ui/multiget_select/state/IsolatedStoreProvider'
 export { SearchUITemplate } from '../component/search-ui/filters/types'
-export {
-    SEARCH_UI_DATE_RANGE_END_BEFORE_START,
-    SEARCH_UI_DATE_RANGE_INVALID_DATE,
-    SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
-    type SearchUIValidationError,
-    type SearchUIValidationResult,
+export type {
+    SearchUIValidationError,
+    SearchUIValidationResult,
 } from '../component/search-ui/filters/validation'
 export { type SearchUIDateRangeBoundary } from '../component/search-ui/filters/dateRangeTimeZone'
 export { getSearchUIInitialState } from '../component/search-ui/state/initial'

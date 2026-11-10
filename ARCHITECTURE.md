@@ -7,7 +7,7 @@ Purpose
 
 Layers and directories
 ----------------------
-- `src/common`: types, utilities, and validation schemas.
+- `src/common`: types and utilities.
   - `common/pne`: core helpers (`ensure`, `exhaustiveCheck`, `Order`, Zustand setter types).
   - `common/paynet`: domain types and type guards (`AbstractEntity`, `AutoCompleteChoice`, pagination requests).
 - `src/component`: UI components.
@@ -37,7 +37,7 @@ Key flows
   - `palette.pne.border.subtle` is the low-emphasis separator for sections on `background.paper`; modal and coachmark header/footer dividers and the SearchUI filter rows consume it without weakening the global MUI divider role.
   - `palette.pne.text.default` is the full-strength label colour (filter names in SearchUI): the light slate the panel always had, `text.primary` in dark mode.
   - `palette.pne.control.*` colours the secondary controls (table pagination and view selector, sort arrow, SearchUI filter icons, the off `PneSwitch` track): neutral greys that no skin tints, the resting one at 3:1 or better against the page; `src/component/table/tableControlColors.ts` keeps the light stand-ins for themes without the PNE palette.
-  - `createPneThemeOptions` exposes the pure options contract; `PneThemeProvider` owns only React/MUI context, while applications own profile or other persistence.
+  - `PneThemeProvider` owns only React/MUI context, while applications own profile or other persistence.
   - `actionSpacing.tsx` owns independent button/group spacing tokens. `PneThemeProvider` mounts `PneActionSpacingStyles`; consumers with their own provider mount it once. `PneModalActions` consumes the same variables with library-owned fallbacks. See `docs/action-spacing.md`.
   - MUI components (`MuiIconButton`, `MuiButton`, `MuiToggleButtonGroup`) define styleOverrides for custom colors.
 
@@ -48,5 +48,5 @@ Working with the public API
 
 Navigation tips
 ---------------
-- Backend-facing schemas/types: `src/common/paynet/schema.ts` and matching types in `type.ts`.
+- Backend-facing types and type guards: `src/common/paynet/type.ts`.
 - Stories show prop interplay; table header/row factories (`createTableHeader`, `createTableRow`) are demonstrated in `src/stories/PneTable.stories.tsx`.

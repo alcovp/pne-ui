@@ -114,10 +114,3 @@ export const resolvePneTableColumnSettings = <TColumn extends PneTableColumnOpti
             && sameIds([...resolved.hiddenColumnIds].sort(), [...defaults.hiddenColumnIds].sort()),
     }
 }
-
-/** Structural equality of two normalized values; hidden order is irrelevant. */
-export const isSamePneTableColumnSettings = (
-    left: PneTableColumnSettingsValue,
-    right: PneTableColumnSettingsValue,
-): boolean => sameIds(left.visibleColumnIds, right.visibleColumnIds)
-    && sameIds([...left.hiddenColumnIds].sort(), [...right.hiddenColumnIds].sort())

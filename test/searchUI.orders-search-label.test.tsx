@@ -5,11 +5,11 @@ import 'jest-canvas-mock'
 
 import {
     CriterionTypeEnum,
-    ORDER_SEARCH_LABELS,
     type OrderSearchLabel,
     SearchUIFilters,
     SearchUIProvider,
 } from '../src'
+import {ORDER_SEARCH_LABELS} from '../src/component/search-ui/filters/types'
 import {ORDERS_SEARCH_LABEL_GROUPS} from '../src/component/search-ui/filters/component/select/SearchUICollapsableGroupSelect'
 
 jest.mock('react-i18next', () => ({

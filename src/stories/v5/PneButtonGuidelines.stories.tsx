@@ -1,5 +1,6 @@
 import * as React from "react";
-import {PneButton, PNE_ACTION_SPACING, pneActionSpacing} from "../../index";
+import {PneButton, pneActionSpacing} from "../../index";
+import {PNE_ACTION_SPACING} from "../../actionSpacing";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
@@ -119,8 +120,8 @@ export const UsageGuidelines: Story = {
         <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px', mb: 2, maxWidth: 840}}>
             В заголовках страниц и модальных окнах задавайте gap контейнеру, без дополнительных margin
             на кнопках. Внутри группы используйте --pne-action-buttons-gap; между отдельными группами
-            без разделителя — --pne-action-groups-gap. Оба токена сейчас равны 8 px и настраиваются независимо
-            в PNE_ACTION_SPACING. Для модальных окон используйте PneModalActions.
+            без разделителя — --pne-action-groups-gap. Оба токена сейчас равны 8 px и задаются в библиотеке
+            независимо. Для модальных окон используйте PneModalActions.
         </Typography>
         <Typography sx={{color: '#4E5D78', fontSize: 14, lineHeight: '20px', mb: 2, maxWidth: 840}}>
             PneThemeProvider подключает CSS-переменные автоматически. С собственным ThemeProvider

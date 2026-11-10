@@ -23,19 +23,11 @@ export type {
 } from '../component/table/PneTableSwitchCell'
 export { default as PneTableSelectionHeaderCell } from '../component/table/PneTableSelectionHeaderCell'
 export type { PneTableSelectionHeaderCellProps } from '../component/table/PneTableSelectionHeaderCell'
-export {
-    clearTableSelection,
-    createEmptyTableSelection,
-    getTableSelectionCount,
-    getTableSelectionPageState,
-    isTableRowSelected,
-    selectAllMatchingTableRows,
-    setTablePageSelected,
-    setTableRowSelected,
-    type TableRowId,
-    type TableSelectionModel,
-    type TableSelectionPageState,
-    type TableSelectionUpdate,
+export type {
+    TableRowId,
+    TableSelectionModel,
+    TableSelectionPageState,
+    TableSelectionUpdate,
 } from '../component/table/tableSelection'
 export { default as useTableSelection } from '../component/table/useTableSelection'
 export type {
@@ -80,14 +72,6 @@ export type {
     UsePneTableColumnSettingsParams,
     UsePneTableColumnSettingsResult,
 } from '../component/table/column-settings/usePneTableColumnSettings'
-export {
-    PNE_TABLE_COLUMN_ID_PATTERN,
-    assertPneTableColumnCatalog,
-    createDefaultPneTableColumnSettings,
-    isSamePneTableColumnSettings,
-    isValidPneTableColumnId,
-    resolvePneTableColumnSettings,
-} from '../component/table/column-settings/resolveColumnSettings'
 export type {
     PneTableColumnId,
     PneTableColumnOption,

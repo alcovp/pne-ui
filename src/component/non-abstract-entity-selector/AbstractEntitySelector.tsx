@@ -14,7 +14,6 @@ import {
     exhaustiveCheck,
     IMappedAbstractEntity,
     isAbstractEntity,
-    isMappedAbstractEntity,
     isObject
 } from '../../common';
 import PneTextField from '../PneTextField';
@@ -38,6 +37,15 @@ export type AbstractEntitySelectorElements = {
     addAllButton?: AbstractEntitySelectorElementAttributes
     addedColumn?: AbstractEntitySelectorElementAttributes
     removeAllButton?: AbstractEntitySelectorElementAttributes
+}
+
+const isMappedAbstractEntity = (value: unknown): value is IMappedAbstractEntity => {
+    if (!isObject(value)) {
+        return false
+    }
+
+    return 'id' in value && typeof value.id === 'number' &&
+        'name' in value && typeof value.name === 'string'
 }
 
 //TODO must be removed

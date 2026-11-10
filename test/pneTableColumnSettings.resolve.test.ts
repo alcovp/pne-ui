@@ -1,11 +1,10 @@
+import type {PneTableColumnOption} from '../src'
 import {
     PNE_TABLE_COLUMN_ID_PATTERN,
     createDefaultPneTableColumnSettings,
-    isSamePneTableColumnSettings,
     isValidPneTableColumnId,
     resolvePneTableColumnSettings,
-    type PneTableColumnOption,
-} from '../src'
+} from '../src/component/table/column-settings/resolveColumnSettings'
 
 const columns: readonly PneTableColumnOption[] = [
     {id: 'id', label: 'ID'},
@@ -105,18 +104,5 @@ describe('resolvePneTableColumnSettings', () => {
         expect(isValidPneTableColumnId('tx status')).toBe(false)
         expect(isValidPneTableColumnId(42)).toBe(false)
         expect(PNE_TABLE_COLUMN_ID_PATTERN.test('merchant.name')).toBe(true)
-    })
-})
-
-describe('isSamePneTableColumnSettings', () => {
-    it('ignores hidden order but not visible order', () => {
-        expect(isSamePneTableColumnSettings(
-            {visibleColumnIds: ['a', 'b'], hiddenColumnIds: ['c', 'd']},
-            {visibleColumnIds: ['a', 'b'], hiddenColumnIds: ['d', 'c']},
-        )).toBe(true)
-        expect(isSamePneTableColumnSettings(
-            {visibleColumnIds: ['a', 'b'], hiddenColumnIds: []},
-            {visibleColumnIds: ['b', 'a'], hiddenColumnIds: []},
-        )).toBe(false)
     })
 })

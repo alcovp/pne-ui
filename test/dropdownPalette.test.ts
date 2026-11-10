@@ -1,6 +1,7 @@
 import {getContrastRatio} from '@mui/material/styles'
 
-import {createPneBrandRamp, createPneDropdownPalette, createPneTheme, type Skin} from '../src'
+import {createPneBrandRamp, createPneTheme, type Skin} from '../src'
+import {createPneDropdownPalette} from '../src/dropdownPalette'
 
 const palette = (skinColor: string, mode: 'light' | 'dark' = 'light') =>
     createPneDropdownPalette(createPneBrandRamp(skinColor), mode)

@@ -7,7 +7,7 @@ Page headers and modal action areas use two independent spacing tokens, owned by
 | Adjacent buttons in one group | `--pne-action-buttons-gap` | 8 px |
 | Separate groups without a divider | `--pne-action-groups-gap` | 8 px |
 
-The defaults are defined together in `PNE_ACTION_SPACING` (`src/actionSpacing.tsx`). Change `groups` independently when group separation needs to grow. Applications must not duplicate these definitions or couple them to their general layout spacing.
+The defaults are defined together in the internal `PNE_ACTION_SPACING` of `src/actionSpacing.tsx`. Change `groups` independently when group separation needs to grow. Applications must not duplicate these definitions or couple them to their general layout spacing.
 
 `PneThemeProvider` installs the custom properties. Applications and standalone microfrontends using their own theme provider mount `<PneActionSpacingStyles/>` once at their root. The definitions also reach portal-based modal actions. For CSS-in-JS, `pneActionSpacing.buttons` and `.groups` expose CSS values with the library defaults as fallbacks, so isolated components also have valid spacing.
 

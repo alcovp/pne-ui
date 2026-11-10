@@ -3,10 +3,10 @@ import {fireEvent, render, waitFor, within} from '@testing-library/react'
 
 import {
     CriterionTypeEnum,
-    ORDER_SEARCH_LABELS,
     SearchUIFilters,
     SearchUIProvider,
 } from '../src'
+import {ORDER_SEARCH_LABELS} from '../src/component/search-ui/filters/types'
 import {OrdersSearchLabelsConfig} from '../src/component/search-ui/filters/state/actions'
 
 jest.mock('react-i18next', () => ({

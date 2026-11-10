@@ -8,7 +8,7 @@ import {
     setTablePageSelected,
     setTableRowSelected,
     type TableSelectionModel,
-} from '../src'
+} from '../src/component/table/tableSelection'
 
 describe('table selection model', () => {
     it('selects and deselects explicit row IDs without duplicating them', () => {
