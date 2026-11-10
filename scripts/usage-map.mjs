@@ -459,8 +459,12 @@ function main() {
             files: sum(uses, 'files'), aside: sum(uses, 'aside'), mocked: sum(uses, 'mocked'), branches: sum(uses, 'branches'),
         }
     })
-    const foreign = [...usage].filter(([name, uses]) => !names.has(name) && sum(uses, 'files') + sum(uses, 'aside') > 0)
-        .map(([name, uses]) => ({name, removed: before ? before.has(name) : null, uses, files: sum(uses, 'files'), aside: sum(uses, 'aside')}))
+    const foreign = [...usage]
+        .filter(([name, uses]) => !names.has(name) && sum(uses, 'files') + sum(uses, 'aside') + sum(uses, 'branches') > 0)
+        .map(([name, uses]) => ({
+            name, removed: before ? before.has(name) : null, uses,
+            files: sum(uses, 'files'), aside: sum(uses, 'aside'), branches: sum(uses, 'branches'),
+        }))
     const removed = before ? [...before.keys()].filter(name => !names.has(name)) : []
     const deprecatedProps = members.flatMap(({file, member, note}) => rows
         .filter(row => row.shape === 'component' && row.file === file)
@@ -474,6 +478,8 @@ function main() {
     const where = uses => Object.entries(uses).filter(([, entry]) => entry.files + entry.aside)
         .map(([application, entry]) => `${application} ${entry.files}${entry.aside ? `+${entry.aside}` : ''}`).join(', ')
     const mark = row => `${row.name}${row.added ? '*' : ''}${row.branches ? '†' : ''}`
+    const whereOnBranches = uses => Object.entries(uses).filter(([, entry]) => entry.branches)
+        .map(([application, entry]) => `${application} ${entry.branch}${entry.branches > 1 ? ` and ${entry.branches - 1} more` : ''}`).join(', ')
     const byGroup = list => {
         const groups = new Map()
         for (const row of list) groups.set(row.group, [...groups.get(row.group) ?? [], row])
@@ -506,8 +512,9 @@ function main() {
     byGroup(unused).map(([group, list]) => `${group} (${list.length}): ${list.map(mark).join(', ')}`))
     const unusedTypes = rows.filter(row => row.kind === 'type' && !row.files && !row.aside)
     console.log(`\nTypes nobody imports: ${unusedTypes.length} of ${rows.length - values.length}`)
-    section(`Imported, but not exported by this version: ${foreign.length}`, foreign.map(entry =>
-        `${entry.name} — ${where(entry.uses)}${entry.removed ? `, removed since ${options.since}` : ''}`))
+    section(`Imported, but not exported by this version: ${foreign.length}${options.days ? ', † on a branch in progress only' : ''}`,
+        foreign.map(entry => (entry.files + entry.aside ? `${entry.name} — ${where(entry.uses)}` : `${entry.name}† — ${whereOnBranches(entry.uses)}`)
+            + (entry.removed ? `, removed since ${options.since}` : '')))
     section('Deprecated', [
         ...rows.filter(row => row.deprecated !== null).map(row =>
             `${row.name}: ${row.files + row.aside ? `imported in ${where(row.uses)}` : 'not imported'} — ${row.deprecated}`),
