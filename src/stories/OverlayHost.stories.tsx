@@ -147,6 +147,10 @@ export default {
     title: 'pne-ui/OverlayHost',
     component: OverlayDemo,
     tags: ['autodocs'],
+    parameters: {
+        // The host is a singleton fixed to the viewport: on the docs page every story gets a frame of its own.
+        docs: { story: { inline: false, height: '520px' } },
+    },
 } satisfies Meta<typeof OverlayDemo>
 
 export const Basic: StoryObj<typeof OverlayDemo> = {

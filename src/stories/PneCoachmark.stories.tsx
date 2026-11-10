@@ -153,7 +153,11 @@ export const AnchoredInvitation: Story = {
             const buttonRects = actionButtons.map(button => button.getBoundingClientRect())
 
             expect(surfaceRect.top).toBeGreaterThanOrEqual(anchorRect.bottom)
-            expect(Math.abs(surfaceRect.left - anchorRect.left)).toBeLessThanOrEqual(1)
+            // The surface starts at the trigger's left edge until the 16px viewport margin pushes it back.
+            expect(Math.abs(surfaceRect.left - Math.min(
+                anchorRect.left,
+                iframeDocument.documentElement.clientWidth - 16 - surfaceRect.width,
+            ))).toBeLessThanOrEqual(1)
             expect(actionsRect.height).toBe(40)
             expect(Math.max(...buttonRects.map(rect => rect.top))
                 - Math.min(...buttonRects.map(rect => rect.top))).toBeLessThanOrEqual(1)

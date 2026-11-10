@@ -416,11 +416,9 @@ const requireTightRowPacking = (band: HTMLElement, bandName: string, gap: number
         }
 
         const currentRow = rows[rows.length - 1]
-        const currentTop = currentRow
-            ? Math.round(currentRow[0].getBoundingClientRect().top)
-            : null
 
-        if (currentRow && currentTop === Math.round(rect.top)) {
+        // Controls of different heights are centred in their row, so equal tops would split one row in two.
+        if (currentRow && sharesRow(currentRow[0], item)) {
             currentRow.push(item)
         } else {
             rows.push([item])
@@ -825,8 +823,7 @@ export const GatesControlsRowBudgetMobile360: Story = {
 
         requireTightRowPacking(selectionControls, 'Selection controls', 8)
 
-        if (Math.round(summary.getBoundingClientRect().top)
-            !== Math.round(selectAll.getBoundingClientRect().top)) {
+        if (!sharesRow(summary, selectAll)) {
             throw new Error('Selection summary must share its row with the first bulk action')
         }
     },

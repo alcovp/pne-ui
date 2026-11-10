@@ -129,7 +129,7 @@ export const ScopeOptions: Story = {
         invalidRange: false,
     },
     play: async ({canvasElement}) => {
-        const scopeLabel = within(canvasElement).getAllByText('By order ID')
+        const scopeLabel = within(canvasElement).getAllByText('Selected by order id')
             .find(element => element.closest('.MuiChip-root'))
         const scopeMenuButton = scopeLabel?.closest('.MuiChip-root')
             ?.querySelector('.MuiChip-deleteIcon')

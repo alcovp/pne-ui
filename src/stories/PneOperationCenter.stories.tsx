@@ -116,7 +116,11 @@ const OperationCenterDemo = ({
 const meta = {
     title: 'pne-ui/OverlayHost/Operation center',
     component: OperationCenterDemo,
-    parameters: {layout: 'fullscreen'},
+    parameters: {
+        layout: 'fullscreen',
+        // The host is a singleton fixed to the viewport: on the docs page every story gets a frame of its own.
+        docs: {story: {inline: false, height: '600px'}},
+    },
     tags: ['autodocs'],
 } satisfies Meta<typeof OperationCenterDemo>
 

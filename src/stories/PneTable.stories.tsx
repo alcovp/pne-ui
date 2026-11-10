@@ -1,5 +1,6 @@
 import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneCheckbox, PneSwitch, PneTable, PneTableViewSelector} from "../index";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
+import {within} from "storybook/test";
 import PneTableRow from "../component/table/PneTableRow";
 import PneTableCell from "../component/table/PneTableCell";
 import PneTableControlCell from "../component/table/PneTableControlCell";
@@ -173,6 +174,14 @@ const SlowLoadingWrap = () => {
     </Box>
 }
 
+/**
+ * A slow story is finished once its rows are in. Until then it shows the skeleton, and a picture
+ * taken in between would show now one, now the other.
+ */
+const waitForCell = (text: string) => async ({canvasElement}: {canvasElement: HTMLElement}) => {
+    await within(canvasElement).findByText(text, undefined, {timeout: 10000})
+}
+
 export default {
     title: "pne-ui/PneTable",
     component: HookWrap,
@@ -186,6 +195,7 @@ export const Default: Story = {
 
 export const SlowLoading: StoryObj<typeof SlowLoadingWrap> = {
     render: () => <SlowLoadingWrap />,
+    play: waitForCell('John 1'),
 };
 
 const SlowLoadingWithControlsWrap = () => {
@@ -243,6 +253,7 @@ const SlowLoadingWithControlsWrap = () => {
 
 export const SlowLoadingWithControls: StoryObj<typeof SlowLoadingWithControlsWrap> = {
     render: () => <SlowLoadingWithControlsWrap />,
+    play: waitForCell('John 1'),
 };
 
 const getListFast = async (page: number, pageSize: number, limit: number): Promise<DataType[]> => {
@@ -326,6 +337,8 @@ const getOrdersSlow = async (page: number, pageSize: number): Promise<OrderStory
     return orderStoryRows.slice(page * pageSize, page * pageSize + pageSize + 1)
 }
 
+const getOrdersNever = (): Promise<OrderStoryRow[]> => new Promise(() => undefined)
+
 const orderStoryViews = [
     {id: 'brief', label: 'Brief'},
     {id: 'detailed', label: 'Detailed'},
@@ -340,7 +353,7 @@ const centered = (label: string) => <div style={{display: 'flex', justifyContent
  * labels sit: Amount on the right, Card in the middle. Detailed presets its taller rows,
  * so even its first skeleton has their height.
  */
-const ViewSwitchSkeletonWrap = () => {
+const ViewSwitchSkeletonWrap = ({getOrders = getOrdersSlow}: {getOrders?: typeof getOrdersSlow}) => {
     const [view, setView] = useState<OrderStoryView>('brief')
 
     const {
@@ -351,7 +364,7 @@ const ViewSwitchSkeletonWrap = () => {
         settingsContextName: 'context_view_switch',
         duplicatePagination: true,
         resetKey: view,
-        fetchData: ({page, pageSize}) => getOrdersSlow(page, pageSize),
+        fetchData: ({page, pageSize}) => getOrders(page, pageSize),
     })
 
     const briefHeader = () => <PneTableRow>
@@ -422,4 +435,13 @@ const ViewSwitchSkeletonWrap = () => {
 
 export const ViewSwitchSkeleton: StoryObj<typeof ViewSwitchSkeletonWrap> = {
     render: () => <ViewSwitchSkeletonWrap />,
+    play: waitForCell('900100'),
+};
+
+/**
+ * The orders never arrive, so the table stays on the skeleton of the chosen view:
+ * the state has a picture that does not depend on timing.
+ */
+export const Skeleton: StoryObj<typeof ViewSwitchSkeletonWrap> = {
+    render: () => <ViewSwitchSkeletonWrap getOrders={getOrdersNever} />,
 };
