@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
+import dayjs from 'dayjs'
 
 import {CriterionTypeEnum, SearchUIFilters, type SearchCriteria} from '../src'
 import {
@@ -253,5 +254,42 @@ describe('SearchUI exact date field', () => {
             dateTo: new Date('2026-07-13T00:00:00.000Z'),
         })))
         expect(onFiltersUpdate).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows today alone once another period is switched to exact dates', async () => {
+        const onFiltersUpdate = jest.fn<void, [SearchCriteria]>()
+        render(<SearchUIFilters
+            settingsContextName={'date-range-field'}
+            possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+            predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+            initialSearchConditions={{dateRangeSpec: {dateRangeSpecType: 'LAST_MONTH'}}}
+            onFiltersUpdate={onFiltersUpdate}
+            config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
+        />)
+        const rangeType = await waitFor(() => {
+            const result = document.querySelector<HTMLElement>(
+                '[role="combobox"][data-autotest="criterion-range-spec"]',
+            )
+            expect(result?.getAttribute('data-autotest-value')).toBe('LAST_MONTH')
+            return result as HTMLElement
+        })
+
+        fireEvent.mouseDown(rangeType)
+        fireEvent.click(await waitFor(() => {
+            const option = document.body.querySelector<HTMLElement>(
+                '[role="option"][data-autotest="criterion-range-spec-option"][data-autotest-value="EXACTLY"]',
+            )
+            expect(option).not.toBeNull()
+            return option as HTMLElement
+        }))
+
+        // Not the days of the month left behind with one more day after them.
+        const today = dayjs().startOf('day')
+        await waitFor(() => expect(hiddenInputOf(rangeField()).value)
+            .toBe(`${today.format('DD.MM.YYYY')} – ${today.format('DD.MM.YYYY')}`))
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
+            dateFrom: today.toDate(),
+            dateTo: today.add(1, 'day').toDate(),
+        }))
     })
 })

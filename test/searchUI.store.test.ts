@@ -1051,6 +1051,107 @@ describe('SearchUIFilters Zustand store', () => {
         }))
     })
 
+    describe('switching from another mode to EXACTLY', () => {
+        const NOW = new Date('2026-11-11T08:00:00.000Z')
+
+        const startWith = (
+            dateRangeSpecType: DateRangeSpec['dateRangeSpecType'],
+            config?: SearchUIFiltersState['config'],
+        ) => {
+            jest.useFakeTimers().setSystemTime(NOW)
+            const onFiltersUpdate = jest.fn()
+            store.setState(getSearchUIFiltersInitialState())
+            store.getState().setInitialState({
+                defaults: initialSearchUIDefaults,
+                settingsContextName: 'ctx',
+                onFiltersUpdate,
+                possibleCriteria: [CriterionTypeEnum.DATE_RANGE],
+                predefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
+                criteria: [CriterionTypeEnum.DATE_RANGE],
+                config,
+            })
+            setType(dateRangeSpecType)
+
+            return onFiltersUpdate
+        }
+        // The type select changes the type alone and hands the dates over as they are.
+        const setType = (dateRangeSpecType: DateRangeSpec['dateRangeSpecType']) => {
+            store.getState().setDateRangeCriterion({...store.getState().dateRangeSpec, dateRangeSpecType})
+        }
+        const lastSearch = (onFiltersUpdate: jest.Mock) => {
+            const {dateFrom, dateTo} = onFiltersUpdate.mock.calls[onFiltersUpdate.mock.calls.length - 1][0]
+            return {dateFrom, dateTo}
+        }
+
+        it.each([
+            'TODAY', 'YESTERDAY', 'THIS_WEEK', 'LAST_WEEK', 'THIS_MONTH', 'LAST_MONTH', 'DATE_INDEPENDENT',
+        ] as const)('starts a range of days from today alone after %s', mode => {
+            const onFiltersUpdate = startWith(mode)
+
+            setType('EXACTLY')
+
+            const today = dayjs().startOf('day')
+            expect(store.getState().dateRangeSpec).toEqual(expect.objectContaining({
+                dateRangeSpecType: 'EXACTLY',
+                dateFrom: today.toDate(),
+                dateTo: today.toDate(),
+            }))
+            // One day is searched: the day after the last one closes the range, as for any picked days.
+            expect(lastSearch(onFiltersUpdate)).toEqual({
+                dateFrom: today.toDate(),
+                dateTo: today.add(1, 'day').toDate(),
+            })
+        })
+
+        const dayZones: [string, (day: dayjs.Dayjs) => dayjs.Dayjs][] = [
+            ['Europe/Moscow', day => day.tz('Europe/Moscow', true)],
+            ['local', day => day],
+        ]
+
+        it.each(dayZones)('searches the day the Today mode searches where the days have the %s zone', (zone, anchor) => {
+            const onFiltersUpdate = startWith('TODAY', {dateRange: {dateOnlyTimeZone: zone}})
+            const today = lastSearch(onFiltersUpdate)
+            setType('LAST_MONTH')
+
+            setType('EXACTLY')
+
+            expect(lastSearch(onFiltersUpdate)).toEqual(today)
+            expect(today).toEqual({
+                dateFrom: anchor(dayjs().startOf('day')).toDate(),
+                dateTo: anchor(dayjs().startOf('day').add(1, 'day')).toDate(),
+            })
+        })
+
+        it('starts a range with time from the start of today to the current moment', () => {
+            const onFiltersUpdate = startWith('THIS_MONTH', {dateRange: {enableTimeSelection: true}})
+
+            setType('EXACTLY')
+
+            expect(lastSearch(onFiltersUpdate)).toEqual({
+                dateFrom: dayjs().startOf('day').toDate(),
+                dateTo: NOW,
+            })
+        })
+
+        it('leaves the days picked afterwards alone', () => {
+            const onFiltersUpdate = startWith('THIS_MONTH')
+            setType('EXACTLY')
+            const picked: DateRangeSpec = {
+                ...store.getState().dateRangeSpec,
+                dateFrom: dayjs('2026-10-05').toDate(),
+                dateTo: dayjs('2026-10-07').toDate(),
+            }
+
+            store.getState().setDateRangeCriterion(picked)
+
+            expect(store.getState().dateRangeSpec).toEqual(picked)
+            expect(lastSearch(onFiltersUpdate)).toEqual({
+                dateFrom: dayjs('2026-10-05').toDate(),
+                dateTo: dayjs('2026-10-08').toDate(),
+            })
+        })
+    })
+
     it('anchors date-only picker values to the configured day timezone', () => {
         const selectedDay = dayjs('2025-05-14T15:30:00')
         const anchoredDate = createDateOnlyPickerDate(selectedDay, 'Europe/Moscow')

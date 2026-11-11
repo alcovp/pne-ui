@@ -40,21 +40,29 @@ const SearchUITemplateEditor = (props: IProps) => {
     const {searchTemplateExists} = useContext(SearchUIDefaultsContext)
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setTemplateName(event.target.value)
+        // Spaces alone are no name: the field stays empty, and its required check stops the form.
+        const value = event.target.value
+        setTemplateName(value.trim() === '' ? '' : value)
         setShowFeedback(false)
     }
 
     const handleCreate = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
+        // The spaces around a name are not a part of it, so the check and the save take it without them.
+        const name = templateName.trim()
+        if (name === '') {
+            return
+        }
+
         searchTemplateExists({
             contextName: settingsContextName,
-            templateName,
+            templateName: name,
         })
             .then(templateExists => {
                 if (templateExists) {
                     setShowFeedback(true)
                 } else {
-                    createTemplate(templateName)
+                    createTemplate(name)
                     onClose()
                 }
             })
