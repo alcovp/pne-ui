@@ -255,6 +255,82 @@ describe('SearchUI templates menu', () => {
         })))
     })
 
+    describe('new template name', () => {
+        const openEditor = async () => {
+            await openMenu()
+            fireEvent.click(panel()?.querySelector('[data-autotest="create-template"]') as HTMLElement)
+            const editor = await waitFor(() => {
+                const result = document.body.querySelector<HTMLElement>(
+                    `[data-autotest="template-editor"][data-autotest-value="${SCOPE}"]`,
+                )
+                expect(result).not.toBeNull()
+                return result as HTMLElement
+            })
+
+            return {
+                editor,
+                name: within(editor).getByRole<HTMLInputElement>('textbox', {name: 'react.searchUI.template.name'}),
+                create: within(editor).getByRole<HTMLButtonElement>('button', {name: 'create'}),
+                form: editor.querySelector<HTMLFormElement>('form')!,
+            }
+        }
+
+        it('checks and saves the name without the spaces around it', async () => {
+            const searchTemplateExists = jest.fn().mockResolvedValue(false)
+            const saveSearchTemplate = jest.fn().mockResolvedValue(undefined)
+            renderMenu({searchTemplateExists, saveSearchTemplate})
+            const {name, create} = await openEditor()
+
+            fireEvent.change(name, {target: {value: '  Delta  '}})
+            fireEvent.click(create)
+
+            await waitFor(() => expect(saveSearchTemplate).toHaveBeenCalledWith(expect.objectContaining({
+                contextName: CONTEXT_NAME,
+                templateName: 'Delta',
+                template: expect.objectContaining({name: 'Delta'}),
+            })))
+            expect(searchTemplateExists).toHaveBeenCalledWith({contextName: CONTEXT_NAME, templateName: 'Delta'})
+            await waitFor(() => expect(trigger().textContent).toContain('Delta'))
+        })
+
+        it('tells a taken name by its text without the spaces around it', async () => {
+            const searchTemplateExists = jest.fn().mockResolvedValue(true)
+            const saveSearchTemplate = jest.fn().mockResolvedValue(undefined)
+            renderMenu({searchTemplateExists, saveSearchTemplate})
+            const {editor, name, create} = await openEditor()
+
+            fireEvent.change(name, {target: {value: ' Alpha '}})
+            fireEvent.click(create)
+
+            await waitFor(() => expect(within(editor).getByRole('alert').textContent)
+                .toBe('react.searchUI.template.name.confirmRewrite'))
+            expect(searchTemplateExists).toHaveBeenCalledWith({contextName: CONTEXT_NAME, templateName: 'Alpha'})
+            expect(saveSearchTemplate).not.toHaveBeenCalled()
+        })
+
+        it('saves no template named with spaces alone', async () => {
+            const searchTemplateExists = jest.fn().mockResolvedValue(false)
+            const saveSearchTemplate = jest.fn().mockResolvedValue(undefined)
+            renderMenu({searchTemplateExists, saveSearchTemplate})
+            const {name, create, form} = await openEditor()
+
+            fireEvent.change(name, {target: {value: '   '}})
+            // The field holds no name, so its required check stops Create as for an untouched field.
+            expect(name.value).toBe('')
+            expect(name.validity.valueMissing).toBe(true)
+            fireEvent.click(create)
+            // A submit that gets past the browser's check saves nothing either.
+            fireEvent.submit(form)
+            await act(async () => {
+                await Promise.resolve()
+            })
+
+            expect(searchTemplateExists).not.toHaveBeenCalled()
+            expect(saveSearchTemplate).not.toHaveBeenCalled()
+            expect(document.body.querySelector('[data-autotest="template-editor"]')).not.toBeNull()
+        })
+    })
+
     it('marks the applied template once the filters change and discards the changes', async () => {
         const onFiltersUpdate = jest.fn()
         render(<SearchUIProvider

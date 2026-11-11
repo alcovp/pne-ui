@@ -1100,6 +1100,9 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
 Имя шаблона остаётся пользовательским значением/accessible name и не копируется в technical ID. Create,
 Cancel и обычные поля формы ищутся внутри scoped dialog по native role/name.
 
+Имя сохраняется и проверяется на занятость без пробелов по краям. Одни пробелы именем не считаются: поле
+остаётся пустым, и его `required` останавливает Create так же, как у незаполненного поля.
+
 #### Actions без отдельного `data-autotest`
 
 Для нескольких стандартных dialog actions контрактом служат native button + computed accessible name внутри
