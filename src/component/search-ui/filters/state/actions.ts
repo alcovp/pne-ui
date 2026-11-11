@@ -65,6 +65,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
 import {
     applyDateOnlyTimeZone,
+    createDateOnlyPickerDate,
     createDateOnlySearchDate,
     createDateOnlySearchEndExclusiveDate,
     getDateIndependentBound,
@@ -932,18 +933,30 @@ export const getSearchUIFiltersActions = (
         const switchingToExact =
             dateRangeSpec.dateRangeSpecType === 'EXACTLY'
             && prevDateRangeSpecType !== 'EXACTLY'
-            && timeSelectionEnabled
             && prevDateRangeSpec.dateFrom === dateRangeSpec.dateFrom
             && prevDateRangeSpec.dateTo === dateRangeSpec.dateTo
 
         let spec = dateRangeSpec
 
         if (switchingToExact) {
+            // The dates the other mode leaves behind are no exact range: their end is the midnight after
+            // the last day, and a range of days would take it for one more day. An exact range starts
+            // from today, as the Wicket field does.
             const now = dayjs()
-            spec = {
-                ...spec,
-                dateFrom: now.startOf('day').toDate(),
-                dateTo: now.toDate(),
+            if (timeSelectionEnabled) {
+                spec = {
+                    ...spec,
+                    dateFrom: now.startOf('day').toDate(),
+                    dateTo: now.toDate(),
+                }
+            } else {
+                // Without time the range holds days, the last one included: today as the calendar stores it.
+                const dateOnlyTimeZone = getConfiguredDateOnlyTimeZone(get().config)
+                spec = {
+                    ...spec,
+                    dateFrom: createDateOnlyPickerDate(now, dateOnlyTimeZone),
+                    dateTo: createDateOnlyPickerDate(now, dateOnlyTimeZone),
+                }
             }
         } else if (dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
             spec = calculateNonExactDates(
