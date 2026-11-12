@@ -282,12 +282,12 @@ export const MultigetSelectActions = (props: MultigetSelectActionsProps) => {
     return <PneModalActions
         sx={sx}
         secondary={(
-            <PneButton size='large' pneStyle='outlined' onClick={onCancelClick}>
+            <PneButton size='medium' pneStyle='outlined' onClick={onCancelClick}>
                 {t('cancel')}
             </PneButton>
         )}
         primary={(
-            <PneButton size='large' onClick={onSaveClick}>
+            <PneButton size='medium' onClick={onSaveClick}>
                 {t('save')}
             </PneButton>
         )}

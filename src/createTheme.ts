@@ -16,6 +16,7 @@ import {
 } from './buttonPalette'
 import {createPneCheckboxPalette, type PneCheckboxPalette} from './checkboxPalette'
 import {createPneDropdownPalette, type PneDropdownPalette} from './dropdownPalette'
+import {createPneModalPalette, type PneModalPalette} from './modalPalette'
 import {createPneFieldPalette, type PneFieldPalette} from './fieldPalette'
 import {createPneSwitchPalette, type PneSwitchPalette} from './switchPalette'
 import {PNE_DARK_COLORS, PNE_LIGHT_COLORS, type PneColorMode} from './themeColors'
@@ -78,6 +79,8 @@ export type PneSemanticPalette = {
     field: PneFieldPalette
     /** Dropdown list colours by UI Kit role and the chevron of the field that opens it. */
     dropdown: PneDropdownPalette
+    /** Modal colours by UI Kit role. */
+    modal: PneModalPalette
     /** The outer 2px of the keyboard focus ring; the 2px gap inside takes the page colour. */
     focusRing: string
     /** Link text on the page. */
@@ -202,6 +205,7 @@ const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPal
         checkbox: createPneCheckboxPalette(ramp, mode),
         field: createPneFieldPalette(ramp, mode),
         dropdown: createPneDropdownPalette(ramp, mode),
+        modal: createPneModalPalette(mode),
         focusRing: createPneFocusRing(ramp, mode),
         link: createPneLinkColor(ramp, mode),
     }
@@ -217,7 +221,7 @@ export const resolvePneSemanticPalette = (theme: Theme): PneSemanticPalette =>
 const createSemanticSurfaces = (
     seed: string,
     mode: PneColorMode,
-): Omit<PneSemanticPalette, 'ramp' | 'button' | 'switch' | 'checkbox' | 'field' | 'dropdown' | 'focusRing' | 'link'> => ({
+): Omit<PneSemanticPalette, 'ramp' | 'button' | 'switch' | 'checkbox' | 'field' | 'dropdown' | 'modal' | 'focusRing' | 'link'> => ({
     surface: mode === 'dark'
         ? {
             sunken: PNE_DARK_COLORS.surfaceSunken,

@@ -89,8 +89,8 @@ export const Default: Story = {
     play: openModal,
     render: () => <ModalStoryHarness
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='large' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
-            primary={<PneButton size='large' pneStyle='contained' onClick={close}>Сохранить</PneButton>}
+            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
+            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Сохранить</PneButton>}
         />}
         title='Редактирование профиля'
     >
@@ -113,8 +113,8 @@ export const Destructive: Story = {
     play: openModal,
     render: () => <ModalStoryHarness
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='large' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
-            primary={<PneButton size='large' pneStyle='error' onClick={close}>Удалить</PneButton>}
+            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
+            primary={<PneButton size='medium' pneStyle='error' onClick={close}>Удалить</PneButton>}
         />}
         title='Удаление ключа'
     >
@@ -138,9 +138,9 @@ export const Wizard: Story = {
     render: () => <ModalStoryHarness
         containerSx={{width: 560}}
         renderActions={close => <PneModalActions
-            leading={<PneButton size='large' pneStyle='text' onClick={close}>Отмена</PneButton>}
-            secondary={<PneButton size='large' pneStyle='outlined' onClick={close}>Назад</PneButton>}
-            primary={<PneButton size='large' pneStyle='contained' onClick={close}>Далее</PneButton>}
+            leading={<PneButton size='medium' pneStyle='text' onClick={close}>Отмена</PneButton>}
+            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Назад</PneButton>}
+            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Далее</PneButton>}
         />}
         subtitle='Шаг 2 из 3'
         title='Подключение терминала'
@@ -157,10 +157,10 @@ const GroupedSecondaryActionsExample = () => <ModalStoryHarness
     containerSx={{width: 640}}
     renderActions={close => <PneModalActions
         secondary={<>
-            <PneButton size='large' pneStyle='outlined' onClick={close}>Назад</PneButton>
-            <PneButton size='large' pneStyle='outlined' onClick={close}>Попробовать редактирование</PneButton>
+            <PneButton size='medium' pneStyle='outlined' onClick={close}>Назад</PneButton>
+            <PneButton size='medium' pneStyle='outlined' onClick={close}>Попробовать редактирование</PneButton>
         </>}
-        primary={<PneButton size='large' pneStyle='contained' onClick={close}>Готово</PneButton>}
+        primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Готово</PneButton>}
     />}
     title='Финальный шаг'
 >
@@ -254,8 +254,8 @@ export const ResponsiveLongLabels: Story = {
     render: () => <ModalStoryHarness
         containerSx={{width: 640}}
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='large' pneStyle='outlined' onClick={close}>Вернуться без сохранения</PneButton>}
-            primary={<PneButton size='large' pneStyle='contained' onClick={close}>Сохранить и отправить на проверку</PneButton>}
+            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Вернуться без сохранения</PneButton>}
+            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Сохранить и отправить на проверку</PneButton>}
         />}
         title='Отправка заявления'
     >
@@ -333,8 +333,8 @@ export const MobileLongScroll: Story = {
     render: () => <ModalStoryHarness
         containerSx={{width: 640}}
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='large' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
-            primary={<PneButton size='large' pneStyle='contained' onClick={close}>Сохранить</PneButton>}
+            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
+            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Сохранить</PneButton>}
         />}
         subtitle='16 разделов'
         title='Длинная мобильная модалка'

@@ -21,6 +21,7 @@ export type {
     PneCheckboxValueColors,
 } from '../checkboxPalette'
 export type {PneDropdownPalette} from '../dropdownPalette'
+export type {PneModalPalette} from '../modalPalette'
 export type {
     PneFieldPalette,
     PneFieldState,

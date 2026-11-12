@@ -1,18 +1,16 @@
-import CloseIcon from '@mui/icons-material/Close'
 import Box, {type BoxProps} from '@mui/material/Box'
 import IconButton, {type IconButtonProps} from '@mui/material/IconButton'
 import Modal, {type ModalProps} from '@mui/material/Modal'
 import Typography, {type TypographyProps} from '@mui/material/Typography'
 import {styled, type SxProps, type Theme} from '@mui/material/styles'
 import * as React from 'react'
+import {resolvePneSemanticPalette} from '../createTheme'
+import {PneCloseIcon} from './dropdown/dropdownLook'
 import {
     PneSurface,
-    PneSurfaceBody as Body,
-    PneSurfaceFooter as Footer,
-    PneSurfaceHeader as Header,
-    pneSurfaceCloseButtonSx,
-    pneSurfaceSubtitleSx,
-    getPneSurfaceTitleSx,
+    PneSurfaceBody,
+    PneSurfaceFooter,
+    PneSurfaceHeader,
 } from './internal/PneSurface'
 
 export type PneModalDataAttributes = {
@@ -305,13 +303,13 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
                 data-pne-modal-header='true'
                 inert={isBlocked ? true : forwardedHeaderProps.inert}
             >
-                <div>
+                <HeaderText>
                     {hasTitle && <Typography
                         {...forwardedTitleProps}
                         component={titleComponent ?? 'h3'}
                         id={titleId}
                         sx={[
-                            getPneSurfaceTitleSx(forwardedTitleProps.color !== undefined),
+                            getModalTitleSx(forwardedTitleProps.color !== undefined),
                             ...(Array.isArray(titleSx) ? titleSx : [titleSx]),
                         ]}
                     >
@@ -322,27 +320,28 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
                         component={subtitleComponent ?? 'span'}
                         id={subtitleId}
                         sx={[
-                            pneSurfaceSubtitleSx,
+                            modalSubtitleSx,
                             ...(Array.isArray(subtitleSx) ? subtitleSx : [subtitleSx]),
                         ]}
                     >
                         {subtitle}
                     </Typography>}
-                </div>
+                </HeaderText>
                 {!hideCloseButton && <IconButton
                     {...forwardedCloseButtonProps}
                     aria-label={resolvedCloseLabel}
                     inert={isBlocked ? true : undefined}
-                    sx={pneSurfaceCloseButtonSx}
+                    sx={modalCloseButtonSx}
                     onClick={handleCloseButtonClick}
                     type='button'
                 >
-                    <CloseIcon fontSize='small'/>
+                    <PneCloseIcon/>
                 </IconButton>}
             </Header>}
             {children != null && <Body
                 {...forwardedBodyProps}
                 data-pne-modal-body='true'
+                data-pne-modal-last={actions == null ? 'true' : undefined}
                 inert={isBlocked ? true : forwardedBodyProps.inert}
             >
                 {children}
@@ -622,15 +621,110 @@ const warnAboutMissingAccessibleName = (
     }
 }
 
-const Container = styled(PneSurface)`
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    min-width: min(400px, calc(100vw - 32px));
-    max-width: calc(100vw - 32px);
-    max-height: 98%;
-`
+// UI Kit Modal: the window is a 16px-rounded card with 16px around its content, a 1px border and a soft
+// shadow. Its parts stand in that padding: the header and the buttons are parted from the body by
+// hairlines that keep 8px on each side, so the lines stop short of the window's edges.
+const WINDOW_PADDING = 16
+
+const Container = styled(PneSurface)(({theme}) => {
+    const modal = resolvePneSemanticPalette(theme).modal
+    return {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        minWidth: 'min(400px, calc(100vw - 32px))',
+        maxWidth: 'calc(100vw - 32px)',
+        maxHeight: '98%',
+        background: modal.fill,
+        border: `1px solid ${modal.ring}`,
+        borderRadius: '16px',
+        boxShadow: modal.shadow,
+        color: modal.text,
+        padding: `${WINDOW_PADDING}px`,
+        // The window takes the focus when it opens; it is the whole surface, so it draws no ring of its own.
+        outline: 'none',
+    }
+})
+
+const Header = styled(PneSurfaceHeader)(({theme}) => ({
+    alignItems: 'flex-start',
+    borderBottom: `1px solid ${resolvePneSemanticPalette(theme).modal.divider}`,
+    gap: '8px',
+    padding: '0 0 8px',
+}))
+
+// The title stands 3px lower, on the middle line of the 32px close button.
+const HeaderText = styled('div')({
+    flex: '1 1 auto',
+    minWidth: 0,
+    paddingTop: '3px',
+})
+
+// The body scrolls across the whole width of the window: the bar stands at its edge, and the focus
+// rings of the fields inside keep their room.
+const Body = styled(PneSurfaceBody)({
+    fontSize: '14px',
+    lineHeight: '20px',
+    margin: `0 -${WINDOW_PADDING}px`,
+    padding: `7px ${WINDOW_PADDING}px 8px`,
+    // No buttons under the body: the padding of the window is its lower edge.
+    '&[data-pne-modal-last]': {
+        paddingBottom: 0,
+    },
+})
+
+const Footer = styled(PneSurfaceFooter)(({theme}) => ({
+    borderTop: `1px solid ${resolvePneSemanticPalette(theme).modal.divider}`,
+    padding: '7px 0 0',
+}))
+
+// UI Kit Text/Heading in a modal: 18/26 SemiBold. A colour the consumer gives stays.
+const getModalTitleSx = (hasExplicitColor: boolean): SxProps<Theme> => theme => ({
+    padding: '0',
+    fontWeight: '600',
+    fontSize: '18px',
+    lineHeight: '26px',
+    color: hasExplicitColor ? undefined : resolvePneSemanticPalette(theme).modal.title,
+})
+
+const modalSubtitleSx: SxProps<Theme> = theme => ({
+    display: 'block',
+    padding: '0',
+    fontWeight: '400',
+    fontSize: '12px',
+    lineHeight: '16px',
+    color: resolvePneSemanticPalette(theme).modal.subtitle,
+})
+
+// UI Kit Icon action: a 32px tertiary button with the 16px thin cross and no fill at rest.
+const modalCloseButtonSx: SxProps<Theme> = theme => {
+    const pne = resolvePneSemanticPalette(theme)
+    const colors = pne.button.text
+    return {
+        flex: '0 0 auto',
+        width: '32px',
+        height: '32px',
+        padding: 0,
+        borderRadius: '4px',
+        backgroundColor: 'transparent',
+        color: colors.default.text,
+        '& .MuiSvgIcon-root': {
+            fontSize: '16px',
+        },
+        '&:hover': {
+            backgroundColor: colors.hover.fill,
+            color: colors.hover.text,
+        },
+        '&:active': {
+            backgroundColor: colors.pressed.fill,
+            color: colors.pressed.text,
+        },
+        '&.Mui-focusVisible': {
+            boxShadow: `0 0 0 2px ${pne.modal.fill}, 0 0 0 4px ${pne.focusRing}`,
+        },
+    }
+}
 
 const BlockingOverlaySlot = styled(Box)`
     position: absolute;

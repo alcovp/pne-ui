@@ -73,9 +73,9 @@ describe('PneModal', () => {
     })
 
     it.each([
-        ['light', '#F1F5FA'],
-        ['dark', 'rgba(255,255,255,0.035)'],
-    ] as const)('uses the semantic subtle divider in %s mode', (colorMode, expectedColor) => {
+        ['light', '#E2E9F0'],
+        ['dark', '#484848'],
+    ] as const)('parts the header and the buttons from the body by the modal hairline in %s mode', (colorMode, expectedColor) => {
         const theme = createPneTheme(
             {experimentalColor: '#0a91bc'} as Skin,
             {colorMode},

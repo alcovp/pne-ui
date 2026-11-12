@@ -73,13 +73,13 @@ const SearchUITemplateEditor = (props: IProps) => {
     return <PneModal
         actions={<PneModalActions
             secondary={<PneButton
-                size='large'
+                size='medium'
                 type={'button'}
                 pneStyle='outlined'
                 onClick={onClose}
             >{t('cancel')}</PneButton>}
             primary={<PneButton
-                size='large'
+                size='medium'
                 type='submit'
                 form={createFormId}
             >{t('create')}</PneButton>}

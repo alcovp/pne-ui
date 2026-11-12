@@ -356,7 +356,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
         {...createAutoTestAttributes(COLUMN_SETTINGS_DIALOG_AUTOTEST_ID, autoTestId)}
         actions={<PneModalActions
             leading={<PneButton
-                size='large'
+                size='medium'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_RESET_AUTOTEST_ID)}
                 disabled={saving || resolvedDraft.isDefault}
                 onClick={handleReset}
@@ -365,7 +365,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 {t('pneTable.columnSettings.reset', {defaultValue: 'Reset to default'})}
             </PneButton>}
             primary={<PneButton
-                size='large'
+                size='medium'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_SAVE_AUTOTEST_ID)}
                 disabled={saving}
                 onClick={() => {
@@ -376,7 +376,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 {t('pneTable.columnSettings.save', {defaultValue: 'Save'})}
             </PneButton>}
             secondary={<PneButton
-                size='large'
+                size='medium'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_CANCEL_AUTOTEST_ID)}
                 disabled={saving}
                 onClick={onClose}
