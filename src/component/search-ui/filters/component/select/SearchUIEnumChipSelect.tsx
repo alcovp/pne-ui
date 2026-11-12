@@ -39,6 +39,7 @@ export const SearchUIEnumChipSelect = <T extends string, >(props: Props<T>) => {
                 size={'small'}
             />
             <PneSelect
+                size='large'
                 aria-label={ariaLabel}
                 SelectDisplayProps={createAutoTestAttributes(CRITERION_SELECT_AUTOTEST_ID)}
                 open={open}

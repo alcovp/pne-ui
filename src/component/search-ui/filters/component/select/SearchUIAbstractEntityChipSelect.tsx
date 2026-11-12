@@ -79,6 +79,7 @@ const SearchUIAbstractEntityChipSelect = (props: IProps) => {
             }}
         />
         <PneSelect
+            size='large'
             disabled={disabled}
             open={open}
             onClose={() => setOpen(false)}

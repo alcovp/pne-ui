@@ -70,6 +70,7 @@ const SelectionTableStory = ({
     const selectionControls = <PneTableSelectionControls
         actions={<>
             <PneButton
+                size='large'
                 onClick={selectAllResults}
                 pneStyle='text'
                 sx={{minHeight: '40px'}}
@@ -77,6 +78,7 @@ const SelectionTableStory = ({
                 Select all results
             </PneButton>
             <PneButton
+                size='large'
                 disabled={selection.selectedCount === 0}
                 onClick={clearSelection}
                 pneStyle='text'
@@ -86,7 +88,7 @@ const SelectionTableStory = ({
             </PneButton>
             {showBulkActions ? <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
                 <Typography>Operations with selected rows</Typography>
-                <PneButton pneStyle='outlined' sx={{minHeight: '40px'}}>
+                <PneButton size='large' pneStyle='outlined' sx={{minHeight: '40px'}}>
                     Actions
                 </PneButton>
             </Box> : null}
@@ -240,6 +242,7 @@ const SubpixelSelectionLayoutStory = () => {
                 >
                     <Typography>{selection.selectedCount} rows selected</Typography>
                     {selection.selectedCount > 0 ? <PneButton
+                        size='large'
                         onClick={selection.clear}
                         pneStyle='text'
                     >
@@ -327,10 +330,11 @@ const GatesLikeControlsStory = ({width}: {width?: number}) => {
                 contextual={<PneTableSelectionControls
                     summary={<Typography>Selected gates: {selection.selectedCount}</Typography>}
                     actions={<>
-                        <PneButton onClick={() => selection.selectAllMatching(120)} pneStyle='text'>
+                        <PneButton size='large' onClick={() => selection.selectAllMatching(120)} pneStyle='text'>
                             Select all
                         </PneButton>
                         {selection.selectedCount > 0 ? <PneButton
+                            size='large'
                             onClick={selection.clear}
                             pneStyle='text'
                         >
@@ -346,7 +350,7 @@ const GatesLikeControlsStory = ({width}: {width?: number}) => {
                             }}
                         >
                             <Box>Operations with selected gates</Box>
-                            <PneButton pneStyle='outlined'>Actions</PneButton>
+                            <PneButton size='large' pneStyle='outlined'>Actions</PneButton>
                         </Stack>
                     </>}
                 />}

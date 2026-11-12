@@ -527,6 +527,7 @@ const TableSelectionViewsWrap = () => {
                     <PneTableSelectionControls
                         actions={<>
                             <PneButton
+                                size='large'
                                 disabled={controller.interactionDisabled}
                                 onClick={() => {
                                     void controller.selectAllMatchingResults?.()
@@ -537,6 +538,7 @@ const TableSelectionViewsWrap = () => {
                                 Выбрать все
                             </PneButton>
                             <PneButton
+                                size='large'
                                 disabled={controller.interactionDisabled
                                     || controller.selectedCount === 0}
                                 onClick={controller.clear}
@@ -547,7 +549,7 @@ const TableSelectionViewsWrap = () => {
                             </PneButton>
                             <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
                                 <Box>Операции с выбранным</Box>
-                                <PneButton pneStyle='outlined' sx={{minHeight: '40px'}}>
+                                <PneButton size='large' pneStyle='outlined' sx={{minHeight: '40px'}}>
                                     Действия
                                 </PneButton>
                             </Box>

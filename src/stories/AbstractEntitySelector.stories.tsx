@@ -11,7 +11,7 @@ const FullViewColumnsExample = () => {
     const [open, setOpen] = React.useState(false)
 
     return <Box sx={{p: 2}}>
-        <PneButton onClick={() => setOpen(true)}>Configure Full view</PneButton>
+        <PneButton size='large' onClick={() => setOpen(true)}>Configure Full view</PneButton>
         <Typography role='status' sx={{mt: 2}}>
             Saved order: {columns.join(' → ')}
         </Typography>

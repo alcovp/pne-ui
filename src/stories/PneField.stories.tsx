@@ -38,6 +38,7 @@ export const Base: Story = {
             label='Report file name'
         >
             <PneTextField
+                size='large'
                 defaultValue='Cashflow_10_12_2024'
             />
         </PneField>
@@ -55,6 +56,7 @@ export const Controls: Story = {
             label='Report file name'
         >
             <PneTextField
+                size='large'
                 defaultValue='Cashflow_10_12_2024'
             />
         </PneField>
@@ -63,6 +65,7 @@ export const Controls: Story = {
             required
         >
             <PneSelect
+                size='large'
                 options={deliveryServers.slice(1)}
                 placeholder='Please select'
                 value={null}
@@ -71,6 +74,7 @@ export const Controls: Story = {
         </PneField>
         <PneField label='Delivery server'>
             <PneAutocomplete
+                size='large'
                 options={deliveryServers.slice(1)}
                 placeholder='Please select'
                 sx={{
@@ -177,6 +181,7 @@ export const LongError: Story = {
             label='Login IPs/masks whitelist'
         >
             <PneTextField
+                size='large'
                 defaultValue={longInvalidToken}
                 multiline
                 rows={5}

@@ -73,11 +73,13 @@ const SearchUITemplateEditor = (props: IProps) => {
     return <PneModal
         actions={<PneModalActions
             secondary={<PneButton
+                size='large'
                 type={'button'}
                 pneStyle='outlined'
                 onClick={onClose}
             >{t('cancel')}</PneButton>}
             primary={<PneButton
+                size='large'
                 type='submit'
                 form={createFormId}
             >{t('create')}</PneButton>}
@@ -96,6 +98,7 @@ const SearchUITemplateEditor = (props: IProps) => {
     >
         <form id={createFormId} onSubmit={handleCreate}>
             <PneTextField
+                size='large'
                 value={templateName}
                 label={t('react.searchUI.template.name')}
                 onChange={handleChange}

@@ -51,6 +51,7 @@ const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColum
 
         if (variant === 'button') {
             return <PneButton
+                size='large'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_ACTION_AUTOTEST_ID, autoTestId)}
                 disabled={disabled}
                 onClick={onClick}

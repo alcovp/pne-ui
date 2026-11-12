@@ -177,6 +177,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
             <Divider/>
             <Box sx={searchRowSx}>
                 <PneTextField
+                    size='large'
                     value={searchString}
                     onChange={onSearchChange}
                     placeholder={t('search')}
@@ -281,12 +282,12 @@ export const MultigetSelectActions = (props: MultigetSelectActionsProps) => {
     return <PneModalActions
         sx={sx}
         secondary={(
-            <PneButton pneStyle='outlined' onClick={onCancelClick}>
+            <PneButton size='large' pneStyle='outlined' onClick={onCancelClick}>
                 {t('cancel')}
             </PneButton>
         )}
         primary={(
-            <PneButton onClick={onSaveClick}>
+            <PneButton size='large' onClick={onSaveClick}>
                 {t('save')}
             </PneButton>
         )}

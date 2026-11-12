@@ -366,6 +366,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         >
             {searchable ? <Box component={'li'} role={'none'} sx={menuSearchSx}>
                 <PneTextField
+                    size='large'
                     aria-label={searchLabel}
                     autoComplete={'off'}
                     autoFocus

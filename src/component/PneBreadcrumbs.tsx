@@ -327,6 +327,7 @@ export const PneBreadcrumbs = ({
 
         if (item.type === 'action') {
             return <PneButton
+                size='large'
                 key={item.id}
                 pneStyle='text'
                 sx={[

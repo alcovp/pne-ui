@@ -51,14 +51,16 @@ const HookWrap = () => {
 
     return <Box sx={{background: '#FFFFFF'}}>
         <PneAsyncAutocomplete
+            size='large'
             loadOptions={() => {
                 return getList(1, 10, 10)
             }}
         />
-        <PneButton onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}>
+        <PneButton size='large' onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}>
             Create
         </PneButton>
         <PneButton
+            size='large'
             onClick={async () => {
                 const list = await getList(page, pageSize, 6)
                 setCustomData(list)

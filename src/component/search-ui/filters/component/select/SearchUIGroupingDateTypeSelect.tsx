@@ -40,6 +40,7 @@ const SearchUIGroupingDateTypeSelect = () => {
             sx={{pointerEvents: 'none'}}
         />
         <PneSelect
+            size='large'
             open={open}
             onClose={() => setOpen(false)}
             onOpen={() => setOpen(true)}

@@ -557,6 +557,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         <>
             <Box sx={{marginBottom: '20px'}}>
                 <PneTextField
+                    size='large'
                     variant={'outlined'}
                     sx={{width: '100%'}}
                     onChange={(e) => {
@@ -599,6 +600,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 </HeaderColumn>
                                 {disableMoving !== 'AVAILABLE' && (
                                     <PneButton
+                                        size='large'
                                         {...elementAttributes?.addAllButton}
                                         pneStyle='text'
                                         type='button'
@@ -665,6 +667,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 </HeaderColumn>
                                 {disableMoving !== 'ADDED' && (
                                     <PneButton
+                                        size='large'
                                         {...elementAttributes?.removeAllButton}
                                         pneStyle='text'
                                         type='button'
@@ -728,6 +731,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     sx={{marginTop: '38px'}}
                 >
                     <PneTextField
+                        size='large'
                         value={textValue}
                         onChange={(event) => {
                             handleChangeTextareaValue(event.target.value)

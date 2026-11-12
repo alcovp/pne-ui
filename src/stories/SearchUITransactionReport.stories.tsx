@@ -72,6 +72,7 @@ const TransactionReportFilters = ({invalidRange = false, config}: Props) => {
                 />
                 <Box sx={{display: 'flex', alignItems: 'center', gap: '12px', px: '16px', pt: '16px'}}>
                     <PneButton
+                        size='large'
                         pneStyle={'contained'}
                         disabled={!validationResult?.isValid}
                     >

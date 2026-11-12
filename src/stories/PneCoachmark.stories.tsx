@@ -40,7 +40,7 @@ const CoachmarkHarness = ({
             ref={setAnchorEl}
             sx={{display: 'inline-flex'}}
         >
-            <PneButton pneStyle='neutral'>{anchorLabel}</PneButton>
+            <PneButton size='large' pneStyle='neutral'>{anchorLabel}</PneButton>
         </Box> : null}
         <PneCoachmark
             actions={actions(close)}
@@ -66,15 +66,15 @@ const CoachmarkHarness = ({
 }
 
 const InvitationActions = ({close}: {close: () => void}) => <PneModalActions
-    leading={<PneButton pneStyle='text' onClick={close}>Do not offer again</PneButton>}
-    secondary={<PneButton pneStyle='outlined' onClick={close}>Not now</PneButton>}
-    primary={<PneButton pneStyle='contained'>Show me</PneButton>}
+    leading={<PneButton size='large' pneStyle='text' onClick={close}>Do not offer again</PneButton>}
+    secondary={<PneButton size='large' pneStyle='outlined' onClick={close}>Not now</PneButton>}
+    primary={<PneButton size='large' pneStyle='contained'>Show me</PneButton>}
 />
 
 const WizardActions = ({close}: {close: () => void}) => <PneModalActions
-    leading={<PneButton pneStyle='text' onClick={close}>Continue later</PneButton>}
-    secondary={<PneButton pneStyle='outlined'>Back</PneButton>}
-    primary={<PneButton pneStyle='contained'>Next</PneButton>}
+    leading={<PneButton size='large' pneStyle='text' onClick={close}>Continue later</PneButton>}
+    secondary={<PneButton size='large' pneStyle='outlined'>Back</PneButton>}
+    primary={<PneButton size='large' pneStyle='contained'>Next</PneButton>}
 />
 
 const getRenderedCoachmark = async (canvasElement: HTMLElement, name: string) => {
@@ -122,7 +122,7 @@ export const AnchoredInvitation: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'An optional invitation remains anchored to its quiet trigger. Above 480px all three default-size actions stay in one 32px row with single-line labels.',
+                story: 'An optional invitation remains anchored to its quiet trigger. Above 480px all three large actions stay in one 40px row with single-line labels.',
             },
         },
     },
@@ -158,11 +158,11 @@ export const AnchoredInvitation: Story = {
                 anchorRect.left,
                 iframeDocument.documentElement.clientWidth - 16 - surfaceRect.width,
             ))).toBeLessThanOrEqual(1)
-            expect(actionsRect.height).toBe(32)
+            expect(actionsRect.height).toBe(40)
             expect(Math.max(...buttonRects.map(rect => rect.top))
                 - Math.min(...buttonRects.map(rect => rect.top))).toBeLessThanOrEqual(1)
             actionButtons.forEach((button, index) => {
-                expect(buttonRects[index].height).toBe(32)
+                expect(buttonRects[index].height).toBe(40)
                 expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth + 1)
                 expect(getComputedStyle(button).whiteSpace).toBe('nowrap')
                 expect(getComputedStyle(button).flexShrink).toBe('0')
@@ -231,7 +231,7 @@ export const CenteredFallback: Story = {
     },
     render: () => <CoachmarkHarness
         actions={close => <PneModalActions
-            primary={<PneButton pneStyle='contained' onClick={close}>Close</PneButton>}
+            primary={<PneButton size='large' pneStyle='contained' onClick={close}>Close</PneButton>}
         />}
         anchored={false}
         body='The requested target is not mounted at this board size, so this coachmark is centered instead.'
@@ -274,7 +274,7 @@ export const ResponsiveActions: Story = {
         buttons.forEach((button, index) => {
             expect(Math.abs(buttonRects[index].width - actions.clientWidth))
                 .toBeLessThanOrEqual(1)
-            expect(buttonRects[index].height).toBe(32)
+            expect(buttonRects[index].height).toBe(40)
             if (index > 0) {
                 expect(buttonRects[index].top).toBeGreaterThanOrEqual(
                     buttonRects[index - 1].bottom + 7,

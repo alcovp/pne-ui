@@ -156,6 +156,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
             <PneModal
                 actions={<PneModalActions
                     secondary={current?.showCancel ? <PneButton
+                        size='large'
                         key={`confirm-cancel-${current.requestId}`}
                         {...createAutoTestAttributes('alert.button.cancel')}
                         pneStyle='outlined'
@@ -164,6 +165,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                         {current.cancelLabel}
                     </PneButton> : undefined}
                     primary={<PneButton
+                        size='large'
                         key={`confirm-submit-${current?.requestId ?? 'closed'}`}
                         {...createAutoTestAttributes('alert.button.submit')}
                         pneStyle={current?.danger ? 'error' : 'contained'}

@@ -79,6 +79,7 @@ export const OrdersSearchCountrySelect = () => {
             sx={{pointerEvents: 'none'}}
         />
         <PneSelect
+            size='large'
             disabled={disabled}
             open={open}
             onClose={() => setOpen(false)}
