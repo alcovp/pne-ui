@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react'
-import { Alert, Box, Collapse, Portal, Snackbar, type SnackbarOrigin, useMediaQuery } from '@mui/material'
+import { Box, Collapse, Portal, Snackbar, type SnackbarOrigin, useMediaQuery } from '@mui/material'
 import { useBreakpoint } from '../responsive/useBreakpoint'
 import { useOverlayStore } from './overlayStore'
 import type { PaynetViolationMessageResolver, PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
@@ -7,6 +7,8 @@ import { PermanentOverlayContext } from './PermanentOverlayContext'
 import { OverlayPortalContainerContext } from './OverlayPortalContainerContext'
 import { PaynetErrorPresentationContext } from './PaynetErrorPresentationContext'
 import { registerOverlayHost } from './overlayRuntime'
+import OverlayToast from './OverlayToast'
+import PaynetErrorContent from './PaynetErrorContent'
 
 export type OverlayPortalContainer = Element
 
@@ -86,6 +88,8 @@ type PresentedSnackbar = {
 type HorizontalCollision = boolean | null
 
 const STACK_GAP = 12
+// UI Kit OverlayHost: 8px between notifications.
+const NOTIFICATION_GAP = 8
 const STACK_OFFSET = 24
 const OPERATION_CENTER_OFFSET = 16
 const STACK_REFLOW_DURATION_MS = 200
@@ -139,6 +143,12 @@ const clearTimer = (timer: ReturnType<typeof setInterval> | ReturnType<typeof se
         clearTimeout(timer)
     }
 }
+
+const NOTIFICATION_WIDTH = 448
+
+// An error with an identifier and details is a banner, not a toast (UI Kit OverlayHost).
+const isPaynetErrorMessage = (message: React.ReactNode): boolean =>
+    React.isValidElement(message) && message.type === PaynetErrorContent
 
 const ManagedSnackbar = ({
     anchor,
@@ -280,72 +290,21 @@ const ManagedSnackbar = ({
                 position: 'static',
                 transform: 'none',
                 pointerEvents: open ? 'auto' : 'none',
-                minWidth: 'min(288px, calc(100vw - 32px))',
+                // UI Kit OverlayHost: every notification is 448px wide, or as wide as a phone lets it be.
                 maxWidth: 'calc(100vw - 32px)',
-                width: 'fit-content',
+                width: `${NOTIFICATION_WIDTH}px`,
             }}
         >
-            <Alert
-                elevation={1}
-                onClose={remove}
-                severity={snack.variant ?? 'info'}
+            <OverlayToast
                 action={snack.action}
-                sx={{
-                    boxSizing: 'border-box',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    alignItems: 'flex-start',
-                    maxWidth: '100%',
-                    width: '100%',
-                    '& .MuiAlert-message': {
-                        minWidth: 0,
-                    },
-                    ...(snack.action != null ? {
-                        '& .MuiAlert-action': {
-                            alignItems: 'flex-start',
-                        },
-                    } : {
-                        '& .MuiAlert-action': {
-                            alignItems: 'stretch',
-                            alignSelf: 'stretch',
-                            mb: '-6px',
-                            mr: '-16px',
-                            mt: '-6px',
-                            pb: 0,
-                            pl: '8px',
-                            pt: 0,
-                        },
-                        '& .MuiAlert-action .MuiIconButton-root': {
-                            alignItems: 'flex-start',
-                            alignSelf: 'stretch',
-                            borderRadius: 0,
-                            pb: 0,
-                            pl: '13px',
-                            pr: '13px',
-                            pt: '15px',
-                        },
-                    }),
-                }}
+                description={snack.description}
+                onClose={remove}
+                presentation={isPaynetErrorMessage(snack.message) ? 'banner' : 'toast'}
+                progress={prefersReducedMotion ? null : progressScale}
+                tone={snack.variant ?? 'info'}
             >
-                {progressScale != null && !prefersReducedMotion ? (
-                    <Box
-                        data-testid='overlay-snackbar-progress'
-                        sx={{
-                            position: 'absolute',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            height: '3px',
-                            backgroundColor: 'currentColor',
-                            opacity: 0.24,
-                            transformOrigin: 'left',
-                            transform: `scaleX(${progressScale})`,
-                            pointerEvents: 'none',
-                        }}
-                    />
-                ) : null}
                 {snack.message}
-            </Alert>
+            </OverlayToast>
         </Snackbar>
     )
 }
@@ -398,13 +357,13 @@ const MeasuredSnackbarStack = ({
         : {
             bottom: sharesOperationBottom
                 ? operationCenterHeight + OPERATION_CENTER_OFFSET
-                : STACK_OFFSET - STACK_GAP,
+                : STACK_OFFSET - NOTIFICATION_GAP,
             top: 'auto',
             flexDirection: 'column-reverse' as const,
             '@supports (bottom: env(safe-area-inset-bottom))': {
                 bottom: sharesOperationBottom
                     ? `calc(${operationCenterHeight + OPERATION_CENTER_OFFSET}px + env(safe-area-inset-bottom, 0px))`
-                    : `calc(${STACK_OFFSET - STACK_GAP}px + env(safe-area-inset-bottom, 0px))`,
+                    : `calc(${STACK_OFFSET - NOTIFICATION_GAP}px + env(safe-area-inset-bottom, 0px))`,
             },
         }
 
@@ -422,16 +381,19 @@ const MeasuredSnackbarStack = ({
                 ...verticalStyles,
             }}
         >
-            {items.map(({open, presentationKey, snack}) => (
+            {items.map(({open, presentationKey, snack}, index) => (
                 <Collapse
                     key={presentationKey}
                     appear={false}
                     enter={false}
                     in={open}
                     onExited={() => completeExitPart(presentationKey, 'collapse')}
+                    // The first item stands lowest. A toast casts a long shadow downwards, so each item is
+                    // drawn over the ones above it and no shadow falls on a neighbour's face.
+                    sx={{position: 'relative', zIndex: items.length - index}}
                     timeout={prefersReducedMotion ? 0 : STACK_REFLOW_DURATION_MS}
                 >
-                    <Box data-pne-overlay-stack-item sx={{pb: `${STACK_GAP}px`}}>
+                    <Box data-pne-overlay-stack-item sx={{pb: `${NOTIFICATION_GAP}px`}}>
                         <ManagedSnackbar
                             anchor={anchor}
                             onExited={() => completeExitPart(presentationKey, 'grow')}

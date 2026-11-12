@@ -1,15 +1,33 @@
 import * as React from 'react'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { AlertTitle, Box, createTheme, ThemeProvider } from '@mui/material'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { createTheme, ThemeProvider } from '@mui/material'
 
 import {
     OverlayHost,
     overlayActions,
     PAYNET_LEFT_MENU_OVERLAY_OFFSET,
+    PneThemeProvider,
+    type Skin,
     useOverlayStore,
 } from '../src'
 import { createResponsiveLeftOffsetStyles } from '../src/component/overlay/OverlayHost'
 import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRuntime'
+
+// jsdom ignores selector specificity in getComputedStyle, so the look is read from the rules of the
+// element's own css- class. `&` stands for that class; selectors are compared without whitespace.
+const ruleValue = (element: Element, selector: string, property: string): string | undefined => {
+    const wanted = Array.from(element.classList)
+        .filter(className => className.startsWith('css-'))
+        .map(className => selector.replace(/&/g, `.${className}`).replace(/\s+/g, ''))
+    const values = Array.from(document.styleSheets)
+        .flatMap(sheet => Array.from(sheet.cssRules))
+        .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+        .filter(rule => wanted.includes(rule.selectorText.replace(/\s+/g, '')))
+        .map(rule => rule.style.getPropertyValue(property))
+        .filter(Boolean)
+
+    return values[values.length - 1]
+}
 
 describe('OverlayHost', () => {
     let consoleErrorSpy: jest.SpyInstance
@@ -81,8 +99,9 @@ describe('OverlayHost', () => {
         const stackItem = message.closest<HTMLElement>('[data-pne-overlay-stack-item]')!
 
         expect(window.getComputedStyle(stack).gap).toBe('0px')
-        expect(window.getComputedStyle(stack).bottom).toBe('12px')
-        expect(window.getComputedStyle(stackItem).paddingBottom).toBe('12px')
+        // 8px between notifications (UI Kit OverlayHost); the stack is lifted by what its lowest item pads.
+        expect(window.getComputedStyle(stack).bottom).toBe('16px')
+        expect(window.getComputedStyle(stackItem).paddingBottom).toBe('8px')
 
         act(() => {
             overlayActions.removeSnackbar('animated-exit')
@@ -102,43 +121,57 @@ describe('OverlayHost', () => {
         })
     })
 
-    it('aligns the severity icon and stretches only the built-in close target', async () => {
-        render(<OverlayHost container={null} />)
+    it('draws a toast by the UI Kit: the fill of its tone, the message as the title, a description, a 32px close cross', async () => {
+        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}><OverlayHost container={null} /></PneThemeProvider>)
 
         act(() => {
-            overlayActions.showInfo({
-                id: 'close-chrome',
+            overlayActions.showSuccess({
+                id: 'toast-look',
                 autoHideMs: undefined,
-                message: (
-                    <Box>
-                        <AlertTitle>Information</AlertTitle>
-                        A general notification.
-                    </Box>
-                ),
+                message: 'Done',
+                description: 'The changes are saved.',
             })
         })
 
-        const title = await screen.findByText('Information')
-        const alert = title.closest('.MuiAlert-root')!
-        const icon = alert.querySelector<HTMLElement>('.MuiAlert-icon')!
+        const title = await screen.findByText('Done')
+        const alert = title.closest<HTMLElement>('.MuiAlert-root')!
+        const description = screen.getByText('The changes are saved.')
         const closeButton = screen.getByRole('button', { name: 'Close' })
-        const closeAction = closeButton.closest<HTMLElement>('.MuiAlert-action')!
+        const snackbar = alert.closest<HTMLElement>('.MuiSnackbar-root')!
 
-        expect(window.getComputedStyle(icon).paddingTop).toBe('7px')
-        expect(window.getComputedStyle(closeAction).marginTop).toBe('-6px')
-        expect(window.getComputedStyle(closeAction).marginBottom).toBe('-6px')
-        expect(window.getComputedStyle(closeAction).marginRight).toBe('-16px')
-        expect(window.getComputedStyle(closeAction).paddingLeft).toBe('8px')
-        expect(window.getComputedStyle(closeButton).borderRadius).toBe('0')
-        expect(window.getComputedStyle(closeButton).paddingTop).toBe('15px')
-        expect(window.getComputedStyle(closeButton).paddingLeft).toBe('13px')
-        expect(window.getComputedStyle(closeButton).paddingRight).toBe('13px')
-        expect(window.getComputedStyle(closeButton).paddingBottom).toBe('0px')
+        expect(alert.getAttribute('data-pne-toast')).toBe('toast')
+        expect(alert.getAttribute('data-pne-tone')).toBe('success')
+        // No sign of the tone: the fill tells it.
+        expect(alert.querySelector('.MuiAlert-icon')).toBeNull()
+        expect(ruleValue(alert, '&[data-pne-tone="success"]', 'background-color')).toBe('#96E7A7')
+        expect(ruleValue(alert, '&[data-pne-tone="success"]', '--pne-toast-text')).toBe('#017433')
+        expect(ruleValue(alert, '&', 'border-radius')).toBe('8px')
+        expect(ruleValue(alert, '&', 'padding')).toBe('8px 16px')
+        expect(ruleValue(alert, '&', 'color')).toBe('#2C3136')
+        expect(ruleValue(alert, '& [data-pne-toast-title]', 'font-size')).toBe('18px')
+        expect(ruleValue(alert, '& [data-pne-toast-title]', 'line-height')).toBe('26px')
+        expect(ruleValue(alert, '& [data-pne-toast-title]', 'font-weight')).toBe('600')
+        expect(title.hasAttribute('data-pne-toast-title')).toBe(true)
+        expect(description.hasAttribute('data-pne-toast-description')).toBe(true)
+        expect(ruleValue(alert, '& [data-pne-toast-description]', 'color')).toBe('var(--pne-toast-text)')
+        expect(ruleValue(alert, '& [data-pne-toast-description]', 'font-size')).toBe('12px')
+        // The actions keep 64px from the text; the cross is an icon action in the text colour of the tone.
+        expect(ruleValue(alert, '& .MuiAlert-action', 'padding')).toBe('0 0 0 64px')
+        expect(window.getComputedStyle(closeButton).width).toBe('32px')
+        expect(window.getComputedStyle(closeButton).height).toBe('32px')
+        expect(ruleValue(closeButton, '&', 'color')).toBe('var(--pne-toast-text)')
+        expect(closeButton.querySelector('[data-testid="PneCloseIcon"]')).not.toBeNull()
+        // Every notification is 448px wide, or as wide as a phone lets it be.
+        expect(window.getComputedStyle(snackbar).width).toBe('448px')
+        expect(window.getComputedStyle(snackbar).maxWidth).toBe('calc(100vw - 32px)')
+    })
+
+    it('keeps the close cross after a consumer action and draws the undo action as a soft small button', async () => {
+        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}><OverlayHost container={null} /></PneThemeProvider>)
 
         act(() => {
-            overlayActions.clearSnackbars()
             overlayActions.showUndoSnackbar({
-                id: 'unchanged-undo-chrome',
+                id: 'undo-look',
                 message: 'Filters cleared',
                 autoHideMs: undefined,
                 onUndo: jest.fn(),
@@ -146,12 +179,39 @@ describe('OverlayHost', () => {
         })
 
         const undoButton = await screen.findByRole('button', { name: 'Undo' })
-        const undoAction = undoButton.closest<HTMLElement>('.MuiAlert-action')!
+        const action = undoButton.closest<HTMLElement>('.MuiAlert-action')!
 
-        expect(window.getComputedStyle(undoAction).marginTop).not.toBe('-6px')
-        expect(window.getComputedStyle(undoAction).marginRight).not.toBe('-16px')
-        expect(window.getComputedStyle(undoAction).paddingTop).toBe('4px')
-        expect(window.getComputedStyle(undoButton).borderRadius).not.toBe('0')
+        expect(undoButton.getAttribute('data-pne-size')).toBe('small')
+        expect(undoButton.getAttribute('data-pne-variant')).toBe('soft')
+        expect(undoButton.querySelector('svg')).toBeNull()
+        expect(within(action).getByRole('button', { name: 'Close' })).not.toBeNull()
+        // The action stands before the cross.
+        expect(action.firstElementChild).toBe(undoButton)
+    })
+
+    it('draws an error with details as a banner: the pale fill of the tone in a ring, with its sign', async () => {
+        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}><OverlayHost container={null} /></PneThemeProvider>)
+
+        act(() => {
+            overlayActions.showError({
+                id: 'banner-look',
+                error: {errorId: 'k-500', messageId: 'Unexpected error', details: 'java.lang.IllegalStateException'},
+            })
+        })
+
+        const alert = await waitFor(() => {
+            const banner = document.querySelector<HTMLElement>('.MuiAlert-root[data-pne-toast="banner"]')
+            expect(banner).not.toBeNull()
+            return banner!
+        })
+
+        expect(alert.getAttribute('data-pne-toast')).toBe('banner')
+        expect(alert.querySelector('.MuiAlert-icon')).not.toBeNull()
+        expect(alert.querySelector('[data-pne-toast-title]')).toBeNull()
+        expect(ruleValue(alert, '&[data-pne-toast="banner"][data-pne-tone="error"]', 'background-color')).toBe('#FFEEED')
+        expect(ruleValue(alert, '&[data-pne-toast="banner"][data-pne-tone="error"]', 'box-shadow')).toMatch(/^inset 0 0 0 1px #FEBEBB/)
+        expect(ruleValue(alert, '&[data-pne-toast="banner"]', 'padding')).toBe('12px 16px')
+        expect(window.getComputedStyle(within(alert).getByRole('button', { name: 'Close' })).width).toBe('24px')
     })
 
     it('pauses auto-close on hover and resumes with the exact remaining time', async () => {

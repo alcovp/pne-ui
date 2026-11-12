@@ -5,7 +5,10 @@ export type SnackbarVariant = 'info' | 'success' | 'warning' | 'error'
 
 export type SnackbarOptions = {
     id?: string
+    /** The text of the notification; a toast shows it as its title. */
     message: React.ReactNode
+    /** The second line of a toast under the message, in the text colour of the tone. */
+    description?: React.ReactNode
     variant?: SnackbarVariant
     /**
      * Auto-close timeout in milliseconds. `undefined` keeps the snackbar open until closed explicitly.

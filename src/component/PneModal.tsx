@@ -6,6 +6,7 @@ import {styled, type SxProps, type Theme} from '@mui/material/styles'
 import * as React from 'react'
 import {resolvePneSemanticPalette} from '../createTheme'
 import {PneCloseIcon} from './dropdown/dropdownLook'
+import {pneIconActionSx} from './iconActionLook'
 import {
     PneSurface,
     PneSurfaceBody,
@@ -331,6 +332,7 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
                     {...forwardedCloseButtonProps}
                     aria-label={resolvedCloseLabel}
                     inert={isBlocked ? true : undefined}
+                    disableRipple
                     sx={modalCloseButtonSx}
                     onClick={handleCloseButtonClick}
                     type='button'
@@ -697,34 +699,8 @@ const modalSubtitleSx: SxProps<Theme> = theme => ({
     color: resolvePneSemanticPalette(theme).modal.subtitle,
 })
 
-// UI Kit Icon action: a 32px tertiary button with the 16px thin cross and no fill at rest.
-const modalCloseButtonSx: SxProps<Theme> = theme => {
-    const pne = resolvePneSemanticPalette(theme)
-    const colors = pne.button.text
-    return {
-        flex: '0 0 auto',
-        width: '32px',
-        height: '32px',
-        padding: 0,
-        borderRadius: '4px',
-        backgroundColor: 'transparent',
-        color: colors.default.text,
-        '& .MuiSvgIcon-root': {
-            fontSize: '16px',
-        },
-        '&:hover': {
-            backgroundColor: colors.hover.fill,
-            color: colors.hover.text,
-        },
-        '&:active': {
-            backgroundColor: colors.pressed.fill,
-            color: colors.pressed.text,
-        },
-        '&.Mui-focusVisible': {
-            boxShadow: `0 0 0 2px ${pne.modal.fill}, 0 0 0 4px ${pne.focusRing}`,
-        },
-    }
-}
+// UI Kit Icon action md: a 32px box with the 16px thin cross; hover and press colour only the icon.
+const modalCloseButtonSx = pneIconActionSx('medium')
 
 const BlockingOverlaySlot = styled(Box)`
     position: absolute;

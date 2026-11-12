@@ -64,7 +64,7 @@ describe('PneModal (UI Kit look)', () => {
         expect(style(screen.getByRole('heading', {name: 'Min/max amounts'})).color).not.toBe('rgb(44, 49, 54)')
     })
 
-    it('draws the close cross as a 32px icon action with no fill at rest', () => {
+    it('draws the close cross as a 32px icon action: no fill, only the icon takes colour', () => {
         renderModal()
         const close = screen.getByRole('button', {name: 'Close'})
 
@@ -72,7 +72,8 @@ describe('PneModal (UI Kit look)', () => {
         expect(style(close).height).toBe('32px')
         expect(style(close).borderRadius).toBe('4px')
         expect(style(close).backgroundColor).toBe('transparent')
-        expect(style(close).color).toBe('rgb(86, 91, 97)')
+        // UI Kit Icon action: the tertiary text colour at rest.
+        expect(style(close).color).toBe('rgb(110, 116, 122)')
         expect(close.querySelector('[data-testid="PneCloseIcon"]')).not.toBeNull()
     })
 

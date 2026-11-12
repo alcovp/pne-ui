@@ -96,7 +96,7 @@ describe('OverlayHost operation center slot', () => {
             expect(operationSlot).not.toBeNull()
             expect(snackbarStack).not.toBe(operationSlot)
             await waitFor(() => {
-                expect(window.getComputedStyle(snackbarStack as Element).bottom).toBe('12px')
+                expect(window.getComputedStyle(snackbarStack as Element).bottom).toBe('16px')
             })
         } finally {
             measure.mockRestore()
@@ -145,7 +145,7 @@ describe('OverlayHost operation center slot', () => {
             const stack = (await screen.findByText('Separated feedback'))
                 .closest<HTMLElement>('[data-pne-overlay-stack]')!
             await waitFor(() => {
-                expect(window.getComputedStyle(stack).bottom).toBe('12px')
+                expect(window.getComputedStyle(stack).bottom).toBe('16px')
             })
         } finally {
             measure.mockRestore()
@@ -248,7 +248,7 @@ describe('OverlayHost operation center slot', () => {
             const stack = (await screen.findByText('Position-aware feedback'))
                 .closest<HTMLElement>('[data-pne-overlay-stack]')!
             await waitFor(() => {
-                expect(window.getComputedStyle(stack).bottom).toBe('12px')
+                expect(window.getComputedStyle(stack).bottom).toBe('16px')
             })
 
             stackLeft = 500

@@ -1,5 +1,6 @@
 import React from 'react'
-import UndoIcon from '@mui/icons-material/Undo'
+import type { SxProps, Theme } from '@mui/material/styles'
+import { resolvePneSemanticPalette } from '../../createTheme'
 import PneButton from '../PneButton'
 import { create } from 'zustand'
 import type {
@@ -14,6 +15,11 @@ import { normalizePaynetError } from './paynetError'
 import { PaynetErrorContent } from './PaynetErrorContent'
 
 const defaultAutoHideMs = 5000
+
+// The label of a toast's action reads as the primary text on the soft fill, whatever the skin.
+const toastActionSx: SxProps<Theme> = theme => ({
+    color: resolvePneSemanticPalette(theme).toast.title,
+})
 
 const makeId = () => {
     if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
@@ -112,16 +118,14 @@ export const overlayActions = {
             action: React.createElement(
                 PneButton,
                 {
-                    pneStyle: 'text',
+                    // UI Kit Toast: a soft small button whose label reads as the primary text.
+                    pneStyle: 'neutral',
                     size: 'small',
-                    startIcon: React.createElement(UndoIcon, { fontSize: 'inherit' }),
                     onClick: () => {
                         useOverlayStore.getState().removeSnackbar(id)
                         onUndo()
                     },
-                    sx: {
-                        fontWeight: 600,
-                    },
+                    sx: toastActionSx,
                 },
                 undoLabel,
             ),

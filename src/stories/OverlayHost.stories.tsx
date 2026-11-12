@@ -1,7 +1,7 @@
 import React from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
-import { AlertTitle, Box, Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import { PneFloatingActionButtons, OverlayHost, PermanentOverlay, overlayActions } from '../index'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, waitFor, within } from 'storybook/test'
@@ -100,14 +100,8 @@ const SnackbarChromePreview = () => {
                 id,
                 variant,
                 autoHideMs: undefined,
-                message: (
-                    <Box data-story-snackbar-variant={variant}>
-                        <AlertTitle sx={{ mb: 0.5, fontSize: 14, fontWeight: 700, lineHeight: '20px' }}>
-                            {title}
-                        </AlertTitle>
-                        <Typography sx={{ fontSize: 14, lineHeight: '20px' }}>{message}</Typography>
-                    </Box>
-                ),
+                message: title,
+                description: message,
             })
         })
 
@@ -133,10 +127,11 @@ const SnackbarChromePreview = () => {
             sx={{ bgcolor: 'grey.50', minHeight: '100vh', p: 3 }}
         >
             <Typography component='h1' sx={{ fontSize: 20, fontWeight: 700, lineHeight: '28px' }}>
-                Snackbar icon and close alignment
+                Toasts of every tone
             </Typography>
             <Typography color='text.secondary' sx={{ fontSize: 14, lineHeight: '20px', mt: 0.5 }}>
-                Severity icons align with headings. Close targets fill the snackbar height; Undo keeps its action styling.
+                The message is the title, the description stands under it in the text colour of the tone. The undo
+                action is a soft small button before the close cross.
             </Typography>
             <OverlayHost />
         </Box>
@@ -174,22 +169,18 @@ export const ChromeAlignment: StoryObj<typeof SnackbarChromePreview> = {
             .findByText('The operation could not be completed.')
         const errorAlert = errorMessage.closest<HTMLElement>('.MuiAlert-root')!
 
+        // UI Kit Toast: every notification is 448px wide, has no sign of its tone, and ends with a 32px
+        // close cross that keeps 16px from the right edge.
         within(canvasElement.ownerDocument.body).getAllByRole('button', { name: 'Close' }).forEach(closeButton => {
             const alert = closeButton.closest<HTMLElement>('.MuiAlert-root')!
-            const closeAction = closeButton.closest<HTMLElement>('.MuiAlert-action')!
-            const alertTitle = alert.querySelector<HTMLElement>('.MuiAlertTitle-root')!
-            const severityIcon = alert.querySelector<SVGElement>('.MuiAlert-icon .MuiSvgIcon-root')!
             const alertRect = alert.getBoundingClientRect()
-            const closeActionRect = closeAction.getBoundingClientRect()
             const closeRect = closeButton.getBoundingClientRect()
 
-            expect(Math.abs(closeRect.height - alertRect.height))
-                .toBeLessThanOrEqual(1)
-            expect(Math.round(closeRect.width)).toBe(46)
-            expect(Math.round(closeActionRect.width)).toBe(54)
-            expect(Math.abs(closeRect.right - alertRect.right)).toBeLessThanOrEqual(1)
-            expect(Math.abs(severityIcon.getBoundingClientRect().top - alertTitle.getBoundingClientRect().top))
-                .toBeLessThanOrEqual(2)
+            expect(Math.round(alertRect.width)).toBe(448)
+            expect(alert.querySelector('.MuiAlert-icon')).toBeNull()
+            expect(Math.round(closeRect.width)).toBe(32)
+            expect(Math.round(closeRect.height)).toBe(32)
+            expect(Math.round(alertRect.right - closeRect.right)).toBe(16)
         })
 
         const undoButton = within(canvasElement.ownerDocument.body).getByRole('button', { name: 'Undo' })
