@@ -21,8 +21,8 @@ type Story = StoryObj<typeof PneSwitch>
 
 const LABEL_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 
-// The Figma matrix (StoryBook › pne-ui primitives › PneSwitch): rows size × value, columns the
-// states; medium is the UI Kit md, small is xs. Read-only and Loading are pne-ui states.
+// The Figma matrix (StoryBook › pne-ui primitives · v2 › PneSwitch): rows size × value, columns
+// the states in the Figma order; medium is the UI Kit md, small is xs.
 type MatrixColumn = {
     label: string
     props: Partial<React.ComponentProps<typeof PneSwitch>>
@@ -31,12 +31,20 @@ type MatrixColumn = {
 const MATRIX_COLUMNS: MatrixColumn[] = [
     {label: 'Enable', props: {}},
     {label: 'Hover', props: {'data-pne-state': 'hover'}},
-    {label: 'Pressed', props: {'data-pne-state': 'pressed'}},
-    {label: 'Focus', props: {'data-pne-state': 'focus'}},
     {label: 'Disable', props: {disabled: true}},
+    {label: 'Focus', props: {'data-pne-state': 'focus'}},
+    {label: 'Pressed', props: {'data-pne-state': 'pressed'}},
     {label: 'Read-only', props: {readOnly: true}},
     {label: 'Loading', props: {'data-pne-state': 'loading'}},
 ]
+
+// Figma «С подписью»: the label is 14/20 and 8px from the switch, grey when the switch is disabled.
+const LABELLED_COLUMNS = MATRIX_COLUMNS.filter(column => column.label !== 'Pressed')
+const SWITCH_LABEL_SX = {
+    ml: 0,
+    mr: 0,
+    '& .MuiFormControlLabel-label': {fontSize: 14, lineHeight: '20px', ml: '-3px', whiteSpace: 'nowrap'},
+} as const
 
 const MATRIX_ROWS: Array<{size: PneSwitchSize, checked: boolean}> = [
     {size: 'medium', checked: true},
@@ -193,9 +201,41 @@ export const DisabledHints: Story = {
 export const WithLabel: Story = {
     parameters: {controls: {disable: true}},
     render: () => (
-        <Stack spacing={2} sx={{p: 3}}>
-            <FormControlLabel control={<PneSwitch defaultChecked size='medium'/>} label='Medium switch'/>
-            <FormControlLabel control={<PneSwitch defaultChecked size='small'/>} label='Small switch'/>
+        <Stack spacing={3} sx={{p: 3}}>
+            <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '24px 12px', ml: -3}}>
+                <thead>
+                    <tr>
+                        <th/>
+                        {LABELLED_COLUMNS.map(column => (
+                            <Box component='th' key={column.label} sx={{...LABEL_SX, fontWeight: 400, textAlign: 'left'}}>
+                                {column.label}
+                            </Box>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {[true, false].map(checked => (
+                        <tr key={String(checked)}>
+                            <Box component='th' sx={{...LABEL_SX, fontWeight: 400, textAlign: 'left'}}>
+                                {checked ? 'checked' : 'unchecked'}
+                            </Box>
+                            {LABELLED_COLUMNS.map(column => (
+                                <td key={column.label}>
+                                    <FormControlLabel
+                                        control={<PneSwitch checked={checked} onChange={() => undefined} {...column.props}/>}
+                                        label='Уведомления о выплатах'
+                                        sx={SWITCH_LABEL_SX}
+                                    />
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </Box>
+            <Stack spacing={1}>
+                <FormControlLabel control={<PneSwitch defaultChecked size='medium'/>} label='Medium switch' sx={SWITCH_LABEL_SX}/>
+                <FormControlLabel control={<PneSwitch defaultChecked size='small'/>} label='Small switch' sx={SWITCH_LABEL_SX}/>
+            </Stack>
         </Stack>
     ),
 }

@@ -582,7 +582,7 @@ const createSwitchSx = (config: SwitchSizeConfig): SxProps<Theme> => theme => {
             width: config.thumbSize,
             height: config.thumbSize,
             borderRadius: '50%',
-            boxShadow: colors.knobShadow,
+            boxShadow: 'none',
             position: 'relative',
             transition: 'background-color 140ms linear',
         },

@@ -3,7 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react'
 
 import {PneSelect, PneThemeProvider, type Skin} from '../src'
 
-const UI_KIT_SKIN = {experimentalColor: '#007dff'} as Skin
+const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 // jsdom has no layout and ignores selector specificity in getComputedStyle, so the look is checked
 // on the rules of the element's own css- class. `&` stands for that class; selectors are compared
@@ -52,10 +52,10 @@ describe('PneSelect (UI Kit look)', () => {
     it('draws the field look of PneTextField on the select box', () => {
         const {root} = renderSelect()
 
-        expect(ruleValue(root, OUTLINED, '--pne-field-ring')).toBe('#C9D2D9')
+        expect(ruleValue(root, OUTLINED, '--pne-field-ring')).toBe('#E2E9F0')
         expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline`, 'border-color')).toBe('var(--pne-field-ring)')
         expect(ruleValue(root, `${OUTLINED} .MuiInputBase-input, & .MuiFilledInput-root.MuiInputBase-root .MuiInputBase-input`, 'color'))
-            .toBe('#41556B')
+            .toBe('#2C3136')
     })
 
     it('marks a pinned specimen state on the root', () => {
@@ -81,8 +81,8 @@ describe('PneSelect (UI Kit look)', () => {
         expect(icon.classList.contains('PneSelect-chevron')).toBe(true)
         expect(ruleValue(root, '& .MuiSelect-icon.PneSelect-chevron', 'font-size')).toBe('14px')
         expect(ruleValue(root, '& .MuiSelect-icon.PneSelect-chevron', 'right')).toBe('10px')
-        expect(ruleValue(root, '& .MuiSelect-icon', 'color')).toBe('#41556B')
-        expect(ruleValue(root, '& .MuiSelect-icon.Mui-disabled', 'color')).toBe('#A2AEB9')
+        expect(ruleValue(root, '& .MuiSelect-icon', 'color')).toBe('#2C3136')
+        expect(ruleValue(root, '& .MuiSelect-icon.Mui-disabled', 'color')).toBe('#B2B8BF')
     })
 
     it('keeps an icon component of the consumer at its own size', () => {
@@ -98,7 +98,7 @@ describe('PneSelect (UI Kit look)', () => {
         renderSelect({placeholder: 'Please select', value: null})
         const placeholder = screen.getByText('Please select')
 
-        expect(ruleValue(placeholder, '&', 'color')).toBe('#7C8B9B')
+        expect(ruleValue(placeholder, '&', 'color')).toBe('#8D9399')
     })
 
     it('draws the UI Kit dropdown panel', () => {
@@ -106,7 +106,7 @@ describe('PneSelect (UI Kit look)', () => {
         const menu = openMenu()
 
         expect(ruleValue(menu, '& .MuiMenu-paper', 'border-radius')).toBe('8px')
-        expect(ruleValue(menu, '& .MuiMenu-paper', 'box-shadow')).toMatch(/^inset 0 0 0 1px #EBEDF0, ?0 17px 36px/)
+        expect(ruleValue(menu, '& .MuiMenu-paper', 'box-shadow')).toMatch(/^inset 0 0 0 1px #E2E9F0, ?0 17px 36px/)
         expect(ruleValue(menu, '& .MuiMenu-paper', 'margin-top')).toBe('4px')
         expect(ruleValue(menu, '& .MuiMenu-list', 'padding')).toBe('4px')
     })
@@ -120,11 +120,11 @@ describe('PneSelect (UI Kit look)', () => {
             menu,
             `${ITEM}:hover, ${ITEM}.Mui-focusVisible, ${ITEM}[data-pne-state="hover"]`,
             'background-color',
-        )).toBe('#F5F6F7')
-        expect(ruleValue(menu, `${ITEM}.Mui-selected`, 'background-color')).toBe('#F2F8FF')
-        expect(ruleValue(menu, `${ITEM}.Mui-selected::after`, 'background-color')).toBe('#007DFF')
+        )).toBe('#F0F4F8')
+        expect(ruleValue(menu, `${ITEM}.Mui-selected`, 'background-color')).toBe('#EBF3FF')
+        expect(ruleValue(menu, `${ITEM}.Mui-selected::after`, 'background-color')).toBe('#026FD7')
         expect(ruleValue(menu, `${ITEM}.Mui-disabled`, 'opacity')).toBe('1')
-        expect(ruleValue(menu, `${ITEM}.Mui-disabled`, 'color')).toBe('#A2AEB9')
+        expect(ruleValue(menu, `${ITEM}.Mui-disabled`, 'color')).toBe('#B2B8BF')
     })
 
     it('shows the label of the picked option in the field, not the check of its row', () => {

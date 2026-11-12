@@ -3,7 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react'
 
 import {PneSwitch, PneThemeProvider, type Skin} from '../src'
 
-const UI_KIT_SKIN = {experimentalColor: '#007dff'} as Skin
+const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 const renderSwitch = (ui: React.ReactElement) => {
     const view = render(<PneThemeProvider skin={UI_KIT_SKIN}>{ui}</PneThemeProvider>)
@@ -49,15 +49,16 @@ describe('PneSwitch (UI Kit look)', () => {
         expect([ruleValue(root, '.MuiSwitch-thumb', 'width'), ruleValue(root, '.MuiSwitch-thumb', 'height')]).toEqual([thumb, thumb])
     })
 
-    it('draws the off value as a brand knob on a tinted, ringed track and the on value inverted', () => {
+    it('draws the off value as a white knob on a neutral track and the on value on the brand fill, with no ring and no shadow', () => {
         const {root} = renderSwitch(<PneSwitch aria-label='Values'/>)
 
-        expect(ruleValue(root, TRACK_OFF, 'background-color', true)).toBe('#F2F8FF')
-        expect(ruleValue(root, TRACK_OFF, 'box-shadow', true)).toBe('inset 0 0 0 1px #C9D2D9')
-        expect(ruleValue(root, KNOB_OFF, 'background-color', true)).toBe('#007DFF')
-        expect(ruleValue(root, TRACK_ON, 'background-color', true)).toBe('#007DFF')
+        expect(ruleValue(root, TRACK_OFF, 'background-color', true)).toBe('#CED5DC')
+        expect(ruleValue(root, TRACK_OFF, 'box-shadow', true)).toBe('none')
+        expect(ruleValue(root, KNOB_OFF, 'background-color', true)).toBe('#FFFFFF')
+        expect(ruleValue(root, TRACK_ON, 'background-color', true)).toBe('#026FD7')
         expect(ruleValue(root, TRACK_ON, 'box-shadow', true)).toBe('none')
         expect(ruleValue(root, KNOB_ON, 'background-color', true)).toBe('#FFFFFF')
+        expect(ruleValue(root, '.MuiSwitch-thumb', 'box-shadow')).toBe('none')
     })
 
     it('keeps the track opaque where MUI fades it', () => {
@@ -71,14 +72,18 @@ describe('PneSwitch (UI Kit look)', () => {
     it('has hover, pressed, read-only and disabled rules by UI Kit role', () => {
         const {root} = renderSwitch(<PneSwitch aria-label='States'/>)
 
-        expect(ruleValue(root, `[data-pne-state="hover"]${TRACK_OFF}`, 'background-color')).toBe('#CCE5FF')
-        expect(ruleValue(root, `[data-pne-state="hover"]${TRACK_OFF}`, 'box-shadow')).toBe('inset 0 0 0 1px #007DFF')
-        expect(ruleValue(root, `[data-pne-state="hover"]${KNOB_OFF}`, 'background-color')).toBe('#0972DE')
-        expect(ruleValue(root, `[data-pne-state="pressed"]${TRACK_ON}`, 'background-color')).toBe('#1266BD')
-        expect(ruleValue(root, `:hover.MuiSwitch-switchBase:not(.Mui-disabled)${TRACK_ON.slice('.MuiSwitch-switchBase'.length)}`, 'background-color')).toBe('#0972DE')
-        expect(ruleValue(root, `[data-pne-readonly]${TRACK_ON}`, 'background-color')).toBe('#8F9CAA')
-        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-disabled+.MuiSwitch-track', 'background-color')).toBe('#EBEDF0')
-        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-checked.Mui-disabled+.MuiSwitch-track', 'background-color')).toBe('#A2AEB9')
+        expect(ruleValue(root, `[data-pne-state="hover"]${TRACK_OFF}`, 'background-color')).toBe('#B2B8BF')
+        expect(ruleValue(root, `[data-pne-state="hover"]${KNOB_OFF}`, 'background-color')).toBe('#FFFFFF')
+        // The track pressed while off already takes the colour of on.
+        expect(ruleValue(root, `[data-pne-state="pressed"]${TRACK_OFF}`, 'background-color')).toBe('#026FD7')
+        expect(ruleValue(root, `[data-pne-state="pressed"]${TRACK_ON}`, 'background-color')).toBe('#004B96')
+        expect(ruleValue(root, `:hover.MuiSwitch-switchBase:not(.Mui-disabled)${TRACK_ON.slice('.MuiSwitch-switchBase'.length)}`, 'background-color')).toBe('#005EB9')
+        expect(ruleValue(root, `[data-pne-readonly]${TRACK_ON}`, 'background-color')).toBe('#6E747A')
+        expect(ruleValue(root, `[data-pne-readonly]${TRACK_OFF}`, 'background-color')).toBe('#E2E9F0')
+        expect(ruleValue(root, `[data-pne-readonly]${KNOB_OFF}`, 'background-color')).toBe('#6E747A')
+        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-disabled+.MuiSwitch-track', 'background-color')).toBe('#CED5DC')
+        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-checked.Mui-disabled+.MuiSwitch-track', 'background-color')).toBe('#CED5DC')
+        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-disabled.MuiSwitch-thumb', 'background-color')).toBe('#B2B8BF')
     })
 
     it('puts the focus ring on the track and the spinner into the knob', () => {
@@ -86,10 +91,10 @@ describe('PneSwitch (UI Kit look)', () => {
 
         // The focus rule is a selector list; its last member is the pinned specimen state.
         expect(ruleValue(root, '[data-pne-state="focus"].MuiSwitch-switchBase+.MuiSwitch-track::before', 'box-shadow'))
-            .toBe('0 0 0 2px #fff,0 0 0 4px #0972DE')
+            .toBe('0 0 0 2px #fff,0 0 0 4px #026FD7')
         // The spinner rules are selector lists too; their last member is the pinned loading state.
-        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'border')).toBe('1.5px solid #FFFFFF')
-        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-switchBase.Mui-checked.MuiSwitch-thumb::after', 'border')).toBe('1.5px solid #007DFF')
+        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'border')).toBe('1.5px solid #026FD7')
+        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-switchBase.Mui-checked.MuiSwitch-thumb::after', 'border')).toBe('1.5px solid #026FD7')
         expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'inset')).toBe('2px')
     })
 

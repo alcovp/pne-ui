@@ -66,7 +66,7 @@ export type PneSemanticPalette = {
         activeBackground: string
     }
     brand: PneBrandPalette
-    /** The brand ramp of the skin, steps 0…1000; 500 is the skin colour. */
+    /** The brand ramp of the skin, steps 0…950; 600 is the fill a label reads on. */
     ramp: PneBrandRamp
     /** Button colours by UI Kit role. */
     button: PneButtonPalette

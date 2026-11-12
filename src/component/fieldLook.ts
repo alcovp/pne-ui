@@ -58,6 +58,13 @@ export const pneFieldBoxSx: SxProps<Theme> = theme => {
             color: field.text.disabled,
             WebkitTextFillColor: field.text.disabled,
         },
+        // A label inside the box (UI Kit Mark): an adornment that reads as the value does.
+        '& .MuiInputAdornment-root, & .MuiInputAdornment-root .MuiTypography-root': {
+            color: field.text.mark,
+        },
+        '& .Mui-disabled > .MuiInputAdornment-root, & .Mui-disabled > .MuiInputAdornment-root .MuiTypography-root': {
+            color: field.text.disabled,
+        },
         '& .MuiFormHelperText-root': {
             color: field.helper.text,
         },

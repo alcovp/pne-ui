@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box, Stack, Typography} from '@mui/material'
+import {Box, InputAdornment, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
 import {PneButton, PneField, PneTextField} from '../../index'
 
@@ -25,9 +25,9 @@ type Story = StoryObj<typeof PneTextField>
 
 const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 
-// The Figma matrix (StoryBook › pne-ui primitives › PneTextField): rows size × variant plus
-// required and helper, columns the states. The label above the box is PneField; MUI has no
-// large text field, so the large rows of the matrix are not here.
+// The Figma matrix (StoryBook › pne-ui primitives · v2 › PneTextField): rows size × variant,
+// columns the states. The label above the box is PneField; MUI has no large text field, so the
+// large rows of the matrix are not here. The required and helper rows are pne-ui's own.
 type MatrixColumn = {
     label: string
     value?: string
@@ -38,7 +38,7 @@ type MatrixColumn = {
 const MATRIX_COLUMNS: MatrixColumn[] = [
     {label: 'Enable'},
     {label: 'Hover', control: {'data-pne-state': 'hover'}},
-    {label: 'Filled', value: 'Value'},
+    {label: 'Active', value: 'Value'},
     {label: 'Focus', value: 'Value', control: {'data-pne-state': 'focus'}},
     {label: 'Error', field: {error: true}},
     {label: 'Disable', field: {disabled: true}},
@@ -119,6 +119,86 @@ export const Matrix: Story = {
                 </tbody>
             </Box>
         </Box>
+    ),
+}
+
+// Figma «Положение подписи и подсказка» and «Многострочное поле»: the label over the control, on
+// its left (`labelPosition="left"`) or inside the box, as a start adornment.
+const POSITIONS = ['Top', 'Left', 'Inside'] as const
+
+const PositionCell = ({position, column, multiline}: {
+    position: typeof POSITIONS[number]
+    column: MatrixColumn
+    multiline?: boolean
+}) => {
+    const error = column.field?.error === true
+    const inside = position === 'Inside'
+    return (
+        <PneField
+            disabled={column.field?.disabled}
+            error={error}
+            helperText={error ? 'Опишите, как исправить ошибку' : 'Подсказка о формате значения'}
+            label={inside ? undefined : 'Label'}
+            labelPosition={position === 'Left' ? 'left' : 'top'}
+            // A tall control takes the label at its first line instead of its middle.
+            slotProps={multiline && position === 'Left' ? {label: {sx: {alignSelf: 'start', mt: '10px'}}} : undefined}
+            sx={{width: position === 'Left' ? 380 : 208}}
+        >
+            <PneTextField
+                aria-label={inside ? 'Mark in' : undefined}
+                defaultValue={column.value}
+                minRows={multiline ? 3 : undefined}
+                multiline={multiline}
+                placeholder={multiline ? 'Комментарий к платежу' : 'Placeholder'}
+                slotProps={inside ? {input: {startAdornment: <InputAdornment position='start'>Mark in</InputAdornment>}} : undefined}
+                variant='filled'
+                {...column.control}
+            />
+        </PneField>
+    )
+}
+
+const PositionsTable = ({positions, multiline}: {positions: ReadonlyArray<typeof POSITIONS[number]>, multiline?: boolean}) => (
+    <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 12px', ml: -2}}>
+        <thead>
+            <tr>
+                <th/>
+                {MATRIX_COLUMNS.map(column => (
+                    <Box component='th' key={column.label} sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>
+                        {column.label}
+                    </Box>
+                ))}
+            </tr>
+        </thead>
+        <tbody>
+            {positions.map(position => (
+                <tr key={position}>
+                    <Box component='th' sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}>
+                        {position}
+                    </Box>
+                    {MATRIX_COLUMNS.map(column => (
+                        <Box component='td' key={column.label} sx={{verticalAlign: 'top'}}>
+                            <PositionCell column={column} multiline={multiline} position={position}/>
+                        </Box>
+                    ))}
+                </tr>
+            ))}
+        </tbody>
+    </Box>
+)
+
+export const LabelPositions: Story = {
+    parameters: {controls: {disable: true}},
+    render: () => (
+        <Stack spacing={3} sx={{p: 3}}>
+            <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
+                The label stands over the control, on its left (<code>PneField labelPosition=&quot;left&quot;</code>:
+                a 160px column, the helper text under the control) or inside the box as a start adornment.
+                A multiline field takes the same label positions.
+            </Typography>
+            <PositionsTable positions={POSITIONS}/>
+            <PositionsTable multiline positions={['Top', 'Left']}/>
+        </Stack>
     ),
 }
 

@@ -19,7 +19,10 @@ export default {
     argTypes: {
         pneStyle: {
             control: 'select',
-            options: ['contained', 'outlined', 'text', 'error', 'warning', 'neutral', 'neutralText', 'primaryLight', 'white'],
+            options: [
+                'contained', 'outlined', 'text', 'errorText', 'successText', 'error', 'warning',
+                'neutral', 'neutralText', 'primaryLight', 'white',
+            ],
         },
         size: {control: 'inline-radio', options: ['small', 'medium', 'large']},
     },
@@ -27,21 +30,26 @@ export default {
 
 type Story = StoryObj<typeof PneButton>
 
-// The Figma matrix (StoryBook › pne-ui primitives › PneButton): columns pneStyle × size,
-// rows the states and the icon placements. The four soft styles look the same, so one column.
+// The Figma matrix (StoryBook › pne-ui primitives · v2 › PneButton): columns variant × size, rows
+// the states and the icon placements. The four soft styles look the same, so one column. Warning
+// is a pne-ui style the Figma matrix does not draw.
 const MATRIX_STYLES: Array<{pneStyle: PneButtonStyle, label: string}> = [
-    {pneStyle: 'contained', label: 'contained'},
-    {pneStyle: 'outlined', label: 'outlined'},
-    {pneStyle: 'text', label: 'text'},
-    {pneStyle: 'error', label: 'error'},
+    {pneStyle: 'contained', label: 'contained · Primary'},
+    {pneStyle: 'outlined', label: 'outlined · Secondary'},
+    {pneStyle: 'text', label: 'text · Tertiary'},
+    {pneStyle: 'error', label: 'error · Destructive'},
+    {pneStyle: 'neutral', label: 'neutral* · Soft'},
+    {pneStyle: 'errorText', label: 'errorText · Tertiary danger'},
+    {pneStyle: 'successText', label: 'successText · Tertiary success'},
     {pneStyle: 'warning', label: 'warning'},
-    {pneStyle: 'neutral', label: 'neutral*'},
 ]
 const MATRIX_SIZES: PneButtonSize[] = ['small', 'medium', 'large']
 
 type MatrixRow = {
     label: string
     props: Partial<React.ComponentProps<typeof PneButton>>
+    /** The cells the library has this state for; the others show a dash, as in Figma. */
+    only?: (pneStyle: PneButtonStyle, size: PneButtonSize) => boolean
 }
 
 const MATRIX_ROWS: MatrixRow[] = [
@@ -49,8 +57,18 @@ const MATRIX_ROWS: MatrixRow[] = [
     {label: 'Hover', props: {'data-pne-state': 'hover'}},
     {label: 'Pressed', props: {'data-pne-state': 'pressed'}},
     {label: 'Focus', props: {'data-pne-state': 'focus'}},
-    {label: 'Disable', props: {disabled: true}},
+    {label: 'Disabled', props: {disabled: true}},
     {label: 'Loading', props: {loading: true, startIcon: <AddIcon/>}},
+    {
+        label: 'Activated',
+        props: {activated: true, startIcon: <CheckIcon/>},
+        only: pneStyle => pneStyle === 'successText',
+    },
+    {
+        label: 'Active',
+        props: {active: true},
+        only: (pneStyle, size) => pneStyle === 'text' && size !== 'large',
+    },
     {label: 'Start icon', props: {startIcon: <AddIcon/>}},
     {label: 'End icon', props: {endIcon: <ArrowForwardIcon/>}},
     {label: 'Icon only', props: {startIcon: <AddIcon/>, children: null, 'aria-label': 'Add'}},
@@ -83,9 +101,11 @@ const MatrixTable = ({styles}: {styles: typeof MATRIX_STYLES}) => (
                         const {children = 'Button', ...props} = row.props
                         return (
                             <Box component='td' key={`${style.pneStyle}-${size}`} sx={{verticalAlign: 'middle'}}>
-                                <PneButton pneStyle={style.pneStyle} size={size} {...props}>
-                                    {children}
-                                </PneButton>
+                                {row.only && !row.only(style.pneStyle, size)
+                                    ? <Box component='span' sx={CELL_LABEL_SX}>—</Box>
+                                    : <PneButton pneStyle={style.pneStyle} size={size} {...props}>
+                                        {children}
+                                    </PneButton>}
                             </Box>
                         )
                     }))}
@@ -104,7 +124,8 @@ export const Matrix: Story = {
                 Focus are pinned with <code>data-pne-state</code>; product code never sets it.
             </Typography>
             <MatrixTable styles={MATRIX_STYLES.slice(0, 3)}/>
-            <MatrixTable styles={MATRIX_STYLES.slice(3)}/>
+            <MatrixTable styles={MATRIX_STYLES.slice(3, 5)}/>
+            <MatrixTable styles={MATRIX_STYLES.slice(5)}/>
         </Stack>
     ),
 }
@@ -166,6 +187,57 @@ export const Dynamics: Story = {
             </Stack>
         </Stack>
     ),
+}
+
+const PAGES = [1, 2, 3, 4, 5]
+
+const SetDemo = () => {
+    const [page, setPage] = React.useState(2)
+    const [active, setActive] = React.useState(false)
+
+    return (
+        <Stack spacing={3} sx={{p: 3}}>
+            <Typography sx={{fontSize: 14, color: 'text.secondary'}}>
+                <code>active</code> marks the picked item of a set, such as the current page: the lifted white
+                look of <code>text</code>. <code>errorText</code> is a removal and <code>successText</code> an
+                activation; once confirmed, <code>activated</code> turns the button into a status with no way back.
+            </Typography>
+            <Stack direction='row' spacing={0.5} sx={{alignItems: 'center'}}>
+                {PAGES.map(item => (
+                    <PneButton
+                        active={item === page}
+                        aria-current={item === page ? 'page' : undefined}
+                        key={item}
+                        onClick={() => setPage(item)}
+                        pneStyle='text'
+                        size='small'
+                    >
+                        {item}
+                    </PneButton>
+                ))}
+            </Stack>
+            <Stack direction='row' spacing={1.5} sx={{alignItems: 'center'}}>
+                <PneButton pneStyle='errorText' size='medium'>Delete</PneButton>
+                <PneButton
+                    activated={active}
+                    onClick={() => setActive(true)}
+                    pneStyle='successText'
+                    size='medium'
+                    startIcon={<CheckIcon/>}
+                >
+                    {active ? 'Active' : 'Activate'}
+                </PneButton>
+                {active
+                    ? <PneButton onClick={() => setActive(false)} pneStyle='text' size='small'>Reset the demo</PneButton>
+                    : null}
+            </Stack>
+        </Stack>
+    )
+}
+
+export const Sets: Story = {
+    parameters: {controls: {disable: true}},
+    render: () => <SetDemo/>,
 }
 
 export const Playground: Story = {

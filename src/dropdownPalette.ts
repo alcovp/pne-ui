@@ -1,6 +1,6 @@
-import {getContrastRatio} from '@mui/material/styles'
 import {PNE_BRAND_RAMP_STEPS, type PneBrandRamp, type PneBrandRampStep} from './brandRamp'
-import {readableBrandStep} from './buttonPalette'
+import {brandFillStep, readableBrandStep} from './buttonPalette'
+import {contrastRatio} from './color'
 import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP, PNE_STATUS_COLORS, type PneColorMode} from './themeColors'
 
 /**
@@ -49,8 +49,8 @@ export type PneDropdownPalette = {
 // step on, the first one far enough from the tint (lighter in dark, where the tint is a deep brand step).
 const checkOnTint = (ramp: PneBrandRamp, tint: string, mode: PneColorMode): string => {
     const order: PneBrandRampStep[] = mode === 'dark' ? [...PNE_BRAND_RAMP_STEPS].reverse() : [...PNE_BRAND_RAMP_STEPS]
-    const candidates = order.slice(Math.max(order.indexOf(readableBrandStep(ramp, 500, mode)), 0))
-    const step = candidates.find(candidate => getContrastRatio(ramp[candidate], tint) >= 3) ?? candidates[candidates.length - 1]
+    const candidates = order.slice(Math.max(order.indexOf(readableBrandStep(ramp, brandFillStep(mode), mode)), 0))
+    const step = candidates.find(candidate => contrastRatio(ramp[candidate], tint) >= 3) ?? candidates[candidates.length - 1]
     return ramp[step]
 }
 
@@ -61,17 +61,17 @@ const POPOVER_SHADOW = '0 17px 36px rgba(0,0,0,0.07), 0 6.268px 22.16px rgba(0,0
 const createLight = (ramp: PneBrandRamp): PneDropdownPalette => {
     const n = PNE_NEUTRAL_RAMP
     return {
-        panel: {fill: n[0], ring: n[100], shadow: POPOVER_SHADOW},
+        panel: {fill: n[0], ring: n[200], shadow: POPOVER_SHADOW},
         option: {
             text: n[900],
             disabled: n[400],
-            hover: n[50],
-            selected: ramp[50],
-            check: checkOnTint(ramp, ramp[50], 'light'),
+            hover: n[100],
+            selected: ramp[100],
+            check: checkOnTint(ramp, ramp[100], 'light'),
         },
-        status: {text: n[600], error: PNE_STATUS_COLORS.error[650]},
+        status: {text: n[600], error: PNE_STATUS_COLORS.error[700]},
         chevron: {default: n[900], disabled: n[400]},
-        chip: {fill: n[0], ring: n[200], text: n[900], remove: n[600]},
+        chip: {fill: n[50], ring: n[300], text: n[900], remove: n[600]},
     }
 }
 

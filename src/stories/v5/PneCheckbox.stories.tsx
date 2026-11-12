@@ -22,8 +22,8 @@ type Story = StoryObj<typeof PneCheckbox>
 
 const LABEL_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 
-// The Figma matrix (StoryBook › pne-ui primitives › PneCheckbox): rows size × value, columns the
-// states; small is the UI Kit sm 16, medium md 20, large lg 24.
+// The Figma matrix (StoryBook › pne-ui primitives · v2 › PneCheckbox): rows size × value, columns
+// the states in the Figma order; small is the UI Kit sm 16, medium md 20, large lg 24.
 type MatrixColumn = {
     label: string
     props: Partial<React.ComponentProps<typeof PneCheckbox>>
@@ -32,16 +32,16 @@ type MatrixColumn = {
 const MATRIX_COLUMNS: MatrixColumn[] = [
     {label: 'Enable', props: {}},
     {label: 'Hover', props: {'data-pne-state': 'hover'}},
-    {label: 'Pressed', props: {'data-pne-state': 'pressed'}},
-    {label: 'Focus', props: {'data-pne-state': 'focus'}},
-    {label: 'Error', props: {'aria-invalid': true}},
     {label: 'Disable', props: {disabled: true}},
+    {label: 'Focus', props: {'data-pne-state': 'focus'}},
+    {label: 'Pressed', props: {'data-pne-state': 'pressed'}},
+    {label: 'Error', props: {'aria-invalid': true}},
     {label: 'Read-only', props: {readOnly: true}},
 ]
 
 type MatrixValue = 'checked' | 'unchecked' | 'indeterminate'
 
-const MATRIX_ROWS: Array<{size: PneCheckboxSize, value: MatrixValue}> = (['medium', 'small', 'large'] as const)
+const MATRIX_ROWS: Array<{size: PneCheckboxSize, value: MatrixValue}> = (['small', 'medium', 'large'] as const)
     .flatMap(size => (['checked', 'unchecked', 'indeterminate'] as const).map(value => ({size, value})))
 
 export const Matrix: Story = {
@@ -86,6 +86,86 @@ export const Matrix: Story = {
                 </tbody>
             </Box>
         </Box>
+    ),
+}
+
+// Figma «С подписью — Checkboxes/Set»: the Plain and the Frame layouts of PneLabeledCheckbox.
+const SET_COLUMNS: Array<{label: string, props: Partial<React.ComponentProps<typeof PneLabeledCheckbox>>, hover?: boolean}> = [
+    {label: 'Enable', props: {}},
+    {label: 'Hover', props: {'data-pne-state': 'hover'}, hover: true},
+    {label: 'Focus', props: {'data-pne-state': 'focus'}},
+    {label: 'Disable', props: {disabled: true}},
+    {label: 'Error', props: {error: true}},
+    {label: 'Read-only', props: {readOnly: true}},
+]
+
+const SET_ROWS = (['plain', 'card'] as const)
+    .flatMap(variant => (['checked', 'unchecked', 'indeterminate'] as const).map(value => ({variant, value})))
+
+export const WithLabel: Story = {
+    parameters: {controls: {disable: true}},
+    render: () => (
+        <Stack spacing={3} sx={{p: 3}}>
+            <Typography sx={{fontSize: 14, color: 'text.secondary'}}>
+                PneLabeledCheckbox: <code>variant=&quot;plain&quot;</code> and <code>variant=&quot;card&quot;</code> (Figma
+                Frame). The card is tinted and ringed when picked and takes a click anywhere on it.
+            </Typography>
+            <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 8px', ml: -2}}>
+                <thead>
+                    <tr>
+                        <th/>
+                        {SET_COLUMNS.map(column => (
+                            <Box component='th' key={column.label} sx={{...LABEL_SX, fontWeight: 400, textAlign: 'left'}}>
+                                {column.label}
+                            </Box>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {SET_ROWS.map(row => (
+                        <tr key={`${row.variant}-${row.value}`}>
+                            <Box component='th' sx={{...LABEL_SX, fontWeight: 400, textAlign: 'left'}}>
+                                {row.variant === 'card' ? 'Frame' : 'Plain'} · {row.value}
+                            </Box>
+                            {SET_COLUMNS.map(column => (
+                                <td key={column.label}>
+                                    <PneLabeledCheckbox
+                                        checked={row.value === 'checked'}
+                                        containerSx={row.variant === 'card' ? {width: 200} : undefined}
+                                        formControlProps={column.hover ? {'data-pne-state': 'hover'} as object : undefined}
+                                        indeterminate={row.value === 'indeterminate'}
+                                        label='Mark'
+                                        onChange={() => undefined}
+                                        size='medium'
+                                        variant={row.variant}
+                                        {...column.props}
+                                    />
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
+            </Box>
+            <Stack direction='row' spacing={2} sx={{alignItems: 'flex-start'}}>
+                <PneLabeledCheckbox defaultChecked helperText='Visa, Mastercard, Mir' label='Bank cards' size='medium'/>
+                <PneLabeledCheckbox
+                    containerSx={{width: 240}}
+                    defaultChecked
+                    helperText='Visa, Mastercard, Mir'
+                    label='Bank cards'
+                    size='medium'
+                    variant='card'
+                />
+                <PneLabeledCheckbox
+                    containerSx={{width: 240}}
+                    error
+                    helperText='Required to continue'
+                    label='I accept the terms'
+                    size='medium'
+                    variant='card'
+                />
+            </Stack>
+        </Stack>
     ),
 }
 

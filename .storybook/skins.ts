@@ -1,7 +1,8 @@
 /**
  * Skin colours for the stories. A Paynet skin gives pne-ui one colour (`experimentalColor`),
  * so a story skin is that colour and a name after it. The set covers the classes real skins
- * fall into: the UI Kit blue, dark and mid tones, light tones that fail on white, greys and black.
+ * fall into: the UI Kit blue, dark tones a white label reads on, mid tones that are made darker
+ * for it, light tones that take a dark label, greys and black.
  */
 export type StorybookSkin = {
     id: string
@@ -10,7 +11,8 @@ export type StorybookSkin = {
 }
 
 export const STORYBOOK_SKINS: StorybookSkin[] = [
-    {id: 'blue', title: 'Blue (UI Kit)', experimentalColor: '#007dff'},
+    {id: 'blue', title: 'Blue (UI Kit)', experimentalColor: '#026fd7'},
+    {id: 'azure', title: 'Azure', experimentalColor: '#007dff'},
     {id: 'teal', title: 'Teal', experimentalColor: '#0a91bc'},
     {id: 'navy', title: 'Navy', experimentalColor: '#174f98'},
     {id: 'emerald', title: 'Emerald', experimentalColor: '#087962'},

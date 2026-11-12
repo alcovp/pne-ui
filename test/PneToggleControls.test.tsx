@@ -9,6 +9,8 @@ import {
     PneField,
     PneLabeledCheckbox,
     PneSwitch,
+    PneThemeProvider,
+    type Skin,
 } from '../src'
 
 jest.mock('react-i18next', () => ({
@@ -979,16 +981,17 @@ describe('PneSwitch disabled state', () => {
         switchRuleValue(name, `.MuiSwitch-switchBase${switchBaseState}+.MuiSwitch-track`, 'background-color')
     )
 
-    it('keeps on and off distinguishable while disabled', () => {
+    it('draws a disabled switch neutral in both values: the place of the knob tells on from off', () => {
         const theme = createTheme({palette: {primary: {main: '#0a91bc'}}})
 
         render(<ThemeProvider theme={theme}>
             <PneSwitch aria-label='Disabled on' checked disabled/>
         </ThemeProvider>)
 
-        // UI Kit: the disabled on track is Neutral/400, the off track Neutral/100.
-        expect(trackRuleColor('Disabled on', '.Mui-checked.Mui-disabled')).toBe('#A2AEB9')
-        expect(trackRuleColor('Disabled on', '.Mui-disabled')).toBe('#EBEDF0')
+        // UI Kit: a disabled track is Neutral/300 with a Neutral/400 knob, on and off alike.
+        expect(trackRuleColor('Disabled on', '.Mui-checked.Mui-disabled')).toBe('#CED5DC')
+        expect(trackRuleColor('Disabled on', '.Mui-disabled')).toBe('#CED5DC')
+        expect(switchRuleValue('Disabled on', '.MuiSwitch-switchBase.Mui-checked.Mui-disabled.MuiSwitch-thumb', 'background-color')).toBe('#B2B8BF')
     })
 
     it('shows a neutral hint and a not-allowed cursor only for a disabled switch', async () => {
@@ -1183,5 +1186,117 @@ describe('PneLabeledCheckbox', () => {
         expect(screen.getByText('Generated helper').id).toBe(firstHelperId)
         expect(input.getAttribute('aria-describedby')).toBe(firstHelperId)
         expect(rootRef.current?.tagName).toBe('SPAN')
+    })
+})
+
+describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
+    // The last value of `property` among the rules of the container's own css- class whose
+    // selector ends with `selectorSuffix` (compared without whitespace); an empty suffix is the
+    // root rule itself.
+    const containerRuleValue = (container: HTMLElement, selectorSuffix: string, property: string) => {
+        const classes = Array.from(container.classList).filter(className => className.startsWith('css-'))
+        const values = Array.from(document.styleSheets)
+            .flatMap(sheet => Array.from(sheet.cssRules))
+            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+            .filter(rule => {
+                const selector = rule.selectorText.replace(/\s+/g, '')
+                return classes.some(className => selectorSuffix === ''
+                    ? selector === `.${className}`
+                    : selector.startsWith(`.${className}`) && selector.endsWith(selectorSuffix))
+            })
+            .map(rule => rule.style.getPropertyValue(property))
+            .filter(Boolean)
+
+        return values[values.length - 1]
+    }
+
+    const containerOf = (name: string) =>
+        screen.getByRole('checkbox', {name}).closest<HTMLElement>('.MuiFormControl-root')!
+
+    it('sets the label 14/20 on a line with the box and the description under the label', () => {
+        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
+            <PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' size='medium'/>
+        </PneThemeProvider>)
+
+        const container = containerOf('Include declined')
+        expect(container.getAttribute('data-pne-variant')).toBe('plain')
+        expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'font-size')).toBe('14px')
+        expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'line-height')).toBe('20px')
+        expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'color')).toBe('#2C3136')
+        // The medium box is 20 in a 42 hit area: the label line is centred on it and stands 8px from the box.
+        expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'padding-top')).toBe('11px')
+        expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'margin-left')).toBe('-3px')
+        expect(containerRuleValue(container, '>.MuiFormHelperText-root', 'margin-left')).toBe('28px')
+        expect(containerRuleValue(container, '>.MuiFormHelperText-root', 'margin-top')).toBe('-11px')
+        expect(containerRuleValue(container, '>.MuiFormHelperText-root', 'color')).toBe('#6E747A')
+        expect(containerRuleValue(container, '>.MuiFormHelperText-root.Mui-error', 'color')).toBe('#B1182C')
+    })
+
+    it('keeps the description out of the name of the checkbox', () => {
+        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' variant='card'/>)
+
+        expect(screen.getByRole('checkbox', {name: 'Include declined'})).not.toBeNull()
+        expect(screen.getByLabelText('Include declined')).not.toBeNull()
+    })
+
+    it('draws the card as a tinted, ringed frame when picked and marks its state on the container', () => {
+        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
+            <PneLabeledCheckbox label='Off' variant='card'/>
+            <PneLabeledCheckbox defaultChecked label='On' variant='card'/>
+            <PneLabeledCheckbox indeterminate label='Mixed' variant='card'/>
+            <PneLabeledCheckbox checked disabled label='Disabled' onChange={() => undefined} variant='card'/>
+            <PneLabeledCheckbox checked label='Read only' onChange={() => undefined} readOnly variant='card'/>
+            <PneLabeledCheckbox error label='Invalid' variant='card'/>
+        </PneThemeProvider>)
+
+        const off = containerOf('Off')
+        expect(off.getAttribute('data-pne-variant')).toBe('card')
+        expect(off.hasAttribute('data-pne-checked')).toBe(false)
+        expect(containerOf('On').getAttribute('data-pne-checked')).toBe('true')
+        expect(containerOf('Mixed').getAttribute('data-pne-checked')).toBe('true')
+        expect(containerOf('Disabled').getAttribute('data-pne-disabled')).toBe('true')
+        expect(containerOf('Read only').getAttribute('data-pne-readonly')).toBe('true')
+        expect(containerOf('Invalid').getAttribute('data-pne-error')).toBe('true')
+
+        expect(containerRuleValue(off, '', 'background-color')).toBe('#F0F4F8')
+        expect(containerRuleValue(off, '', 'border-radius')).toBe('8px')
+        expect(containerRuleValue(off, '', 'padding')).toBe('6px')
+        // The hover rule is a selector list; its last member is the pinned specimen state.
+        expect(containerRuleValue(off, '[data-pne-state="hover"]', 'box-shadow')).toBe('inset 0 0 0 1px #E2E9F0')
+        expect(containerRuleValue(off, '[data-pne-checked]', 'background-color')).toBe('#EBF3FF')
+        expect(containerRuleValue(off, '[data-pne-checked]', 'box-shadow')).toBe('inset 0 0 0 1px #026FD7')
+        expect(containerRuleValue(off, '[data-pne-readonly]', 'box-shadow')).toBe('none')
+        expect(containerRuleValue(off, '[data-pne-disabled]', 'background-color')).toBe('#F0F4F8')
+        expect(containerRuleValue(off, '[data-pne-error]', 'box-shadow')).toBe('inset 0 0 0 1px #CC2538')
+        // The card is the click target, so the box gives up its own hit area.
+        expect(containerRuleValue(off, '.MuiCheckbox-root', 'padding')).toBe('0px')
+    })
+
+    it('follows the value of an uncontrolled card and toggles it by a click on the card or its description', () => {
+        const onChange = jest.fn()
+        render(<PneLabeledCheckbox helperText='Visa, Mastercard' label='Bank cards' onChange={onChange} variant='card'/>)
+
+        const input = screen.getByRole('checkbox', {name: 'Bank cards'}) as HTMLInputElement
+        const container = containerOf('Bank cards')
+
+        fireEvent.click(screen.getByText('Visa, Mastercard'))
+        expect(input.checked).toBe(true)
+        expect(container.getAttribute('data-pne-checked')).toBe('true')
+        expect(onChange).toHaveBeenCalledTimes(1)
+
+        fireEvent.click(container)
+        expect(input.checked).toBe(false)
+        expect(container.hasAttribute('data-pne-checked')).toBe(false)
+
+        fireEvent.click(screen.getByText('Bank cards'))
+        expect(input.checked).toBe(true)
+        expect(onChange).toHaveBeenCalledTimes(3)
+    })
+
+    it('leaves a click on the description of a plain checkbox alone', () => {
+        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined'/>)
+
+        fireEvent.click(screen.getByText('Adds about 4k rows'))
+        expect((screen.getByRole('checkbox', {name: 'Include declined'}) as HTMLInputElement).checked).toBe(false)
     })
 })

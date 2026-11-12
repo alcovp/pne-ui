@@ -7,7 +7,7 @@ import PneAsyncAutocomplete from '../src/component/dropdown/PneAsyncAutocomplete
 import {PneAutocomplete, PneThemeProvider, type Skin} from '../src'
 import type {AutoCompleteChoice} from '../src/common/paynet/type'
 
-const UI_KIT_SKIN = {experimentalColor: '#007dff'} as Skin
+const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 // jsdom has no layout and ignores selector specificity in getComputedStyle, so the look is checked
 // on the rules of the element's own css- class. `&` stands for that class; selectors are compared
@@ -45,7 +45,7 @@ describe('PneAutocomplete (UI Kit look)', () => {
         expect(root.querySelector('.MuiAutocomplete-popupIndicator [data-testid="PneChevronDownIcon"]')).not.toBeNull()
         expect(root.querySelector('.MuiAutocomplete-clearIndicator [data-testid="PneCloseIcon"]')).not.toBeNull()
         expect(ruleValue(root, '& .MuiAutocomplete-endAdornment .PneAutocomplete-icon', 'font-size')).toBe('14px')
-        expect(ruleValue(root, '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator', 'color')).toBe('#41556B')
+        expect(ruleValue(root, '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator', 'color')).toBe('#2C3136')
     })
 
     it('keeps a popup icon of the consumer', () => {
@@ -65,8 +65,8 @@ describe('PneAutocomplete (UI Kit look)', () => {
 
         expect(chip.querySelector('[data-testid="PneCloseIcon"]')).not.toBeNull()
         expect(ruleValue(root, '& .MuiAutocomplete-tag.MuiChip-root', 'border-radius')).toBe('4px')
-        expect(ruleValue(root, '& .MuiAutocomplete-tag.MuiChip-root', 'background-color')).toBe('#FFFFFF')
-        expect(ruleValue(root, '& .MuiAutocomplete-tag.MuiChip-root', 'box-shadow')).toBe('inset 0 0 0 1px #C9D2D9')
+        expect(ruleValue(root, '& .MuiAutocomplete-tag.MuiChip-root', 'background-color')).toBe('#F7FBFF')
+        expect(ruleValue(root, '& .MuiAutocomplete-tag.MuiChip-root', 'box-shadow')).toBe('inset 0 0 0 1px #CED5DC')
     })
 
     it('draws the UI Kit dropdown panel and single rows', () => {
@@ -80,11 +80,11 @@ describe('PneAutocomplete (UI Kit look)', () => {
         const paper = paperOf()
 
         expect(ruleValue(paper, '&', 'border-radius')).toBe('8px')
-        expect(ruleValue(paper, '&', 'box-shadow')).toMatch(/^inset 0 0 0 1px #EBEDF0, ?0 17px 36px/)
+        expect(ruleValue(paper, '&', 'box-shadow')).toMatch(/^inset 0 0 0 1px #E2E9F0, ?0 17px 36px/)
         expect(ruleValue(paper, '& .MuiAutocomplete-listbox', 'padding')).toBe('4px')
         expect(ruleValue(paper, OPTION, 'border-radius')).toBe('4px')
-        expect(ruleValue(paper, SINGLE_PICKED, 'background-color')).toBe('#F2F8FF')
-        expect(ruleValue(paper, `${SINGLE_PICKED}::after`, 'background-color')).toBe('#007DFF')
+        expect(ruleValue(paper, SINGLE_PICKED, 'background-color')).toBe('#EBF3FF')
+        expect(ruleValue(paper, `${SINGLE_PICKED}::after`, 'background-color')).toBe('#026FD7')
         expect(ruleValue(paper, `${OPTION}[aria-disabled="true"]`, 'opacity')).toBe('1')
         expect(screen.getByRole('option', {name: 'EUR'}).getAttribute('aria-selected')).toBe('true')
     })
@@ -111,7 +111,7 @@ describe('PneAutocomplete (UI Kit look)', () => {
         const paper = paperOf()
 
         expect(screen.getByRole('listbox').getAttribute('data-pne-rows')).toBe('own')
-        expect(ruleValue(paper, MULTI_OWN_PICKED, 'background-color')).toBe('#F2F8FF')
+        expect(ruleValue(paper, MULTI_OWN_PICKED, 'background-color')).toBe('#EBF3FF')
     })
 
     it('lets the consumer paper sx follow the dropdown look', () => {
@@ -141,6 +141,6 @@ describe('PneAsyncAutocomplete (UI Kit look)', () => {
         expect(await screen.findAllByText('Unable to load options')).toHaveLength(2)
         const paper = paperOf()
         expect(paper.getAttribute('data-pne-status')).toBe('error')
-        expect(ruleValue(paper, '&[data-pne-status="error"] .MuiAutocomplete-noOptions', 'color')).toBe('#C8283B')
+        expect(ruleValue(paper, '&[data-pne-status="error"] .MuiAutocomplete-noOptions', 'color')).toBe('#B1182C')
     })
 })

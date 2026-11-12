@@ -3,7 +3,7 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 
 import {PneCheckbox, PneField, PneThemeProvider, type Skin} from '../src'
 
-const UI_KIT_SKIN = {experimentalColor: '#007dff'} as Skin
+const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 const renderCheckbox = (ui: React.ReactElement) => {
     const view = render(<PneThemeProvider skin={UI_KIT_SKIN}>{ui}</PneThemeProvider>)
@@ -63,11 +63,11 @@ describe('PneCheckbox (UI Kit look)', () => {
     it('colours the box by UI Kit role through custom properties and the root colour', () => {
         const {root} = renderCheckbox(<PneCheckbox aria-label='Roles'/>)
 
-        expect(ruleValue(root, '&', '--pne-checkbox-off-ring')).toBe('#A2AEB9')
-        expect(ruleValue(root, '&', '--pne-checkbox-off-fill')).toBe('#FFFFFF')
-        expect(ruleValue(root, '&', '--pne-checkbox-on-fill')).toBe('#007DFF')
+        expect(ruleValue(root, '&', '--pne-checkbox-off-ring')).toBe('#B2B8BF')
+        expect(ruleValue(root, '&', '--pne-checkbox-off-fill')).toBe('#F7FBFF')
+        expect(ruleValue(root, '&', '--pne-checkbox-on-fill')).toBe('#026FD7')
         expect(ruleValue(root, '&', '--pne-checkbox-on-ring')).toBe('currentColor')
-        expect(ruleValue(root, '&', '--pne-checkbox-mark')).toBe('#FFFFFF')
+        expect(ruleValue(root, '&', '--pne-checkbox-mark')).toBe('#F7FBFF')
         expect(ruleValue(root, '&', 'color')).toBe('var(--pne-checkbox-off-ring)')
         expect(ruleValue(root, ON('&'), 'color')).toBe('var(--pne-checkbox-on-fill)')
         expect(ruleValue(root, '& .PneCheckbox-off .PneCheckbox-square', 'stroke')).toBe('currentColor')
@@ -78,18 +78,19 @@ describe('PneCheckbox (UI Kit look)', () => {
     it('has hover, pressed, error, read-only and disabled rules by UI Kit role', () => {
         const {root} = renderCheckbox(<PneCheckbox aria-label='States'/>)
 
-        expect(ruleValue(root, `${INTERACTIVE}:hover`, '--pne-checkbox-off-ring')).toBe('#007DFF')
-        expect(ruleValue(root, `${INTERACTIVE}:hover`, '--pne-checkbox-on-fill')).toBe('#0972DE')
-        expect(ruleValue(root, `${INTERACTIVE}:active`, '--pne-checkbox-off-fill')).toBe('#F2F8FF')
-        expect(ruleValue(root, '&[data-pne-state="pressed"]', '--pne-checkbox-on-fill')).toBe('#1266BD')
-        expect(ruleValue(root, '&[data-pne-error]', '--pne-checkbox-off-ring')).toBe('#EC4B5D')
-        expect(ruleValue(root, '&[data-pne-error]', '--pne-checkbox-on-fill')).toBe('#EC4B5D')
-        expect(ruleValue(root, '&[data-pne-readonly]', '--pne-checkbox-off-ring')).toBe('#C9D2D9')
-        expect(ruleValue(root, '&[data-pne-readonly]', '--pne-checkbox-off-fill')).toBe('#F5F6F7')
-        expect(ruleValue(root, '&[data-pne-readonly]', '--pne-checkbox-on-fill')).toBe('#8F9CAA')
+        expect(ruleValue(root, `${INTERACTIVE}:hover`, '--pne-checkbox-off-ring')).toBe('#026FD7')
+        expect(ruleValue(root, `${INTERACTIVE}:hover`, '--pne-checkbox-on-fill')).toBe('#005EB9')
+        expect(ruleValue(root, `${INTERACTIVE}:active`, '--pne-checkbox-off-fill')).toBe('#EBF3FF')
+        expect(ruleValue(root, `${INTERACTIVE}:active`, '--pne-checkbox-off-ring')).toBe('#004B96')
+        expect(ruleValue(root, '&[data-pne-state="pressed"]', '--pne-checkbox-on-fill')).toBe('#004B96')
+        expect(ruleValue(root, '&[data-pne-error]', '--pne-checkbox-off-ring')).toBe('#CC2538')
+        expect(ruleValue(root, '&[data-pne-error]', '--pne-checkbox-on-fill')).toBe('#CC2538')
+        expect(ruleValue(root, '&[data-pne-readonly]', '--pne-checkbox-off-ring')).toBe('#E2E9F0')
+        expect(ruleValue(root, '&[data-pne-readonly]', '--pne-checkbox-off-fill')).toBe('#F0F4F8')
+        expect(ruleValue(root, '&[data-pne-readonly]', '--pne-checkbox-on-fill')).toBe('#8D9399')
         expect(ruleValue(root, '&[data-pne-readonly]', 'cursor')).toBe('default')
-        expect(ruleValue(root, '&.Mui-disabled', '--pne-checkbox-off-fill')).toBe('#EBEDF0')
-        expect(ruleValue(root, '&.Mui-disabled', '--pne-checkbox-on-fill')).toBe('#A2AEB9')
+        expect(ruleValue(root, '&.Mui-disabled', '--pne-checkbox-off-fill')).toBe('#F0F4F8')
+        expect(ruleValue(root, '&.Mui-disabled', '--pne-checkbox-on-fill')).toBe('#B2B8BF')
         expect(ruleValue(root, '&.Mui-disabled', 'color')).toBe('var(--pne-checkbox-off-ring)')
     })
 
@@ -97,7 +98,7 @@ describe('PneCheckbox (UI Kit look)', () => {
         const {root} = renderCheckbox(<PneCheckbox aria-label='Focus'/>)
 
         expect(ruleValue(root, '&.Mui-focusVisible .PneCheckbox-box, &[data-pne-state="focus"] .PneCheckbox-box', 'box-shadow'))
-            .toBe('0 0 0 2px #fff,0 0 0 4px #0972DE')
+            .toBe('0 0 0 2px #fff,0 0 0 4px #026FD7')
     })
 
     it('marks error, read-only and pinned states on the root', () => {

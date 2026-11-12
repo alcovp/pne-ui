@@ -52,6 +52,8 @@ export interface PneFieldSlotProps {
     label?: PneFieldLabelSlotProps
 }
 
+export type PneFieldLabelPosition = 'top' | 'left'
+
 export type PneFieldChildren =
     | React.ReactElement
     | ((field: PneFieldControlAdapter) => React.ReactElement)
@@ -83,6 +85,11 @@ type PneFieldOwnProps = Omit<FormControlTypeMap['props'], RemovedFormControlProp
     /** ID of the field root and namespace for generated label/helper/control IDs. */
     id?: string
     label?: React.ReactNode
+    /**
+     * Where the label stands: over the control (`top`, the default) or in a 160px column on its
+     * left, centred on the control, with the helper text under the control (`left`).
+     */
+    labelPosition?: PneFieldLabelPosition
     /** @deprecated Use `slotProps.label.sx`. */
     labelSx?: SxProps<Theme>
     required?: boolean
@@ -126,6 +133,7 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
         htmlFor,
         id,
         label,
+        labelPosition = 'top',
         labelSx,
         required = false,
         slotProps,
@@ -221,12 +229,11 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
         id={rootId}
         required={required}
         sx={[
-            {
-                gap: '4px',
-            },
+            hasLabel && labelPosition === 'left' ? fieldLeftLabelLayoutSx : fieldTopLabelLayoutSx,
             ...(Array.isArray(sx) ? sx : [sx]),
         ]}
         {...rest}
+        data-pne-label-position={hasLabel ? labelPosition : undefined}
     >
         {hasLabel
             ? <FormLabel
@@ -237,6 +244,7 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
                 required={required}
                 sx={[
                     fieldLabelSx,
+                    labelPosition === 'left' ? fieldLeftLabelSx : null,
                     ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
                     ...(Array.isArray(labelSlotSx) ? labelSlotSx : [labelSlotSx]),
                 ]}
@@ -264,14 +272,48 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
     </FormControl>
 }
 
-// UI Kit field label: it keeps its colour on focus and in error, where the helper text turns red.
+const fieldTopLabelLayoutSx: SxProps<Theme> = {
+    gap: '4px',
+}
+
+// UI Kit Field, Label position Left: the label column is 160px wide and 12px from the control;
+// the helper text stays under the control.
+const fieldLeftLabelLayoutSx: SxProps<Theme> = {
+    alignItems: 'center',
+    columnGap: '12px',
+    display: 'grid',
+    gridTemplateColumns: '160px minmax(0, 1fr)',
+    rowGap: '4px',
+    '& > :not(.MuiFormLabel-root)': {
+        gridColumn: 2,
+    },
+}
+
+// The label on the left reads as the value does: 14/20 in the text colour.
+const fieldLeftLabelSx: SxProps<Theme> = theme => {
+    const field = resolvePneSemanticPalette(theme).field
+    return {
+        alignSelf: 'center',
+        color: field.text.mark,
+        fontSize: '14px',
+        fontWeight: 400,
+        gridColumn: 1,
+        lineHeight: '20px',
+        '&.Mui-focused, &.Mui-error': {
+            color: field.text.mark,
+        },
+    }
+}
+
+// UI Kit field label, 12/16 Medium: it keeps its colour on focus and in error, where the helper text turns red.
 const fieldLabelSx: SxProps<Theme> = theme => {
     const field = resolvePneSemanticPalette(theme).field
     return {
         alignSelf: 'flex-start',
         color: field.text.label,
-        fontSize: '0.875rem',
-        lineHeight: '20px',
+        fontSize: '12px',
+        fontWeight: 500,
+        lineHeight: '16px',
         maxWidth: '100%',
         '&.Mui-focused, &.Mui-error': {
             color: field.text.label,
