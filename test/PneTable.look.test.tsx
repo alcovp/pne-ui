@@ -200,3 +200,45 @@ describe('PneTable frame (UI Kit look)', () => {
         expect(cell.querySelectorAll('button, a')).toHaveLength(0)
     })
 })
+
+// UI Kit Cell/Header-island: the header of a table that is one of several on its page.
+describe('PneTable island header', () => {
+    const renderWithHeader = (headerVariant?: 'main' | 'island') => render(<PneThemeProvider skin={UI_KIT_SKIN}>
+        <PneTable<{id: string}>
+            autoTestId='island'
+            createRow={row => <PneTableRow key={row.id}><PneTableCell>{row.id}</PneTableCell></PneTableRow>}
+            createTableHeader={() => <PneTableRow>
+                <PneHeaderTableCell>ID</PneHeaderTableCell>
+                <PneHeaderTableCell>Name</PneHeaderTableCell>
+            </PneTableRow>}
+            data={[{id: '1'}]}
+            headerVariant={headerVariant}
+        />
+    </PneThemeProvider>)
+
+    it('draws a 24px strip on the sunken fill with 12/16 Medium text and no line under it', () => {
+        const {container} = renderWithHeader('island')
+        const cell = container.querySelector('thead th')!
+
+        expect(container.querySelector('thead')?.getAttribute('data-pne-header')).toBe('island')
+        expect(ruleValue(cell, '&', 'font-size')).toBe('12px')
+        expect(ruleValue(cell, '&', 'line-height')).toBe('16px')
+        expect(ruleValue(cell, '&', 'font-weight')).toBe('500')
+        expect(ruleValue(cell, '&', 'padding')).toBe('4px 12px')
+        expect(ruleValue(cell, '&', 'border-bottom')).toBe('none')
+        expect(ruleValue(cell, '&', 'color')).toBe('#565B61')
+        expect(ruleValue(cell, '&&', 'background-color')).toBe('#F0F4F8')
+        expect(ruleValue(cell, '&:first-of-type', 'border-top-left-radius')).toBe('4px')
+        expect(ruleValue(cell, '&:last-of-type', 'border-top-right-radius')).toBe('4px')
+    })
+
+    it('keeps the full header row by default', () => {
+        const {container} = renderWithHeader()
+        const cell = container.querySelector('thead th')!
+
+        expect(container.querySelector('thead')?.getAttribute('data-pne-header')).toBe('main')
+        expect(ruleValue(cell, '&', 'font-size')).toBe('14px')
+        expect(ruleValue(cell, '&', 'font-weight')).toBe('600')
+        expect(ruleValue(cell, '&', 'padding')).toBe('10px 12px 9px')
+    })
+})

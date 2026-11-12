@@ -60,6 +60,7 @@ export type {
     TableSortOptions,
     ITableCreateHeaderParams,
 } from '../component/table/AbstractTable'
+export type { PneTableHeaderVariant } from '../component/table/tableHeaderVariant'
 export { default as AbstractHeaderTableCell } from '../component/table/AbstractHeaderTableCell'
 export { default as AbstractTableCell } from '../component/table/AbstractTableCell'
 export { TableDisplayOptions } from '../component/table/type'

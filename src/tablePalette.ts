@@ -20,6 +20,8 @@ export type PneTablePalette = {
     }
     header: {
         text: string
+        /** The strip of an island header: the sunken fill and the secondary text on it. */
+        island: {fill: string, text: string}
     }
     sort: {
         /** The direction the column is sorted in. */
@@ -51,7 +53,7 @@ const createLight = (ramp: PneBrandRamp): PneTablePalette => {
         text: n[900],
         line: n[200],
         row: {hover: n[100], selected: ramp[100]},
-        header: {text: n[900]},
+        header: {text: n[900], island: {fill: n[100], text: n[700]}},
         sort: {active: createPneLinkColor(ramp, 'light'), inactive: n[400], idle: n[600]},
         band: {
             shell: {fill: n[0], ring: n[200]},
@@ -68,7 +70,7 @@ const createDark = (ramp: PneBrandRamp): PneTablePalette => {
         text: d.textPrimary,
         line: d.borderDefault,
         row: {hover: d.surfaceRaised, selected: ramp[900]},
-        header: {text: d.textPrimary},
+        header: {text: d.textPrimary, island: {fill: d.surfaceSubtle, text: d.textSecondary}},
         sort: {active: createPneLinkColor(ramp, 'dark'), inactive: d.textDisabled, idle: d.textMuted},
         band: {
             shell: {fill: d.backgroundPaper, ring: d.borderDefault},

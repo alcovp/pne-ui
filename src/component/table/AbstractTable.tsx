@@ -14,6 +14,7 @@ import PneTablePagination from './PneTablePagination';
 import PneTablePaginationActions from './PneTablePaginationActions';
 import {TABLE_CONTROL_BAND_SIZE} from './tableControlMetrics';
 import {resolvePneSemanticPalette} from '../../createTheme';
+import {PneTableHeaderVariantContext, type PneTableHeaderVariant} from './tableHeaderVariant';
 import {Order} from "../../common/pne/type";
 import {useTranslation} from "react-i18next";
 import useDelayedLoading from "./useDelayedLoading";
@@ -132,6 +133,12 @@ export type TableProps<D> = {
      */
     loadingKey?: string | number
     stickyHeader?: boolean
+    /**
+     * `island` draws the header as a 24px strip (12/16 on the sunken fill) for a table that is one of
+     * several on its page or shares its block with a heading; `main` (the default) is the full header
+     * row of the table a page is about.
+     */
+    headerVariant?: PneTableHeaderVariant
     showNothingIsFoundRow?: boolean
     /** Accessible name forwarded to the semantic table independently from autoTestId. */
     tableAriaLabel?: string
@@ -183,6 +190,7 @@ const AbstractTable = <D, >(
         loading = false,
         loadingKey,
         stickyHeader = false,
+        headerVariant = 'main',
         showNothingIsFoundRow = true,
         tableAriaLabel,
         tableAriaLabelledBy,
@@ -481,10 +489,12 @@ const AbstractTable = <D, >(
                         ))}
                     </colgroup>
                 )}
-                <TableHead>
-                    {createTableHeader({
-                        sortOptions: sortOptions
-                    })}
+                <TableHead data-pne-header={headerVariant}>
+                    <PneTableHeaderVariantContext.Provider value={headerVariant}>
+                        {createTableHeader({
+                            sortOptions: sortOptions
+                        })}
+                    </PneTableHeaderVariantContext.Provider>
                 </TableHead>
                 <TableBody>
                     {showSkeleton ? (
