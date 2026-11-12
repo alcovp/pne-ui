@@ -7,10 +7,12 @@ import PnePreviousPageIcon from "./PnePreviousPageIcon";
 import PneNextPageIcon from "./PneNextPageIcon";
 import {createAutoTestAttributes} from "../AutoTestAttribute";
 import {
-    TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
-    TABLE_CONTROL_TEXT_COLOR,
-} from "./tableControlColors";
+    createTableControlCurrentStyle,
+    createTableControlShellStyle,
+    createTableControlTextButtonStyle,
+} from "./tableControlButtonStyle";
 import {usePneTheme} from "../../usePneTheme";
+import {resolvePneSemanticPalette} from "../../createTheme";
 import {measureNaturalWidth} from "./measureNaturalWidth";
 import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from "./tableControlMetrics";
 
@@ -132,28 +134,36 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     } = paginator;
 
     const theme = usePneTheme()
-    const controlTextColor = theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR
-    const activeBackgroundColor = theme.palette.pne?.control.activeBackground
-        ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
+    // UI Kit Paginations: Button Tertiary sm in the white shell of a button group; the page size in
+    // force is Button Primary sm. The range is a label drawn as the buttons beside it.
+    const controlStyle = createTableControlTextButtonStyle(theme)
+    const controlColors = resolvePneSemanticPalette(theme).button.text
+    const shellStyle = createTableControlShellStyle(theme, 'actions')
+    const hoverStyle = {
+        backgroundColor: controlColors.hover.fill,
+        color: controlColors.hover.text,
+        ...activeActionSx
+    }
 
     const buttonStyle = {
-        width: `${TABLE_CONTROL_SIZE}px`,
-        height: `${TABLE_CONTROL_SIZE}px`,
+        ...controlStyle,
         flexShrink: 0,
-        borderRadius: '4px',
-        fontWeight: 700,
-        fontSize: '12px',
-        lineHeight: '16px',
-        color: controlTextColor,
-        '&:hover': {
-            background: activeBackgroundColor,
-            ...activeActionSx
-        },
+        minWidth: `${TABLE_CONTROL_SIZE}px`,
+        padding: 0,
+        width: `${TABLE_CONTROL_SIZE}px`,
+        '&:hover': hoverStyle,
+    }
+
+    const pageSizeButtonStyle = {
+        ...controlStyle,
+        flexShrink: 0,
+        minWidth: `${TABLE_CONTROL_SIZE}px`,
+        '&:hover': hoverStyle,
     }
 
     const selectedButtonStyle = {
-        ...buttonStyle,
-        background: activeBackgroundColor,
+        ...pageSizeButtonStyle,
+        ...createTableControlCurrentStyle(theme),
         ...activeActionSx
     }
 
@@ -170,11 +180,11 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         height: `${TABLE_CONTROL_SIZE}px`,
         overflow: 'hidden',
         borderRadius: '4px',
-        background: activeBackgroundColor,
-        fontWeight: 700,
+        background: controlColors.default.fill,
+        fontWeight: 500,
         fontSize: '12px',
         lineHeight: '16px',
-        color: controlTextColor,
+        color: controlColors.default.text,
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
         ...activeActionSx
@@ -220,7 +230,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             const selected = rowsPerPage === size;
             return <IconButton
                 key={label}
-                sx={selected ? selectedButtonStyle : buttonStyle}
+                sx={selected ? selectedButtonStyle : pageSizeButtonStyle}
                 onClick={() => handleChangePageSizeButtonClick(size)}
                 {...createAutoTestAttributes('page-size', label)}
             >
@@ -246,8 +256,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         key='page-navigation'
         ref={navigationRef}
         sx={{
+            ...shellStyle,
             display: 'flex',
-            gap: `${TABLE_CONTROL_GAP}px`,
             gridArea: 'navigation',
             justifySelf: 'start',
             /* Holds the start of the row when the pagination group wraps. */
@@ -310,9 +320,9 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         key='page-sizes'
         ref={pageSizesRef}
         sx={{
+            ...shellStyle,
             display: 'flex',
             flexWrap: 'wrap',
-            gap: `${TABLE_CONTROL_GAP}px`,
             gridArea: 'sizes',
             justifyContent: 'flex-end',
             justifySelf: 'end',

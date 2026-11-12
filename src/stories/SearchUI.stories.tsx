@@ -1094,8 +1094,8 @@ export const TableViewsMobile360: Story = {
         }
 
         const settingsRect = settingsAction.getBoundingClientRect()
-        if (settingsRect.width !== 32 || settingsRect.height !== 32) {
-            throw new Error('View settings must match the 32x32px pagination controls at 360px')
+        if (settingsRect.width !== 24 || settingsRect.height !== 24) {
+            throw new Error('View settings must match the 24x24px pagination controls at 360px')
         }
     },
     render: () => <TableViewsWrap/>,

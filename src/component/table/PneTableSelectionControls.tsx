@@ -1,7 +1,7 @@
 import React from 'react'
 import {Box, BoxProps, Theme} from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
-import {TABLE_CONTROL_HOVER_TEXT_COLOR} from './tableControlColors'
+import {resolvePneSemanticPalette} from '../../createTheme'
 import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from './tableControlMetrics'
 
 export type PneTableSelectionControlsProps = Omit<
@@ -48,7 +48,7 @@ const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
             role='status'
             sx={(theme: Theme) => ({
                 alignItems: 'center',
-                color: theme.palette.pne?.control.foregroundHover ?? TABLE_CONTROL_HOVER_TEXT_COLOR,
+                color: resolvePneSemanticPalette(theme).table.text,
                 display: 'flex',
                 fontSize: '14px',
                 lineHeight: '20px',

@@ -12,6 +12,11 @@ describe('createPneTablePalette', () => {
             row: {hover: '#F0F4F8', selected: '#EBF3FF'},
             header: {text: '#2C3136'},
             sort: {active: '#005EB9', inactive: '#B2B8BF', idle: '#6E747A'},
+            band: {
+                shell: {fill: '#FFFFFF', ring: '#E2E9F0'},
+                tabs: {fill: '#F0F4F8', ring: '#E2E9F0'},
+            },
+            empty: {fill: '#F0F4F8', icon: '#565B61'},
         })
     })
 

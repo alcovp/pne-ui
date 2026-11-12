@@ -124,7 +124,7 @@ describe('PneTableToolbar', () => {
         expect(screen.getByRole('button', {name: 'Clear'})).not.toBeNull()
     })
 
-    it('draws the summary as a 32px grey line and leaves it out while nothing is selected', () => {
+    it('draws the summary as a 24px line in the colour of a value and leaves it out while nothing is selected', () => {
         const {rerender} = render(
             <PneTableSelectionControls
                 actions={<button type='button'>Select all</button>}
@@ -133,9 +133,9 @@ describe('PneTableToolbar', () => {
         )
 
         const summary = window.getComputedStyle(screen.getByRole('status'))
-        expect(summary.minHeight).toBe('32px')
+        expect(summary.minHeight).toBe('24px')
         expect(summary.fontSize).toBe('14px')
-        expect(summary.color).toBe('rgb(92, 92, 92)')
+        expect(summary.color).toBe('rgb(44, 49, 54)')
 
         rerender(<PneTableSelectionControls actions={<button type='button'>Select all</button>}/>)
 

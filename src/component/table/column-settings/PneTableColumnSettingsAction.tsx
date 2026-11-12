@@ -4,7 +4,7 @@ import {IconButton, SxProps, Theme, Tooltip} from '@mui/material'
 import {useTranslation} from 'react-i18next'
 import PneButton from '../../PneButton'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
-import {TABLE_CONTROL_SIZE} from '../tableControlMetrics'
+import {pneIconActionSx} from '../../iconActionLook'
 
 export const COLUMN_SETTINGS_ACTION_AUTOTEST_ID = 'column-settings'
 
@@ -12,7 +12,7 @@ export type PneTableColumnSettingsActionProps = {
     /** Opens the column settings dialog. */
     onClick: React.MouseEventHandler<HTMLButtonElement>
     /**
-     * `icon` renders a 32px icon button with a tooltip and fits the
+     * `icon` renders a 24px icon button with a tooltip and fits the
      * `PneTableViewSelector` actions slot. `button` renders an outlined text
      * button with the icon for wide layouts. Defaults to `icon`.
      */
@@ -25,12 +25,8 @@ export type PneTableColumnSettingsActionProps = {
     sx?: SxProps<Theme>
 }
 
-const iconButtonSx: SxProps<Theme> = {
-    borderRadius: '4px',
-    height: `${TABLE_CONTROL_SIZE}px`,
-    padding: '8px',
-    width: `${TABLE_CONTROL_SIZE}px`,
-}
+// UI Kit Icon action sm: a 24px box with a 14px glyph and no fill.
+const iconButtonSx = pneIconActionSx('small')
 
 /**
  * Entry point to the column settings dialog. Place it in the table toolbar or
@@ -75,6 +71,7 @@ const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColum
                     aria-label={resolvedLabel}
                     disabled={disabled}
                     onClick={onClick}
+                    disableRipple
                     ref={ref}
                     size='small'
                     sx={[
@@ -82,7 +79,7 @@ const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColum
                         ...(Array.isArray(sx) ? sx : [sx]),
                     ]}
                 >
-                    <ViewColumnOutlinedIcon sx={{height: '16px', width: '16px'}}/>
+                    <ViewColumnOutlinedIcon/>
                 </IconButton>
             </span>
         </Tooltip>

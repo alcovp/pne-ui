@@ -1,19 +1,17 @@
 import React, {forwardRef} from 'react'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {ButtonBase, ButtonBaseProps, SxProps, Theme, Tooltip} from '@mui/material'
+import {resolvePneSemanticPalette} from '../../createTheme'
 import {createTableControlTextButtonStyle} from './tableControlButtonStyle'
-import {
-    TABLE_CONTROL_DISABLED_TEXT_COLOR,
-    TABLE_CONTROL_HOVER_TEXT_COLOR,
-} from './tableControlColors'
 
 export type PneTableControlButtonProps = Omit<ButtonBaseProps, 'children' | 'sx'> & {
     children: React.ReactNode
-    /** Adds the 16px chevron of a menu trigger after the label. */
+    /** Adds the 14px chevron of a menu trigger after the label. */
     menu?: boolean
     /**
-     * `strong` gives an enabled button the darker grey, for the action the band is about, such as the
-     * bulk actions of a selection. A disabled button looks the same either way.
+     * `strong` gives an enabled button the colour of a value instead of the secondary text, for the
+     * action the band is about, such as the bulk actions of a selection. A disabled button looks the
+     * same either way.
      */
     emphasis?: 'normal' | 'strong'
     /**
@@ -25,9 +23,9 @@ export type PneTableControlButtonProps = Omit<ButtonBaseProps, 'children' | 'sx'
 }
 
 /**
- * A text button of the table bands: selection actions, a bulk actions menu. It looks like the views of
- * `PneTableViewSelector` - 32px, no border, no shadow, the control greys - and ignores the skin, so a
- * band reads as one strip of controls whatever the application colours are.
+ * A text button of the table bands: selection actions, a bulk actions menu. UI Kit Button Tertiary sm,
+ * as every control of a band: 24px, a 12/16 Medium label on the sunken grey fill; the pointer colours
+ * the label with the brand text colour.
  */
 const PneTableControlButton = forwardRef<HTMLButtonElement, PneTableControlButtonProps>(
     function PneTableControlButton(props, ref) {
@@ -51,17 +49,14 @@ const PneTableControlButton = forwardRef<HTMLButtonElement, PneTableControlButto
                     whiteSpace: 'nowrap',
                     ...(menu ? {paddingRight: '6px'} : {}),
                     ...(emphasis === 'strong'
-                        ? {color: theme.palette.pne?.control.foregroundHover ?? TABLE_CONTROL_HOVER_TEXT_COLOR}
+                        ? {color: resolvePneSemanticPalette(theme).table.text}
                         : {}),
-                    '&.Mui-disabled': {
-                        color: theme.palette.pne?.control.foregroundDisabled ?? TABLE_CONTROL_DISABLED_TEXT_COLOR,
-                    },
                 }),
                 ...(Array.isArray(sx) ? sx : [sx]),
             ]}
         >
             {children}
-            {menu ? <ExpandMoreIcon aria-hidden sx={{fontSize: '16px'}}/> : null}
+            {menu ? <ExpandMoreIcon aria-hidden sx={{fontSize: '14px'}}/> : null}
         </ButtonBase>
 
         if (tooltip === undefined || tooltip === null || typeof tooltip === 'boolean' || tooltip === '') {

@@ -14,12 +14,13 @@ import {
     Tooltip,
 } from '@mui/material'
 import {createAutoTestAttributes} from '../AutoTestAttribute'
+import {pneIconActionSx} from '../iconActionLook'
+import {TABLE_CONTROL_BAND_SIZE, TABLE_CONTROL_GAP} from './tableControlMetrics'
 import {
-    TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
-    TABLE_CONTROL_TEXT_COLOR,
-} from './tableControlColors'
-import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from './tableControlMetrics'
-import {createTableControlTextButtonStyle} from './tableControlButtonStyle'
+    createTableControlActiveStyle,
+    createTableControlShellStyle,
+    createTableControlTextButtonStyle,
+} from './tableControlButtonStyle'
 
 // View names go into the hints as they are: React escapes them, i18next must not escape them again.
 const RAW_VIEW_NAME = {escapeValue: false}
@@ -74,54 +75,39 @@ export type PneTableViewSelectorProps<TViewId extends string = string> = Omit<
 const rootSx: SxProps<Theme> = {
     alignItems: 'center',
     display: 'flex',
-    height: `${TABLE_CONTROL_SIZE}px`,
+    height: `${TABLE_CONTROL_BAND_SIZE}px`,
     maxWidth: '100%',
     minWidth: 0,
 }
 
-const groupSx: SxProps<Theme> = {
+// UI Kit Tabs: the views stand on a grey shell, the picked one is a white button with the tab shadow.
+const groupSx: SxProps<Theme> = theme => ({
+    ...createTableControlShellStyle(theme, 'tabs'),
     display: 'flex',
     flex: '1 1 auto',
-    gap: `${TABLE_CONTROL_GAP}px`,
-    height: `${TABLE_CONTROL_SIZE}px`,
+    height: `${TABLE_CONTROL_BAND_SIZE}px`,
     minWidth: 0,
     overflow: 'hidden',
     [`& .${toggleButtonGroupClasses.grouped}`]: {
         border: '0 !important',
         margin: 0,
     },
-}
+})
 
-const viewButtonSx: SxProps<Theme> = theme => {
-    const activeBackgroundColor = theme.palette.pne?.control.activeBackground
-        ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR
-    const controlTextColor = theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR
-
-    return {
-        ...createTableControlTextButtonStyle(theme),
-        border: 0,
-        borderRadius: '4px !important',
-        flex: '1 1 auto',
-        minWidth: 0,
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
-        whiteSpace: 'nowrap',
-        [`&.${toggleButtonClasses.selected}`]: {
-            backgroundColor: activeBackgroundColor,
-            color: controlTextColor,
-            '&:hover': {
-                backgroundColor: activeBackgroundColor,
-            },
-        },
-        [`&.${toggleButtonClasses.disabled}`]: {
-            border: 'none',
-        },
-        '&:hover': {
-            backgroundColor: activeBackgroundColor,
-            borderRadius: '4px',
-        },
-    }
-}
+const viewButtonSx: SxProps<Theme> = theme => ({
+    ...createTableControlTextButtonStyle(theme),
+    border: 0,
+    borderRadius: '4px !important',
+    flex: '1 1 auto',
+    minWidth: 0,
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    [`&.${toggleButtonClasses.selected}`]: createTableControlActiveStyle(theme),
+    [`&.${toggleButtonClasses.disabled}`]: {
+        border: 'none',
+    },
+})
 
 const PneTableViewSelectorInner = <TViewId extends string, >(
     props: PneTableViewSelectorProps<TViewId>,
@@ -223,17 +209,9 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
                     display: 'flex',
                     flexShrink: 0,
                     gap: `${TABLE_CONTROL_GAP}px`,
-                    height: `${TABLE_CONTROL_SIZE}px`,
-                    [`& .${iconButtonClasses.root}`]: {
-                        borderRadius: '4px !important',
-                        color: theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR,
-                        height: `${TABLE_CONTROL_SIZE}px`,
-                        width: `${TABLE_CONTROL_SIZE}px`,
-                        '&:hover': {
-                            backgroundColor: theme.palette.pne?.control.activeBackground
-                                ?? TABLE_CONTROL_ACTIVE_BACKGROUND_COLOR,
-                        },
-                    },
+                    height: `${TABLE_CONTROL_BAND_SIZE}px`,
+                    // UI Kit Icon action sm: a 24px box, only the icon takes colour under the pointer.
+                    [`& .${iconButtonClasses.root}`]: (pneIconActionSx('small') as (theme: Theme) => object)(theme),
                 })}
             >
                 {actions}

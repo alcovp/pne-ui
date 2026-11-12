@@ -48,7 +48,7 @@ const size = (element: Element) => {
 }
 
 describe('PneTable control size', () => {
-    it('draws the pagination of both bands as 32px squares 4px apart', () => {
+    it('draws the pagination of both bands as 24px buttons 4px apart in 32px shells', () => {
         const {container} = renderTable({paginator})
 
         const bands = Array.from(container.querySelectorAll('[data-autotest="pagination"]'))
@@ -57,22 +57,29 @@ describe('PneTable control size', () => {
         for (const band of bands) {
             for (const id of ['first-page', 'prev-page', 'next-page']) {
                 expect(size(band.querySelector(`[data-autotest="${id}"]`) as Element))
-                    .toEqual({height: '32px', width: '32px'})
+                    .toEqual({height: '24px', width: '24px'})
             }
             const sizes = Array.from(band.querySelectorAll('[data-autotest="page-size"]'))
             expect(sizes).toHaveLength(3)
             for (const pageSize of sizes) {
-                expect(size(pageSize)).toEqual({height: '32px', width: '32px'})
+                // A page size is as wide as its label, and never narrower than a square.
+                expect(window.getComputedStyle(pageSize).height).toBe('24px')
+                expect(window.getComputedStyle(pageSize).minWidth).toBe('24px')
             }
 
             const currentPage = window.getComputedStyle(band.querySelector('[data-autotest="current-page"]') as Element)
-            expect(currentPage.height).toBe('32px')
-            expect(currentPage.minWidth).toBe('32px')
+            expect(currentPage.height).toBe('24px')
+            expect(currentPage.minWidth).toBe('24px')
 
-            expect(window.getComputedStyle(band.querySelector('[data-autotest="page-navigation"]') as Element).gap)
-                .toBe('4px')
-            expect(window.getComputedStyle(band.querySelector('[data-autotest="page-sizes"]') as Element).gap)
-                .toBe('4px')
+            // UI Kit Button group: a white shell with a ring, 4px around its controls and between them.
+            for (const id of ['page-navigation', 'page-sizes']) {
+                const shell = window.getComputedStyle(band.querySelector(`[data-autotest="${id}"]`) as Element)
+                expect(shell.gap).toBe('4px')
+                expect(shell.padding).toBe('4px')
+                expect(shell.minHeight).toBe('32px')
+                expect(shell.borderRadius).toBe('8px')
+                expect(shell.backgroundColor).toBe('rgb(255, 255, 255)')
+            }
             // Groups in one row stand 8px apart; on a narrow screen the rows they wrap onto stand 4px apart.
             expect(window.getComputedStyle(band.querySelector('[data-autotest="pagination-actions"]') as Element).gap)
                 .toBe('4px 8px')
@@ -112,9 +119,9 @@ describe('PneTable control size', () => {
             .toBe('4px')
     })
 
-    it('draws the column settings icon as a 32px square', () => {
+    it('draws the column settings icon as a 24px icon action', () => {
         render(<PneTableColumnSettingsAction autoTestId='sizes' onClick={jest.fn()}/>)
 
-        expect(size(screen.getByRole('button', {name: 'Table settings'}))).toEqual({height: '32px', width: '32px'})
+        expect(size(screen.getByRole('button', {name: 'Table settings'}))).toEqual({height: '24px', width: '24px'})
     })
 })

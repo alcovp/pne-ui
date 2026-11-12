@@ -926,8 +926,8 @@ export const SelectionAndViewsMobile360: Story = {
         }
 
         const settingsRect = settingsAction.getBoundingClientRect()
-        if (settingsRect.width !== 32 || settingsRect.height !== 32) {
-            throw new Error('View settings must match the 32x32px table controls')
+        if (settingsRect.width !== 24 || settingsRect.height !== 24) {
+            throw new Error('View settings must match the 24x24px table controls')
         }
     },
 }

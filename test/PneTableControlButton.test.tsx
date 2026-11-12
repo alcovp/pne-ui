@@ -14,19 +14,22 @@ jest.mock('react-i18next', () => ({
 const style = (name: string) => window.getComputedStyle(screen.getByRole('button', {name}))
 
 describe('PneTableControlButton', () => {
-    it('is a 32px grey text button without border or shadow, like a view', () => {
+    it('is a 24px tertiary button of the UI Kit: a 12/16 Medium label on the sunken fill, without border or shadow', () => {
         render(<PneTableControlButton onClick={jest.fn()}>Select all</PneTableControlButton>)
 
         const button = screen.getByRole('button', {name: 'Select all'})
         expect(button.tagName).toBe('BUTTON')
         expect(button.getAttribute('type')).toBe('button')
-        const {borderRadius, color, fontWeight, height, padding, textTransform} = style('Select all')
-        expect({borderRadius, color, fontWeight, height, padding, textTransform}).toEqual({
+        const {backgroundColor, borderRadius, color, fontSize, fontWeight, height, lineHeight, padding, textTransform} = style('Select all')
+        expect({backgroundColor, borderRadius, color, fontSize, fontWeight, height, lineHeight, padding, textTransform}).toEqual({
+            backgroundColor: 'rgb(240, 244, 248)',
             borderRadius: '4px',
-            color: 'rgb(138, 138, 138)',
-            fontWeight: '700',
-            height: '32px',
-            padding: '0px 10px',
+            color: 'rgb(86, 91, 97)',
+            fontSize: '12px',
+            fontWeight: '500',
+            height: '24px',
+            lineHeight: '16px',
+            padding: '4px 8px',
             textTransform: 'none',
         })
         expect(style('Select all').boxShadow).toBe('')
@@ -34,23 +37,23 @@ describe('PneTableControlButton', () => {
         expect(button.querySelector('svg')).toBeNull()
     })
 
-    it('draws a menu trigger with a 16px chevron and the darker grey for the main action', () => {
+    it('draws a menu trigger with a 14px chevron and the colour of a value for the main action', () => {
         render(<PneTableControlButton aria-haspopup='menu' emphasis='strong' menu>Actions</PneTableControlButton>)
 
         const chevron = screen.getByRole('button', {name: 'Actions'}).querySelector('svg') as SVGElement
-        expect(window.getComputedStyle(chevron).fontSize).toBe('16px')
-        expect(style('Actions').color).toBe('rgb(92, 92, 92)')
+        expect(window.getComputedStyle(chevron).fontSize).toBe('14px')
+        expect(style('Actions').color).toBe('rgb(44, 49, 54)')
         expect(style('Actions').paddingRight).toBe('6px')
     })
 
-    it('fades a disabled button to the light grey whatever its emphasis', () => {
+    it('fades the label of a disabled button whatever its emphasis', () => {
         render(<PneTableControlButton disabled emphasis='strong' menu>Actions</PneTableControlButton>)
 
         expect((screen.getByRole('button', {name: 'Actions'}) as HTMLButtonElement).disabled).toBe(true)
-        expect(style('Actions').color).toBe('rgb(196, 196, 196)')
+        expect(style('Actions').color).toBe('rgb(178, 184, 191)')
     })
 
-    it('ignores the skin colours and matches the views of the band', () => {
+    it('rests in the neutral colours whatever the skin and matches the views of the band', () => {
         render(<PneThemeProvider skin={{experimentalColor: '#c62828'} as Skin}>
             <PneTableControlButton>Clear</PneTableControlButton>
             <PneTableViewSelector
@@ -66,8 +69,8 @@ describe('PneTableControlButton', () => {
         for (const property of ['color', 'fontWeight', 'height', 'letterSpacing', 'lineHeight', 'padding', 'borderRadius'] as const) {
             expect(button[property]).toBe(view[property])
         }
-        expect(button.color).toBe('rgb(138, 138, 138)')
-        expect(button.backgroundColor).not.toBe('rgb(198, 40, 40)')
+        expect(button.color).toBe('rgb(86, 91, 97)')
+        expect(button.backgroundColor).toBe('rgb(240, 244, 248)')
     })
 
     it('explains itself on hover, keeping its label as its name', async () => {

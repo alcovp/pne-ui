@@ -4,6 +4,7 @@ import {render, screen} from '@testing-library/react'
 
 import {
     PneHeaderTableCell,
+    PneTable,
     PneTableCell,
     PneTableRow,
     PneTableSortLabel,
@@ -136,5 +137,66 @@ describe('PneTable frame (UI Kit look)', () => {
         )).toBe('#B2B8BF')
         // The label keeps the colour of the header whether its column is sorted or not.
         expect(ruleValue(sorted, '&.Mui-active', 'color')).toBe('inherit')
+    })
+
+    it('fills the page size in force with the brand colour and leaves the others tertiary', () => {
+        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
+            <PneTable<{id: string}>
+                autoTestId='band'
+                createRow={row => <tr key={row.id}><td>{row.id}</td></tr>}
+                createTableHeader={() => <tr><th>ID</th></tr>}
+                data={[{id: '1'}]}
+                paginator={{
+                    activeActionSx: {},
+                    disableActions: false,
+                    displayedRowsLabel: '1 - 1',
+                    hasNext: false,
+                    onPageChange: () => undefined,
+                    onPageSizeChange: () => undefined,
+                    page: 0,
+                    paginationRef: {current: null},
+                    rowsPerPage: 25,
+                    rowsPerPageOptions: [10, 25, 50],
+                }}
+            />
+        </PneThemeProvider>)
+        const sizes = Array.from(container.querySelectorAll<HTMLElement>('[data-autotest="page-size"]')).slice(0, 3)
+        const [ten, twentyFive] = sizes.map(button => style(button))
+
+        expect(sizes.map(button => button.textContent)).toEqual(['10', '25', '50'])
+        expect(twentyFive.backgroundColor).toBe('rgb(2, 111, 215)')
+        expect(twentyFive.color).toBe('rgb(255, 255, 255)')
+        expect(ten.backgroundColor).toBe('rgb(240, 244, 248)')
+        expect(ten.color).toBe('rgb(86, 91, 97)')
+        // The range is a label drawn as the buttons beside it.
+        const range = style(container.querySelector('[data-autotest="current-page"]')!)
+        expect(range.background).toBe('rgb(240, 244, 248)')
+        expect(range.fontWeight).toBe('500')
+    })
+
+    it('shows the message of an empty table under a glyph in a round fill, with no other content', () => {
+        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
+            <PneTable<{id: string}>
+                autoTestId='empty'
+                createRow={row => <tr key={row.id}><td>{row.id}</td></tr>}
+                createTableHeader={() => <tr><th>ID</th></tr>}
+                data={[]}
+                noRowsMessage='Nothing is found.'
+            />
+        </PneThemeProvider>)
+        const row = container.querySelector<HTMLElement>('[data-autotest="empty-state"]')!
+        const cell = row.querySelector('td')!
+        const sign = cell.querySelector<HTMLElement>('span[aria-hidden="true"]')!
+
+        expect(cell.textContent).toBe('Nothing is found.')
+        expect(style(cell).padding).toBe('32px 24px')
+        expect(style(sign).width).toBe('48px')
+        expect(style(sign).height).toBe('48px')
+        expect(style(sign).borderRadius).toBe('50%')
+        expect(style(sign).backgroundColor).toBe('rgb(240, 244, 248)')
+        expect(sign.querySelector('svg')).not.toBeNull()
+        expect(style(sign.parentElement!).fontWeight).toBe('500')
+        expect(style(sign.parentElement!).textAlign).toBe('center')
+        expect(cell.querySelectorAll('button, a')).toHaveLength(0)
     })
 })
