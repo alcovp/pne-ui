@@ -21,6 +21,16 @@ export type {
     PneTableSwitchControlProps,
     TableSwitchAccessibleName,
 } from '../component/table/PneTableSwitchCell'
+export { default as PneTableNumberCell } from '../component/table/PneTableNumberCell'
+export type { PneTableNumberCellProps } from '../component/table/PneTableNumberCell'
+export { default as PneTableLinkCell } from '../component/table/PneTableLinkCell'
+export type { PneTableLinkActionProps, PneTableLinkCellProps } from '../component/table/PneTableLinkCell'
+export { default as PneTableActionsCell } from '../component/table/PneTableActionsCell'
+export type { PneTableActionsCellProps } from '../component/table/PneTableActionsCell'
+export { default as PneTableAction } from '../component/table/PneTableAction'
+export type { PneTableActionProps, PneTableActionTone } from '../component/table/PneTableAction'
+export { default as PneTableExpandCell } from '../component/table/PneTableExpandCell'
+export type { PneTableExpandCellProps } from '../component/table/PneTableExpandCell'
 export { default as PneTableSelectionHeaderCell } from '../component/table/PneTableSelectionHeaderCell'
 export type { PneTableSelectionHeaderCellProps } from '../component/table/PneTableSelectionHeaderCell'
 export type {

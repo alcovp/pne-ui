@@ -1,7 +1,21 @@
 import * as React from 'react'
 import {Box, Table, TableBody, TableHead, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneHeaderTableCell, PneTable, PneTableCell, PneTableRow, PneTableSortLabel} from '../../index'
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
+import ModeEditIcon from '@mui/icons-material/ModeEdit'
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
+import {
+    PneHeaderTableCell,
+    PneTable,
+    PneTableAction,
+    PneTableActionsCell,
+    PneTableCell,
+    PneTableExpandCell,
+    PneTableLinkCell,
+    PneTableNumberCell,
+    PneTableRow,
+    PneTableSortLabel,
+} from '../../index'
 import type {TableSortOptions} from '../../component/table/AbstractTable'
 
 export default {
@@ -139,5 +153,87 @@ export const IslandHeader: Story = {
                 throw new Error(`An island header must be a 24px strip, got ${header.getBoundingClientRect().height}px`)
             }
         })
+    },
+}
+
+// The kinds of cells (UI Kit Cell): a number, a link, a pseudo link, the actions of a row and the
+// chevron that opens it. Each is a ready cell: the page does not style the content itself.
+const CellsDemo = () => {
+    const [open, setOpen] = React.useState<number | null>(ROWS[1].id)
+    const [message, setMessage] = React.useState('Nothing clicked yet')
+
+    return (
+        <Box sx={{p: 3, maxWidth: 900}}>
+            <Typography data-story-cells-message sx={{fontSize: 14, color: 'text.secondary', mb: 2}}>{message}</Typography>
+            <Table>
+                <TableHead>
+                    <PneTableRow>
+                        <PneHeaderTableCell/>
+                        <PneHeaderTableCell>ID</PneHeaderTableCell>
+                        <PneHeaderTableCell>Merchant</PneHeaderTableCell>
+                        <PneHeaderTableCell align='right'>Amount</PneHeaderTableCell>
+                        <PneHeaderTableCell>Status</PneHeaderTableCell>
+                        <PneHeaderTableCell>Actions</PneHeaderTableCell>
+                    </PneTableRow>
+                </TableHead>
+                <TableBody>
+                    {ROWS.map(row => (
+                        <PneTableRow data-story-cells-row key={row.id}>
+                            <PneTableExpandCell
+                                aria-label={`Details of ${row.id}`}
+                                autoTestValue={row.id}
+                                expanded={open === row.id}
+                                onToggle={expanded => setOpen(expanded ? row.id : null)}
+                            />
+                            <PneTableLinkCell>
+                                <a href={`#order-${row.id}`}>{row.id}</a>
+                            </PneTableLinkCell>
+                            <PneTableLinkCell onAction={() => setMessage(`Filter by ${row.merchant}`)}>
+                                {row.merchant}
+                            </PneTableLinkCell>
+                            <PneTableNumberCell>{row.amount}</PneTableNumberCell>
+                            <PneTableCell>{row.status}</PneTableCell>
+                            <PneTableActionsCell>
+                                <PneTableAction onClick={() => setMessage(`View ${row.id}`)} tooltip='View'>
+                                    <VisibilityOutlinedIcon/>
+                                </PneTableAction>
+                                <PneTableAction onClick={() => setMessage(`Edit ${row.id}`)} tooltip='Edit'>
+                                    <ModeEditIcon/>
+                                </PneTableAction>
+                                <PneTableAction
+                                    disabled={row.status === 'Approved'}
+                                    onClick={() => setMessage(`Delete ${row.id}`)}
+                                    tone='danger'
+                                    tooltip='Delete'
+                                >
+                                    <DeleteOutlinedIcon/>
+                                </PneTableAction>
+                            </PneTableActionsCell>
+                        </PneTableRow>
+                    ))}
+                </TableBody>
+            </Table>
+        </Box>
+    )
+}
+
+export const Cells: Story = {
+    render: () => <CellsDemo/>,
+    play: ({canvasElement}) => {
+        const rows = canvasElement.querySelectorAll<HTMLElement>('[data-story-cells-row]')
+        if (rows.length !== ROWS.length) {
+            throw new Error('The cells story must render its rows')
+        }
+        rows.forEach(row => {
+            // The 24px actions and the chevron must not make a row higher than the 40px of the UI Kit.
+            if (row.getBoundingClientRect().height > 40) {
+                throw new Error(`A row with ready cells must stay 40px high, got ${row.getBoundingClientRect().height}px`)
+            }
+        })
+        const action = canvasElement.querySelector<HTMLElement>('[data-pne-cell="actions"] button')
+        const rect = action?.getBoundingClientRect()
+        if (!rect || rect.width !== 24 || rect.height !== 24) {
+            throw new Error('A row action must be a 24x24px icon action')
+        }
     },
 }

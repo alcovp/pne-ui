@@ -396,6 +396,52 @@ Neutral/400; при наведении кольцо или заливка бре
 `data-pne-state="hover" | "pressed" | "focus"` закрепляет состояние для образцов в Storybook; в коде продукта
 атрибут не задаётся.
 
+## Виды ячеек таблицы
+
+Содержимое ячейки не стилизуют на странице: для каждого вида значения есть готовая ячейка (UI Kit Cell).
+Все они — `PneTableCell` с теми же пропсами и несут `data-pne-cell` с именем вида.
+
+| Что в ячейке | Компонент |
+|---|---|
+| Текст | `PneTableCell` |
+| Число: сумма, количество, курс | `PneTableNumberCell` |
+| Ссылка на другую запись | `PneTableLinkCell` со ссылкой внутри |
+| Действие над значением на месте (псевдоссылка) | `PneTableLinkCell` с `onAction` |
+| Действия строки: править, удалить, показать | `PneTableActionsCell` с `PneTableAction` внутри |
+| Раскрытие строки | `PneTableExpandCell` |
+| Переключатель, выбор строки | `PneTableSwitchCell`, `PneTableSelectionCell` |
+| Другой элемент управления | `PneTableControlCell` |
+
+```tsx
+<PneTableRow>
+    <PneTableExpandCell aria-label='Details' expanded={open} onToggle={setOpen}/>
+    <PneTableLinkCell><PneLink href={orderUrl}>{order.id}</PneLink></PneTableLinkCell>
+    <PneTableLinkCell onAction={() => filterBy(order.merchant)}>{order.merchant}</PneTableLinkCell>
+    <PneTableNumberCell>{formatAmount(order.amount)}</PneTableNumberCell>
+    <PneTableActionsCell>
+        <PneTableAction onClick={edit} tooltip='Edit'><ModeEditIcon/></PneTableAction>
+        <PneTableAction onClick={remove} tone='danger' tooltip='Delete'><DeleteOutlinedIcon/></PneTableAction>
+    </PneTableActionsCell>
+</PneTableRow>
+```
+
+- `PneTableNumberCell` ставит значение к правому краю моноширинным шрифтом (`"Roboto Mono"`, дальше системный
+  моноширинный) в одну строку, чтобы цифры колонки стояли друг под другом. Заголовку такой колонки задайте
+  `align='right'`.
+- `PneTableLinkCell` даёт ссылке внутри цвет ссылки без подчёркивания (оно появляется под указателем). Сама
+  ссылка — компонент потребителя (ссылка его роутера или `<a>`). С `onAction` содержимое становится кнопкой с
+  линией под текстом: это действие на месте (открыть окно, отфильтровать по значению), а не переход;
+  `actionProps` — пропсы этой кнопки (`disabled`, локатор).
+- `PneTableActionsCell` ставит действия в ряд через 4px; `align` прижимает их к левому краю (по умолчанию), к
+  центру или к правому. `PneTableAction` — кнопка 24px со значком 14px без заливки (UI Kit Icon action sm);
+  значок передаётся потомком, как у `IconButton`. `tone='danger'` красит значок красным под указателем,
+  `tooltip` показывает подсказку, в том числе у выключенного действия. Локатор и `aria-label` ставятся на саму
+  кнопку.
+- `PneTableExpandCell` — шеврон в узкой ячейке: вправо у закрытой строки, вверх у открытой (тогда он цвета
+  ссылки). `onToggle(expanded, event)` получает новое состояние; `aria-label` обязателен; локатор кнопки —
+  `row-expand` (`autoTestId`, `autoTestValue`).
+- Действие, псевдоссылка и шеврон не передают клик строке, если она сама кликабельна.
+
 ## PneTableSwitchCell
 
 Для status-колонки `PneTable` используйте `PneTableSwitchCell`: он размещает `PneSwitch size="small"` в
