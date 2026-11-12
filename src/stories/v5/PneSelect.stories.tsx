@@ -6,7 +6,7 @@ import {PneButton, PneField, PneSelect} from '../../index'
 type PlaygroundArgs = {
     label: string
     placeholder: string
-    size: 'small' | 'medium'
+    size: 'small' | 'medium' | 'large'
     variant: 'outlined' | 'filled'
     disabled: boolean
     error: boolean
@@ -18,13 +18,13 @@ export default {
     args: {
         label: 'Label',
         placeholder: 'Placeholder',
-        size: 'small',
+        size: 'medium',
         variant: 'outlined',
         disabled: false,
         error: false,
     },
     argTypes: {
-        size: {control: 'inline-radio', options: ['small', 'medium']},
+        size: {control: 'inline-radio', options: ['small', 'medium', 'large']},
         variant: {control: 'inline-radio', options: ['outlined', 'filled']},
     },
 } as Meta<PlaygroundArgs>
@@ -73,7 +73,7 @@ const MATRIX_COLUMNS: MatrixColumn[] = [
 
 type MatrixRow = {
     title: string
-    size: 'small' | 'medium'
+    size: 'small' | 'medium' | 'large'
     variant: 'outlined' | 'filled'
     required?: boolean
 }
@@ -81,9 +81,11 @@ type MatrixRow = {
 const MATRIX_ROWS: MatrixRow[] = [
     {title: 'small · fill', size: 'small', variant: 'filled'},
     {title: 'medium · fill', size: 'medium', variant: 'filled'},
+    {title: 'large · fill', size: 'large', variant: 'filled'},
     {title: 'medium · required', size: 'medium', variant: 'filled', required: true},
     {title: 'small · outlined', size: 'small', variant: 'outlined'},
     {title: 'medium · outlined', size: 'medium', variant: 'outlined'},
+    {title: 'large · outlined', size: 'large', variant: 'outlined'},
 ]
 
 const MATRIX_OPTIONS = ['Value', 'Other value'] as const

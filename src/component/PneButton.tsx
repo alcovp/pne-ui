@@ -139,7 +139,7 @@ const PneButtonImplementation = <C extends React.ElementType = 'button'>(
         children,
         variant,
         color,
-        size = 'large',
+        size = 'medium',
         pneStyle,
         loading = false,
         active = false,
@@ -150,7 +150,7 @@ const PneButtonImplementation = <C extends React.ElementType = 'button'>(
         ...rest
     } = props
 
-    const resolvedSize = isPneButtonSize(size) ? size : 'large'
+    const resolvedSize = isPneButtonSize(size) ? size : 'medium'
 
     if (variant !== undefined || color !== undefined) {
         console.warn('PneButton ignores variant/color; use the canonical pneStyle prop')

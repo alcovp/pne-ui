@@ -149,7 +149,8 @@ const SearchUIAbstractEntitySelect = (props: Props) => {
         }
         disableClearable
         disableCloseOnSelect
-        size={'small'}
+        // The values are 24px chips, as the other chips of the panel: the badges of a medium field.
+        size={'medium'}
     />
 }
 
@@ -166,7 +167,8 @@ const selectSx: SxProps = {
     '& .MuiInputBase-root.MuiOutlinedInput-root': {
         pl: '0 !important',
     },
-    '& .MuiButtonBase-root.MuiChip-root': {
-        m: '0 4px 0 0 !important',
+    // The chips of the panel carry 13px text; the badge geometry of the field stays.
+    '&&&& .MuiAutocomplete-tag.MuiChip-root': {
+        fontSize: '13px',
     },
 }

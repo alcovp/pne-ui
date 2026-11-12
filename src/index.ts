@@ -34,6 +34,31 @@ declare module '@mui/material/styles' {
     }
 }
 
+// The fields of pne-ui have three sizes, so `size` takes `large` wherever MUI declares it for a field.
+declare module '@mui/material/TextField' {
+    interface TextFieldPropsSizeOverrides {
+        large: true
+    }
+}
+
+declare module '@mui/material/InputBase' {
+    interface InputBasePropsSizeOverrides {
+        large: true
+    }
+}
+
+declare module '@mui/material/FormControl' {
+    interface FormControlPropsSizeOverrides {
+        large: true
+    }
+}
+
+declare module '@mui/material/Autocomplete' {
+    interface AutocompletePropsSizeOverrides {
+        large: true
+    }
+}
+
 declare module '@mui/material/IconButton' {
     interface IconButtonPropsColorOverrides {
         pneNeutral: true

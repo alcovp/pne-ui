@@ -122,7 +122,7 @@ export const AnchoredInvitation: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'An optional invitation remains anchored to its quiet trigger. Above 480px all three default-size actions stay in one 40px row with single-line labels.',
+                story: 'An optional invitation remains anchored to its quiet trigger. Above 480px all three default-size actions stay in one 32px row with single-line labels.',
             },
         },
     },
@@ -158,11 +158,11 @@ export const AnchoredInvitation: Story = {
                 anchorRect.left,
                 iframeDocument.documentElement.clientWidth - 16 - surfaceRect.width,
             ))).toBeLessThanOrEqual(1)
-            expect(actionsRect.height).toBe(40)
+            expect(actionsRect.height).toBe(32)
             expect(Math.max(...buttonRects.map(rect => rect.top))
                 - Math.min(...buttonRects.map(rect => rect.top))).toBeLessThanOrEqual(1)
             actionButtons.forEach((button, index) => {
-                expect(buttonRects[index].height).toBe(40)
+                expect(buttonRects[index].height).toBe(32)
                 expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth + 1)
                 expect(getComputedStyle(button).whiteSpace).toBe('nowrap')
                 expect(getComputedStyle(button).flexShrink).toBe('0')
@@ -274,7 +274,7 @@ export const ResponsiveActions: Story = {
         buttons.forEach((button, index) => {
             expect(Math.abs(buttonRects[index].width - actions.clientWidth))
                 .toBeLessThanOrEqual(1)
-            expect(buttonRects[index].height).toBe(40)
+            expect(buttonRects[index].height).toBe(32)
             if (index > 0) {
                 expect(buttonRects[index].top).toBeGreaterThanOrEqual(
                     buttonRects[index - 1].bottom + 7,

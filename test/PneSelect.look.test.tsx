@@ -64,13 +64,37 @@ describe('PneSelect (UI Kit look)', () => {
         expect(root.getAttribute('data-pne-state')).toBe('focus')
     })
 
-    it('centres the value of a filled box whose label PneField puts above', () => {
+    it('keeps no room for a label inside a filled box, with a label of its own or without one', () => {
         const bare = renderSelect({variant: 'filled'})
         expect(bare.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(true)
         bare.unmount()
 
         const labelled = renderSelect({label: 'Delivery', variant: 'filled'})
-        expect(labelled.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(false)
+        expect(labelled.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(true)
+    })
+
+    it.each([
+        ['small', '24px', '5px', '24px'],
+        ['medium', '32px', '9px', '34px'],
+        ['large', '40px', '13px', '38px'],
+    ] as const)('makes the %s box %s high with the chevron in the middle of its icon button', (size, height, right, reserve) => {
+        const {root} = renderSelect({size})
+        const sized = `&[data-pne-size="${size}"]`
+
+        expect(root.getAttribute('data-pne-size')).toBe(size)
+        expect(ruleValue(root, `${sized} .MuiInputBase-root`, 'min-height')).toBe(height)
+        expect(ruleValue(root, `${sized} .MuiSelect-icon.PneSelect-chevron`, 'right')).toBe(right)
+        expect(ruleValue(root, `${sized} .MuiSelect-select.MuiInputBase-input`, 'padding-right')).toBe(reserve)
+    })
+
+    it('is medium unless a size is given and marks a box that holds a value', () => {
+        const picked = renderSelect()
+        expect(picked.root.getAttribute('data-pne-size')).toBe('medium')
+        expect(picked.root.hasAttribute('data-pne-filled')).toBe(true)
+        picked.unmount()
+
+        const empty = renderSelect({placeholder: 'Please select', value: null})
+        expect(empty.root.hasAttribute('data-pne-filled')).toBe(false)
     })
 
     it('draws the 14px UI Kit chevron in the colour of the value', () => {
@@ -80,7 +104,6 @@ describe('PneSelect (UI Kit look)', () => {
         expect(icon.getAttribute('data-testid')).toBe('PneChevronDownIcon')
         expect(icon.classList.contains('PneSelect-chevron')).toBe(true)
         expect(ruleValue(root, '& .MuiSelect-icon.PneSelect-chevron', 'font-size')).toBe('14px')
-        expect(ruleValue(root, '& .MuiSelect-icon.PneSelect-chevron', 'right')).toBe('10px')
         expect(ruleValue(root, '& .MuiSelect-icon', 'color')).toBe('#2C3136')
         expect(ruleValue(root, '& .MuiSelect-icon.Mui-disabled', 'color')).toBe('#B2B8BF')
     })
@@ -109,6 +132,22 @@ describe('PneSelect (UI Kit look)', () => {
         expect(ruleValue(menu, '& .MuiMenu-paper', 'box-shadow')).toMatch(/^inset 0 0 0 1px #E2E9F0, ?0 17px 36px/)
         expect(ruleValue(menu, '& .MuiMenu-paper', 'margin-top')).toBe('4px')
         expect(ruleValue(menu, '& .MuiMenu-list', 'padding')).toBe('4px')
+    })
+
+    it.each([
+        ['small', '24px', '12px', '4px 8px', '200px'],
+        ['medium', '32px', '14px', '6px 8px', '264px'],
+        ['large', '40px', '14px', '10px 12px', '328px'],
+    ] as const)('makes the rows of a %s select %s high and shows eight of them', (size, height, fontSize, padding, eightRows) => {
+        renderSelect({size})
+        const menu = openMenu()
+        const sized = `&[data-pne-size="${size}"]`
+
+        expect(menu.getAttribute('data-pne-size')).toBe(size)
+        expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'min-height')).toBe(height)
+        expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'font-size')).toBe(fontSize)
+        expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'padding')).toBe(padding)
+        expect(ruleValue(menu, `${sized} .MuiMenu-paper`, 'max-height')).toContain(eightRows)
     })
 
     it('tints the hovered and the picked option, checks the picked one and drops MUI opacity on disabled ones', () => {

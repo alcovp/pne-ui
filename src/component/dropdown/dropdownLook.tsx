@@ -2,9 +2,11 @@ import * as React from 'react'
 import type {SxProps, Theme} from '@mui/material/styles'
 import type {SystemStyleObject} from '@mui/system'
 import {createSvgIcon, type MenuProps, type SvgIconProps} from '@mui/material'
+import {keyframes} from '@mui/material/styles'
 import type {PneCheckboxStateColors} from '../../checkboxPalette'
 import {resolvePneSemanticPalette} from '../../createTheme'
 import type {PneDropdownPalette} from '../../dropdownPalette'
+import {PNE_FIELD_SIZE, PNE_FIELD_SIZES, PNE_LIST_MAX_ROWS, type PneFieldSize} from '../fieldSize'
 
 const ChevronDownSvg = createSvgIcon(
     <path d='M6 9l6 5.8L18 9' fill='none' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5}/>,
@@ -46,9 +48,44 @@ const panelStyle = (dropdown: PneDropdownPalette): Record<string, string> => ({
 const rowStyle = (dropdown: PneDropdownPalette): SystemStyleObject<Theme> => ({
     borderRadius: '4px',
     color: dropdown.option.text,
-    paddingLeft: '12px',
-    paddingRight: '12px',
 })
+
+// UI Kit IcStatusWarning before the text of a failed load.
+const WARNING_MASK = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
+    + '%3Cpath d=\'M12 4.5 3.5 19h17L12 4.5ZM12 10v4.5M12 17v.2\' fill=\'none\' stroke=\'%23000\' '
+    + 'stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\'/%3E%3C/svg%3E")'
+
+const spinnerRotation = keyframes({
+    from: {transform: 'rotate(0deg)'},
+    to: {transform: 'rotate(360deg)'},
+})
+
+// The glyphs of a list stop at 16px: the large list keeps the icons of the medium one.
+const listIcon = (size: PneFieldSize): number => Math.min(PNE_FIELD_SIZE[size].icon, 16)
+
+// The panel shows eight rows, then scrolls; 4px of its inset stand above and below them.
+const listMaxHeight = (size: PneFieldSize): string => `${PNE_FIELD_SIZE[size].height * PNE_LIST_MAX_ROWS + 8}px`
+
+// A row is as high as the field of its size and carries the text of that field (UI Kit Dropdown/Option).
+const rowSizeStyle = (size: PneFieldSize): SystemStyleObject<Theme> => {
+    const config = PNE_FIELD_SIZE[size]
+    return {
+        fontSize: `${config.fontSize}px`,
+        lineHeight: `${config.lineHeight}px`,
+        minHeight: `${config.height}px`,
+        padding: `${(config.height - config.lineHeight) / 2}px ${config.paddingInline}px`,
+    }
+}
+
+const checkSizeStyle = (size: PneFieldSize): SystemStyleObject<Theme> => {
+    const icon = `${listIcon(size)}px`
+    return {
+        height: icon,
+        maskSize: `${icon} ${icon}`,
+        WebkitMaskSize: `${icon} ${icon}`,
+        width: icon,
+    }
+}
 
 // The picked row of a single list: tinted, with the check at the end that keeps 8px from the label
 // (the padding is outside the mask image).
@@ -78,9 +115,10 @@ const MENU_HIGHLIGHT = [':hover', '.Mui-focusVisible', '[data-pne-state="hover"]
 
 /**
  * The UI Kit Dropdown list look on a MUI Menu, set on the menu root: the panel (radius 8, 4px inset,
- * inner ring, popover shadow) and its option rows (radius 4, hover and keyboard highlight, the picked
- * row tinted with a check at the end, disabled text without MUI's opacity). Row height and text size
- * stay MUI's. `data-pne-state="hover"` on an option pins the highlight for specimens.
+ * inner ring, popover shadow, eight rows and then a scroll) and its option rows (radius 4, hover and
+ * keyboard highlight, the picked row tinted with a check at the end, disabled text without MUI's
+ * opacity). A row is as high as the field: `data-pne-size` on the menu root picks 24, 32 or 40px.
+ * `data-pne-state="hover"` on an option pins the highlight for specimens.
  */
 export const pneDropdownMenuSx: SxProps<Theme> = theme => {
     const dropdown = resolvePneSemanticPalette(theme).dropdown
@@ -94,23 +132,38 @@ export const pneDropdownMenuSx: SxProps<Theme> = theme => {
         [anyOf(`${MENU_ITEM}.Mui-selected`, MENU_HIGHLIGHT)]: highlight,
         [`${MENU_ITEM}.Mui-disabled`]: disabledRowStyle(dropdown),
     }
-    return rules
+    return Object.assign(rules, ...PNE_FIELD_SIZES.map(menuSizeRules))
 }
 
-/** The UI Kit Dropdown list look on a select's menu; it goes first, so the consumer's menu `sx` still wins. */
-export const withPneDropdownMenuLook = (menuProps: Partial<MenuProps> | undefined): Partial<MenuProps> => {
-    const consumerSx = menuProps?.sx
-
+const menuSizeRules = (size: PneFieldSize): Rules => {
+    const root = `&[data-pne-size="${size}"]`
     return {
-        ...menuProps,
-        sx: [pneDropdownMenuSx, ...(Array.isArray(consumerSx) ? consumerSx : [consumerSx])],
+        [`${root} .MuiMenu-paper`]: {maxHeight: `min(calc(100% - 96px), ${listMaxHeight(size)})`},
+        [`${root} .MuiMenuItem-root`]: rowSizeStyle(size),
+        [`${root} .MuiMenuItem-root.Mui-selected::after`]: checkSizeStyle(size),
     }
 }
 
 /**
- * The colour of the select field's chevron, and the size of the UI Kit one: 14px with 10px to the
- * edge of the box, as the Input of the Claude design system draws it at the 40px height of our
- * small field (the Figma copy draws it larger).
+ * The UI Kit Dropdown list look on a select's menu, in the size of its field; it goes first, so the
+ * consumer's menu `sx` still wins.
+ */
+export const withPneDropdownMenuLook = (
+    menuProps: Partial<MenuProps> | undefined,
+    size: PneFieldSize,
+): Partial<MenuProps> => {
+    const consumerSx = menuProps?.sx
+
+    return {
+        'data-pne-size': size,
+        ...menuProps,
+        sx: [pneDropdownMenuSx, ...(Array.isArray(consumerSx) ? consumerSx : [consumerSx])],
+    } as Partial<MenuProps>
+}
+
+/**
+ * The colour of the select field's chevron, and the size of the UI Kit one: 14px; the field look
+ * puts it in the middle of the icon button of its size.
  */
 export const pneSelectIconSx: SxProps<Theme> = theme => {
     const dropdown = resolvePneSemanticPalette(theme).dropdown
@@ -123,7 +176,8 @@ export const pneSelectIconSx: SxProps<Theme> = theme => {
         },
         '& .MuiSelect-icon.PneSelect-chevron': {
             fontSize: '14px',
-            right: '10px',
+            // MUI centres its own 24px icon; this one is smaller.
+            top: 'calc(50% - 7px)',
         },
     }
 }
@@ -157,9 +211,9 @@ const AC_PICKED_HIGHLIGHT = [':hover', '.Mui-focusVisible', '[data-pne-state="ho
 /**
  * The UI Kit Dropdown list look on the paper of a MUI Autocomplete (set on the paper itself): the
  * panel and rows of `pneDropdownMenuSx`; a multiple list draws a PneCheckbox box in each of its own
- * rows instead of tinting the picked ones; group captions and the service rows (loading, nothing
- * found, a failed load when the paper has `data-pne-status="error"`). Row height and text size stay
- * MUI's.
+ * rows instead of tinting the picked ones; group captions split by a hairline and the service rows
+ * (loading with a spinner, nothing found, a failed load with a warning sign when the paper has
+ * `data-pne-status="error"`). `data-pne-size` on the paper picks the rows of the field's size.
  */
 export const pneAutocompletePaperSx: SxProps<Theme> = theme => {
     const pne = resolvePneSemanticPalette(theme)
@@ -179,11 +233,8 @@ export const pneAutocompletePaperSx: SxProps<Theme> = theme => {
         [`${AC_MULTI}::before`]: {
             content: '""',
             flexShrink: 0,
-            width: '16px',
-            height: '16px',
-            marginRight: '8px',
             backgroundImage: checkboxImage(checkbox.off.default, false),
-            backgroundSize: '16px 16px',
+            backgroundRepeat: 'no-repeat',
         },
         [`${AC_MULTI}[aria-selected="true"]::before`]: {backgroundImage: checkboxImage(checkbox.on.default, true)},
         [`${AC_MULTI}[aria-disabled="true"]::before`]: {backgroundImage: checkboxImage(checkbox.off.disabled, false)},
@@ -191,35 +242,110 @@ export const pneAutocompletePaperSx: SxProps<Theme> = theme => {
             backgroundImage: checkboxImage(checkbox.on.disabled, true),
         },
         '& .MuiAutocomplete-groupLabel': {
+            alignItems: 'flex-end',
             backgroundColor: dropdown.panel.fill,
+            boxSizing: 'border-box',
             color: dropdown.status.text,
+            display: 'flex',
             fontSize: '12px',
             fontWeight: 500,
             lineHeight: '16px',
-            padding: '8px 12px 4px',
         },
         // Groups are split by a hairline, as in the UI Kit list.
-        [`${AC_LISTBOX} > li + li .MuiAutocomplete-groupLabel`]: {
+        [GROUP_AFTER_GROUP]: {
             borderTop: `1px solid ${dropdown.panel.ring}`,
             marginTop: '4px',
         },
         '& .MuiAutocomplete-noOptions, & .MuiAutocomplete-loading': {
+            alignItems: 'center',
+            boxSizing: 'border-box',
             color: dropdown.status.text,
+            display: 'flex',
+            gap: '8px',
+            justifyContent: 'center',
             textAlign: 'center',
+        },
+        // UI Kit Spinner: three quarters of a ring in the brand colour.
+        '& .MuiAutocomplete-loading::before': {
+            animation: `${spinnerRotation} 800ms linear infinite`,
+            border: `1.5px solid ${dropdown.option.check}`,
+            borderRadius: '50%',
+            borderRightColor: 'transparent',
+            boxSizing: 'border-box',
+            content: '""',
+            flexShrink: 0,
+            '@media (prefers-reduced-motion: reduce)': {
+                animation: 'none',
+            },
         },
         '&[data-pne-status="error"] .MuiAutocomplete-noOptions': {
             color: dropdown.status.error,
+            justifyContent: 'flex-start',
             textAlign: 'left',
         },
+        '&[data-pne-status="error"] .MuiAutocomplete-noOptions::before': {
+            backgroundColor: 'currentColor',
+            content: '""',
+            flexShrink: 0,
+            mask: `${WARNING_MASK} center / contain no-repeat`,
+            WebkitMask: `${WARNING_MASK} center / contain no-repeat`,
+        },
     }
-    return Object.assign({}, panelStyle(dropdown), rules)
+    return Object.assign({}, panelStyle(dropdown), rules, ...PNE_FIELD_SIZES.map(paperSizeRules))
+}
+
+const GROUP_AFTER_GROUP = `${AC_LISTBOX} > li + li .MuiAutocomplete-groupLabel`
+
+const paperSizeRules = (size: PneFieldSize): Rules => {
+    const config = PNE_FIELD_SIZE[size]
+    const root = `&[data-pne-size="${size}"]`
+    const icon = `${listIcon(size)}px`
+    const box = `${config.checkbox}px`
+    const listbox = `${root} .MuiAutocomplete-listbox`
+    const option = `${listbox} .MuiAutocomplete-option`
+    const multiOption = `${listbox}[aria-multiselectable="true"]:not([data-pne-rows="own"]) .MuiAutocomplete-option`
+    const status = `${root} .MuiAutocomplete-noOptions, ${root} .MuiAutocomplete-loading`
+    const statusIcon = `${root} .MuiAutocomplete-loading::before, `
+        + `${root}[data-pne-status="error"] .MuiAutocomplete-noOptions::before`
+    return {
+        [listbox]: {maxHeight: listMaxHeight(size)},
+        [option]: rowSizeStyle(size),
+        [`${option}[aria-selected="true"]::after`]: checkSizeStyle(size),
+        [`${multiOption}::before`]: {
+            backgroundSize: `${box} ${box}`,
+            height: box,
+            marginRight: `${config.gap}px`,
+            width: box,
+        },
+        [`${root} .MuiAutocomplete-groupLabel`]: {
+            height: `${config.groupHeight}px`,
+            padding: `0 ${config.paddingInline}px 4px`,
+        },
+        // The hairline and the 4px over the caption add to its height.
+        [`${root} .MuiAutocomplete-listbox > li + li .MuiAutocomplete-groupLabel`]: {
+            height: `${config.groupHeight + 5}px`,
+        },
+        // A service row is two rows high and stands in the 4px inset of the panel.
+        [status]: {
+            fontSize: `${config.fontSize}px`,
+            lineHeight: `${config.lineHeight}px`,
+            minHeight: `${config.height * 2 + 8}px`,
+            padding: `12px ${config.paddingInline + 4}px`,
+        },
+        [statusIcon]: {
+            height: icon,
+            width: icon,
+        },
+    }
 }
 
 /**
  * The field side of an autocomplete, set on its root: the UI Kit chevron and clear cross at 14px in
  * the colour of the value (`PneAutocomplete-icon` marks ours, so a consumer's icon keeps its size),
  * the picked values as UI Kit badges (tone surface: radius 4, white with a Neutral/200 ring, a thin
- * remove cross) and the loading spinner in the brand colour that reads on the page.
+ * remove cross) and the loading spinner in the brand colour that reads on the page. `data-pne-size`
+ * on the root picks the geometry of the UI Kit field: the text paddings, the icon buttons at the end
+ * and, in a multiple field (`data-pne-multiple`), badges 8px lower than the box with 4px around them.
  */
 export const pneAutocompleteFieldSx: SxProps<Theme> = theme => {
     const pne = resolvePneSemanticPalette(theme)
@@ -231,6 +357,15 @@ export const pneAutocompleteFieldSx: SxProps<Theme> = theme => {
         '& .MuiAutocomplete-popupIndicator.Mui-disabled': {
             color: chevron.disabled,
         },
+        '& .MuiAutocomplete-endAdornment': {
+            alignItems: 'center',
+            display: 'flex',
+            gap: '4px',
+        },
+        '& .MuiAutocomplete-endAdornment .MuiIconButton-root': {
+            margin: 0,
+            padding: 0,
+        },
         '& .MuiAutocomplete-endAdornment .PneAutocomplete-icon': {
             fontSize: '14px',
         },
@@ -239,21 +374,85 @@ export const pneAutocompleteFieldSx: SxProps<Theme> = theme => {
             borderRadius: '4px',
             boxShadow: `inset 0 0 0 1px ${chip.ring}`,
             color: chip.text,
+            margin: 0,
+            maxWidth: '100%',
         },
         '& .MuiAutocomplete-tag.MuiChip-root.Mui-focusVisible': {
             boxShadow: `inset 0 0 0 1px ${chip.ring}, 0 0 0 2px ${theme.palette.background.default}, 0 0 0 4px ${pne.focusRing}`,
         },
+        '& .MuiAutocomplete-tag .MuiChip-label': {
+            padding: 0,
+        },
+        // MUI pulls its delete icon over the label's padding; the badge spaces them by its gap.
+        '& .MuiAutocomplete-tag .MuiChip-deleteIcon': {
+            flexShrink: 0,
+            margin: 0,
+        },
         '& .MuiAutocomplete-tag .MuiChip-deleteIcon.PneAutocomplete-icon': {
             color: chip.remove,
-            fontSize: '14px',
-            margin: '0 4px 0 -2px',
         },
         '& .MuiAutocomplete-tag .MuiChip-deleteIcon.PneAutocomplete-icon:hover': {
             color: chip.text,
         },
         '& .MuiAutocomplete-inputRoot > .MuiCircularProgress-root': {
             color: option.check,
+            flexShrink: 0,
         },
     }
-    return rules
+    return Object.assign(rules, ...PNE_FIELD_SIZES.map(autocompleteFieldSizeRules))
+}
+
+// MUI sets the paddings of an autocomplete's box by long selectors (variant, size, hidden label, the
+// icons it has); the doubled root class outranks them all.
+const autocompleteFieldSizeRules = (size: PneFieldSize): Rules => {
+    const config = PNE_FIELD_SIZE[size]
+    const root = `&&&[data-pne-size="${size}"]`
+    const multiple = `${root}[data-pne-multiple]`
+    const box = '.MuiAutocomplete-inputRoot'
+    const paddingBlock = (config.height - config.lineHeight) / 2
+    const chipInset = (config.height - config.chip.height) / 2
+    const oneButton = config.paddingEnd + config.iconButton + config.gap
+    const twoButtons = oneButton + config.iconButton + 4
+    const chipCross = (config.chip.remove - config.chip.cross) / 2
+    return {
+        [`${root} ${box}`]: {padding: 0},
+        [`${root}.MuiAutocomplete-hasPopupIcon ${box}, ${root}.MuiAutocomplete-hasClearIcon ${box}`]: {
+            paddingRight: `${oneButton}px`,
+        },
+        [`${root}.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon ${box}`]: {
+            paddingRight: `${twoButtons}px`,
+        },
+        [`${root} ${box} .MuiAutocomplete-input`]: {
+            padding: `${paddingBlock}px 0 ${paddingBlock}px ${config.paddingInline}px`,
+        },
+        [`${root} .MuiAutocomplete-endAdornment`]: {
+            right: `${config.paddingEnd}px`,
+        },
+        [`${root} .MuiAutocomplete-endAdornment .MuiIconButton-root`]: {
+            height: `${config.iconButton}px`,
+            width: `${config.iconButton}px`,
+        },
+        // A multiple field: the badges wrap with 4px between and around them.
+        [`${multiple} ${box}`]: {
+            gap: '4px',
+            paddingBottom: `${chipInset}px`,
+            paddingLeft: `${chipInset}px`,
+            paddingTop: `${chipInset}px`,
+        },
+        [`${multiple} ${box} .MuiAutocomplete-input`]: {
+            padding: `${(config.chip.height - config.lineHeight) / 2}px 0 ${(config.chip.height - config.lineHeight) / 2}px `
+                + `${config.paddingInline - chipInset}px`,
+        },
+        [`${root} .MuiAutocomplete-tag.MuiChip-root`]: {
+            fontSize: `${config.fontSize}px`,
+            gap: `${config.chip.gap}px`,
+            height: `${config.chip.height}px`,
+            lineHeight: `${config.lineHeight}px`,
+            padding: `0 ${Math.max(2, config.chip.paddingInline - 4)}px 0 ${config.chip.paddingInline}px`,
+        },
+        [`${root} .MuiAutocomplete-tag .MuiChip-deleteIcon.PneAutocomplete-icon`]: {
+            fontSize: `${config.chip.cross}px`,
+            padding: `${chipCross}px`,
+        },
+    }
 }

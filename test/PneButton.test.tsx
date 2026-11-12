@@ -39,13 +39,13 @@ const renderWithSkin = (ui: React.ReactElement, skin: Skin = UI_KIT_SKIN) =>
     render(<PneThemeProvider skin={skin}>{ui}</PneThemeProvider>)
 
 describe('PneButton', () => {
-    it('keeps large as the default size', () => {
+    it('is medium unless a size is given, as the UI Kit button and the fields are', () => {
         render(<PneButton>Button</PneButton>)
 
         const button = screen.getByRole('button', {name: 'Button'})
 
-        expect(button.getAttribute('data-pne-size')).toBe('large')
-        expectComputedStyle(button, {'min-height': '40px'})
+        expect(button.getAttribute('data-pne-size')).toBe('medium')
+        expectComputedStyle(button, {'min-height': '32px'})
     })
 
     it.each([

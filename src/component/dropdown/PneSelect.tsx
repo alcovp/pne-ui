@@ -16,6 +16,8 @@ import {
 import type {SxProps, Theme} from '@mui/material/styles'
 import {resolvePneSemanticPalette} from '../../createTheme'
 import {pneFieldBoxSx} from '../fieldLook'
+import {resolvePneFieldSize} from '../fieldSize'
+import {usePneFieldFilled} from '../usePneFieldFilled'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from '../PneFieldContext'
 import {PneChevronDownIcon, pneSelectIconSx, withPneDropdownMenuLook} from './dropdownLook'
 
@@ -375,7 +377,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         required,
         rows: _rows,
         SelectDisplayProps,
-        size = 'small',
+        size,
         slotProps: _slotProps,
         slots: _slots,
         sx,
@@ -496,7 +498,9 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
             }
             : {}),
     }
-    const resolvedMenuProps = withPneDropdownMenuLook(sanitizeMenuProps(MenuProps))
+    const resolvedSize = resolvePneFieldSize(size)
+    const resolvedMenuProps = withPneDropdownMenuLook(sanitizeMenuProps(MenuProps), resolvedSize)
+    const {filled, rootRef} = usePneFieldFilled<HTMLDivElement>(selectedKey)
 
     const handleChange = (event: SelectChangeEvent<string>) => {
         const key = event.target.value
@@ -530,13 +534,17 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
     }
 
     return <FormControl
+        data-pne-filled={filled ? '' : undefined}
+        data-pne-size={resolvedSize}
         data-pne-state={pinnedState}
-        size={size}
+        ref={rootRef}
+        // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+        size='small'
         variant={variant}
         disabled={controlProps.disabled}
         error={controlProps.error}
-        // A filled box without its own label (PneField puts one above) centres the value, as PneTextField.
-        hiddenLabel={variant === 'filled' && !hasLabel ? true : undefined}
+        // The label stands over the box, so a filled box keeps no room for it inside, as PneTextField.
+        hiddenLabel={variant === 'filled' ? true : undefined}
         required={controlProps.required}
         sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
         fullWidth={controlProps.fullWidth ?? true}
@@ -550,7 +558,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
             id={controlProps.id}
             labelId={listenerLabelId}
             onChange={handleChange}
-            size={size}
+            size='small'
             variant={variant}
             label={hasLabel ? label : undefined}
             renderValue={shouldRenderValue ? renderSelectedValue : undefined}

@@ -1,5 +1,6 @@
 export { default as PneTextField } from '../component/PneTextField'
 export type { PneTextFieldProps } from '../component/PneTextField'
+export type { PneFieldSize } from '../component/fieldSize'
 export { default as PneField } from '../component/PneField'
 export type {
     PneFieldChildren,

@@ -10,13 +10,13 @@ export default {
         label: 'Label',
         placeholder: 'Placeholder',
         helperText: '',
-        size: 'small',
+        size: 'medium',
         variant: 'outlined',
         disabled: false,
         error: false,
     },
     argTypes: {
-        size: {control: 'inline-radio', options: ['small', 'medium']},
+        size: {control: 'inline-radio', options: ['small', 'medium', 'large']},
         variant: {control: 'inline-radio', options: ['outlined', 'filled']},
     },
 } as Meta<typeof PneTextField>
@@ -26,8 +26,9 @@ type Story = StoryObj<typeof PneTextField>
 const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 
 // The Figma matrix (StoryBook › pne-ui primitives · v2 › PneTextField): rows size × variant,
-// columns the states. The label above the box is PneField; MUI has no large text field, so the
-// large rows of the matrix are not here. The required and helper rows are pne-ui's own.
+// columns the states; the box is 24, 32 or 40px high. The label above the box is PneField. Active is
+// a field that holds a value and is out of focus. The required, helper and own-label rows are
+// pne-ui's own: PneTextField with its own `label` puts it over the box as PneField does.
 type MatrixColumn = {
     label: string
     value?: string
@@ -46,28 +47,49 @@ const MATRIX_COLUMNS: MatrixColumn[] = [
 
 type MatrixRow = {
     title: string
-    size: 'small' | 'medium'
+    size: 'small' | 'medium' | 'large'
     variant: 'outlined' | 'filled'
     required?: boolean
     helper?: boolean
+    ownLabel?: boolean
 }
 
 const MATRIX_ROWS: MatrixRow[] = [
     {title: 'small · fill', size: 'small', variant: 'filled'},
     {title: 'medium · fill', size: 'medium', variant: 'filled'},
-    {title: 'small · required', size: 'small', variant: 'filled', required: true},
-    {title: 'small · helper', size: 'small', variant: 'filled', helper: true},
+    {title: 'large · fill', size: 'large', variant: 'filled'},
+    {title: 'medium · required', size: 'medium', variant: 'filled', required: true},
+    {title: 'medium · helper', size: 'medium', variant: 'filled', helper: true},
+    {title: 'medium · own label', size: 'medium', variant: 'filled', helper: true, ownLabel: true},
     {title: 'small · outlined', size: 'small', variant: 'outlined'},
     {title: 'medium · outlined', size: 'medium', variant: 'outlined'},
+    {title: 'large · outlined', size: 'large', variant: 'outlined'},
 ]
 
 const MatrixCell = ({row, column}: {row: MatrixRow, column: MatrixColumn}) => {
     const error = column.field?.error === true
+    const helperText = row.helper ? (error ? 'Опишите, как исправить ошибку' : 'Подсказка о формате значения') : undefined
+    if (row.ownLabel) {
+        return (
+            <PneTextField
+                defaultValue={column.value}
+                disabled={column.field?.disabled}
+                error={error}
+                helperText={helperText}
+                label='Label'
+                placeholder='Placeholder'
+                size={row.size}
+                sx={{width: 168}}
+                variant={row.variant}
+                {...column.control}
+            />
+        )
+    }
     return (
         <PneField
             disabled={column.field?.disabled}
             error={error}
-            helperText={row.helper ? (error ? 'Опишите, как исправить ошибку' : 'Подсказка о формате значения') : undefined}
+            helperText={helperText}
             label='Label'
             required={row.required}
             sx={{width: 168}}
@@ -147,7 +169,6 @@ const PositionCell = ({position, column, multiline}: {
             <PneTextField
                 aria-label={inside ? 'Mark in' : undefined}
                 defaultValue={column.value}
-                minRows={multiline ? 3 : undefined}
                 multiline={multiline}
                 placeholder={multiline ? 'Комментарий к платежу' : 'Placeholder'}
                 slotProps={inside ? {input: {startAdornment: <InputAdornment position='start'>Mark in</InputAdornment>}} : undefined}
@@ -194,7 +215,8 @@ export const LabelPositions: Story = {
             <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
                 The label stands over the control, on its left (<code>PneField labelPosition=&quot;left&quot;</code>:
                 a 160px column, the helper text under the control) or inside the box as a start adornment.
-                A multiline field takes the same label positions.
+                A multiline field takes the same label positions; with no rows set it is the 88px box of
+                the UI Kit, and the user drags its corner.
             </Typography>
             <PositionsTable positions={POSITIONS}/>
             <PositionsTable multiline positions={['Top', 'Left']}/>

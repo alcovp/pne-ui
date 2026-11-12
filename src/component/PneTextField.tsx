@@ -1,11 +1,14 @@
 import React, {forwardRef, useId, useMemo} from 'react'
 import {type MenuProps, TextField, TextFieldOwnerState, TextFieldProps} from '@mui/material'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
+import {useForkRef} from '@mui/material/utils'
 import {useTheme} from '@mui/material/styles'
 import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
 import {PneChevronDownIcon, pneSelectIconSx, withPneDropdownMenuLook} from './dropdown/dropdownLook'
 import {pneFieldBoxSx} from './fieldLook'
+import {type PneFieldSize, resolvePneFieldSize} from './fieldSize'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from './PneFieldContext'
+import {usePneFieldFilled} from './usePneFieldFilled'
 
 export type PneTextFieldProps = TextFieldProps & {
     /** A state pinned for specimens; product code never sets it. */
@@ -25,12 +28,9 @@ interface ResolvedAccessibilitySlots {
 }
 
 const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) => {
-    const propsWithDefaultSize: PneTextFieldProps = props.size === undefined
-        ? {...props, size: 'small'}
-        : props
     const themedProps = useDefaultProps({
         name: 'MuiTextField',
-        props: propsWithDefaultSize,
+        props,
     })
     const componentsWithoutTextFieldDefaults = useComponentsWithoutTextFieldDefaults()
     const {
@@ -45,13 +45,21 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
         helperText,
         id,
         label,
+        onInput,
         required,
         select = false,
-        size = 'small',
+        size,
         slotProps,
         sx,
         ...rest
     } = themedProps
+
+    const {filled, rootRef, sync: syncFilled} = usePneFieldFilled<HTMLDivElement>(rest.value ?? rest.defaultValue)
+    const handleRootRef = useForkRef(ref, rootRef)
+    // A multiline box of fixed rows gets a corner to drag; with `minRows` or `maxRows` it grows with its
+    // text instead. Rows nobody set make the UI Kit box.
+    const hasFixedRows = rest.multiline === true && rest.minRows === undefined && rest.maxRows === undefined
+    const hasDefaultRows = hasFixedRows && rest.rows === undefined
 
     const generatedId = useId()
     const controlProps = usePneFieldControlProps({
@@ -70,6 +78,7 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
     const resolvedFullWidth = controlProps.fullWidth ?? fullWidth
     const resolvedId = controlProps.id ?? id ?? generatedId
     const hasLabel = label !== undefined && label !== null && label !== ''
+    const resolvedSize = resolvePneFieldSize(size)
     const resolvedSlotProps = createResolvedSlotProps({
         ariaLabel,
         ariaDescribedBy,
@@ -88,6 +97,7 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
         forceAriaInvalid: resolvedError === true,
         hasHelperText: Boolean(helperText),
         select,
+        size: resolvedSize,
         slotProps,
     })
 
@@ -97,22 +107,51 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
             error={resolvedError}
             fullWidth={resolvedFullWidth}
             helperText={helperText}
-            // A filled box without its own label (PneField puts one above) centres the text.
-            hiddenLabel={themedProps.variant === 'filled' && !hasLabel ? true : undefined}
+            data-pne-filled={filled ? '' : undefined}
+            data-pne-resize={hasFixedRows ? (hasDefaultRows ? 'default' : 'rows') : undefined}
+            data-pne-size={resolvedSize}
+            // The label stands over the box, so a filled box keeps no room for it inside.
+            hiddenLabel={themedProps.variant === 'filled' ? true : undefined}
             id={resolvedId}
             label={label}
-            ref={ref}
+            onInput={event => {
+                syncFilled()
+                onInput?.(event)
+            }}
+            ref={handleRootRef}
             required={controlProps.required}
             select={select}
-            size={size}
-            slotProps={resolvedSlotProps}
+            // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+            size='small'
+            slotProps={hasFixedRows ? withPlainTextarea(resolvedSlotProps) : resolvedSlotProps}
             sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
             {...rest}
+            {...(hasDefaultRows ? {rows: MULTILINE_DEFAULT_ROWS} : undefined)}
         />
     </DefaultPropsProvider>
 })
 
 PneTextField.displayName = 'PneTextField'
+
+// The look sets the height of the UI Kit box; the count stands for it where styles do not load.
+const MULTILINE_DEFAULT_ROWS = 3
+
+// MUI sizes every multiline input itself and so undoes a drag of its corner; a box of fixed rows is a
+// plain textarea instead, unless the consumer gives an input component.
+const withPlainTextarea = (slotProps: PneTextFieldProps['slotProps']): PneTextFieldSlotProps => {
+    const input = slotProps?.input
+    const withTextarea = (inputProps: unknown) => ({
+        inputComponent: 'textarea',
+        ...inputProps as Record<string, unknown> | undefined,
+    })
+
+    return {
+        ...slotProps,
+        input: typeof input === 'function'
+            ? (ownerState: TextFieldOwnerState) => withTextarea(input(ownerState))
+            : withTextarea(input),
+    } as PneTextFieldSlotProps
+}
 
 interface CreateResolvedSlotPropsOptions {
     ariaLabel?: string
@@ -128,6 +167,7 @@ interface CreateResolvedSlotPropsOptions {
     forceAriaInvalid: boolean
     hasHelperText: boolean
     select: boolean
+    size: PneFieldSize
     slotProps?: PneTextFieldProps['slotProps']
 }
 
@@ -261,6 +301,7 @@ const createObjectSlotProps = (
                     controlLabelId,
                     forceDisabled,
                     forceAriaInvalid,
+                    size: options.size,
                 },
             )
             : slotProps?.select,
@@ -384,6 +425,7 @@ const createAccessibilitySlotResolver = (
                     controlLabelId,
                     forceDisabled,
                     forceAriaInvalid,
+                    size: options.size,
                 },
             ),
         }
@@ -510,6 +552,7 @@ interface SelectAccessibilityOptions {
     controlLabelId?: string
     forceDisabled: boolean
     forceAriaInvalid: boolean
+    size: PneFieldSize
 }
 
 const withSelectAccessibility = (
@@ -560,7 +603,7 @@ const withSelectAccessibility = (
 
     return {
         ...slotProps,
-        ...withSelectLook(slotProps),
+        ...withSelectLook(slotProps, options.size),
         ...(options.forceDisabled ? {disabled: true} : {}),
         ...(options.forceAriaInvalid ? {error: true} : {}),
         id: options.controlId,
@@ -574,14 +617,17 @@ const withSelectAccessibility = (
 
 // A select-mode field draws the PneSelect chevron and list (UI Kit) unless the consumer gives its own icon;
 // a native select keeps the browser's list.
-const withSelectLook = (slotProps: ResolvedSlotProps | undefined): ResolvedSlotProps => {
+const withSelectLook = (slotProps: ResolvedSlotProps | undefined, size: PneFieldSize): ResolvedSlotProps => {
     if (slotProps?.native === true) {
         return {}
     }
 
     return {
         IconComponent: slotProps?.IconComponent ?? PneChevronDownIcon,
-        MenuProps: withPneDropdownMenuLook(getPropsObject(slotProps?.MenuProps) as Partial<MenuProps> | undefined),
+        MenuProps: withPneDropdownMenuLook(
+            getPropsObject(slotProps?.MenuProps) as Partial<MenuProps> | undefined,
+            size,
+        ),
     }
 }
 

@@ -5,10 +5,10 @@ import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP, PNE_STATUS_COLORS, type PneColorMode}
 /**
  * Text field colours by UI Kit (Claude) role: `inputs-fill-*` and `inputs-border-*` per state for
  * the Fill variant (grey box) and the Outlined one (no fill, ring only), plus the value,
- * placeholder and helper text. Only the pointer lightens the fill; focus and error are told by the
- * ring. The focus ring is the brand step that reads on the page (rule 1).
+ * placeholder and helper text. Only the pointer lightens the fill; a value (`active`: the box holds
+ * one and is out of focus), focus and error are told by the ring. The focus ring is the brand step that reads on the page (rule 1).
  */
-export type PneFieldState = 'default' | 'hover' | 'focus' | 'error' | 'disabled'
+export type PneFieldState = 'default' | 'hover' | 'active' | 'focus' | 'error' | 'disabled'
 
 export type PneFieldStateColors = {
     fill: string
@@ -46,6 +46,7 @@ const createLight = (ramp: PneBrandRamp): PneFieldPalette => {
         fill: {
             default: {fill: n[100], ring: n[100]},
             hover: {fill: n[50], ring: n[200]},
+            active: {fill: n[100], ring: n[500]},
             focus: {fill: n[100], ring: focus},
             error: {fill: n[100], ring: error[600]},
             disabled: {fill: n[100], ring: n[100]},
@@ -53,6 +54,7 @@ const createLight = (ramp: PneBrandRamp): PneFieldPalette => {
         outlined: {
             default: {fill: n[0], ring: n[200]},
             hover: {fill: n[0], ring: n[500]},
+            active: {fill: n[0], ring: n[500]},
             focus: {fill: n[0], ring: focus},
             error: {fill: n[0], ring: error[600]},
             disabled: {fill: n[0], ring: n[100]},
@@ -79,6 +81,7 @@ const createDark = (ramp: PneBrandRamp): PneFieldPalette => {
         fill: {
             default: {fill: d.surfaceRaised, ring: d.surfaceRaised},
             hover: {fill: d.surfaceRaised, ring: d.borderDefault},
+            active: {fill: d.surfaceRaised, ring: d.borderControl},
             focus: {fill: d.surfaceSunken, ring: focus},
             error: {fill: d.surfaceSunken, ring: error[400]},
             disabled: {fill: d.surfaceSubtle, ring: d.surfaceSubtle},
@@ -86,6 +89,7 @@ const createDark = (ramp: PneBrandRamp): PneFieldPalette => {
         outlined: {
             default: {fill: TRANSPARENT, ring: d.borderDefault},
             hover: {fill: TRANSPARENT, ring: d.borderControl},
+            active: {fill: TRANSPARENT, ring: d.borderControl},
             focus: {fill: TRANSPARENT, ring: focus},
             error: {fill: TRANSPARENT, ring: error[400]},
             disabled: {fill: TRANSPARENT, ring: d.surfaceRaised},

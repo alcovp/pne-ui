@@ -6,6 +6,7 @@ import {FormControl, FormHelperText, FormLabel} from '@mui/material'
 import type {SxProps, Theme} from '@mui/material/styles'
 import * as React from 'react'
 import {resolvePneSemanticPalette} from '../createTheme'
+import {pneHelperTextStyle} from './fieldLook'
 import {
     mergeAriaIds,
     PneFieldContext,
@@ -327,19 +328,8 @@ const fieldLabelSx: SxProps<Theme> = theme => {
     }
 }
 
-const fieldHelperTextSx: SxProps<Theme> = theme => {
-    const field = resolvePneSemanticPalette(theme).field
-    return {
-        mx: '14px',
-        color: field.helper.text,
-        '&.Mui-error': {
-            color: field.helper.error,
-        },
-        '&.Mui-disabled': {
-            color: field.text.disabled,
-        },
-    }
-}
+// The gap of the field keeps the helper text 4px under the control.
+const fieldHelperTextSx: SxProps<Theme> = theme => pneHelperTextStyle(resolvePneSemanticPalette(theme).field, '0px')
 
 const normalizeId = (value: unknown): string | undefined => {
     if (typeof value !== 'string') {

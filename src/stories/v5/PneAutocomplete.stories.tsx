@@ -6,7 +6,7 @@ import {PneAutocomplete, PneField} from '../../index'
 type PlaygroundArgs = {
     label: string
     placeholder: string
-    size: 'small' | 'medium'
+    size: 'small' | 'medium' | 'large'
     variant: 'outlined' | 'filled'
     multiple: boolean
     disabled: boolean
@@ -19,14 +19,14 @@ export default {
     args: {
         label: 'Label',
         placeholder: 'Начните вводить',
-        size: 'small',
+        size: 'medium',
         variant: 'outlined',
         multiple: false,
         disabled: false,
         error: false,
     },
     argTypes: {
-        size: {control: 'inline-radio', options: ['small', 'medium']},
+        size: {control: 'inline-radio', options: ['small', 'medium', 'large']},
         variant: {control: 'inline-radio', options: ['outlined', 'filled']},
     },
 } as Meta<PlaygroundArgs>
@@ -83,13 +83,15 @@ const MATRIX_COLUMNS: MatrixColumn[] = [
     {label: 'Disable', field: {disabled: true}},
 ]
 
-type MatrixRow = {title: string, size: 'small' | 'medium', variant: 'outlined' | 'filled'}
+type MatrixRow = {title: string, size: 'small' | 'medium' | 'large', variant: 'outlined' | 'filled'}
 
 const MATRIX_ROWS: MatrixRow[] = [
     {title: 'small · fill', size: 'small', variant: 'filled'},
     {title: 'medium · fill', size: 'medium', variant: 'filled'},
+    {title: 'large · fill', size: 'large', variant: 'filled'},
     {title: 'small · outlined', size: 'small', variant: 'outlined'},
     {title: 'medium · outlined', size: 'medium', variant: 'outlined'},
+    {title: 'large · outlined', size: 'large', variant: 'outlined'},
 ]
 
 export const Matrix: Story = {
@@ -203,6 +205,75 @@ const ModesDemo = () => {
 export const Modes: Story = {
     parameters: {controls: {disable: true}},
     render: () => <ModesDemo/>,
+}
+
+const POPULAR = new Set(['USD', 'EUR'])
+const SIZES = ['small', 'medium', 'large'] as const
+// The specimens stand one under another, so a list never flips over its field.
+const NO_FLIP = {popper: {modifiers: [{name: 'flip', enabled: false}]}}
+
+// Figma «Список — Dropdown list»: a row of the list is as high as its field (24, 32, 40px), groups
+// carry a caption and are split by a hairline, a multiple list draws a checkbox in each row.
+const SizesDemo = () => {
+    const [single, setSingle] = React.useState<Currency | null>(CURRENCIES[1])
+    const [many, setMany] = React.useState<Currency[]>([CURRENCIES[0], CURRENCIES[2]])
+
+    return (
+        <Stack spacing={2} sx={{p: 3}}>
+            <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
+                The list follows the size of its field: rows of 24, 32 and 40px, the text and the checkbox of that
+                size. The values of a multiple field are badges 8px lower than the box.
+            </Typography>
+            {SIZES.map(size => (
+                <Stack direction='row' key={size} spacing={4} sx={{alignItems: 'flex-start', minHeight: size === 'large' ? 420 : size === 'medium' ? 360 : 300}}>
+                    <Typography sx={{...CAPTION_SX, width: 56, pt: 3}}>{size}</Typography>
+                    <PneField label='Валюта' sx={{width: 240}}>
+                        <PneAutocomplete<Currency>
+                            data-pne-state='focus'
+                            groupBy={option => POPULAR.has(option.id) ? 'Популярные' : 'Все валюты'}
+                            onChange={(_event, value) => setSingle(value)}
+                            open
+                            options={CURRENCIES}
+                            renderOption={renderCurrency}
+                            size={size}
+                            slotProps={NO_FLIP}
+                            value={single}
+                        />
+                    </PneField>
+                    <PneField label='Валюты' sx={{width: 300}}>
+                        <PneAutocomplete<Currency, true>
+                            data-pne-state='focus'
+                            disableCloseOnSelect
+                            groupBy={option => POPULAR.has(option.id) ? 'Популярные' : 'Все валюты'}
+                            multiple
+                            onChange={(_event, value) => setMany(value)}
+                            open
+                            options={CURRENCIES}
+                            size={size}
+                            slotProps={NO_FLIP}
+                            value={many}
+                        />
+                    </PneField>
+                    <PneField label='Ничего не найдено' sx={{width: 240}}>
+                        <PneAutocomplete<Currency>
+                            data-pne-state='focus'
+                            noOptionsText='Ничего не найдено'
+                            open
+                            options={[]}
+                            size={size}
+                            slotProps={NO_FLIP}
+                            value={null}
+                        />
+                    </PneField>
+                </Stack>
+            ))}
+        </Stack>
+    )
+}
+
+export const Sizes: Story = {
+    parameters: {controls: {disable: true}},
+    render: () => <SizesDemo/>,
 }
 
 type LogEntry = {at: string, text: string}

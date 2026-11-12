@@ -14,11 +14,13 @@ describe('createPneFieldPalette', () => {
 
         expect(colors.fill.default).toEqual({fill: '#F0F4F8', ring: '#F0F4F8'})
         expect(colors.fill.hover).toEqual({fill: '#F7FBFF', ring: '#E2E9F0'})
+        expect(colors.fill.active).toEqual({fill: '#F0F4F8', ring: '#8D9399'})
         expect(colors.fill.focus).toEqual({fill: '#F0F4F8', ring: '#026FD7'})
         expect(colors.fill.error).toEqual({fill: '#F0F4F8', ring: '#CC2538'})
         expect(colors.fill.disabled).toEqual({fill: '#F0F4F8', ring: '#F0F4F8'})
         expect(colors.outlined.default).toEqual({fill: '#FFFFFF', ring: '#E2E9F0'})
         expect(colors.outlined.hover.ring).toBe('#8D9399')
+        expect(colors.outlined.active).toEqual({fill: '#FFFFFF', ring: '#8D9399'})
         expect(colors.outlined.focus.ring).toBe('#026FD7')
         expect(colors.outlined.error.ring).toBe('#CC2538')
         expect(colors.outlined.disabled.ring).toBe('#F0F4F8')

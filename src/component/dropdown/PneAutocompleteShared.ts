@@ -6,6 +6,7 @@ import type {
     PneAutocompleteOption,
 } from '../../common/paynet/dropdown'
 import type {SxProps, Theme} from '@mui/material/styles'
+import type {PneFieldSize} from '../fieldSize'
 import {mergeAriaDescribedBy} from '../PneFieldContext'
 import {PneCloseIcon, pneAutocompletePaperSx} from './dropdownLook'
 
@@ -182,13 +183,16 @@ export const withAutocompleteListboxName = <
 
 /**
  * The UI Kit look of an autocomplete's popup and chips: the Dropdown list look on the paper (first, so
- * the consumer's paper `sx` still wins), the load status on the paper for the service rows, a mark on
+ * the consumer's paper `sx` still wins), the size of the field for its rows, the load status on the paper for the service rows, a mark on
  * the listbox when the consumer renders the rows, and the thin remove cross on the value chips unless
  * the consumer gives a delete icon.
  */
 // Generic in the slot props type only, so TypeScript does not decompose the MUI Autocomplete generics
 // here: a version typed by them added 1.5M type instantiations and pushed `yarn build` past its heap.
-export const withAutocompleteLook = <S>(slotProps: S, look: {ownRows: boolean, status?: string}): S => {
+export const withAutocompleteLook = <S>(
+    slotProps: S,
+    look: {ownRows: boolean, size: PneFieldSize, status?: string},
+): S => {
     const safeSlotProps = (slotProps ?? {}) as Record<string, unknown>
     const {chip, listbox, paper} = safeSlotProps
     const addLook = (resolvedPaper: unknown) => {
@@ -196,6 +200,7 @@ export const withAutocompleteLook = <S>(slotProps: S, look: {ownRows: boolean, s
         const consumerSx = paperProps.sx as SxProps<Theme> | undefined
 
         return {
+            'data-pne-size': look.size,
             ...paperProps,
             ...(look.status === undefined ? {} : {'data-pne-status': look.status}),
             sx: [pneAutocompletePaperSx, ...(Array.isArray(consumerSx) ? consumerSx : [consumerSx])],

@@ -94,17 +94,19 @@ export const ErrorCodeCriterion = () => {
         placeholder={t('search')}
         // The panel's one chevron: 16px in the field's text colour, as on the buttons and the chips.
         popupIcon={<ExpandMoreIcon sx={{fontSize: '16px'}}/>}
+        size={'small'}
         variant={'filled'}
         sx={fieldSx}
     />
 }
 
 // The field looks like the other dropdowns of the panel: the 24px pill of the Exact search input, the
-// chevron and the clear cross inside it on the right. MUI's filled autocomplete sizes are overridden
-// with a doubled root selector, as its own padding rules carry the popup and clear icon classes.
+// chevron and the clear cross inside it on the right. The geometry of a pne-ui autocomplete is set by
+// selectors that repeat the root class three times and carry the popup and clear icon classes; the
+// root class repeated five times here outranks them.
 const fieldSx: SxProps<Theme> = {
     width: '220px',
-    '&& .MuiInputBase-root.MuiFilledInput-root.MuiAutocomplete-inputRoot': {
+    '&&&&& .MuiInputBase-root.MuiFilledInput-root.MuiAutocomplete-inputRoot': {
         height: '24px',
         borderRadius: '16px',
         padding: '0 48px 0 12px',
@@ -112,21 +114,24 @@ const fieldSx: SxProps<Theme> = {
     '& .MuiFilledInput-root::before, & .MuiFilledInput-root::after': {
         display: 'none',
     },
-    '&&& .MuiAutocomplete-input.MuiFilledInput-input': {
+    '&&&&& .MuiAutocomplete-input.MuiFilledInput-input': {
         padding: '3px 0',
         height: '18px',
         fontSize: '13px',
         lineHeight: '18px',
     },
-    '& .MuiAutocomplete-endAdornment': {
+    '&&&&& .MuiAutocomplete-endAdornment': {
+        gap: 0,
         right: '6px',
         top: '50%',
         transform: 'translateY(-50%)',
     },
-    '& .MuiAutocomplete-popupIndicator, & .MuiAutocomplete-clearIndicator': {
+    '&&&&& .MuiAutocomplete-popupIndicator, &&&&& .MuiAutocomplete-clearIndicator': {
+        height: 'auto',
         padding: '2px',
         margin: 0,
         color: 'inherit',
+        width: 'auto',
     },
     '& .MuiAutocomplete-clearIndicator .MuiSvgIcon-root': {
         fontSize: '16px',

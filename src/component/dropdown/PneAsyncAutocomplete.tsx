@@ -26,6 +26,7 @@ import {
     PneAutocompleteOption,
     PneBuiltInAutocompleteOption,
 } from '../../common/paynet/dropdown'
+import {PNE_FIELD_SIZE, resolvePneFieldSize} from '../fieldSize'
 import PneTextField from '../PneTextField'
 import {PneChevronDownIcon, PneCloseIcon, pneAutocompleteFieldSx} from './dropdownLook'
 import {mergeAriaDescribedBy, usePneFieldControlProps} from '../PneFieldContext'
@@ -317,7 +318,7 @@ const PneAsyncAutocompleteImplementation = <
         ref,
         reloadKey,
         required,
-        size = 'small',
+        size,
         slotProps,
         slots,
         sx,
@@ -326,6 +327,7 @@ const PneAsyncAutocompleteImplementation = <
     } = props
 
     const generatedId = useId()
+    const resolvedSize = resolvePneFieldSize(size)
     const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
     const [uncontrolledQuery, setUncontrolledQuery] = useState('')
     const [options, setOptions] = useState<readonly T[]>([])
@@ -684,6 +686,8 @@ const PneAsyncAutocompleteImplementation = <
                 FreeSolo,
                 ChipComponent
             >}
+            data-pne-multiple={rest.multiple === true ? '' : undefined}
+            data-pne-size={resolvedSize}
             disabled={controlProps.disabled}
             filterOptions={remoteOptions => remoteOptions}
             fullWidth={controlProps.fullWidth}
@@ -710,12 +714,17 @@ const PneAsyncAutocompleteImplementation = <
                 label={label}
                 placeholder={placeholder}
                 required={controlProps.required}
+                size={resolvedSize}
                 slotProps={{
                     ...params.slotProps,
                     input: {
                         ...params.slotProps.input,
+                        // The list shows the spinner in its loading row; while it keeps the previous
+                        // options on screen instead, the spinner stands in the field.
                         endAdornment: <>
-                            {loading ? <CircularProgress color="inherit" size={20}/> : null}
+                            {loading && options.length > 0
+                                ? <CircularProgress color="inherit" size={PNE_FIELD_SIZE[resolvedSize].icon}/>
+                                : null}
                             {params.slotProps.input.endAdornment}
                         </>,
                     },
@@ -740,9 +749,11 @@ const PneAsyncAutocompleteImplementation = <
             />}
             clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon'/>}
             popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon'/>}
-            size={size}
+            // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+            size='small'
             slotProps={withAutocompleteLook(resolvedSlotProps, {
                 ownRows: rest.renderOption !== undefined,
+                size: resolvedSize,
                 status: loadState,
             })}
             slots={resolvedSlots}

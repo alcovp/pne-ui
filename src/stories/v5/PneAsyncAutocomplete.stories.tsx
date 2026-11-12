@@ -89,7 +89,7 @@ export const States: Story = {
     render: () => (
         <Box sx={{p: 3, minHeight: 420}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 3, maxWidth: 900}}>
-                The open list in each state of a remote search: options, loading (the spinner stays in the field),
+                The open list in each state of a remote search: options, loading (the spinner stands in the list),
                 a failed load (an error row), a query shorter than <code>minQueryLength</code> and nothing found.
             </Typography>
             <Stack direction='row' spacing={3} sx={{alignItems: 'flex-start'}}>
@@ -139,7 +139,7 @@ const DynamicsDemo = () => {
     return (
         <Stack spacing={3} sx={{p: 3, maxWidth: 560, minHeight: 480}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary'}}>
-                Открытие загружает список, ввод — новый запрос (прежний отменяется), пока идёт загрузка, в поле
+                Открытие загружает список, ввод — новый запрос (прежний отменяется), пока идёт загрузка, в списке
                 крутится спиннер. Выбор закрывает список.
             </Typography>
             <PneField helperText='Поиск по названию счёта' label='Счёт' sx={{width: 320}}>

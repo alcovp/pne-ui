@@ -12,6 +12,7 @@ import {
     PneAutocompleteOption,
     PneBuiltInAutocompleteOption,
 } from '../../common/paynet/dropdown'
+import {resolvePneFieldSize} from '../fieldSize'
 import PneTextField from '../PneTextField'
 import {PneChevronDownIcon, PneCloseIcon, pneAutocompleteFieldSx} from './dropdownLook'
 import {usePneFieldControlProps} from '../PneFieldContext'
@@ -354,7 +355,7 @@ const PneAutocompleteImplementation = <
         popupIcon,
         ref,
         required,
-        size = 'small',
+        size,
         slotProps,
         slots,
         sx,
@@ -363,6 +364,7 @@ const PneAutocompleteImplementation = <
     } = props
 
     const generatedId = useId()
+    const resolvedSize = resolvePneFieldSize(size)
     const controlProps = usePneFieldControlProps({
         disabled,
         error,
@@ -415,6 +417,8 @@ const PneAutocompleteImplementation = <
 
     return <Autocomplete
         {...rest}
+        data-pne-multiple={rest.multiple === true ? '' : undefined}
+        data-pne-size={resolvedSize}
         disabled={controlProps.disabled}
         fullWidth={controlProps.fullWidth}
         getOptionKey={resolvedOptionKey}
@@ -431,6 +435,7 @@ const PneAutocompleteImplementation = <
             label={label}
             placeholder={placeholder}
             required={controlProps.required}
+            size={resolvedSize}
             slotProps={{
                 ...params.slotProps,
                 htmlInput: mergeAutocompleteHtmlInputProps(
@@ -442,8 +447,12 @@ const PneAutocompleteImplementation = <
         />}
         clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon'/>}
         popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon'/>}
-        size={size}
-        slotProps={withAutocompleteLook(resolvedSlotProps, {ownRows: rest.renderOption !== undefined})}
+        // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+        size='small'
+        slotProps={withAutocompleteLook(resolvedSlotProps, {
+            ownRows: rest.renderOption !== undefined,
+            size: resolvedSize,
+        })}
         slots={resolvedSlots}
         sx={innerSx}
     />

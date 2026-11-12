@@ -12,7 +12,7 @@ export default {
     args: {
         children: 'Button',
         pneStyle: 'contained',
-        size: 'large',
+        size: 'medium',
         disabled: false,
         loading: false,
     },
