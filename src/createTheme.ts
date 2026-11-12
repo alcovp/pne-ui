@@ -17,6 +17,7 @@ import {
 import {createPneCheckboxPalette, type PneCheckboxPalette} from './checkboxPalette'
 import {createPneDropdownPalette, type PneDropdownPalette} from './dropdownPalette'
 import {createPneModalPalette, type PneModalPalette} from './modalPalette'
+import {createPneTablePalette, type PneTablePalette} from './tablePalette'
 import {createPneToastPalette, type PneToastPalette} from './toastPalette'
 import {createPneFieldPalette, type PneFieldPalette} from './fieldPalette'
 import {createPneSwitchPalette, type PneSwitchPalette} from './switchPalette'
@@ -84,6 +85,8 @@ export type PneSemanticPalette = {
     modal: PneModalPalette
     /** Notification colours by UI Kit role: toasts and error banners of OverlayHost. */
     toast: PneToastPalette
+    /** Table colours by UI Kit role: cells, rows, the header and its sort sign. */
+    table: PneTablePalette
     /** The outer 2px of the keyboard focus ring; the 2px gap inside takes the page colour. */
     focusRing: string
     /** Link text on the page. */
@@ -210,6 +213,7 @@ const createSemanticPalette = (seed: string, mode: PneColorMode): PneSemanticPal
         dropdown: createPneDropdownPalette(ramp, mode),
         modal: createPneModalPalette(mode),
         toast: createPneToastPalette(mode),
+        table: createPneTablePalette(ramp, mode),
         focusRing: createPneFocusRing(ramp, mode),
         link: createPneLinkColor(ramp, mode),
     }
@@ -225,7 +229,7 @@ export const resolvePneSemanticPalette = (theme: Theme): PneSemanticPalette =>
 const createSemanticSurfaces = (
     seed: string,
     mode: PneColorMode,
-): Omit<PneSemanticPalette, 'ramp' | 'button' | 'switch' | 'checkbox' | 'field' | 'dropdown' | 'modal' | 'toast' | 'focusRing' | 'link'> => ({
+): Omit<PneSemanticPalette, 'ramp' | 'button' | 'switch' | 'checkbox' | 'field' | 'dropdown' | 'modal' | 'toast' | 'table' | 'focusRing' | 'link'> => ({
     surface: mode === 'dark'
         ? {
             sunken: PNE_DARK_COLORS.surfaceSunken,

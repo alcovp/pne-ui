@@ -218,10 +218,9 @@ export const CompactStatuses: Story = {
         const rows = canvasElement.querySelectorAll<HTMLElement>('[data-story-row]')
 
         rows.forEach(row => {
-            // MUI's 20.02px body line-height rounds the normal 8px-padded row
-            // to 37px in Chromium. The switch cell must fit that baseline,
-            // rather than restoring the previous ~49px regression.
-            if (row.getBoundingClientRect().height > 38) {
+            // A normal row of the UI Kit is 40px high. The switch cell must fit
+            // that baseline, rather than restoring the previous ~49px regression.
+            if (row.getBoundingClientRect().height > 40) {
                 throw new Error('A compact status switch must not expand its normal table row')
             }
         })

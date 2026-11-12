@@ -511,9 +511,9 @@ export const CompactSelectionCells: Story = {
         })
 
         bodyRows.forEach(row => {
-            // The normal 8px-padded text cells round to about 37px in Chromium.
-            // A 40px checkbox root must therefore fail this regression fixture.
-            if (row.getBoundingClientRect().height > 38) {
+            // A normal row of the UI Kit is 40px high. The 36px checkbox root fits it;
+            // a taller one must fail this regression fixture.
+            if (row.getBoundingClientRect().height > 40) {
                 throw new Error('A selection checkbox must not expand its normal table row')
             }
         })

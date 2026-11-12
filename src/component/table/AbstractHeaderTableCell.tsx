@@ -1,6 +1,7 @@
 import React from 'react';
 import {SxProps, TableCell, TableCellProps} from '@mui/material';
 import type {Theme} from '@mui/material/styles';
+import {resolvePneSemanticPalette} from '../../createTheme';
 
 const AbstractHeaderTableCell = (props: TableCellProps) => {
     const {
@@ -9,19 +10,16 @@ const AbstractHeaderTableCell = (props: TableCellProps) => {
         ...rest
     } = props;
 
+    // UI Kit Cell/Header: 14/20 SemiBold over a hairline; with the line the header row is 40px high.
     const _sx: SxProps<Theme> = [
         {
-            fontSize: '12px',
+            fontSize: '14px',
             fontStyle: 'normal',
-            fontWeight: 'bold',
-            lineHeight: '12px',
-            color: (theme: Theme) => theme.palette.mode === 'dark'
-                ? theme.palette.text.primary
-                : '#4E5D78',
-            padding: '8px',
-            borderBottom: (theme: Theme) => `1px solid ${theme.palette.mode === 'dark'
-                ? theme.palette.divider
-                : '#b7cdda'}`
+            fontWeight: 600,
+            lineHeight: '20px',
+            color: (theme: Theme) => resolvePneSemanticPalette(theme).table.header.text,
+            padding: '10px 12px 9px',
+            borderBottom: (theme: Theme) => `1px solid ${resolvePneSemanticPalette(theme).table.line}`,
         },
         ...(Array.isArray(sx) ? sx : [sx])
     ]

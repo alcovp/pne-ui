@@ -22,6 +22,7 @@ export type {
 } from '../checkboxPalette'
 export type {PneDropdownPalette} from '../dropdownPalette'
 export type {PneModalPalette} from '../modalPalette'
+export type {PneTablePalette} from '../tablePalette'
 export type {PneToastPalette, PneToastTone, PneToastToneColors} from '../toastPalette'
 export type {
     PneFieldPalette,

@@ -1,37 +1,51 @@
-import {styled} from '@mui/system';
 import {TableRow} from '@mui/material';
+// The styled of MUI Material, not of MUI System: without a ThemeProvider it falls back to the Material
+// theme, whose palette the colours of the row are built from.
+import {styled} from '@mui/material/styles';
+import {resolvePneSemanticPalette} from '../../createTheme';
 
+/**
+ * UI Kit Table row: a hairline under each row but the last one, and the hover fill under the pointer
+ * (`hover={false}` switches it off). The cells carry the line, so a row keeps its height whatever
+ * stands in it.
+ */
 const PneTableRow = styled(TableRow, {
     shouldForwardProp: prop => prop !== 'hover'
-})<{ hover?: boolean }>(({theme, hover = true}) => ({
-    borderColor: 'transparent',
-    borderBottomColor: theme.palette.mode === 'dark' ? theme.palette.divider : '#F1F5FA',
-    fontSize: '12px',
-    lineHeight: '16px',
-    '&:first-of-type': {
-        borderBottomColor: theme.palette.mode === 'dark' ? theme.palette.divider : '#F1F5FA',
-    },
-    '& td': {
-        borderTop: `1px solid ${theme.palette.mode === 'dark'
-            ? theme.palette.background.paper
-            : '#fff'}`,
-        borderBottom: `1px solid ${theme.palette.mode === 'dark'
-            ? theme.palette.background.paper
-            : '#fff'}`,
-        borderColor: 'inherit',
-    },
-    '& td:first-of-type': {
-        borderLeft: `1px solid ${theme.palette.mode === 'dark'
-            ? theme.palette.background.paper
-            : '#fff'}`,
-        borderColor: 'inherit',
-    },
-    '& td:last-of-type': {
-        borderRight: `1px solid ${theme.palette.mode === 'dark'
-            ? theme.palette.background.paper
-            : '#fff'}`,
-        borderColor: 'inherit',
-    },
-}))
+})<{ hover?: boolean }>(({theme, hover = true}) => {
+    const table = resolvePneSemanticPalette(theme).table
+    const paper = theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff'
+    return {
+        borderColor: 'transparent',
+        borderBottomColor: table.line,
+        fontSize: '14px',
+        lineHeight: '20px',
+        // The table drops the line of its last row.
+        'tbody > &:last-of-type': {
+            borderBottomColor: 'transparent',
+        },
+        ...(hover ? {
+            'tbody > &:hover': {
+                backgroundColor: table.row.hover,
+            },
+        } : {}),
+        // A picked row keeps its fill under the pointer too (UI Kit: Brand/100).
+        '&&.Mui-selected, tbody > &&.Mui-selected:hover': {
+            backgroundColor: table.row.selected,
+        },
+        '& td': {
+            borderTop: `1px solid ${paper}`,
+            borderBottom: `1px solid ${paper}`,
+            borderColor: 'inherit',
+        },
+        '& td:first-of-type': {
+            borderLeft: `1px solid ${paper}`,
+            borderColor: 'inherit',
+        },
+        '& td:last-of-type': {
+            borderRight: `1px solid ${paper}`,
+            borderColor: 'inherit',
+        },
+    }
+})
 
 export default PneTableRow;
