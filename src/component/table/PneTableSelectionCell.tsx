@@ -26,18 +26,22 @@ export type PneTableSelectionCellProps = Omit<
     onChange: (checked: boolean, event: ChangeEvent<HTMLInputElement>) => void
 }
 
+/** UI Kit Cell: Checkbox - the 20px box with 8px at its sides. */
+export const SELECTION_CELL_WIDTH = 36
+
 const selectionCellSx: SxProps<Theme> = {
     boxSizing: 'border-box',
     padding: 0,
     textAlign: 'center',
-    width: '40px',
+    width: `${SELECTION_CELL_WIDTH}px`,
 }
 
+/** The box is 20px (PneCheckbox `medium`); its 8px of padding make the whole cell width the hit area. */
 export const selectionCheckboxSx: SxProps<Theme> = {
     boxSizing: 'border-box',
-    height: '36px',
+    height: `${SELECTION_CELL_WIDTH}px`,
     padding: '8px',
-    width: '36px',
+    width: `${SELECTION_CELL_WIDTH}px`,
 }
 
 const PneTableSelectionCell = (props: PneTableSelectionCellProps) => {
@@ -69,6 +73,7 @@ const PneTableSelectionCell = (props: PneTableSelectionCellProps) => {
         <PneCheckbox
             checked={checked}
             disabled={disabled}
+            size='medium'
             onChange={(event, nextChecked) => {
                 if (!disabled) {
                     onChange(nextChecked, event)

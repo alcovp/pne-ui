@@ -103,6 +103,21 @@ const getBars = (container: HTMLElement) => Array.from(getFirstBodyRow(container
 const getLines = (container: HTMLElement) => Array.from(getFirstBodyRow(container).cells)
     .map(cell => Array.from(cell.querySelectorAll<HTMLElement>('.MuiSkeleton-root')))
 
+// The value the last matching rule of the element's own classes sets: jsdom ignores specificity.
+const ruleValue = (element: Element, property: string): string | undefined => {
+    const wanted = Array.from(element.classList)
+        .filter(className => className.startsWith('css-'))
+        .map(className => `.${className}`)
+    const values = Array.from(document.styleSheets)
+        .flatMap(sheet => Array.from(sheet.cssRules))
+        .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+        .filter(rule => wanted.includes(rule.selectorText))
+        .map(rule => rule.style.getPropertyValue(property))
+        .filter(Boolean)
+
+    return values[values.length - 1]
+}
+
 // Row height of each view by its header column count; each test may change them.
 let rowHeights: Record<number, number> = {}
 
@@ -170,19 +185,24 @@ describe('PneTable skeleton geometry', () => {
         view.rerender(renderTable(DETAILED, {loading: true, loadingKey: 'full', rows: []}))
 
         // Detailed has not been shown with rows yet: its columns follow its own header
-        // across the full table, with as many skeleton cells as header columns, in default 37px rows.
+        // across the full table, with as many skeleton cells as header columns, in default 40px rows.
         expect(getTable(view.container).getAttribute('aria-busy')).toBe('true')
         expect(getColumnWidths(view.container)).toEqual([])
         expect(getFirstBodyRow(view.container).cells).toHaveLength(2)
-        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['19px', '19px'])
+        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['12px', '12px'])
+        // UI Kit Skeleton/Line: radius 2 on the sunken fill, a 1.4s pulse.
+        const bar = getBars(view.container)[0] as HTMLElement
+        expect(ruleValue(bar, 'border-radius')).toBe('2px')
+        expect(ruleValue(bar, 'background-color')).toBe('#F0F4F8')
+        expect(ruleValue(bar, 'animation-duration')).toBe('1.4s')
 
         finishLoading(view, DETAILED, 'full')
         view.rerender(renderTable(BRIEF, {loading: true, loadingKey: 'brief', rows: []}))
 
         expect(getColumnWidths(view.container)).toEqual(['50%', '30%', '20%'])
         expect(getFirstBodyRow(view.container).cells).toHaveLength(3)
-        // Brief rows are 37px high: one bar per cell, keeping 18px of padding and borders.
-        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['19px', '19px', '19px'])
+        // Brief rows are 37px high: one 12px bar per cell (UI Kit Skeleton/Line).
+        expect(getBars(view.container).map(bar => bar?.style.height)).toEqual(['12px', '12px', '12px'])
 
         finishLoading(view, BRIEF, 'brief')
         view.rerender(renderTable(DETAILED, {loading: true, loadingKey: 'full', rows: []}))
@@ -232,7 +252,7 @@ describe('PneTable skeleton geometry', () => {
 
         // Real Detailed rows turned out 37px high: one bar per cell, as the rows had.
         expect(getLines(view.container).map(lines => lines.map(line => line.style.height)))
-            .toEqual([['19px'], ['19px']])
+            .toEqual([['12px'], ['12px']])
     })
 
     it('draws as many lines as each column had in real rows, aligned like its cells', () => {

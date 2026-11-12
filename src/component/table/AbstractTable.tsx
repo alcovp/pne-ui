@@ -39,9 +39,15 @@ const TABLE_PAGINATION_AUTOTEST_ID = 'pagination';
 const TABLE_FEEDBACK_AUTOTEST_ID = 'table-feedback';
 const TABLE_TOP_CONTROLS_AUTOTEST_ID = 'table-top-controls';
 const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar';
-// A row with a 20px icon, flag or switch: what the list tables measured on the stands
-// (Orders Brief, Gates, Processors, Merchants). The bare skeleton bar made 34px rows.
-const DEFAULT_SKELETON_ROW_HEIGHT = 37;
+// A body row of the UI Kit table: 40px, the same with text, an icon, a flag or a switch.
+const DEFAULT_SKELETON_ROW_HEIGHT = 40;
+// UI Kit Skeleton/Line: a 12px bar for a 14/20 line of text, radius 2, on the sunken fill, with a
+// soft 1.4s pulse.
+const skeletonBarSx: SxProps<Theme> = theme => ({
+    animationDuration: '1.4s',
+    backgroundColor: resolvePneSemanticPalette(theme).table.skeleton,
+    borderRadius: '2px',
+});
 const SKELETON_LINE_ALIGN: Record<SkeletonAlign, React.CSSProperties['alignItems']> = {
     left: 'flex-start',
     center: 'center',
@@ -134,7 +140,7 @@ export type TableProps<D> = {
     tableSx?: SxProps
     boxSx?: SxProps
     noRowsMessage?: string
-    /** Skeleton row height until the current column structure has been shown with real rows; 37px by default. */
+    /** Skeleton row height until the current column structure has been shown with real rows; 40px by default. */
     skeletonRowHeight?: number
     /** Optional controls rendered in the responsive top band, before page-size controls when top pagination exists. */
     toolbar?: React.ReactNode
@@ -300,8 +306,8 @@ const AbstractTable = <D, >(
         </PaginationActionsContext.Provider>;
     }
     const skeletonRowCount = paginator?.rowsPerPage || 10;
-    const cellPadding = 16; // 8px top + 8px bottom
-    const cellBorderHeight = 2; // 1px top + 1px bottom from PneTableRow
+    const cellPadding = 19; // 10px over the text and 9px under it
+    const cellBorderHeight = 1; // the hairline under a row
     const rememberedGeometry = skeletonGeometryRef.current.get(loadingKey);
     const skeletonGeometry = rememberedGeometry?.columnCount === columnCount
         ? rememberedGeometry
@@ -393,7 +399,13 @@ const AbstractTable = <D, >(
                 : column?.align === 'center'
                     ? {marginLeft: 'auto', marginRight: 'auto'}
                     : undefined;
-            return <Skeleton variant="rounded" width={singleWidth} height={skeletonItemHeight} style={style} />;
+            return <Skeleton
+                variant="rounded"
+                width={singleWidth}
+                height={SKELETON_LINE_HEIGHT}
+                style={style}
+                sx={skeletonBarSx}
+            />;
         }
 
         // A tall row gets lines of text: as many as the column had in real rows of this view,
@@ -421,6 +433,7 @@ const AbstractTable = <D, >(
                             ? `${35 + Math.floor(variation(line + 1) * 30)}%`
                             : `${75 + Math.floor(variation(line + 1) * 20)}%`}
                     height={SKELETON_LINE_HEIGHT}
+                    sx={skeletonBarSx}
                 />
             ))}
         </div>;

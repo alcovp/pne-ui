@@ -5,6 +5,7 @@ import {AutoTestValue, createAutoTestAttributes} from '../AutoTestAttribute'
 import PneHeaderTableCell from './PneHeaderTableCell'
 import {TableSelectionPageState} from './tableSelection'
 import {
+    SELECTION_CELL_WIDTH,
     SelectionCheckboxAccessibleName,
     selectionCheckboxSx,
 } from './PneTableSelectionCell'
@@ -25,7 +26,7 @@ const headerCellSx: SxProps<Theme> = {
     boxSizing: 'border-box',
     padding: 0,
     textAlign: 'center',
-    width: '40px',
+    width: `${SELECTION_CELL_WIDTH}px`,
 }
 
 const PneTableSelectionHeaderCell = (props: PneTableSelectionHeaderCellProps) => {
@@ -65,6 +66,7 @@ const PneTableSelectionHeaderCell = (props: PneTableSelectionHeaderCellProps) =>
             checked={state === 'all'}
             disabled={disabled}
             indeterminate={indeterminate}
+            size='medium'
             onChange={(event, nextChecked) => {
                 if (!disabled) {
                     onChange(nextChecked, event)

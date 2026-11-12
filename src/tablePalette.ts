@@ -36,6 +36,8 @@ export type PneTablePalette = {
         /** The grey shell of the views (UI Kit Tabs); the picked view is a white button on it. */
         tabs: {fill: string, ring: string}
     }
+    /** A bar that stands for a line of text while the rows load (UI Kit Skeleton/Line). */
+    skeleton: string
     /** The sign of an empty table (UI Kit Empty state): a glyph in a round fill. */
     empty: {
         fill: string
@@ -55,6 +57,7 @@ const createLight = (ramp: PneBrandRamp): PneTablePalette => {
             shell: {fill: n[0], ring: n[200]},
             tabs: {fill: n[100], ring: n[200]},
         },
+        skeleton: n[100],
         empty: {fill: n[100], icon: n[700]},
     }
 }
@@ -71,6 +74,7 @@ const createDark = (ramp: PneBrandRamp): PneTablePalette => {
             shell: {fill: d.backgroundPaper, ring: d.borderDefault},
             tabs: {fill: d.surfaceSubtle, ring: d.borderDefault},
         },
+        skeleton: d.surfaceSubtle,
         empty: {fill: d.surfaceSubtle, icon: d.textSecondary},
     }
 }

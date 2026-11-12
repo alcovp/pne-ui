@@ -16,6 +16,7 @@ describe('createPneTablePalette', () => {
                 shell: {fill: '#FFFFFF', ring: '#E2E9F0'},
                 tabs: {fill: '#F0F4F8', ring: '#E2E9F0'},
             },
+            skeleton: '#F0F4F8',
             empty: {fill: '#F0F4F8', icon: '#565B61'},
         })
     })

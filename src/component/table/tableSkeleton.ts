@@ -52,7 +52,7 @@ export const SKELETON_LINE_HEIGHT = 12
 export const SKELETON_LINE_GAP = 8
 const LINE_PITCH = SKELETON_LINE_HEIGHT + SKELETON_LINE_GAP
 
-/** Skeleton lines that fit in a cell content height; a 37px row takes one. */
+/** Skeleton lines that fit in a cell content height; a 40px row takes one. */
 export const linesFitting = (contentHeight: number): number =>
     Math.max(1, Math.floor((contentHeight + SKELETON_LINE_GAP) / LINE_PITCH))
 

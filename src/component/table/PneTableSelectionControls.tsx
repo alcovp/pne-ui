@@ -55,6 +55,8 @@ const PneTableSelectionControls = (props: PneTableSelectionControlsProps) => {
                 minHeight: `${TABLE_CONTROL_SIZE}px`,
                 minWidth: 0,
                 overflowWrap: 'anywhere',
+                // UI Kit Table/Selection band: the count stands 12px from the first action.
+                paddingInlineEnd: '8px',
             })}
         >
             {summary}

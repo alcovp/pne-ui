@@ -12,7 +12,6 @@ import {
     Tooltip,
     Typography,
 } from '@mui/material'
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator'
 import {
     DragDropContext,
     Draggable,
@@ -28,7 +27,10 @@ import PneModalActions from '../../PneModalActions'
 import PneButton from '../../PneButton'
 import {PneCheckbox} from '../../PneCheckbox'
 import PneTextField from '../../PneTextField'
+import PneDragHandleIcon from '../../PneDragHandleIcon'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
+import {resolvePneSemanticPalette} from '../../../createTheme'
+import {pneIconActionSx} from '../../iconActionLook'
 import useImmediateTouchSensor from '../../non-abstract-entity-selector/useImmediateTouchSensor'
 import type {
     PneTableColumnId,
@@ -89,12 +91,20 @@ export type PneTableColumnSettingsDialogProps<TColumn extends PneTableColumnOpti
 const listSx: SxProps<Theme> = {
     maxHeight: 'max(160px, calc(100vh - 300px))',
     overflowY: 'auto',
-    padding: 0,
+    // The list clips what it scrolls; 4px around the rows leave room for their focus ring, and the
+    // side margins put the rows back in line with the search field.
+    margin: '0 -4px',
+    padding: '4px',
 }
 
+/** UI Kit Table/Column row: 36px high, the box and the label on the left, the handle on the right. */
+const ROW_HEIGHT = 36
+
 const itemSx: SxProps<Theme> = {
-    alignItems: 'stretch',
+    alignItems: 'center',
     display: 'flex',
+    gap: '8px',
+    minHeight: `${ROW_HEIGHT}px`,
     padding: 0,
 }
 
@@ -104,29 +114,42 @@ const itemBodySx: SxProps<Theme> = {
     minWidth: 0,
 }
 
-const itemButtonSx: SxProps<Theme> = {
-    borderRadius: '4px',
-    flex: 1,
-    minHeight: '40px',
-    minWidth: 0,
-    paddingBottom: '2px',
-    paddingLeft: '4px',
-    paddingRight: '8px',
-    paddingTop: '2px',
+// The whole row toggles the column, but it is drawn as a labelled checkbox: no fill under the
+// pointer, the box flush with the search field and the label 8px from it.
+const itemButtonSx: SxProps<Theme> = theme => {
+    const pne = resolvePneSemanticPalette(theme)
+    return {
+        borderRadius: '4px',
+        color: pne.checkbox.text.label,
+        flex: 1,
+        gap: '8px',
+        minHeight: `${ROW_HEIGHT}px`,
+        minWidth: 0,
+        padding: 0,
+        '&:hover, &.Mui-focusVisible': {backgroundColor: 'transparent'},
+        '&.Mui-focusVisible': {
+            outline: `2px solid ${pne.focusRing}`,
+        },
+        // The box and the label take their own disabled colours instead of MUI's faded row.
+        '&.Mui-disabled': {
+            color: pne.checkbox.text.disabled,
+            opacity: 1,
+        },
+    }
 }
 
+const itemLabelSx: SxProps<Theme> = {
+    color: 'inherit',
+    fontSize: '14px',
+    lineHeight: '20px',
+}
+
+// UI Kit Icon action sm; a finger gets the whole row height and 44px of width.
 const gripSx: SxProps<Theme> = {
-    borderRadius: '4px',
     cursor: 'grab',
-    flexShrink: 0,
-    minHeight: '40px',
-    padding: 0,
-    width: '32px',
-    '@media (pointer: coarse)': {width: '44px'},
-    '&.Mui-focusVisible': {
-        outline: '2px solid',
-        outlineColor: 'primary.main',
-        outlineOffset: -2,
+    '@media (pointer: coarse)': {
+        height: `${ROW_HEIGHT}px`,
+        width: '44px',
     },
 }
 
@@ -315,25 +338,27 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                         onClick={() => toggle(column.id)}
                         sx={itemButtonSx}
                     >
-                        <ListItemIcon sx={{minWidth: '36px'}}>
+                        <ListItemIcon sx={{minWidth: 0}}>
                             <PneCheckbox
                                 checked={visible}
                                 disabled={saving || locked}
                                 disableRipple
-                                edge='start'
+                                size='medium'
                                 slotProps={{
                                     input: {
                                         ...createAutoTestAttributes(COLUMN_SETTINGS_OPTION_AUTOTEST_ID, column.id),
                                         'aria-labelledby': labelId,
                                     },
                                 }}
+                                sx={{padding: 0}}
                                 tabIndex={-1}
                             />
                         </ListItemIcon>
                         <ListItemText
                             id={labelId}
                             primary={column.label}
-                            slotProps={{primary: {noWrap: true}}}
+                            slotProps={{primary: {noWrap: true, sx: itemLabelSx}}}
+                            sx={{margin: 0}}
                         />
                     </ListItemButton>
                 </Box>
@@ -344,10 +369,10 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                 aria-label={reorderLabel}
                 disableRipple
                 style={{touchAction: 'none'}}
-                sx={gripSx}
+                sx={[pneIconActionSx('small'), gripSx] as SxProps<Theme>}
                 type='button'
             >
-                <DragIndicatorIcon fontSize='small'/>
+                <PneDragHandleIcon/>
             </IconButton> : null}
         </ListItem>
     }
@@ -397,9 +422,9 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
         open
         title={title ?? dialogTitle}
     >
+        {/* 12px and the 4px inset of the list: the rows start 16px under the search field. */}
         <Box sx={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
             {searchable ? <PneTextField
-                size='large'
                 autoComplete='off'
                 fullWidth
                 label={searchLabel}
@@ -443,9 +468,9 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                         {droppable.placeholder}
                         {filteredItems.length === 0 ? <ListItem
                             {...createAutoTestAttributes(COLUMN_SETTINGS_EMPTY_AUTOTEST_ID)}
-                            sx={{justifyContent: 'center', minHeight: '40px'}}
+                            sx={{justifyContent: 'center', minHeight: `${ROW_HEIGHT}px`, padding: 0}}
                         >
-                            <Typography color='text.secondary' variant='body2'>
+                            <Typography color='text.secondary' sx={{fontSize: '14px', lineHeight: '20px'}}>
                                 {t('pneTable.columnSettings.noMatches', {defaultValue: 'No columns match'})}
                             </Typography>
                         </ListItem> : null}

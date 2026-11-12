@@ -1,12 +1,13 @@
 import React, {useRef, useState} from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import {Alert, Box, IconButton, Stack, Tooltip, Typography} from '@mui/material'
+import {Alert, Box, IconButton, Tooltip, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
 import {
     PneButton,
     PneHeaderTableCell,
     PneTable,
     PneTableCell,
+    PneTableControlButton,
     PneTableRow,
     PneTableSelectionCell,
     PneTableSelectionControls,
@@ -69,31 +70,24 @@ const SelectionTableStory = ({
     }
     const selectionControls = <PneTableSelectionControls
         actions={<>
-            <PneButton
-                size='large'
-                onClick={selectAllResults}
-                pneStyle='text'
-                sx={{minHeight: '40px'}}
-            >
-                Select all results
-            </PneButton>
-            <PneButton
-                size='large'
+            <PneTableControlButton
                 disabled={selection.selectedCount === 0}
                 onClick={clearSelection}
-                pneStyle='text'
-                sx={{minHeight: '40px'}}
             >
                 Clear
-            </PneButton>
-            {showBulkActions ? <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
-                <Typography>Operations with selected rows</Typography>
-                <PneButton size='large' pneStyle='outlined' sx={{minHeight: '40px'}}>
-                    Actions
-                </PneButton>
-            </Box> : null}
+            </PneTableControlButton>
+            <PneTableControlButton onClick={selectAllResults}>
+                Select all results
+            </PneTableControlButton>
+            {showBulkActions ? <PneTableControlButton
+                disabled={selection.selectedCount === 0}
+                emphasis='strong'
+                menu
+            >
+                Actions
+            </PneTableControlButton> : null}
         </>}
-        summary={<Typography>{selection.selectedCount} rows selected</Typography>}
+        summary={`Selected: ${selection.selectedCount}`}
     />
     const selectionFeedback = limitVisible
         ? <Alert severity='warning'>
@@ -328,30 +322,22 @@ const GatesLikeControlsStory = ({width}: {width?: number}) => {
             toolbar={<PneTableToolbar
                 aria-label='Gates table controls'
                 contextual={<PneTableSelectionControls
-                    summary={<Typography>Selected gates: {selection.selectedCount}</Typography>}
+                    summary={`Selected gates: ${selection.selectedCount}`}
                     actions={<>
-                        <PneButton size='large' onClick={() => selection.selectAllMatching(120)} pneStyle='text'>
-                            Select all
-                        </PneButton>
-                        {selection.selectedCount > 0 ? <PneButton
-                            size='large'
-                            onClick={selection.clear}
-                            pneStyle='text'
-                        >
+                        {selection.selectedCount > 0 ? <PneTableControlButton onClick={selection.clear}>
                             Unselect
-                        </PneButton> : null}
-                        <Stack
-                            sx={{
-                                alignItems: 'center',
-                                flexDirection: 'row',
-                                flexWrap: 'wrap',
-                                gap: 1,
-                                justifyContent: 'flex-end',
-                            }}
+                        </PneTableControlButton> : null}
+                        <PneTableControlButton onClick={() => selection.selectAllMatching(120)}>
+                            Select all
+                        </PneTableControlButton>
+                        <PneTableControlButton
+                            disabled={selection.selectedCount === 0}
+                            emphasis='strong'
+                            menu
+                            tooltip='Operations with selected gates'
                         >
-                            <Box>Operations with selected gates</Box>
-                            <PneButton size='large' pneStyle='outlined'>Actions</PneButton>
-                        </Stack>
+                            Actions
+                        </PneTableControlButton>
                     </>}
                 />}
                 persistent={<Box sx={{display: 'contents'}}>
@@ -499,14 +485,14 @@ export const CompactSelectionCells: Story = {
             const rootRect = root.getBoundingClientRect()
             const iconRect = icon.getBoundingClientRect()
 
-            if (cellStyle.padding !== '0px' || cellStyle.width !== '40px') {
-                throw new Error('Selection table cell must retain its compact 40px/p0 geometry')
+            if (cellStyle.padding !== '0px' || cellStyle.width !== '36px') {
+                throw new Error('Selection table cell must retain its compact 36px/p0 geometry')
             }
             if (rootRect.width !== 36 || rootRect.height !== 36) {
                 throw new Error('Selection checkbox root must remain 36x36px')
             }
-            if (iconRect.width !== 16 || iconRect.height !== 16) {
-                throw new Error('Selection checkbox box must be the small UI Kit box, 16x16px')
+            if (iconRect.width !== 20 || iconRect.height !== 20) {
+                throw new Error('Selection checkbox box must be the medium UI Kit box, 20x20px')
             }
         })
 

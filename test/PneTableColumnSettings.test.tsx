@@ -260,6 +260,58 @@ describe('PneTableColumnSettingsDialog', () => {
     })
 })
 
+// UI Kit Table/Column row and the Column settings sheet of the designer.
+describe('PneTableColumnSettingsDialog look', () => {
+    const ruleValue = (element: Element, selector: string, property: string): string | undefined => {
+        const wanted = Array.from(element.classList)
+            .filter(className => className.startsWith('css-'))
+            .map(className => selector.replace(/&/g, `.${className}`).replace(/\s+/g, ''))
+        const values = Array.from(document.styleSheets)
+            .flatMap(sheet => Array.from(sheet.cssRules))
+            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+            .filter(rule => wanted.includes(rule.selectorText.replace(/\s+/g, '')))
+            .map(rule => rule.style.getPropertyValue(property))
+            .filter(Boolean)
+
+        return values[values.length - 1]
+    }
+
+    it('draws a column as a 36px row: a 20px box, a 14/20 label and a small drag handle', () => {
+        renderDialog()
+
+        const input = optionById('id')
+        const row = input.closest('li') as HTMLElement
+        const rowButton = input.closest('.MuiListItemButton-root') as HTMLElement
+        const box = input.closest('.MuiCheckbox-root') as HTMLElement
+        const label = row.querySelector('.MuiListItemText-primary') as HTMLElement
+        const grip = row.querySelector('[data-autotest="column-settings-reorder"]') as HTMLElement
+
+        expect(ruleValue(row, '&', 'min-height')).toBe('36px')
+        expect(ruleValue(rowButton, '&', 'min-height')).toBe('36px')
+        expect(ruleValue(rowButton, '&', 'padding')).toBe('0px')
+        expect(ruleValue(rowButton, '&', 'gap')).toBe('8px')
+        // The row is drawn as a labelled checkbox: the pointer does not fill it.
+        expect(ruleValue(rowButton, '&:hover,&.Mui-focusVisible', 'background-color')).toBe('transparent')
+        expect(box.classList.contains('MuiCheckbox-sizeMedium')).toBe(true)
+        expect(box.querySelector('.PneCheckbox-box')?.getAttribute('width')).toBe('20')
+        expect(ruleValue(label, '&', 'font-size')).toBe('14px')
+        expect(ruleValue(label, '&', 'line-height')).toBe('20px')
+        // UI Kit Icon action sm with the six dots of the drag handle.
+        expect(ruleValue(grip, '&', 'width')).toBe('24px')
+        expect(ruleValue(grip, '&', 'height')).toBe('24px')
+        expect(ruleValue(grip, '& .MuiSvgIcon-root', 'font-size')).toBe('14px')
+        expect(grip.querySelectorAll('svg circle')).toHaveLength(6)
+    })
+
+    it('searches in a field of the default size', () => {
+        renderDialog()
+
+        const search = dialog().querySelector('input[data-autotest="column-settings-search"]') as HTMLInputElement
+
+        expect(search.closest('[data-pne-size]')?.getAttribute('data-pne-size')).toBe('medium')
+    })
+})
+
 describe('PneTableColumnSettingsAction', () => {
     it('renders an icon button with an accessible name and scoped locator by default', () => {
         const onClick = jest.fn()

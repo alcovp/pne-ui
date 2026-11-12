@@ -37,14 +37,8 @@ const PneTableRow = styled(TableRow, {
             borderBottom: `1px solid ${paper}`,
             borderColor: 'inherit',
         },
-        '& td:first-of-type': {
-            borderLeft: `1px solid ${paper}`,
-            borderColor: 'inherit',
-        },
-        '& td:last-of-type': {
-            borderRight: `1px solid ${paper}`,
-            borderColor: 'inherit',
-        },
+        // No borders at the sides of a row: even an invisible one takes half a pixel of the first and
+        // of the last column, so a 36px selection cell came out 36.5px wide.
     }
 })
 

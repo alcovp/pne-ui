@@ -3,6 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react'
 import {PneTableSelectionCell, PneTableSelectionHeaderCell} from '../src'
 
 describe('PneTable selection cells', () => {
+    // UI Kit Cell: Checkbox - the 20px box with 8px at its sides.
     it('keeps row and header selection controls within compact table geometry', () => {
         render(
             <table>
@@ -36,8 +37,9 @@ describe('PneTable selection cells', () => {
             const rootStyle = getComputedStyle(root)
 
             expect(cellStyle.padding).toBe('0px')
-            expect(cellStyle.width).toBe('40px')
-            expect(root.classList.contains('MuiCheckbox-sizeSmall')).toBe(true)
+            expect(cellStyle.width).toBe('36px')
+            expect(root.classList.contains('MuiCheckbox-sizeMedium')).toBe(true)
+            expect(root.querySelector('.PneCheckbox-box')?.getAttribute('width')).toBe('20')
             expect(rootStyle.boxSizing).toBe('border-box')
             expect(rootStyle.height).toBe('36px')
             expect(rootStyle.padding).toBe('8px')

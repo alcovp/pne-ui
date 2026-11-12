@@ -1,7 +1,7 @@
 import React, {forwardRef} from 'react'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {ButtonBase, ButtonBaseProps, SxProps, Theme, Tooltip} from '@mui/material'
 import {resolvePneSemanticPalette} from '../../createTheme'
+import {PneChevronDownIcon} from '../dropdown/dropdownLook'
 import {createTableControlTextButtonStyle} from './tableControlButtonStyle'
 
 export type PneTableControlButtonProps = Omit<ButtonBaseProps, 'children' | 'sx'> & {
@@ -56,7 +56,7 @@ const PneTableControlButton = forwardRef<HTMLButtonElement, PneTableControlButto
             ]}
         >
             {children}
-            {menu ? <ExpandMoreIcon aria-hidden sx={{fontSize: '14px'}}/> : null}
+            {menu ? <PneChevronDownIcon aria-hidden sx={{fontSize: '14px'}}/> : null}
         </ButtonBase>
 
         if (tooltip === undefined || tooltip === null || typeof tooltip === 'boolean' || tooltip === '') {
