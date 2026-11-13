@@ -98,7 +98,7 @@ const SearchUITemplateEditor = (props: IProps) => {
     >
         <form id={createFormId} onSubmit={handleCreate}>
             <PneTextField
-                size='large'
+                size='medium'
                 value={templateName}
                 label={t('react.searchUI.template.name')}
                 onChange={handleChange}

@@ -45,6 +45,10 @@ const panelStyle = (dropdown: PneDropdownPalette): Record<string, string> => ({
     marginTop: '4px',
 })
 
+/** The UI Kit Dropdown menu panel alone, for the paper of a menu that draws rows of its own. */
+export const createPneMenuPanelStyle = (theme: Theme): Record<string, string> =>
+    panelStyle(resolvePneSemanticPalette(theme).dropdown)
+
 const rowStyle = (dropdown: PneDropdownPalette): SystemStyleObject<Theme> => ({
     borderRadius: '4px',
     color: dropdown.option.text,

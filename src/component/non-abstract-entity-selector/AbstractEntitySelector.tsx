@@ -18,7 +18,8 @@ import {
 } from '../../common';
 import PneTextField from '../PneTextField';
 import PneButton from '../PneButton';
-import ClearIcon from '@mui/icons-material/Clear'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import {PneCloseIcon} from '../dropdown/dropdownLook'
 
 const immediateDragSensors = [useMouseSensor, useKeyboardSensor, useImmediateTouchSensor];
 
@@ -518,6 +519,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     item={item}
                     name={renderOption(item.displayName)}
                     itemAttributes={getItemAttributes?.(item, 'AVAILABLE')}
+                    action={canMoveFromAvailable() ? 'add' : undefined}
                     dragHandle={dragHandle}
                 />
             )}
@@ -539,6 +541,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     item={item}
                     name={renderOption(item.displayName)}
                     itemAttributes={getItemAttributes?.(item, 'ADDED')}
+                    action={canMoveFromAdded(item) ? 'remove' : undefined}
                     dragHandle={dragHandle}
                 />
             )}
@@ -555,32 +558,36 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
 
     return (
         <>
-            <Box sx={{marginBottom: '20px'}}>
+            <Box sx={{marginBottom: '16px'}}>
                 <PneTextField
-                    size='large'
+                    size='medium'
                     variant={'outlined'}
                     sx={{width: '100%'}}
                     onChange={(e) => {
                         setSearchValue(e.target.value)
                     }}
                     value={searchValue}
-                    label={t('search')}
+                    placeholder={t('search')}
                     slotProps={{
                         input: {
+                            startAdornment: <InputAdornment position='start'>
+                                <SearchRoundedIcon sx={{fontSize: 16}}/>
+                            </InputAdornment>,
                             endAdornment: searchValue && (
                                 <InputAdornment position="end">
                                     <IconButton
                                         {...elementAttributes?.searchClearButton}
                                         onClick={() => setSearchValue('')}
                                         edge="end"
+                                        size='small'
                                         type='button'
                                     >
-                                        <ClearIcon />
+                                        <PneCloseIcon sx={{fontSize: 16}}/>
                                     </IconButton>
                                 </InputAdornment>
                             ),
                         },
-                        htmlInput: elementAttributes?.searchInput,
+                        htmlInput: {'aria-label': t('search'), ...elementAttributes?.searchInput},
                     }}
                     autoFocus={true}
                 />
@@ -600,7 +607,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 </HeaderColumn>
                                 {disableMoving !== 'AVAILABLE' && (
                                     <PneButton
-                                        size='large'
+                                        size='small'
                                         {...elementAttributes?.addAllButton}
                                         pneStyle='text'
                                         type='button'
@@ -631,6 +638,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                                 visibleAvailableList[rubric.source.index],
                                                 'AVAILABLE',
                                             )}
+                                            action={canMoveFromAvailable() ? 'add' : undefined}
                                         />
                                     )
                                 } : undefined}
@@ -667,7 +675,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                 </HeaderColumn>
                                 {disableMoving !== 'ADDED' && (
                                     <PneButton
-                                        size='large'
+                                        size='small'
                                         {...elementAttributes?.removeAllButton}
                                         pneStyle='text'
                                         type='button'
@@ -696,6 +704,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                                 addedList[rubric.source.index],
                                                 'ADDED',
                                             )}
+                                            action={canMoveFromAdded(addedList[rubric.source.index]) ? 'remove' : undefined}
                                         />
                                     )
                                 } : undefined}

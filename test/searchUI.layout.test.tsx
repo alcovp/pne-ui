@@ -404,6 +404,8 @@ describe('SearchUIFilters actions row', () => {
             return list as HTMLElement
         })
         expect(menu.getAttribute('role')).toBe('menu')
+        // The panel and the 32px rows of the library's dropdown lists.
+        expect(menu.closest('.MuiMenu-root')?.getAttribute('data-pne-size')).toBe('medium')
         expect(addFilter.getAttribute('aria-expanded')).toBe('true')
         expect(addFilter.getAttribute('aria-controls')).toBe(menu.id)
         const option = menu.querySelector<HTMLElement>(

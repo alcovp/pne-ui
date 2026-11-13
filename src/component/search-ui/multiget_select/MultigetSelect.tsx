@@ -1,5 +1,5 @@
 import React, {useContext, useEffect} from 'react'
-import {Alert, Box, Divider, FormControlLabel, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Alert, Box, FormControlLabel, InputAdornment, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material'
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types'
 import {useTranslation} from 'react-i18next'
 import {AbstractEntity} from '../../../common/paynet/type'
@@ -7,6 +7,9 @@ import PneButton from '../../PneButton'
 import PneModalActions from '../../PneModalActions'
 import PneSwitch from '../../PneSwitch'
 import PneTextField from '../../PneTextField'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import type {Theme} from '@mui/material/styles'
+import {searchUITabsGroupSx} from '../tabsGroupSx'
 import {SearchUIDefaultsContext} from '../SearchUIProvider'
 import {useMultigetSelectStore} from './state/store'
 import {MultigetSearchLabel} from './state/type'
@@ -143,8 +146,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                         }
                     }}
                     size="small"
-                    // color={'pneAccentuated'}
-                    sx={mainToggleGroupSx}
+                    sx={[searchUITabsGroupSx, mainToggleGroupSx] as SxProps<Theme>}
                 >
                     <ToggleButton
                         {...createAutoTestAttributes(
@@ -174,10 +176,9 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                     />}
                 /> : null}
             </Box>
-            <Divider/>
             <Box sx={searchRowSx}>
                 <PneTextField
-                    size='large'
+                    size='medium'
                     value={searchString}
                     onChange={onSearchChange}
                     placeholder={t('search')}
@@ -186,6 +187,11 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                         htmlInput: {
                             ...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_AUTOTEST_ID),
                             'aria-label': t('search'),
+                        },
+                        input: {
+                            startAdornment: <InputAdornment position='start'>
+                                <SearchRoundedIcon sx={{fontSize: 16}}/>
+                            </InputAdornment>,
                         },
                     }}
                 />
@@ -197,7 +203,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                             setSearchLabel(value)
                         }
                     }}
-                    sx={searchLabelToggleGroupSx}
+                    sx={[searchUITabsGroupSx, searchLabelToggleGroupSx] as SxProps<Theme>}
                     size="small"
                 >
                     <ToggleButton
@@ -223,9 +229,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
             {showPoorSearchEngineImplementationAlert ? <Alert severity="warning">
                 {poorSearchEngineImplementationAlert}
             </Alert> : null}
-            <Divider/>
             <MultigetSelectTable/>
-            <Divider/>
         </Box>
         {actionsPlacement === 'inline' && (
             <MultigetSelectActions

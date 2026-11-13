@@ -49,6 +49,14 @@ const customViewports = {
             height: '780px',
         },
     },
+    // A short phone: a dialog that fits the usual 780px has to scroll here.
+    mobile360Short: {
+        name: 'Mobile 360px, 640px high',
+        styles: {
+            width: '360px',
+            height: '640px',
+        },
+    },
     tablet600: {
         name: 'Tablet 600px',
         styles: {

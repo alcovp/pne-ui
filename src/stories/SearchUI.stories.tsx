@@ -1133,14 +1133,15 @@ export const MultigetModalMobileScroll: Story = {
     },
     globals: {
         viewport: {
-            value: 'mobile360',
+            // The 32px rows of the lists fit the usual 780px phone; the short one makes the body scroll.
+            value: 'mobile360Short',
             isRotated: false,
         },
     },
     parameters: {
         docs: {
             description: {
-                story: 'Gate Multiget modal: the scrollable body reaches its final divider while the dialog and footer remain visible and fixed.',
+                story: 'Gate Multiget modal on a short phone: the scrollable body reaches the end of its lists while the dialog and footer remain visible and fixed.',
             },
         },
     },
@@ -1160,7 +1161,7 @@ export const MultigetModalMobileScroll: Story = {
         })
 
         expect(iframeWindow.innerWidth).toBe(360)
-        expect(iframeWindow.innerHeight).toBe(780)
+        expect(iframeWindow.innerHeight).toBe(640)
         expect(trigger.getAttribute('aria-expanded')).toBe('false')
 
         await userEvent.click(trigger)
@@ -1178,6 +1179,7 @@ export const MultigetModalMobileScroll: Story = {
         const available = dialog.querySelector<HTMLElement>(
             '[data-autotest="criterion-multiget-available"]',
         )!
+        // The lists close the body: no divider stands between them and the footer line of the dialog.
         const contentEnd = body.firstElementChild?.lastElementChild as HTMLElement
         const viewportWidth = iframeWindow.innerWidth
         const viewportHeight = iframeWindow.innerHeight
@@ -1195,7 +1197,7 @@ export const MultigetModalMobileScroll: Story = {
         expect(trigger.getAttribute('aria-expanded')).toBe('true')
         expect(iframeWindow.getComputedStyle(body).overflowY).toBe('auto')
         expect(body.scrollHeight).toBeGreaterThan(body.clientHeight)
-        expect(contentEnd.tagName).toBe('HR')
+        expect(contentEnd.contains(available)).toBe(true)
         expectFullyInViewport(dialog)
         expectFullyInViewport(footer)
         expect(body.getBoundingClientRect().bottom)

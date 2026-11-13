@@ -103,6 +103,29 @@ describe('SearchUI templates menu', () => {
         expect(panel()?.querySelector('[data-autotest="update-template"]')?.textContent).toBe('Update “Bravo”')
     })
 
+    it('draws the menu as the library dropdown panel with 32px rows', async () => {
+        renderMenu()
+        const list = await openMenu()
+        const paper = list.closest('.MuiMenu-paper') as HTMLElement
+        // jsdom does not weigh selectors against MUI's own: the rules of the element itself are read.
+        const ownValues = (element: Element, property: string): string[] => {
+            const classes = Array.from(element.classList).filter(name => name.startsWith('css-'))
+
+            return Array.from(document.styleSheets)
+                .flatMap(sheet => Array.from(sheet.cssRules))
+                .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+                .filter(rule => classes.some(name => rule.selectorText === `.${name}`))
+                .map(rule => rule.style.getPropertyValue(property))
+                .filter(value => value !== '')
+        }
+
+        expect(ownValues(paper, 'border-radius')).toContain('8px')
+        expect(ownValues(paper, 'box-shadow').some(value => value.startsWith('inset 0 0 0 1px '))).toBe(true)
+        expect(ownValues(selectItem('Alpha'), 'min-height')).toContain('32px')
+        expect(ownValues(selectItem('Alpha'), 'padding')).toContain('6px 8px')
+        expect(ownValues(selectItem('Alpha'), 'border-radius')).toContain('4px')
+    })
+
     it('offers the handles once the host provides reorderSearchTemplates after mount', async () => {
         const getSearchTemplates = jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo', 'Charlie'))
         const reorderSearchTemplates = jest.fn().mockResolvedValue(undefined)

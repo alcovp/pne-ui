@@ -145,7 +145,7 @@ export const TransactionSessionStatusCriterion = () => {
         >
             <Box sx={modalContentSx}>
                 <PneSelect
-                    size='large'
+                    size='medium'
                     value={groupValue}
                     onChange={changeGroup}
                     options={groupOptions}

@@ -1,6 +1,6 @@
 import React, {useId, useLayoutEffect, useRef, useState} from 'react';
 import {Box, Divider, InputAdornment, ListItemIcon, ListItemText, Menu, MenuItem, useMediaQuery} from '@mui/material';
-import {alpha, SxProps, Theme, useTheme} from '@mui/material/styles';
+import {SxProps, Theme, useTheme} from '@mui/material/styles';
 import {
     DragDropContext,
     Draggable,
@@ -14,9 +14,6 @@ import {useTranslation} from 'react-i18next';
 import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
 import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
@@ -26,6 +23,9 @@ import {SearchUITemplate} from "../../types";
 import {overlayActions} from '../../../../overlay/overlayStore';
 import PneButton from '../../../../PneButton';
 import PneTextField from '../../../../PneTextField';
+import PneDragHandleIcon from '../../../../PneDragHandleIcon';
+import {createPneMenuPanelStyle, PneChevronDownIcon, PneCloseIcon} from '../../../../dropdown/dropdownLook';
+import {resolvePneSemanticPalette} from '../../../../../createTheme';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {useOptionalPneConfirm} from '../../../../confirm/PneConfirmProvider';
 import useImmediateTouchSensor from '../../../../non-abstract-entity-selector/useImmediateTouchSensor';
@@ -78,20 +78,14 @@ const lockToVerticalAxis = (style: DraggableProvidedDraggableProps['style']) => 
 
 type RowState = 'base' | 'focus' | 'hover'
 
-/** Same state colors as a MUI MenuItem, painted on the whole row (grip, name and delete). */
+/**
+ * The row colours of the library's dropdown lists, painted on the whole row (name, grip and delete):
+ * the highlight under the pointer and the keyboard, the tint of the applied set.
+ */
 const getRowBackground = (theme: Theme, selected: boolean, state: RowState) => {
-    if (!selected) {
-        if (state === 'focus') return theme.palette.action.focus
-        if (state === 'hover') return theme.palette.action.hover
-        return undefined
-    }
-
-    const stateOpacity = state === 'focus'
-        ? theme.palette.action.focusOpacity
-        : state === 'hover'
-            ? theme.palette.action.hoverOpacity
-            : 0
-    return alpha(theme.palette.primary.main, Math.min(1, theme.palette.action.selectedOpacity + stateOpacity))
+    const option = resolvePneSemanticPalette(theme).dropdown.option
+    if (state !== 'base') return option.hover
+    return selected ? option.selected : undefined
 }
 
 /** No modifier held: the arrow is plain navigation, not Alt+arrow reordering or a browser shortcut. */
@@ -327,7 +321,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
             // UI Kit Filter header: the saved sets are a tertiary button, dark on the strip.
             pneStyle='text'
             startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon/> : undefined}
-            endIcon={<ExpandMoreIcon/>}
+            endIcon={<PneChevronDownIcon/>}
             sx={templateTriggerSx}
             title={modified ? `${placeholder} · ${modifiedLabel}` : placeholder}
             aria-controls={open ? menuId : undefined}
@@ -367,7 +361,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         >
             {searchable ? <Box component={'li'} role={'none'} sx={menuSearchSx}>
                 <PneTextField
-                    size='large'
+                    size='medium'
                     aria-label={searchLabel}
                     autoComplete={'off'}
                     autoFocus
@@ -379,10 +373,9 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
                     slotProps={{
                         htmlInput: createAutoTestAttributes(TEMPLATE_SEARCH_AUTOTEST_ID),
                         input: {
-                            startAdornment: <InputAdornment position={'start'} sx={searchAdornmentSx}>
-                                <SearchRoundedIcon fontSize={'small'}/>
+                            startAdornment: <InputAdornment position={'start'}>
+                                <SearchRoundedIcon sx={{fontSize: 16}}/>
                             </InputAdornment>,
-                            sx: searchInputSx,
                         },
                     }}
                     type={'search'}
@@ -408,7 +401,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
                 </MenuItem>
             </Box>}
             {!filtering && templates.length > 0 ? <Box component={'li'} role={'none'}>
-                <Divider sx={{my: '4px'}}/>
+                <Divider sx={dividerSx}/>
             </Box> : null}
             {templates.length > 0 ? <DragDropContext
                 enableDefaultSensors={false}
@@ -487,7 +480,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
                                         style={{touchAction: 'none'}}
                                         sx={gripSx}
                                     >
-                                        <DragIndicatorIcon sx={{fontSize: 18}}/>
+                                        <PneDragHandleIcon sx={{fontSize: 16}}/>
                                     </Box> : null}
                                     <MenuItem
                                         {...createAutoTestAttributes(REMOVE_TEMPLATE_AUTOTEST_ID)}
@@ -498,7 +491,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
                                         onClick={() => void handleRemoveTemplate(item)}
                                         sx={removeItemSx}
                                     >
-                                        <CloseRoundedIcon sx={{fontSize: 18}}/>
+                                        <PneCloseIcon sx={{fontSize: 16}}/>
                                     </MenuItem>
                                 </Box>}
                             </Draggable>
@@ -517,7 +510,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
             </Box> : null}
             <Box component={'li'} role={'none'} sx={menuFooterSx}>
                 {/* Default, or the search field while filtering, always stands above the actions. */}
-                <Divider sx={{mb: '4px'}}/>
+                <Divider sx={footerDividerSx}/>
                 <MenuItem
                     {...createAutoTestAttributes(CREATE_TEMPLATE_AUTOTEST_ID)}
                     component={'button'}
@@ -581,57 +574,44 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
 
 export default SearchUITemplatesMenu
 
-const menuPaperSx: SxProps<Theme> = {
+// UI Kit Dropdown menu: the panel of the library's lists (radius 8, a ring, the popover shadow).
+const menuPaperSx: SxProps<Theme> = theme => ({
+    ...createPneMenuPanelStyle(theme),
     boxSizing: 'border-box',
-    mt: 0.5,
     // 20px wider than the layouts menu: the trailing grip and delete keep their place while hidden.
     width: 320,
     maxWidth: 'calc(100vw - 32px)',
-}
+})
 
 const menuListSx: SxProps<Theme> = {
-    // The sticky footer carries the bottom inset so it can sit flush with the paper edge.
-    pb: 0,
+    // The 4px inset of the panel; the sticky footer carries the bottom one so it sits flush with the edge.
+    p: '4px 4px 0',
 }
 
 /** Same for the sticky search field at the top. */
 const searchableMenuListSx: SxProps<Theme> = {
-    pb: 0,
-    pt: 0,
+    p: '0 4px',
 }
 
-const menuSearchSx: SxProps<Theme> = {
-    backgroundColor: 'background.paper',
-    backgroundImage: 'var(--Paper-overlay)',
+const menuSearchSx: SxProps<Theme> = theme => ({
+    backgroundColor: resolvePneSemanticPalette(theme).dropdown.panel.fill,
     display: 'block',
-    pb: 1,
+    pb: '4px',
     position: 'sticky',
-    pt: 1,
-    px: 1,
+    pt: '4px',
     top: 0,
     zIndex: 2,
-}
-
-/**
- * Field inset 8px + input inset 8px puts the magnifier on the menu icon column (16px),
- * and the 16px gap after it starts the query where template names start (52px).
- */
-const searchInputSx: SxProps<Theme> = {
-    pl: '8px',
-}
-
-const searchAdornmentSx: SxProps<Theme> = {
-    mr: '16px',
-}
+})
 
 const searchEmptySx: SxProps<Theme> = {
     color: 'text.secondary',
     display: 'block',
     // In line with the template names.
-    pl: '52px',
-    pr: 2,
-    py: 1,
-    typography: 'body2',
+    fontSize: '14px',
+    lineHeight: '20px',
+    pl: '32px',
+    pr: '8px',
+    py: '6px',
 }
 
 const templateListSx: SxProps<Theme> = {
@@ -654,16 +634,14 @@ const revealOnRowSx = {
 
 const getTemplateRowSx = (selected: boolean, dragging: boolean): SxProps<Theme> => theme => ({
     alignItems: 'stretch',
+    borderRadius: '4px',
     display: 'flex',
     minWidth: 0,
     position: 'relative',
     ...(dragging ? {
-        backgroundColor: theme.palette.background.paper,
-        // Keeps the dark-mode elevation tint of the menu paper on the lifted row.
-        backgroundImage: selected
-            ? `linear-gradient(${getRowBackground(theme, true, 'base')}, ${getRowBackground(theme, true, 'base')}), var(--Paper-overlay)`
-            : 'var(--Paper-overlay)',
-        borderRadius: '4px',
+        // The lifted row keeps the fill of the panel under the tint of an applied set.
+        backgroundColor: getRowBackground(theme, selected, 'base')
+            ?? resolvePneSemanticPalette(theme).dropdown.panel.fill,
         boxShadow: theme.shadows[6],
         '& [data-pne-search-template-grip]': {opacity: 1, cursor: 'grabbing'},
         '& [data-pne-search-template-remove]': {opacity: 0},
@@ -698,7 +676,7 @@ const gripSx: SxProps<Theme> = {
     color: 'text.secondary',
     cursor: 'grab',
     display: 'flex',
-    flex: '0 0 32px',
+    flex: '0 0 24px',
     justifyContent: 'center',
     '@media (hover: none), (pointer: coarse)': {
         opacity: 1,
@@ -713,22 +691,48 @@ const transparentItemStatesSx = {
     },
 }
 
+/** UI Kit Menu/Item: a 32px row, 14/20 text, a 16px icon with 8px after it. */
+const menuRowSx = {
+    borderRadius: '4px',
+    minHeight: '32px',
+    padding: '6px 8px',
+    '& .MuiListItemIcon-root': {
+        minWidth: '24px',
+    },
+    '& .MuiListItemIcon-root .MuiSvgIcon-root': {
+        fontSize: '16px',
+    },
+    '& .MuiListItemText-root': {
+        margin: 0,
+    },
+    '& .MuiListItemText-primary': {
+        fontSize: '14px',
+        lineHeight: '20px',
+    },
+}
+
 const selectItemSx: SxProps<Theme> = {
+    ...menuRowSx,
     ...transparentItemStatesSx,
     flex: '1 1 auto',
     minWidth: 0,
-    pr: 1,
     textAlign: 'left',
 }
 
 const removeItemSx: SxProps<Theme> = {
     ...transparentItemStatesSx,
     ...revealOnRowSx,
+    borderRadius: '4px',
     color: 'text.secondary',
-    flex: '0 0 44px',
+    flex: '0 0 32px',
     justifyContent: 'center',
-    minWidth: 44,
-    px: 0,
+    minHeight: '32px',
+    minWidth: 32,
+    p: 0,
+    '@media (hover: none), (pointer: coarse)': {
+        flexBasis: '44px',
+        opacity: 1,
+    },
     '&:hover, &.Mui-focusVisible': {
         backgroundColor: 'transparent',
         color: 'error.main',
@@ -736,20 +740,38 @@ const removeItemSx: SxProps<Theme> = {
     },
 }
 
-const menuFooterSx: SxProps<Theme> = {
-    backgroundColor: 'background.paper',
-    backgroundImage: 'var(--Paper-overlay)',
+const menuFooterSx: SxProps<Theme> = theme => ({
+    backgroundColor: resolvePneSemanticPalette(theme).dropdown.panel.fill,
     bottom: 0,
     display: 'block',
-    pb: 1,
+    pb: '4px',
     position: 'sticky',
     zIndex: 1,
+})
+
+const actionItemSx: SxProps<Theme> = theme => {
+    const option = resolvePneSemanticPalette(theme).dropdown.option
+    return {
+        ...menuRowSx,
+        color: option.text,
+        textAlign: 'left',
+        width: '100%',
+        '&:hover, &.Mui-focusVisible': {
+            backgroundColor: option.hover,
+        },
+    }
 }
 
-const actionItemSx: SxProps<Theme> = {
-    textAlign: 'left',
-    width: '100%',
-}
+// UI Kit Dropdown menu: a hairline of the panel's ring between the groups of rows.
+const dividerSx: SxProps<Theme> = theme => ({
+    borderColor: resolvePneSemanticPalette(theme).dropdown.panel.ring,
+    my: '4px',
+})
+
+const footerDividerSx: SxProps<Theme> = theme => ({
+    borderColor: resolvePneSemanticPalette(theme).dropdown.panel.ring,
+    mb: '4px',
+})
 
 const visuallyHiddenSx: SxProps = {
     border: 0,

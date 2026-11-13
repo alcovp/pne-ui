@@ -81,6 +81,13 @@ describe('AbstractEntitySelector', () => {
             expect(unmapped.map(item => item.id)).toEqual([2])
         })
 
+        // The sign at the end of a row tells what a click does: an arrow adds, a cross takes back, and a
+        // row a click cannot move carries no sign.
+        const signOf = (name: string) => screen.getByText(name).closest('button')
+            ?.querySelector('[data-pne-transfer-sign]')?.getAttribute('data-pne-transfer-sign')
+        expect(signOf('New superior')).toBe('add')
+        expect(signOf('Saved superior')).toBeUndefined()
+
         onChange.mockClear()
         fireEvent.click(screen.getByText('Saved superior'))
         expect(onChange).not.toHaveBeenCalled()
@@ -91,6 +98,8 @@ describe('AbstractEntitySelector', () => {
             expect(mapped.map(item => item.id)).toEqual([1, 2])
             expect(unmapped.map(item => item.id)).toEqual([])
         })
+
+        expect(signOf('New superior')).toBe('remove')
 
         onChange.mockClear()
         fireEvent.click(screen.getByText('New superior'))

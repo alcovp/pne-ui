@@ -12,6 +12,7 @@ import { useSearchUIFiltersStore, useSearchUIFiltersStoreApi } from '../../state
 import PneTextField from '../../../../PneTextField'
 import { SearchUIOrderDateTypeSelect } from '../select/SearchUIOrderDateTypeSelect'
 import { filtersInputSx, SEARCH_UI_VALUE_HEIGHT, SEARCH_UI_VALUE_RADIUS } from './style'
+import { pneCalendarPopperSx } from '../../../../calendarLook'
 import {
     createDateOnlyPickerDate,
     createDateOnlyPickerValue,
@@ -404,6 +405,7 @@ export const DateRangeCriterion = (props: Props) => {
                                         popper: {
                                             ...exactDateTimeFromPickerAttributes,
                                             placement: 'auto',
+                                            sx: pneCalendarPopperSx,
                                         },
                                         textField: {
                                             size: 'small',
@@ -464,6 +466,7 @@ export const DateRangeCriterion = (props: Props) => {
                                         popper: {
                                             ...exactDateTimeToPickerAttributes,
                                             placement: 'auto',
+                                            sx: pneCalendarPopperSx,
                                         },
                                         textField: {
                                             size: 'small',
@@ -510,6 +513,7 @@ export const DateRangeCriterion = (props: Props) => {
                                     popper: {
                                         ...exactDateRangePickerAttributes,
                                         placement: 'auto',
+                                        sx: pneCalendarPopperSx,
                                     },
                                     textField: {
                                         size: 'small',

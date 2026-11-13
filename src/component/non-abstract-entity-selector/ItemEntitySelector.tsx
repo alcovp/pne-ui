@@ -3,7 +3,10 @@ import {StyledListItemButton} from './styled';
 import {DraggableProvided} from '@hello-pangea/dnd';
 import {AbstractEntity} from '../../common/paynet/type';
 import {IconButton} from '@mui/material';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import PneDragHandleIcon from '../PneDragHandleIcon';
+import {PneCloseIcon} from '../dropdown/dropdownLook';
+import PneNextPageIcon from '../table/PneNextPageIcon';
+import {resolvePneSemanticPalette} from '../../createTheme';
 import {useTranslation} from 'react-i18next';
 
 export type ItemEntitySelectorAttributes = React.AriaAttributes & {
@@ -17,9 +20,11 @@ interface IProps {
     handleClick: () => void,
     itemAttributes?: ItemEntitySelectorAttributes,
     dragHandle?: 'row' | 'button',
+    /** What a click on the row does: the sign at its end - an arrow to add, a cross to take back. */
+    action?: 'add' | 'remove',
 }
 
-const ItemEntitySelector = ({provided, item, handleClick, name, itemAttributes, dragHandle = 'row'}: IProps) => {
+const ItemEntitySelector = ({provided, item, handleClick, name, itemAttributes, dragHandle = 'row', action}: IProps) => {
     const {t} = useTranslation();
     const separateHandle = dragHandle === 'button';
 
@@ -28,7 +33,7 @@ const ItemEntitySelector = ({provided, item, handleClick, name, itemAttributes, 
             ref={provided.innerRef}
             {...provided.draggableProps}
             style={{
-                ...(separateHandle && {display: 'flex', alignItems: 'stretch', marginBottom: 2}),
+                ...(separateHandle && {display: 'flex', alignItems: 'stretch'}),
                 ...provided.draggableProps.style,
             }}
         >
@@ -40,9 +45,12 @@ const ItemEntitySelector = ({provided, item, handleClick, name, itemAttributes, 
                 key={item.id}
                 onClick={handleClick}
                 title={name}
-                sx={separateHandle ? {minWidth: 0, flex: 1, marginBottom: 0} : undefined}
+                sx={separateHandle ? {minWidth: 0, flex: 1} : undefined}
             >
-                {name}
+                <span data-pne-transfer-label=''>{name}</span>
+                {action ? <span data-pne-transfer-sign={action} aria-hidden={true}>
+                    {action === 'add' ? <PneNextPageIcon/> : <PneCloseIcon sx={{fontSize: 16}}/>}
+                </span> : null}
             </StyledListItemButton>
             {separateHandle && provided.dragHandleProps && <IconButton
                 {...provided.dragHandleProps}
@@ -50,27 +58,24 @@ const ItemEntitySelector = ({provided, item, handleClick, name, itemAttributes, 
                 aria-label={t('abstractSelector.reorder', {name, defaultValue: 'Reorder {{name}}'})}
                 disableRipple
                 style={{touchAction: 'none'}}
-                sx={{
+                sx={theme => ({
                     flexShrink: 0,
                     width: 32,
                     minHeight: 32,
                     padding: 0,
-                    borderRadius: 0,
+                    borderRadius: '4px',
+                    color: 'text.secondary',
                     cursor: 'grab',
-                    backgroundColor: 'rgba(25, 118, 210, 0.08)',
                     '@media (pointer: coarse)': {width: 44, minHeight: 44},
-                    '&:hover': {backgroundColor: 'rgba(25, 118, 210, 0.12)'},
-                    '@media (hover: none)': {
-                        '&:hover': {backgroundColor: 'rgba(25, 118, 210, 0.08)'},
-                    },
+                    '&:hover': {backgroundColor: resolvePneSemanticPalette(theme).dropdown.option.hover},
                     '&.Mui-focusVisible': {
                         outline: '2px solid',
-                        outlineColor: 'primary.main',
+                        outlineColor: resolvePneSemanticPalette(theme).focusRing,
                         outlineOffset: -2,
                     },
-                }}
+                })}
             >
-                <DragIndicatorIcon fontSize='small'/>
+                <PneDragHandleIcon sx={{fontSize: 16}}/>
             </IconButton>}
         </div>
     );

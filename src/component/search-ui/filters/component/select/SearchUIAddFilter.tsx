@@ -4,6 +4,7 @@ import {Menu, MenuItem, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import PneButton from '../../../../PneButton';
+import {withPneDropdownMenuLook} from '../../../../dropdown/dropdownLook';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {useSearchUIAutoTestScope} from '../../AutoTestScope';
 
@@ -69,6 +70,8 @@ const SearchUIAddFilter = (props: Props) => {
             aria-haspopup={'menu'}
         >{label}</PneButton>
         <Menu
+            // UI Kit Dropdown menu: the panel and the 32px rows of the library's lists.
+            {...withPneDropdownMenuLook({sx: addFilterMenuSx}, 'medium')}
             open={open}
             onClose={handleClose}
             anchorEl={anchorEl}
@@ -95,6 +98,13 @@ const SearchUIAddFilter = (props: Props) => {
 }
 
 export default SearchUIAddFilter
+
+// Every criterion of the page is in sight: the list is as tall as the window lets it be, not eight rows.
+const addFilterMenuSx: SxProps = {
+    '&&[data-pne-size] .MuiMenu-paper': {
+        maxHeight: 'calc(100% - 96px)',
+    },
+}
 
 const addFilterButtonSx: SxProps = {
     whiteSpace: 'nowrap',
