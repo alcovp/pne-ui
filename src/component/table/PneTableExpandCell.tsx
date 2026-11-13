@@ -8,8 +8,8 @@ import {pneIconActionSx} from '../iconActionLook'
 import PneTableControlCell, {PneTableControlCellProps} from './PneTableControlCell'
 
 export type PneTableExpandCellProps = Omit<PneTableControlCellProps, 'aria-label' | 'children' | 'onClick'> & {
-    /** The name of the button: what the row opens. */
-    'aria-label': string
+    /** The name of the button: what the row opens. Optional: the chevron reads by its place in the row. */
+    'aria-label'?: string
     expanded: boolean
     onToggle: (expanded: boolean, event: MouseEvent<HTMLButtonElement>) => void
     disabled?: boolean

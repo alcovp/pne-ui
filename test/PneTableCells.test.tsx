@@ -165,4 +165,17 @@ describe('PneTable cell kinds', () => {
         expect(screen.getByRole('button', {name: 'Details of 9232734'}).getAttribute('aria-expanded')).toBe('true')
         expect(onToggle.mock.calls[1][0]).toBe(false)
     })
+
+    it('draws the chevron without a name when the page gives none', () => {
+        const onToggle = jest.fn()
+        renderRow(<PneTableExpandCell autoTestId='jobEvents.button.expand' expanded={false} onToggle={onToggle}/>)
+        const button = screen.getByRole('button')
+
+        expect(button.hasAttribute('aria-label')).toBe(false)
+        expect(button.getAttribute('data-autotest')).toBe('jobEvents.button.expand')
+
+        fireEvent.click(button)
+
+        expect(onToggle.mock.calls[0][0]).toBe(true)
+    })
 })
