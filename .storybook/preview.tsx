@@ -1,4 +1,5 @@
 import * as React from 'react';
+import '../fonts/pne-fonts.css';
 import Box from '@mui/material/Box';
 import {PneThemeProvider, Skin, type PneColorMode} from "../src";
 import { MINIMAL_VIEWPORTS } from 'storybook/viewport'

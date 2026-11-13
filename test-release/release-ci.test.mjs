@@ -12,7 +12,7 @@ const PACKAGE = {
     name: 'pne-ui', version: '4.3.0-rc.55',
     repository: {type: 'git', url: 'git+https://github.com/alcovp/pne-ui.git'},
     main: 'cjs/index.js', module: 'esm/index.js', types: './esm/index.d.ts',
-    exports: {'.': {types: './esm/index.d.ts', import: './esm/index.js', require: './cjs/index.js', default: './esm/index.js'}, './package.json': './package.json'},
+    exports: {'.': {types: './esm/index.d.ts', import: './esm/index.js', require: './cjs/index.js', default: './esm/index.js'}, './fonts.css': './fonts/pne-fonts.css', './package.json': './package.json'},
     scripts: {prepare: 'node -e "process.exit(99)"'},
 }
 
@@ -21,6 +21,7 @@ function archiveEntries(manifest = PACKAGE) {
         {name: 'package/package.json', content: JSON.stringify(manifest)},
         ...['esm/index.js', 'cjs/index.js', 'esm/index.d.ts'].map(name => ({name: `package/${name}`, content: 'export {}\n'})),
         {name: 'package/docs/releasing.md', content: 'Documentation'},
+        {name: 'package/fonts/pne-fonts.css', content: '@font-face {}'},
     ]
 }
 
@@ -183,7 +184,7 @@ test('reads a valid archive, including PAX long paths and ustar prefixes, withou
         {name: 'short', content: 'Long filename'},
         {name: 'prefixed.md', prefix: 'package/docs', content: 'Prefix'},
     ]
-    assert.deepEqual(inspectArchive(makeArchive(entries), PACKAGE), {manifest: PACKAGE, fileCount: 7})
+    assert.deepEqual(inspectArchive(makeArchive(entries), PACKAGE), {manifest: PACKAGE, fileCount: 8})
 })
 
 test('rejects unsafe, duplicate and unexpected archive paths, links, missing outputs and wrong package metadata', () => {
@@ -210,7 +211,7 @@ test('local pack needs no tag or registry, ignores scripts and removes only stal
     await writeFile(path.join(f.cwd, '.release', 'keep.txt'), 'keep')
     const {manifest, fileCount} = await packRelease({...f, env: {}, readReleaseTagImpl: () => assert.fail('Local pack must not read a tag')})
     assert.equal(manifest.tag, null)
-    assert.equal(fileCount, 5)
+    assert.equal(fileCount, 6)
     assert.equal(manifest.commit, COMMIT)
     assert.deepEqual(f.calls.find(call => call.command === 'npm').args, ['pack', '--json', '--ignore-scripts', '--pack-destination', path.join(f.cwd, '.release')])
     assert.deepEqual((await readdir(path.join(f.cwd, '.release'))).sort(), ['keep.txt', `pne-ui-${PACKAGE.version}.tgz`, 'release.json'])

@@ -9,6 +9,15 @@ import {pneIconActionSx} from './iconActionLook'
 
 export type PneBannerTone = PneToastTone
 
+type ActionDataAttributes = {
+    [attribute: `data-${string}`]: string | number | boolean | undefined
+}
+
+export type PneBannerActionProps = Omit<
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
+    'children' | 'onClick' | 'type'
+> & ActionDataAttributes
+
 export type PneBannerProps = Omit<BoxProps<'div'>, 'children' | 'title'> & {
     /** What the message is about: a note, a success, a warning or an error. `info` by default. */
     tone?: PneBannerTone
@@ -19,6 +28,8 @@ export type PneBannerProps = Omit<BoxProps<'div'>, 'children' | 'title'> & {
     /** The label of the action under the text: a link that acts in place («Retry», «Change the limit»). */
     actionLabel?: React.ReactNode
     onAction?: () => void
+    /** Props of the action button: `disabled`, a locator, an accessible name. */
+    actionProps?: PneBannerActionProps
     /** Shows the close cross. */
     onClose?: () => void
     closeLabel?: string
@@ -47,7 +58,6 @@ const bannerSx: SxProps<Theme> = theme => {
             gap: '12px',
             lineHeight: '20px',
             padding: '12px 16px',
-            width: '100%',
         },
         '& [data-pne-banner-sign]': {
             color: 'var(--pne-banner-text)',
@@ -78,8 +88,12 @@ const bannerSx: SxProps<Theme> = theme => {
             padding: 0,
             textAlign: 'left',
         },
-        '& [data-pne-banner-action]:hover': {
+        '& [data-pne-banner-action]:hover:not(:disabled)': {
             textDecoration: 'underline',
+        },
+        '& [data-pne-banner-action]:disabled': {
+            color: theme.palette.text.disabled,
+            cursor: 'default',
         },
         '& [data-pne-banner-action]:focus-visible': {
             borderRadius: '2px',
@@ -106,6 +120,7 @@ const bannerSx: SxProps<Theme> = theme => {
 const PneBanner = React.forwardRef<HTMLDivElement, PneBannerProps>(function PneBanner(props, ref) {
     const {
         actionLabel,
+        actionProps,
         children,
         closeLabel = 'Close',
         icon = true,
@@ -143,7 +158,7 @@ const PneBanner = React.forwardRef<HTMLDivElement, PneBannerProps>(function PneB
             {hasTitle ? <div data-pne-banner-title='true'>{title}</div> : null}
             {/* A block: the text may hold paragraphs or a progress bar of the consumer. */}
             {hasText ? <div data-pne-banner-text='true'>{children}</div> : null}
-            {actionLabel ? <button data-pne-banner-action='true' onClick={onAction} type='button'>
+            {actionLabel ? <button {...actionProps} data-pne-banner-action='true' onClick={onAction} type='button'>
                 {actionLabel}
             </button> : null}
         </div>

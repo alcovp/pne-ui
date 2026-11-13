@@ -138,7 +138,7 @@ export function inspectArchive(bytes, expectedPackage) {
             if (size !== 0) throw new Error('Invalid archive directory')
             continue
         }
-        if (!/^package\/(?:package\.json|README\.md|LICENSE|(?:cjs|esm|docs)\/.+)$/.test(name)) throw new Error(`Unexpected archive file: ${name}`)
+        if (!/^package\/(?:package\.json|README\.md|LICENSE|(?:cjs|esm|docs|fonts)\/.+)$/.test(name)) throw new Error(`Unexpected archive file: ${name}`)
         files.set(name, content)
     }
     if (!ended) throw new Error('Missing tar end marker')
@@ -154,6 +154,8 @@ export function inspectArchive(bytes, expectedPackage) {
         }
     }
     if (manifest.exports['./package.json'] !== './package.json') throw new Error('Missing package.json export')
+    const fonts = manifest.exports['./fonts.css']
+    if (typeof fonts !== 'string' || !files.has(`package/${fonts.slice(2)}`)) throw new Error('Missing fonts stylesheet export')
     return {manifest, fileCount: files.size}
 }
 

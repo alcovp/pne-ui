@@ -68,6 +68,26 @@ describe('PneBanner', () => {
         expect(ruleValue(screen.getByRole('button', {name: 'Dismiss'}), '&', 'width')).toBe('24px')
     })
 
+    it('passes the props of the action to its button', () => {
+        const onAction = jest.fn()
+        renderBanner(<PneBanner
+            actionLabel='Refresh'
+            actionProps={{'data-autotest': 'retry', disabled: true}}
+            onAction={onAction}
+            tone='warning'
+        >
+            Some sections did not load.
+        </PneBanner>)
+        const action = screen.getByRole('button', {name: 'Refresh'}) as HTMLButtonElement
+
+        expect(action.getAttribute('data-autotest')).toBe('retry')
+        expect(action.disabled).toBe(true)
+
+        fireEvent.click(action)
+
+        expect(onAction).not.toHaveBeenCalled()
+    })
+
     it('hides the sign on request and keeps the consumer content as it is', () => {
         renderBanner(<PneBanner data-autotest='batch-progress' icon={false} tone='success'>
             <progress max={10} value={4}/>
