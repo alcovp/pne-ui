@@ -2,7 +2,7 @@ import React, {useId, useState} from 'react';
 import {CriterionTypeEnum} from '../../types';
 import {Menu, MenuItem, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AddIcon from '@mui/icons-material/Add';
 import PneButton from '../../../../PneButton';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {useSearchUIAutoTestScope} from '../../AutoTestScope';
@@ -14,11 +14,13 @@ const ADD_FILTER_OPTION_AUTOTEST_ID = 'add-filter-option';
 type Props = {
     onChange: (value: CriterionTypeEnum) => void
     options: CriterionTypeEnum[]
+    /** `small` in the header of the panel, `medium` in its footer. */
+    size?: 'small' | 'medium'
 }
 
 /**
- * A button with a menu, built as the saved filters trigger next to it: the hover, the pressed look
- * and the keyboard focus are the same on both. Before, a transparent select lay over a button that
+ * A button with a menu (UI Kit «+ Add criterion»: a soft button with a plus), built as the saved
+ * filters trigger: the hover, the pressed look and the keyboard focus are the same on both. Before, a transparent select lay over a button that
  * was there for show, and the focus landed on the select, which drew its own mark.
  */
 const SearchUIAddFilter = (props: Props) => {
@@ -29,6 +31,7 @@ const SearchUIAddFilter = (props: Props) => {
     const {
         onChange,
         options,
+        size = 'small',
     } = props
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
     const open = anchorEl !== null
@@ -57,9 +60,9 @@ const SearchUIAddFilter = (props: Props) => {
             {...createAutoTestAttributes(ADD_FILTER_AUTOTEST_ID)}
             onClick={handleOpen}
             onKeyDown={handleKeyDown}
-            size={'small'}
+            size={size}
             pneStyle='neutral'
-            endIcon={<ExpandMoreIcon/>}
+            startIcon={<AddIcon/>}
             sx={addFilterButtonSx}
             aria-controls={open ? menuId : undefined}
             aria-expanded={open}
@@ -95,8 +98,4 @@ export default SearchUIAddFilter
 
 const addFilterButtonSx: SxProps = {
     whiteSpace: 'nowrap',
-    px: '12px',
-    '& .MuiButton-endIcon': {
-        ml: '8px',
-    },
 }

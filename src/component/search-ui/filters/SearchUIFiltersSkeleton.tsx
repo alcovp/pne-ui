@@ -10,10 +10,11 @@ import {
     criterionSx,
 } from './criterionRowSx'
 import {
-    actionsLeadSx,
-    actionsRowSx,
-    actionsSx,
-    compactActionsRowSx,
+    footerLeadSx,
+    footerSx,
+    footerTrailSx,
+    headerGroupSx,
+    headerSx,
     rootSx,
     searchButtonSx,
 } from './panelSx'
@@ -25,12 +26,14 @@ export const SEARCH_FILTERS_SKELETON_AUTOTEST_ID = 'search-filters-skeleton'
 export type SearchUIFiltersSkeletonAction = {
     width: number
     main?: boolean
+    /** Stays in the header when the panel is unfolded: the saved sets. The others go to the footer. */
+    header?: boolean
 }
 
 export type SearchUIFiltersSkeletonProps = {
     /** Criterion rows to draw; none while the panel is folded. */
     rows: number
-    /** The panel is folded: the toggle carries the count and the actions follow it. */
+    /** The panel is folded: the header is the whole panel and holds all the actions. */
     collapsed: boolean
     /** The fold toggle is there: the page did not hide it and the panel has criteria. */
     toggle: boolean
@@ -39,8 +42,8 @@ export type SearchUIFiltersSkeletonProps = {
     autoTestId?: string
 }
 
-// The rows and the actions row take the panel's own layout, so the skeleton is exactly as tall as the
-// panel it stands for: 40px rows with a line on top, the 28px buttons 6px from the edges of their row.
+// The header, the rows and the footer take the panel's own layout, so the skeleton is exactly as tall
+// as the panel it stands for: the 33px header, 40px rows with a line on top, the footer with 32px buttons.
 // Every row looks the same: the name, and the value pill in the values column.
 const nameCellSx: SystemStyleObject<Theme> = {
     alignItems: 'center',
@@ -76,14 +79,33 @@ const mainButtonSx: SystemStyleObject<Theme> = {
 export const SearchUIFiltersSkeleton = (props: SearchUIFiltersSkeletonProps) => {
     const {actions, autoTestId, collapsed, rows, toggle} = props
     const shownRows = collapsed ? 0 : rows
-    const hasActions = toggle || actions.length > 0
+    const unfolded = shownRows > 0
+    const headerActions = unfolded ? actions.filter(action => action.header) : actions
+    const footerActions = unfolded ? actions.filter(action => !action.header) : []
+    const buttonHeight = unfolded ? 32 : 24
+    const button = (action: SearchUIFiltersSkeletonAction, index: number, height: number) => <Skeleton
+        height={height}
+        key={index}
+        sx={action.main ? [searchButtonSx, mainButtonSx] : undefined}
+        variant='rounded'
+        width={action.width}
+    />
 
     return <Box
         {...createAutoTestAttributes(SEARCH_FILTERS_SKELETON_AUTOTEST_ID, autoTestId)}
         aria-busy='true'
         sx={rootSx}
     >
-        {Array.from({length: shownRows}, (_, index) => <Box key={index} sx={criterionSx}>
+        <Box data-pne-folded={unfolded ? undefined : 'true'} sx={headerSx}>
+            <Box sx={headerGroupSx}>
+                {/* The name of the panel with its chevron, and the count. */}
+                {toggle ? <Skeleton height={24} variant='rounded' width={96}/> : null}
+            </Box>
+            <Box sx={headerGroupSx}>
+                {headerActions.map((action, index) => button(action, index, 24))}
+            </Box>
+        </Box>
+        {Array.from({length: shownRows}, (_, index) => <Box data-pne-skeleton-row='true' key={index} sx={criterionSx}>
             <Box sx={[criterionLeftWrapperSx, nameCellSx]}>
                 <Skeleton height={14} variant='rounded' width={112}/>
             </Box>
@@ -92,19 +114,12 @@ export const SearchUIFiltersSkeleton = (props: SearchUIFiltersSkeletonProps) => 
                 <Skeleton height={24} sx={valuePillSx} variant='rounded' width={220}/>
             </Box>
         </Box>)}
-        {hasActions ? <Box sx={shownRows > 0 ? actionsRowSx : compactActionsRowSx}>
-            <Box sx={actionsLeadSx}>
-                {/* The chevron alone, or with the count while folded. */}
-                {toggle ? <Skeleton height={28} variant='rounded' width={collapsed ? 56 : 32}/> : null}
+        {unfolded && footerActions.length > 0 ? <Box sx={footerSx}>
+            <Box sx={footerLeadSx}>
+                {footerActions.filter(action => !action.main).map((action, index) => button(action, index, buttonHeight))}
             </Box>
-            <Box sx={actionsSx}>
-                {actions.map((action, index) => <Skeleton
-                    height={28}
-                    key={index}
-                    sx={action.main ? [searchButtonSx, mainButtonSx] : undefined}
-                    variant='rounded'
-                    width={action.width}
-                />)}
+            <Box sx={footerTrailSx}>
+                {footerActions.filter(action => action.main).map((action, index) => button(action, index, buttonHeight))}
             </Box>
         </Box> : null}
     </Box>

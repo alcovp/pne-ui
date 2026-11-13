@@ -44,8 +44,8 @@ const renderFilters = (
 }
 
 describe('SearchUIFilters layout', () => {
-    it('keeps the action anchors, has no title and names the region instead', async () => {
-        const {onFiltersUpdate, root, queryByText} = renderFilters('layout-orders')
+    it('keeps the action anchors and names the panel in its header and as a region', async () => {
+        const {onFiltersUpdate, root} = renderFilters('layout-orders')
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalled()
@@ -54,7 +54,15 @@ describe('SearchUIFilters layout', () => {
         const scope = root() as HTMLElement
         expect(scope.getAttribute('role')).toBe('region')
         expect(scope.getAttribute('aria-label')).toBe('react.searchUI.filters')
-        expect(queryByText('react.searchUI.filters')).toBeNull()
+        // UI Kit Filter: the header strip names the panel and holds the saved sets; unfolded, the other
+        // actions stand in the footer strip under the rows.
+        const header = scope.querySelector('[data-autotest="filters-header"]') as HTMLElement
+        const footer = scope.querySelector('[data-autotest="filters-footer"]') as HTMLElement
+        expect(header.querySelector('[data-autotest="toggle-filters"]')?.textContent).toBe('react.searchUI.filters')
+        expect(header.querySelector('[data-autotest="filters-count"]')?.textContent).toBe('2')
+        expect(header.querySelector('[data-autotest="templates"]')).not.toBeNull()
+        expect(footer.querySelector('[data-autotest="add-filter"]')).not.toBeNull()
+        expect(footer.querySelector('[data-autotest="run-search"]')).not.toBeNull()
 
         for (const actionId of ['toggle-filters', 'templates', 'add-filter', 'run-search']) {
             expect(scope.querySelectorAll(`[data-autotest="${actionId}"]`)).toHaveLength(1)
@@ -63,7 +71,32 @@ describe('SearchUIFilters layout', () => {
         expect(scope.querySelector('[data-autotest="templates"]')?.textContent).toContain('Saved filters')
     })
 
-    it('collapses the rows through the toggle and keeps the actions row on screen', async () => {
+    it('draws the panel as a bordered box with a header strip and a footer strip', async () => {
+        const {onFiltersUpdate, root} = renderFilters('layout-frame')
+
+        await waitFor(() => {
+            expect(onFiltersUpdate).toHaveBeenCalled()
+        })
+
+        const scope = root() as HTMLElement
+        const header = scope.querySelector('[data-autotest="filters-header"]') as HTMLElement
+        const footer = scope.querySelector('[data-autotest="filters-footer"]') as HTMLElement
+        const style = (element: Element) => window.getComputedStyle(element)
+
+        // UI Kit Filter: radius 8 inside a 1px line; the strips stand on the tabs fill.
+        expect(style(scope).borderRadius).toBe('8px')
+        expect(style(scope).borderTopWidth).toBe('1px')
+        expect(style(header).backgroundColor).toBe('rgb(240, 244, 248)')
+        expect(style(header).minHeight).toBe('32px')
+        expect(style(footer).backgroundColor).toBe('rgb(240, 244, 248)')
+        expect(style(footer).borderTopWidth).toBe('1px')
+        // 24px buttons in the header, 32px in the footer.
+        expect(header.querySelector('[data-autotest="templates"]')?.getAttribute('data-pne-size')).toBe('small')
+        expect(footer.querySelector('[data-autotest="add-filter"]')?.getAttribute('data-pne-size')).toBe('medium')
+        expect(footer.querySelector('[data-autotest="run-search"]')?.getAttribute('data-pne-size')).toBe('medium')
+    })
+
+    it('collapses the rows through the toggle and moves the actions into the header', async () => {
         const {onFiltersUpdate, root} = renderFilters('layout-collapse')
 
         await waitFor(() => {
@@ -78,8 +111,9 @@ describe('SearchUIFilters layout', () => {
         expect(panel && scope.contains(panel)).toBe(true)
         expect(panel?.hidden).toBe(false)
         expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
-        // The actions come after the rows: the row buttons are reached first.
-        expect(precedes(panel, scope.querySelector('[data-autotest="templates"]'))).toBe(true)
+        // The footer actions come after the rows: the row buttons are reached first.
+        expect(precedes(scope.querySelector('[data-autotest="criterion"]'), scope.querySelector('[data-autotest="run-search"]'))).toBe(true)
+        expect(scope.querySelector('[data-autotest="filters-footer"] [data-autotest="run-search"]')).not.toBeNull()
 
         fireEvent.click(toggle as HTMLButtonElement)
 
@@ -91,7 +125,10 @@ describe('SearchUIFilters layout', () => {
         expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
         expect(scope.querySelector('[data-autotest="toggle-filters"]')).not.toBeNull()
         expect(scope.querySelector('[data-autotest="templates"]')).not.toBeNull()
-        expect(scope.querySelector('[data-autotest="run-search"]')).not.toBeNull()
+        // Folded, the header is the whole panel and holds every action.
+        expect(scope.querySelector('[data-autotest="filters-footer"]')).toBeNull()
+        expect(scope.querySelector('[data-autotest="filters-header"] [data-autotest="add-filter"]')).not.toBeNull()
+        expect(scope.querySelector('[data-autotest="filters-header"] [data-autotest="run-search"]')).not.toBeNull()
 
         fireEvent.click(toggle as HTMLButtonElement)
 
@@ -115,11 +152,11 @@ describe('SearchUIFilters layout', () => {
 
         const scope = root() as HTMLElement
         expect(getSearchFiltersCollapsed).toHaveBeenCalledWith('layout-folded-context')
-        // Folded from the first render: no rows, the count in the pill.
+        // Folded from the first render: no rows, the count beside the name.
         expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
         const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
         expect(toggle.getAttribute('aria-expanded')).toBe('false')
-        expect(toggle.querySelector('[data-autotest="filters-count"]')?.textContent).toBe('2')
+        expect(scope.querySelector('[data-autotest="filters-header"] [data-autotest="filters-count"]')?.textContent).toBe('2')
 
         fireEvent.click(toggle)
         expect(saveSearchFiltersCollapsed).toHaveBeenCalledWith({contextName: 'layout-folded-context', collapsed: false})
@@ -231,7 +268,7 @@ describe('SearchUIFilters layout', () => {
         expect(toggle.getAttribute('aria-expanded')).toBe('false')
     })
 
-    it('shows the number of folded criteria inside the toggle and nowhere while expanded', async () => {
+    it('shows the number of criteria beside the name of the panel, folded or not', async () => {
         const {onFiltersUpdate, root} = renderFilters('layout-count')
 
         await waitFor(() => {
@@ -240,11 +277,14 @@ describe('SearchUIFilters layout', () => {
 
         const scope = root() as HTMLElement
         const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
-        expect(toggle.querySelector('[data-autotest="filters-count"]')).toBeNull()
+        const count = () => scope.querySelector('[data-autotest="filters-header"] [data-autotest="filters-count"]')
+        expect(count()?.textContent).toBe('2')
+        // The count is not a part of the button: the button keeps its own name.
+        expect(toggle.contains(count())).toBe(false)
 
         fireEvent.click(toggle)
 
-        expect(toggle.querySelector('[data-autotest="filters-count"]')?.textContent).toBe('2')
+        expect(count()?.textContent).toBe('2')
         await waitFor(() => {
             expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
         })
@@ -387,62 +427,5 @@ describe('SearchUIFilters actions row', () => {
             expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(3)
         })
         expect(document.body.querySelector('[data-autotest="add-filter-options"]')).toBeNull()
-    })
-
-    it('slides the actions along as the rows fold and unfold, unless motion is reduced', async () => {
-        const {onFiltersUpdate, root} = renderFilters('layout-slide')
-
-        await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenCalled()
-        })
-
-        const scope = root() as HTMLElement
-        const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
-        const templates = scope.querySelector<HTMLElement>('[data-autotest="templates"]') as HTMLElement
-        const actions = templates.parentElement as HTMLElement
-        const transforms: string[] = []
-        jest.spyOn(actions.style, 'transform', 'set').mockImplementation(value => {
-            transforms.push(value)
-        })
-        // jsdom lays nothing out: the actions stand at x=300 in the values column and at x=80 right
-        // after the chevron. The first reading is the capture before the change.
-        const rect = jest.spyOn(actions, 'getBoundingClientRect')
-
-        rect.mockImplementationOnce(() => rectAt(300)).mockImplementation(() => rectAt(80))
-        fireEvent.click(toggle)
-        await waitFor(() => {
-            expect(toggle.getAttribute('aria-expanded')).toBe('false')
-        })
-        expect(transforms).toEqual(['', 'translate(220px, 0px)', ''])
-        expect(actions.style.transition).toBe('transform 200ms ease')
-
-        transforms.length = 0
-        actions.style.transition = ''
-        rect.mockReset()
-        rect.mockImplementationOnce(() => rectAt(80)).mockImplementation(() => rectAt(300))
-        fireEvent.click(toggle)
-        await waitFor(() => {
-            expect(toggle.getAttribute('aria-expanded')).toBe('true')
-        })
-        expect(transforms).toEqual(['', 'translate(-220px, 0px)', ''])
-        expect(actions.style.transition).toBe('transform 200ms ease')
-
-        transforms.length = 0
-        actions.style.transition = ''
-        rect.mockReset()
-        rect.mockImplementationOnce(() => rectAt(300)).mockImplementation(() => rectAt(80))
-        window.matchMedia = jest.fn().mockImplementation((query: string) => ({
-            matches: query === '(prefers-reduced-motion: reduce)',
-            media: query,
-            addEventListener: jest.fn(),
-            removeEventListener: jest.fn(),
-        })) as unknown as typeof window.matchMedia
-        fireEvent.click(toggle)
-        await waitFor(() => {
-            expect(toggle.getAttribute('aria-expanded')).toBe('false')
-        })
-        expect(transforms).toEqual([''])
-        expect(actions.style.transition).toBe('')
-        delete (window as {matchMedia?: unknown}).matchMedia
     })
 })

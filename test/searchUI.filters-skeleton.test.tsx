@@ -61,7 +61,7 @@ const renderFilters = (
         `[data-autotest="search-filters-skeleton"][data-autotest-value="${scope}"]`,
     )
     // The skeleton's children: a box per criterion row, then the actions row.
-    const skeletonRows = () => Array.from(skeleton()?.children ?? []).length - 1
+    const skeletonRows = () => skeleton()?.querySelectorAll('[data-pne-skeleton-row]').length ?? 0
 
     return {...utils, panel, skeleton, skeletonRows}
 }

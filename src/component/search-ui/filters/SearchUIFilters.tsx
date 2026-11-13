@@ -16,9 +16,10 @@ import {
     useSearchUIFiltersStoreContext,
     useSearchUIFiltersStoreApi,
 } from './state/store';
-import {Box, ButtonBase, SxProps, Tooltip} from '@mui/material';
-import {alpha, type Theme} from '@mui/material/styles';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {Box, SxProps, Tooltip} from '@mui/material';
+import type {Theme} from '@mui/material/styles';
+import {PneChevronDownIcon} from '../../dropdown/dropdownLook';
+import {resolvePneSemanticPalette} from '../../../createTheme';
 import isEqual from 'lodash/isEqual';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
 import {CriterionContainer} from './CriterionContainer';
@@ -59,10 +60,11 @@ import {
     SEARCH_UI_FILTERS_PHONE_MEDIA,
 } from './layout';
 import {
-    actionsLeadSx,
-    actionsRowSx,
-    actionsSx,
-    compactActionsRowSx,
+    footerLeadSx,
+    footerSx,
+    footerTrailSx,
+    headerGroupSx,
+    headerSx,
     rootSx,
     searchButtonSx,
 } from './panelSx';
@@ -72,41 +74,14 @@ import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled';
 const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
 const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
 const FILTERS_COUNT_AUTOTEST_ID = 'filters-count';
+const FILTERS_HEADER_AUTOTEST_ID = 'filters-header';
+const FILTERS_FOOTER_AUTOTEST_ID = 'filters-footer';
 const CLEAR_FILTERS_AUTOTEST_ID = 'clear-all';
 const RUN_SEARCH_AUTOTEST_ID = 'run-search';
 
 /** The fold transition of the criteria rows; the fallback timer runs a little longer. */
 const COLLAPSE_DURATION_MS = 200
 
-type Point = {left: number; top: number}
-
-const prefersReducedMotion = () => (
-    typeof window !== 'undefined'
-    && typeof window.matchMedia === 'function'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-)
-
-/**
- * Slides an element from where it was to where the layout has just put it, over the fold duration
- * (the FLIP technique): the element starts translated back to its old place and the transition
- * carries it to the new one. The inline transition stays; the next slide resets it first.
- */
-const slideFrom = (element: HTMLElement, from: Point) => {
-    element.style.transition = 'none'
-    element.style.transform = ''
-    const to = element.getBoundingClientRect()
-    const dx = from.left - to.left
-    const dy = from.top - to.top
-    if (to.width === 0 || (dx === 0 && dy === 0) || prefersReducedMotion()) {
-        element.style.transition = ''
-        return
-    }
-    element.style.transform = `translate(${dx}px, ${dy}px)`
-    // The start position must be laid out before the transition begins.
-    void element.offsetWidth
-    element.style.transition = `transform ${COLLAPSE_DURATION_MS}ms ease`
-    element.style.transform = ''
-}
 
 /**
  * Дополнительные настройки критерия диапазона дат.
@@ -580,7 +555,7 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
     ]).filter(criterion => !hiddenCriteria.includes(criterion)).length
     // The widths of Saved filters, Add filter and Search in English, the usual language here.
     const actions: SearchUIFiltersSkeletonAction[] = [
-        ...(config?.hideTemplatesSelect ? [] : [{width: 146}]),
+        ...(config?.hideTemplatesSelect ? [] : [{width: 146, header: true}]),
         ...(available > rows ? [{width: 103}] : []),
         ...(config?.manualSearch || !config?.hideRefreshButton ? [{width: 80, main: true}] : []),
     ]
@@ -730,17 +705,6 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const validationResult = useSearchUIFiltersStore(s => s.validationResult)
 
     const [showFilters, setShowFilters] = useState(!collapsed)
-    const actionsRef = useRef<HTMLDivElement>(null)
-    const actionsSlideFromRef = useRef<Point | null>(null)
-
-    // Where the actions stand before a change that moves them: a fold, an unfold or the first
-    // criterion. The slide starts there once the layout has settled. On phones the actions box
-    // dissolves into the row (display: contents) and has no place of its own: no slide.
-    const captureActionsPosition = () => {
-        const element = actionsRef.current
-        const rect = element?.getBoundingClientRect()
-        actionsSlideFromRef.current = rect && rect.width > 0 ? {left: rect.left, top: rect.top} : null
-    }
     const panelRef = useRef<HTMLDivElement | null>(null)
     const {phase, onTransitionEnd} = useCollapsibleRows(showFilters, panelRef)
     const filtersPanelId = useId()
@@ -843,7 +807,6 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const visibleCriteria = criteria.filter(criterion => !hiddenCriteriaSet.has(criterion)
         || blockingCriteria.has(criterion))
     const someCriteriaAdded = visibleCriteria.length > 0
-    const showFiltersCountChip = someCriteriaAdded && !showFilters
     const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
     const nonRemovablePredefinedCriteria = implied.predefinedCriteria.filter(
         criterion => !removablePredefinedCriteria.includes(criterion),
@@ -890,56 +853,61 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         if (shown === showFilters) {
             return
         }
-        captureActionsPosition()
         setShowFilters(shown)
         void rememberSearchUIFiltersCollapsed(defaults, settingsContextName, !shown)
     }
 
-    // Nothing to fold without criteria: the chevron waits for the first one, which Add filter unfolds.
-    // One pill holds the chevron and, while folded, the number of criteria: one target, easy to hit.
-    const toggleButton = hideShowFiltersButton || !someCriteriaAdded ? null : <Tooltip
+    // Unfolded with criteria, the actions stand in the footer of the panel under the values column
+    // (UI Kit: 32px buttons); folded, or with no criteria, in the header (24px buttons).
+    const actionsInFooter = showFilters && someCriteriaAdded
+    const actionSize = actionsInFooter ? 'medium' : 'small'
+    // UI Kit Filter header: «Filters» with a chevron folds the panel, the count of criteria stands
+    // beside it. Nothing to fold without criteria: then the name is a plain caption, and Add filter
+    // unfolds the panel with the first one.
+    const canFold = !hideShowFiltersButton && someCriteriaAdded
+    // The hint tells a pointer user what the click will do; the button keeps its name.
+    const toggleButton = canFold ? <Tooltip
+        describeChild
         disableInteractive
         enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         title={toggleHint}
     >
-        <ButtonBase
+        <PneButton
             {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
             onClick={() => setFiltersShown(!showFilters)}
-            // The hover tint and the focus ring do the feedback; a round ripple sits badly in a pill.
-            disableRipple
             aria-label={filtersLabel}
             aria-controls={filtersPanelId}
             aria-expanded={showFilters}
-            sx={toggleSx}
+            pneStyle='text'
+            size='small'
+            startIcon={<PneChevronDownIcon sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}/>}
+            sx={nowrapButtonSx}
         >
-            <ExpandMoreIcon
-                fontSize={'small'}
-                sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}
-            />
-            {showFiltersCountChip ? <Box
-                {...createAutoTestAttributes(FILTERS_COUNT_AUTOTEST_ID)}
-                component={'span'}
-                sx={filtersCountSx}
-            >
-                {visibleCriteria.length}
-            </Box> : null}
-        </ButtonBase>
-    </Tooltip>
+            {filtersLabel}
+        </PneButton>
+    </Tooltip> : <Box component='span' sx={headerCaptionSx}>{filtersLabel}</Box>
+    const countBadge = someCriteriaAdded ? <Box
+        {...createAutoTestAttributes(FILTERS_COUNT_AUTOTEST_ID)}
+        component={'span'}
+        sx={filtersCountSx}
+    >
+        {visibleCriteria.length}
+    </Box> : null
     const clearAllButton = showClearAllButton ? <PneButton
         {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
         onClick={resetToDefaults}
         pneStyle='neutral'
-        size={'small'}
+        size={actionSize}
         sx={nowrapButtonSx}
     >
         {t('clear.all')}
     </PneButton> : null
     const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu onResetToDefaults={resetToDefaults}/> : null
     const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
+        size={actionSize}
         options={criteriaOptions}
         onChange={criterion => {
-            captureActionsPosition()
             setFiltersShown(true)
             addCriterion(criterion)
         }}
@@ -948,7 +916,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
         onClick={triggerSearch}
         pneStyle='contained'
-        size={'small'}
+        size={actionSize}
         disabled={searchLoading || !validationResult.isValid}
         sx={searchButtonSx}
     >
@@ -965,34 +933,15 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         />
     ) : null
 
-    // No title bar: the criteria rows and the actions row share one grid, so the actions line up
-    // with the values column. The collapsible panel passes the columns through, and the actions
-    // row stays outside it, so the chevron survives the collapse.
-    const hasActions = Boolean(
-        toggleButton || clearAllButton || templatesMenu || addFilterButton || searchButton,
-    )
-    // Folded, or without criteria, there is no values column to line up with: the chevron, the
-    // count and the actions follow each other instead of leaving the empty name and icon columns
-    // between them. The switch happens as the fold starts and as the rows mount for the unfold, so
-    // the actions slide while the rows fold or unfold.
-    const actionsInColumns = showFilters && rowsMounted && visibleCriteria.length > 0
+    // UI Kit Filter: one bordered panel. The header strip names it and folds it; the criteria rows
+    // and the footer strip share the grid of the panel, so the footer actions line up with the
+    // values column and fold away with the rows.
+    const headerActions = actionsInFooter ? null : <>
+        {clearAllButton}
+        {addFilterButton}
+        {searchButton}
+    </>
 
-    // The slide starts once the layout has settled: for an unfold that is when the rows are mounted
-    // and the name column has its width back.
-    useLayoutEffect(() => {
-        const from = actionsSlideFromRef.current
-        if (!from) {
-            return
-        }
-        if (showFilters && visibleCriteria.length > 0 && !rowsMounted) {
-            return
-        }
-        actionsSlideFromRef.current = null
-        const element = actionsRef.current
-        if (element) {
-            slideFrom(element, from)
-        }
-    })
 
     return <SearchUIAutoTestScopeProvider scope={autoTestId}>
         <Box
@@ -1002,6 +951,20 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             sx={rootSx}
         >
             <Box
+                {...createAutoTestAttributes(FILTERS_HEADER_AUTOTEST_ID)}
+                data-pne-folded={rowsMounted && someCriteriaAdded ? undefined : 'true'}
+                sx={headerSx}
+            >
+                <Box sx={headerGroupSx}>
+                    {toggleButton}
+                    {countBadge}
+                </Box>
+                <Box sx={headerGroupSx}>
+                    {templatesMenu}
+                    {headerActions}
+                </Box>
+            </Box>
+            <Box
                 id={filtersPanelId}
                 ref={panelRef}
                 hidden={!rowsMounted}
@@ -1010,19 +973,17 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             >
                 <Box sx={panelInnerSx}>
                     {criteriaRows}
+                    {actionsInFooter && rowsMounted ? <Box {...createAutoTestAttributes(FILTERS_FOOTER_AUTOTEST_ID)} sx={footerSx}>
+                        <Box sx={footerLeadSx}>
+                            {addFilterButton}
+                        </Box>
+                        <Box sx={footerTrailSx}>
+                            {clearAllButton}
+                            {searchButton}
+                        </Box>
+                    </Box> : null}
                 </Box>
             </Box>
-            {hasActions ? <Box sx={actionsInColumns ? actionsRowSx : compactActionsRowSx}>
-                <Box sx={actionsLeadSx}>
-                    {toggleButton}
-                </Box>
-                <Box ref={actionsRef} sx={actionsSx}>
-                    {clearAllButton}
-                    {templatesMenu}
-                    {addFilterButton}
-                    {searchButton}
-                </Box>
-            </Box> : null}
         </Box>
     </SearchUIAutoTestScopeProvider>
 }
@@ -1031,49 +992,36 @@ const nowrapButtonSx: SxProps = {
     whiteSpace: 'nowrap',
 }
 
-// The fold toggle: a 28px pill with the chevron and, folded, the count; the hit area reaches
-// 40px tall and 4px past the pill on each side.
-const toggleSx: SxProps<Theme> = {
-    position: 'relative',
-    display: 'inline-flex',
-    alignItems: 'center',
-    columnGap: '4px',
-    height: '28px',
-    minWidth: '28px',
-    px: '6px',
-    borderRadius: '4px',
-    color: 'primary.main',
-    '&:hover': {
-        backgroundColor: theme => alpha(theme.palette.primary.main, 0.1),
-    },
-    '&.Mui-focusVisible': {
-        outline: theme => `2px solid ${theme.palette.primary.main}`,
-        outlineOffset: '1px',
-    },
-    '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: '-6px',
-        right: '-4px',
-        bottom: '-6px',
-        left: '-4px',
-    },
+// The caption of a panel that cannot fold: the look of the toggle's label, with no chevron.
+const headerCaptionSx: SxProps<Theme> = {
+    color: 'text.primary',
+    fontSize: '12px',
+    fontWeight: 500,
+    lineHeight: '16px',
+    padding: '4px 8px',
 }
 
-const filtersCountSx: SxProps = {
-    display: 'inline-flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxSizing: 'border-box',
-    minWidth: '20px',
-    height: '20px',
-    px: '5px',
-    borderRadius: '10px',
-    border: '1px solid currentColor',
-    fontSize: '12px',
-    fontWeight: 700,
-    lineHeight: 1,
+// UI Kit Badge md, tone accent: the number of criteria beside the name of the panel.
+const filtersCountSx: SxProps<Theme> = theme => {
+    const pne = resolvePneSemanticPalette(theme)
+    return {
+        alignItems: 'center',
+        backgroundColor: pne.ramp[50],
+        borderRadius: '4px',
+        boxShadow: `inset 0 0 0 1px ${pne.ramp[300]}`,
+        boxSizing: 'border-box',
+        color: pne.link,
+        display: 'inline-flex',
+        fontSize: '12px',
+        fontWeight: 500,
+        height: '20px',
+        justifyContent: 'center',
+        lineHeight: '16px',
+        minWidth: '20px',
+        px: '6px',
+    }
 }
+
 
 // The panel is a row of the root grid that passes the columns through and folds by animating its
 // single row track between 0fr and 1fr; the inner box may shrink to nothing, so the fold clips.

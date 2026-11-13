@@ -7,6 +7,7 @@ import {
     SEARCH_UI_FILTERS_PHONE_MEDIA,
 } from './layout'
 import {searchUIFocusRingSx} from './styled'
+import {resolvePneSemanticPalette} from '../../../createTheme'
 
 /*
  * The layout of one criterion row, shared by the real rows (`CriterionContainer`) and the loading
@@ -30,7 +31,12 @@ export const criterionSx: SystemStyleObject<Theme> = {
     gridTemplateColumns: 'subgrid',
     alignItems: 'center',
     minHeight: '40px',
-    borderTop: theme => `1px solid ${theme.palette.pne?.border.subtle ?? '#F1F5FA'}`,
+    // UI Kit Filter row: the content keeps 8px from the left edge of the shell and 4px from the right;
+    // the line over the row runs the whole width.
+    paddingLeft: '8px',
+    paddingRight: '4px',
+    // The hairline of the shell over every row; over the first one it closes the header strip.
+    borderTop: theme => `1px solid ${resolvePneSemanticPalette(theme).table.band.tabs.ring}`,
     // One focus mark for the controls of every criterion: the pill inputs, the date fields, the
     // autocomplete fields, the clickable chips and the link triggers draw the panel's ring; MUI
     // draws no ring on the first three here (no underline, no border) and its own on the others.

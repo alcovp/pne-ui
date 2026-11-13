@@ -324,7 +324,8 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
             {...createAutoTestAttributes(TEMPLATES_AUTOTEST_ID)}
             onClick={handleOpen}
             size={'small'}
-            pneStyle='neutral'
+            // UI Kit Filter header: the saved sets are a tertiary button, dark on the strip.
+            pneStyle='text'
             startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon/> : undefined}
             endIcon={<ExpandMoreIcon/>}
             sx={templateTriggerSx}
