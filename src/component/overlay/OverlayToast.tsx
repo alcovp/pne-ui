@@ -6,11 +6,15 @@ import {resolvePneSemanticPalette} from '../../createTheme'
 import type {PneToastTone} from '../../toastPalette'
 import {PneCloseIcon} from '../dropdown/dropdownLook'
 import {pneIconActionSx} from '../iconActionLook'
+import PneBanner from '../PneBanner'
 
 export type OverlayToastPresentation = 'toast' | 'banner'
 
 export type OverlayToastProps = {
-    /** The consumer's action, for example an undo button; it stands before the close cross. */
+    /**
+     * The consumer's action, for example an undo button: before the close cross of a toast, under the
+     * text of a banner.
+     */
     action?: React.ReactNode
     /** The message: the title of a toast, the whole content of a banner. */
     children: React.ReactNode
@@ -33,8 +37,9 @@ export type OverlayToastProps = {
  * message as the title (18/26 SemiBold) over an optional description (12/16 in the text colour of
  * the tone); the consumer's action and a 32px close cross on the right, 64px from the text; a 3px
  * timer bar along the bottom that shrinks to the left. No sign of the tone.
- * Banner (an error with details): the pale fill of the tone inside a ring of its colour, 12/16
- * inside, the 20px sign of the tone on the left, a 24px close cross.
+ * Banner (an error with details): the library's `PneBanner` as it is - the pale fill of the tone
+ * inside a ring of its colour, the sign of the tone, a small close cross - lifted by the toast shadow
+ * and carrying the same timer bar.
  */
 // The snackbar's transition holds the card by its ref and style, so both go to the root.
 const OverlayToast = React.forwardRef<HTMLDivElement, OverlayToastProps>(function OverlayToast({
@@ -48,7 +53,30 @@ const OverlayToast = React.forwardRef<HTMLDivElement, OverlayToastProps>(functio
     style,
     tone = 'info',
 }, ref) {
-    const isBanner = presentation === 'banner'
+    const timer = progress != null ? <span
+        aria-hidden='true'
+        data-pne-toast-timer='true'
+        data-testid='overlay-snackbar-progress'
+        style={{transform: `scaleX(${progress})`}}
+    /> : null
+
+    if (presentation === 'banner') {
+        // A notification interrupts whatever its tone is, as the toast does.
+        return <PneBanner
+            ref={ref}
+            style={style}
+            closeLabel={closeLabel}
+            data-pne-toast='banner'
+            onClose={onClose}
+            role='alert'
+            sx={overlayBannerSx}
+            tone={tone}
+        >
+            {timer}
+            {children}
+            {action ? <div data-pne-toast-action='true'>{action}</div> : null}
+        </PneBanner>
+    }
 
     return <Alert
         ref={ref}
@@ -60,32 +88,25 @@ const OverlayToast = React.forwardRef<HTMLDivElement, OverlayToastProps>(functio
                 data-pne-toast-close='true'
                 disableRipple
                 onClick={onClose}
-                sx={pneIconActionSx(isBanner ? 'small' : 'medium', 'var(--pne-toast-text)')}
+                sx={pneIconActionSx('medium', 'var(--pne-toast-text)')}
                 title={closeLabel}
                 type='button'
             >
                 <PneCloseIcon/>
             </IconButton> : null}
         </>}
-        data-pne-toast={presentation}
+        data-pne-toast='toast'
         data-pne-tone={tone}
         elevation={0}
-        icon={isBanner ? undefined : false}
+        icon={false}
         severity={tone}
         sx={overlayToastSx}
     >
-        {progress != null ? <span
-            aria-hidden='true'
-            data-pne-toast-timer='true'
-            data-testid='overlay-snackbar-progress'
-            style={{transform: `scaleX(${progress})`}}
-        /> : null}
-        {isBanner ? children : <>
-            <span data-pne-toast-title='true'>{children}</span>
-            {description != null && description !== ''
-                ? <span data-pne-toast-description='true'>{description}</span>
-                : null}
-        </>}
+        {timer}
+        <span data-pne-toast-title='true'>{children}</span>
+        {description != null && description !== ''
+            ? <span data-pne-toast-description='true'>{description}</span>
+            : null}
     </Alert>
 })
 
@@ -94,6 +115,43 @@ export default OverlayToast
 type Rules = Record<string, SystemStyleObject<Theme>>
 
 const TONES: PneToastTone[] = ['info', 'success', 'warning', 'error']
+
+const timerBarStyle = (color: string): SystemStyleObject<Theme> => ({
+    backgroundColor: color,
+    bottom: 0,
+    height: '3px',
+    left: 0,
+    pointerEvents: 'none',
+    position: 'absolute',
+    right: 0,
+    transformOrigin: 'left',
+})
+
+/**
+ * What a notification adds to the banner of a page: the whole width of the stack, the toast shadow
+ * over the ring of the tone and the timer bar along the bottom.
+ */
+const overlayBannerSx: SxProps<Theme> = theme => {
+    const toast = resolvePneSemanticPalette(theme).toast
+    const rules: Rules = {
+        '&': {
+            maxWidth: '100%',
+            overflow: 'hidden',
+            position: 'relative',
+            width: '100%',
+        },
+        '& [data-pne-toast-timer]': timerBarStyle('var(--pne-banner-text)'),
+        '& [data-pne-toast-action]': {
+            marginTop: '4px',
+        },
+    }
+    for (const tone of TONES) {
+        rules[`&[data-pne-tone="${tone}"]`] = {
+            boxShadow: `inset 0 0 0 1px ${toast[tone].fill}, ${toast.shadow}`,
+        }
+    }
+    return rules
+}
 
 const overlayToastSx: SxProps<Theme> = theme => {
     const toast = resolvePneSemanticPalette(theme).toast
@@ -142,46 +200,13 @@ const overlayToastSx: SxProps<Theme> = theme => {
             lineHeight: '16px',
             overflowWrap: 'anywhere',
         },
-        '& [data-pne-toast-timer]': {
-            backgroundColor: 'var(--pne-toast-text)',
-            bottom: 0,
-            height: '3px',
-            left: 0,
-            pointerEvents: 'none',
-            position: 'absolute',
-            right: 0,
-            transformOrigin: 'left',
-        },
-        // Banner: an error with an identifier and details.
-        '&[data-pne-toast="banner"]': {
-            alignItems: 'flex-start',
-            padding: '12px 16px',
-        },
-        '&[data-pne-toast="banner"] .MuiAlert-icon': {
-            color: 'var(--pne-toast-text)',
-            fontSize: '20px',
-            marginRight: '12px',
-            opacity: 1,
-            padding: 0,
-        },
-        '&[data-pne-toast="banner"] .MuiAlert-message': {
-            fontSize: '14px',
-            lineHeight: '20px',
-        },
-        '&[data-pne-toast="banner"] .MuiAlert-action': {
-            alignItems: 'flex-start',
-            paddingLeft: '12px',
-        },
+        '& [data-pne-toast-timer]': timerBarStyle('var(--pne-toast-text)'),
     }
     for (const tone of TONES) {
         const colors = toast[tone]
         rules[`&[data-pne-tone="${tone}"]`] = {
             '--pne-toast-text': colors.text,
             backgroundColor: colors.fill,
-        }
-        rules[`&[data-pne-toast="banner"][data-pne-tone="${tone}"]`] = {
-            backgroundColor: colors.bannerFill,
-            boxShadow: `inset 0 0 0 1px ${colors.fill}, ${toast.shadow}`,
         }
     }
     return rules

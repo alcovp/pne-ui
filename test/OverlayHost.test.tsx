@@ -189,7 +189,7 @@ describe('OverlayHost', () => {
         expect(action.firstElementChild).toBe(undoButton)
     })
 
-    it('draws an error with details as a banner: the pale fill of the tone in a ring, with its sign', async () => {
+    it('draws an error with details as the library banner, lifted by the toast shadow', async () => {
         render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}><OverlayHost container={null} /></PneThemeProvider>)
 
         act(() => {
@@ -199,19 +199,27 @@ describe('OverlayHost', () => {
             })
         })
 
-        const alert = await waitFor(() => {
-            const banner = document.querySelector<HTMLElement>('.MuiAlert-root[data-pne-toast="banner"]')
-            expect(banner).not.toBeNull()
-            return banner!
+        const banner = await waitFor(() => {
+            const element = document.querySelector<HTMLElement>('[data-pne-toast="banner"]')
+            expect(element).not.toBeNull()
+            return element!
         })
 
-        expect(alert.getAttribute('data-pne-toast')).toBe('banner')
-        expect(alert.querySelector('.MuiAlert-icon')).not.toBeNull()
-        expect(alert.querySelector('[data-pne-toast-title]')).toBeNull()
-        expect(ruleValue(alert, '&[data-pne-toast="banner"][data-pne-tone="error"]', 'background-color')).toBe('#FFEEED')
-        expect(ruleValue(alert, '&[data-pne-toast="banner"][data-pne-tone="error"]', 'box-shadow')).toMatch(/^inset 0 0 0 1px #FEBEBB/)
-        expect(ruleValue(alert, '&[data-pne-toast="banner"]', 'padding')).toBe('12px 16px')
-        expect(window.getComputedStyle(within(alert).getByRole('button', { name: 'Close' })).width).toBe('24px')
+        // The one banner of the library, not a look-alike: its root, its sign, its close cross.
+        expect(banner.getAttribute('data-pne-banner')).toBe('true')
+        expect(banner.classList.contains('MuiAlert-root')).toBe(false)
+        expect(banner.getAttribute('role')).toBe('alert')
+        expect(banner.getAttribute('data-pne-tone')).toBe('error')
+        expect(banner.querySelector('[data-pne-banner-sign]')).not.toBeNull()
+        expect(banner.querySelector('[data-pne-toast-title]')).toBeNull()
+        expect(ruleValue(banner, '&[data-pne-tone="error"]', 'background-color')).toBe('#FFEEED')
+        expect(ruleValue(banner, '&', 'padding')).toBe('12px 16px')
+        // What the notification adds: the toast shadow after the ring of the tone.
+        const shadow = ruleValue(banner, '&[data-pne-tone="error"]', 'box-shadow') as string
+        expect(shadow).toMatch(/^inset 0 0 0 1px #FEBEBB,\s*0 /)
+        const close = within(banner).getByRole('button', { name: 'Close' })
+        expect(close.getAttribute('data-pne-banner-close')).toBe('true')
+        expect(window.getComputedStyle(close).width).toBe('24px')
     })
 
     it('pauses auto-close on hover and resumes with the exact remaining time', async () => {

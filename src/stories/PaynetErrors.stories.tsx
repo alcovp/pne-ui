@@ -1,7 +1,8 @@
 import React from 'react'
-import { Alert, Box, Chip, CircularProgress, Stack, Typography } from '@mui/material'
+import { Box, Chip, CircularProgress, Stack, Typography } from '@mui/material'
 import type { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, within } from 'storybook/test'
+import OverlayToast from '../component/overlay/OverlayToast'
 import { normalizePaynetError, PaynetErrorContent } from '../index'
 import type { NormalizedPaynetError } from '../index'
 
@@ -218,56 +219,23 @@ const ErrorFixturePreview = ({ fixture }: { fixture: ErrorFixture }) => {
             <Typography color='text.secondary' sx={{ fontSize: 12, lineHeight: '18px', minHeight: 36 }}>
                 {fixture.description}
             </Typography>
-            <Alert
-                data-story-error-surface
-                elevation={1}
-                onClose={() => undefined}
-                severity='error'
-                sx={{
-                    alignItems: 'flex-start',
-                    boxSizing: 'border-box',
-                    maxWidth: '100%',
-                    minWidth: 0,
-                    overflow: 'hidden',
-                    position: 'relative',
-                    width: 'fit-content',
-                    '& .MuiAlert-message': {
-                        minWidth: 0,
-                    },
-                    '& .MuiAlert-action': {
-                        alignItems: 'stretch',
-                        alignSelf: 'stretch',
-                        mb: '-6px',
-                        mr: '-16px',
-                        mt: '-6px',
-                        pb: 0,
-                        pl: '8px',
-                        pt: 0,
-                    },
-                    '& .MuiAlert-action .MuiIconButton-root': {
-                        alignItems: 'flex-start',
-                        alignSelf: 'stretch',
-                        borderRadius: 0,
-                        pb: 0,
-                        pl: '13px',
-                        pr: '13px',
-                        pt: '15px',
-                    },
-                }}
-            >
-                {error ? (
-                    <PaynetErrorContent error={error} />
-                ) : (
-                    <Stack
-                        direction='row'
-                        spacing={1}
-                        sx={{ alignItems: 'center', minHeight: 64 }}
-                    >
-                        <CircularProgress size={16} />
-                        <Typography variant='body2'>Normalizing fixture…</Typography>
-                    </Stack>
-                )}
-            </Alert>
+            {/* The notification itself, as OverlayHost shows it: 448px wide or as wide as the place lets it be. */}
+            <Box data-story-error-surface sx={{ maxWidth: '100%', minWidth: 0, width: 448 }}>
+                <OverlayToast onClose={() => undefined} presentation='banner' tone='error'>
+                    {error ? (
+                        <PaynetErrorContent error={error} />
+                    ) : (
+                        <Stack
+                            direction='row'
+                            spacing={1}
+                            sx={{ alignItems: 'center', minHeight: 64 }}
+                        >
+                            <CircularProgress size={16} />
+                            <Typography variant='body2'>Normalizing fixture…</Typography>
+                        </Stack>
+                    )}
+                </OverlayToast>
+            </Box>
         </Box>
     )
 }
@@ -319,7 +287,7 @@ const meta = {
         docs: {
             description: {
                 component: 'Visual fixtures for the shared backend error presenter. Each card uses the same '
-                    + 'error content rendered inside an error Alert; raw fixtures are normalized by the public API.',
+                    + 'error content rendered inside the notification banner of OverlayHost; raw fixtures are normalized by the public API.',
             },
         },
     },
