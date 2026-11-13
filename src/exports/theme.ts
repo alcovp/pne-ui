@@ -51,3 +51,4 @@ export {
 } from '../brandRamp'
 export {Skin} from '../common/paynet/skin'
 export {pneActionSpacing, PneActionSpacingStyles} from '../actionSpacing'
+export {ensurePneMonoFont, PNE_MONO_FONT} from '../fonts/monoFont'

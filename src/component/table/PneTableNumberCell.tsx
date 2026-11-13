@@ -1,9 +1,7 @@
-import React, {forwardRef} from 'react'
+import React, {forwardRef, useEffect} from 'react'
 import type {SxProps, Theme} from '@mui/material/styles'
+import {ensurePneMonoFont, PNE_MONO_FONT} from '../../fonts/monoFont'
 import PneTableCell, {PneTableCellProps} from './PneTableCell'
-
-/** The UI Kit mono font: digits of one width, so the numbers of a column stand under each other. */
-export const PNE_MONO_FONT = '"Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace'
 
 export type PneTableNumberCellProps = Omit<PneTableCellProps, 'align'>
 
@@ -21,6 +19,9 @@ const numberCellSx: SxProps<Theme> = {
  */
 const PneTableNumberCell = forwardRef<HTMLTableCellElement, PneTableNumberCellProps>((props, ref) => {
     const {sx, ...rest} = props
+
+    // The mono font comes with the library: the first number cell puts it into the document.
+    useEffect(ensurePneMonoFont, [])
 
     return <PneTableCell
         data-pne-cell='number'
