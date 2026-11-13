@@ -49,7 +49,7 @@ const nameCellSx: SystemStyleObject<Theme> = {
     alignItems: 'center',
     display: 'flex',
     // As wide as the narrowest real name column, so the values start where they will.
-    minWidth: '150px',
+    minWidth: '120px',
     minHeight: '24px',
     [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
         minWidth: 0,
@@ -106,10 +106,10 @@ export const SearchUIFiltersSkeleton = (props: SearchUIFiltersSkeletonProps) => 
             </Box>
         </Box>
         {Array.from({length: shownRows}, (_, index) => <Box data-pne-skeleton-row='true' key={index} sx={criterionSx}>
+            <Box sx={[criterionActionsWrapperSx, iconsCellSx]}/>
             <Box sx={[criterionLeftWrapperSx, nameCellSx]}>
                 <Skeleton height={14} variant='rounded' width={112}/>
             </Box>
-            <Box sx={[criterionActionsWrapperSx, iconsCellSx]}/>
             <Box sx={criterionContentWrapperSx}>
                 <Skeleton height={24} sx={valuePillSx} variant='rounded' width={220}/>
             </Box>

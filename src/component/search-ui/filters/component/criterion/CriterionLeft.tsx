@@ -42,9 +42,10 @@ export const CriterionLeft = (props: Props) => {
 // Full-strength label colour from the palette, so dark mode reads; the light colour stands in
 // without the PNE theme.
 const titleSx: SxProps<Theme> = {
-    minWidth: '150px',
+    // UI Kit Text/Mark: 14/20, in a column of at least 120px.
+    minWidth: '120px',
     maxWidth: '100%',
-    fontSize: '15px',
+    fontSize: '14px',
     lineHeight: '20px',
     color: theme => theme.palette.pne?.text.default ?? '#38434D',
     overflow: 'hidden',

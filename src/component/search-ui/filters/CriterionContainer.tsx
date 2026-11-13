@@ -174,18 +174,18 @@ export const CriterionContainer = (props: IProps) => {
         throw new Error('Can\'t be')
     }
 
-    // The icons sit between the name and the value, in DOM order too, so the keyboard reaches them
-    // before the control they act on.
+    // UI Kit Filter row: the reset and the cross lead the row, then the name, then the value; in DOM
+    // order too, so the keyboard reaches the icons before the control they act on.
     return <SearchUICriterionAutoTestScopeProvider criterionType={type}>
         <Box
             {...createAutoTestAttributes(CRITERION_AUTOTEST_ID, type)}
             sx={criterionSx}
         >
-            <Box sx={criterionLeftWrapperSx}>
-                <CriterionLeft criterionType={type}/>
-            </Box>
             <Box sx={criterionActionsWrapperSx}>
                 <CriterionRight criterionType={type}/>
+            </Box>
+            <Box sx={criterionLeftWrapperSx}>
+                <CriterionLeft criterionType={type}/>
             </Box>
             <Box
                 aria-disabled={disabled || undefined}

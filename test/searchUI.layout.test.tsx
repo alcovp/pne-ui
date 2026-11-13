@@ -194,7 +194,7 @@ describe('SearchUIFilters layout', () => {
         warn.mockRestore()
     })
 
-    it('puts the cross and the eraser between the name and the value, the cross first', async () => {
+    it('puts the reset and the cross before the name of a criterion, the reset first', async () => {
         const {onFiltersUpdate, root} = renderFilters('layout-icons')
 
         await waitFor(() => {
@@ -215,8 +215,11 @@ describe('SearchUIFilters layout', () => {
 
         expect(currencyClear?.tagName).toBe('BUTTON')
         expect(currencyRemove?.tagName).toBe('BUTTON')
-        expect(precedes(currencyRemove, currencyClear)).toBe(true)
-        expect(precedes(currencyClear, currencyValue)).toBe(true)
+        // UI Kit Filter row: reset, cross, name, value.
+        expect(precedes(currencyClear, currencyRemove)).toBe(true)
+        expect(precedes(currencyRemove, currency?.children[1])).toBe(true)
+        expect(currency?.children[1].textContent).toBe('react.CriterionTypeEnum.CURRENCY')
+        expect(precedes(currencyRemove, currencyValue)).toBe(true)
         expect(status?.querySelector('[data-autotest="remove-criterion"]')).toBeNull()
         expect(precedes(statusClear, status?.querySelector('fieldset'))).toBe(true)
         expect(statusClear?.getAttribute('aria-label')).toBe('Clear filter: react.CriterionTypeEnum.STATUS')
@@ -300,7 +303,7 @@ describe('SearchUIFilters layout', () => {
         const scope = root() as HTMLElement
         const nameCell = (type: CriterionTypeEnum) => scope.querySelector<HTMLElement>(
             `[data-autotest="criterion"][data-autotest-value="${type}"]`,
-        )?.children[0].firstElementChild as HTMLElement
+        )?.children[1].firstElementChild as HTMLElement
         const status = nameCell(CriterionTypeEnum.STATUS)
         const currency = nameCell(CriterionTypeEnum.CURRENCY)
         expect(status.textContent).toBe('react.CriterionTypeEnum.STATUS')

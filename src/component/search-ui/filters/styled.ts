@@ -1,6 +1,7 @@
 import {styled as themedStyled} from '@mui/material/styles';
 import type {Theme} from '@mui/material/styles';
-import {TABLE_CONTROL_HOVER_TEXT_COLOR, TABLE_CONTROL_TEXT_COLOR} from '../../table/tableControlColors';
+import {resolvePneSemanticPalette} from '../../../createTheme';
+import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP} from '../../../themeColors';
 
 /**
  * Hover delay of the panel's tooltips, as on the table column settings action. The tooltips are
@@ -25,52 +26,37 @@ export const searchUIFocusRingSx = {
     outlineOffset: '1px',
 };
 
-// The control grey at rest (3.5:1 on white, a margin over the 3:1 floor for the thin strokes; 3:1 still
-// holds on the active control background of the table)
-// and the darker control grey under the pointer or the keyboard focus, the same pair as on the
-// pagination arrows; the icons take the colour through `stroke: currentColor`, so dark mode follows
-// the palette. Without the PNE theme (plain MUI theme in tests) the light colours stand in.
-export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({theme}) => ({
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    appearance: 'none',
-    background: 'transparent',
-    border: 0,
-    borderRadius: '4px',
-    boxSizing: 'border-box',
-    padding: '4px',
-    height: '24px',
-    width: '24px',
-    cursor: 'pointer',
-    font: 'inherit',
-    color: theme.palette.pne?.control.foreground ?? TABLE_CONTROL_TEXT_COLOR,
-    stroke: 'currentColor',
-    transition: 'color .15s ease',
-    // Under the pointer or the keyboard focus, and with the whole row under the pointer: the icons
-    // column is narrow, and the row tells which icons are about to be used. The row is the
-    // criterion root, the one with the `criterion` locator.
-    '[data-autotest="criterion"]:hover &, &:hover, &:focus-visible': {
-        color: theme.palette.pne?.control.foregroundHover ?? TABLE_CONTROL_HOVER_TEXT_COLOR,
-    },
-    '&:focus-visible': createSearchUIFocusRing(theme),
-    // 24px is small for a finger: on touch screens the target grows by 8px outwards, never into the
-    // neighbouring icon, and the icons look the same.
-    '@media (pointer: coarse)': {
-        '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: '-8px',
-            right: 0,
-            bottom: '-8px',
-            left: 0,
+// UI Kit Icon action md: a 32px box with a 16px glyph and no background; the icon rests in the tertiary
+// text colour and takes the brand text colour under the pointer or the keyboard focus. The icons take
+// the colour through `stroke: currentColor`, so dark mode follows the palette.
+export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({theme}) => {
+    const pne = resolvePneSemanticPalette(theme)
+    const dark = theme.palette.mode === 'dark'
+    return {
+        position: 'relative',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        appearance: 'none',
+        background: 'transparent',
+        border: 0,
+        borderRadius: '4px',
+        boxSizing: 'border-box',
+        padding: '8px',
+        height: '32px',
+        width: '32px',
+        flexShrink: 0,
+        cursor: 'pointer',
+        font: 'inherit',
+        color: dark ? PNE_DARK_COLORS.textMuted : PNE_NEUTRAL_RAMP[600],
+        stroke: 'currentColor',
+        transition: 'color .15s ease',
+        '&:hover, &:focus-visible': {
+            color: pne.button.text.hover.text,
         },
-        '&:first-of-type::before': {
-            left: '-8px',
+        '&:active': {
+            color: pne.button.text.pressed.text,
         },
-        '&:last-of-type::before': {
-            right: '-8px',
-        },
-    },
-}));
+        '&:focus-visible': createSearchUIFocusRing(theme),
+    }
+});

@@ -30,7 +30,8 @@ export const criterionSx: SystemStyleObject<Theme> = {
     display: 'grid',
     gridTemplateColumns: 'subgrid',
     alignItems: 'center',
-    minHeight: '40px',
+    // UI Kit Filter row: 32px controls with 6px over and under them.
+    minHeight: '44px',
     // UI Kit Filter row: the content keeps 8px from the left edge of the shell and 4px from the right;
     // the line over the row runs the whole width.
     paddingLeft: '8px',
@@ -47,6 +48,7 @@ export const criterionSx: SystemStyleObject<Theme> = {
     },
     [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
         gridTemplateColumns: 'minmax(0, 1fr) auto',
+        // The name leads on a phone, the icons stand at the right edge, the value takes a line of its own.
         gridTemplateAreas: `
             "left right"
             "content content"
@@ -74,11 +76,11 @@ export const criterionContentWrapperSx = {
     },
 }
 
-// The icons column: a lone eraser keeps to the value side, the cross sits left of it.
+// The icons column, first in the row: the reset, then the cross; a row with no cross keeps its place empty.
 export const criterionActionsWrapperSx: SystemStyleObject<Theme> = {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'flex-start',
     [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
         gridArea: 'right',
     },

@@ -79,43 +79,30 @@ describe('SearchUIFilters criterion controls', () => {
         // jsdom drops `color: inherit`; the chip's colour on the chevron is checked in a browser.
     })
 
-    it('paints the criterion icons in the control grey', async () => {
+    it('paints the criterion icons as UI Kit icon actions', async () => {
         const {onFiltersUpdate, criterion} = renderControls()
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalledTimes(2)
         })
 
-        const eraser = criterion(CriterionTypeEnum.EXACT).querySelector<HTMLButtonElement>(
+        const reset = criterion(CriterionTypeEnum.EXACT).querySelector<HTMLButtonElement>(
             '[data-autotest="clear-criterion"]',
         ) as HTMLButtonElement
-        // #8A8A8A: 3.5:1 on white, the same token as the pagination arrows.
-        expect(getComputedStyle(eraser).color).toBe('rgb(138, 138, 138)')
-    })
+        // Icon action md: a 32px box, the tertiary text colour at rest (Neutral/600).
+        expect(getComputedStyle(reset).color).toBe('rgb(110, 116, 122)')
+        expect(getComputedStyle(reset).width).toBe('32px')
+        expect(getComputedStyle(reset).height).toBe('32px')
 
-    it('darkens the criterion icons with the row under the pointer', async () => {
-        const {onFiltersUpdate, criterion} = renderControls()
-
-        await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenCalledTimes(2)
-        })
-
-        const eraser = criterion(CriterionTypeEnum.EXACT).querySelector<HTMLButtonElement>(
-            '[data-autotest="clear-criterion"]',
-        ) as HTMLButtonElement
-        const eraserClass = Array.from(eraser.classList).find(name => name.startsWith('css-')) as string
-        // jsdom applies no :hover: the rule itself is checked. The row (the `criterion` root) under
-        // the pointer, the icon under the pointer and the keyboard focus share the darker grey.
+        const resetClass = Array.from(reset.classList).find(name => name.startsWith('css-')) as string
+        // jsdom applies no :hover: the rule itself is checked. Only the icon under the pointer or the
+        // keyboard focus changes colour; the row under the pointer changes nothing.
         const hoverRules = Array.from(document.styleSheets)
             .flatMap(sheet => Array.from(sheet.cssRules))
             .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
-            .filter(rule => rule.selectorText.includes(eraserClass) && rule.selectorText.includes(':hover'))
+            .filter(rule => rule.selectorText.includes(resetClass) && rule.selectorText.includes(':hover'))
         expect(hoverRules.length).toBeGreaterThan(0)
-        const rowHover = hoverRules.find(rule => rule.selectorText.includes('[data-autotest="criterion"]:hover'))
-        expect(rowHover).toBeDefined()
-        // #5C5C5C, as under the pointer on the icon itself.
-        expect(rowHover?.style.getPropertyValue('color').replace(/\s/g, '').toLowerCase())
-            .toMatch(/^(#5c5c5c|rgb\(92,92,92\))$/)
+        expect(hoverRules.some(rule => rule.selectorText.includes('[data-autotest="criterion"]'))).toBe(false)
     })
 
     it('marks a focused pill input with the panel focus ring', async () => {

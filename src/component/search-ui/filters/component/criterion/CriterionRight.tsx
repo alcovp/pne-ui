@@ -45,11 +45,11 @@ export const CriterionRight = (props: Props) => {
         onClick={remove}
     /> : null
 
-    // The cross goes left of the eraser: the eraser stays next to the value in every row, and the
-    // remove action sits farther from the control it would take away.
+    // UI Kit Filter row: the reset first, then the cross. The reset of every row stands on one
+    // vertical, with or without a cross beside it.
     return <Box sx={boxSx}>
-        {removeButton}
         {clearButton}
+        {removeButton}
     </Box>
 }
 

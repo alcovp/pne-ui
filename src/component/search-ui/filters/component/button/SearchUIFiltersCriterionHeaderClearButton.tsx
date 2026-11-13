@@ -30,7 +30,7 @@ const SearchUIFiltersCriterionHeaderClearButton = (props: IProps) => {
                 aria-label={ariaLabel}
                 onClick={onClick}
             >
-                <EraseIcon/>
+                <ReloadIcon/>
             </SearchUIFiltersCriterionHeaderButton>
         </Tooltip>
     );
@@ -38,24 +38,20 @@ const SearchUIFiltersCriterionHeaderClearButton = (props: IProps) => {
 
 export default SearchUIFiltersCriterionHeaderClearButton;
 
-const EraseIcon = () => {
+// UI Kit IcArrowArrowReload: the criterion goes back to its empty value.
+const ReloadIcon = () => {
     return <svg
         aria-hidden={true}
         focusable={false}
         width="16"
         height="16"
-        viewBox="0 0 16 16"
+        viewBox="0 0 24 24"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
     >
-        <path d="M6 14.667H14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         <path
-            d="M1.94047 11.7205L4.28048 14.0605C5.06048 14.8405 6.3338 14.8405 7.10714 14.0605L14.0605 7.10713C14.8405 6.32713 14.8405 5.0538 14.0605 4.28046L11.7205 1.94047C10.9405 1.16047 9.66717 1.16047 8.89384 1.94047L1.94047 8.8938C1.16047 9.66713 1.16047 10.9405 1.94047 11.7205Z"
-            strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-        />
-        <path
-            d="M4.74609 6.08691L9.91276 11.2536" strokeWidth="1.5" strokeLinecap="round"
-            strokeLinejoin="round"
+            d="M14.67 3l.5.91c.34.62.51.93.4 1.06-.11.13-.48.03-1.22-.19A9.2 9.2 0 0 0 12 4.46C7.58 4.46 4 7.83 4 12c0 1.37.39 2.66 1.07 3.77M9.33 21l-.5-.91c-.34-.62-.51-.93-.4-1.06.11-.13.48-.03 1.22.19.74.21 1.53.32 2.35.32 4.42 0 8-3.37 8-7.54 0-1.37-.39-2.66-1.07-3.77"
+            strokeWidth="1.5" strokeLinecap="round"
         />
     </svg>
 }
