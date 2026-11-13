@@ -11,8 +11,9 @@ import type { FieldRef, PickerChangeHandlerContext } from '@mui/x-date-pickers/m
 import { useSearchUIFiltersStore, useSearchUIFiltersStoreApi } from '../../state/store'
 import PneTextField from '../../../../PneTextField'
 import { SearchUIOrderDateTypeSelect } from '../select/SearchUIOrderDateTypeSelect'
-import { filtersInputSx, SEARCH_UI_VALUE_HEIGHT, SEARCH_UI_VALUE_RADIUS } from './style'
+import { filtersInputSx, pickerToggleSx, SEARCH_UI_VALUE_HEIGHT, SEARCH_UI_VALUE_RADIUS } from './style'
 import { pneCalendarPopperSx } from '../../../../calendarLook'
+import PneCalendarActionBar from '../../../../PneCalendarActionBar'
 import {
     createDateOnlyPickerDate,
     createDateOnlyPickerValue,
@@ -378,6 +379,7 @@ export const DateRangeCriterion = (props: Props) => {
                                         minutes: 1,
                                         seconds: 1,
                                     }}
+                                    slots={pickerSlots}
                                     slotProps={{
                                         day: ownerState => ({
                                             ...createAutoTestAttributes(
@@ -439,6 +441,7 @@ export const DateRangeCriterion = (props: Props) => {
                                         minutes: 1,
                                         seconds: 1,
                                     }}
+                                    slots={pickerSlots}
                                     slotProps={{
                                         day: ownerState => ({
                                             ...createAutoTestAttributes(
@@ -494,6 +497,7 @@ export const DateRangeCriterion = (props: Props) => {
                                 onChange={handleRangeChange}
                                 onClose={commitTypedRange}
                                 format={SEARCH_UI_DATE_FORMAT}
+                                slots={pickerSlots}
                                 slotProps={{
                                     day: ownerState => ({
                                         ...createAutoTestAttributes(
@@ -547,6 +551,9 @@ export const DateRangeCriterion = (props: Props) => {
  * The type chips and, in the "N days/hours before" modes, the count field share one line. A phone too
  * narrow for all of them moves the field under the chips, flush with them.
  */
+// The buttons under a calendar are the library's own.
+const pickerSlots = {actionBar: PneCalendarActionBar}
+
 // The exact dates stand in the line of the type chips and move under them when the line is short.
 const exactFieldsSx: SxProps = {
     display: 'flex',
@@ -598,6 +605,7 @@ const dateRangePickerSx: SxProps = {
         height: SEARCH_UI_VALUE_HEIGHT,
         minHeight: SEARCH_UI_VALUE_HEIGHT,
     },
+    ...pickerToggleSx,
     '& .MuiPickersInputBase-sectionsContainer': {
         fontSize: '14px',
     },
