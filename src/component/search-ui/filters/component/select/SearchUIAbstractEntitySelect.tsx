@@ -5,6 +5,7 @@ import React, {useMemo} from 'react';
 import {useTranslation} from 'react-i18next';
 import {AbstractEntity, AbstractEntityAllableCollection} from '../../../../../common/paynet/type';
 import PneAutocomplete from '../../../../dropdown/PneAutocomplete';
+import {PneCloseIcon} from '../../../../dropdown/dropdownLook';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {
     createSearchUIOwnedAutoTestAttributes,
@@ -143,14 +144,16 @@ const SearchUIAbstractEntitySelect = (props: Props) => {
                     key={autoTestValue}
                     label={option.displayName}
                     size={'small'}
+                    // The cross of the library's own value badge.
+                    deleteIcon={<PneCloseIcon className='PneAutocomplete-icon'/>}
                     onDelete={option.id === ALL_OPTION_ID ? undefined : onDelete}
                 />
             })
         }
         disableClearable
         disableCloseOnSelect
-        // The values are 24px chips, as the other chips of the panel: the badges of a medium field.
-        size={'medium'}
+        // The values are 32px badges, as the other values of the panel: the badges of a large field.
+        size={'large'}
     />
 }
 
@@ -167,8 +170,10 @@ const selectSx: SxProps = {
     '& .MuiInputBase-root.MuiOutlinedInput-root': {
         pl: '0 !important',
     },
-    // The chips of the panel carry 13px text; the badge geometry of the field stays.
-    '&&&& .MuiAutocomplete-tag.MuiChip-root': {
-        fontSize: '13px',
+    // The field itself is not drawn: the 32px badges stand in the row with no 4px of the box around them.
+    '&&&&[data-pne-multiple] .MuiAutocomplete-inputRoot': {
+        minHeight: '32px',
+        paddingBottom: 0,
+        paddingTop: 0,
     },
 }

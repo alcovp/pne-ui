@@ -4,7 +4,7 @@ import {Box, Chip, SxProps} from '@mui/material';
 import type {Theme} from '@mui/material/styles';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
 import {chipChevronSx, selectUnderChipSx} from './style';
 import PneSelect from '../../../../dropdown/PneSelect';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
@@ -44,7 +44,7 @@ export const SearchUIOrderDateTypeSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
+            deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
             label={optionRenderer(orderDateType)}
             size={'small'}
             aria-hidden={true}

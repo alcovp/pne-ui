@@ -4,7 +4,7 @@ import {Box, Chip, FormControlLabel, FormGroup, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import Typography from '@mui/material/Typography';
 import {chipChevronSx, selectUnderChipSx} from '../select/style';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
 import {AbstractEntity} from '../../../../../common/paynet/type';
 import PneSelect from '../../../../dropdown/PneSelect';
 import {PneCheckbox} from '../../../../PneCheckbox';
@@ -94,7 +94,7 @@ export const ProjectCurrencyCriterion = () => {
         <Box sx={{position: 'relative'}}>
             <Chip
                 onDelete={openSelect}
-                deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
+                deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
                 label={currency.displayName}
                 size={'small'}
                 aria-hidden={true}
@@ -137,6 +137,8 @@ export const ProjectCurrencyCriterion = () => {
         </Box>
         <FormGroup>
             <FormControlLabel
+                // The 38px pointer area of the checkbox stays; the row counts the 32px of a value.
+                sx={checkboxRowSx}
                 label={
                     <Typography sx={checkBoxLabelSx}>
                         {getConvertToUserCurrencyLabel()}
@@ -164,6 +166,10 @@ const containerSx: SxProps = {
     alignItems: 'center',
     columnGap: '8px',
     height: '100%',
+}
+
+const checkboxRowSx: SxProps = {
+    my: '-3px',
 }
 
 const checkBoxLabelSx: SxProps = {

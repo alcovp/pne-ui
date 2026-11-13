@@ -107,6 +107,7 @@ export const TransactionSessionStatusCriterion = () => {
                         CRITERION_TRANSACTION_SESSION_STATUS_GROUP_VALUE_AUTOTEST_ID,
                         transactionSessionStatusGroup,
                     )}
+                    data-pne-tone='neutral'
                     label={transactionSessionStatusGroup}
                     size={'small'}
                 />
@@ -205,24 +206,20 @@ const containerSx: SxProps<Theme> = {
     border: 0,
     color: 'inherit',
     display: 'flex',
-    flexDirection: 'column',
+    flexWrap: 'wrap',
     font: 'inherit',
-    rowGap: '4px',
+    gap: '4px',
     cursor: 'pointer',
     padding: 0,
     textAlign: 'left',
     // As wide as its chips, so the focus ring hugs the trigger rather than the whole value column.
     width: 'fit-content',
     maxWidth: '100%',
-    m: '8px 0',
 }
 
+// The group and its statuses flow as one line of badges.
 const chipsRowSx: SxProps = {
-    display: 'flex',
-    alignItems: 'center',
-    columnGap: '5px',
-    rowGap: '5px',
-    flexWrap: 'wrap',
+    display: 'contents',
 }
 
 const modalContentSx: SxProps = {

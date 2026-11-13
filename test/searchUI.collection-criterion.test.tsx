@@ -208,6 +208,10 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
             expect(input?.getAttribute('aria-label')).toBe(`react.CriterionTypeEnum.${criterionType}`)
             expect(input?.hasAttribute('data-autotest-value')).toBe(false)
             expect(getSelectedValue(criterion as HTMLElement, source.entity.id)).not.toBeNull()
+            // The cross of the library's value badge, not MUI's filled circle.
+            expect(getSelectedValue(criterion as HTMLElement, source.entity.id)?.querySelector(
+                '.MuiChip-deleteIcon.PneAutocomplete-icon[data-testid="PneCloseIcon"]',
+            )).not.toBeNull()
             expect(getSelectedValue(criterion as HTMLElement, 'all')).toBeNull()
         }
     })

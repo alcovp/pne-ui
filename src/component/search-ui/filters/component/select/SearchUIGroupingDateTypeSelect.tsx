@@ -4,7 +4,7 @@ import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {chipChevronSx, selectUnderChipSx} from './style';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
 import PneSelect from '../../../../dropdown/PneSelect';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {
@@ -32,7 +32,7 @@ const SearchUIGroupingDateTypeSelect = () => {
     return <Box sx={{position: 'relative'}}>
         <Chip
             onDelete={() => setOpen(true)}
-            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
+            deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
             label={optionRenderer(dateType)}
             size={'small'}
             aria-hidden={true}

@@ -1,4 +1,4 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
 import {Box, Chip, SxProps} from '@mui/material'
 import React, {ReactNode, useState} from 'react'
 
@@ -34,7 +34,7 @@ export const SearchUIEnumChipSelect = <T extends string, >(props: Props<T>) => {
         return <Box sx={{position: 'relative', display: 'inline-flex', flexShrink: 0}}>
             <Chip
                 onDelete={() => setOpen(true)}
-                deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
+                deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
                 label={getOptionLabel(value)}
                 size={'small'}
             />
@@ -58,7 +58,8 @@ export const SearchUIEnumChipSelect = <T extends string, >(props: Props<T>) => {
         </Box>
     }
 
-    return <Box role={'group'} aria-label={ariaLabel} sx={centerSx}>
+    // UI Kit Tabs group: one choice out of a few, the picked one a white button on the shell.
+    return <Box data-pne-tabs='true' role={'group'} aria-label={ariaLabel} sx={centerSx}>
         {options.map(option => {
             const selected = option === value
 
@@ -77,5 +78,4 @@ export const SearchUIEnumChipSelect = <T extends string, >(props: Props<T>) => {
 
 const centerSx: SxProps = {
     display: 'flex',
-    columnGap: '5px',
 }

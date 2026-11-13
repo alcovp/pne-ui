@@ -1,4 +1,4 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
 import React, { useContext } from 'react'
 import { Box, SxProps } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
@@ -93,32 +93,32 @@ export const ErrorCodeCriterion = () => {
         minQueryLengthText={typeToSearchText}
         placeholder={t('search')}
         // The panel's one chevron: 16px in the field's text colour, as on the buttons and the chips.
-        popupIcon={<ExpandMoreIcon sx={{fontSize: '16px'}}/>}
+        popupIcon={<PneChevronDownIcon sx={{fontSize: '16px'}}/>}
         size={'small'}
         variant={'filled'}
         sx={fieldSx}
     />
 }
 
-// The field looks like the other dropdowns of the panel: the 24px pill of the Exact search input, the
+// The field looks like the other dropdowns of the panel: the 32px box of the Exact search input, the
 // chevron and the clear cross inside it on the right. The geometry of a pne-ui autocomplete is set by
 // selectors that repeat the root class three times and carry the popup and clear icon classes; the
 // root class repeated five times here outranks them.
 const fieldSx: SxProps<Theme> = {
     width: '220px',
     '&&&&& .MuiInputBase-root.MuiFilledInput-root.MuiAutocomplete-inputRoot': {
-        height: '24px',
-        borderRadius: '16px',
-        padding: '0 48px 0 12px',
+        height: '32px',
+        borderRadius: '4px',
+        padding: '0 48px 0 8px',
     },
     '& .MuiFilledInput-root::before, & .MuiFilledInput-root::after': {
         display: 'none',
     },
     '&&&&& .MuiAutocomplete-input.MuiFilledInput-input': {
-        padding: '3px 0',
-        height: '18px',
-        fontSize: '13px',
-        lineHeight: '18px',
+        padding: '6px 0',
+        height: '20px',
+        fontSize: '14px',
+        lineHeight: '20px',
     },
     '&&&&& .MuiAutocomplete-endAdornment': {
         gap: 0,

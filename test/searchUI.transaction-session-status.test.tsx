@@ -213,6 +213,10 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
             '[data-autotest="criterion-transaction-session-status-group-value"]'
             + '[data-autotest-value="ERROR"]',
         )).not.toBeNull()
+        // The group is the neutral badge, its statuses the badges in a ring.
+        expect(firstCriterion.querySelector(
+            '[data-autotest="criterion-transaction-session-status-group-value"]',
+        )?.getAttribute('data-pne-tone')).toBe('neutral')
         expect(getValues(firstCriterion)).toEqual(['AUTHORIZED'])
         expect(getValues(secondCriterion)).toEqual(['DECLINED', 'SYSTEM_ERROR'])
 

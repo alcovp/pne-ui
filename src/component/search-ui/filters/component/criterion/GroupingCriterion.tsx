@@ -157,14 +157,12 @@ const linkSx: SxProps = {
     display: 'flex',
     width: 'fit-content',
     maxWidth: '100%',
-    fontSize: '13px',
+    fontSize: '14px',
 }
 
 const chipsSx: SxProps = {
     display: 'flex',
     alignItems: 'center',
-    columnGap: '5px',
-    rowGap: '5px',
+    gap: '4px',
     flexWrap: 'wrap',
-    m: '8px 0',
 }

@@ -23,7 +23,7 @@ const REPORT_CRITERIA = [
 
 const selectOption = async (currentValue: string, optionName: string): Promise<void> => {
     const chip = screen.getByRole('button', {name: currentValue})
-    const expandIcon = chip.querySelector('[data-testid="ExpandMoreIcon"]')
+    const expandIcon = chip.querySelector('[data-testid="PneChevronDownIcon"]')
     if (!expandIcon) {
         throw new Error(`Dropdown trigger was not found for ${currentValue}`)
     }

@@ -2,8 +2,8 @@ import type {Theme} from '@mui/material/styles'
 import type {SystemStyleObject} from '@mui/system'
 import {searchUIFocusRingSx} from '../../styled'
 
-/** The corner radius of a small chip: the overlay's focus ring follows the chip under it. */
-const CHIP_RADIUS = '16px'
+/** The corner radius of a value chip of the panel: the overlay's focus ring follows the chip under it. */
+const CHIP_RADIUS = '4px'
 
 /**
  * A transparent select stretched over a chip: the chip is for show, the select takes the pointer

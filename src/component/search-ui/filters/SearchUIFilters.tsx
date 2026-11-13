@@ -1001,16 +1001,17 @@ const headerCaptionSx: SxProps<Theme> = {
     padding: '4px 8px',
 }
 
-// UI Kit Badge md, tone accent: the number of criteria beside the name of the panel.
+// UI Kit Badge md, tone accent (the Info status colours, as an info banner): the number of criteria
+// beside the name of the panel.
 const filtersCountSx: SxProps<Theme> = theme => {
-    const pne = resolvePneSemanticPalette(theme)
+    const info = resolvePneSemanticPalette(theme).toast.info
     return {
         alignItems: 'center',
-        backgroundColor: pne.ramp[50],
+        backgroundColor: info.bannerFill,
         borderRadius: '4px',
-        boxShadow: `inset 0 0 0 1px ${pne.ramp[300]}`,
+        boxShadow: `inset 0 0 0 1px ${info.fill}`,
         boxSizing: 'border-box',
-        color: pne.link,
+        color: info.text,
         display: 'inline-flex',
         fontSize: '12px',
         fontWeight: 500,

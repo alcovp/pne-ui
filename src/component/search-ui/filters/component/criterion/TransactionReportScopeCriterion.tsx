@@ -50,9 +50,8 @@ const criterionSx: SxProps = {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'flex-start',
-    gap: '8px',
+    gap: '4px',
     width: '100%',
-    py: '8px',
 }
 
 const transactionIdsSx: SxProps = {

@@ -1,4 +1,4 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
 import { Box, Chip } from '@mui/material'
 import React, { ReactNode, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -68,7 +68,7 @@ const SearchUIAbstractEntityChipSelect = (props: IProps) => {
         <Chip
             disabled={disabled}
             onDelete={openSelect}
-            deleteIcon={<ExpandMoreIcon sx={chipChevronSx}/>}
+            deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
             label={value?.displayName ?? placeholder}
             size={'small'}
             aria-hidden={autoTest ? true : undefined}

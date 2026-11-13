@@ -1,7 +1,7 @@
 import React, {useId, useState} from 'react';
 import {Box, Chip} from '@mui/material';
 import {useTranslation} from 'react-i18next';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
 import {useSearchUIFiltersStore} from "../../state/store";
 import {SearchUICollapsableGroupSelect} from './SearchUICollapsableGroupSelect';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
@@ -56,7 +56,7 @@ export const SearchUIOrdersSearchLabelSelect = () => {
                         <Box component={'span'} sx={labelTipSx}>{labelTip}</Box>
                     </>}
                 </Box>
-                <ExpandMoreIcon aria-hidden={true} sx={triggerChevronSx}/>
+                <PneChevronDownIcon aria-hidden={true} sx={triggerChevronSx}/>
             </Box>}
             size={'small'}
             role={'combobox'}

@@ -181,10 +181,8 @@ export const MultigetCriterionPanel = (props: IProps) => {
 const chipsSx: SxProps = {
     display: 'flex',
     alignItems: 'center',
-    columnGap: '5px',
-    rowGap: '5px',
+    gap: '4px',
     flexWrap: 'wrap',
-    m: '8px 0',
 }
 
 // As wide as its content, so the focus ring hugs the link rather than the whole value column.
@@ -192,7 +190,7 @@ const linkSx: SxProps = {
     display: 'flex',
     width: 'fit-content',
     maxWidth: '100%',
-    fontSize: '13px',
+    fontSize: '14px',
 }
 
 const linkSpanSx: SxProps = {

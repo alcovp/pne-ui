@@ -1,4 +1,5 @@
 import React, {ChangeEvent} from 'react';
+import {filtersInputSx} from '../style'
 import {useSearchUIFiltersStore} from "../../../state/store";
 import {exhaustiveCheck} from "../../../../../../common/pne/type";
 import PneTextField from "../../../../../PneTextField";
@@ -122,14 +123,4 @@ export const OrdersSearchInput = () => {
     return renderInput()
 }
 
-const valueInputSx: SxProps = {
-    '& .MuiInputBase-root.MuiFilledInput-root': {
-        height: '24px',
-        borderRadius: '16px',
-    },
-    '& .MuiInputBase-input.MuiFilledInput-input': {
-        py: '3px',
-        fontSize: '13px',
-        lineHeight: '18px',
-    },
-}
+const valueInputSx: SxProps = filtersInputSx

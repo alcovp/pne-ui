@@ -67,14 +67,14 @@ describe('SearchUIFilters criterion controls', () => {
             'button[data-autotest="criterion-label"]',
         ) as HTMLElement
         const ordersChevron = ordersTrigger.querySelector('svg') as SVGElement
-        expect(ordersChevron.getAttribute('data-testid')).toBe('ExpandMoreIcon')
+        expect(ordersChevron.getAttribute('data-testid')).toBe('PneChevronDownIcon')
         expect(getComputedStyle(ordersChevron).fontSize).toBe('16px')
 
         // The exact search label chip is for show under a transparent select; its chevron is the
         // chip's delete icon slot, in the chip's own colour.
         const exactChip = criterion(CriterionTypeEnum.EXACT).querySelector<HTMLElement>('.MuiChip-root') as HTMLElement
         const exactChevron = exactChip.querySelector('svg.MuiChip-deleteIcon') as SVGElement
-        expect(exactChevron.getAttribute('data-testid')).toBe('ExpandMoreIcon')
+        expect(exactChevron.getAttribute('data-testid')).toBe('PneChevronDownIcon')
         expect(getComputedStyle(exactChevron).fontSize).toBe('16px')
         // jsdom drops `color: inherit`; the chip's colour on the chevron is checked in a browser.
     })
