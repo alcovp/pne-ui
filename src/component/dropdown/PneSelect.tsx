@@ -4,6 +4,7 @@ import {
     FormControl,
     InputLabel,
     MenuItem,
+    type MenuItemProps,
     type MenuListProps,
     type MenuOwnerState,
     type MenuProps,
@@ -551,7 +552,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
                 const optionLabel = resolveOptionLabel(option)
                 const optionProps = sanitizeOptionProps(getOptionProps?.(option))
 
-                return <MenuItem
+                return <PneSelectOption
                     aria-label={renderOption ? optionLabel : undefined}
                     {...optionProps}
                     disabled={getOptionDisabled?.(option) ?? false}
@@ -559,10 +560,22 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
                     value={key}
                 >
                     {renderOption ? renderOption(option) : optionLabel}
-                </MenuItem>
+                </PneSelectOption>
             })}
         </Select>
     </FormControl>
+}
+
+/**
+ * An option is chosen by a click only. MUI Select (9.0.1 and later) also chooses the option the mouse button is
+ * released over, 200 ms after the press on the field. A menu that has no room below the field opens over it, so
+ * an unhurried click on the field chose whatever option came up under the pointer. Select hands that handler to
+ * each option as `onMouseUp`; it is dropped here, and the rest goes to the item as is.
+ */
+const PneSelectOption = (props: MenuItemProps) => {
+    const {onMouseUp: _chooseOnRelease, ...itemProps} = props
+
+    return <MenuItem {...itemProps}/>
 }
 
 const PneSelect = PneSelectImplementation as PneSelectComponent
