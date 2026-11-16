@@ -240,6 +240,32 @@ export const Sets: Story = {
     render: () => <SetDemo/>,
 }
 
+// A label that does not fit the width wraps to a second line and is never cut with an ellipsis: one line
+// is the target, two lines are the fallback, three and more mean the label or the layout needs rewriting.
+const LONG_LABELS: Array<{label: string, width: number}> = [
+    {label: 'Save changes', width: 224},
+    {label: 'Send the application for review', width: 220},
+    {label: 'Download, sign and send the application for an extra review', width: 184},
+]
+
+export const LongLabels: Story = {
+    parameters: {controls: {disable: true}},
+    render: () => (
+        <Stack direction='row' spacing={5} sx={{p: 3, alignItems: 'flex-start', flexWrap: 'wrap'}} useFlexGap>
+            {LONG_LABELS.map(({label, width}) => (
+                <Stack key={label} spacing={2} sx={{width}}>
+                    {MATRIX_SIZES.map(size => (
+                        <Box key={size}>
+                            <Typography sx={CELL_LABEL_SX}>{size} · {width}px</Typography>
+                            <PneButton size={size} sx={{width: '100%'}}>{label}</PneButton>
+                        </Box>
+                    ))}
+                </Stack>
+            ))}
+        </Stack>
+    ),
+}
+
 export const Playground: Story = {
     render: args => (
         <Box sx={{p: 3}}>

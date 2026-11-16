@@ -852,7 +852,7 @@ const HookWrapContent = (props: HookWrapProps) => {
     </SearchUIProvider>
 }
 
-// The orders-like filter set: two fixed rows with an eraser only, three removable rows with the cross
+// The orders-like filter set: two fixed rows with the reset only, three removable rows with the cross
 // as well, a few more filters left to add.
 const ordersStoryPredefinedCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.DATE_RANGE_ORDERS,

@@ -31,4 +31,4 @@ import {PneActionSpacingStyles, pneActionSpacing} from 'pne-ui'
 
 Apply `gap` to the layout container; remove spacing margins on individual buttons. Keep intentional left/right anchoring, field spacing, and segmented controls separate from this convention. `PneModalActions` uses these tokens automatically, including stacked actions on narrow screens. Its `groupLeading` option puts the leading action into the same button group, while the default treats leading and trailing actions as separate groups.
 
-Storybook: `pne-ui/PneButton/UsageGuidelines` documents the convention; `pne-ui/PneButton/ActionGroups` lets you change the group gap without affecting spacing inside either group.
+Storybook: `pne-ui/PneModal` › `Grouped Secondary Actions` and `pne-ui 5/PneModal` › `Sheets` show the convention on modal footers built with `PneModalActions`.
