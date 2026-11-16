@@ -1,6 +1,6 @@
 {
     "name": "pne-ui",
-    "version": "5.0.0-rc.31",
+    "version": "5.0.0-rc.32",
     "description": "React component kit on MUI for Payneteasy applications",
     "repository": {
         "type": "git",
