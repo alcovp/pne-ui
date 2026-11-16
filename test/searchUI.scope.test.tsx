@@ -163,12 +163,23 @@ describe('SearchUI autotest scope', () => {
         expect(fixedClear?.tagName).toBe('BUTTON')
         expect(fixedCriterion?.querySelector('[data-autotest="remove-criterion"]')).toBeNull()
 
-        fixedOnFiltersUpdate.mockClear()
-        fireEvent.click(fixedClear as HTMLButtonElement)
+        fireEvent.click(fixedCriterion?.querySelector(
+            '[data-autotest="criterion-option"][data-autotest-value="DISABLED"]',
+        ) as HTMLElement)
 
         await waitFor(() => {
-            expect(fixedOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({status: null}))
+            expect(fixedOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({status: 'D'}))
         })
+
+        fixedOnFiltersUpdate.mockClear()
+        removableOnFiltersUpdate.mockClear()
+        fireEvent.click(fixedClear as HTMLButtonElement)
+
+        // The eraser brings the row back to what the page started it with, in its own panel only.
+        await waitFor(() => {
+            expect(fixedOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({status: 'E'}))
+        })
+        expect(removableOnFiltersUpdate).not.toHaveBeenCalled()
         expect(fixedScope?.querySelector('[data-autotest="criterion"]')).not.toBeNull()
 
         fireEvent.click(removableRemove as HTMLButtonElement)

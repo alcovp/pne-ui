@@ -1971,6 +1971,13 @@ export const TransactionReportFiltersExample = ({
 консоль уходит ошибка с именем контекста: объявите его в `predefinedCriteria`. В поиск
 уходят только выборы активных критериев, невидимого фильтра не бывает.
 
+Ластик строки (`clear-criterion`) возвращает критерий к значению страницы: к тому, что задано
+для него в `initialSearchConditions` (период, выбор в `multigetCriteria`, scope и так далее), а
+где страница значения не дала — к пустому значению библиотеки (для дат это Today). Так же, как
+«Default» и «Clear all» делают для всех строк сразу, только шаблон и остальные строки не
+меняются. Относительный период страницы («This month») считается от дня нажатия. Удаление
+строки (`remove-criterion`) значение страницы не возвращает: убранный критерий остаётся пустым.
+
 Подписи вариантов `scope` и `recurrentFilter` библиотека берёт из ключей
 `react.TransactionReportScopeCriterionEnum.<scope>` и
 `react.TransactionRecurrentFilterCriterionEnum.<recurrentFilter>`: Paynet отдаёт React

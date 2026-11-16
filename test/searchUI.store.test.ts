@@ -1507,6 +1507,143 @@ describe('SearchUIFilters Zustand store', () => {
             })
         })
 
+        describe('via the eraser of a row', () => {
+            const monthOf = (now: dayjs.Dayjs) => ({
+                ...thisMonth,
+                dateFrom: now.startOf('month').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+                dateTo: now.endOf('month').add(1, 'day').startOf('day').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+            })
+
+            it('brings back the period of the page and leaves the other rows and the template alone', () => {
+                initialize([CriterionTypeEnum.MERCHANT, CriterionTypeEnum.DATE_RANGE], {
+                    dateRangeSpec: thisMonth,
+                    multigetCriteria: [merchantSelection],
+                })
+                const template: SearchUITemplate = {
+                    name: 'active',
+                    searchConditions: {} as SearchUITemplate['searchConditions'],
+                }
+                const merchant8 = {...merchantSelection, selectedItems: '8', selectedItemNames: 'Merchant 8'}
+                store.setState({templates: [template], template, activeTemplateName: template.name})
+                store.getState().setDateRangeCriterion(today)
+                store.getState().setMultigetCriterion(merchant8)
+
+                store.getState().clearCriterion(CriterionTypeEnum.DATE_RANGE)
+
+                const state = store.getState()
+                expect(state.dateRangeSpec).toEqual(monthOf(dayjs()))
+                expect(state.multigetCriteria).toEqual([merchant8])
+                expect(state.template).toEqual(template)
+                expect(state.activeTemplateName).toBe('active')
+            })
+
+            it('counts a relative period of the page from the day of the click, not from the day the page opened', () => {
+                jest.useFakeTimers().setSystemTime(new Date('2030-01-31T12:00:00.000Z'))
+                initialize([CriterionTypeEnum.DATE_RANGE], {dateRangeSpec: monthOf(dayjs())})
+                store.getState().setDateRangeCriterion(today)
+
+                jest.setSystemTime(new Date('2030-02-02T12:00:00.000Z'))
+                store.getState().clearCriterion(CriterionTypeEnum.DATE_RANGE)
+
+                expect(store.getState().dateRangeSpec).toEqual(monthOf(dayjs()))
+                expect(dayjs(store.getState().dateRangeSpec.dateFrom).tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE).month()).toBe(1)
+            })
+
+            it('brings back the exact dates the page opened with', () => {
+                const exact: DateRangeSpec = {
+                    dateRangeSpecType: 'EXACTLY',
+                    dateFrom: new Date('2030-03-01T00:00:00.000Z'),
+                    dateTo: new Date('2030-03-05T00:00:00.000Z'),
+                    beforeCount: 1,
+                }
+                initialize([CriterionTypeEnum.DATE_RANGE_ORDERS], {dateRangeSpec: exact, orderDateType: 'SESSION_CREATED'})
+                store.getState().setDateRangeCriterion(today)
+                store.getState().setDateRangeCriterionOrderDateType('SESSION_STATUS_CHANGED')
+
+                store.getState().clearCriterion(CriterionTypeEnum.DATE_RANGE_ORDERS)
+
+                expect(store.getState().dateRangeSpec).toEqual(exact)
+                expect(store.getState().orderDateType).toBe('SESSION_CREATED')
+            })
+
+            it('falls back to today where the page gave no period', () => {
+                initialize([CriterionTypeEnum.DATE_RANGE])
+                store.getState().setDateRangeCriterion(thisMonth)
+
+                store.getState().clearCriterion(CriterionTypeEnum.DATE_RANGE)
+
+                expect(store.getState().dateRangeSpec).toEqual({
+                    ...today,
+                    dateFrom: dayjs().startOf('day').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+                    dateTo: dayjs().startOf('day').add(1, 'day').tz(SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE, true).toDate(),
+                })
+            })
+
+            it('brings back the selection of the page in a linked entity row, and an empty one where the page gave none', () => {
+                initialize([CriterionTypeEnum.MERCHANT, CriterionTypeEnum.PROJECT], {multigetCriteria: [merchantSelection]})
+                store.getState().setMultigetCriterion({...merchantSelection, selectedItems: '8', selectedItemNames: 'Merchant 8'})
+                store.getState().setMultigetCriterion({
+                    ...merchantSelection,
+                    entityType: LinkedEntityTypeEnum.PROJECT,
+                    selectedItems: '3',
+                    selectedItemNames: 'Project 3',
+                })
+
+                store.getState().clearCriterion(CriterionTypeEnum.MERCHANT)
+                store.getState().clearCriterion(CriterionTypeEnum.PROJECT)
+
+                const byEntity = (entityType: LinkedEntityTypeEnum) => (
+                    store.getState().multigetCriteria.filter(criterion => criterion.entityType === entityType)
+                )
+                expect(byEntity(LinkedEntityTypeEnum.MERCHANT)).toEqual([merchantSelection])
+                expect(byEntity(LinkedEntityTypeEnum.PROJECT)).toEqual([expect.objectContaining({selectedItems: ''})])
+            })
+
+            it('brings back the report conditions of the page row by row', () => {
+                initialize(REPORT_CRITERIA, REPORT_CONDITIONS)
+                store.getState().setTransactionReportScopeCriterion('ALL')
+                store.getState().setTransactionRecurrentFilterCriterion('ALL')
+                store.getState().setTimeZoneCriterion(3)
+                store.getState().setCsvCharsetCriterion(null)
+
+                store.getState().clearCriterion(CriterionTypeEnum.TRANSACTION_REPORT_SCOPE)
+                expect(store.getState()).toEqual(expect.objectContaining({
+                    scope: REPORT_CONDITIONS.scope,
+                    transactionIds: REPORT_CONDITIONS.transactionIds,
+                    recurrentFilter: 'ALL',
+                    timeZoneOffsetHours: 3,
+                }))
+
+                store.getState().clearCriterion(CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER)
+                store.getState().clearCriterion(CriterionTypeEnum.TIME_ZONE)
+                store.getState().clearCriterion(CriterionTypeEnum.CSV_CHARSET)
+                expect(store.getState()).toEqual(expect.objectContaining(REPORT_CONDITIONS))
+            })
+
+            it('fills the transaction session statuses of the group the page started with', () => {
+                initialize([CriterionTypeEnum.TRANSACTION_SESSION_STATUS], {}, {prefetchedData: prefetchedStatuses()})
+                store.getState().setTransactionSessionStatusesCriterion([createTransactionSessionStatus('A1', false)])
+
+                store.getState().clearCriterion(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
+
+                expect(store.getState().transactionSessionStatusGroup).toBe('APPROVED')
+                expect(store.getState().transactionSessionStatuses).toEqual(approvedStatuses())
+            })
+
+            it('leaves a removed criterion with the empty value, not with the value of the page', () => {
+                initialize([CriterionTypeEnum.DATE_RANGE], {status: 'ENABLED'}, {
+                    possibleCriteria: [CriterionTypeEnum.STATUS],
+                    criteria: [CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.STATUS],
+                })
+                expect(store.getState().status).toBe('ENABLED')
+
+                store.getState().removeCriterion(CriterionTypeEnum.STATUS)
+
+                expect(store.getState().criteria).toEqual([CriterionTypeEnum.DATE_RANGE])
+                expect(store.getState().status).toBe('ANY')
+            })
+        })
+
         it('fills the statuses of the session status criterion added again after Default', () => {
             initialize([], {}, {
                 possibleCriteria: [CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
