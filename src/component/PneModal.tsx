@@ -128,17 +128,11 @@ type PneModalOwnProps = {
     className?: string
     /** Optional localized label. Falls back to `Close`. */
     closeLabel?: string
-    /** @deprecated Use `slotProps.closeButton`. */
-    closeButtonProps?: PneModalCloseButtonProps
-    /** @deprecated Use `slotProps.container`. */
-    containerProps?: PneModalContainerProps
     containerSx?: SxProps<Theme>
     hideCloseButton?: boolean
     modalProps?: PneModalRootProps
     onClose: PneModalCloseHandler
     open: boolean
-    /** @deprecated Use `blockingOverlay`; this slot always blocks dismissal and interaction. */
-    overlay?: React.ReactNode
     slotProps?: PneModalSlotProps
     subtitle?: React.ReactNode
 }
@@ -155,15 +149,12 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
         blockingOverlay,
         children,
         className,
-        closeButtonProps,
         closeLabel = 'Close',
-        containerProps,
         containerSx,
         hideCloseButton = false,
         modalProps,
         onClose,
         open,
-        overlay,
         slotProps,
         subtitle,
         title,
@@ -182,10 +173,7 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
     const generatedSubtitleId = React.useId()
     const hasTitle = hasRenderableContent(title)
     const hasSubtitle = hasRenderableContent(subtitle)
-    const resolvedBlockingOverlay = blockingOverlay !== undefined
-        ? blockingOverlay
-        : overlay
-    const isBlocked = hasRenderableContent(resolvedBlockingOverlay)
+    const isBlocked = hasRenderableContent(blockingOverlay)
     const titleId = hasTitle ? generatedTitleId : undefined
     const subtitleId = hasSubtitle ? generatedSubtitleId : undefined
     const resolvedAriaLabel = normalizeLabel(ariaLabel)
@@ -222,7 +210,6 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
     warnAboutMissingAccessibleName(open, hasTitle, resolvedAriaLabel)
 
     const resolvedContainerProps = sanitizeContainerProps({
-        ...containerProps,
         ...slotProps?.container,
         ...pickDataAttributes(directContainerDataAttributes),
     })
@@ -233,7 +220,6 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
         ...forwardedContainerProps
     } = resolvedContainerProps
     const resolvedCloseButtonProps = sanitizeCloseButtonProps({
-        ...closeButtonProps,
         ...slotProps?.closeButton,
     })
     const {
@@ -359,7 +345,7 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
                 {...forwardedBlockingOverlayProps}
                 data-pne-modal-blocking-overlay='true'
             >
-                {resolvedBlockingOverlay}
+                {blockingOverlay}
             </BlockingOverlaySlot>}
         </Container>
     </Modal>

@@ -86,7 +86,10 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
   `assertIAutoCompleteChoice`, `isMappedAbstractEntity`, `useBreakpoint`, `resolveBreakpoint`,
   `DEFAULT_BREAKPOINTS`;
 - `createPneThemeOptions` — тему строит `createPneTheme`;
-- `PNE_ACTION_SPACING` — расстояния даёт `pneActionSpacing`.
+- `PNE_ACTION_SPACING` — расстояния даёт `pneActionSpacing`;
+- устаревшие пропсы: `htmlFor`, `labelSx` и `helperTextSx` у `PneField` (вместо них `controlId`,
+  `slotProps.label.sx` и `slotProps.helperText.sx`), `overlay`, `containerProps` и `closeButtonProps` у `PneModal`
+  (вместо них `blockingOverlay`, `slotProps.container` и `slotProps.closeButton`).
 
 Все типы, кроме `AutoTestAttributeProps`, экспортируются по-прежнему.
 
@@ -193,9 +196,8 @@ helper text, у `disabled` подпись бледная. `labelPosition="left"`
 
 `id` принадлежит root `FormControl` и служит namespace для сгенерированных ID. `controlId` принадлежит самому
 интерактивному control и используется в `label[for]`; эти ID должны различаться. Указанный на child `id` не
-переопределяет field-owned ID, поэтому при миграции переносите его в `controlId`. Prop `htmlFor` оставлен только
-как deprecated alias `controlId` и не должен использоваться в новом коде. ID обрезаются по краям; пустые ID и
-ID с внутренними пробельными символами считаются невалидными, игнорируются и заменяются сгенерированными.
+переопределяет field-owned ID, поэтому при миграции переносите его в `controlId`. ID обрезаются по краям; пустые
+ID и ID с внутренними пробельными символами считаются невалидными, игнорируются и заменяются сгенерированными.
 
 ```tsx
 <PneField
@@ -247,7 +249,7 @@ asterisk и `aria-required`, но намеренно не устанавлива
 включается только `required` на самом input/select/checkbox/switch.
 
 `slotProps.label` и `slotProps.helperText` предназначены для `id`, `className`, `sx`, `ref`, ARIA и `data-*`
-соответствующих slots. Старые `labelSx` и `helperTextSx` deprecated. Split-state props MUI FormControl
+соответствующих slots. Split-state props MUI FormControl
 (`color`, `focused`, `hiddenLabel`, `size`, `variant`) не входят в публичный API `PneField`; внешний вид control
 настраивается на самом control, а label/helper — через `slotProps`. Root остаётся polymorphic через `component`,
 и тип `ref` выводится из выбранного root element. `margin` остаётся исключительно layout-prop root
@@ -569,11 +571,11 @@ pne-ui. Ширину окна задаёт потребитель (`containerSx`
 `blockingOverlay` предназначен для loading-состояния всей модалки. Пока slot присутствует, dialog получает
 `aria-busy`, header/body/footer становятся inert, focus остаётся на границе dialog, а Escape, backdrop и close
 button не вызывают `onClose`. После снятия overlay прежний focused control восстанавливается, если он всё ещё
-существует. Старый `overlay` оставлен как deprecated alias.
+существует.
 
 Внутренние части настраиваются через `slotProps`, но их element type, owned content и dialog semantics остаются
 фиксированными. `modalProps` содержит только безопасные настройки MUI root и не позволяет подменять root/backdrop
-slots. Прежние `containerProps` и `closeButtonProps` оставлены deprecated на период миграции.
+slots.
 
 Частые тестовые маркеры `data-*` передаются прямо в `PneModal` и попадают на семантический dialog container:
 `<PneModal data-testattribute="edit-modal" ... />`. Для них не требуется обёртка `slotProps.container`;

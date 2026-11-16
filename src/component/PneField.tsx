@@ -79,10 +79,6 @@ type PneFieldOwnProps = Omit<FormControlTypeMap['props'], RemovedFormControlProp
     error?: boolean
     fullWidth?: boolean
     helperText?: React.ReactNode
-    /** @deprecated Use `slotProps.helperText.sx`. */
-    helperTextSx?: SxProps<Theme>
-    /** @deprecated Use `controlId`; kept as a compatibility alias. */
-    htmlFor?: string
     /** ID of the field root and namespace for generated label/helper/control IDs. */
     id?: string
     label?: React.ReactNode
@@ -91,8 +87,6 @@ type PneFieldOwnProps = Omit<FormControlTypeMap['props'], RemovedFormControlProp
      * left, centred on the control, with the helper text under the control (`left`).
      */
     labelPosition?: PneFieldLabelPosition
-    /** @deprecated Use `slotProps.label.sx`. */
-    labelSx?: SxProps<Theme>
     required?: boolean
     slotProps?: PneFieldSlotProps
     /** Split FormControl appearance state is intentionally not part of the field contract. */
@@ -130,12 +124,9 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
         error = false,
         fullWidth = true,
         helperText,
-        helperTextSx,
-        htmlFor,
         id,
         label,
         labelPosition = 'top',
-        labelSx,
         required = false,
         slotProps,
         sx,
@@ -146,8 +137,7 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
     const rootId = normalizeId(id)
     const fieldId = rootId ?? generatedId
     const explicitControlId = normalizeId(controlIdProp)
-    const legacyControlId = normalizeId(htmlFor)
-    const controlId = explicitControlId ?? legacyControlId ?? `${fieldId}-control`
+    const controlId = explicitControlId ?? `${fieldId}-control`
     const hasLabel = hasRenderableContent(label)
     const hasHelperText = hasRenderableContent(helperText)
     const labelSlotId = normalizeId(slotProps?.label?.id)
@@ -159,8 +149,6 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
 
     warnAboutFieldIdConflicts({
         controlId,
-        controlIdProp: explicitControlId,
-        htmlFor: legacyControlId,
         rootId,
     })
 
@@ -246,7 +234,6 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
                 sx={[
                     fieldLabelSx,
                     labelPosition === 'left' ? fieldLeftLabelSx : null,
-                    ...(Array.isArray(labelSx) ? labelSx : [labelSx]),
                     ...(Array.isArray(labelSlotSx) ? labelSlotSx : [labelSlotSx]),
                 ]}
             >
@@ -263,7 +250,6 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
                 ref={helperTextRef}
                 sx={[
                     fieldHelperTextSx,
-                    ...(Array.isArray(helperTextSx) ? helperTextSx : [helperTextSx]),
                     ...(Array.isArray(helperTextSlotSx) ? helperTextSlotSx : [helperTextSlotSx]),
                 ]}
             >
@@ -361,20 +347,11 @@ const hasAriaLabel = (value: React.AriaAttributes['aria-label']): boolean =>
 const warnAboutFieldIdConflicts = (
     options: {
         controlId: string
-        controlIdProp?: string
-        htmlFor?: string
         rootId?: string
     },
 ) => {
     if (process.env.NODE_ENV === 'production') {
         return
-    }
-
-    if (options.controlIdProp && options.htmlFor && options.controlIdProp !== options.htmlFor) {
-        console.warn(
-            `PneField controlId "${options.controlIdProp}" overrides conflicting deprecated htmlFor `
-            + `"${options.htmlFor}".`,
-        )
     }
 
     if (options.rootId && options.rootId === options.controlId) {

@@ -86,9 +86,6 @@ const validContracts = <>
     >
         {renderControl}
     </PneField>
-    <PneField htmlFor='legacy-control' label='Legacy alias'>
-        {field => <input {...field.getControlProps()}/>}
-    </PneField>
     <PneField label='Hook adapter'>
         <HookAdaptedControl/>
     </PneField>
@@ -96,6 +93,15 @@ const validContracts = <>
 
 // @ts-expect-error The default PneField root ref points to an HTMLDivElement.
 const wrongRootRef = <PneField label='Invalid ref' ref={invalidRootRef}><input/></PneField>
+
+// @ts-expect-error The htmlFor alias left the API in 5.0: the control ID is `controlId`.
+const removedHtmlFor = <PneField htmlFor='legacy-control' label='Removed alias'><input/></PneField>
+
+// @ts-expect-error labelSx left the API in 5.0: use `slotProps.label.sx`.
+const removedLabelSx = <PneField label='Removed alias' labelSx={{color: 'red'}}><input/></PneField>
+
+// @ts-expect-error helperTextSx left the API in 5.0: use `slotProps.helperText.sx`.
+const removedHelperTextSx = <PneField helperText='Hint' helperTextSx={{color: 'red'}}><input/></PneField>
 
 // @ts-expect-error Split FormControl appearance state is not part of the PneField API.
 const invalidColor = <PneField color='primary'><input/></PneField>
@@ -126,3 +132,6 @@ void invalidHiddenLabel
 void invalidSize
 void invalidVariant
 void multipleControls
+void removedHtmlFor
+void removedLabelSx
+void removedHelperTextSx

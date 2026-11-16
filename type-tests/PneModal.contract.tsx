@@ -60,6 +60,15 @@ const validContracts = <>
     />
 </>
 
+// @ts-expect-error The overlay alias left the API in 5.0: use `blockingOverlay`.
+const removedOverlay = <PneModal onClose={() => undefined} open overlay={<span/>} title='Removed alias'/>
+
+// @ts-expect-error containerProps left the API in 5.0: use `slotProps.container`.
+const removedContainerProps = <PneModal containerProps={{id: 'dialog'}} onClose={() => undefined} open title='Removed alias'/>
+
+// @ts-expect-error closeButtonProps left the API in 5.0: use `slotProps.closeButton`.
+const removedCloseButtonProps = <PneModal closeButtonProps={{id: 'close'}} onClose={() => undefined} open title='Removed alias'/>
+
 // @ts-expect-error A dialog needs either a visible title prop or ariaLabel.
 const unnamedDialog = <PneModal onClose={() => undefined} open/>
 
@@ -140,3 +149,6 @@ void wrongModalRef
 void polymorphicActions
 void replacedActions
 void missingPrimaryAction
+void removedOverlay
+void removedContainerProps
+void removedCloseButtonProps

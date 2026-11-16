@@ -177,17 +177,6 @@ describe('PneField', () => {
         expect(input.getAttribute('aria-describedby')).toBe(`custom-help ${helperText.id}`)
     })
 
-    it('links the label when htmlFor is provided explicitly', () => {
-        render(<PneField
-            htmlFor='report-file-name'
-            label='Report file name'
-        >
-            <PneTextField id='report-file-name'/>
-        </PneField>)
-
-        expect(screen.getByLabelText('Report file name')).toBeTruthy()
-    })
-
     it('generates text input ids and propagates non-native field state to pne controls', () => {
         render(<PneField
             disabled
