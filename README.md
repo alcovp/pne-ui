@@ -80,12 +80,12 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
   `TRANSACTION_RECURRENT_FILTERS`, `TRANSACTION_REPORT_SCOPES`) и константы кодов ошибок
   `SEARCH_UI_DATE_RANGE_*` — значения описаны типами (`CsvCharset`, `OrderSearchLabel`,
   `SearchUIValidationError` и другими);
+- `AbstractTableCell` и `AbstractHeaderTableCell` — свою ячейку стройте на `PneTableCell` и `PneHeaderTableCell`
+  (см. «Виды ячеек таблицы»);
 - `getOptionLabel`, `getOptionKey`, `isOptionEqualToValue`, `dropDownSx`, `assertAbstractEntity`,
   `assertIAutoCompleteChoice`, `isMappedAbstractEntity`, `useBreakpoint`, `resolveBreakpoint`,
   `DEFAULT_BREAKPOINTS`;
 - `createPneThemeOptions` — тему строит `createPneTheme`;
-- `createPneButtonPalette`, `createPneCheckboxPalette`, `createPneDropdownPalette`, `createPneFieldPalette`,
-  `createPneSwitchPalette` — готовые палитры компонентов лежат в `theme.palette.pne`;
 - `PNE_ACTION_SPACING` — расстояния даёт `pneActionSpacing`.
 
 Все типы, кроме `AutoTestAttributeProps`, экспортируются по-прежнему.
@@ -100,14 +100,15 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 
 Элементы имеют стабильный `id` и один из трёх взаимоисключающих типов: `link` с `href`, `action` с `onClick`
 или неинтерактивный `text`. Последний `text` автоматически получает `aria-current="page"`. При нехватке места
-середина цепочки сворачивается в доступное меню, а `ResizeObserver` следит только за собственным контейнером
-компонента. Для корректного измерения родитель должен разрешать сжатие через `min-width: 0`.
+середина цепочки сворачивается в доступное меню. `ResizeObserver` следит за контейнером компонента, списком
+крошек и родительским элементом; кроме него слушается `resize` окна. Для корректного измерения родитель должен
+разрешать сжатие через `min-width: 0`.
 
 ```tsx
 <PneBreadcrumbs
     ariaLabel={t("navigation.breadcrumbs")}
     moreLabel={t("navigation.more")}
-    linkComponent={PneLink}
+    linkComponent={AppLink}
     items={[
         {
             id: "orders",
@@ -130,9 +131,11 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 />
 ```
 
+`AppLink` — ссылка приложения (обёртка над ссылкой его роутера); в `pne-ui` такого компонента нет.
+
 ## PneButton
 
-Кнопка UI Kit (Claude): Variant × Size × State. `pneStyle` — единственный публичный способ выбрать
+Кнопка UI Kit: Variant × Size × State. `pneStyle` — единственный публичный способ выбрать
 вариант. Низкоуровневые MUI props `variant` и `color` намеренно исключены из TypeScript API.
 
 | `pneStyle` | Вариант UI Kit | Назначение |
@@ -166,17 +169,15 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 - у почти чёрного скина наведение и нажатие светлеют;
 - подпись на заливке белая при 4,5:1, иначе та из тёмной и белой, что контрастнее.
 
-`loading` показывает спиннер на месте стартовой иконки, прячет конечную, блокирует клики и сохраняет
-цвета покоя. Давайте такой кнопке стартовую иконку, тогда её ширина не меняется.
-
-`data-pne-state="hover" | "pressed" | "focus"` закрепляет состояние для образцов в Storybook; в коде
-продукта атрибут не задаётся.
+`loading` показывает спиннер на месте стартовой иконки, прячет конечную, блокирует клики и держит цвета
+покоя (у `outlined` заливка становится Neutral/50). Давайте такой кнопке стартовую иконку, тогда её ширина
+не меняется.
 
 Компонент сохраняет polymorphic MUI-контракт для `component` и `href`; типы DOM props, событий и `ref`
 выводятся из фактического root element. Это поведение рассчитано на React 19 ref-as-prop.
 
-`PneButtonGroup` удалён из публичного API. Для группировки используйте `ButtonGroup` напрямую из
-`@mui/material`; расстояние между независимыми действиями задавайте на layout-контейнере.
+Компонента группы кнопок в `pne-ui` нет: для группировки используйте `ButtonGroup` из `@mui/material`;
+расстояние между независимыми действиями задавайте на layout-контейнере.
 
 ## PneField
 
@@ -187,8 +188,8 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 несколько соседних controls. `PneField` не принимает ID произвольной layout-обёртки за ID самого control.
 
 Подпись стоит над control (UI Kit Field, Label position Top): 12/16 Medium, в ошибке цвет не меняется — краснеет
-helper text. `labelPosition="left"` ставит подпись слева в колонку 160 px, по центру control, 14/20 цветом
-значения; helper text остаётся под control.
+helper text, у `disabled` подпись бледная. `labelPosition="left"` ставит подпись слева в колонку 160 px, по
+центру control, 14/20 цветом значения; helper text остаётся под control.
 
 `id` принадлежит root `FormControl` и служит namespace для сгенерированных ID. `controlId` принадлежит самому
 интерактивному control и используется в `label[for]`; эти ID должны различаться. Указанный на child `id` не
@@ -280,8 +281,9 @@ const { ref, ...field } = controllerField
 ```
 
 Вид поля (UI Kit Field). Вариант `outlined` (по умолчанию) — белое поле с кольцом Neutral/200, `filled` —
-серое поле Neutral/100 со скруглением 4 и тонким кольцом, без подчёркивания MUI; под указателем оно светлеет
-до Neutral/50. Кольцо по состояниям: наведение темнее, фокус — шаг бренда, читаемый на странице (кольцо 1px),
+серое поле Neutral/100 со скруглением 4, без подчёркивания MUI: кольцо в покое сливается с заливкой, под
+указателем поле светлеет до Neutral/50 и получает кольцо Neutral/200. Кольцо по состояниям: наведение темнее,
+фокус — шаг бренда, читаемый на странице (кольцо 1px),
 ошибка — Red/600, `disabled` — Neutral/100; ошибка остаётся видна и в фокусе. Значение — Neutral/900,
 подсказка внутри поля — Neutral/500, helper text — Neutral/700, в ошибке Red/700. Подпись внутри поля
 (`slotProps.input.startAdornment`) читается как значение. Цвета берутся из `theme.palette.pne.field`,
@@ -299,14 +301,10 @@ const { ref, ...field } = controllerField
 88 px, с `rows` — заданное число строк; в обоих случаях это обычный `textarea`, и пользователь тянет его за
 уголок по высоте. С `minRows` или `maxRows` поле, как у MUI, растёт вместе с текстом, уголка у него нет.
 
-Вид получает каждое поле, в том числе внутри автокомплитов и фильтров SearchUI. В режиме `select` поле рисует шеврон и список как `PneSelect` (свой
-`IconComponent` и `native` остаются за потребителем). `data-pne-state="hover" | "focus"` закрепляет состояние для образцов в Storybook;
-в коде продукта атрибут не задаётся.
+Вид получает каждое поле, в том числе внутри автокомплитов и фильтров SearchUI. В режиме `select` поле рисует
+шеврон и список как `PneSelect` (свой `IconComponent` и `native` остаются за потребителем).
 
-У `PneField` подпись над полем остаётся цвета текста и в ошибке (красным становится helper text), у `disabled` —
-бледная.
-
-## PneCheckbox, PneSwitch и PneLabeledCheckbox
+## PneCheckbox и PneSwitch: общий контракт
 
 `PneCheckbox` и `PneSwitch` сохраняют MUI-контракт `checked` / `defaultChecked` / `onChange`, а также нативные
 `name`, `value`, `required` и `disabled`. Основной `ref` указывает на фактический root `HTMLSpanElement`; для
@@ -320,31 +318,9 @@ Object и functional `slotProps.input` сохраняются и объедин�
 pointer, label и keyboard activation, но не делает input disabled: он остаётся focusable и участвует в
 `FormData`; состояние также объявляется через `aria-readonly`.
 
-Если `PneSwitch.onChange` возвращает Promise/thenable, компонент автоматически включает optimistic lifecycle
-без отдельного `pending` prop: сразу показывает запрошенное состояние, помечает input через `aria-busy` и
-`aria-disabled`, показывает progress-индикатор и игнорирует повторную активацию до settlement. При reject
-переключатель откатывается, при resolve сохраняет подтверждённое состояние. Синхронные callbacks работают как
-раньше. Для controlled usage возвращаемый Promise должен завершаться после обновления внешнего `checked`;
-для `defaultChecked` commit и rollback полностью принадлежат самому `PneSwitch`. Нативный input во время
-запроса не становится `disabled`, поэтому не теряет focus и сохраняет текущее ON/OFF-состояние.
-
-У заблокированного (`disabled`) `PneSwitch` дорожка и ручка нейтральные и одинаковые в обоих значениях,
-как в UI Kit: ON от OFF отличает положение ручки. Над заблокированным переключателем курсор `not-allowed`, а при наведении появляется
-нейтральная подсказка `pne.switch.disabledHint` (по умолчанию «Cannot be changed»). Конкретную причину
-передайте в `disabledHint`: она заменит общий текст, а `disabledHint={false}` отключает подсказку (курсор
-остаётся). Это касается и `disabled` от `PneField`, но не `readOnly` и не async-запроса. Подсказка рендерится рядом
-с переключателем только пока он заблокирован (якорь Tooltip — скрытый `span`), поэтому сам Switch не
-оборачивается: его DOM, refs, locators и число рендеров не меняются.
-
 Внешний `PneField` передаёт control ID, label/helper-связь, `disabled`, `error` и `aria-required`. Как и у
 `PneTextField`, `required` на `PneField` не включает browser constraint validation; для неё задайте `required`
-самому checkbox или switch. `PneLabeledCheckbox` добавляет локальные `label`, `helperText` и `error`, генерирует
-ID helper text, сохраняет явный `helperTextProps.id` и объединяет все `aria-describedby`.
-
-Вид `PneLabeledCheckbox` — UI Kit Checkboxes/Set: подпись 14/20 в 8 px от флажка и на одной линии с ним,
-пояснение 12/16 под подписью, в ошибке пояснение красное. `variant="card"` (в Figma — Frame) рисует флажок
-карточкой для нескольких крупных вариантов: серая карточка, при выборе — подложка и кольцо цвета бренда,
-клик в любом месте карточки переключает флажок. Цвета — `theme.palette.pne.checkbox.text` и `.card`.
+самому checkbox или switch.
 
 ```tsx
 <PneField label="Notifications" helperText={error?.message} error={Boolean(error)} required>
@@ -373,8 +349,21 @@ ID helper text, сохраняет явный `helperTextProps.id` и объед
 при отказе значение откатывается (`aria-busy` на input, `data-pne-loading` на корне). Состояния ошибки
 нет: о неудачном запросе сообщайте уведомлением.
 
-`data-pne-state="hover" | "pressed" | "focus" | "loading"` закрепляет состояние для образцов в
-Storybook; в коде продукта атрибут не задаётся.
+Если `PneSwitch.onChange` возвращает Promise/thenable, компонент автоматически включает optimistic lifecycle
+без отдельного `pending` prop: сразу показывает запрошенное состояние, помечает input через `aria-busy` и
+`aria-disabled`, показывает progress-индикатор и игнорирует повторную активацию до settlement. При reject
+переключатель откатывается, при resolve сохраняет подтверждённое состояние. Синхронные callbacks работают как
+раньше. Для controlled usage возвращаемый Promise должен завершаться после обновления внешнего `checked`;
+для `defaultChecked` commit и rollback полностью принадлежат самому `PneSwitch`. Нативный input во время
+запроса не становится `disabled`, поэтому не теряет focus и сохраняет текущее ON/OFF-состояние.
+
+У заблокированного (`disabled`) `PneSwitch` дорожка и ручка нейтральные и одинаковые в обоих значениях,
+как в UI Kit: ON от OFF отличает положение ручки. Над заблокированным переключателем курсор `not-allowed`, а при наведении появляется
+нейтральная подсказка `pne.switch.disabledHint` (по умолчанию «Cannot be changed»). Конкретную причину
+передайте в `disabledHint`: она заменит общий текст, а `disabledHint={false}` отключает подсказку (курсор
+остаётся). Это касается и `disabled` от `PneField`, но не `readOnly` и не async-запроса. Подсказка рендерится рядом
+с переключателем только пока он заблокирован, поэтому сам Switch не
+оборачивается: его DOM, refs, locators и число рендеров не меняются.
 
 ## PneCheckbox
 
@@ -385,16 +374,24 @@ Storybook; в коде продукта атрибут не задаётся.
 раньше.
 
 Цвета берутся из `theme.palette.pne.checkbox[off|on][state]` и подчиняются тем же трём правилам для скинов:
-включённый — заливка цвета бренда с белой галочкой (тёмной, если белая не читается), выключенный — белый с кольцом
-Neutral/400; при наведении кольцо или заливка бренда темнее, при нажатии выключенный заливается Brand/100. Цвет
-корня (`color`) — это кольцо выключенного и заливка включённого флажка, поэтому перекраска через
-`sx={{color: …}}` работает, как с иконками MUI.
+включённый — заливка цвета бренда с галочкой Neutral/50 (тёмной, если светлая не читается), выключенный —
+Neutral/50 с кольцом Neutral/400; при наведении кольцо или заливка бренда темнее, при нажатии выключенный
+заливается Brand/100. Цвет корня (`color`) — это кольцо выключенного и заливка включённого флажка, поэтому
+перекраска через `sx={{color: …}}` работает, как с иконками MUI.
 
 Состояния: фокус с клавиатуры (кольцо 2px), ошибка (красное кольцо или заливка; приходит из `error` у `PneField` и
 `PneLabeledCheckbox` или из `aria-invalid`, на корне `data-pne-error`), `disabled` и `readOnly` (нейтральные цвета,
 на корне `data-pne-readonly`). Ripple MUI выключен по умолчанию, `disableRipple={false}` возвращает его.
-`data-pne-state="hover" | "pressed" | "focus"` закрепляет состояние для образцов в Storybook; в коде продукта
-атрибут не задаётся.
+
+## PneLabeledCheckbox
+
+`PneLabeledCheckbox` добавляет локальные `label`, `helperText` и `error`, генерирует ID helper text, сохраняет
+явный `helperTextProps.id` и объединяет все `aria-describedby`.
+
+Вид `PneLabeledCheckbox` — UI Kit Checkboxes/Set: подпись 14/20 в 8 px от флажка и на одной линии с ним,
+пояснение 12/16 под подписью, в ошибке пояснение красное. `variant="card"` рисует флажок
+карточкой для нескольких крупных вариантов: серая карточка, при выборе — подложка и кольцо цвета бренда,
+клик в любом месте карточки переключает флажок. Цвета — `theme.palette.pne.checkbox.text` и `.card`.
 
 ## Шрифты
 
@@ -441,7 +438,9 @@ import 'pne-ui/fonts.css'
 ## Виды ячеек таблицы
 
 Содержимое ячейки не стилизуют на странице: для каждого вида значения есть готовая ячейка (UI Kit Cell).
-Все они — `PneTableCell` с теми же пропсами и несут `data-pne-cell` с именем вида.
+Все они построены на `PneTableCell`. Ячейки числа, ссылки, псевдоссылки, действий и раскрытия несут
+`data-pne-cell`: `number`, `link`, `pseudo-link`, `actions`, `expand`. У текстовой ячейки, `PneTableControlCell`,
+`PneTableSwitchCell` и `PneTableSelectionCell` атрибута нет.
 
 | Что в ячейке | Компонент |
 |---|---|
@@ -454,13 +453,13 @@ import 'pne-ui/fonts.css'
 | Переключатель, выбор строки | `PneTableSwitchCell`, `PneTableSelectionCell` |
 | Другой элемент управления | `PneTableControlCell` |
 
-Ячеек «без вида» наружу нет: `AbstractTableCell` и `AbstractHeaderTableCell` из экспорта убраны (5.0.0-rc.21),
-свою ячейку строят на `PneTableCell`.
+Ячеек «без вида» наружу нет: `AbstractTableCell` и `AbstractHeaderTableCell` с 5.0 не экспортируются, свою
+ячейку строят на `PneTableCell`.
 
 ```tsx
 <PneTableRow>
     <PneTableExpandCell aria-label='Details' expanded={open} onToggle={setOpen}/>
-    <PneTableLinkCell><PneLink href={orderUrl}>{order.id}</PneLink></PneTableLinkCell>
+    <PneTableLinkCell><AppLink href={orderUrl}>{order.id}</AppLink></PneTableLinkCell>
     <PneTableLinkCell onAction={() => filterBy(order.merchant)}>{order.merchant}</PneTableLinkCell>
     <PneTableNumberCell>{formatAmount(order.amount)}</PneTableNumberCell>
     <PneTableActionsCell>
@@ -484,8 +483,9 @@ import 'pne-ui/fonts.css'
   значок передаётся потомком, как у `IconButton`. `tone='danger'` красит значок красным под указателем,
   `tooltip` показывает подсказку, в том числе у выключенного действия. Локатор и `aria-label` ставятся на саму
   кнопку.
-- `PneTableExpandCell` — шеврон в узкой ячейке: вправо у закрытой строки, вверх у открытой (тогда он цвета
-  ссылки). `onToggle(expanded, event)` получает новое состояние; `aria-label` необязателен; локатор кнопки —
+- `PneTableExpandCell` — шеврон в узкой ячейке: вправо у закрытой строки, вверх у открытой (тогда он того же
+  цвета, что значок под указателем). `onToggle(expanded, event)` получает новое состояние; `aria-label`
+  необязателен; локатор кнопки —
   `row-expand` (`autoTestId`, `autoTestValue`).
 - Действие, псевдоссылка и шеврон не передают клик строке, если она сама кликабельна.
 
@@ -497,14 +497,15 @@ import 'pne-ui/fonts.css'
 display-only вариант задаётся через `readOnly` без пустого callback. Возвращённый из табличного `onChange`
 Promise передаётся в `PneSwitch`, поэтому optimistic/pending/rollback lifecycle работает в status-колонке без
 дополнительных props ячейки.
-Заблокированная ячейка (`disabled`) так же сохраняет различимое ON/OFF и показывает нейтральную подсказку
-`PneSwitch` при наведении; свою причину передайте через `switchProps.disabledHint`.
+У заблокированной ячейки (`disabled`) подсказка та же, что у `PneSwitch`; свою причину передайте через
+`switchProps.disabledHint`.
 
 Props самой ячейки передаются напрямую, а props переключателя — через `switchProps`. В частности, `id`,
 `inputRef`, `name`, `slotProps` и существующие верхнеуровневые `PneSwitch` `data-*` селекторы относятся к
 `switchProps`; селектор сохраняется на том же Switch DOM anchor, что и при прямом использовании `PneSwitch`,
 но это не обязательно внешний wrapper. Размер, controlled state и accessible name принадлежат
-`PneTableSwitchCell`. `autoTestId` создаёт отдельный locator на нативном input и имеет приоритет над одноимённым
+`PneTableSwitchCell`. `autoTestId` (по умолчанию `table-switch`) создаёт отдельный locator на нативном input и
+имеет приоритет над одноимённым
 атрибутом в `switchProps.slotProps.input`, не удаляя верхнеуровневый `PneSwitch` locator из `switchProps`.
 
 ```tsx
@@ -557,7 +558,8 @@ props.
 
 Вид (UI Kit Modal). Окно — карточка со скруглением 16 px, отступом 16 px со всех сторон, рамкой 1 px Neutral/200 и
 мягкой тенью. Заголовок 18/26 SemiBold, подзаголовок 12/16 Neutral/700; крестик — значок 16 px в кнопке 32 px без
-заливки в покое (цвета текстовой кнопки). Шапку и кнопки от тела отделяют линии 1 px с отступом 8 px сверху и
+заливки: в покое Neutral/600, под указателем и при нажатии меняется только цвет значка. Шапку и кнопки от тела
+отделяют линии 1 px с отступом 8 px сверху и
 снизу; линии стоят внутри отступа окна и до его краёв не доходят. Текст тела 14/20. Тело прокручивается на всю
 ширину окна, шапка и кнопки остаются на месте; у окна без кнопок нижний край тела — отступ окна. Окно при
 открытии получает фокус и рамку вокруг себя не рисует. Кнопки в окне — `size="medium"` (32 px); порядок и
@@ -630,7 +632,8 @@ combobox/listbox roles, keyboard/pointer handlers, identity или open/close li
 `getOptionProps` предназначен для неинтерактивных DOM-метаданных, ARIA, styling и `data-*`; содержимое option
 задавайте через `renderOption`, disabled-состояние — через `getOptionDisabled`, а выбор обрабатывайте в `onChange`.
 
-Option выбирается только кликом. MUI Select с версии 9.0.1 выбирает ещё и option, над которым отпущена кнопка
+Мышью option выбирается только кликом; выбор с клавиатуры работает как в MUI. MUI Select с версии 9.0.1
+выбирает ещё и option, над которым отпущена кнопка
 мыши, если с нажатия на поле прошло 200 мс. Меню, которому не хватило места под полем, открывается поверх него,
 и неторопливый клик по полю выбирал option, оказавшийся под курсором; в `PneSelect` такой выбор отключён.
 
@@ -645,16 +648,14 @@ numeric/string ID. `getOptionLabel`, `getOptionProps`, `getOptionDisabled`, `ren
 работают с исходным `T`, а не с нормализованным `{value, label}`.
 
 Вид (UI Kit: поле с шевроном и Dropdown list). Поле выглядит как `PneTextField`: те же цвета `outlined` и `filled`,
-кольцо по состояниям, цвет значения и подсказки; пока список открыт, поле остаётся в фокусе. Шеврон UI Kit 14px (как
-у Input в дизайн-системе Claude, на месте иконки MUI и так же переворачивается) — цвета значения, у `disabled`
+кольцо по состояниям, цвет значения и подсказки; пока список открыт, поле остаётся в фокусе. Шеврон UI Kit 14px
+(на месте иконки MUI и так же переворачивается) — цвета значения, у `disabled`
 бледный; свой `IconComponent` по-прежнему можно передать, он сохраняет свой размер. Список — панель UI Kit: радиус 8, 4px от поля и 4px внутри, тонкое кольцо и тень всплывающей панели.
 Строки со скруглением 4: наведение и подсветка с клавиатуры — Neutral/100, выбранная строка — Brand/100 с галочкой в
 конце (галочку рисует CSS, в значение поля она не попадает), `disabled` — бледный текст без прозрачности MUI. Строка
 списка высотой с поле и с его текстом: 24, 32 или 40 px по `size`; список показывает восемь строк, дальше
 прокручивается. Шеврон стоит по центру кнопки значка (16 px у `small`, 20 px у остальных). Цвета берутся из `theme.palette.pne.dropdown` и `field`, тёмная тема — на
-нейтралях pne-ui. `sx` из `MenuProps` применяется после вида списка. `data-pne-state="hover" | "focus"` на
-`PneSelect` и `data-pne-state="hover"` на строке (через `getOptionProps`) закрепляют состояние для образцов в
-Storybook; в коде продукта атрибут не задаётся.
+нейтралях pne-ui. `sx` из `MenuProps` применяется после вида списка.
 
 ## PneAutocomplete
 
@@ -701,7 +702,6 @@ type Region = {code: string; title: string; disabled: boolean}
 у `small` и 20 px у остальных. У `PneAsyncAutocomplete` спиннер загрузки крутится в строке «загрузка» списка; в
 поле он остаётся, только пока список при `keepPreviousOptions` показывает прежние варианты. Свои `popupIcon`, `clearIcon`, значок
 удаления в `slotProps.chip` и `sx` в `slotProps.paper` по-прежнему можно передать. Цвета — `theme.palette.pne.dropdown`.
-`data-pne-state="hover" | "focus"` закрепляет состояние поля для образцов в Storybook; в коде продукта не задаётся.
 
 ## PneAsyncAutocomplete
 
@@ -744,19 +744,7 @@ manager/status/currency передавайте стабильный primitive `r
 и изменения `reloadKey`. Если сервисный метод уже обёрнут React/service debounce-декоратором, дополнительного
 слоя в компоненте нет и конфликтовать с ним нечему.
 
-Breaking migration со старого API выполняется напрямую:
-
-```tsx
-// было
-<PneAsyncAutocomplete searchChoices={({searchString}) => search(searchString ?? '')}/>
-
-// стало
-<PneAsyncAutocomplete loadOptions={query => search(query)}/>
-```
-
-`searchChoices` и `onSearchError` удалены; используйте `loadOptions` и `onLoadError`. Props `options`, `loading`
-и `filterOptions` также не входят в async API, потому что ими владеет компонент. Debounce в эту миграцию не
-входит.
+Props `options`, `loading` и `filterOptions` не входят в async API: ими владеет компонент.
 
 ## Якоря для автотестов
 
@@ -790,9 +778,9 @@ Neutral/900 с 12 px по бокам, под каждой строкой, кро
 и остаётся такой под указателем. Заголовок `PneHeaderTableCell` — 14/20 SemiBold над такой же линией. Знак
 сортировки `PneTableSortLabel` — две стрелки UI Kit рядом с подписью, видны всегда: у неотсортированной колонки обе
 серые (под указателем — цвета ссылки), у отсортированной направление в силе — цвета ссылки, второе приглушено;
-подпись сохраняет цвет заголовка. Цвета берутся из `theme.palette.pne.table`. Виды ячеек UI Kit (числа
-моноширинным шрифтом, ссылки, статусы, действия строки и другие) в библиотеке пока не выделены: содержимое ячейки
-рисует экран.
+подпись сохраняет цвет заголовка. Цвета берутся из `theme.palette.pne.table`. Для видов значений UI Kit есть
+готовые ячейки: число, ссылка и псевдоссылка, действия строки, раскрытие строки, переключатель — см. «Виды ячеек
+таблицы». Ячейки статуса в библиотеке нет: её содержимое рисует экран.
 
 Передавайте `autoTestId` для каждой логической таблицы; если на странице их несколько, значения обязаны быть
 уникальными. Существующий внешний root получает `data-autotest="table"` и переданный ID в
@@ -823,7 +811,7 @@ semantic `<table>` для role-запросов.
 DOM-позиции или пользовательских/секретных данных. Для sortable header передавайте те же `sortOptions` и
 `sortIndex` в `PneHeaderTableCell`; MUI выставит `aria-sort` только на активном `<th>`.
 
-Внутренний контракт таблицы:
+Основные якоря таблицы (полный список — в «Справочнике Selenium-якорей», раздел `PneTable`):
 
 - пагинации: `data-autotest="pagination"` со значением `top` или `bottom`; action IDs ищутся внутри этого scope;
 - загрузка: `aria-busy` на semantic table;
@@ -1143,8 +1131,11 @@ scope. Таблица ищется от document/page scope, а не внутр�
 - `toggle-filters` — native button «Filters» с шевроном в заголовке панели
   (`[data-autotest="filters-header"]`); рядом с ней, не внутри, число критериев
   `[data-autotest="filters-count"]` — оно видно и в развёрнутой панели; состояние панели находится в
-  `aria-expanded`, связь с панелью — в `aria-controls`. В развёрнутой панели `add-filter`, `clear-all` и
-  `run-search` стоят в нижней полосе `[data-autotest="filters-footer"]`, в свёрнутой — в заголовке;
+  `aria-expanded`, связь с панелью — в `aria-controls`. Кнопка есть, только когда в панели есть критерии и не
+  задан `hideShowFiltersButton`; иначе «Filters» — подпись без локатора. `templates` всегда стоит в заголовке.
+  `add-filter`, `clear-all` и `run-search` стоят в нижней полосе `[data-autotest="filters-footer"]`, пока панель
+  развёрнута и в ней есть критерии; в свёрнутой панели и в панели без критериев они стоят в заголовке, а
+  `filters-footer` в DOM нет;
 - `clear-all` и `run-search` — реальные кнопки; доступность запуска поиска проверяется через native `disabled`
   (`run-search` одинаков для режимов Search и Refresh). `clear-all` есть только при скрытом меню шаблонов
   (`hideTemplatesSelect`); с меню к умолчаниям возвращает его пункт `select-default-template`;
@@ -1154,16 +1145,23 @@ scope. Таблица ищется от document/page scope, а не внутр�
 - `clear-criterion` и `remove-criterion` — native `button type="button"` внутри соответствующего
   `criterion/<raw type>`; remove отсутствует у non-removable predefined-критерия.
 
-Часть roots/actions условна: критерий, `clear-all`, `remove-criterion`, templates и add-filter могут отсутствовать
-из-за `config` или текущего состояния. Такое отсутствие является состоянием UI, а не ошибкой locator contract.
+Часть roots/actions условна: критерий, `toggle-filters`, `filters-count`, `filters-footer`, `clear-all`,
+`run-search`, `remove-criterion`, templates и add-filter могут отсутствовать из-за `config` или текущего
+состояния. В свёрнутой панели строк `criterion` в DOM нет; `run-search` нет при `hideRefreshButton` без
+`manualSearch`; `clear-all` нет, когда очищать нечего. Такое отсутствие является состоянием UI, а не ошибкой
+locator contract.
 Критерий из `hiddenCriteria` активного вида таблицы не имеет root `criterion` и не предлагается в add-filter;
 исключение — значение, которое блокирует поиск (ошибка валидации): тогда строка остаётся. Критерий из
 `disabledCriteria` остаётся в DOM с `aria-disabled="true"` на значении.
 
-У панели нет полосы с заголовком «Filters»: root `search-filters` имеет `role="region"` с этим именем,
-`toggle-filters`, `templates`, `add-filter` и `run-search` стоят в строке действий под критериями, а
-`clear-criterion` и `remove-criterion` — между названием критерия и его значением, причём `remove-criterion` в
-DOM идёт первым. На порядок дочерних элементов внутри `criterion` полагаться нельзя.
+Панель — рамка с двумя полосами. Root `search-filters` имеет `role="region"` с именем «Filters». В заголовке
+`filters-header` слева стоят `toggle-filters` и `filters-count`, справа — `templates`. В нижней полосе
+`filters-footer` слева стоит `add-filter`, справа — `clear-all` и `run-search`. В строке критерия
+`clear-criterion` и `remove-criterion` стоят первыми, перед названием и значением; в DOM `clear-criterion` идёт
+раньше `remove-criterion`. На порядок дочерних элементов внутри `criterion` полагаться нельзя.
+
+Пока хост не ответил, свёрнута ли панель и какой набор выбран, на её месте стоит скелетон
+`search-filters-skeleton/<scope>` (`aria-busy="true"`): `search-filters/<scope>` появляется после него.
 
 Popover и modal рендерятся через React portal вне `search-filters`, поэтому Selenium должен искать их отдельно
 по тому же owner scope:
@@ -1177,11 +1175,12 @@ Popover и modal рендерятся через React portal вне `search-fil
 `templates-panel` и `add-filter-options` — MUI menu (`role="menu"`), `template-editor` — dialog.
 Generated IDs из `aria-controls` не хардкодируйте: при необходимости считывайте ID у trigger во время теста;
 стабильным owner locator остаётся `data-autotest` + scope. Строки сохранённых шаблонов отмечены одинаковым
-`template-item` без value; внутри используются `select-template`, `remove-template` и, если хост сохраняет
-порядок, `reorder-template`. Имя шаблона остаётся видимым пользовательским значением и доступным именем, но
-намеренно не попадает в `data-autotest-value`. Список открывает пункт `select-default-template` («Default»).
-Действия меню — `create-template`, `update-template` и, пока применённый шаблон изменён,
-`discard-template-changes`.
+`template-item` без value; внутри используются `select-template`, `remove-template` и `reorder-template` — если
+хост сохраняет порядок, шаблонов больше одного и список не отфильтрован. Имя шаблона остаётся видимым
+пользовательским значением и доступным именем, но намеренно не попадает в `data-autotest-value`. Список
+открывает пункт `select-default-template` («Default»); от 10 шаблонов над ним стоит поле `template-search`, и
+пока в нём есть текст, пункта «Default» нет. Действия меню — `create-template`, `update-template` (пока шаблон
+применён) и `discard-template-changes` (пока применённый шаблон изменён).
 Icon-only закрытие editor имеет `close-template-editor`; поле имени, Create и Cancel остаются стандартными
 required textbox/text buttons и ищутся по role/name внутри scoped editor.
 
@@ -1192,7 +1191,7 @@ state. Не используйте MUI classes, SVG/path, DOM depth, array index
 ## Справочник Selenium-якорей `pne-ui`
 
 Документ предназначен для тестировщиков, которые пишут Selenium-автотесты. Здесь перечислены готовые
-стабильные якоря `PneTable`, `SearchUI`, `SearchUIFilters`, всех 31 типов критериев и вынесенных в portal
+стабильные якоря `PneTable`, `SearchUI`, `SearchUIFilters`, всех 37 типов критериев и вынесенных в portal
 панелей. Искать нужный элемент по JSX, структуре MUI или случайным классам не требуется.
 
 Примеры ниже используют CSS selectors, поддерживаемые обычным Selenium WebDriver. Это справочник публичного
@@ -1317,6 +1316,11 @@ assertEquals("true", enabled.getAttribute("aria-pressed"));
 | Колонка в окне настройки | `input[data-autotest="column-settings-option"][data-autotest-value="<columnId>"]` | Native `checked`, `disabled`; при открытии порядок в DOM = порядок отображения, скрытые в конце; переключение галочки строку не двигает |
 | Ручка перестановки колонки | `button[data-autotest="column-settings-reorder"][data-autotest-value="<columnId>"]` | Есть только у видимых колонок без активного поиска; keyboard: Space, ArrowUp/ArrowDown, Space |
 | Пустой поиск по колонкам | `[data-autotest="column-settings-empty"]` | Наличие строки |
+| Виды таблицы | `[data-autotest="table-views"][data-autotest-value="<scope>"]` | Группа; в SearchUI scope тот же, что у фильтров и таблицы |
+| Вид | `button[data-autotest="table-view"][data-autotest-value="<viewId>"]` | `aria-pressed`, native `disabled` |
+| Действия вида | `[data-autotest="table-view-actions"]` | Есть, только если страница передала действия |
+| Раскрытие строки | `button[data-autotest="row-expand"]` | `aria-expanded`; consumer может задать `autoTestId`/`autoTestValue` |
+| Переключатель в ячейке | `input[data-autotest="table-switch"]` | Native `checked`, `disabled`; consumer может задать `autoTestId`/`autoTestValue` |
 
 Внутри каждого `pagination/top|bottom` уже существуют:
 
@@ -1357,16 +1361,26 @@ Selectors ниже относительны к `search-filters/<scope>`.
 
 | Action | Selector | Состояние/примечание |
 |---|---|---|
-| Показать/скрыть фильтры | `[data-autotest="toggle-filters"]` | Native button, `aria-expanded`, `aria-controls`; свёрнуто — внутри `[data-autotest="filters-count"]` с числом критериев |
-| Очистить всё | `[data-autotest="clear-all"]` | Только при `hideTemplatesSelect`; иначе — `select-default-template` в меню шаблонов |
+| Показать/скрыть фильтры | `[data-autotest="toggle-filters"]` | Native button «Filters» в заголовке панели `[data-autotest="filters-header"]`; `aria-expanded`, `aria-controls`. Есть, только пока в панели есть хотя бы один критерий и не задан `hideShowFiltersButton` |
+| Число критериев | `[data-autotest="filters-count"]` | Стоит в `filters-header` рядом с `toggle-filters`, не внутри неё; видно и в свёрнутой, и в развёрнутой панели; без критериев отсутствует |
+| Очистить всё | `[data-autotest="clear-all"]` | Только при `hideTemplatesSelect` и пока есть что сбрасывать; иначе — `select-default-template` в меню шаблонов. Undo-snackbar — «All filters cleared» (`react.searchUI.clearAll.cleared`) |
 | Запустить поиск/refresh | `[data-autotest="run-search"]` | Native `disabled`/`isEnabled()` |
 | Шаблоны | `[data-autotest="templates"]` | Native button, `aria-expanded`, `aria-controls` |
 | Добавить фильтр | `[data-autotest="add-filter"]` | Native button, `aria-haspopup="menu"`, `aria-expanded`, `aria-controls` |
 | Очистить критерий | `[data-autotest="clear-criterion"]` | Native button внутри criterion root |
 | Удалить критерий | `[data-autotest="remove-criterion"]` | Отсутствует у non-removable predefined criterion |
 
-`clear-all`, templates, add-filter и отдельные criterion actions могут отсутствовать из-за config или текущего
-состояния. Это условный UI, а не нарушение locator contract.
+`toggle-filters`, `filters-count`, `clear-all`, `run-search`, templates, add-filter и отдельные criterion actions
+могут отсутствовать из-за config или текущего состояния. Это условный UI, а не нарушение locator contract.
+
+Панель — рамка из двух полос. В заголовке `[data-autotest="filters-header"]` стоят `toggle-filters`,
+`filters-count` и `templates`. `add-filter`, `clear-all` и `run-search` стоят в нижней полосе
+`[data-autotest="filters-footer"]`, пока панель развёрнута и в ней есть критерии; в свёрнутой панели и в панели
+без критериев они стоят в заголовке, а `filters-footer` отсутствует. Selectors относительно
+`search-filters/<scope>` работают в обоих случаях.
+
+В свёрнутой панели (`toggle-filters` с `aria-expanded="false"`) строк `criterion/<type>` в DOM нет: сначала
+разверните панель.
 
 Внутри `add-filter-options/<scope>` пункты меню — `[data-autotest="add-filter-option"]` с raw
 `data-autotest-value="<CriterionTypeEnum>"` (`role="menuitem"`); их accessible name — переведённое название
@@ -1387,7 +1401,7 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
 
 - вернуться к умолчаниям страницы без шаблона: `button[data-autotest="select-default-template"]`
   («Default», `role="menuitemradio"`, первый пункт; `aria-checked="true"`, пока свой шаблон не применён). Он
-  делает то же, что прежний `clear-all`: восстанавливает умолчания страницы (предопределённые критерии и
+  делает то же, что `clear-all`: восстанавливает умолчания страницы (предопределённые критерии и
   `initialSearchConditions`), снимает шаблон, забывает его как последний и,
   если что-то изменилось, показывает undo-snackbar «Default filters restored» (`react.searchUI.default.restored`).
   Умолчания ищутся сразу, как и выбранный шаблон, в том числе при `manualSearch`. Пока поле поиска шаблонов не
@@ -1399,7 +1413,8 @@ MUI popover/modal/listbox может находиться вне DOM-подде�
   `button[data-autotest="remove-template"]`. Крестик проявляется при наведении, но кликабелен и без него.
   Если у хоста смонтирован `PneConfirmProvider`, удаление подтверждается в
   `[data-autotest="alert.container"][data-autotest-value="<scope>"]` кнопкой
-  `[data-autotest="alert.button.submit"]`; без провайдера шаблон удаляется сразу;
+  `[data-autotest="alert.button.submit"]` (отмена — `alert.button.cancel`, крестик — `alert.button.close`); без
+  провайдера шаблон удаляется сразу;
 - ручка перетаскивания: `[data-autotest="reorder-template"]` внутри строки, справа перед крестиком. Есть
   только когда хост передал `reorderSearchTemplates`, шаблонов больше одного и список не отфильтрован; ручка
   `aria-hidden`, для клавиатуры порядок меняется через Alt+↑/Alt+↓ на `select-template`;
@@ -1432,7 +1447,7 @@ Cancel и обычные поля формы ищутся внутри scoped di
 Для нескольких стандартных dialog actions контрактом служат native button + computed accessible name внутри
 уже найденного scoped dialog:
 
-- Add filter: option нужного критерия внутри `add-filter-options/<scope>`;
+- Date-time picker: Cancel, OK/Next;
 - Template editor: Create, Cancel;
 - Grouping: Save, Cancel;
 - Multiget: Clear в selected column, Save, Cancel;
@@ -1449,7 +1464,6 @@ static WebElement byAccessibleName(SearchContext scope, String css, String expec
 }
 
 WebElement save = byAccessibleName(dialog, "button, [role='button']", "Save");
-WebElement status = byAccessibleName(addFilterListbox, "[role='option']", "Status");
 ```
 
 `expectedName` берётся из фиксированной locale тестового сценария. Это явно перечисленные locale-aware actions;
@@ -1464,10 +1478,11 @@ raw IDs критериев, options и entities по переведённому 
 Generated ID из `aria-controls` не хардкодируется; при необходимости он считывается у trigger после открытия
 popup.
 
-### Матрица всех 31 критериев
+### Матрица всех 37 критериев
 
-В таблице указан meaningful control, который должен быть ровно один внутри соответствующего
-`criterion/<CriterionTypeEnum>` root.
+В таблице указан primary selector внутри соответствующего `criterion/<CriterionTypeEnum>` root. Он находит ровно
+один элемент; исключение — Enum buttons: там selector находит по кнопке на каждый вариант, выбранная — с
+`aria-pressed="true"`.
 
 | `CriterionTypeEnum` | Primary selector внутри criterion root | Family |
 |---|---|---|
@@ -1502,6 +1517,12 @@ popup.
 | `PROCESSOR_LOG_ENTRY_TYPE` | `[role="combobox"][data-autotest="criterion-processor-log-entry-type"]` | Single select |
 | `ERROR_CODE` | `input[role="combobox"][data-autotest="criterion-error-code"]` | Async autocomplete |
 | `TRANSACTION_SESSION_STATUS` | `button[data-autotest="criterion-transaction-session-status"]` | Session dialog |
+| `OTP_STATUS` | `[role="button"][data-autotest="criterion-option"]` | Enum buttons |
+| `TRANSACTION_REPORT_SCOPE` | `[role="combobox"][data-autotest="criterion-select"]` | Enum select |
+| `TRANSACTION_DATE_TYPE` | `[data-autotest="criterion-option"][data-autotest-value="CREATED"]` | Static value |
+| `TRANSACTION_RECURRENT_FILTER` | `[role="combobox"][data-autotest="criterion-select"]` | Enum select |
+| `TIME_ZONE` | `[role="combobox"][data-autotest="criterion-select"]` | Enum select |
+| `CSV_CHARSET` | `[role="combobox"][data-autotest="criterion-select"]` | Enum select |
 
 Ниже описаны controls и panels каждой family.
 
@@ -1545,7 +1566,8 @@ Raw values `ExactCriterionSearchLabelEnum`:
 Внутри него:
 
 - семь native disclosure summaries: `criterion-label-group/<main|customer|source-card|destination-card|wire|card-present-api|mobile-api>`;
-- 45 native radio inputs: `criterion-label-option/<raw ORDER_SEARCH_LABEL>`;
+- 45 native radio inputs: `criterion-label-option/<raw ORDER_SEARCH_LABEL>`; если хост вернул `false` из
+  `showCMSOrderSearchLabels`, их 43 — без `customer_id` и `merchant_customer_identifier`;
 - expanded state группы: `aria-expanded` на `summary` и native `details.open`;
 - выбранное поле: native radio `checked`/Selenium `isSelected()`.
 
@@ -1577,9 +1599,10 @@ Country options portal:
 - option: `criterion-input-option/<raw numeric country id>`;
 - selection: `aria-selected`.
 
-### Enum buttons: `STATUS`, `THREE_D`, `MARKER_STATUS`
+### Enum buttons: `STATUS`, `THREE_D`, `MARKER_STATUS`, `OTP_STATUS`
 
-Каждый вариант является actual button:
+Каждый вариант — `div` с `role="button"` (не native `<button>`), все варианты стоят в `[role="group"]` с именем
+критерия:
 
 ```css
 [role="button"][data-autotest="criterion-option"][data-autotest-value="<raw enum>"]
@@ -1592,8 +1615,29 @@ Country options portal:
 | `STATUS` | `ANY`, `DISABLED`, `ENABLED` |
 | `THREE_D` | `ANY`, `NO`, `YES` |
 | `MARKER_STATUS` | `any`, `unprocessed`, `processed` |
+| `OTP_STATUS` | `ANY`, `DISABLED`, `ENABLED` |
 
 Регистр raw value значим.
+
+### Enum select: `TRANSACTION_REPORT_SCOPE`, `TRANSACTION_RECURRENT_FILTER`, `TIME_ZONE`, `CSV_CHARSET`
+
+- control: `[role="combobox"][data-autotest="criterion-select"]`; `data-autotest-value` у него нет;
+- у listbox собственного якоря нет: после открытия его ID читается из `aria-controls` control;
+- option: `[role="option"][data-autotest="criterion-option"][data-autotest-value="<raw value>"]`; выбранный —
+  `aria-selected="true"`.
+
+| Criterion | Raw values |
+|---|---|
+| `TRANSACTION_REPORT_SCOPE` | `ALL`, `SELECTED_BY_SESS_ID`, `SELECTED_BY_PROCESSOR_TX_ID`, `SELECTED_BY_MOTHER_SESS_ID`, `SELECTED_BY_MOTHER_PROCESSOR_TX_ID`, `SELECTED_BY_TX_RRN` |
+| `TRANSACTION_RECURRENT_FILTER` | `ALL`, `RECURRENTS_ONLY`, `NON_RECURRENTS_ONLY` |
+| `TIME_ZONE` | `__DEFAULT__`, целые от `-12` до `12` |
+| `CSV_CHARSET` | `__DEFAULT__`, `UTF-8`, `UTF-8-SIG`, `windows-1251` |
+
+При `TRANSACTION_REPORT_SCOPE`, отличном от `ALL`, под control появляется многострочное поле ID транзакций:
+`textarea` без `data-autotest`, accessible name — `react.searchUI.transactionIds`.
+
+`TRANSACTION_DATE_TYPE` — не control: один статичный chip `criterion-option/CREATED` без role и без
+`aria-pressed`.
 
 ### Collections
 
@@ -1635,8 +1679,8 @@ Option selection читается из `aria-selected`. Состояние All �
 - недоступность до выбора зависимостей/при loading: `aria-disabled="true"` на combobox;
 - выбранный option: `aria-selected`.
 
-Control может быть disabled или список может быть пустым, если не выбран ровно один Merchant либо provider не
-вернул подходящие уровни. Это product state.
+Control disabled (`aria-disabled="true"`), пока не выбран ровно один Merchant, пока идёт загрузка, если загрузка
+не удалась или provider не вернул ни одного уровня. Это product state.
 
 ### `PROJECT_CURRENCY`
 
@@ -1839,7 +1883,7 @@ Group listbox является отдельным portal и не находит�
 | Close | `criterion-multiget-close` |
 | Include mode | `criterion-multiget-mode/NONE`, `aria-pressed` |
 | Exclude mode | `criterion-multiget-mode/ALL`, `aria-pressed` |
-| Only enabled | Native checkbox `criterion-multiget-only-enabled`; только для семи типов из таблицы |
+| Only enabled | Native `input[type="checkbox"]` с `role="switch"` `criterion-multiget-only-enabled`; состояние через `isSelected()`/`checked`; только для семи типов из таблицы |
 | Search | Native input `criterion-multiget-search`; query из `.value` |
 | Gate search field | `criterion-multiget-search-label/<all|mid|descriptor>`, `aria-pressed` |
 | Available column | Named group `criterion-multiget-available`, loading через `aria-busy` |
@@ -1862,7 +1906,13 @@ anchors для этих стандартных действий отсутств
 - trigger получил `aria-expanded="true"`;
 - `aria-busy` стал `false`;
 - ожидаемый raw option появился;
-- после action изменился native/ARIA state или portal исчез.
+- после action изменился native/ARIA state или portal исчез;
+- панель фильтров: `[data-autotest="search-filters-skeleton"][data-autotest-value="<scope>"]` исчез и появился
+  `search-filters/<scope>`.
+
+У таблицы `aria-busy` следует за скелетоном, а не за запросом: при повторной загрузке он становится `true`
+только через 300 мс и держится не меньше 500 мс. Поэтому `aria-busy="false"` сразу после действия ещё не
+значит, что строки новые: ждите изменения данных.
 
 Не используйте fixed sleeps. Не считайте empty result ошибкой locator, если provider действительно вернул
 пустой список.
@@ -1890,10 +1940,10 @@ anchors для этих стандартных действий отсутств
 Этот раздел README — основной реестр поддерживаемых Selenium-якорей библиотеки. Storybook используется только для
 интерактивных примеров.
 
-## OverlayHost
+## OverlayHost и уведомления
 
 Компоненты, которые используют `overlayActions` напрямую или косвенно, требуют смонтированный
-`<OverlayHost />` в приложении-хосте. Это касается и `SearchUI`, потому что пункт `Default` меню шаблонов
+`<OverlayHost />` в приложении-хосте. Это касается и `SearchUI`, потому что пункт `Default` меню сохранённых фильтров
 (и `Clear all` при скрытом меню) использует undo-snackbar.
 
 Подключайте `OverlayHost` ровно один раз, обычно рядом с корнем приложения:
@@ -1913,13 +1963,108 @@ export const App = () => (
 - если `overlayActions.*` вызываются без смонтированного `OverlayHost`, библиотека пишет явный `console.error`, а snackbar не будет виден пользователю;
 - если в DOM смонтировано больше одного `OverlayHost`, библиотека пишет явный `console.error`, потому что такая конфигурация дублирует snackbar-ы и может рассинхронизировать их таймеры;
 - `OverlayHost` должен подключаться в приложении-хосте, а не внутри отдельных виджетов библиотеки.
-- stacks и permanent overlays по умолчанию уходят одним React portal в `document.body`, не добавляя overlay-wrapper в DOM приложения; для изолированного harness можно передать `container` (или `null` для inline render);
-- `maxSnack` является жёсткой границей: при переполнении самые старые snackbar удаляются, а не остаются скрытой очередью;
+
+### Пропсы `OverlayHost`
+
+- `anchorOrigin` — угол стопки уведомлений, по умолчанию слева внизу; уведомление может задать свой;
+- `maxSnack` — не больше стольких уведомлений сразу (по умолчанию 10): при переполнении самые старые удаляются,
+  а не остаются скрытой очередью;
+- `leftOffset` — отступ левой стопки от края экрана, по умолчанию 24 px; рядом с левым меню Paynet передайте
+  `PAYNET_LEFT_MENU_OVERLAY_OFFSET` (16 px, от 1080 px — 64, от 1600 px — 272);
+- `container` — куда рисовать стопки, постоянные оверлеи и панель операций: по умолчанию одним React portal в
+  `document.body`, без обёртки в DOM приложения; можно передать `Element` или функцию, `null` рисует на месте.
+  Слой берётся из `theme.zIndex.snackbar` / `theme.zIndex.modal`;
+- `operationCenter` — панель фоновых операций, см. `PneOperationCenter` ниже;
+- `resolveViolationMessage` — см. «Ошибки валидации UI API».
+
+### `overlayActions`
+
+- Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo`, `showSnackbar` или
+  `showUndoSnackbar`; `removeSnackbar(id)` убирает одно уведомление, `clearSnackbars()` — все.
+- `showError` принимает как готовый UI-текст (`{ message }`), так и исходную Paynet/transport ошибку (`{ error }`). Во втором случае библиотека сама разворачивает Paynet v1, Axios/Fetch/Blob payload, переводит `messageId`, показывает `errorId`, `errorI18N` и доступный пользователю `details`.
+- `showUndoSnackbar` возвращает `id` snackbar и добавляет встроенную action-кнопку `Undo` (или ваш `undoLabel`).
+- Уведомление без `autoHideMs` закрывается само через 5000 мс; ошибка (`showError`, `variant: 'error'`)
+  остаётся до закрытия крестиком, `showTransientError` закрывает её через 5000 мс. Явный
+  `autoHideMs: undefined` или `0` отключает автозакрытие. Пока уведомление закрывается по таймеру, по его
+  нижнему краю идёт полоса таймера; под указателем и в фокусе таймер стоит. При `prefers-reduced-motion`
+  полосы нет.
+- Отменённый запрос (`AbortError`, `ERR_CANCELED`) в `showError({error})` уведомления не показывает.
 - для обычного уведомления о завершившемся действии не передавайте `id`: каждый вызов получит собственную внутреннюю
   identity, поэтому даже одинаковые сообщения будут показаны отдельными элементами стека;
 - явный `id` нужен только для управляемого lifecycle, когда вызывающий код должен позднее адресно удалить или заменить
   конкретный snackbar (например, после Undo);
 - повторный enqueue с тем же явным `id` игнорируется, пока первый snackbar присутствует. Для замены сначала вызовите `removeSnackbar(id)`.
+
+### Вид уведомлений
+
+Вид уведомлений (UI Kit Toast и Banner). Каждое уведомление шириной 448 px (на телефоне — по ширине экрана),
+между уведомлениями 8 px; нижние рисуются поверх теней верхних. Тост залит цветом своего тона (успех — зелёный,
+информация — синий, предупреждение — янтарный, ошибка — красный), скругление 8, отступы 8/16, тень тоста; значка
+тона нет. `message` — заголовок 18/26 SemiBold, необязательное `description` — вторая строка 12/16 цветом текста
+тона. Справа, в 64 px от текста, стоят действие потребителя (`action`) и крестик — значок 16 px в кнопке 32 px
+без заливки, цветом текста тона; крестик есть и рядом с действием. Полоса таймера 3 px идёт по нижнему краю и
+убывает влево. Кнопка «Undo» из `showUndoSnackbar` — мягкая `small` с подписью цвета основного текста, без значка.
+Ошибка Paynet с идентификатором и деталями (`showError({error})`) — баннер, и это тот же `PneBanner`, что
+стоит на страницах: бледная заливка тона в кольце его цвета, отступы 12/16, знак тона 20 px слева, крестик
+24 px. Уведомление добавляет к нему только своё: ширину стопки, тень тоста поверх кольца и полосу таймера;
+действие потребителя встаёт под текстом. Цвета — `theme.palette.pne.toast`, одинаковые для всех скинов.
+
+### Постоянные оверлеи: `PermanentOverlay`
+
+`OverlayHost` рендерит snackbars из `overlayActions` и принимает декларативные постоянные оверлеи через `PermanentOverlay`
+(по одному на слот: `top-left/top-right/bottom-left/bottom-right`).
+```tsx
+import React from 'react'
+import { OverlayHost, PermanentOverlay, PneFloatingActionButtons, overlayActions } from 'pne-ui'
+
+const AppShell = () => (
+    <OverlayHost>
+        <PermanentOverlay
+            id='page-fab'
+            slot='bottom-right'
+            render={() => (
+                <PneFloatingActionButtons
+                    actions={[
+                        {
+                            id: 'save',
+                            label: 'Save',
+                            onClick: () => overlayActions.showSuccess({ message: 'Saved!' }),
+                        },
+                        { id: 'divider', kind: 'divider' },
+                        {
+                            id: 'info',
+                            label: 'Info',
+                            onClick: () => overlayActions.showInfo({ message: 'Something happened' }),
+                        },
+                    ]}
+                />
+            )}
+        />
+        {/* ваш layout, роутер, модалки и т.д. */}
+    </OverlayHost>
+)
+```
+
+- `PermanentOverlay` можно размещать на любом уровне дерева под хостом; последний зарегистрированный в слоте заменяет предыдущий.
+- Слоты фиксированы четырьмя углами; сместить позицию можно через `offset`/`zIndex` пропы на `PermanentOverlay`.
+- По умолчанию слот — `bottom-right`, отступ от краёв 24 px; `render` получает `{breakpoint}`.
+
+### Панель фоновых операций: `PneOperationCenter`
+
+Управляемая панель фоновых операций (генерация отчётов и подобное), которую приложение отдаёт в
+`<OverlayHost operationCenter={…}>`. Она стоит справа внизу в 16 px от краёв, под подложками модальных окон;
+стопка уведомлений и нижние оверлеи встают над ней. Без операций панель ничего не рисует.
+
+Панель не хранит список, не опрашивает сервер и не повторяет запросы: приложение передаёт `operations` и
+обрабатывает `onAction(operationId, actionId)`, `onDismiss(operationId)` и `onClearTerminal(ids)`.
+
+- `PneOperationCenterItem`: `{id, title, status, statusLabel?, context?, detail?, progress?, actions?,
+  dismissible?}`;
+- `status`: `starting`, `queued`, `running`, `finalizing`, `monitoring-error`, `succeeded`, `failed`,
+  `cancelled`, `unknown`;
+- `progress`: `{kind: 'indeterminate'}` или `{kind: 'determinate', value}` со значением от 0 до 100;
+- `expanded` / `defaultExpanded` (по умолчанию свёрнута) / `onExpandedChange` — раскрытие панели;
+- `labels` — подписи панели; без них берутся ключи `pne.operationCenter.*`.
 
 ### Ошибки валидации UI API (`violations[]`)
 
@@ -1984,7 +2129,8 @@ Cancel используйте `showCancel: false`: Close, Escape и backdrop п�
 При размонтировании provider текущий и ожидающие Promise завершаются значением `false`.
 
 Для повторяемого или бизнес-специфичного действия передавайте стабильный не-секретный
-`autoTestValue` (raw entity ID, enum или caller-owned scope). Portal-root получает это значение, поэтому dialog
+`autoTestValue` (raw entity ID, enum или caller-owned scope). Это значение получает контейнер диалога
+(`role='dialog'`), поэтому dialog
 однозначно связывается с инициировавшим control даже вне его DOM-поддерева. Очередь хранит scope каждого
 запроса независимо и меняет его вместе с текущим confirm.
 
@@ -2003,7 +2149,7 @@ Cancel используйте `showCancel: false`: Close, Escape и backdrop п�
 
 ### Подключение контекста через `SearchUIProvider`
 
-Компоненты `SearchUI` и его фильтры получают конфигурацию через контекст `SearchUIDefaultsContext`.  
+Компоненты `SearchUI` и его фильтры получают конфигурацию из `SearchUIProvider`.  
 Чтобы отдать реальные источники данных и управлять видимостью критериев, оберните SearchUI в `SearchUIProvider`
 и передайте нужные обработчики в проп `defaults`:
 
@@ -2054,14 +2200,15 @@ export const TransactionsPage = () => (
 ) 
 ```
 
-Передавайте только те поля `SearchUIDefaults`, которые хотите переопределить — остальные значения берутся из
-`initialSearchUIDefaults`. Более развернутый пример можно посмотреть в `src/stories/SearchUI.stories.tsx`.
+Передавайте только те поля `SearchUIDefaults`, которые хотите переопределить — остальные берутся из значений
+библиотеки по умолчанию (пустые списки, все `show…` — `true`). Более развернутый пример — история Storybook
+`pne-ui/SearchUI`.
 `templatesApi` в примере — любая ваша обертка над бэкендом, которая умеет получать/сохранять шаблоны.
 
 ### Раскладка панели фильтров
 
 Панель — блок в рамке со скруглением 8px (UI Kit Filter): полоса-заголовок, строки критериев и нижняя
-полоса. Строки и нижняя полоса лежат в одной сетке из трёх колонок — название, значки и значение. Блок
+полоса. Строки и нижняя полоса лежат в одной сетке из трёх колонок — значки, название и значение. Блок
 отступает от краёв страницы на 16px, как таблица под ним.
 
 - Заголовок — полоса 32px на заливке `pne.table.band.tabs.fill`: слева кнопка «Filters» с шевроном
@@ -2076,9 +2223,9 @@ export const TransactionsPage = () => (
   слева и 4px справа.
 
 - Колонка названий берёт ширину по самому длинному названию на странице, но не уже 120px и не шире 240px.
-  Название, которое не помещается, обрезается многоточием, и только тогда при наведении показывает полное
-  название в подсказке. Цвет названий — из палитры (`pne.text.default`), линий между строками — цвет рамки
-  панели, поэтому в тёмной теме панель читается.
+  Название — 14/20, цвет из палитры (`pne.text.default`). Название, которое не помещается, обрезается
+  многоточием, и только тогда при наведении показывает полное название в подсказке. Линии между строками — цвет
+  рамки панели, поэтому в тёмной теме панель читается.
 - Строка критерия (UI Kit Filter row): значки сброса и удаления, затем название, затем значение; высота
   строки от 45px вместе с линией над ней (элементы 32px и по 6px сверху и снизу), между колонками 16px. Колонка значков — 68px под две
   кнопки 32px с зазором 4px: сброс (круговые стрелки) всегда первый, крестик удаления — второй; у критерия,
@@ -2087,7 +2234,6 @@ export const TransactionsPage = () => (
 - Значки — Icon action UI Kit: квадрат 32px со значком 16px без заливки, в покое цвет Neutral/600, под
   указателем и при фокусе с клавиатуры — цвет текста бренда. Подсказка при наведении и фокусе повторяет
   доступное имя: `Clear filter: <критерий>`, `Remove filter: <критерий>`.
-- Название критерия — 14/20, колонка не уже 120px.
 - Значения в строке (UI Kit Filter row) — 32px, между ними 4px, по 6px до линий строки, в том числе когда
   значения переносятся на вторую строку. Выпадающий выбор — поле-чип: заливка вкладок, радиус 4, текст 14/20,
   шеврон библиотеки 16px. Выбранное значение — бейдж в тонкой рамке, тот же, что у множественного поля
@@ -2099,51 +2245,46 @@ export const TransactionsPage = () => (
   баннер.
 - Меню панели (UI Kit Dropdown menu) — панель выпадающих списков библиотеки: радиус 8, тонкая рамка, тень,
   отступ 4px; строки 32px, текст 14/20, значки 16px, подсветка строки — цвет наведения списков. `Add filter`
-  берёт вид целиком (`withPneDropdownMenuLook`, размер `medium`), но не ограничен восемью строками; меню
-  `Saved filters` рисует свои строки (имя, ручка, удаление) на той же панели (`createPneMenuPanelStyle`),
-  поле поиска в нём — 32px.
+  берёт этот вид целиком, но не ограничен восемью строками; меню `Saved filters` рисует свои строки (имя, ручка,
+  удаление) на той же панели шириной 320px, поле поиска в нём — 32px.
 - Окно Multiget и окно группировки (UI Kit Transfer list): два списка в рамке с радиусом 8, над каждым подпись
-  12/16 и действие над всем списком; строка 32px без собственной заливки, в конце строки знак того, что
-  сделает щелчок, — стрелка (добавить) или крестик (вернуть), под указателем знак окрашивается. Строка,
-  которую щелчок не двигает, знака не несёт. Поиск — поле 32px с лупой. Переключатели Include / Exclude и
-  All / MID / Descriptor — группа вкладок (`searchUITabsGroupSx`), страницы списка — кнопки пагинации таблицы.
-- Календарь точных дат (UI Kit Date picker, `pneCalendarPopperSx` на поппере MUI X): панель списков, день —
+  12/16; действие над всем списком есть у обоих списков окна группировки, в Multiget — только `Clear` над
+  выбранными. Строка 32px без собственной заливки, в конце строки знак того, что сделает щелчок, — стрелка
+  (добавить) или крестик (вернуть), под указателем знак окрашивается. Строка, которую щелчок не двигает, знака
+  не несёт. Поиск — поле 32px с лупой. Переключатели Include / Exclude и All / MID / Descriptor — группа
+  вкладок, страницы списка — кнопки пагинации таблицы.
+- Календарь точных дат (UI Kit Date picker): панель списков, день —
   ячейка 36×32 с радиусом 4 без зазора в неделе, 6px между неделями; под указателем заливка вкладок, сегодня —
   рамка цвета ссылки, концы диапазона — основная заливка, дни между ними — заливка выбранной строки таблицы.
   Колонку готовых периодов из макета панель не берёт: период выбирается выпадающим типом диапазона. У поля
-  «дата и время» под календарём стоят кнопки самого MUI X («Cancel», «OK»), нарисованные кнопками библиотеки
-  (`PneCalendarActionBar` в `slots.actionBar`), а списки часов, минут и секунд — строки 32px того же вида. Имена
+  «дата и время» под календарём стоят кнопки самого MUI X («Cancel», «OK»), нарисованные кнопками библиотеки,
+  а списки часов, минут и секунд — строки 32px того же вида. Имена
   классов — MUI X 9: один день — `MuiPickerDay`, день диапазона — `MuiDateRangePickerDay`. Поля дат в строке —
   32px, кнопка календаря в них — 24px со значком 16px.
-- Фокус с клавиатуры выглядит одинаково на всех элементах панели: кольцо 2px цвета `primary.main` с
-  отступом 1px по форме элемента — на значках, полях-пилюлях, полях дат, полях
-  автодополнения, чипах-дропдаунах, чипах-переключателях и ссылках-триггерах (`createSearchUIFocusRing` /
-  `searchUIFocusRingSx` в `filters/styled.ts`; для элементов критериев правило лежит в `CriterionContainer`).
-  Кнопки заголовка и нижней полосы — обычные `PneButton` и показывают стандартный фокус кнопки; `Add filter`
-  — такая же кнопка с меню, как `Saved filters`, а не прозрачный select поверх кнопки.
-- Шеврон у выпадающих элементов один: `ExpandMore` 16px в цвете текста элемента — на `Saved filters`,
-  чипах-дропдаунах критериев (`in …`, тип диапазона дат, тип даты заказа, валюта проекта,
-  тип даты группировки, тип записи, страна) и в поле кода ошибки (`chipChevronSx` в
-  `component/select/style.ts`). Поле кода ошибки (автодополнение) — такая же пилюля 24px, как поле
-  `Exact`, с крестиком очистки и шевроном внутри; его список открывается от левого края поля шириной
-  420px, но не шире экрана минус 32px (на 360px — 328px). Строка списка: текст ошибки 14px/20px
+- Фокус с клавиатуры выглядит одинаково на всех элементах строк критериев: кольцо 2px цвета `primary.main` с
+  отступом 1px по форме элемента — на значках сброса и удаления, полях ввода, полях дат, полях автодополнения,
+  полях-чипах, кнопках группы вкладок и ссылках-триггерах. Кнопки заголовка и нижней полосы — обычные
+  `PneButton` и показывают стандартный фокус кнопки; `Add filter` — такая же кнопка с меню, как `Saved filters`,
+  а не прозрачный select поверх кнопки.
+- Шеврон у выпадающих элементов один — шеврон библиотеки в цвете текста элемента: 16px на полях-чипах критериев
+  (`in …`, тип диапазона дат, тип даты заказа, валюта проекта, тип даты группировки, тип записи, страна) и в
+  поле кода ошибки, 14px на кнопке `Saved filters`. Поле кода ошибки (автодополнение) — поле 32px с радиусом 4,
+  как поле `Exact`, шириной 220px, с крестиком очистки и шевроном внутри; его список открывается от левого края
+  поля шириной 420px, но не шире экрана минус 32px (на 360px — 328px). Строка списка: текст ошибки 14px/20px
   (не больше двух строк, полный текст в `title`, набранный запрос выделен жирным `<mark>`), под ним
   идентификаторы 12px/16px цветом `pne.text.muted` — только `тип · id · внешний код`, без повтора
-  текста (описание с сервера — поисковая строка `тип:id текст код`, разбирается в
-  `errorCodeOption.ts`; описание другой формы показывается как есть); между строками линия
-  `pne.border.subtle`. Пустой запрос не уходит на сервер: список показывает подсказку
-  `react.searchUI.errorCode.typeToSearch`.
-- Шеврон — пилюля 28px с зоной нажатия 40px по высоте; в свёрнутом виде в ней же стоит число критериев,
-  так что шеврон и счётчик — одна цель. Она называется `Filters` и сообщает состояние через
-  `aria-expanded`; подсказка говорит, что сделает нажатие: `Hide filters` или `Show filters`. Пока
-  критериев нет вовсе, шеврона нет: сворачивать нечего, а первый добавленный критерий разворачивает
-  панель сам.
+  текста (описание с сервера — поисковая строка `тип:id текст код`; описание другой формы показывается как
+  есть); между строками линия `pne.border.subtle`. Пустой запрос не уходит на сервер: список показывает
+  подсказку `react.searchUI.errorCode.typeToSearch`.
+- Кнопка `Filters` в заголовке — текстовая кнопка 24px с шевроном слева: у развёрнутой панели он смотрит вверх,
+  у свёрнутой — вправо. Кнопка называется `Filters` и сообщает состояние через `aria-expanded`; подсказка
+  говорит, что сделает нажатие: `Hide filters` или `Show filters`. Число критериев — отдельный бейдж высотой
+  20px рядом с кнопкой, не её часть; он виден и в развёрнутой, и в свёрнутой панели. Пока критериев нет, вместо
+  кнопки стоит подпись `Filters` без шеврона и бейджа: сворачивать нечего, а первый добавленный критерий
+  разворачивает панель сам.
 - Строки сворачиваются и разворачиваются с анимацией высоты (200 мс, `prefers-reduced-motion` её
   выключает); пока панель закрывается, строки остаются в DOM, закрытая панель их не держит.
-- Свёрнутость запоминается хостом на пользователя и контекст через `getSearchFiltersCollapsed` /
-  `saveSearchFiltersCollapsed` в `SearchUIDefaults` (в Paynet — настройка профиля на сервере, рядом с
-  последним выбранным набором). Без этих колбэков панель открывается развёрнутой при каждом монтировании;
-  в браузере ничего не хранится. Разворот через `Add filter` тоже запоминается.
+- Свёрнутость запоминает хост — см. «Где хранится свёрнутость панели».
 - Меню `Add filter` открывается под кнопкой от её левого края, как и меню наборов. Окно выбора сущностей
   (шлюзы, торговцы и т. п.) озаглавлено названием критерия.
 - Пока хост не ответил, свёрнута ли панель, какой набор выбран в прошлый раз и что в этом наборе, на месте
@@ -2165,9 +2306,9 @@ export const TransactionsPage = () => (
   что над ней. Отступы полос пагинации любой таблицы меняются через `paginationSx` у `PneTable`
   (`{top, bottom}` — отдельно для верхней и нижней полосы).
 
-Ниже 600px название и значки стоят в одной строке, значение под ними; шеврон и кнопки идут одним потоком
-и переносятся по ширине, кнопка Search/Refresh занимает остаток своей строки. Браузеры без CSS subgrid
-получают колонку названий фиксированной ширины 180px.
+Ниже 600px у строки критерия по 8px сверху и снизу и 8px между названием и значением; кнопки заголовка и нижней
+полосы переносятся по ширине (в нижней полосе между ними 8px), кнопка Search/Refresh в нижней полосе занимает
+остаток своей строки. Браузеры без CSS subgrid получают колонку названий фиксированной ширины 180px.
 
 Истории `pne-ui/SearchUI › Orders Manual Search`, `Orders Auto Refresh`, `Virtual Cards`, `Collapsed Filters`,
 `Orders Mobile 360` и `Transaction Report › Report Page` показывают панель в типичных местах.
@@ -2203,10 +2344,10 @@ const config = {
 Даты прежнего режима в поле не переносятся: его конец — полночь после последнего дня, а не сам этот день.
 
 Параметр `maxRangeSpanInDays` задаёт включительную верхнюю границу диапазона.
-Он проверяет уже разрешённые границы всех режимов даты; для date-only `EXACTLY`
+Он проверяет уже разрешённые границы всех режимов даты, кроме `DATE_INDEPENDENT`; для date-only `EXACTLY`
 пользовательская конечная дата считается включительной. Значение должно быть
-положительным целым числом. Пустой конец `EXACTLY` открывает период до 2999 года,
-поэтому при заданном максимуме он тоже даёт `DATE_RANGE_MAX_SPAN_EXCEEDED`.
+положительным целым числом. Пустое начало или пустой конец `EXACTLY` открывают период до границ 2000–2999
+годов, поэтому при заданном максимуме они тоже дают `DATE_RANGE_MAX_SPAN_EXCEEDED`.
 
 ### Критерии отчёта по транзакциям
 
@@ -2229,7 +2370,6 @@ import {useState} from 'react'
 import {
     CriterionTypeEnum,
     DATE_RANGE_SPEC_TYPES,
-    OverlayHost,
     PneButton,
     type SearchCriteria,
     SearchUIFilters,
@@ -2273,47 +2413,47 @@ export const TransactionReportFiltersExample = ({
         }
     }
 
-    return <OverlayHost>
-        <SearchUIProvider>
-            <SearchUIFilters
-                settingsContextName="transaction-report"
-                possibleCriteria={REQUIRED_TRANSACTION_REPORT_CRITERIA}
-                predefinedCriteria={REQUIRED_TRANSACTION_REPORT_CRITERIA}
-                initialSearchConditions={{
-                    dateRangeSpec: {
-                        dateRangeSpecType: 'EXACTLY',
-                        dateFrom: new Date(2026, 0, 1),
-                        dateTo: new Date(2026, 0, 31),
-                    },
-                    scope: 'ALL',
-                    transactionIds: '',
-                    datesType: 'CREATED',
-                    recurrentFilter: 'ALL',
-                    timeZoneOffsetHours: null,
-                    csvCharset: null,
-                }}
-                onFiltersUpdate={criteria => setSearchCriteria(criteria)}
-                onValidationChange={setValidation}
-                config={{
-                    dateRange: {
-                        dateRangeSpecTypes: DATE_RANGE_SPEC_TYPES.filter(
-                            type => type !== 'DATE_INDEPENDENT',
-                        ),
-                        maxRangeSpanInDays: 93,
-                    },
-                }}
-            />
+    return <SearchUIProvider defaults={{}}>
+        <SearchUIFilters
+            settingsContextName="transaction-report"
+            possibleCriteria={REQUIRED_TRANSACTION_REPORT_CRITERIA}
+            predefinedCriteria={REQUIRED_TRANSACTION_REPORT_CRITERIA}
+            initialSearchConditions={{
+                dateRangeSpec: {
+                    dateRangeSpecType: 'EXACTLY',
+                    dateFrom: new Date(2026, 0, 1),
+                    dateTo: new Date(2026, 0, 31),
+                },
+                scope: 'ALL',
+                transactionIds: '',
+                datesType: 'CREATED',
+                recurrentFilter: 'ALL',
+                timeZoneOffsetHours: null,
+                csvCharset: null,
+            }}
+            onFiltersUpdate={criteria => setSearchCriteria(criteria)}
+            onValidationChange={setValidation}
+            config={{
+                dateRange: {
+                    dateRangeSpecTypes: DATE_RANGE_SPEC_TYPES.filter(
+                        type => type !== 'DATE_INDEPENDENT',
+                    ),
+                    maxRangeSpanInDays: 93,
+                },
+            }}
+        />
 
-            <PneButton
-                disabled={searchCriteria === null || !validation?.isValid}
-                onClick={generateReport}
-            >
-                Generate report
-            </PneButton>
-        </SearchUIProvider>
-    </OverlayHost>
+        <PneButton
+            disabled={searchCriteria === null || !validation?.isValid}
+            onClick={generateReport}
+        >
+            Generate report
+        </PneButton>
+    </SearchUIProvider>
 }
 ```
+
+`OverlayHost` должен быть смонтирован в приложении-хосте.
 
 У высокоуровневого `SearchUI` используются те же `possibleCriteria`,
 `predefinedCriteria`, `initialSearchConditions`, `config` и
@@ -2327,7 +2467,7 @@ export const TransactionReportFiltersExample = ({
 консоль уходит ошибка с именем контекста: объявите его в `predefinedCriteria`. В поиск
 уходят только выборы активных критериев, невидимого фильтра не бывает.
 
-Ластик строки (`clear-criterion`) возвращает критерий к значению страницы: к тому, что задано
+Значок сброса строки (`clear-criterion`) возвращает критерий к значению страницы: к тому, что задано
 для него в `initialSearchConditions` (период, выбор в `multigetCriteria`, scope и так далее), а
 где страница значения не дала — к пустому значению библиотеки (для дат это Today). Так же, как
 «Default» и «Clear all» делают для всех строк сразу, только шаблон и остальные строки не
@@ -2377,9 +2517,8 @@ production-запросе.
 критерии, поэтому внешнюю кнопку Generate блокируйте по `onValidationChange`, а не по
 наличию дат. Отчёт генерируется внешней кнопкой, и автоматическому режиму обновлять
 нечего: `config.hideRefreshButton: true` прячет его кнопку Refresh. Кнопку Search
-ручного режима флаг не прячет. При валидном изменении пример
-выше сразу синхронизирует актуальные критерии, а внешнюю кнопку Generate блокирует
-через `onValidationChange`.
+ручного режима флаг не прячет. При валидном изменении `onFiltersUpdate` сразу отдаёт
+актуальные критерии.
 
 Если отдельно включить `manualSearch: true`, пользователь должен сначала применить
 изменения встроенной кнопкой Search и только затем запускать Generate: до Search в
@@ -2487,7 +2626,7 @@ production-запросе.
 
 #### Где хранится свёрнутость панели
 
-Свёрнутость критериев (шеврон) хранит только хост — пара `getSearchFiltersCollapsed(contextName)` и
+Свёрнутость критериев (кнопка `Filters`) хранит только хост — пара `getSearchFiltersCollapsed(contextName)` и
 `saveSearchFiltersCollapsed({contextName, collapsed})` в `SearchUIProvider` (в Paynet — настройка
 профиля пользователя на сервере, как и имя последнего набора). В браузере ничего не хранится: без пары
 панель открывается развёрнутой при каждом монтировании. При монтировании с парой фильтры ждут ответа
@@ -2498,13 +2637,16 @@ production-запросе.
 
 ### Меню шаблонов и их порядок
 
-Кнопка Templates открывает меню: сохранённые шаблоны (применённый отмечен галочкой), под ними
-«Save as new template» и, пока шаблон применён, «Update “<name>”». Нижние действия закреплены и остаются
-видны при длинном списке. Удаление подтверждается через `PneConfirmProvider`, если хост его смонтировал.
+Кнопка `Saved filters` в заголовке панели (с применённым набором на ней стоит его имя) открывает меню: пункт
+`Default`, под ним сохранённые наборы (применённый отмечен галочкой), внизу «Save as new filter set», пока набор
+применён — «Update “<name>”», а если фильтры после этого менялись — «Discard changes». Нижние действия
+закреплены и остаются видны при длинном списке. Удаление подтверждается через `PneConfirmProvider`, если хост
+его смонтировал.
 
 От 10 шаблонов сверху появляется поле поиска: оно получает фокус при открытии и фильтрует список по
-вхождению без учёта регистра, без запросов к хосту. ↓ переводит фокус в список, ↑ с первого шаблона
-возвращает в поле, Enter применяет первое совпадение. Пока список отфильтрован, порядок не меняется.
+вхождению без учёта регистра, без запросов к хосту. ↓ переводит фокус в список: на `Default`, а при набранном
+запросе — на первое совпадение; ↑ оттуда возвращает в поле; Enter при набранном запросе применяет первое
+совпадение. Пока список отфильтрован, порядок не меняется.
 
 Если хост передал `reorderSearchTemplates`, у строк справа появляется ручка перетаскивания (мышь и touch), а с
 клавиатуры шаблон двигается Alt+↑/Alt+↓. Новый порядок применяется сразу и уходит в
@@ -2518,8 +2660,9 @@ production-запросе.
 
 По умолчанию любое изменение фильтра немедленно запускает новый запрос.
 Для экранов с тяжёлыми запросами можно включить ручной режим — фильтры будут
-только накапливать изменения, а запрос отправится по нажатию кнопки **Search**
-в строке действий под критериями.
+только накапливать изменения, а запрос отправится по нажатию кнопки **Search**:
+в развёрнутой панели она стоит в нижней полосе у правого края, в свёрнутой панели и
+в панели без критериев — в заголовке.
 
 ```tsx
 <SearchUI
@@ -2544,12 +2687,14 @@ production-запросе.
 При первой загрузке итоговый запрос всё равно отправляется автоматически, чтобы
 пользователь сразу видел данные. Если сохранён последний шаблон, не выполняется
 предварительный запрос с начальными значениями: первый связанный с шаблонами
-запрос сразу использует его условия. Кнопка Search становится активной только
-после того, как фильтры были изменены.
+запрос сразу использует его условия. Кнопка Search активна всегда, кроме времени
+загрузки данных таблицы и невалидного диапазона дат; нажатие без изменений повторяет
+поиск и пересчитывает относительные даты.
 
 Исключения из этого правила тоже остаются автоматическими:
 
 - применение пользователем сохранённого шаблона после инициализации;
+- пункт `Default`, «Discard changes» и `Clear all` (при скрытом меню наборов);
 - внешняя синхронизация через проп `searchConditions` (например, клик по
   значению вне панели SearchUI).
 
@@ -2574,7 +2719,8 @@ const last30Days = {
 Search. Поэтому не вычисляйте относительные даты заранее в хосте:
 иначе сохранённый `dateTo` со временем превращается в устаревшую верхнюю границу.
 Для `EXACTLY`, напротив, `dateFrom` и `dateTo` задаются явно и не пересчитываются;
-`DATE_INDEPENDENT` конкретного диапазона вообще не имеет.
+`DATE_INDEPENDENT` дат и `beforeCount` в пропсах не принимает и не пересчитывается: в поиск
+уходят фиксированные границы (см. «Кастомизация фильтра диапазона дат»).
 
 Публичные props `SearchUI` и `SearchUIFilters` проверяют эту форму и на этапе
 компиляции, и в runtime. Поэтому относительные пресеты не принимают `dateFrom` /
@@ -2600,18 +2746,76 @@ in-memory состояние исчезает; постоянное хранен
 экрана. Два последовательных экрана с одинаковым именем намеренно разделяют
 восстановленное состояние.
 
+## PneCoachmark
+
+Немодальная карточка-подсказка (`role="dialog"`, `aria-modal="false"`) шириной 360 px, привязанная к элементу
+`anchorEl`: по умолчанию `placement="bottom-start"`, в 8 px от якоря и не ближе 16 px к краям окна. Без якоря
+карточка стоит по центру экрана. Подложки и закрытия по клику мимо нет: карточка закрывается крестиком или Escape —
+`onClose(event, 'closeButtonClick' | 'escapeKeyDown')`.
+
+Основные пропсы: `open`, `onClose`, `title` или `ariaLabel` (одно из двух обязательно), `subtitle`, `children`,
+`actions` (кнопки внизу), `hideCloseButton`, `disableEscapeKeyDown`, `closeLabel` (по умолчанию «Close»),
+`container`, `disablePortal`, `modifiers`, `containerSx`, `slotProps`. `data-*` попадают на контейнер карточки.
+
+## AbstractEntitySelector и AbstractEntitySelectModal
+
+`AbstractEntitySelector` — две колонки, «Available» и «Added», с поиском, «выбрать все» в каждой колонке и
+перетаскиванием между колонками и внутри них. Элементы — строки, `{id, name}`, `AbstractEntity` или `Country`.
+
+- `list` (доступные) и `selected` (добавленные) читаются при монтировании и заново — только при смене `reset`;
+- `onChange(mappedList, unMappedList)` получает обе колонки после каждого изменения;
+- `height`, `virtualized` (по умолчанию `true`), `dragHandle: 'row' | 'button'`,
+  `disableMoving: 'ADDED' | 'AVAILABLE'`, `allowNewlyAddedRemoval`, `optionRenderer`,
+  `textRepresentation: 'ID' | 'NAME'`, `actionBlock`;
+- якоря автотестов задаются через `getItemAttributes` и `elementAttributes`;
+- ключи i18n: `search`, `abstractSelector.available`, `abstractSelector.added`, `abstractSelector.select.all`,
+  `abstractSelector.reorder`.
+
+`AbstractEntitySelectModal` — тот же выбор в `PneModal` шириной 600 px с кнопками Cancel и Save (ключи `cancel`,
+`save`): `open`, `onClose`, `title`, `subTitle`, `unMappedList`, `mappedList`, `handleSave({mapped, unmapped})` и
+пропсы самого выбора.
+
+## useTable и useModal
+
+`useTable` — состояние таблицы с серверной пагинацией и сортировкой. Он возвращает `data`, `loading`, `paginator`
+(передаётся в `PneTable` как есть), `page`, `pageSize`, `sortIndex`, `order`, `onSortChange` и сеттеры.
+
+- `fetchData({page, pageSize, order, sortIndex, extraDeps})` должен вернуть до `pageSize + 1` строк: лишняя строка
+  означает, что есть следующая страница. Пустая страница дальше первой запрашивается заново как первая;
+- `fetchDataExtraDeps` — значения, смена которых перезапрашивает данные;
+- `rowsPerPageOptions` — размеры страницы, по умолчанию `[10, 25, 50]`; начальный размер — последний из них;
+- `settingsContextName` — имя, под которым страница, размер и сортировка хранятся в `sessionStorage` вкладки;
+- `displayOptions` / `onDisplayOptionsChange`, `resetKey`, `resetDisplayOptions`,
+  `resetStateOnKeyChange: 'reset' | 'restore'`, `duplicatePagination`.
+
+`AbstractTable` — реализация `PneTable` с теми же пропсами; новому коду нужен `PneTable`.
+
+`useModal` — состояние открытия для `PneModal`: `const {open, setOpen, handleOpen, handleClose} = useModal()`,
+сначала закрыто.
+
+## Расстояния между действиями
+
+`pneActionSpacing.buttons` и `pneActionSpacing.groups` — значения для `gap` между кнопками одной группы и между
+группами (по 8 px), `PneModalActions` использует их сам. `PneThemeProvider` объявляет их CSS-переменные; со своим
+`ThemeProvider` один раз у корня подключите `<PneActionSpacingStyles/>`. Подробности —
+[docs/action-spacing.md](docs/action-spacing.md).
+
 ## Локализация (i18n)
 
-`pne-ui` не принимает текстовые ресурсы через пропсы и не содержит собственного `I18nextProvider`.  
-Все компоненты используют `useTranslation()` из `react-i18next`, поэтому они читают строки из того же контекста,
-который инициализирован в приложении-хосте. Если в хосте нет i18next, библиотека будет просто возвращать ключи.
+Собственного `I18nextProvider` в `pne-ui` нет: компоненты читают строки через `useTranslation()` из контекста
+`react-i18next` приложения-хоста. У большинства ключей есть английский текст по умолчанию — он показывается, пока
+ключ не зарегистрирован. Ключи без текста по умолчанию (`search`, `cancel`, `save`, `create`, `clear`,
+`clear.all`, `react.searchUI.filters`, значения enum) без перевода выводятся как сам ключ. Подписи отдельных
+экземпляров задаются пропсами (`closeLabel`, `confirmLabel`, `undoLabel`, `fabLabel`, `noRowsMessage`, `labels`).
+Список ключей — в [docs/i18n.md](docs/i18n.md).
 
 ### Что нужно сделать в проекте
 
 1. Инициализировать i18next один раз в корне приложения (например, в точке входа или конфигурации Storybook).
 2. Добавить `initReactI18next` или обернуть дерево в `<I18nextProvider i18n={i18nInstance}>`, чтобы контекст был доступен.
-3. Зарегистрировать все строки, которые ожидают компоненты `pne-ui` — в первую очередь ключи вида `react.searchUI.*`,
-   `clear.all`, `search.delete`, и т.д. Они должны жить в ресурсах самого хоста.
+3. Зарегистрировать все строки, которые ожидают компоненты `pne-ui` — в первую очередь ключи вида
+   `react.searchUI.*`, `react.CriterionTypeEnum.*`, `search`, `cancel`, `save`, `clear.all` и т.д. Они должны
+   жить в ресурсах самого хоста.
 
 ### Пример настройки
 
@@ -2628,7 +2832,7 @@ i18n.use(initReactI18next).init({
         ru: {
             translation: {
                 'react.searchUI.filters': 'Фильтры',
-                'react.searchUI.template': 'Шаблон',
+                'react.searchUI.template': 'Сохранённые фильтры',
                 'clear.all': 'Очистить всё',
                 // добавьте остальные ключи, которые используете
             },
@@ -2644,13 +2848,13 @@ export default i18n
 
 ## Темизация компонентов MUI
 
-`pne-ui` поставляет `createPneTheme`, `PneThemeProvider` и тип `Skin`.
-`Skin` описывает корпоративные цвета Paynet (цвета хедера, меню и т.д.),
-а `createPneTheme(skin)` на их основе строит расширенную MUI-тему с дополнительными палитрами:
-`pnePrimary`, `pneNeutral`, `pnePrimaryLight`, `pneAccentuated`, `pneWhite`, `pneWarningLight`.
-По умолчанию тема остаётся светлой. Для тёмной схемы передайте `{colorMode: 'dark'}`; нейтральные
-surface/text/action-токены при этом меняются, а skin accent автоматически получает контрастный вариант для
-текста и отдельный исходный fill для contained-кнопок.
+`pne-ui` поставляет `createPneTheme`, `PneThemeProvider` и тип `Skin`. Из скина тема берёт один цвет —
+`experimentalColor`: из него строится шкала бренда, а из шкалы — цвета всех компонентов по ролям
+(`theme.palette.pne`). Остальные поля `Skin` (хедер, меню, футер) тема не использует и хранит в `theme.skin`.
+По умолчанию тема светлая; для тёмной передайте `{colorMode: 'dark'}` — поверхности, текст и роли компонентов
+подбираются под тёмную схему. Палитры MUI `pnePrimary`, `pneNeutral`, `pnePrimaryLight`, `pneAccentuated`,
+`pneWhite`, `pneWarningLight` оставлены для старого кода на `Button` / `IconButton` из MUI; в новом коде
+используйте `PneButton` и роли `palette.pne`.
 
 ### Быстрый старт
 
@@ -2658,6 +2862,8 @@ surface/text/action-токены при этом меняются, а skin accen
 2. Создаёте тему `const theme = createPneTheme(skin)`.
 3. Оборачиваете приложение в `<ThemeProvider theme={theme}>`, чтобы все компоненты `pne-ui` и стандартные MUI
    получили одинаковые значения цветов и стили переопределений.
+4. Со своим `ThemeProvider` один раз у корня подключаете `<PneActionSpacingStyles/>`; `PneThemeProvider` делает
+   это сам.
 
 ```tsx
 import React from 'react'
@@ -2682,9 +2888,8 @@ export const App = () => (
 )
 ```
 
-При необходимости можно передать второй аргумент `createPneTheme(skin, muiOverrides)` и дополнительно расширить
-тему MUI (тип `ThemeOptions`). Обёрнутые компоненты получают как базовые цвета skin, так и кастомные
-color overrides (`pneNeutral`, `pnePrimaryLight`, `pneAccentuated` и др.), объявленные в `src/index.ts`.
+Вторым аргументом `createPneTheme(skin, options)` принимает `PneCreateThemeOptions`: обычные `ThemeOptions` MUI и
+`colorMode`. Переданные значения накладываются поверх темы `pne-ui`.
 
 ### Светлая и тёмная схемы
 
@@ -2708,11 +2913,11 @@ return (
 
 Новые роли доступны в `theme.palette.pne`: `surface.sunken/subtle/raised`,
 `border.subtle/default/control`, `text.default/muted`, `control.foreground/foregroundHover/foregroundDisabled/activeBackground`
-и `brand`. Группа `control` — нейтральные серые второстепенных элементов управления (значки панели
-фильтров): одинаковые при любом скине, в покое не ниже 3:1 к странице. Полосы таблицы и знак сортировки с
-pne-ui 5 берут цвета из `pne.table` и `pne.button` (вид UI Kit). В `brand` исходный `seed/fill` отделён от автоматически
-адаптированного `foreground`; используйте `foreground` для ссылок, иконок и заголовков на тёмных surfaces,
-а `fill/onFill/fillBorder` — для залитых controls.
+и `brand`. Группа `control` — нейтральные серые для собственных второстепенных элементов приложения: одинаковые
+при любом скине, в покое не ниже 3:1 к странице. Компоненты `pne-ui` 5 её не используют: значки панели фильтров,
+пагинация и выбор вида берут цвета из `pne.button.text`, полосы таблицы и знак сортировки — из `pne.table`.
+Группа `brand` (`seed`, `foreground`, `fill`, `onFill`, `fillBorder`…) оставлена для старого кода: для ссылки
+берите `pne.link`, для кольца фокуса — `pne.focusRing`, для залитого элемента — `pne.button.primary.<состояние>`.
 
 ### Цвета темы
 
@@ -2725,13 +2930,14 @@ pne-ui 5 берут цвета из `pne.table` и `pne.button` (вид UI Kit).
 - `PNE_NEUTRAL_RAMP` — нейтральная шкала, шаги от `0` до `1050`, одинаковая для всех скинов;
 - `PNE_STATUS_COLORS` — шкалы `error`, `warning` и `success` с шагами от `50` до `950`, одинаковые для
   всех скинов;
-- `theme.palette.pne.button`, `.switch`, `.checkbox`, `.field` и `.dropdown` — готовые цвета компонентов
-  по ролям UI Kit и состояниям, уже подобранные под светлую и тёмную схему; `focusRing` и `link` — цвет
-  кольца фокуса и текста ссылки.
+- `theme.palette.pne.button`, `.switch`, `.checkbox`, `.field`, `.dropdown`, `.modal`, `.toast` и `.table` —
+  готовые цвета компонентов по ролям UI Kit и состояниям, уже подобранные под светлую и тёмную схему;
+  `focusRing` и `link` — цвет кольца фокуса и текста ссылки.
 
 Заливка (шаг `600`) — это цвет скина, если белая подпись читается на нём при 4,5:1. Светлый цвет скина,
 на котором белая подпись не читается и при 3:1, тоже остаётся заливкой и берёт тёмную подпись. Цвет между
-ними темнеет до светлоты заливки UI Kit, пока белая подпись не читается при 4,5:1. Остальные шаги — шкала
+ними темнеет до светлоты заливки UI Kit, а если белая подпись всё ещё не читается при 4,5:1 — дальше, пока не
+начнёт читаться. Остальные шаги — шкала
 бренда UI Kit, перенесённая на эту заливку: для `#026FD7` выходит шкала UI Kit точно.
 
 Шкалы от схемы не зависят, поэтому для своего элемента берите готовую роль, а не шаг шкалы: роль остаётся
@@ -2749,75 +2955,28 @@ const OwnChip = ({children}: {children: React.ReactNode}) => {
 }
 ```
 
-## OverlayHost и уведомления
-
-Вид уведомлений (UI Kit Toast и Banner). Каждое уведомление шириной 448 px (на телефоне — по ширине экрана),
-между уведомлениями 8 px; нижние рисуются поверх теней верхних. Тост залит цветом своего тона (успех — зелёный,
-информация — синий, предупреждение — янтарный, ошибка — красный), скругление 8, отступы 8/16, тень тоста; значка
-тона нет. `message` — заголовок 18/26 SemiBold, необязательное `description` — вторая строка 12/16 цветом текста
-тона. Справа, в 64 px от текста, стоят действие потребителя (`action`) и крестик — значок 16 px в кнопке 32 px
-без заливки, цветом текста тона; крестик есть и рядом с действием. Полоса таймера 3 px идёт по нижнему краю и
-убывает влево. Кнопка «Undo» из `showUndoSnackbar` — мягкая `small` с подписью цвета основного текста, без значка.
-Ошибка Paynet с идентификатором и деталями (`showError({error})`) — баннер, и это тот же `PneBanner`, что
-стоит на страницах: бледная заливка тона в кольце его цвета, отступы 12/16, знак тона 20 px слева, крестик
-24 px. Уведомление добавляет к нему только своё: ширину стопки, тень тоста поверх кольца и полосу таймера;
-действие потребителя встаёт под текстом. Цвета — `theme.palette.pne.toast`, одинаковые для всех скинов.
-
-`OverlayHost` рендерит snackbars из `overlayActions` и принимает декларативные постоянные оверлеи через `PermanentOverlay`
-(по одному на слот: `top-left/top-right/bottom-left/bottom-right`).
-```tsx
-import React from 'react'
-import { OverlayHost, PermanentOverlay, PneFloatingActionButtons, overlayActions } from 'pne-ui'
-
-const AppShell = () => (
-    <OverlayHost>
-        <PermanentOverlay
-            id='page-fab'
-            slot='bottom-right'
-            render={() => (
-                <PneFloatingActionButtons
-                    actions={[
-                        {
-                            id: 'save',
-                            label: 'Save',
-                            onClick: () => overlayActions.showSuccess({ message: 'Saved!' }),
-                        },
-                        { id: 'divider', kind: 'divider' },
-                        {
-                            id: 'info',
-                            label: 'Info',
-                            onClick: () => overlayActions.showInfo({ message: 'Something happened' }),
-                        },
-                    ]}
-                />
-            )}
-        />
-        {/* ваш layout, роутер, модалки и т.д. */}
-    </OverlayHost>
-)
-```
-
-- Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo`, `showSnackbar` или `showUndoSnackbar`.
-- `showError` принимает как готовый UI-текст (`{ message }`), так и исходную Paynet/transport ошибку (`{ error }`). Во втором случае библиотека сама разворачивает Paynet v1, Axios/Fetch/Blob payload, переводит `messageId`, показывает `errorId`, `errorI18N` и доступный пользователю `details`.
-- `showUndoSnackbar` возвращает `id` snackbar и добавляет встроенную action-кнопку `Undo` (или ваш `undoLabel`).
-- Любой snackbar с конечным `autoHideMs` показывает progress bar вверху карточки; если `autoHideMs` не задан, progress bar не рендерится.
-- По умолчанию UI рендерится portal-ом в `document.body`; `container` позволяет задать другой `Element` или callback (в том числе через `ref.current`). Layer берётся из `theme.zIndex.snackbar`/`theme.zIndex.modal`.
-- `maxSnack` удаляет самые старые overflow entries. Явный `id` дедуплицирует pending snackbar по правилу first-wins.
-- `PermanentOverlay` можно размещать на любом уровне дерева под хостом; последний зарегистрированный в слоте заменяет предыдущий.
-- Слоты фиксированы четырьмя углами; сместить позицию можно через `offset`/`zIndex` пропы на `PermanentOverlay`.
+`data-pne-state` на компонентах (`hover`, `pressed`, `focus`, `loading`) закрепляет состояние для образцов
+Storybook; в коде продукта атрибут не задаётся.
 
 ## PneFloatingActionButtons
 
-Плавающее меню действий: на десктопе показывает стек FAB над триггером и параллельно меню, на мобильных все пункты уходят
-в меню. Поддерживает экшены, произвольные блоки контента и разделители. По умолчанию мобильным считается ширина `<= 800px`
-(`mobileBreakpoint`), на десктопе action-кнопки остаются доступны и в меню, и в стеке.
+Плавающее меню действий: на десктопе показывает стек FAB над триггером и параллельно меню, на мобильных все
+пункты уходят в меню. Поддерживает экшены, произвольные блоки контента и разделители. По умолчанию мобильным
+считается экран уже 800 px (`mobileBreakpoint`). Когда страница прокручена, над стеком появляется кнопка
+«Scroll to top» (ключ `pne.fab.scrollToTop`).
 
 Ключевые пропы:
-- `actions: PneFabItem[]` — массив элементов: action `{ id, label, onClick, icon?, disabled?, tooltip? }`,
-  divider `{ kind: 'divider' }`, content `{ kind: 'content', node }`.
-- `mobileBreakpoint` (default `800`) — ширина, ниже которой показываем только меню.
+- `actions: PneFabItem[]` — действие `{ id, label, onClick, icon?, disabled?, tooltip?, showInMenu?,
+  showInFabStack? }`, разделитель `{ id, kind: 'divider' }`, произвольный блок `{ id, kind: 'content', node }`.
+  По умолчанию действие стоит и в меню, и в стеке; `showInMenu: false` или `showInFabStack: false` убирает его
+  из одного из них.
+- `mobileBreakpoint` (по умолчанию `800`) — экран уже этой ширины показывает только меню. Значение должно
+  совпадать с одним из шагов `breakpoints` (по умолчанию `360, 640, 800, 1024, 1600, 2500`); промежуточное
+  значение действует как следующий шаг.
+- `breakpoints` — шаги ширины для `mobileBreakpoint`.
 - `position` (`{ bottom?: number; right?: number }`) — смещение от края.
-- `fabLabel`/`fabIcon` — подпись и иконка триггера.
+- `fabLabel` — подсказка и доступное имя триггера (по умолчанию «Actions», ключ `pne.fab.actions`), `fabIcon` —
+  его значок.
 - `bannerText` — необязательный блок внизу меню.
 
 Минимальный пример:
@@ -2838,36 +2997,19 @@ export const FabDemo = () => (
         fabLabel='Actions'
         bannerText='Page actions'
         position={{ bottom: 24, right: 24 }}
-        mobileBreakpoint={900} // считать мобильным до 900px, иначе поведение как на десктопе
+        mobileBreakpoint={1024} // мобильный вид до 1024 px
     />
 )
 ```
 
 Поведение по размерам:
-- Ширина > `mobileBreakpoint`: стек FAB над триггером + меню (все action-пункты дублируются в меню).
-- Ширина <= `mobileBreakpoint`: только триггер + меню, стек FAB скрыт.
+- Ширина ≥ `mobileBreakpoint`: стек FAB над триггером и меню.
+- Ширина < `mobileBreakpoint`: только триггер и меню, стек FAB скрыт.
 
 ## Публикация пакета
 
-Релиз запускается явной отправкой тега `npm/v<version>` через `yarn release:send`. Обычный push ветки не
-запускает проверки или публикацию. Единственный workflow `publish.yml` собирает, проверяет и упаковывает
-библиотеку, затем публикует проверенный архив через npm Trusted Publishing / OIDC.
-
-| Команда | Результат |
-| --- | --- |
-| `yarn release:prepare --channel next --bump prerelease` | Подготовить следующую RC-версию, локальный version commit и annotated tag; ничего не отправлять. |
-| `yarn release:prepare --channel latest --bump patch` | Подготовить стабильную версию из `master`. Доступны также `minor` / `major`. |
-| `yarn release:prepare --channel next --version <точная-rc-версия>` | Выбрать номер явно; `--version current` использует текущий номер из `package.json`. |
-| `yarn release:send --dry-run` | Проверить подготовленный релиз и показать адресную отправку ветки и одного тега без push. |
-| `yarn release:send` | Атомарно отправить подготовленную ветку и один релизный тег в `origin`, запуская публикацию. |
-| `yarn release:status` | Прочитать состояние релиза без изменения git refs и npm-пакета. |
-
-RC публикуются под `next`; стабильные версии — под `latest` и только из истории `master`.
-Сначала требуется однократная настройка доверия npm/GitHub и доставка нового workflow на релизные ветки.
-Подробные команды, ограничения и порядок внедрения описаны в [docs/releasing.md](docs/releasing.md).
-Локальный Storybook остаётся доступен через `yarn storybook` и `yarn build-storybook`; Chromatic не используется.
-`yarn storybook:check` открывает каждую story в headless Chrome в трёх видах, а с `--baseline origin/master`
-перечисляет stories, чья картинка изменилась.
+RC публикуются в npm под `next`, стабильные версии — под `latest` и только из истории `master`. Как выпускается
+пакет — в [docs/releasing.md](docs/releasing.md).
 
 [npm-url]: https://www.npmjs.com/package/pne-ui
 
