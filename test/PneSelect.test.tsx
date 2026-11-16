@@ -290,6 +290,41 @@ describe('PneSelect', () => {
         expect(onChange).toHaveBeenCalledWith(20)
     })
 
+    it('selects an option by a click only, never by releasing the mouse button over it', () => {
+        jest.useFakeTimers()
+
+        try {
+            const onChange = jest.fn<void, [number]>()
+
+            render(<PneSelect
+                options={[10, 20]}
+                value={10}
+                onChange={onChange}
+                SelectDisplayProps={{'aria-label': 'Page size'}}
+            />)
+
+            fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Page size'}))
+
+            // MUI Select accepts a release over an option 200 ms after the press (400 ms for the selected one).
+            React.act(() => {
+                jest.advanceTimersByTime(1000)
+            })
+
+            fireEvent.mouseUp(screen.getByRole('option', {name: '20'}))
+            fireEvent.mouseUp(screen.getByRole('option', {name: '10'}))
+
+            expect(onChange).not.toHaveBeenCalled()
+            expect(screen.getByRole('listbox')).toBeTruthy()
+
+            fireEvent.click(screen.getByRole('option', {name: '20'}))
+
+            expect(onChange).toHaveBeenCalledTimes(1)
+            expect(onChange).toHaveBeenCalledWith(20)
+        } finally {
+            jest.useRealTimers()
+        }
+    })
+
     it('selects arbitrary objects by key and keeps raw options in callbacks', () => {
         type Region = {
             code: string
