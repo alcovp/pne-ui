@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneAutocomplete, PneField} from '../../index'
+import {PneAutocomplete, PneField} from '../index'
 
 type PlaygroundArgs = {
     label: string
@@ -15,7 +15,7 @@ type PlaygroundArgs = {
 
 // No `component`: the Playground args are not PneAutocomplete's own props (its option type is generic).
 export default {
-    title: 'pne-ui 5/PneAutocomplete',
+    title: 'pne-ui/PneAutocomplete',
     args: {
         label: 'Label',
         placeholder: 'Начните вводить',

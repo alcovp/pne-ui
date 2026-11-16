@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {Box, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneBanner} from '../../index'
-import type {PneBannerTone} from '../../index'
+import {PneBanner} from '../index'
+import type {PneBannerTone} from '../index'
 
 export default {
-    title: 'pne-ui 5/PneBanner',
+    title: 'pne-ui/PneBanner',
     parameters: {controls: {disable: true}},
 } as Meta
 

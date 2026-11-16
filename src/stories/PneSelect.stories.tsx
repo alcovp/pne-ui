@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneField, PneSelect} from '../../index'
+import {PneButton, PneField, PneSelect} from '../index'
 
 type PlaygroundArgs = {
     label: string
@@ -14,7 +14,7 @@ type PlaygroundArgs = {
 
 // No `component`: the Playground args are not PneSelect's own props (its option type is generic).
 export default {
-    title: 'pne-ui 5/PneSelect',
+    title: 'pne-ui/PneSelect',
     args: {
         label: 'Label',
         placeholder: 'Placeholder',

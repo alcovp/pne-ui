@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {Box, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneCheckbox, PneLabeledCheckbox, type PneCheckboxSize} from '../../index'
+import {PneButton, PneCheckbox, PneLabeledCheckbox, type PneCheckboxSize} from '../index'
 
 export default {
-    title: 'pne-ui 5/PneCheckbox',
+    title: 'pne-ui/PneCheckbox',
     component: PneCheckbox,
     args: {
         'aria-label': 'Example checkbox',

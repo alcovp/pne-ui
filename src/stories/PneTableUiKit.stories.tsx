@@ -15,11 +15,11 @@ import {
     PneTableNumberCell,
     PneTableRow,
     PneTableSortLabel,
-} from '../../index'
-import type {TableSortOptions} from '../../component/table/AbstractTable'
+} from '../index'
+import type {TableSortOptions} from '../component/table/AbstractTable'
 
 export default {
-    title: 'pne-ui 5/PneTable',
+    title: 'pne-ui/PneTable/UI Kit',
     parameters: {controls: {disable: true}},
 } as Meta
 

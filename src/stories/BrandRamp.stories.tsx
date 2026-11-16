@@ -10,15 +10,15 @@ import {
     type PneButtonStateColors,
     type PneSemanticPalette,
     type Skin,
-} from '../../index'
-import {STORYBOOK_SKINS} from '../../../.storybook/skins'
+} from '../index'
+import {STORYBOOK_SKINS} from '../../.storybook/skins'
 
 type BrandRampArgs = {
     skinColor: string
 }
 
 export default {
-    title: 'pne-ui 5/Foundations/Brand ramp',
+    title: 'pne-ui/Foundations/Brand ramp',
     args: {skinColor: '#026fd7'},
     argTypes: {skinColor: {control: 'color'}},
 } as Meta<BrandRampArgs>

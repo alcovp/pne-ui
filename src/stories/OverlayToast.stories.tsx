@@ -2,11 +2,11 @@ import * as React from 'react'
 import {Box, Stack, Typography} from '@mui/material'
 import type {Theme} from '@mui/material/styles'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton} from '../../index'
-import OverlayToast from '../../component/overlay/OverlayToast'
+import {PneButton} from '../index'
+import OverlayToast from '../component/overlay/OverlayToast'
 
 export default {
-    title: 'pne-ui 5/OverlayHost toasts',
+    title: 'pne-ui/OverlayHost/Toasts',
     component: OverlayToast,
     parameters: {controls: {disable: true}},
 } as Meta<typeof OverlayToast>

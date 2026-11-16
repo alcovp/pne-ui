@@ -4,10 +4,10 @@ import AddIcon from '@mui/icons-material/Add'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import CheckIcon from '@mui/icons-material/Check'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, type PneButtonSize, type PneButtonStyle} from '../../index'
+import {PneButton, type PneButtonSize, type PneButtonStyle} from '../index'
 
 export default {
-    title: 'pne-ui 5/PneButton',
+    title: 'pne-ui/PneButton',
     component: PneButton,
     args: {
         children: 'Button',

@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {Box, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneField, PneModal, PneModalActions, PneSelect, PneTextField} from '../../index'
+import {PneButton, PneField, PneModal, PneModalActions, PneSelect, PneTextField} from '../index'
 
 export default {
-    title: 'pne-ui 5/PneModal',
+    title: 'pne-ui/PneModal/UI Kit',
     component: PneModal,
     parameters: {controls: {disable: true}},
 } as Meta<typeof PneModal>

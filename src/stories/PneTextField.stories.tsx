@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {Box, InputAdornment, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneField, PneTextField} from '../../index'
+import {PneButton, PneField, PneTextField} from '../index'
 
 export default {
-    title: 'pne-ui 5/PneTextField',
+    title: 'pne-ui/PneTextField',
     component: PneTextField,
     args: {
         label: 'Label',

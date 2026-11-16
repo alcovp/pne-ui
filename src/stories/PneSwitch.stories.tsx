@@ -1,10 +1,10 @@
 import * as React from 'react'
 import {Box, FormControlLabel, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneSwitch, type PneSwitchSize} from '../../index'
+import {PneSwitch, type PneSwitchSize} from '../index'
 
 export default {
-    title: 'pne-ui 5/PneSwitch',
+    title: 'pne-ui/PneSwitch',
     component: PneSwitch,
     args: {
         'aria-label': 'Example switch',

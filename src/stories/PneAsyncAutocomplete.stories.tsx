@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {Box, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneAsyncAutocomplete, PneField, PneLoadOptions} from '../../index'
+import {PneAsyncAutocomplete, PneField, PneLoadOptions} from '../index'
 
 type PlaygroundArgs = {
     controlled: boolean
@@ -12,7 +12,7 @@ type PlaygroundArgs = {
 
 // No `component`: the Playground args drive a demo loader, they are not PneAsyncAutocomplete's props.
 export default {
-    title: 'pne-ui 5/PneAsyncAutocomplete',
+    title: 'pne-ui/PneAsyncAutocomplete',
     args: {
         controlled: false,
         delay: 400,
