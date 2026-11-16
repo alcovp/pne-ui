@@ -59,6 +59,7 @@ import type { Dayjs } from 'dayjs'
 import { dayjs } from '../dayjsSetup'
 import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
+import pick from 'lodash/pick'
 import {
     applyDateOnlyTimeZone,
     createDateOnlyPickerDate,
@@ -566,10 +567,14 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get, options)
     },
     clearCriterion: (criterionType: CriterionTypeEnum) => {
+        const pageDefaults = cloneDeep(get().pageDefaults)
+
         set((draft) => {
-            clearCriterionReducer(draft, criterionType)
-            addInitialMultigetCriterionReducer(draft, criterionType)
+            resetCriterionToPageDefaultsReducer(draft, criterionType, pageDefaults)
         })
+        if (CRITERION_CONDITION_KEYS[criterionType].includes('dateRangeSpec')) {
+            normalizeRelativeDateRange(set, get)
+        }
         postUpdate(set, get)
     },
     addCriterion: (criterionType: CriterionTypeEnum) => {
@@ -1312,6 +1317,84 @@ const clearCriterionReducer = (
             exhaustiveCheck(criterionType)
             throw new Error('Unknown criterion type: ' + criterionType)
     }
+}
+
+/**
+ * The conditions the row of a criterion holds. A linked entity criterion holds none here: its selection
+ * is an entry of `multigetCriteria`.
+ */
+const CRITERION_CONDITION_KEYS: Readonly<Record<CriterionTypeEnum, readonly (keyof SearchUIConditions)[]>> = {
+    [CriterionTypeEnum.STATUS]: ['status'],
+    [CriterionTypeEnum.OTP_STATUS]: ['otpStatus'],
+    [CriterionTypeEnum.THREE_D]: ['threeD'],
+    [CriterionTypeEnum.EXACT]: ['exactSearchLabel', 'exactSearchValue'],
+    [CriterionTypeEnum.ORDERS_SEARCH]: ['ordersSearchLabel', 'ordersSearchValue'],
+    [CriterionTypeEnum.CUSTOMER_LEVEL]: ['customerLevel'],
+    [CriterionTypeEnum.CURRENCY]: ['currencies'],
+    [CriterionTypeEnum.COUNTRIES]: ['countries'],
+    [CriterionTypeEnum.DATE_RANGE_ORDERS]: ['orderDateType', 'dateRangeSpec'],
+    [CriterionTypeEnum.DATE_RANGE]: ['dateRangeSpec'],
+    [CriterionTypeEnum.PROJECT]: [],
+    [CriterionTypeEnum.ENDPOINT]: [],
+    [CriterionTypeEnum.GATE]: [],
+    [CriterionTypeEnum.PROCESSOR]: [],
+    [CriterionTypeEnum.COMPANY]: [],
+    [CriterionTypeEnum.MANAGER]: [],
+    [CriterionTypeEnum.MERCHANT]: [],
+    [CriterionTypeEnum.RESELLER]: [],
+    [CriterionTypeEnum.DEALER]: [],
+    [CriterionTypeEnum.PROJECT_CURRENCY]: ['projectCurrency'],
+    [CriterionTypeEnum.CARD_TYPES]: ['cardTypes'],
+    [CriterionTypeEnum.TRANSACTION_TYPES]: ['transactionTypes'],
+    [CriterionTypeEnum.TRANSACTION_STATUS]: ['transactionStatuses'],
+    [CriterionTypeEnum.TRANSACTION_SESSION_STATUS]: ['transactionSessionStatusGroup', 'transactionSessionStatuses'],
+    [CriterionTypeEnum.GROUPING]: ['grouping'],
+    [CriterionTypeEnum.RECURRENCE_TYPE]: ['recurrenceTypes'],
+    [CriterionTypeEnum.RECURRENCE_STATUS]: ['recurrenceStatuses'],
+    [CriterionTypeEnum.MFO_CONFIGURATION_TYPE]: ['mfoConfigurationTypes'],
+    [CriterionTypeEnum.MARKER_TYPE]: ['markerTypes'],
+    [CriterionTypeEnum.MARKER_STATUS]: ['markerStatus'],
+    [CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE]: ['processorLogEntryType'],
+    [CriterionTypeEnum.ERROR_CODE]: ['errorCode'],
+    [CriterionTypeEnum.TRANSACTION_REPORT_SCOPE]: ['scope', 'transactionIds'],
+    [CriterionTypeEnum.TRANSACTION_DATE_TYPE]: ['datesType'],
+    [CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER]: ['recurrentFilter'],
+    [CriterionTypeEnum.TIME_ZONE]: ['timeZoneOffsetHours'],
+    [CriterionTypeEnum.CSV_CHARSET]: ['csvCharset'],
+}
+
+/**
+ * The eraser of a row: the criterion goes back to what the page started it with (its
+ * `initialSearchConditions`), and to the library's empty value where the page gave none, as Default and
+ * Clear all do for every row at once. Removing a criterion clears it the plain way instead: a removed
+ * filter is no filter.
+ */
+const resetCriterionToPageDefaultsReducer = (
+    draft: Draft<SearchUIFiltersStore>,
+    criterionType: CriterionTypeEnum,
+    pageDefaults: Partial<SearchUIConditions>,
+): void => {
+    clearCriterionReducer(draft, criterionType)
+    addInitialMultigetCriterionReducer(draft, criterionType)
+
+    const startingConditions: SearchUIConditions = {
+        ...getSearchUIInitialSearchCriteria(draft.defaults),
+        exactSearchLabel: draft.exactSearchLabels[0],
+        ...pageDefaults,
+    }
+    Object.assign(draft, pick(startingConditions, CRITERION_CONDITION_KEYS[criterionType]))
+
+    const entityType = getLinkedEntityTypeByCriterion(criterionType)
+    const pageSelection = entityType === null
+        ? undefined
+        : pageDefaults.multigetCriteria?.find(multigetCriterion => multigetCriterion.entityType === entityType)
+    if (entityType !== null && pageSelection !== undefined) {
+        removeMultigetCriterionReducer(draft, entityType)
+        draft.multigetCriteria.push(normalizeMultigetCriterion(pageSelection))
+    }
+
+    normalizeRestrictedTransactionTypesReducer(draft)
+    refillTransactionSessionStatusesReducer(draft)
 }
 
 const removeMultigetCriterionReducer = (
