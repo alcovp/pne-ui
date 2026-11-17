@@ -1,8 +1,7 @@
 import * as React from 'react'
-import {Box} from '@mui/material'
+import {Box, Button} from '@mui/material'
 import {usePickerContext, usePickerTranslations} from '@mui/x-date-pickers/hooks'
 import type {PickersActionBarAction, PickersActionBarProps} from '@mui/x-date-pickers/PickersActionBar'
-import PneButton from './PneButton'
 
 /**
  * The action bar of a MUI X picker with the library's own buttons (UI Kit Date picker footer: a
@@ -28,33 +27,33 @@ const PneCalendarActionBar = (props: PickersActionBarProps) => {
     const button = (action: PickersActionBarAction): React.ReactNode => {
         switch (action) {
             case 'clear':
-                return <PneButton key={action} onClick={clearValue} pneStyle='text' size='medium'>
+                return <Button key={action} onClick={clearValue} variant='text' size='medium'>
                     {translations.clearButtonLabel}
-                </PneButton>
+                </Button>
             case 'cancel':
-                return <PneButton key={action} onClick={cancelValueChanges} pneStyle='text' size='medium'>
+                return <Button key={action} onClick={cancelValueChanges} variant='text' size='medium'>
                     {translations.cancelButtonLabel}
-                </PneButton>
+                </Button>
             case 'today':
-                return <PneButton key={action} onClick={setValueToToday} pneStyle='text' size='medium'>
+                return <Button key={action} onClick={setValueToToday} variant='text' size='medium'>
                     {translations.todayButtonLabel}
-                </PneButton>
+                </Button>
             case 'accept':
-                return <PneButton key={action} onClick={acceptValueChanges} size='medium'>
+                return <Button variant='contained' key={action} onClick={acceptValueChanges} size='medium'>
                     {translations.okButtonLabel}
-                </PneButton>
+                </Button>
             case 'next':
-                return <PneButton key={action} onClick={goToNextStep} size='medium'>
+                return <Button variant='contained' key={action} onClick={goToNextStep} size='medium'>
                     {translations.nextStepButtonLabel}
-                </PneButton>
+                </Button>
             case 'nextOrAccept':
                 return hasNextStep
-                    ? <PneButton key={action} onClick={goToNextStep} size='medium'>
+                    ? <Button variant='contained' key={action} onClick={goToNextStep} size='medium'>
                         {translations.nextStepButtonLabel}
-                    </PneButton>
-                    : <PneButton key={action} onClick={acceptValueChanges} size='medium'>
+                    </Button>
+                    : <Button variant='contained' key={action} onClick={acceptValueChanges} size='medium'>
                         {translations.okButtonLabel}
-                    </PneButton>
+                    </Button>
             default:
                 return null
         }

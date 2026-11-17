@@ -1,7 +1,7 @@
 import * as React from 'react'
-import {Box, InputAdornment, Stack, Typography} from '@mui/material'
+import {Box, InputAdornment, Stack, Typography, Button} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneField, PneTextField} from '../index'
+import {PneField, PneTextField} from '../index'
 
 export default {
     title: 'pne-ui/PneTextField',
@@ -281,7 +281,7 @@ const DynamicsDemo = () => {
                         value={value}
                     />
                 </PneField>
-                <PneButton onClick={submit} pneStyle='contained' size='medium'>Сохранить</PneButton>
+                <Button onClick={submit} variant='contained' size='medium'>Сохранить</Button>
             </Stack>
             <Box>
                 <Typography sx={{...CAPTION_SX, mb: 0.5}}>Лог</Typography>

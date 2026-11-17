@@ -1,6 +1,6 @@
 import React, {HTMLAttributes, useEffect, useState} from 'react';
 import {DragDropContext, Draggable, DraggableProvided, Droppable, DropResult, useKeyboardSensor, useMouseSensor} from '@hello-pangea/dnd';
-import {Box, IconButton, InputAdornment, Stack} from '@mui/material';
+import {Box, IconButton, InputAdornment, Stack, Button} from '@mui/material';
 import {Virtuoso} from 'react-virtuoso';
 import {TFunction, useTranslation} from 'react-i18next';
 
@@ -17,7 +17,6 @@ import {
     isObject
 } from '../../common';
 import PneTextField from '../PneTextField';
-import PneButton from '../PneButton';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import {PneCloseIcon} from '../dropdown/dropdownLook'
 
@@ -606,10 +605,10 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                     {t('abstractSelector.available')}
                                 </HeaderColumn>
                                 {disableMoving !== 'AVAILABLE' && (
-                                    <PneButton
+                                    <Button
                                         size='small'
                                         {...elementAttributes?.addAllButton}
-                                        pneStyle='text'
+                                        variant='text'
                                         type='button'
                                         onClick={() => {
                                             handleSelectAll('AVAILABLE')
@@ -617,7 +616,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                         sx={{marginLeft: 'auto'}}
                                     >
                                         {t('abstractSelector.select.all')}
-                                    </PneButton>
+                                    </Button>
                                 )}
                             </HeaderColumnWrapper>
                             <Droppable
@@ -674,10 +673,10 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                     {t('abstractSelector.added')}
                                 </HeaderColumn>
                                 {disableMoving !== 'ADDED' && (
-                                    <PneButton
+                                    <Button
                                         size='small'
                                         {...elementAttributes?.removeAllButton}
-                                        pneStyle='text'
+                                        variant='text'
                                         type='button'
                                         onClick={() => {
                                             handleSelectAll('ADDED')
@@ -685,7 +684,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                                         sx={{marginLeft: 'auto'}}
                                     >
                                         {t('abstractSelector.select.all')}
-                                    </PneButton>
+                                    </Button>
                                 )}
                             </HeaderColumnWrapper>
                             <Droppable

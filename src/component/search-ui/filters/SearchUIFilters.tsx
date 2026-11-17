@@ -16,14 +16,13 @@ import {
     useSearchUIFiltersStoreContext,
     useSearchUIFiltersStoreApi,
 } from './state/store';
-import {Box, SxProps, Tooltip} from '@mui/material';
+import {Box, SxProps, Tooltip, Button} from '@mui/material';
 import type {Theme} from '@mui/material/styles';
 import {PneChevronDownIcon} from '../../dropdown/dropdownLook';
 import {resolvePneSemanticPalette} from '../../../createTheme';
 import isEqual from 'lodash/isEqual';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
 import {CriterionContainer} from './CriterionContainer';
-import PneButton from '../../PneButton';
 import {SearchUIDefaults, SearchUIDefaultsContext} from '../SearchUIProvider';
 import {useSearchUIResetToDefaults} from './useSearchUIResetToDefaults';
 import {isCriterionAvailable} from './criterionAvailability';
@@ -873,19 +872,19 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         title={toggleHint}
     >
-        <PneButton
+        <Button
             {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
             onClick={() => setFiltersShown(!showFilters)}
             aria-label={filtersLabel}
             aria-controls={filtersPanelId}
             aria-expanded={showFilters}
-            pneStyle='text'
+            variant='text'
             size='small'
             startIcon={<PneChevronDownIcon sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}/>}
             sx={nowrapButtonSx}
         >
             {filtersLabel}
-        </PneButton>
+        </Button>
     </Tooltip> : <Box component='span' sx={headerCaptionSx}>{filtersLabel}</Box>
     const countBadge = someCriteriaAdded ? <Box
         {...createAutoTestAttributes(FILTERS_COUNT_AUTOTEST_ID)}
@@ -894,15 +893,15 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     >
         {visibleCriteria.length}
     </Box> : null
-    const clearAllButton = showClearAllButton ? <PneButton
+    const clearAllButton = showClearAllButton ? <Button
         {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
         onClick={resetToDefaults}
-        pneStyle='neutral'
+        variant='soft'
         size={actionSize}
         sx={nowrapButtonSx}
     >
         {t('clear.all')}
-    </PneButton> : null
+    </Button> : null
     const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu onResetToDefaults={resetToDefaults}/> : null
     const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
         size={actionSize}
@@ -912,10 +911,10 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             addCriterion(criterion)
         }}
     /> : null
-    const searchButton = manualSearch || !hideRefreshButton ? <PneButton
+    const searchButton = manualSearch || !hideRefreshButton ? <Button
         {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
         onClick={triggerSearch}
-        pneStyle='contained'
+        variant='contained'
         size={actionSize}
         disabled={searchLoading || !validationResult.isValid}
         sx={searchButtonSx}
@@ -923,7 +922,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         {manualSearch
             ? t('react.searchUI.search')
             : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
-    </PneButton> : null
+    </Button> : null
     const rowsMounted = phase !== 'closed'
     const criteriaRows = rowsMounted ? visibleCriteria.map((criterion) =>
         <CriterionContainer

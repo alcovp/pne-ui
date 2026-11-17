@@ -1,7 +1,7 @@
 import * as React from 'react'
-import {Box, Stack, Typography} from '@mui/material'
+import {Box, Stack, Typography, Button} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneField, PneModal, PneModalActions, PneSelect, PneTextField} from '../index'
+import {PneField, PneModal, PneModalActions, PneSelect, PneTextField} from '../index'
 
 export default {
     title: 'pne-ui/PneModal/UI Kit',
@@ -81,9 +81,9 @@ export const Sheets: Story = {
             <Stack direction='row' spacing={3} sx={{alignItems: 'flex-start', flexWrap: 'wrap', rowGap: 3}}>
                 <Specimen
                     actions={<PneModalActions
-                        leading={<PneButton onClick={noop} pneStyle='text' size='medium'>Reset</PneButton>}
-                        primary={<PneButton onClick={noop} size='medium'>Apply</PneButton>}
-                        secondary={<PneButton onClick={noop} pneStyle='outlined' size='medium'>Cancel</PneButton>}
+                        leading={<Button onClick={noop} variant='text' size='medium'>Reset</Button>}
+                        primary={<Button variant='contained' onClick={noop} size='medium'>Apply</Button>}
+                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
                     />}
                     caption='Anatomy'
                     subtitle='Subtitle: context of the dialog'
@@ -93,8 +93,8 @@ export const Sheets: Story = {
                 </Specimen>
                 <Specimen
                     actions={<PneModalActions
-                        primary={<PneButton onClick={noop} size='medium'>Сохранить</PneButton>}
-                        secondary={<PneButton onClick={noop} pneStyle='outlined' size='medium'>Отмена</PneButton>}
+                        primary={<Button variant='contained' onClick={noop} size='medium'>Сохранить</Button>}
+                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Отмена</Button>}
                     />}
                     caption='Ordinary actions'
                     title='Редактирование профиля'
@@ -103,8 +103,8 @@ export const Sheets: Story = {
                 </Specimen>
                 <Specimen
                     actions={<PneModalActions
-                        primary={<PneButton onClick={noop} pneStyle='error' size='medium'>Удалить</PneButton>}
-                        secondary={<PneButton onClick={noop} pneStyle='outlined' size='medium'>Отмена</PneButton>}
+                        primary={<Button onClick={noop} variant='contained' color='error' size='medium'>Удалить</Button>}
+                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Отмена</Button>}
                     />}
                     caption='Destructive actions'
                     title='Удаление ключа'
@@ -113,9 +113,9 @@ export const Sheets: Story = {
                 </Specimen>
                 <Specimen
                     actions={<PneModalActions
-                        leading={<PneButton onClick={noop} pneStyle='text' size='medium'>Отмена</PneButton>}
-                        primary={<PneButton onClick={noop} size='medium'>Далее</PneButton>}
-                        secondary={<PneButton onClick={noop} pneStyle='outlined' size='medium'>Назад</PneButton>}
+                        leading={<Button onClick={noop} variant='text' size='medium'>Отмена</Button>}
+                        primary={<Button variant='contained' onClick={noop} size='medium'>Далее</Button>}
+                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Назад</Button>}
                     />}
                     caption='Wizard actions'
                     subtitle='Шаг 2 из 3'
@@ -127,8 +127,8 @@ export const Sheets: Story = {
             <Stack direction='row' spacing={3} sx={{alignItems: 'flex-start', flexWrap: 'wrap', rowGap: 3}}>
                 <Specimen
                     actions={<PneModalActions
-                        primary={<PneButton onClick={noop} size='medium'>Save</PneButton>}
-                        secondary={<PneButton onClick={noop} pneStyle='outlined' size='medium'>Cancel</PneButton>}
+                        primary={<Button variant='contained' onClick={noop} size='medium'>Save</Button>}
+                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
                     />}
                     caption='Form'
                     hideCloseButton
@@ -139,8 +139,8 @@ export const Sheets: Story = {
                 </Specimen>
                 <Specimen
                     actions={<PneModalActions
-                        primary={<PneButton loading onClick={noop} size='medium'>Save</PneButton>}
-                        secondary={<PneButton disabled onClick={noop} pneStyle='outlined' size='medium'>Cancel</PneButton>}
+                        primary={<Button variant='contained' loading onClick={noop} size='medium'>Save</Button>}
+                        secondary={<Button disabled onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
                     />}
                     caption='Busy: the fields and Cancel are disabled, Save is loading'
                     subtitle='3 gates selected'
@@ -150,8 +150,8 @@ export const Sheets: Story = {
                 </Specimen>
                 <Specimen
                     actions={<PneModalActions
-                        primary={<PneButton onClick={noop} size='medium'>Apply</PneButton>}
-                        secondary={<PneButton onClick={noop} pneStyle='outlined' size='medium'>Cancel</PneButton>}
+                        primary={<Button variant='contained' onClick={noop} size='medium'>Apply</Button>}
+                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
                     />}
                     caption='Long content: the body scrolls, the header and the buttons stay'
                     subtitle='8 gates'

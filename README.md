@@ -136,34 +136,58 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 
 `AppLink` — ссылка приложения (обёртка над ссылкой его роутера); в `pne-ui` такого компонента нет.
 
-## PneButton
+## Кнопка
 
-Кнопка UI Kit: Variant × Size × State. `pneStyle` — единственный публичный способ выбрать
-вариант. Низкоуровневые MUI props `variant` и `color` намеренно исключены из TypeScript API.
+Своего компонента кнопки в `pne-ui` нет. Кнопка — это `Button` из `@mui/material`: тема `createPneTheme`
+рисует его по UI Kit (Variant × Size × State). Под другой темой это обычная кнопка MUI.
 
-| `pneStyle` | Вариант UI Kit | Назначение |
-|---|---|---|
-| `contained` или prop не задан | Primary | единственное главное действие на странице |
-| `outlined` | Secondary | второстепенное действие: кольцо цвета бренда; под указателем заливка подкрашивается |
-| `text` | Tertiary | нейтральная кнопка на серой заливке; под указателем меняется только цвет подписи |
-| `errorText` | Tertiary danger | `text` с красной подписью: удаление, которому не нужен вес залитой кнопки |
-| `successText` | Tertiary success | `text` с зелёной подписью: активация |
-| `error` | Destructive | удаление, красная заливка |
-| `warning` | Warning | неразрушающее предупреждение, янтарная заливка |
-| `neutral`, `neutralText`, `primaryLight`, `white` | Soft | подпись цвета бренда на серой заливке, для таблиц и панелей |
+```tsx
+import {Button} from '@mui/material'
+
+<Button variant="contained" onClick={save}>Save</Button>
+<Button variant="outlined" onClick={close}>Cancel</Button>
+<Button variant="text" color="error" onClick={remove}>Delete</Button>
+```
+
+Вид выбирает пара `variant` и `color`:
+
+| `variant` | `color` | Вариант UI Kit | Назначение |
+|---|---|---|---|
+| `contained` | не задан или `primary` | Primary | единственное главное действие на странице |
+| `contained` | `error` | Destructive | удаление, красная заливка |
+| `contained` | `warning` | Warning | неразрушающее предупреждение, янтарная заливка |
+| `outlined` | любой | Secondary | второстепенное действие: кольцо цвета бренда; под указателем заливка подкрашивается |
+| `text` или не задан | не задан или `primary` | Tertiary | нейтральная кнопка на серой заливке; под указателем меняется только цвет подписи |
+| `text` | `error` | Tertiary danger | красная подпись: удаление, которому не нужен вес залитой кнопки |
+| `text` | `success` | Tertiary success | зелёная подпись: активация |
+| `soft` | любой | Soft | подпись цвета бренда на серой заливке, для таблиц и панелей |
+
+`soft` — четвёртый вариант, его добавляют типы `pne-ui`. Как и в MUI, кнопка без `variant` — `text`:
+главному действию `variant="contained"` пишется явно. Пара, которой в UI Kit нет (`outlined` + `error`,
+`contained` + `success`), рисуется как её `variant` в основном цвете. Цветов `secondary` и `info` у кнопки
+нет, типы их не принимают. `color="inherit"` оставляет кнопке цвет места, где она стоит: без заливки,
+с подписью цвета окружающего текста.
+
+Пару вне таблицы, записанную в разметке, ловит линтер: правила `buttonRules` в `eslint.config.mjs`
+(`no-restricted-syntax`). В приложение на ESLint они переносятся как есть.
 
 Размеры: `small` 24 px (таблицы, группы), `medium` 32 px (формы, по умолчанию — как у полей), `large` 40 px
 (главное действие страницы). Подпись Roboto Medium 12/14/14 px, иконки 14/16/18 px, радиус 4 px. Между иконкой
 и подписью 2 px у `small` и `medium` и 8 px у `large`. Рамки — внутренние кольца в 1 px, поэтому
-наведение и фокус не сдвигают раскладку. Подпись переносится на вторую строку, многоточия нет. Кнопка
-без детей и с иконкой — квадрат со стороной в высоту.
+наведение и фокус не сдвигают раскладку. Подпись переносится на вторую строку, многоточия нет.
 
-`active` отмечает выбранный пункт набора — вкладку, текущую страницу: белая приподнятая кнопка `text`,
-вид сохраняется под указателем. Кнопка с `active` рисуется так при любом `pneStyle`. Prop задаёт только
-вид; смысл передавайте через `aria-current`, `aria-pressed` или `aria-selected`.
+Выбранный пункт набора — вкладка, текущая страница — сообщает о себе через `aria-current`, `aria-pressed`
+или `aria-selected`. Кнопка `text` с таким атрибутом рисуется белой приподнятой, вид сохраняется под
+указателем. Отдельного prop для этого нет.
 
-`activated` есть только у `successText`: это необратимый итог активации. Кнопка становится зелёным
-статусом, не принимает клики и фокус. Подпись и иконку итога передаёт вызывающий код.
+Необратимый итог активации — кнопка `variant="text" color="success"` с `aria-disabled`: зелёный статус,
+который не принимает клики. Из порядка обхода с клавиатуры её убирает вызывающий код (`tabIndex={-1}`),
+подпись и иконку итога передаёт он же.
+
+`loading` — штатный prop кнопки MUI: кнопка становится `disabled`, спиннер встаёт на место стартовой
+иконки, конечная иконка прячется, цвета покоя остаются (у `outlined` заливка становится Neutral/50). Давайте
+такой кнопке стартовую иконку, тогда её ширина не меняется. `loadingPosition="center"` прячет подпись и
+ставит спиннер посередине.
 
 Цвета берутся из `theme.palette.pne.button[variant][state]` (роли `btn-*` UI Kit) и выводятся из
 одного цвета скина (`experimentalColor`) по шкале `theme.palette.pne.ramp`. Три правила держат любой
@@ -172,15 +196,29 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 - у почти чёрного скина наведение и нажатие светлеют;
 - подпись на заливке белая при 4,5:1, иначе та из тёмной и белой, что контрастнее.
 
-`loading` показывает спиннер на месте стартовой иконки, прячет конечную, блокирует клики и держит цвета
-покоя (у `outlined` заливка становится Neutral/50). Давайте такой кнопке стартовую иконку, тогда её ширина
-не меняется.
+Тема действует на каждую кнопку MUI под ней, включая кнопки внутри сторонних компонентов. Точечные
+отличия задаются через `sx` кнопки, как у любого компонента MUI.
 
-Компонент сохраняет polymorphic MUI-контракт для `component` и `href`; типы DOM props, событий и `ref`
-выводятся из фактического root element. Это поведение рассчитано на React 19 ref-as-prop.
+Кнопки только с иконкой, без подписи, тема не рисует: для них в MUI есть `IconButton`.
 
 Компонента группы кнопок в `pne-ui` нет: для группировки используйте `ButtonGroup` из `@mui/material`;
 расстояние между независимыми действиями задавайте на layout-контейнере.
+
+Переход с `PneButton` (до 5.0):
+
+| Было | Стало |
+|---|---|
+| `<PneButton>` без `pneStyle`, `pneStyle="contained"` | `<Button variant="contained">` |
+| `pneStyle="outlined"` | `variant="outlined"` |
+| `pneStyle="text"` | `variant="text"` |
+| `pneStyle="error"` | `variant="contained" color="error"` |
+| `pneStyle="warning"` | `variant="contained" color="warning"` |
+| `pneStyle="errorText"` | `variant="text" color="error"` |
+| `pneStyle="successText"` | `variant="text" color="success"` |
+| `pneStyle="neutral"`, `"neutralText"`, `"primaryLight"`, `"white"` | `variant="soft"` |
+| `active` | `aria-current`, `aria-pressed` или `aria-selected` на кнопке `text` |
+| `activated` | `aria-disabled` и `tabIndex={-1}` на кнопке `text` + `success` |
+| `data-pne-variant`, `data-pne-size`, `data-pne-loading` | классы MUI: `MuiButton-contained`, `MuiButton-colorError`, `MuiButton-sizeSmall`, `MuiButton-loading` |
 
 ## PneField
 
@@ -540,8 +578,8 @@ props.
 ```tsx
 <PneModal
     actions={<PneModalActions
-        secondary={<PneButton pneStyle="outlined">Cancel</PneButton>}
-        primary={<PneButton>Save</PneButton>}
+        secondary={<Button variant="outlined">Cancel</Button>}
+        primary={<Button variant="contained">Save</Button>}
     />}
     closeLabel="Close"
     onClose={(_event, reason) => {
@@ -2266,7 +2304,7 @@ export const TransactionsPage = () => (
 - Фокус с клавиатуры выглядит одинаково на всех элементах строк критериев: кольцо 2px цвета `primary.main` с
   отступом 1px по форме элемента — на значках сброса и удаления, полях ввода, полях дат, полях автодополнения,
   полях-чипах, кнопках группы вкладок и ссылках-триггерах. Кнопки заголовка и нижней полосы — обычные
-  `PneButton` и показывают стандартный фокус кнопки; `Add filter` — такая же кнопка с меню, как `Saved filters`,
+  кнопки MUI в виде темы и показывают стандартный фокус кнопки; `Add filter` — такая же кнопка с меню, как `Saved filters`,
   а не прозрачный select поверх кнопки.
 - Шеврон у выпадающих элементов один — шеврон библиотеки в цвете текста элемента: 16px на полях-чипах критериев
   (`in …`, тип диапазона дат, тип даты заказа, валюта проекта, тип даты группировки, тип записи, страна) и в
@@ -2369,10 +2407,10 @@ backend-контракта; различия перечислены ниже.
 
 ```tsx
 import {useState} from 'react'
+import {Button} from '@mui/material'
 import {
     CriterionTypeEnum,
     DATE_RANGE_SPEC_TYPES,
-    PneButton,
     type SearchCriteria,
     SearchUIFilters,
     SearchUIProvider,
@@ -2445,12 +2483,13 @@ export const TransactionReportFiltersExample = ({
             }}
         />
 
-        <PneButton
+        <Button
+            variant="contained"
             disabled={searchCriteria === null || !validation?.isValid}
             onClick={generateReport}
         >
             Generate report
-        </PneButton>
+        </Button>
     </SearchUIProvider>
 }
 ```
@@ -2854,9 +2893,9 @@ export default i18n
 `experimentalColor`: из него строится шкала бренда, а из шкалы — цвета всех компонентов по ролям
 (`theme.palette.pne`). Остальные поля `Skin` (хедер, меню, футер) тема не использует и хранит в `theme.skin`.
 По умолчанию тема светлая; для тёмной передайте `{colorMode: 'dark'}` — поверхности, текст и роли компонентов
-подбираются под тёмную схему. Палитры MUI `pnePrimary`, `pneNeutral`, `pnePrimaryLight`, `pneAccentuated`,
-`pneWhite`, `pneWarningLight` оставлены для старого кода на `Button` / `IconButton` из MUI; в новом коде
-используйте `PneButton` и роли `palette.pne`.
+подбираются под тёмную схему. Кнопку MUI тема рисует целиком, см. раздел «Кнопка». Палитры MUI `pnePrimary`,
+`pneNeutral` и `pneAccentuated` оставлены для старого кода на `IconButton` и `ToggleButtonGroup` из MUI; в новом
+коде используйте роли `palette.pne`.
 
 ### Быстрый старт
 

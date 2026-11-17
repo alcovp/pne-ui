@@ -6,7 +6,7 @@ import {
     IAbstractEntityOptions,
     IMappedUnmappedList
 } from './AbstractEntitySelector';
-import PneButton from '../PneButton';
+import {Button} from '@mui/material';
 import PneModal, {
     PneModalCloseButtonProps,
     PneModalContainerProps,
@@ -109,19 +109,19 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
     return (
         <PneModal
             actions={<PneModalActions
-                secondary={<PneButton size='medium' pneStyle='outlined' onClick={onClose}>
+                secondary={<Button size='medium' variant='outlined' onClick={onClose}>
                     {t('cancel')}
-                </PneButton>}
-                primary={<PneButton
+                </Button>}
+                primary={<Button
                     size='medium'
-                    pneStyle='contained'
+                    variant='contained'
                     onClick={() => handleSave({
                         mapped: localMappedList,
                         unmapped: localUnMappedList
                     })}
                 >
                     {t('save')}
-                </PneButton>}
+                </Button>}
             />}
             open={open}
             onClose={onClose}

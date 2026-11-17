@@ -8,12 +8,12 @@ import {
     MenuItem,
     Tooltip,
     useMediaQuery,
+    Button,
 } from '@mui/material'
 import type {SxProps, Theme} from '@mui/material/styles'
 import * as React from 'react'
 
 import {createAutoTestAttributes} from './AutoTestAttribute'
-import PneButton from './PneButton'
 
 type PneBreadcrumbBaseItem = {
     /** Stable identity used for React keys and default autotest locators. */
@@ -326,10 +326,10 @@ export const PneBreadcrumbs = ({
         }
 
         if (item.type === 'action') {
-            return <PneButton
+            return <Button
                 size='large'
                 key={item.id}
-                pneStyle='text'
+                variant='text'
                 sx={[
                     ...(Array.isArray(sxProperties) ? sxProperties : [sxProperties]),
                     {
@@ -345,7 +345,7 @@ export const PneBreadcrumbs = ({
                 {...autoTestAttributes}
             >
                 {content}
-            </PneButton>
+            </Button>
         }
 
         return <MuiLink

@@ -1,5 +1,5 @@
 import React, {useId, useLayoutEffect, useRef, useState} from 'react';
-import {Box, Divider, InputAdornment, ListItemIcon, ListItemText, Menu, MenuItem, useMediaQuery} from '@mui/material';
+import {Box, Divider, InputAdornment, ListItemIcon, ListItemText, Menu, MenuItem, useMediaQuery, Button} from '@mui/material';
 import {SxProps, Theme, useTheme} from '@mui/material/styles';
 import {
     DragDropContext,
@@ -21,7 +21,6 @@ import {useSearchUIFiltersStore} from '../../state/store';
 import {isSearchUITemplateModified} from '../../state/actions';
 import {SearchUITemplate} from "../../types";
 import {overlayActions} from '../../../../overlay/overlayStore';
-import PneButton from '../../../../PneButton';
 import PneTextField from '../../../../PneTextField';
 import PneDragHandleIcon from '../../../../PneDragHandleIcon';
 import {createPneMenuPanelStyle, PneChevronDownIcon, PneCloseIcon} from '../../../../dropdown/dropdownLook';
@@ -314,12 +313,12 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
     }
 
     return <>
-        <PneButton
+        <Button
             {...createAutoTestAttributes(TEMPLATES_AUTOTEST_ID)}
             onClick={handleOpen}
             size={'small'}
             // UI Kit Filter header: the saved sets are a tertiary button, dark on the strip.
-            pneStyle='text'
+            variant='text'
             startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon/> : undefined}
             endIcon={<PneChevronDownIcon/>}
             sx={templateTriggerSx}
@@ -340,7 +339,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
                     <Box component={'span'} sx={visuallyHiddenSx}>{`, ${modifiedLabel}`}</Box>
                 </> : null}
             </Box>
-        </PneButton>
+        </Button>
         <Box component={'span'} aria-live={'polite'} sx={visuallyHiddenSx}>{announcement}</Box>
         <Menu
             open={open}

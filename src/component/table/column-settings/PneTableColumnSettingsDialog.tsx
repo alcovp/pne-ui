@@ -10,7 +10,7 @@ import {
     SxProps,
     Theme,
     Tooltip,
-    Typography,
+    Typography, Button,
 } from '@mui/material'
 import {
     DragDropContext,
@@ -24,7 +24,6 @@ import {
 import {useTranslation} from 'react-i18next'
 import PneModal from '../../PneModal'
 import PneModalActions from '../../PneModalActions'
-import PneButton from '../../PneButton'
 import {PneCheckbox} from '../../PneCheckbox'
 import PneTextField from '../../PneTextField'
 import PneDragHandleIcon from '../../PneDragHandleIcon'
@@ -380,35 +379,35 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
     return <PneModal
         {...createAutoTestAttributes(COLUMN_SETTINGS_DIALOG_AUTOTEST_ID, autoTestId)}
         actions={<PneModalActions
-            leading={<PneButton
+            leading={<Button
                 size='medium'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_RESET_AUTOTEST_ID)}
                 disabled={saving || resolvedDraft.isDefault}
                 onClick={handleReset}
-                pneStyle='text'
+                variant='text'
             >
                 {t('pneTable.columnSettings.reset', {defaultValue: 'Reset to default'})}
-            </PneButton>}
-            primary={<PneButton
+            </Button>}
+            primary={<Button
                 size='medium'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_SAVE_AUTOTEST_ID)}
                 disabled={saving}
                 onClick={() => {
                     void handleSave()
                 }}
-                pneStyle='contained'
+                variant='contained'
             >
                 {t('pneTable.columnSettings.save', {defaultValue: 'Save'})}
-            </PneButton>}
-            secondary={<PneButton
+            </Button>}
+            secondary={<Button
                 size='medium'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_CANCEL_AUTOTEST_ID)}
                 disabled={saving}
                 onClick={onClose}
-                pneStyle='outlined'
+                variant='outlined'
             >
                 {t('pneTable.columnSettings.cancel', {defaultValue: 'Cancel'})}
-            </PneButton>}
+            </Button>}
         />}
         containerSx={[
             {maxWidth: '100%', width: '480px'},

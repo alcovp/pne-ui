@@ -12,9 +12,6 @@ declare module '@mui/material/styles' {
         pne: PneSemanticPalette
         pneNeutral: Palette['primary']
         pnePrimary: Palette['primary']
-        pnePrimaryLight: Palette['primary']
-        pneWhite: Palette['primary']
-        pneWarningLight: Palette['primary']
         pneAccentuated: Palette['primary']
     }
 
@@ -22,9 +19,6 @@ declare module '@mui/material/styles' {
         pne?: PneSemanticPalette
         pneNeutral?: PaletteOptions['primary']
         pnePrimary?: PaletteOptions['primary']
-        pnePrimaryLight?: PaletteOptions['primary']
-        pneWhite?: PaletteOptions['primary']
-        pneWarningLight?: PaletteOptions['primary']
         pneAccentuated?: PaletteOptions['primary']
     }
 
@@ -66,12 +60,16 @@ declare module '@mui/material/IconButton' {
     }
 }
 
+// The button of pne-ui is the MUI `Button` drawn by the theme (`buttonLook.ts`): `soft` is the
+// fourth variant, and the colours the UI Kit has no button for are not offered.
 declare module '@mui/material/Button' {
+    interface ButtonPropsVariantOverrides {
+        soft: true
+    }
+
     interface ButtonPropsColorOverrides {
-        pnePrimaryLight: true
-        pneNeutral: true
-        pneWhite: true
-        pneWarningLight: true
+        info: false
+        secondary: false
     }
 }
 
@@ -88,7 +86,6 @@ declare module '@mui/material/ToggleButton' {
 }
 
 export * from './exports/theme'
-export * from './exports/buttons'
 export * from './exports/inputs'
 export * from './exports/modals'
 export * from './exports/table'

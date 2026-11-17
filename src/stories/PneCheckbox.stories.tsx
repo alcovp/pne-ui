@@ -1,7 +1,7 @@
 import * as React from 'react'
-import {Box, Stack, Typography} from '@mui/material'
+import {Box, Stack, Typography, Button} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneCheckbox, PneLabeledCheckbox, type PneCheckboxSize} from '../index'
+import {PneCheckbox, PneLabeledCheckbox, type PneCheckboxSize} from '../index'
 
 export default {
     title: 'pne-ui/PneCheckbox',
@@ -242,7 +242,7 @@ const DynamicsDemo = () => {
                     required
                     size='medium'
                 />
-                <PneButton onClick={submit} pneStyle='contained' size='medium'>Отправить</PneButton>
+                <Button onClick={submit} variant='contained' size='medium'>Отправить</Button>
             </Stack>
             <Box>
                 <Typography sx={{...LABEL_SX, mb: 0.5}}>Лог</Typography>

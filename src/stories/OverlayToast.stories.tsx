@@ -1,8 +1,7 @@
 import * as React from 'react'
-import {Box, Stack, Typography} from '@mui/material'
+import {Box, Stack, Typography, Button} from '@mui/material'
 import type {Theme} from '@mui/material/styles'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton} from '../index'
 import OverlayToast from '../component/overlay/OverlayToast'
 
 export default {
@@ -54,9 +53,9 @@ export const Sheet: Story = {
                     </Cell>
                     <Cell caption={`${tone} · action`}>
                         <OverlayToast
-                            action={<PneButton onClick={noop} pneStyle='neutral' size='small' sx={ACTION_SX}>
+                            action={<Button onClick={noop} variant='soft' size='small' sx={ACTION_SX}>
                                 {tone === 'error' ? 'Повторить' : 'Отменить'}
-                            </PneButton>}
+                            </Button>}
                             description={description}
                             onClose={noop}
                             tone={tone}

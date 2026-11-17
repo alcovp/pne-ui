@@ -3,12 +3,12 @@ import {render} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {PneButton} from '../src'
+import {Button} from '@mui/material'
 
 describe('Common render', () => {
     it('renders without crashing', () => {
-        render(<PneButton
-            pneStyle='contained'
+        render(<Button
+            variant='contained'
             title={'Push!'}
         />)
     })

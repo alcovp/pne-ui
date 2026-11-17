@@ -1,7 +1,6 @@
 import React from 'react'
-import {Box, Pagination} from '@mui/material'
+import {Box, Pagination, Button} from '@mui/material'
 import {AbstractEntity} from '../../../common/paynet/type'
-import PneButton from '../../PneButton'
 import {MULTIGET_PAGE_SIZE} from './constants'
 import {useTranslation} from 'react-i18next'
 import type {SxProps, Theme} from '@mui/material/styles'
@@ -116,11 +115,11 @@ export const MultigetSelectTable = () => {
                 <Box component={'span'} sx={headerTitleSx}>
                     {filterType === 'ALL' ? t('react.searchUI.excluded') : t('react.searchUI.selected')}
                 </Box>
-                <PneButton
-                    pneStyle={'text'}
+                <Button
+                    variant='text'
                     size={'small'}
                     onClick={() => setSelectedItems([])}
-                >{t('clear')}</PneButton>
+                >{t('clear')}</Button>
             </Box>
             <Box sx={selectedListSx}>
                 {selectedItems.map(entity =>

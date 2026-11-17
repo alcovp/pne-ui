@@ -1,8 +1,7 @@
 import React, {useContext, useId, useState} from 'react';
-import {Alert, Collapse} from '@mui/material';
+import {Alert, Collapse, Button} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
-import PneButton from '../../../../PneButton';
 import PneModal from '../../../../PneModal';
 import PneModalActions from '../../../../PneModalActions';
 import PneTextField from '../../../../PneTextField';
@@ -72,17 +71,18 @@ const SearchUITemplateEditor = (props: IProps) => {
 
     return <PneModal
         actions={<PneModalActions
-            secondary={<PneButton
+            secondary={<Button
                 size='medium'
                 type={'button'}
-                pneStyle='outlined'
+                variant='outlined'
                 onClick={onClose}
-            >{t('cancel')}</PneButton>}
-            primary={<PneButton
+            >{t('cancel')}</Button>}
+            primary={<Button
+                variant='contained'
                 size='medium'
                 type='submit'
                 form={createFormId}
-            >{t('create')}</PneButton>}
+            >{t('create')}</Button>}
         />}
         open={open}
         onClose={onClose}

@@ -22,10 +22,10 @@ import {
     Stack,
     Typography,
     useMediaQuery,
+    Button,
 } from '@mui/material'
 import {alpha, type SxProps, type Theme} from '@mui/material/styles'
 import {useTranslation} from 'react-i18next'
-import PneButton from '../PneButton'
 import {PneSurface} from '../internal/PneSurface'
 
 export type PneOperationCenterStatus =
@@ -519,12 +519,12 @@ export function PneOperationCenter({
                 >
                     {showClearTerminal ? (
                         <Box sx={{display: 'flex', justifyContent: 'flex-end', px: 2, py: 1}}>
-                            <PneButton
+                            <Button
                                 onClick={() => {
                                     onClearTerminal?.(terminalIds)
                                     restoreFocusAfterMutation()
                                 }}
-                                pneStyle='neutralText'
+                                variant='soft'
                                 size='small'
                                 sx={{
                                     '@media (hover: none), (pointer: coarse)': {
@@ -533,7 +533,7 @@ export function PneOperationCenter({
                                 }}
                             >
                                 {labels?.clearFinished ?? t('pne.operationCenter.clearFinished', {defaultValue: 'Clear finished'})}
-                            </PneButton>
+                            </Button>
                         </Box>
                     ) : null}
 
@@ -658,7 +658,7 @@ export function PneOperationCenter({
                                                 {operation.actions.map(action => {
                                                     const actionAccessibleLabel = action.accessibleLabel
                                                         ?? toAccessibleText(action.label)
-                                                    return <PneButton
+                                                    return <Button
                                                         aria-label={actionAccessibleLabel
                                                             ? `${actionAccessibleLabel}: ${operationAccessibleName}`
                                                             : undefined}
@@ -666,7 +666,7 @@ export function PneOperationCenter({
                                                         disabled={action.disabled || action.loading || !onAction}
                                                         key={action.id}
                                                         onClick={() => onAction?.(operation.id, action.id)}
-                                                        pneStyle='text'
+                                                        variant='text'
                                                         size='small'
                                                         startIcon={action.loading
                                                             ? <CircularProgress
@@ -685,7 +685,7 @@ export function PneOperationCenter({
                                                         }}
                                                     >
                                                         {action.label}
-                                                    </PneButton>
+                                                    </Button>
                                                 })}
                                             </Stack>
                                         ) : null}

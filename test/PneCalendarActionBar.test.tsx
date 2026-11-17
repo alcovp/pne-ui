@@ -30,9 +30,10 @@ describe('PneCalendarActionBar', () => {
         const buttons = Array.from(bar.querySelectorAll<HTMLButtonElement>('button'))
 
         expect(buttons.map(button => button.textContent)).toEqual(['Cancel', 'OK'])
-        // PneButton, not MUI's text button: its size and variant marks.
-        expect(buttons.map(button => button.getAttribute('data-pne-size'))).toEqual(['medium', 'medium'])
-        expect(buttons[0].getAttribute('data-pne-variant')).not.toBe(buttons[1].getAttribute('data-pne-variant'))
+        // A tertiary button for stepping back and the primary one for the result, both 32px.
+        expect(buttons.map(button => button.classList.contains('MuiButton-sizeMedium'))).toEqual([true, true])
+        expect(buttons[0].classList.contains('MuiButton-text')).toBe(true)
+        expect(buttons[1].classList.contains('MuiButton-contained')).toBe(true)
 
         fireEvent.click(screen.getByRole('button', {name: 'OK'}))
         await waitFor(() => expect(onAccept).toHaveBeenCalledTimes(1))

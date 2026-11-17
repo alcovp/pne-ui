@@ -1,5 +1,5 @@
 import React, {useState} from 'react'
-import {Box, Typography} from '@mui/material'
+import {Box, Typography, Button} from '@mui/material'
 import type {Meta, StoryObj} from '@storybook/react-webpack5'
 import {userEvent, within} from 'storybook/test'
 import {
@@ -12,7 +12,7 @@ import {
 } from '../component/search-ui/filters/SearchUIFilters'
 import type {SearchUIValidationResult} from '../component/search-ui/filters/validation'
 import {SearchUIProvider} from '../component/search-ui/SearchUIProvider'
-import {OverlayHost, PneButton} from '../index'
+import {OverlayHost} from '../index'
 
 type Props = {
     invalidRange?: boolean
@@ -71,13 +71,13 @@ const TransactionReportFilters = ({invalidRange = false, config}: Props) => {
                     config={{...FILTERS_CONFIG, ...config}}
                 />
                 <Box sx={{display: 'flex', alignItems: 'center', gap: '12px', px: '16px', pt: '16px'}}>
-                    <PneButton
+                    <Button
                         size='large'
-                        pneStyle={'contained'}
+                        variant='contained'
                         disabled={!validationResult?.isValid}
                     >
                         {'Generate report'}
-                    </PneButton>
+                    </Button>
                     <Typography
                         data-testid={'external-validation-status'}
                         color={validationResult?.isValid ? 'success.main' : 'error.main'}

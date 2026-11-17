@@ -1,8 +1,7 @@
 import React, {forwardRef} from 'react'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
-import {IconButton, SxProps, Theme, Tooltip} from '@mui/material'
+import {IconButton, SxProps, Theme, Tooltip, Button} from '@mui/material'
 import {useTranslation} from 'react-i18next'
-import PneButton from '../../PneButton'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
 import {pneIconActionSx} from '../../iconActionLook'
 
@@ -46,18 +45,18 @@ const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColum
         const resolvedLabel = label ?? t('pneTable.columnSettings.action', {defaultValue: 'Table settings'})
 
         if (variant === 'button') {
-            return <PneButton
+            return <Button
                 size='large'
                 {...createAutoTestAttributes(COLUMN_SETTINGS_ACTION_AUTOTEST_ID, autoTestId)}
                 disabled={disabled}
                 onClick={onClick}
-                pneStyle='outlined'
+                variant='outlined'
                 ref={ref}
                 startIcon={<ViewColumnOutlinedIcon/>}
                 sx={sx}
             >
                 {resolvedLabel}
-            </PneButton>
+            </Button>
         }
 
         return <Tooltip

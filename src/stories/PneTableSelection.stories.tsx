@@ -1,9 +1,8 @@
 import React, {useRef, useState} from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import {Alert, Box, IconButton, Tooltip, Typography} from '@mui/material'
+import {Alert, Box, IconButton, Tooltip, Typography, Button} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
 import {
-    PneButton,
     PneHeaderTableCell,
     PneTable,
     PneTableCell,
@@ -235,13 +234,13 @@ const SubpixelSelectionLayoutStory = () => {
                     }}
                 >
                     <Typography>{selection.selectedCount} rows selected</Typography>
-                    {selection.selectedCount > 0 ? <PneButton
+                    {selection.selectedCount > 0 ? <Button
                         size='large'
                         onClick={selection.clear}
-                        pneStyle='text'
+                        variant='text'
                     >
                         Unselect
-                    </PneButton> : null}
+                    </Button> : null}
                 </Box>}
                 persistent={<Box
                     data-story-persistent-view

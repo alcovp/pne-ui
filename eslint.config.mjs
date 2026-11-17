@@ -5,6 +5,32 @@ import reactPlugin from 'eslint-plugin-react'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import storybookPlugin from 'eslint-plugin-storybook'
 
+// The button is the MUI Button drawn by the theme (README, «Кнопка»). The theme has a look for these
+// pairs of `variant` and `color` only; any other pair would be drawn as its variant in the brand
+// colour, so writing one is a mistake. The same rules stand in the applications.
+const BUTTON = 'JSXOpeningElement[name.name="Button"]'
+const withAttribute = (name, values) =>
+    `:has(> JSXAttribute[name.name="${name}"]:matches([value.value=/^(${values})$/], [value.expression.value=/^(${values})$/]))`
+const buttonRules = [
+    {
+        selector: `${BUTTON}${withAttribute('variant', 'outlined|soft')}${withAttribute('color', 'error|warning|success')}`,
+        message: 'An outlined or soft button has the brand colour only: drop `color`, or use variant="contained" or "text" with it.',
+    },
+    {
+        selector: `${BUTTON}${withAttribute('variant', 'contained')}${withAttribute('color', 'success')}`,
+        message: 'There is no filled success button: variant="contained" takes color="error" or "warning"; an activation is variant="text" color="success".',
+    },
+    {
+        selector: `${BUTTON}${withAttribute('variant', 'text')}${withAttribute('color', 'warning')}`,
+        message: 'There is no text warning button: variant="text" takes color="error" or "success"; a caution is variant="contained" color="warning".',
+    },
+    {
+        // No `variant` is `text`; a spread may bring the variant, so such a button is left alone.
+        selector: `${BUTTON}:not(:has(> JSXAttribute[name.name="variant"])):not(:has(> JSXSpreadAttribute))${withAttribute('color', 'warning')}`,
+        message: 'A button without `variant` is a text button, and there is no text warning button: a caution is variant="contained" color="warning".',
+    },
+]
+
 export default [
     {
         ignores: [
@@ -63,6 +89,7 @@ export default [
                 2,
                 'line-aligned',
             ],
+            'no-restricted-syntax': ['error', ...buttonRules],
             'react/display-name': 'off',
             'react/react-in-jsx-scope': 'off',
             'react-hooks/rules-of-hooks': 'error',

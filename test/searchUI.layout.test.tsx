@@ -91,9 +91,9 @@ describe('SearchUIFilters layout', () => {
         expect(style(footer).backgroundColor).toBe('rgb(240, 244, 248)')
         expect(style(footer).borderTopWidth).toBe('1px')
         // 24px buttons in the header, 32px in the footer.
-        expect(header.querySelector('[data-autotest="templates"]')?.getAttribute('data-pne-size')).toBe('small')
-        expect(footer.querySelector('[data-autotest="add-filter"]')?.getAttribute('data-pne-size')).toBe('medium')
-        expect(footer.querySelector('[data-autotest="run-search"]')?.getAttribute('data-pne-size')).toBe('medium')
+        expect(header.querySelector('[data-autotest="templates"]')?.classList.contains('MuiButton-sizeSmall')).toBe(true)
+        expect(footer.querySelector('[data-autotest="add-filter"]')?.classList.contains('MuiButton-sizeMedium')).toBe(true)
+        expect(footer.querySelector('[data-autotest="run-search"]')?.classList.contains('MuiButton-sizeMedium')).toBe(true)
     })
 
     it('collapses the rows through the toggle and moves the actions into the header', async () => {

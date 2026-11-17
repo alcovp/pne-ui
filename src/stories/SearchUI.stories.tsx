@@ -5,7 +5,6 @@ import {
     ensure,
     ExactCriterionSearchLabelEnum,
     OverlayHost,
-    PneButton,
     PneHeaderTableCell,
     PneTableCell,
     PneTableRow,
@@ -35,7 +34,7 @@ import { Meta, StoryObj } from '@storybook/react-webpack5'
 import { expect, userEvent, waitFor } from 'storybook/test'
 import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import { Alert, Box, IconButton, Tooltip } from '@mui/material'
+import { Alert, Box, IconButton, Tooltip, Button } from '@mui/material'
 import { sharesRow } from './tableControlRows'
 
 type DataType = AbstractEntity
@@ -526,32 +525,32 @@ const TableSelectionViewsWrap = () => {
                 renderControls: ({selection: controller}) => (
                     <PneTableSelectionControls
                         actions={<>
-                            <PneButton
+                            <Button
                                 size='large'
                                 disabled={controller.interactionDisabled}
                                 onClick={() => {
                                     void controller.selectAllMatchingResults?.()
                                 }}
-                                pneStyle='text'
+                                variant='text'
                                 sx={{minHeight: '40px'}}
                             >
                                 Выбрать все
-                            </PneButton>
-                            <PneButton
+                            </Button>
+                            <Button
                                 size='large'
                                 disabled={controller.interactionDisabled
                                     || controller.selectedCount === 0}
                                 onClick={controller.clear}
-                                pneStyle='text'
+                                variant='text'
                                 sx={{minHeight: '40px'}}
                             >
                                 Отменить выбор
-                            </PneButton>
+                            </Button>
                             <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
                                 <Box>Операции с выбранным</Box>
-                                <PneButton size='large' pneStyle='outlined' sx={{minHeight: '40px'}}>
+                                <Button size='large' variant='outlined' sx={{minHeight: '40px'}}>
                                     Действия
-                                </PneButton>
+                                </Button>
                             </Box>
                         </>}
                         summary={`Выбрано шлюзов: ${controller.selectedCount}`}
@@ -796,13 +795,13 @@ const HookWrapContent = (props: HookWrapProps) => {
     >
         {showVisaButton ? (
             <div style={{ marginBottom: 16 }}>
-                <PneButton
-                    pneStyle='contained'
+                <Button
+                    variant='contained'
                     size={'small'}
                     onClick={onAddVisaCardType}
                 >
                     {'Apply VISA card filter'}
-                </PneButton>
+                </Button>
             </div>
         ) : null}
         <SearchUI<DataType>

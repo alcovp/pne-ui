@@ -1,8 +1,8 @@
 import * as React from 'react'
-import {Box, Typography} from '@mui/material'
+import {Box, Typography, Button} from '@mui/material'
 import type {Meta, StoryObj} from '@storybook/react-webpack5'
 import {userEvent, within} from 'storybook/test'
-import {AbstractEntitySelectModal, PneButton} from '../index'
+import {AbstractEntitySelectModal} from '../index'
 
 const allColumns = ['ID', 'Name', 'E-Mail', 'Status', 'Login', 'Managers', 'Payment group', 'Navigation bar']
 
@@ -11,7 +11,7 @@ const FullViewColumnsExample = () => {
     const [open, setOpen] = React.useState(false)
 
     return <Box sx={{p: 2}}>
-        <PneButton size='large' onClick={() => setOpen(true)}>Configure Full view</PneButton>
+        <Button variant='contained' size='large' onClick={() => setOpen(true)}>Configure Full view</Button>
         <Typography role='status' sx={{mt: 2}}>
             Saved order: {columns.join(' → ')}
         </Typography>

@@ -1,7 +1,7 @@
 import * as React from 'react'
-import {Box, Stack, Typography} from '@mui/material'
+import {Box, Stack, Typography, Button} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {PneButton, PneField, PneSelect} from '../index'
+import {PneField, PneSelect} from '../index'
 
 type PlaygroundArgs = {
     label: string
@@ -254,7 +254,7 @@ const DynamicsDemo = () => {
                         value={value}
                     />
                 </PneField>
-                <PneButton onClick={submit} pneStyle='contained' size='medium'>Сохранить</PneButton>
+                <Button onClick={submit} variant='contained' size='medium'>Сохранить</Button>
             </Stack>
             <Box>
                 <Typography sx={{...CAPTION_SX, mb: 0.5}}>Лог</Typography>

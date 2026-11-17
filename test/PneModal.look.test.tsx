@@ -1,14 +1,15 @@
+import {Button} from '@mui/material'
 import * as React from 'react'
 import {cleanup, render, screen} from '@testing-library/react'
 
-import {PneButton, PneModal, PneModalActions, PneThemeProvider, type Skin} from '../src'
+import {PneModal, PneModalActions, PneThemeProvider, type Skin} from '../src'
 
 const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 const renderModal = (props: Partial<React.ComponentProps<typeof PneModal>> = {}) => {
     render(<PneThemeProvider skin={UI_KIT_SKIN}>
         <PneModal
-            actions={<PneModalActions primary={<PneButton size='medium'>Save</PneButton>}/>}
+            actions={<PneModalActions primary={<Button variant='contained' size='medium'>Save</Button>}/>}
             onClose={() => undefined}
             open
             subtitle='3 gates selected'

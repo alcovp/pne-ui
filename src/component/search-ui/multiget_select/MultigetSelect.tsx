@@ -1,9 +1,8 @@
 import React, {useContext, useEffect} from 'react'
-import {Alert, Box, FormControlLabel, InputAdornment, SxProps, ToggleButton, ToggleButtonGroup} from '@mui/material'
+import {Alert, Box, FormControlLabel, InputAdornment, SxProps, ToggleButton, ToggleButtonGroup, Button} from '@mui/material'
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types'
 import {useTranslation} from 'react-i18next'
 import {AbstractEntity} from '../../../common/paynet/type'
-import PneButton from '../../PneButton'
 import PneModalActions from '../../PneModalActions'
 import PneSwitch from '../../PneSwitch'
 import PneTextField from '../../PneTextField'
@@ -286,14 +285,14 @@ export const MultigetSelectActions = (props: MultigetSelectActionsProps) => {
     return <PneModalActions
         sx={sx}
         secondary={(
-            <PneButton size='medium' pneStyle='outlined' onClick={onCancelClick}>
+            <Button size='medium' variant='outlined' onClick={onCancelClick}>
                 {t('cancel')}
-            </PneButton>
+            </Button>
         )}
         primary={(
-            <PneButton size='medium' onClick={onSaveClick}>
+            <Button variant='contained' size='medium' onClick={onSaveClick}>
                 {t('save')}
-            </PneButton>
+            </Button>
         )}
     />
 }

@@ -181,8 +181,8 @@ describe('OverlayHost', () => {
         const undoButton = await screen.findByRole('button', { name: 'Undo' })
         const action = undoButton.closest<HTMLElement>('.MuiAlert-action')!
 
-        expect(undoButton.getAttribute('data-pne-size')).toBe('small')
-        expect(undoButton.getAttribute('data-pne-variant')).toBe('soft')
+        expect(undoButton.classList.contains('MuiButton-sizeSmall')).toBe(true)
+        expect(undoButton.classList.contains('MuiButton-soft')).toBe(true)
         expect(undoButton.querySelector('svg')).toBeNull()
         expect(within(action).getByRole('button', { name: 'Close' })).not.toBeNull()
         // The action stands before the cross.

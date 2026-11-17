@@ -1,4 +1,4 @@
-import {AbstractEntity, PneAsyncAutocomplete, PneButton, PneCheckbox, PneSwitch, PneTable, PneTableViewSelector} from "../index";
+import {AbstractEntity, PneAsyncAutocomplete, PneCheckbox, PneSwitch, PneTable, PneTableViewSelector} from "../index";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
 import {within} from "storybook/test";
 import PneTableRow from "../component/table/PneTableRow";
@@ -7,7 +7,7 @@ import PneTableControlCell from "../component/table/PneTableControlCell";
 import React, {useState} from "react";
 import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
 import useTable from "../component/table/useTable";
-import {Box} from "@mui/material";
+import {Box, Button} from "@mui/material";
 
 type DataType = AbstractEntity
 
@@ -56,10 +56,11 @@ const HookWrap = () => {
                 return getList(1, 10, 10)
             }}
         />
-        <PneButton size='large' onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}>
+        <Button variant="contained" size='large' onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}>
             Create
-        </PneButton>
-        <PneButton
+        </Button>
+        <Button
+            variant="contained"
             size='large'
             onClick={async () => {
                 const list = await getList(page, pageSize, 6)
@@ -67,7 +68,7 @@ const HookWrap = () => {
             }}
         >
             Reduce array
-        </PneButton>
+        </Button>
         <PneTable
             data={data}
             createRow={(rowData: DataType, index: number, arr: DataType[]) =>
@@ -91,7 +92,8 @@ const HookWrap = () => {
                         />
                     </PneTableControlCell>
                     <PneTableControlCell onClick={(event) => event.stopPropagation()}>
-                        <PneButton
+                        <Button
+                            variant="contained"
                             size="small"
                             onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
                                 event.stopPropagation()
@@ -99,7 +101,7 @@ const HookWrap = () => {
                             }}
                         >
                             {'Control'}
-                        </PneButton>
+                        </Button>
                     </PneTableControlCell>
                     <PneTableControlCell onClick={(event) => event.stopPropagation()}>
                         <PneSwitch
@@ -232,8 +234,8 @@ const SlowLoadingWithControlsWrap = () => {
                     </PneTableControlCell>
                     <PneTableControlCell>
                         <Box sx={{display: 'flex', flexDirection: 'column', gap: '4px', py: '4px'}}>
-                            <PneButton size="small">{'Edit'}</PneButton>
-                            <PneButton size="small" pneStyle="error">{'Delete'}</PneButton>
+                            <Button variant="contained" size="small">{'Edit'}</Button>
+                            <Button size="small" variant="contained" color="error">{'Delete'}</Button>
                         </Box>
                     </PneTableControlCell>
                     <PneTableCell>

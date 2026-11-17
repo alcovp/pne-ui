@@ -1,7 +1,7 @@
+import {Button} from '@mui/material'
 import React from 'react'
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import {
-    PneButton,
     PneHeaderTableCell,
     PneTableCell,
     PneTableRow,
@@ -64,10 +64,10 @@ const SelectionHarness = ({
         renderControls: ({selection: controller}) => (
             <PneTableSelectionControls
                 actions={<>
-                    <PneButton onClick={() => controller.selectAllMatching(rows.length)}>
+                    <Button variant='contained' onClick={() => controller.selectAllMatching(rows.length)}>
                         Select all results
-                    </PneButton>
-                    <PneButton onClick={controller.clear}>Clear selection</PneButton>
+                    </Button>
+                    <Button variant='contained' onClick={controller.clear}>Clear selection</Button>
                 </>}
                 summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
             />

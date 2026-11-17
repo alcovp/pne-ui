@@ -1,7 +1,7 @@
 import React from 'react'
 import type { SxProps, Theme } from '@mui/material/styles'
 import { resolvePneSemanticPalette } from '../../createTheme'
-import PneButton from '../PneButton'
+import { Button } from '@mui/material'
 import { create } from 'zustand'
 import type {
     ErrorSnackbarOptions,
@@ -116,10 +116,10 @@ export const overlayActions = {
             ...snackbar,
             id,
             action: React.createElement(
-                PneButton,
+                Button,
                 {
                     // UI Kit Toast: a soft small button whose label reads as the primary text.
-                    pneStyle: 'neutral',
+                    variant: 'soft',
                     size: 'small',
                     onClick: () => {
                         useOverlayStore.getState().removeSnackbar(id)

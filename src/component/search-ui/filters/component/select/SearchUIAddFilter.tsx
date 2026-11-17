@@ -1,9 +1,8 @@
 import React, {useId, useState} from 'react';
 import {CriterionTypeEnum} from '../../types';
-import {Menu, MenuItem, SxProps} from '@mui/material';
+import {Menu, MenuItem, SxProps, Button} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
-import PneButton from '../../../../PneButton';
 import {withPneDropdownMenuLook} from '../../../../dropdown/dropdownLook';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 import {useSearchUIAutoTestScope} from '../../AutoTestScope';
@@ -57,18 +56,18 @@ const SearchUIAddFilter = (props: Props) => {
     }
 
     return <>
-        <PneButton
+        <Button
             {...createAutoTestAttributes(ADD_FILTER_AUTOTEST_ID)}
             onClick={handleOpen}
             onKeyDown={handleKeyDown}
             size={size}
-            pneStyle='neutral'
+            variant='soft'
             startIcon={<AddIcon/>}
             sx={addFilterButtonSx}
             aria-controls={open ? menuId : undefined}
             aria-expanded={open}
             aria-haspopup={'menu'}
-        >{label}</PneButton>
+        >{label}</Button>
         <Menu
             // UI Kit Dropdown menu: the panel and the 32px rows of the library's lists.
             {...withPneDropdownMenuLook({sx: addFilterMenuSx}, 'medium')}

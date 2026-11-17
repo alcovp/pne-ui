@@ -11,7 +11,7 @@ Layers and directories
   - `common/pne`: core helpers (`ensure`, `exhaustiveCheck`, `Order`, Zustand setter types).
   - `common/paynet`: domain types and type guards (`AbstractEntity`, `AutoCompleteChoice`, pagination requests).
 - `src/component`: UI components.
-  - Base controls: `PneButton`, `PneTextField`, `PneCheckbox`, `PneSwitch`, modals.
+  - Base controls: `PneTextField`, `PneCheckbox`, `PneSwitch`, modals. The button is the MUI `Button` drawn by the theme (`src/buttonLook.ts`).
   - Dropdown/autocomplete: `component/dropdown`.
   - Table: `component/table/*` (core `AbstractTable`, header/row factories, sorting/pagination, helper `useTable`).
   - SearchUI: `component/search-ui/*` stitches filter panel and results table, using zustand (`state/*`) to hold criteria.

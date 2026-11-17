@@ -1,7 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Stack, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import PneButton from '../PneButton'
 import PneModal from '../PneModal'
 import PneModalActions from '../PneModalActions'
 import { type AutoTestValue, createAutoTestAttributes } from '../AutoTestAttribute'
@@ -155,24 +154,25 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
             {children}
             <PneModal
                 actions={<PneModalActions
-                    secondary={current?.showCancel ? <PneButton
+                    secondary={current?.showCancel ? <Button
                         size='medium'
                         key={`confirm-cancel-${current.requestId}`}
                         {...createAutoTestAttributes('alert.button.cancel')}
-                        pneStyle='outlined'
+                        variant='outlined'
                         onClick={() => settle(current, false)}
                     >
                         {current.cancelLabel}
-                    </PneButton> : undefined}
-                    primary={<PneButton
+                    </Button> : undefined}
+                    primary={<Button
                         size='medium'
                         key={`confirm-submit-${current?.requestId ?? 'closed'}`}
                         {...createAutoTestAttributes('alert.button.submit')}
-                        pneStyle={current?.danger ? 'error' : 'contained'}
+                        variant='contained'
+                        color={current?.danger ? 'error' : 'primary'}
                         onClick={() => settle(current, true)}
                     >
                         {current?.confirmLabel}
-                    </PneButton>}
+                    </Button>}
                 />}
                 closeLabel={current?.cancelLabel ?? fallbackStrings.cancelLabel}
                 open={Boolean(current)}

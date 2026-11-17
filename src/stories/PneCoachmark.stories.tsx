@@ -1,9 +1,9 @@
-import {Box, Typography} from '@mui/material'
+import {Box, Typography, Button} from '@mui/material'
 import type {Meta, StoryObj} from '@storybook/react-webpack5'
 import {expect, waitFor, within} from 'storybook/test'
 import * as React from 'react'
 
-import {PneButton, PneCoachmark, PneModalActions} from '../index'
+import {PneCoachmark, PneModalActions} from '../index'
 
 const COACHMARK_WIDTH = 'min(560px, calc(100vw - 32px))'
 
@@ -40,7 +40,7 @@ const CoachmarkHarness = ({
             ref={setAnchorEl}
             sx={{display: 'inline-flex'}}
         >
-            <PneButton size='large' pneStyle='neutral'>{anchorLabel}</PneButton>
+            <Button size='large' variant='soft'>{anchorLabel}</Button>
         </Box> : null}
         <PneCoachmark
             actions={actions(close)}
@@ -66,15 +66,15 @@ const CoachmarkHarness = ({
 }
 
 const InvitationActions = ({close}: {close: () => void}) => <PneModalActions
-    leading={<PneButton size='large' pneStyle='text' onClick={close}>Do not offer again</PneButton>}
-    secondary={<PneButton size='large' pneStyle='outlined' onClick={close}>Not now</PneButton>}
-    primary={<PneButton size='large' pneStyle='contained'>Show me</PneButton>}
+    leading={<Button size='large' variant='text' onClick={close}>Do not offer again</Button>}
+    secondary={<Button size='large' variant='outlined' onClick={close}>Not now</Button>}
+    primary={<Button size='large' variant='contained'>Show me</Button>}
 />
 
 const WizardActions = ({close}: {close: () => void}) => <PneModalActions
-    leading={<PneButton size='large' pneStyle='text' onClick={close}>Continue later</PneButton>}
-    secondary={<PneButton size='large' pneStyle='outlined'>Back</PneButton>}
-    primary={<PneButton size='large' pneStyle='contained'>Next</PneButton>}
+    leading={<Button size='large' variant='text' onClick={close}>Continue later</Button>}
+    secondary={<Button size='large' variant='outlined'>Back</Button>}
+    primary={<Button size='large' variant='contained'>Next</Button>}
 />
 
 const getRenderedCoachmark = async (canvasElement: HTMLElement, name: string) => {
@@ -231,7 +231,7 @@ export const CenteredFallback: Story = {
     },
     render: () => <CoachmarkHarness
         actions={close => <PneModalActions
-            primary={<PneButton size='large' pneStyle='contained' onClick={close}>Close</PneButton>}
+            primary={<Button size='large' variant='contained' onClick={close}>Close</Button>}
         />}
         anchored={false}
         body='The requested target is not mounted at this board size, so this coachmark is centered instead.'

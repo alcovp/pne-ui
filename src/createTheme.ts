@@ -8,6 +8,7 @@ import {
 import {Skin} from './common/paynet/skin'
 import {mixHex, normalizeHexColor} from './color'
 import {createPneBrandRamp, type PneBrandRamp} from './brandRamp'
+import {createPneButtonOverrides} from './buttonLook'
 import {
     createPneButtonPalette,
     createPneFocusRing,
@@ -274,6 +275,8 @@ const createSemanticSurfaces = (
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
     if (value === null || typeof value !== 'object') return false
+    // A React element (the spinner of a waiting button) is one value, not a set of options.
+    if ('$$typeof' in value) return false
     const prototype = Object.getPrototypeOf(value)
     return prototype === Object.prototype || prototype === null
 }
@@ -356,96 +359,7 @@ const createPneComponentOverrides = (mode: PneColorMode): ThemeOptions['componen
             },
         },
     },
-    MuiButton: {
-        styleOverrides: {
-            root: ({ownerState, theme}) => {
-                if (ownerState.color === 'pneNeutral') {
-                    if (mode === 'light') {
-                        return {
-                            backgroundColor: '#F1F5FA',
-                            color: theme.palette.primary.main,
-                            boxShadow: 'none',
-                            '&:hover': {
-                                backgroundColor: theme.palette.primary.light,
-                                boxShadow: 'none',
-                            },
-                        }
-                    }
-                    return {
-                        backgroundColor: theme.palette.pne.surface.subtle,
-                        color: theme.palette.pne.brand.foreground,
-                        boxShadow: 'none',
-                        '&:hover': {
-                            backgroundColor: theme.palette.pne.brand.softHover,
-                            boxShadow: 'none',
-                        },
-                    }
-                }
-                if (ownerState.color === 'pneWhite') {
-                    if (mode === 'light') {
-                        return {
-                            backgroundColor: '#fff',
-                            color: theme.palette.primary.main,
-                            boxShadow: 'none',
-                            '&:hover': {
-                                backgroundColor: theme.palette.primary.light,
-                                boxShadow: 'none',
-                            },
-                        }
-                    }
-                    return {
-                        backgroundColor: theme.palette.pne.surface.raised,
-                        color: theme.palette.pne.brand.foreground,
-                        boxShadow: 'none',
-                        '&:hover': {
-                            backgroundColor: theme.palette.pne.brand.softHover,
-                            boxShadow: 'none',
-                        },
-                    }
-                }
-                if (ownerState.color === 'pnePrimaryLight') {
-                    if (mode === 'light') {
-                        return {
-                            backgroundColor: theme.palette.primary.light,
-                            color: theme.palette.primary.main,
-                            boxShadow: 'none',
-                            '&:hover': {
-                                backgroundColor: theme.palette.primary.main,
-                                color: theme.palette.primary.contrastText,
-                                boxShadow: 'none',
-                            },
-                        }
-                    }
-                    return {
-                        backgroundColor: theme.palette.pne.brand.soft,
-                        color: theme.palette.pne.brand.foreground,
-                        boxShadow: 'none',
-                        '&:hover': {
-                            backgroundColor: theme.palette.pne.brand.softHover,
-                            color: theme.palette.pne.brand.foregroundHover,
-                            boxShadow: 'none',
-                        },
-                    }
-                }
-                if (ownerState.color === 'pneWarningLight') {
-                    return {
-                        backgroundColor: theme.palette.warning.light,
-                        color: theme.palette.warning.contrastText,
-                        boxShadow: 'none',
-                        '&:hover': {
-                            backgroundColor: theme.palette.warning.main,
-                            color: theme.palette.warning.contrastText,
-                            boxShadow: 'none',
-                        },
-                    }
-                }
-                return {
-                    boxShadow: 'none',
-                    '&:hover': {boxShadow: 'none'},
-                }
-            },
-        },
-    },
+    MuiButton: createPneButtonOverrides(resolvePneSemanticPalette),
     MuiToggleButtonGroup: {
         styleOverrides: {
             root: ({ownerState, theme}) => ownerState.color === 'pneAccentuated'
@@ -499,9 +413,6 @@ const createBaseThemeOptions = (skin: Skin, mode: PneColorMode): ThemeOptions =>
             pne,
             pneNeutral: {main: seed},
             pnePrimary: {main: seed},
-            pnePrimaryLight: {main: seed},
-            pneWhite: {main: seed},
-            pneWarningLight: {main: '#F5762F'},
             pneAccentuated: {main: seed},
             ...darkModePalette,
         },

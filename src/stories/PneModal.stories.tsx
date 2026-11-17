@@ -1,8 +1,8 @@
 import * as React from "react";
-import {Box, Typography} from "@mui/material";
+import {Box, Typography, Button} from "@mui/material";
 import {Meta, StoryObj} from "@storybook/react-webpack5";
 import {expect, userEvent, within} from "storybook/test";
-import {PneButton, PneModal, PneModalActions} from "../index";
+import {PneModal, PneModalActions} from "../index";
 
 export default {
     title: "pne-ui/PneModal",
@@ -57,9 +57,9 @@ const ModalStoryHarness = ({
     const close = React.useCallback(() => setOpen(false), []);
 
     return <Box sx={{p: 2}}>
-        <PneButton size='large' pneStyle='outlined' onClick={() => setOpen(true)}>
+        <Button size='large' variant="outlined" onClick={() => setOpen(true)}>
             Открыть модалку
-        </PneButton>
+        </Button>
         <PneModal
             actions={renderActions(close)}
             closeLabel='Закрыть'
@@ -89,8 +89,8 @@ export const Default: Story = {
     play: openModal,
     render: () => <ModalStoryHarness
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
-            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Сохранить</PneButton>}
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Отмена</Button>}
+            primary={<Button size='medium' variant="contained" onClick={close}>Сохранить</Button>}
         />}
         title='Редактирование профиля'
     >
@@ -113,8 +113,8 @@ export const Destructive: Story = {
     play: openModal,
     render: () => <ModalStoryHarness
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
-            primary={<PneButton size='medium' pneStyle='error' onClick={close}>Удалить</PneButton>}
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Отмена</Button>}
+            primary={<Button size='medium' variant="contained" color="error" onClick={close}>Удалить</Button>}
         />}
         title='Удаление ключа'
     >
@@ -138,9 +138,9 @@ export const Wizard: Story = {
     render: () => <ModalStoryHarness
         containerSx={{width: 560}}
         renderActions={close => <PneModalActions
-            leading={<PneButton size='medium' pneStyle='text' onClick={close}>Отмена</PneButton>}
-            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Назад</PneButton>}
-            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Далее</PneButton>}
+            leading={<Button size='medium' variant="text" onClick={close}>Отмена</Button>}
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Назад</Button>}
+            primary={<Button size='medium' variant="contained" onClick={close}>Далее</Button>}
         />}
         subtitle='Шаг 2 из 3'
         title='Подключение терминала'
@@ -157,10 +157,10 @@ const GroupedSecondaryActionsExample = () => <ModalStoryHarness
     containerSx={{width: 640}}
     renderActions={close => <PneModalActions
         secondary={<>
-            <PneButton size='medium' pneStyle='outlined' onClick={close}>Назад</PneButton>
-            <PneButton size='medium' pneStyle='outlined' onClick={close}>Попробовать редактирование</PneButton>
+            <Button size='medium' variant="outlined" onClick={close}>Назад</Button>
+            <Button size='medium' variant="outlined" onClick={close}>Попробовать редактирование</Button>
         </>}
-        primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Готово</PneButton>}
+        primary={<Button size='medium' variant="contained" onClick={close}>Готово</Button>}
     />}
     title='Финальный шаг'
 >
@@ -254,8 +254,8 @@ export const ResponsiveLongLabels: Story = {
     render: () => <ModalStoryHarness
         containerSx={{width: 640}}
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Вернуться без сохранения</PneButton>}
-            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Сохранить и отправить на проверку</PneButton>}
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Вернуться без сохранения</Button>}
+            primary={<Button size='medium' variant="contained" onClick={close}>Сохранить и отправить на проверку</Button>}
         />}
         title='Отправка заявления'
     >
@@ -333,8 +333,8 @@ export const MobileLongScroll: Story = {
     render: () => <ModalStoryHarness
         containerSx={{width: 640}}
         renderActions={close => <PneModalActions
-            secondary={<PneButton size='medium' pneStyle='outlined' onClick={close}>Отмена</PneButton>}
-            primary={<PneButton size='medium' pneStyle='contained' onClick={close}>Сохранить</PneButton>}
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Отмена</Button>}
+            primary={<Button size='medium' variant="contained" onClick={close}>Сохранить</Button>}
         />}
         subtitle='16 разделов'
         title='Длинная мобильная модалка'
