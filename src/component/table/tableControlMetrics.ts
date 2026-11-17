@@ -1,9 +1,11 @@
+import {PNE_BUTTON_SIZE} from '../../buttonLook'
+
 /**
  * Height of a control of the table bands - page buttons, page sizes, views, selection actions - and
  * the width of the square ones: the small step of the PNE buttons (24/32/40), as the UI Kit draws the
  * controls of a table. WCAG 2.2 asks for at least 24px.
  */
-export const TABLE_CONTROL_SIZE = 24
+export const TABLE_CONTROL_SIZE = PNE_BUTTON_SIZE.small.height
 
 /**
  * Height of a band row and of a group shell: the pagination, the page sizes and the views stand in

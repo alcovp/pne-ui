@@ -1,5 +1,6 @@
 import React, {forwardRef} from 'react'
 import {ButtonBase, ButtonBaseProps, SxProps, Theme, Tooltip} from '@mui/material'
+import {PNE_BUTTON_SIZE} from '../../buttonLook'
 import {resolvePneSemanticPalette} from '../../createTheme'
 import {PneChevronDownIcon} from '../dropdown/dropdownLook'
 import {createTableControlTextButtonStyle} from './tableControlButtonStyle'
@@ -21,6 +22,8 @@ export type PneTableControlButtonProps = Omit<ButtonBaseProps, 'children' | 'sx'
     tooltip?: React.ReactNode
     sx?: SxProps<Theme>
 }
+
+const SIZE = PNE_BUTTON_SIZE.small
 
 /**
  * A text button of the table bands: selection actions, a bulk actions menu. UI Kit Button Tertiary sm,
@@ -45,9 +48,10 @@ const PneTableControlButton = forwardRef<HTMLButtonElement, PneTableControlButto
                 theme => ({
                     ...createTableControlTextButtonStyle(theme),
                     flexShrink: 0,
-                    gap: '4px',
+                    gap: `${SIZE.gap}px`,
                     whiteSpace: 'nowrap',
-                    ...(menu ? {paddingRight: '6px'} : {}),
+                    // The chevron stands closer to the edge by the pull of a button icon.
+                    ...(menu ? {paddingRight: `${SIZE.paddingInline - SIZE.iconPull}px`} : {}),
                     ...(emphasis === 'strong'
                         ? {color: resolvePneSemanticPalette(theme).table.text}
                         : {}),
@@ -56,7 +60,7 @@ const PneTableControlButton = forwardRef<HTMLButtonElement, PneTableControlButto
             ]}
         >
             {children}
-            {menu ? <PneChevronDownIcon aria-hidden sx={{fontSize: '14px'}}/> : null}
+            {menu ? <PneChevronDownIcon aria-hidden sx={{fontSize: `${SIZE.icon}px`}}/> : null}
         </ButtonBase>
 
         if (tooltip === undefined || tooltip === null || typeof tooltip === 'boolean' || tooltip === '') {

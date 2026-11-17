@@ -42,9 +42,9 @@ export const resolvePneButtonVariant = (
 
 export const PNE_BUTTON_FONT_FAMILY = '"Roboto", "Helvetica Neue", Arial, sans-serif'
 
-type PneButtonLookSize = 'small' | 'medium' | 'large'
+export type PneButtonLookSize = 'small' | 'medium' | 'large'
 
-type ButtonSizeConfig = {
+export type PneButtonSizeConfig = {
     height: number
     paddingBlock: number
     paddingInline: number
@@ -58,8 +58,12 @@ type ButtonSizeConfig = {
     iconPull: number
 }
 
-// UI Kit sizes: small 24px (tables, groups), medium 32px (forms), large 40px (page primary).
-const BUTTON_SIZE: Record<PneButtonLookSize, ButtonSizeConfig> = {
+/**
+ * UI Kit sizes: small 24px (tables, groups), medium 32px (forms), large 40px (page primary). The one
+ * table of the button sizes: the theme draws the MUI `Button` from it, and the controls that look
+ * like a button without being one (the controls of a table band, an icon action) read it too.
+ */
+export const PNE_BUTTON_SIZE: Record<PneButtonLookSize, PneButtonSizeConfig> = {
     small: {height: 24, paddingBlock: 4, paddingInline: 8, fontSize: 12, lineHeight: 16, icon: 14, gap: 4, iconPull: 2},
     medium: {height: 32, paddingBlock: 6, paddingInline: 12, fontSize: 14, lineHeight: 20, icon: 16, gap: 4, iconPull: 2},
     large: {height: 40, paddingBlock: 10, paddingInline: 16, fontSize: 14, lineHeight: 20, icon: 18, gap: 8, iconPull: 0},
@@ -89,7 +93,7 @@ const WAITING = '&&&.MuiButton-loading:not(.MuiButton-loadingPositionCenter)'
 const WAITING_CENTRE = '&.MuiButton-loading.MuiButton-loadingPositionCenter'
 
 const sizeStyle = (size: PneButtonLookSize): CSSObject => {
-    const config = BUTTON_SIZE[size]
+    const config = PNE_BUTTON_SIZE[size]
     const iconPull = config.iconPull === 0 ? '0px' : `-${config.iconPull}px`
 
     return {

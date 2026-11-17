@@ -1,4 +1,5 @@
 import type {SxProps, Theme} from '@mui/material/styles'
+import {PNE_BUTTON_SIZE} from '../buttonLook'
 import {resolvePneSemanticPalette} from '../createTheme'
 import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP} from '../themeColors'
 
@@ -6,12 +7,14 @@ import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP} from '../themeColors'
  * UI Kit Icon action on a MUI IconButton: an icon button with no background, where hover and press
  * colour only the icon. `medium` is a 32px box with a 16px glyph (the close cross of a modal and of
  * a toast), `small` a 24px box with a 14px glyph. The icon rests in the tertiary text colour, or in
- * `restColor` (the tone of a toast), and takes the brand text colour under the pointer.
+ * `restColor` (the tone of a toast), and takes the brand text colour under the pointer. The box and
+ * the glyph are the height and the icon of a button of that size.
  */
 export const pneIconActionSx = (size: 'small' | 'medium', restColor?: string): SxProps<Theme> => theme => {
     const pne = resolvePneSemanticPalette(theme)
     const dark = theme.palette.mode === 'dark'
-    const box = size === 'small' ? '24px' : '32px'
+    const {height, icon} = PNE_BUTTON_SIZE[size]
+    const box = `${height}px`
     return {
         flex: '0 0 auto',
         width: box,
@@ -21,7 +24,7 @@ export const pneIconActionSx = (size: 'small' | 'medium', restColor?: string): S
         backgroundColor: 'transparent',
         color: restColor ?? (dark ? PNE_DARK_COLORS.textMuted : PNE_NEUTRAL_RAMP[600]),
         '& .MuiSvgIcon-root': {
-            fontSize: size === 'small' ? '14px' : '16px',
+            fontSize: `${icon}px`,
         },
         '&:hover': {
             backgroundColor: 'transparent',

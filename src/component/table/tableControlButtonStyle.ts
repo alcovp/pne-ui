@@ -1,5 +1,6 @@
 import {Theme} from '@mui/material'
 import type {SystemStyleObject} from '@mui/system'
+import {PNE_BUTTON_SIZE} from '../../buttonLook'
 import {resolvePneSemanticPalette} from '../../createTheme'
 import {
     TABLE_CONTROL_BAND_SIZE,
@@ -8,11 +9,17 @@ import {
     TABLE_CONTROL_SIZE,
 } from './tableControlMetrics'
 
+// The small step of the button sizes; the theme draws the MUI `Button` from the same table.
+const SIZE = PNE_BUTTON_SIZE.small
+
 /**
  * A button of the table bands by the UI Kit (Button Tertiary sm): 24px, a 12/16 Medium label on the
  * sunken grey fill. The pointer and a press change the colour of the label, a press darkens the fill
  * too; the focus ring stands inside the button, so a shell never clips it. The views, the page
  * buttons, the page sizes and the band's own actions all take it.
+ *
+ * These controls are toggle buttons, page items and arrows of a calendar, which the `MuiButton` entry
+ * of the theme does not reach; the sizes and the colours are the ones of the theme's small text button.
  */
 export const createTableControlTextButtonStyle = (theme: Theme): SystemStyleObject<Theme> => {
     const pne = resolvePneSemanticPalette(theme)
@@ -22,12 +29,12 @@ export const createTableControlTextButtonStyle = (theme: Theme): SystemStyleObje
         backgroundColor: colors.default.fill,
         borderRadius: '4px',
         color: colors.default.text,
-        fontSize: '12px',
+        fontSize: `${SIZE.fontSize}px`,
         fontWeight: 500,
         height: `${TABLE_CONTROL_SIZE}px`,
         letterSpacing: 'normal',
-        lineHeight: '16px',
-        padding: '4px 8px',
+        lineHeight: `${SIZE.lineHeight}px`,
+        padding: `${SIZE.paddingBlock}px ${SIZE.paddingInline}px`,
         textTransform: 'none' as const,
         '&:hover': {
             backgroundColor: colors.hover.fill,
