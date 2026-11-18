@@ -229,6 +229,39 @@ import {Button} from '@mui/material'
 | `activated` | `aria-disabled` и `tabIndex={-1}` на кнопке `text` + `success` |
 | `data-pne-variant`, `data-pne-size`, `data-pne-loading` | классы MUI: `MuiButton-contained`, `MuiButton-colorError`, `MuiButton-sizeSmall`, `MuiButton-loading` |
 
+## Подсказка и радиокнопка: вид рисует тема
+
+Своих компонентов подсказки и радиокнопки в `pne-ui` нет. Берите `Tooltip` и `Radio` из `@mui/material`:
+под темой `createPneTheme` они выглядят по UI Kit, без дополнительных свойств.
+
+```tsx
+import {FormControlLabel, Radio, RadioGroup, Tooltip} from '@mui/material'
+
+<Tooltip title="Refresh the list"><IconButton onClick={refresh}><RefreshIcon/></IconButton></Tooltip>
+
+<RadioGroup value={mode} onChange={(_event, next) => setMode(next)}>
+    <FormControlLabel value="exact" control={<Radio/>} label="Exact"/>
+    <FormControlLabel value="prefix" control={<Radio/>} label="Prefix"/>
+</RadioGroup>
+```
+
+`Tooltip`:
+
+- тело тёмное с белым текстом (на тёмной странице светлое с тёмным текстом), радиус 4, поля 4/8, текст
+  12/16, ширина до 240 px;
+- стрелка 10×6 показана по умолчанию и занимает 6 px между подсказкой и элементом; `arrow={false}` её убирает;
+- задержки и поведение остаются штатными, их задаёт страница (`enterDelay`, `placement` и так далее).
+
+`Radio`:
+
+- `size="medium"` (по умолчанию) — кружок 20 px для форм, `size="small"` — 16 px для строк и плотных списков;
+- выключена — тонкое кольцо, включена — толстое кольцо цвета бренда вокруг светлого центра;
+- наведение и нажатие перекрашивают сам кружок, круглой подложки под курсором нет; фокус с клавиатуры —
+  кольцо 2 px;
+- цвета те же, что у `PneCheckbox` (`palette.pne.checkbox`); свой `icon` / `checkedIcon` страницы сохраняется.
+
+Сторис: `pne-ui/Tooltip` и `pne-ui/Radio`.
+
 ## PneField
 
 `PneField` задаёт общий семантический контракт для одного поля: label, helper text, error/disabled/required state и
