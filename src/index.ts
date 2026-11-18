@@ -87,6 +87,7 @@ declare module '@mui/material/ToggleButton' {
 
 export * from './exports/theme'
 export * from './exports/inputs'
+export * from './exports/dates'
 export * from './exports/modals'
 export * from './exports/table'
 export * from './exports/search'

@@ -353,6 +353,45 @@ const { ref, ...field } = controllerField
 Вид получает каждое поле, в том числе внутри автокомплитов и фильтров SearchUI. В режиме `select` поле рисует
 шеврон и список как `PneSelect` (свой `IconComponent` и `native` остаются за потребителем).
 
+## Поля дат: PneDatePicker и другие
+
+Поля даты и времени — пикеры MUI X в виде UI Kit: коробка `PneTextField` (24, 32 или 40 px, подпись над
+коробкой, кольцо по состоянию, ошибка со знаком) и календарь библиотеки.
+
+| Компонент | Что выбирает | Пикер MUI X | Формат по умолчанию |
+|---|---|---|---|
+| `PneDatePicker` | дату | `DatePicker` | `DD.MM.YYYY` |
+| `PneDateTimePicker` | дату и время | `DateTimePicker` | `DD.MM.YYYY HH:mm` |
+| `PneTimePicker` | время | `TimePicker` | `HH:mm` |
+| `PneDateRangePicker` | период | `DateRangePicker` (Pro) | `DD.MM.YYYY` |
+| `PneDateTimeRangePicker` | период со временем | `DateTimeRangePicker` (Pro) | `DD.MM.YYYY HH:mm` |
+
+```tsx
+import dayjs, {type Dayjs} from 'dayjs'
+import {PneDatePicker, PneDateTimePicker} from 'pne-ui'
+
+const [day, setDay] = useState<Dayjs | null>(null)
+
+<PneDatePicker label='Bank date' value={day} onChange={setDay} size='large' fullWidth/>
+<PneDateTimePicker label='Created' value={created} onChange={setCreated} format='DD.MM.YYYY HH:mm:ss'/>
+```
+
+- Значения — даты dayjs: адаптер и язык календаря (месяцы, дни недели, первый день недели, подписи кнопок)
+  компонент ставит сам по языку i18next. Свой `LocalizationProvider` не нужен.
+- Все пропсы пикера MUI X проходят насквозь (`value`, `onChange`, `minDate`, `disableFuture`, `views`,
+  `referenceDate`, `slots`, `slotProps` и остальные). К ним добавлены пропсы поля: `size` (`small`, `medium` по
+  умолчанию, `large`), `error`, `helperText`, `fullWidth`, `required`, `id`. `slotProps.textField` приложения
+  сильнее пропсов поля; его data-атрибуты попадают на корень поля.
+- Ошибка. Без `error` поле краснеет, когда набранная дата не закончена или не существует (31.02) либо
+  нарушает ограничение, которое дал сам пикер (`minDate`, `maxDate`, `disableFuture` и так далее). Год вне
+  1900–2099 ошибкой не считается: это ограничение MUI X по умолчанию, а не приложения. `error={true | false}` —
+  вердикт приложения, он сильнее; `onError` при этом по-прежнему сообщает причину MUI X.
+- Время — 24 часа, в списке каждая минута. Формат с секундами добавляет колонку секунд.
+- Внутри `PneField` поле берёт его подпись, подсказку, ошибку и `disabled`, как `PneTextField`.
+- Пустое поле показывает свой формат цветом плейсхолдера.
+- Поле отдельно — `PnePickerTextField`: его можно поставить в `slots.textField` своего пикера MUI X.
+- Диапазонные пикеры — MUI X Pro: ключ лицензии ставит приложение (см. «Установка»).
+
 ## PneCheckbox и PneSwitch: общий контракт
 
 `PneCheckbox` и `PneSwitch` сохраняют MUI-контракт `checked` / `defaultChecked` / `onChange`, а также нативные

@@ -9,7 +9,11 @@ import type {PickersActionBarAction, PickersActionBarProps} from '@mui/x-date-pi
  * translates. Passed as `slots.actionBar`; the picker still decides which actions it has.
  */
 const PneCalendarActionBar = (props: PickersActionBarProps) => {
-    const {actions, className} = props
+    // The rest are the attributes a picker gives its bar through `slotProps.actionBar` (a click
+    // handler, data attributes); the props of MUI's own bar mean nothing here.
+    const {actions, className, classes: _classes, disableSpacing: _disableSpacing, sx, ...other} = props
+    const attributes = other as Record<string, unknown>
+    delete attributes.ownerState
     const translations = usePickerTranslations()
     const {
         acceptValueChanges,
@@ -59,7 +63,12 @@ const PneCalendarActionBar = (props: PickersActionBarProps) => {
         }
     }
 
-    return <Box className={className} data-pne-calendar-actions='true' sx={barSx}>
+    return <Box
+        {...attributes}
+        className={className}
+        data-pne-calendar-actions='true'
+        sx={[barSx, ...(Array.isArray(sx) ? sx : [sx])]}
+    >
         {actions.map(button)}
     </Box>
 }

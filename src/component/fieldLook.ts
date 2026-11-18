@@ -149,30 +149,37 @@ export const pneFieldBoxSx: SxProps<Theme> = theme => {
         '& .Mui-disabled > .MuiInputAdornment-root, & .Mui-disabled > .MuiInputAdornment-root .MuiTypography-root': {
             color: field.text.disabled,
         },
-        // The label of the field itself: over the box, as the label of PneField.
-        '& > .MuiInputLabel-root': {
-            color: field.text.label,
-            fontSize: '12px',
-            fontWeight: 500,
-            lineHeight: '16px',
-            marginBottom: '4px',
-            maxWidth: '100%',
-            pointerEvents: 'auto',
-            position: 'static',
-            transform: 'none',
-            transition: 'none',
-            whiteSpace: 'normal',
-        },
-        '& > .MuiInputLabel-root.Mui-focused, & > .MuiInputLabel-root.Mui-error': {
-            color: field.text.label,
-        },
-        '& > .MuiInputLabel-root.Mui-disabled': {
-            color: field.text.disabled,
-        },
-        '& .MuiFormHelperText-root': pneHelperTextStyle(field, '4px'),
     }
-    return Object.assign(rules, ...PNE_FIELD_SIZES.map(sizeRules))
+    return Object.assign(rules, pneFieldCaptionRules(field), ...PNE_FIELD_SIZES.map(sizeRules))
 }
+
+/**
+ * The texts around the box of a field, under the root of a MUI form control: the label over the box, as
+ * the label of PneField (12/16 Medium, never floating), and the helper text under it. Shared by the text
+ * field and the field of a date picker.
+ */
+export const pneFieldCaptionRules = (field: PneFieldPalette): Rules => ({
+    '& > .MuiInputLabel-root': {
+        color: field.text.label,
+        fontSize: '12px',
+        fontWeight: 500,
+        lineHeight: '16px',
+        marginBottom: '4px',
+        maxWidth: '100%',
+        pointerEvents: 'auto',
+        position: 'static',
+        transform: 'none',
+        transition: 'none',
+        whiteSpace: 'normal',
+    },
+    '& > .MuiInputLabel-root.Mui-focused, & > .MuiInputLabel-root.Mui-error': {
+        color: field.text.label,
+    },
+    '& > .MuiInputLabel-root.Mui-disabled': {
+        color: field.text.disabled,
+    },
+    '& .MuiFormHelperText-root': pneHelperTextStyle(field, '4px'),
+})
 
 /**
  * The UI Kit helper text, for the helper element itself: 12/16 under the control with no indent; in
