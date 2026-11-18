@@ -217,8 +217,16 @@ export const usePneModalFrame = ({
         ownerDocument.addEventListener('pointermove', onMove)
         ownerDocument.addEventListener('pointerup', onEnd)
         ownerDocument.addEventListener('pointercancel', onEnd)
-        // With the capture the moves keep coming when the pointer leaves the browser window.
-        if (pointerId !== undefined) handle.setPointerCapture?.(pointerId)
+        // With the capture the moves keep coming when the pointer leaves the browser window. A scripted
+        // event may name a pointer the browser does not know: the capture is refused, and the listeners of
+        // the document do the whole work.
+        if (pointerId !== undefined) {
+            try {
+                handle.setPointerCapture?.(pointerId)
+            } catch {
+                // No capture for this pointer.
+            }
+        }
 
         sessionRef.current = {
             action: nextAction,
@@ -233,8 +241,12 @@ export const usePneModalFrame = ({
                 ownerDocument.removeEventListener('pointermove', onMove)
                 ownerDocument.removeEventListener('pointerup', onEnd)
                 ownerDocument.removeEventListener('pointercancel', onEnd)
-                if (pointerId !== undefined && handle.hasPointerCapture?.(pointerId)) {
-                    handle.releasePointerCapture(pointerId)
+                try {
+                    if (pointerId !== undefined && handle.hasPointerCapture?.(pointerId)) {
+                        handle.releasePointerCapture(pointerId)
+                    }
+                } catch {
+                    // The pointer is gone, and its capture with it.
                 }
             },
         }

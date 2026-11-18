@@ -152,6 +152,27 @@ describe('PneModal: a window a person moves and resizes', () => {
         expect(place(container)).toMatchObject({left: '', top: ''})
     })
 
+    it('moves by a scripted press whose pointer the browser refuses to capture', () => {
+        const {container, header} = renderModal({movable: true})
+        const withPointerId = (event: MouseEvent) => {
+            Object.defineProperty(event, 'pointerId', {value: 7})
+            return event
+        }
+        header.setPointerCapture = () => {
+            throw new DOMException('No active pointer with the given id is found.', 'NotFoundError')
+        }
+        header.hasPointerCapture = () => {
+            throw new DOMException('No active pointer with the given id is found.', 'NotFoundError')
+        }
+
+        fireEvent(header, withPointerId(pointer('pointerdown', 500, 250)))
+        fireEvent(document, withPointerId(pointer('pointermove', 620, 290)))
+        fireEvent(document, withPointerId(pointer('pointerup', 620, 290)))
+
+        expect(place(container)).toMatchObject({left: '432px', top: '274px'})
+        expect(container.hasAttribute('data-pne-modal-action')).toBe(false)
+    })
+
     it('resizes by its lower right corner with the upper left corner in place', () => {
         const {container, handle} = renderModal({resizable: true})
 
