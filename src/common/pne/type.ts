@@ -22,11 +22,6 @@ export function assertObject(value: unknown): asserts value is object {
     }
 }
 
-export type SelectOption = {
-    value: number | string
-    label: string
-}
-
 export type Order = 'asc' | 'desc'
 
 export type ZustandStoreSet<STORE> = {

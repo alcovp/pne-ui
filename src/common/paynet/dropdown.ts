@@ -2,7 +2,6 @@ import type {
     AutocompleteFreeSoloValueMapping,
     SxProps,
 } from '@mui/material'
-import type {AbstractEntity, AutoCompleteChoice} from './type'
 
 export type PneAutocompleteKey = string | number
 
@@ -24,9 +23,6 @@ export type PneBuiltInAutocompleteOption =
 
 /** Any non-nullish value can be an option when object-specific adapters are supplied. */
 export type PneAutocompleteOption = NonNullable<unknown>
-
-/** Legacy domain union retained for source compatibility. */
-export type PneDropdownChoice = AutoCompleteChoice | AbstractEntity | string
 
 type BuiltInOptionOrFreeSolo<
     T extends PneBuiltInAutocompleteOption,

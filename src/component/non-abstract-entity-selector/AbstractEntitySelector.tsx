@@ -48,23 +48,6 @@ const isMappedAbstractEntity = (value: unknown): value is IMappedAbstractEntity 
         'name' in value && typeof value.name === 'string'
 }
 
-//TODO must be removed
-export type ProcessorPaymentApparatus = {
-    id: number
-    name: string
-    mapped: boolean
-}
-
-//TODO must be removed
-export const isProcessorPaymentApparatus = (value: unknown): value is ProcessorPaymentApparatus => {
-    if (!isObject(value)) {
-        return false;
-    }
-
-    return 'id' in value && typeof value.id === 'number' &&
-        'name' in value && typeof value.name === 'string'
-}
-
 export interface IAbstractEntityOptions<T> {
     reset?: boolean
     list: T[]
@@ -95,7 +78,6 @@ export type AbstractEntitySelectorProp =
     | IMappedAbstractEntity
     | AbstractEntity
     | Country
-    | ProcessorPaymentApparatus
 
 export interface IMappedUnmappedList<T extends AbstractEntitySelectorProp> {
     mapped: T[]
@@ -111,7 +93,7 @@ const getListEntity = <T extends AbstractEntitySelectorProp>(item: T, index: num
     }
 
     assertObject(item)
-    if (isMappedAbstractEntity(item) || isProcessorPaymentApparatus(item)) {
+    if (isMappedAbstractEntity(item)) {
         return {
             displayName: item.name,
             ...item
@@ -130,7 +112,7 @@ const getListEntity = <T extends AbstractEntitySelectorProp>(item: T, index: num
 const checkInitialType = (item: AbstractEntitySelectorProp): string | undefined => {
     if (typeof item === 'string') {
         return 'string'
-    } else if (isMappedAbstractEntity(item) || isProcessorPaymentApparatus(item)) {
+    } else if (isMappedAbstractEntity(item)) {
         return 'mappedEntity'
     } else if (isAbstractEntity(item)) {
         return 'abstractEntity'

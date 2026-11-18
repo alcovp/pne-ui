@@ -20,28 +20,16 @@ export type AutoCompleteChoice = {
     description?: string | undefined
 }
 
-export const isIAutoCompleteChoice = (value: unknown): value is AutoCompleteChoice => {
-    if (!isObject(value)) {
-        return false;
-    }
-
-    return 'choiceId' in value && typeof value.choiceId === 'number' &&
-        'displayName' in value && typeof value.displayName === 'string';
-}
-
 export type AutoCompleteChoiceWithStatus = AutoCompleteChoice & {
     status: Status
 }
 
 export type Status = 'E' | 'D' | 'I'
 
-export type GetPagedListRequest = {
+export type GetPagedOrderedSortedListRequest = {
     search?: string
     startNum: number
     rowCount: number
-}
-
-export type GetPagedOrderedSortedListRequest = GetPagedListRequest & {
     orderBy: number
     sortOrder?: Order
 }
@@ -52,7 +40,6 @@ export type AllableCollection<T> = {
 }
 
 export type AbstractEntityAllableCollection = AllableCollection<AbstractEntity>
-export type AutoCompleteChoiceAllableCollection = AllableCollection<AutoCompleteChoice>
 
 
 export type Country = {
@@ -60,13 +47,6 @@ export type Country = {
     displayName: string
     theCode: string
     theCode3: string
-}
-
-/** For states, there is only one iso code in the DB table. */
-export type State = {
-    id: number
-    displayName: string
-    theCode: string
 }
 
 export interface IMappedAbstractEntity {

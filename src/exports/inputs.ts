@@ -52,7 +52,6 @@ export type {
     PneAutocompleteKey,
     PneAutocompleteOption,
     PneBuiltInAutocompleteOption,
-    PneDropdownChoice,
 } from '../common/paynet/dropdown'
 
 export { PneCheckbox } from '../component/PneCheckbox'

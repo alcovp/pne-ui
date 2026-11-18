@@ -62,7 +62,7 @@ yarn why @mui/x-date-pickers     # одна версия, та же, что у @
 
 С 5.0 `dayjs` и `@mui/x-date-pickers` стали peer-зависимостями, а zod-схемы `AbstractEntitySchema`,
 `AutoCompleteChoiceSchema`, `CountrySchema` и `StateSchema` больше не экспортируются. Типы `AbstractEntity`,
-`AutoCompleteChoice`, `Country` и `State` остались прежними; приложению, которое валидирует ответы
+`AutoCompleteChoice` и `Country` остались прежними; приложению, которое валидирует ответы
 zod-схемами, нужны свои схемы. `dayjs` берётся у приложения: SearchUI один раз ставит на него плагины
 `utc`, `timezone` и `isoWeek`.
 
@@ -91,7 +91,14 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
   `slotProps.label.sx` и `slotProps.helperText.sx`), `overlay`, `containerProps` и `closeButtonProps` у `PneModal`
   (вместо них `blockingOverlay`, `slotProps.container` и `slotProps.closeButton`).
 
-Все типы, кроме `AutoTestAttributeProps`, экспортируются по-прежнему.
+Из типов сняты `AutoTestAttributeProps` и те, которые описывают данные приложения, а библиотеке не нужны:
+`State` (штат), `SelectOption`, `GetPagedListRequest`, `AutoCompleteChoiceAllableCollection`,
+`PneDropdownChoice` и проверка `isIAutoCompleteChoice` — приложение объявляет их у себя. Опцию выпадающего
+списка библиотеки описывает `PneBuiltInAutocompleteOption`. Остальные типы экспортируются по-прежнему.
+
+Из списка допустимых элементов `AbstractEntitySelector` убран тип платёжного аппарата хоста. Селектор
+по-прежнему берёт любой объект с `id` и `name` (или `displayName`); остальные поля объекта возвращаются в
+`onChange` как были.
 
 ## PneBreadcrumbs
 
