@@ -13,6 +13,7 @@ import {
     PneSurfaceFooter,
     PneSurfaceHeader,
 } from './internal/PneSurface'
+import {usePneModalFrame} from './internal/usePneModalFrame'
 
 export type PneModalDataAttributes = {
     [attribute: `data-${string}`]: string | number | boolean | undefined
@@ -131,8 +132,18 @@ type PneModalOwnProps = {
     containerSx?: SxProps<Theme>
     hideCloseButton?: boolean
     modalProps?: PneModalRootProps
+    /**
+     * A person can move the window by its header. The window stays whole inside the page and opens centred
+     * again next time. The text of the header is not selectable in such a window.
+     */
+    movable?: boolean
     onClose: PneModalCloseHandler
     open: boolean
+    /**
+     * A person can resize the window by its lower right corner, between the minimum and the maximum its styles
+     * give and the edges of the page. The body takes the height that is left and scrolls.
+     */
+    resizable?: boolean
     slotProps?: PneModalSlotProps
     subtitle?: React.ReactNode
 }
@@ -153,8 +164,10 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
         containerSx,
         hideCloseButton = false,
         modalProps,
+        movable = false,
         onClose,
         open,
+        resizable = false,
         slotProps,
         subtitle,
         title,
@@ -177,6 +190,7 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
     const titleId = hasTitle ? generatedTitleId : undefined
     const subtitleId = hasSubtitle ? generatedSubtitleId : undefined
     const resolvedAriaLabel = normalizeLabel(ariaLabel)
+    const windowFrame = usePneModalFrame({container: containerElement, movable, open, resizable})
 
     React.useLayoutEffect(() => exposeForwardedRef(ref, containerElement), [containerElement, ref])
 
@@ -258,6 +272,10 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
             onClose(event, 'closeButtonClick')
         }
     }
+    const handleHeaderPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        forwardedHeaderProps.onPointerDown?.(event)
+        if (!event.defaultPrevented) windowFrame.onMoveStart(event)
+    }
 
     return <Modal
         {...forwardedModalProps}
@@ -277,7 +295,11 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
             aria-modal='true'
             className={className}
             data-pne-modal-container='true'
+            data-pne-modal-movable={movable ? 'true' : undefined}
+            data-pne-modal-resizable={resizable ? 'true' : undefined}
+            data-pne-modal-action={windowFrame.action ?? undefined}
             role='dialog'
+            style={windowFrame.frameStyle}
             tabIndex={isBlocked ? -1 : containerTabIndex}
             sx={[
                 ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
@@ -289,6 +311,7 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
                 {...forwardedHeaderProps}
                 data-pne-modal-header='true'
                 inert={isBlocked ? true : forwardedHeaderProps.inert}
+                onPointerDown={handleHeaderPointerDown}
             >
                 <HeaderText>
                     {hasTitle && <Typography
@@ -341,6 +364,16 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
             >
                 {actions}
             </Footer>}
+            {resizable && <ResizeHandle
+                aria-hidden='true'
+                data-pne-modal-resize-handle='true'
+                inert={isBlocked ? true : undefined}
+                onPointerDown={windowFrame.onResizeStart}
+            >
+                <svg fill='none' height='16' viewBox='0 0 16 16' width='16'>
+                    <path d='M13 3 3 13M13 7l-6 6' stroke='currentColor' strokeLinecap='round'/>
+                </svg>
+            </ResizeHandle>}
             {isBlocked && <BlockingOverlaySlot
                 {...forwardedBlockingOverlayProps}
                 data-pne-modal-blocking-overlay='true'
@@ -632,6 +665,13 @@ const Container = styled(PneSurface)(({theme}) => {
         padding: `${WINDOW_PADDING}px`,
         // The window takes the focus when it opens; it is the whole surface, so it draws no ring of its own.
         outline: 'none',
+        // A movable window is taken by its header: the cursor says so, and a drag selects no text and
+        // scrolls no page. The controls of the header keep their own cursor.
+        '&[data-pne-modal-movable] > [data-pne-modal-header]': {
+            cursor: 'move',
+            touchAction: 'none',
+            userSelect: 'none',
+        },
     }
 })
 
@@ -687,6 +727,22 @@ const modalSubtitleSx: SxProps<Theme> = theme => ({
 
 // UI Kit Icon action md: a 32px box with the 16px thin cross; hover and press colour only the icon.
 const modalCloseButtonSx = pneIconActionSx('medium')
+
+// The grip of a resizable window: two strokes in the lower right corner, inside the rounding of the window.
+// It stands in the padding of the window, so it covers neither the body nor the buttons.
+const ResizeHandle = styled('span')(({theme}) => ({
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    width: '16px',
+    height: '16px',
+    color: resolvePneSemanticPalette(theme).modal.subtitle,
+    cursor: 'nwse-resize',
+    touchAction: 'none',
+    '& svg': {
+        display: 'block',
+    },
+}))
 
 const BlockingOverlaySlot = styled(Box)`
     position: absolute;

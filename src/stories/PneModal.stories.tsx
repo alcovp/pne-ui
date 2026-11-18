@@ -20,7 +20,10 @@ type ModalContentProps = {
     description: string
 }
 
-type ModalStoryHarnessProps = Pick<React.ComponentProps<typeof PneModal>, "containerSx" | "subtitle" | "title"> & {
+type ModalStoryHarnessProps = Pick<
+    React.ComponentProps<typeof PneModal>,
+    "containerSx" | "movable" | "resizable" | "subtitle" | "title"
+> & {
     children: React.ReactNode
     renderActions: (close: () => void) => React.ReactNode
 }
@@ -49,7 +52,9 @@ const LongModalContent = () => <Box sx={{display: "grid", gap: 2}}>
 const ModalStoryHarness = ({
     children,
     containerSx,
+    movable,
     renderActions,
+    resizable,
     subtitle,
     title,
 }: ModalStoryHarnessProps) => {
@@ -64,8 +69,10 @@ const ModalStoryHarness = ({
             actions={renderActions(close)}
             closeLabel='Закрыть'
             containerSx={containerSx}
+            movable={movable}
             onClose={close}
             open={open}
+            resizable={resizable}
             subtitle={subtitle}
             title={title}
         >
@@ -99,6 +106,74 @@ export const Default: Story = {
             title='Обычное подтверждение'
             description='Проверьте данные перед сохранением изменений.'
         />
+    </ModalStoryHarness>,
+};
+
+const dragBy = async (target: Element, from: {x: number; y: number}, by: {x: number; y: number}) => {
+    await userEvent.pointer([
+        {keys: "[MouseLeft>]", target, coords: {clientX: from.x, clientY: from.y}},
+        {target, coords: {clientX: from.x + by.x, clientY: from.y + by.y}},
+        {keys: "[/MouseLeft]", target, coords: {clientX: from.x + by.x, clientY: from.y + by.y}},
+    ]);
+}
+
+export const MovableAndResizable: Story = {
+    parameters: {
+        docs: {
+            description: {
+                story: "Окно, которое человек двигает за шапку и растягивает за правый нижний угол (`movable`, "
+                    + "`resizable`). Окно остаётся целиком на странице, тело занимает оставшуюся высоту и "
+                    + "прокручивается; при следующем открытии окно снова стоит по центру.",
+            },
+        },
+    },
+    play: async context => {
+        await openModal(context);
+
+        const dialog = within(document.body).getByRole("dialog");
+        const header = dialog.querySelector("[data-pne-modal-header]")!;
+        const handle = dialog.querySelector("[data-pne-modal-resize-handle]")!;
+        const opened = dialog.getBoundingClientRect();
+
+        // The window is taken by its header and follows the pointer. A centred window may stand on half a
+        // pixel; once it is taken, it stands on whole pixels.
+        await dragBy(header, {x: opened.left + 80, y: opened.top + 24}, {x: -60, y: -40});
+        const moved = dialog.getBoundingClientRect();
+        await expect(moved.left).toBe(Math.round(opened.left) - 60);
+        await expect(moved.top).toBe(Math.round(opened.top) - 40);
+        await expect(moved.width).toBe(Math.round(opened.width));
+
+        // The lower right corner changes the size; the upper left corner stays.
+        await dragBy(handle, {x: moved.right - 6, y: moved.bottom - 6}, {x: 80, y: -70});
+        const resized = dialog.getBoundingClientRect();
+        await expect(Math.round(resized.left)).toBe(Math.round(moved.left));
+        await expect(Math.round(resized.top)).toBe(Math.round(moved.top));
+        await expect(Math.round(resized.width - moved.width)).toBe(80);
+        await expect(Math.round(resized.height - moved.height)).toBe(-70);
+
+        // A window smaller than its content scrolls its body; the header and the buttons stay in view.
+        const body = dialog.querySelector("[data-pne-modal-body]")!;
+        await expect(body.scrollHeight).toBeGreaterThan(body.clientHeight);
+    },
+    render: () => <ModalStoryHarness
+        containerSx={{width: 520}}
+        movable
+        renderActions={close => <PneModalActions
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Отмена</Button>}
+            primary={<Button size='medium' variant="contained" onClick={close}>Сохранить</Button>}
+        />}
+        resizable
+        subtitle='Двигается за шапку, растягивается за угол'
+        title='Сравнение с таблицей под окном'
+    >
+        <Box sx={{display: "grid", gap: 2}}>
+            {Array.from({length: 4}, (_, index) => <ModalContent
+                key={index}
+                section={`movable-section-${index + 1}`}
+                title={`Раздел ${index + 1}`}
+                description='Окно можно отодвинуть, чтобы видеть страницу под ним, и растянуть под длинное содержимое.'
+            />)}
+        </Box>
     </ModalStoryHarness>,
 };
 
