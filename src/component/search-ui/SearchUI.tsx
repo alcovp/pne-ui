@@ -17,7 +17,7 @@ import {
     SearchUIConditionsInput,
 } from './filters/types'
 import { Box, Divider, SxProps } from '@mui/material'
-import { GetPagedOrderedSortedListRequest, Order } from '../../common'
+import { Order } from '../../common'
 import { ITableCreateHeaderParams } from '../table/AbstractTable'
 import PneTable from '../table/PneTable'
 import PneTableToolbar from '../table/PneTableToolbar'
@@ -48,9 +48,17 @@ const useSearchUISelectionLayoutEffect = typeof window === 'undefined'
 /**
  * Параметры запроса поиска, отправляемые в обработчик данных таблицы.
  * Тип формируется на основе SearchCriteria без служебного флага `initialized`
- * и стандартных параметров пагинации/сортировки списка.
+ * и параметров страницы и сортировки таблицы.
  */
-export type SearchParams = Omit<SearchCriteria & GetPagedOrderedSortedListRequest, 'initialized'>
+export type SearchParams = Omit<SearchCriteria, 'initialized'> & {
+    /** Номер первой строки страницы, с нуля. */
+    startNum: number
+    /** Сколько строк вернуть: размер страницы и ещё одна, по которой таблица узнаёт о следующей странице. */
+    rowCount: number
+    /** Номер колонки, по которой отсортирована таблица. */
+    orderBy: number
+    sortOrder?: Order
+}
 
 /**
  * Свойства компонента {@link SearchUI}.

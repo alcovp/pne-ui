@@ -12,7 +12,6 @@ import {
     assertObject,
     Country,
     exhaustiveCheck,
-    IMappedAbstractEntity,
     isAbstractEntity,
     isObject
 } from '../../common';
@@ -39,7 +38,16 @@ export type AbstractEntitySelectorElements = {
     removeAllButton?: AbstractEntitySelectorElementAttributes
 }
 
-const isMappedAbstractEntity = (value: unknown): value is IMappedAbstractEntity => {
+/**
+ * An item of the application that keeps its name in `name`. The selector reads `id` and `name`; the other
+ * fields of the item come back in `onChange` as they were.
+ */
+export type AbstractEntitySelectorNamedItem = {
+    id: number
+    name: string
+}
+
+const isNamedItem = (value: unknown): value is AbstractEntitySelectorNamedItem => {
     if (!isObject(value)) {
         return false
     }
@@ -75,7 +83,7 @@ export type AbstractEntitySelectorList = 'AVAILABLE' | 'ADDED'
 
 export type AbstractEntitySelectorProp =
     string
-    | IMappedAbstractEntity
+    | AbstractEntitySelectorNamedItem
     | AbstractEntity
     | Country
 
@@ -93,7 +101,7 @@ const getListEntity = <T extends AbstractEntitySelectorProp>(item: T, index: num
     }
 
     assertObject(item)
-    if (isMappedAbstractEntity(item)) {
+    if (isNamedItem(item)) {
         return {
             displayName: item.name,
             ...item
@@ -112,8 +120,8 @@ const getListEntity = <T extends AbstractEntitySelectorProp>(item: T, index: num
 const checkInitialType = (item: AbstractEntitySelectorProp): string | undefined => {
     if (typeof item === 'string') {
         return 'string'
-    } else if (isMappedAbstractEntity(item)) {
-        return 'mappedEntity'
+    } else if (isNamedItem(item)) {
+        return 'namedItem'
     } else if (isAbstractEntity(item)) {
         return 'abstractEntity'
     }
@@ -454,15 +462,15 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     mapped = addedList.map(item => item.displayName) as T[];
                     unmapped = availableList.map(item => item.displayName) as T[];
                     break;
-                case 'mappedEntity':
+                case 'namedItem':
                     mapped = addedList.map(item => ({
                         ...item,
                         name: item.displayName
-                    })) as IMappedAbstractEntity[] as T[];
+                    })) as AbstractEntitySelectorNamedItem[] as T[];
                     unmapped = availableList.map(item => ({
                         ...item,
                         name: item.displayName
-                    })) as IMappedAbstractEntity[] as T[];
+                    })) as AbstractEntitySelectorNamedItem[] as T[];
                     break;
                 case 'abstractEntity':
                     mapped = addedList as T[];

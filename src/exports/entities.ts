@@ -4,6 +4,7 @@ export {
     type AbstractEntitySelectorElements,
     type AbstractEntitySelectorItemAttributes,
     type AbstractEntitySelectorList,
+    type AbstractEntitySelectorNamedItem,
     type AbstractEntitySelectorProp,
     type IAbstractEntityOptions,
     type IMappedUnmappedList,

@@ -1,4 +1,4 @@
-import {isObject, Order} from "../pne";
+import {isObject} from "../pne";
 
 export type AbstractEntity = {
     id: number
@@ -26,14 +26,6 @@ export type AutoCompleteChoiceWithStatus = AutoCompleteChoice & {
 
 export type Status = 'E' | 'D' | 'I'
 
-export type GetPagedOrderedSortedListRequest = {
-    search?: string
-    startNum: number
-    rowCount: number
-    orderBy: number
-    sortOrder?: Order
-}
-
 export type AllableCollection<T> = {
     entities?: T[]
     all: boolean
@@ -47,10 +39,4 @@ export type Country = {
     displayName: string
     theCode: string
     theCode3: string
-}
-
-export interface IMappedAbstractEntity {
-    id: number
-    name: string
-    mappingStatus?: 'Mapped' | 'Unmapped'
 }

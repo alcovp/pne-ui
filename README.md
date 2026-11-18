@@ -92,13 +92,15 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
   (вместо них `blockingOverlay`, `slotProps.container` и `slotProps.closeButton`).
 
 Из типов сняты `AutoTestAttributeProps` и те, которые описывают данные приложения, а библиотеке не нужны:
-`State` (штат), `SelectOption`, `GetPagedListRequest`, `AutoCompleteChoiceAllableCollection`,
-`PneDropdownChoice` и проверка `isIAutoCompleteChoice` — приложение объявляет их у себя. Опцию выпадающего
-списка библиотеки описывает `PneBuiltInAutocompleteOption`. Остальные типы экспортируются по-прежнему.
+`State` (штат), `SelectOption`, `GetPagedListRequest`, `GetPagedOrderedSortedListRequest`,
+`AutoCompleteChoiceAllableCollection`, `IMappedAbstractEntity`, `PneDropdownChoice` и проверка
+`isIAutoCompleteChoice` — приложение объявляет их у себя. Опцию выпадающего списка библиотеки описывает
+`PneBuiltInAutocompleteOption`, страницу и сортировку, которые SearchUI передаёт в поиск, — сам `SearchParams`
+(`startNum`, `rowCount`, `orderBy`, `sortOrder`). Остальные типы экспортируются по-прежнему.
 
 Из списка допустимых элементов `AbstractEntitySelector` убран тип платёжного аппарата хоста. Селектор
-по-прежнему берёт любой объект с `id` и `name` (или `displayName`); остальные поля объекта возвращаются в
-`onChange` как были.
+по-прежнему берёт любой объект с `id` и `name` (тип `AbstractEntitySelectorNamedItem`) или с `id` и
+`displayName`; остальные поля объекта возвращаются в `onChange` как были.
 
 ## PneBreadcrumbs
 

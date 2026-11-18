@@ -2,15 +2,14 @@ import * as React from 'react'
 
 import {
     AbstractEntitySelector,
+    type AbstractEntitySelectorNamedItem,
     type AbstractEntitySelectorProp,
     type IAbstractEntityOptions,
 } from 'pne-ui'
 
 // An application passes its own objects. The selector reads `id` and the name (`name` or `displayName`);
 // the other fields ride along and come back in `onChange`.
-type NamedItem = {
-    id: number
-    name: string
+type NamedItem = AbstractEntitySelectorNamedItem & {
     mapped: boolean
 }
 
