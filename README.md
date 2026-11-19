@@ -229,10 +229,10 @@ import {Button} from '@mui/material'
 | `activated` | `aria-disabled` и `tabIndex={-1}` на кнопке `text` + `success` |
 | `data-pne-variant`, `data-pne-size`, `data-pne-loading` | классы MUI: `MuiButton-contained`, `MuiButton-colorError`, `MuiButton-sizeSmall`, `MuiButton-loading` |
 
-## Подсказка и радиокнопка: вид рисует тема
+## Подсказка, радиокнопка и чип: вид рисует тема
 
-Своих компонентов подсказки и радиокнопки в `pne-ui` нет. Берите `Tooltip` и `Radio` из `@mui/material`:
-под темой `createPneTheme` они выглядят по UI Kit, без дополнительных свойств.
+Своих компонентов подсказки, радиокнопки и чипа в `pne-ui` нет. Берите `Tooltip`, `Radio` и `Chip` из
+`@mui/material`: под темой `createPneTheme` они выглядят по UI Kit, без дополнительных свойств.
 
 ```tsx
 import {FormControlLabel, Radio, RadioGroup, Tooltip} from '@mui/material'
@@ -260,7 +260,35 @@ import {FormControlLabel, Radio, RadioGroup, Tooltip} from '@mui/material'
   кольцо 2 px;
 - цвета те же, что у `PneCheckbox` (`palette.pne.checkbox`); свой `icon` / `checkedIcon` страницы сохраняется.
 
-Сторис: `pne-ui/Tooltip` и `pne-ui/Radio`.
+`Chip` (UI Kit Badge: радиус 4, текст 14/20):
+
+```tsx
+import {Chip} from '@mui/material'
+
+<Chip label="Visa"/>                                   // значение или тег вне поля
+<Chip label="self" variant="outlined"/>                // светлая плашка в кольце
+<Chip label="Germany" onDelete={remove}/>              // удаляемое значение
+<Chip label="Turnover" color="primary" onClick={toggle}/>  // выбранный пункт переключателя
+<Chip label="Yes" color="success"/>                    // оттенок статуса
+```
+
+| `variant` | `color` | Вид |
+|---|---|---|
+| `filled` (по умолчанию) | без цвета | серая заливка без рамки |
+| `outlined` | без цвета | светлая плашка в кольце; у кликабельной при наведении кольцо бренда |
+| `filled` | `primary` | заливка бренда, белый текст: выбранный пункт |
+| `outlined` | `primary` | светлая плашка с кольцом и текстом бренда |
+| `filled` | `success`, `error`, `warning` | бледный оттенок статуса с текстом цвета статуса |
+| `filled` | `info`, `secondary` | бледный оттенок бренда |
+| `outlined` | цвет статуса | светлая плашка с кольцом и текстом статуса |
+
+- `size="medium"` (по умолчанию) — 32 px, для списков и ячеек таблиц; `size="small"` — 24 px;
+- `onDelete` добавляет крестик UI Kit; под наведённым крестиком появляется светлый квадрат;
+- кликабельный чип (`onClick` или `clickable`) отвечает на наведение и показывает кольцо фокуса;
+- свой `deleteIcon` страницы сохраняет собственные размеры;
+- чипы внутри `PneAutocomplete` и в фильтрах SearchUI рисуют сами эти компоненты, тема их не меняет.
+
+Сторис: `pne-ui/Tooltip`, `pne-ui/Radio` и `pne-ui/Chip`.
 
 ## PneField
 

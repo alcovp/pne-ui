@@ -4,6 +4,7 @@ import type {SystemStyleObject} from '@mui/system'
 import {createSvgIcon, type MenuProps, type SvgIconProps} from '@mui/material'
 import {keyframes} from '@mui/material/styles'
 import type {PneCheckboxStateColors} from '../../checkboxPalette'
+import {PNE_CHIP_REMOVE_CLASS} from '../../chipLook'
 import {resolvePneSemanticPalette} from '../../createTheme'
 import type {PneDropdownPalette} from '../../dropdownPalette'
 import {PNE_FIELD_SIZE, PNE_FIELD_SIZES, PNE_LIST_MAX_ROWS, type PneFieldSize} from '../fieldSize'
@@ -20,11 +21,7 @@ const ChevronDownSvg = createSvgIcon(
 export const PneChevronDownIcon = ({className, ...props}: SvgIconProps) =>
     <ChevronDownSvg {...props} className={className ? `${className} PneSelect-chevron` : 'PneSelect-chevron'}/>
 
-/** UI Kit IcActionClose: the clear cross of a field and the remove cross of a value chip. */
-export const PneCloseIcon = createSvgIcon(
-    <path d='M5 5l14 14M19 5L5 19' fill='none' stroke='currentColor' strokeLinecap='round' strokeWidth={1.5}/>,
-    'PneClose',
-)
+export {PneCloseIcon} from '../PneCloseIcon'
 
 // UI Kit IcActionApprove, drawn by CSS on the picked row so the row keeps the consumer's content.
 const CHECK_MASK = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
@@ -388,7 +385,8 @@ export const pneAutocompleteFieldSx: SxProps<Theme> = theme => {
             padding: 0,
         },
         // MUI pulls its delete icon over the label's padding; the badge spaces them by its gap.
-        '& .MuiAutocomplete-tag .MuiChip-deleteIcon': {
+        // The cross of the theme too: a chip a page renders as a value of this field.
+        [`& .MuiAutocomplete-tag .MuiChip-deleteIcon, & .MuiAutocomplete-tag .MuiChip-deleteIcon.${PNE_CHIP_REMOVE_CLASS}`]: {
             flexShrink: 0,
             margin: 0,
         },
