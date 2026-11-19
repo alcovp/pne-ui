@@ -158,6 +158,8 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         ...controlStyle,
         flexShrink: 0,
         minWidth: `${TABLE_CONTROL_SIZE}px`,
+        // A label, not a glyph: the button is as wide as its number, whatever box the theme gives an icon button.
+        width: 'auto',
         '&:hover': hoverStyle,
     }
 

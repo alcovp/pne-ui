@@ -139,7 +139,8 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
     }
 }
 
-const lookStyle = (
+/** The colours of a UI Kit button variant in all its states; the icon-only button of the theme takes them too. */
+export const pneButtonLookStyle = (
     variant: PneButtonVariant,
     palette: PneButtonPalette,
     focusRing: string[],
@@ -216,7 +217,7 @@ const buttonStyle = (
         // The two parts share no selector: the size rules set no colour, the look sets nothing else.
         style = {
             ...sizeStyle(size),
-            ...(look ? lookStyle(look, pne.button, focusRing) : inheritStyle(theme, focusRing)),
+            ...(look ? pneButtonLookStyle(look, pne.button, focusRing) : inheritStyle(theme, focusRing)),
         }
         styles.set(key, style)
     }

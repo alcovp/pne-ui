@@ -229,7 +229,7 @@ import {Button} from '@mui/material'
 | `activated` | `aria-disabled` и `tabIndex={-1}` на кнопке `text` + `success` |
 | `data-pne-variant`, `data-pne-size`, `data-pne-loading` | классы MUI: `MuiButton-contained`, `MuiButton-colorError`, `MuiButton-sizeSmall`, `MuiButton-loading` |
 
-## Подсказка, радиокнопка, чип и группа переключателей: вид рисует тема
+## Подсказка, радиокнопка, чип, группа переключателей и кнопка-значок: вид рисует тема
 
 Своих компонентов подсказки, радиокнопки, чипа и группы переключателей в `pne-ui` нет. Берите `Tooltip`,
 `Radio`, `Chip` и `ToggleButtonGroup` из `@mui/material`: под темой `createPneTheme` они выглядят по UI Kit, без
@@ -311,7 +311,33 @@ import {ToggleButton, ToggleButtonGroup} from '@mui/material'
 Выбор вида таблицы и переключатели окна Multiget — та же группа `size="small"` (32 px): в окне она стоит
 в ряд с полем поиска 32 px.
 
-Сторис: `pne-ui/Tooltip`, `pne-ui/Radio`, `pne-ui/Chip` и `pne-ui/ToggleButton`.
+`IconButton` (UI Kit Icon action: действие без подписи):
+
+```tsx
+import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined'
+import {IconButton} from '@mui/material'
+
+<IconButton aria-label="Delete" size="small" color="error" onClick={remove}>
+    <DeleteOutlinedIcon/>
+</IconButton>
+```
+
+- без фона и без круга под указателем: наведение и нажатие красят только значок; скругление 4 px, кольцо
+  фокуса с клавиатуры;
+- размер кнопки не зависит от значка: `size="small"` — 24 px (строки и ячейки таблиц), по умолчанию — 32 px
+  (формы, крестик окна), `size="large"` — 40 px (в ряду с полями 40 px);
+- значок Material обычного размера внутри кнопки получает 14 / 16 / 18 px; значок, которому страница сама
+  задала размер (`fontSize`, `sx`), и собственный svg приложения остаются как есть;
+- `color`: по умолчанию значок серый и под указателем берёт цвет бренда; `primary` — цвет бренда сразу;
+  `error` — серый, под указателем красный; `inherit` — цвет места, где стоит кнопка;
+- `color="pnePrimary"` и `color="pneNeutral"` — закрашенный квадрат: кнопки Primary и Soft из UI Kit в режиме
+  «только значок»;
+- размер, который страница задала через `sx` или `styled`, сильнее темы.
+
+Действия в строках `PneTable`, крестики окна, тоста и баннера рисуют сами компоненты той же функцией
+(`pneIconActionSx`).
+
+Сторис: `pne-ui/Tooltip`, `pne-ui/Radio`, `pne-ui/Chip`, `pne-ui/ToggleButton` и `pne-ui/IconButton`.
 
 ## PneField
 

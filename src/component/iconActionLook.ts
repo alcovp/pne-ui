@@ -1,43 +1,23 @@
 import type {SxProps, Theme} from '@mui/material/styles'
 import {PNE_BUTTON_SIZE} from '../buttonLook'
 import {resolvePneSemanticPalette} from '../createTheme'
-import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP} from '../themeColors'
+import {pneIconActionLook, pneIconButtonSizeLook} from '../iconButtonLook'
 
 /**
  * UI Kit Icon action on a MUI IconButton: an icon button with no background, where hover and press
  * colour only the icon. `medium` is a 32px box with a 16px glyph (the close cross of a modal and of
  * a toast), `small` a 24px box with a 14px glyph. The icon rests in the tertiary text colour, or in
- * `restColor` (the tone of a toast), and takes the brand text colour under the pointer. The box and
- * the glyph are the height and the icon of a button of that size.
+ * `restColor` (the tone of a toast), and takes the brand text colour under the pointer.
+ *
+ * The theme draws every stock IconButton with the same look functions; the components of the library
+ * repeat the look here because they have to look right without the PNE UI theme as well, and they size
+ * every glyph, whatever size the icon asked for.
  */
-export const pneIconActionSx = (size: 'small' | 'medium', restColor?: string): SxProps<Theme> => theme => {
-    const pne = resolvePneSemanticPalette(theme)
-    const dark = theme.palette.mode === 'dark'
-    const {height, icon} = PNE_BUTTON_SIZE[size]
-    const box = `${height}px`
-    return {
-        flex: '0 0 auto',
-        width: box,
-        height: box,
-        padding: 0,
-        borderRadius: '4px',
-        backgroundColor: 'transparent',
-        color: restColor ?? (dark ? PNE_DARK_COLORS.textMuted : PNE_NEUTRAL_RAMP[600]),
-        '& .MuiSvgIcon-root': {
-            fontSize: `${icon}px`,
-        },
-        '&:hover': {
-            backgroundColor: 'transparent',
-            color: pne.button.text.hover.text,
-        },
-        '&:active': {
-            color: pne.button.text.pressed.text,
-        },
-        '&.Mui-focusVisible': {
-            boxShadow: `0 0 0 2px ${theme.palette.background.paper}, 0 0 0 4px ${pne.focusRing}`,
-        },
-        '&.Mui-disabled': {
-            color: dark ? PNE_DARK_COLORS.textDisabled : PNE_NEUTRAL_RAMP[400],
-        },
-    }
-}
+export const pneIconActionSx = (size: 'small' | 'medium', restColor?: string): SxProps<Theme> => theme => ({
+    flex: '0 0 auto',
+    ...pneIconButtonSizeLook(size),
+    ...pneIconActionLook(theme, resolvePneSemanticPalette(theme), 'neutral', restColor),
+    '& .MuiSvgIcon-root': {
+        fontSize: `${PNE_BUTTON_SIZE[size].icon}px`,
+    },
+})

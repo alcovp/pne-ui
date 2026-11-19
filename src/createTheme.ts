@@ -18,6 +18,7 @@ import {
 import {createPneCheckboxPalette, type PneCheckboxPalette} from './checkboxPalette'
 import {createPneChipOverrides} from './chipLook'
 import {createPneRadioOverrides} from './radioLook'
+import {createPneIconButtonOverrides, createPneSvgIconOverrides} from './iconButtonLook'
 import {createPneToggleGroupOverrides} from './toggleLook'
 import {createPneTooltipOverrides} from './tooltipLook'
 import {createPneDropdownPalette, type PneDropdownPalette} from './dropdownPalette'
@@ -299,7 +300,7 @@ const mergeThemeObjects = <T>(base: T, override: unknown): T => {
     return result as T
 }
 
-const createPneComponentOverrides = (mode: PneColorMode): ThemeOptions['components'] => ({
+const createPneComponentOverrides = (): ThemeOptions['components'] => ({
     MuiFormHelperText: {
         styleOverrides: {
             root: {
@@ -314,55 +315,8 @@ const createPneComponentOverrides = (mode: PneColorMode): ThemeOptions['componen
             },
         },
     },
-    MuiIconButton: {
-        styleOverrides: {
-            root: ({ownerState, theme}) => {
-                if (ownerState.color === 'pnePrimary') {
-                    if (mode === 'light') {
-                        return {
-                            backgroundColor: theme.palette.primary.main,
-                            color: theme.palette.primary.contrastText,
-                            '&:hover': {
-                                backgroundColor: theme.palette.primary.dark,
-                                color: theme.palette.primary.contrastText,
-                            },
-                        }
-                    }
-                    return {
-                        backgroundColor: theme.palette.pne.brand.fill,
-                        color: theme.palette.pne.brand.onFill,
-                        border: '1px solid',
-                        borderColor: theme.palette.pne.brand.fillBorder,
-                        '&:hover': {
-                            backgroundColor: theme.palette.pne.brand.fillHover,
-                            color: theme.palette.pne.brand.onFill,
-                        },
-                    }
-                }
-                if (ownerState.color === 'pneNeutral') {
-                    if (mode === 'light') {
-                        return {
-                            backgroundColor: '#F1F5FA',
-                            stroke: theme.palette.primary.main,
-                            '&:hover': {
-                                backgroundColor: theme.palette.primary.light,
-                                stroke: theme.palette.primary.dark,
-                            },
-                        }
-                    }
-                    return {
-                        backgroundColor: theme.palette.pne.surface.subtle,
-                        stroke: theme.palette.pne.brand.foreground,
-                        '&:hover': {
-                            backgroundColor: theme.palette.pne.brand.softHover,
-                            stroke: theme.palette.pne.brand.foregroundHover,
-                        },
-                    }
-                }
-                return {}
-            },
-        },
-    },
+    MuiIconButton: createPneIconButtonOverrides(resolvePneSemanticPalette),
+    MuiSvgIcon: createPneSvgIconOverrides(),
     MuiButton: createPneButtonOverrides(resolvePneSemanticPalette),
     MuiChip: createPneChipOverrides(resolvePneSemanticPalette),
     MuiRadio: createPneRadioOverrides(resolvePneSemanticPalette),
@@ -417,7 +371,7 @@ const createBaseThemeOptions = (skin: Skin, mode: PneColorMode): ThemeOptions =>
             pneAccentuated: {main: seed},
             ...darkModePalette,
         },
-        components: createPneComponentOverrides(mode),
+        components: createPneComponentOverrides(),
     }
 }
 
