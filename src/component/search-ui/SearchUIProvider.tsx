@@ -1,4 +1,4 @@
-import React, {createContext} from 'react';
+import React, {createContext, useMemo} from 'react';
 import {
     AbstractEntity,
     AutoCompleteChoice,
@@ -272,7 +272,10 @@ export const SearchUIDefaultsContext = createContext<SearchUIDefaults>(initialSe
  *
  * @param props.defaults Частичный объект SearchUIDefaults. Укажите только то, что
  *                       нужно переопределить, остальные значения будут взяты
- *                       из {@link initialSearchUIDefaults}.
+ *                       из {@link initialSearchUIDefaults}. Передавайте один и тот же
+ *                       объект между рендерами (константу модуля или `useMemo`): значение
+ *                       контекста пересобирается только при смене этого объекта, и каждая
+ *                       смена перерисовывает все компоненты SearchUI под провайдером.
  * @param props.children Дерево компонентов, которые должны читать контекст.
  */
 export const SearchUIProvider = (props: Props) => {
@@ -280,13 +283,15 @@ export const SearchUIProvider = (props: Props) => {
         defaults,
         children,
     } = props
-
-    return <SearchUIDefaultsContext
-        value={{
+    const value = useMemo<SearchUIDefaults>(
+        () => ({
             ...initialSearchUIDefaults,
             ...defaults,
-        }}
-    >
+        }),
+        [defaults],
+    )
+
+    return <SearchUIDefaultsContext value={value}>
         {children}
     </SearchUIDefaultsContext>
 }
