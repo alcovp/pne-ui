@@ -1,0 +1,50 @@
+name: Audit pne-ui dependencies
+
+# Known vulnerabilities in the lock file. An advisory appears without any push, so the check also
+# runs weekly; GitHub starts scheduled runs from the default branch only. The audit reads yarn.lock
+# and asks the registry: nothing is installed.
+on:
+  push:
+    branches:
+      - '**'
+    paths:
+      - package.json
+      - yarn.lock
+      - .yarnrc.yml
+      - .github/workflows/audit.yml
+  schedule:
+    - cron: '17 5 * * 1'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Audit the lock file
+    if: github.repository == 'alcovp/pne-ui'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up the runtime
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      # What an application gets with the package: any advisory fails.
+      - name: Audit the dependencies of the package
+        run: node .yarn/releases/yarn-4.18.1.cjs audit:package
+      # Build, test and Storybook tools never reach the package: only high and critical fail.
+      # `if: always()` shows both results in one run.
+      - name: Audit the development tools
+        if: always()
+        run: node .yarn/releases/yarn-4.18.1.cjs audit:tools

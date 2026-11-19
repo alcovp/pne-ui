@@ -47,7 +47,9 @@
         "release:prepare": "node scripts/release.mjs prepare",
         "release:send": "node scripts/release.mjs send",
         "release:status": "node scripts/release.mjs status",
-        "release:check": "yarn check && node scripts/release-ci.mjs pack"
+        "release:check": "yarn check && node scripts/release-ci.mjs pack",
+        "audit:package": "yarn npm audit --recursive --environment production",
+        "audit:tools": "yarn npm audit --all --recursive --severity high --no-deprecations"
     },
     "sideEffects": [
         "**/*.css"
@@ -143,5 +145,8 @@
         "url": "https://github.com/alcovp/pne-ui/issues"
     },
     "homepage": "https://github.com/alcovp/pne-ui#readme",
-    "packageManager": "yarn@4.2.2"
+    "packageManager": "yarn@4.18.1",
+    "resolutions": {
+        "nwsapi": "2.2.5"
+    }
 }
