@@ -126,7 +126,7 @@ describe('PneBreadcrumbs', () => {
         const mutedContentStyle = window.getComputedStyle(muted)
         const mutedStyle = window.getComputedStyle(muted.parentElement as HTMLElement)
 
-        expect(linkStyle.fontFamily).toBe('Arial,sans-serif')
+        expect(linkStyle.fontFamily).toBe('Arial, sans-serif')
         expect(linkStyle.fontSize).toBe('14px')
         expect(linkStyle.lineHeight).toBe('24px')
         expect(linkStyle.fontWeight).toBe('400')

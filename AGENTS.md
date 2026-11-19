@@ -13,7 +13,7 @@ Core commands
 -------------
 - Install: `yarn install`
 - Lint: `yarn lint`
-- Tests: `yarn test` (ts-jest, see `jestconfig.json`, env `jsdom`)
+- Tests: `yarn test` (Jest 30, `@swc/jest`, env `jsdom`; see `jestconfig.json`). SWC only strips the types: `yarn typecheck:tests` checks them.
 - Build library: `yarn build` (esm + cjs)
 - Type-check public contracts: `yarn typecheck:contracts`
 - Type-check stories: `yarn typecheck:stories`
@@ -45,7 +45,6 @@ Before changing things
 Notable specifics
 -----------------
 - Dependencies: `.yarnrc.yml` refuses a version younger than a week (`npmMinimalAgeGate`), and Yarn 4.18 runs no install scripts. When refreshing `yarn.lock`, keep `@mui/*` and `@emotion/*` where they are (`yarn up -R` with the other names): a full re-resolve brings a second `@mui/system` under `@mui/material` and the build fails with TS2883.
-- `resolutions.nwsapi` in `package.json` pins the selector engine of jsdom: 2.2.28 makes the date picker tests three to seven times slower (26 s against 4-8 s), past their timeouts.
 - Theming comes from `createPneTheme(skin)` and MUI palette extensions (module declarations in `src/index.ts`).
 - SearchUI stores state in zustand (`src/component/search-ui/state/*`); filters and table sync via `settingsContextName`.
 - Backend-facing types for filters live in `src/common/paynet` and are used across SearchUI. Relevant tests: `test/searchUI.*`.

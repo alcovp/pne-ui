@@ -73,8 +73,8 @@ describe('PneModal', () => {
     })
 
     it.each([
-        ['light', '#E2E9F0'],
-        ['dark', '#484848'],
+        ['light', 'rgb(226, 233, 240)'],
+        ['dark', 'rgb(72, 72, 72)'],
     ] as const)('parts the header and the buttons from the body by the modal hairline in %s mode', (colorMode, expectedColor) => {
         const theme = createPneTheme(
             {experimentalColor: '#0a91bc'} as Skin,

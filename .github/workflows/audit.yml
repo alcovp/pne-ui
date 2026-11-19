@@ -2,7 +2,8 @@ name: Audit pne-ui dependencies
 
 # Known vulnerabilities in the lock file. An advisory appears without any push, so the check also
 # runs weekly; GitHub starts scheduled runs from the default branch only. The audit reads yarn.lock
-# and asks the registry: nothing is installed.
+# and asks the registry: nothing is installed, so the commands of `yarn audit:package` and
+# `yarn audit:tools` are written out here (`yarn run` wants an installed project).
 on:
   push:
     branches:
@@ -42,9 +43,9 @@ jobs:
           package-manager-cache: false
       # What an application gets with the package: any advisory fails.
       - name: Audit the dependencies of the package
-        run: node .yarn/releases/yarn-4.18.1.cjs audit:package
+        run: node .yarn/releases/yarn-4.18.1.cjs npm audit --recursive --environment production
       # Build, test and Storybook tools never reach the package: only high and critical fail.
       # `if: always()` shows both results in one run.
       - name: Audit the development tools
         if: always()
-        run: node .yarn/releases/yarn-4.18.1.cjs audit:tools
+        run: node .yarn/releases/yarn-4.18.1.cjs npm audit --all --recursive --severity high --no-deprecations

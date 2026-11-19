@@ -77,7 +77,7 @@ describe('PneTable frame (UI Kit look)', () => {
         renderTable()
         const row = screen.getByTestId('first-row')
 
-        expect(style(row).borderBottomColor.toLowerCase()).toBe('#e2e9f0')
+        expect(style(row).borderBottomColor).toBe('rgb(226, 233, 240)')
         expect(ruleValue(row, 'tbody > &:last-of-type', 'border-bottom-color')).toBe('transparent')
         expect(ruleValue(row, 'tbody > &:hover', 'background-color')).toBe('#F0F4F8')
     })
@@ -107,7 +107,7 @@ describe('PneTable frame (UI Kit look)', () => {
         expect(style(header).fontWeight).toBe('600')
         expect(style(header).color).toBe('rgb(44, 49, 54)')
         expect(style(header).padding).toBe('10px 12px 9px')
-        expect(style(header).borderBottom.toLowerCase()).toBe('1px solid #e2e9f0')
+        expect(style(header).borderBottom).toBe('1px solid rgb(226, 233, 240)')
     })
 
     it('shows both arrows of the sort sign at all times and marks the direction in force', () => {

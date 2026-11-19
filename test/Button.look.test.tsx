@@ -159,7 +159,7 @@ describe('MUI Button under the pne-ui theme', () => {
         </>)
 
         expectComputedStyle(screen.getByRole('button', {name: 'Button'}), {
-            'background-color': 'transparent',
+            'background-color': 'rgba(0, 0, 0, 0)',
             'box-shadow': 'inset 0 0 0 1px #026FD7',
             color: 'rgb(0, 94, 185)',
         })
@@ -298,7 +298,7 @@ describe('MUI Button under the pne-ui theme', () => {
         const button = screen.getByRole('button', {name: 'Undo'})
 
         // The fill and the ring of a look are not drawn; the size is the theme's.
-        expectComputedStyle(button, {'background-color': 'transparent', 'box-shadow': 'none', 'min-height': '24px'})
+        expectComputedStyle(button, {'background-color': 'rgba(0, 0, 0, 0)', 'box-shadow': 'none', 'min-height': '24px'})
     })
 
     it('builds the style of a size and look once per theme', () => {

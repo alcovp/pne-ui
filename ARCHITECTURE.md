@@ -18,7 +18,7 @@ Layers and directories
   - Entity selectors: `component/non-abstract-entity-selector`.
 - Theming: `createTheme.ts` builds light/dark MUI themes and semantic tokens from `Skin`; `PneThemeProvider.tsx` scopes a controlled or in-memory color mode without owning persistence; `usePneTheme.ts` is a convenience hook.
 - Stories: `src/stories/*.stories.tsx` show props and usage patterns.
-- Tests: `test/` — Jest + ts-jest; currently cover parts of SearchUI (store/utils) and shared helpers.
+- Tests: `test/` — Jest + `@swc/jest`; currently cover parts of SearchUI (store/utils) and shared helpers.
 
 Key flows
 ---------

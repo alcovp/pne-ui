@@ -36,7 +36,7 @@ describe('PneModal (UI Kit look)', () => {
 
         expect(style(dialog).borderRadius).toBe('16px')
         expect(style(dialog).padding).toBe('16px')
-        expect(style(dialog).border.toLowerCase()).toBe('1px solid #e2e9f0')
+        expect(style(dialog).border).toBe('1px solid rgb(226, 233, 240)')
         expect(style(dialog).boxShadow).toBe('0 8px 24px rgba(13, 26, 51, 0.12)')
         expect(style(dialog).background).toBe('rgb(255, 255, 255)')
         // The window takes the focus on opening and shows no ring around itself.
@@ -60,9 +60,10 @@ describe('PneModal (UI Kit look)', () => {
     })
 
     it('keeps a consumer colour of the title', () => {
-        renderModal({slotProps: {title: {color: 'error.main'}}})
+        // A palette name: MUI 9 Typography ignores a dotted path like 'error.main'.
+        renderModal({slotProps: {title: {color: 'error'}}})
 
-        expect(style(screen.getByRole('heading', {name: 'Min/max amounts'})).color).not.toBe('rgb(44, 49, 54)')
+        expect(style(screen.getByRole('heading', {name: 'Min/max amounts'})).color).toBe('rgb(211, 47, 47)')
     })
 
     it('draws the close cross as a 32px icon action: no fill, only the icon takes colour', () => {
@@ -72,7 +73,7 @@ describe('PneModal (UI Kit look)', () => {
         expect(style(close).width).toBe('32px')
         expect(style(close).height).toBe('32px')
         expect(style(close).borderRadius).toBe('4px')
-        expect(style(close).backgroundColor).toBe('transparent')
+        expect(style(close).backgroundColor).toBe('rgba(0, 0, 0, 0)')
         // UI Kit Icon action: the tertiary text colour at rest.
         expect(style(close).color).toBe('rgb(110, 116, 122)')
         expect(close.querySelector('[data-testid="PneCloseIcon"]')).not.toBeNull()
@@ -81,8 +82,8 @@ describe('PneModal (UI Kit look)', () => {
     it('parts the header and the buttons from the body by hairlines inside the padding of the window', () => {
         const {header, body, footer} = renderModal()
 
-        expect(style(header).padding).toBe('0px 0px 8px')
-        expect(style(header).borderBottom.toLowerCase()).toBe('1px solid #e2e9f0')
+        expect(style(header).padding).toBe('0px 0px 8px 0px')
+        expect(style(header).borderBottom).toBe('1px solid rgb(226, 233, 240)')
         expect(style(header).alignItems).toBe('flex-start')
         expect(style(body!).padding).toBe('7px 16px 8px')
         // The body scrolls across the whole width of the window.
@@ -90,7 +91,7 @@ describe('PneModal (UI Kit look)', () => {
         expect(style(body!).fontSize).toBe('14px')
         expect(style(body!).lineHeight).toBe('20px')
         expect(style(footer!).padding).toBe('7px 0px 0px')
-        expect(style(footer!).borderTop.toLowerCase()).toBe('1px solid #e2e9f0')
+        expect(style(footer!).borderTop).toBe('1px solid rgb(226, 233, 240)')
     })
 
     it('marks a body with no buttons under it, whose lower edge is the padding of the window', () => {
