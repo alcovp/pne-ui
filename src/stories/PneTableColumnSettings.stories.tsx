@@ -106,7 +106,7 @@ const SingleViewStory = (props: {failSave?: boolean}) => {
             />}
         />
         <PneTableColumnSettingsDialog {...settings.dialogProps} autoTestId='items'/>
-        <Typography color='text.secondary' sx={{mt: 2}} variant='body2'>
+        <Typography color='textSecondary' sx={{mt: 2}} variant='body2'>
             {'Stored value: '}{JSON.stringify(storage.value ?? null)}
         </Typography>
     </Box>

@@ -80,7 +80,7 @@ const TransactionReportFilters = ({invalidRange = false, config}: Props) => {
                     </Button>
                     <Typography
                         data-testid={'external-validation-status'}
-                        color={validationResult?.isValid ? 'success.main' : 'error.main'}
+                        color={validationResult?.isValid ? 'success' : 'error'}
                         variant={'body2'}
                     >
                         {validationResult?.isValid ? 'Ready to generate' : 'Report filters are invalid'}

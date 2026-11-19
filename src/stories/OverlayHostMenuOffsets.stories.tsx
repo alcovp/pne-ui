@@ -137,12 +137,12 @@ const MenuOffsetPreview = () => {
                 <Typography component='h1' sx={{ fontSize: 20, fontWeight: 700, lineHeight: '28px' }}>
                     Adaptive menu offset
                 </Typography>
-                <Typography color='text.secondary' sx={{ fontSize: 14, lineHeight: '20px', maxWidth: 680, mt: 0.5 }}>
+                <Typography color='textSecondary' sx={{ fontSize: 14, lineHeight: '20px', maxWidth: 680, mt: 0.5 }}>
                     The error stays 16 px from the viewport on mobile, 16 px beyond the collapsed menu at
                     1080–1599 px, and 16 px beyond the expanded menu from 1600 px.
                 </Typography>
                 <Typography
-                    color='text.secondary'
+                    color='textSecondary'
                     data-story-viewport-width
                     sx={{ fontFamily: 'monospace', fontSize: 12, lineHeight: '18px', mt: 1 }}
                 >

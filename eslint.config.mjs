@@ -32,6 +32,15 @@ const buttonRules = [
     },
 ]
 
+// MUI 9 Typography (Link is one too) takes `color` as a palette name only: "textSecondary", "error".
+// A dotted path ("text.secondary", "error.main") is accepted by the types and silently ignored.
+const typographyRules = [
+    {
+        selector: 'JSXOpeningElement[name.name=/^(Typography|Link|PneLink)$/] > JSXAttribute[name.name="color"]:matches([value.value=/\\./], [value.expression.value=/\\./], [value.expression.type="ConditionalExpression"]:has(Literal[value=/\\./]))',
+        message: 'Typography ignores a dotted palette path in `color`: write a palette name ("textSecondary", "error") or put the colour into `sx`.',
+    },
+]
+
 export default [
     {
         ignores: [
@@ -86,7 +95,7 @@ export default [
                 2,
                 'line-aligned',
             ],
-            'no-restricted-syntax': ['error', ...buttonRules],
+            'no-restricted-syntax': ['error', ...buttonRules, ...typographyRules],
             // The two rules of hooks come from the plugin of the React team, under the names the
             // code already disables them by.
             'react-hooks/rules-of-hooks': 'error',

@@ -216,7 +216,7 @@ const ErrorFixturePreview = ({ fixture }: { fixture: ErrorFixture }) => {
                 </Typography>
                 <Chip label={fixture.source} size='small' variant='outlined' />
             </Stack>
-            <Typography color='text.secondary' sx={{ fontSize: 12, lineHeight: '18px', minHeight: 36 }}>
+            <Typography color='textSecondary' sx={{ fontSize: 12, lineHeight: '18px', minHeight: 36 }}>
                 {fixture.description}
             </Typography>
             {/* The notification itself, as OverlayHost shows it: 448px wide or as wide as the place lets it be. */}
@@ -260,7 +260,7 @@ const FixtureGallery = ({ fixtures: galleryFixtures, heading, intro }: FixtureGa
             <Typography component='h1' sx={{ fontSize: 20, fontWeight: 700, lineHeight: '28px' }}>
                 {heading}
             </Typography>
-            <Typography color='text.secondary' sx={{ fontSize: 14, lineHeight: '20px' }}>
+            <Typography color='textSecondary' sx={{ fontSize: 14, lineHeight: '20px' }}>
                 {intro}
             </Typography>
         </Stack>

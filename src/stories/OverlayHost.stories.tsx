@@ -129,7 +129,7 @@ const SnackbarChromePreview = () => {
             <Typography component='h1' sx={{ fontSize: 20, fontWeight: 700, lineHeight: '28px' }}>
                 Toasts of every tone
             </Typography>
-            <Typography color='text.secondary' sx={{ fontSize: 14, lineHeight: '20px', mt: 0.5 }}>
+            <Typography color='textSecondary' sx={{ fontSize: 14, lineHeight: '20px', mt: 0.5 }}>
                 The message is the title, the description stands under it in the text colour of the tone. The undo
                 action is a soft small button before the close cross.
             </Typography>

@@ -17,7 +17,7 @@ const FloatingDemo = () => {
             node: (
                 <Box sx={{ minWidth: 220, px: 2, py: 1.5 }}>
                     <Typography variant='subtitle2'>Quick actions</Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography variant='body2' color='textSecondary'>
                         Content items can contain any application UI.
                     </Typography>
                 </Box>
@@ -46,7 +46,7 @@ const FloatingDemo = () => {
 
     return (
         <Box sx={{ minHeight: 360, position: 'relative', p: 2 }}>
-            <Typography variant='body2' color='text.secondary' sx={{ mb: 1 }}>
+            <Typography variant='body2' color='textSecondary' sx={{ mb: 1 }}>
                 FAB supports application content, actions with right-aligned icons, a primary banner, and collapses to a menu on mobile.
             </Typography>
             <Typography variant='body2' sx={{ mb: 2 }}>

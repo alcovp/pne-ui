@@ -469,7 +469,7 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
                             {...createAutoTestAttributes(COLUMN_SETTINGS_EMPTY_AUTOTEST_ID)}
                             sx={{justifyContent: 'center', minHeight: `${ROW_HEIGHT}px`, padding: 0}}
                         >
-                            <Typography color='text.secondary' sx={{fontSize: '14px', lineHeight: '20px'}}>
+                            <Typography color='textSecondary' sx={{fontSize: '14px', lineHeight: '20px'}}>
                                 {t('pneTable.columnSettings.noMatches', {defaultValue: 'No columns match'})}
                             </Typography>
                         </ListItem> : null}

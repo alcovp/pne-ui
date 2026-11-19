@@ -149,7 +149,7 @@ const TemplatesStory = ({
                     onFiltersUpdate={() => undefined}
                 />
                 <Typography
-                    color='text.secondary'
+                    color='textSecondary'
                     data-story-saved-order='true'
                     sx={{px: 2, pb: 2}}
                     variant='body2'

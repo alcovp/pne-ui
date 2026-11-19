@@ -21,7 +21,6 @@ interface IProps<T extends AbstractEntitySelectorProp> {
     handleSave: (list: IMappedUnmappedList<T>) => void;
     title: string;
     subTitle?: string;
-    loading?: boolean;
     /** Use false for short reorderable lists to keep the original touch target mounted. */
     virtualized?: boolean;
     /** Show a separate handle for immediate touch dragging; disables list virtualization. */
@@ -147,9 +146,7 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
                 ...(!virtualized && {position: 'relative', top: 'auto', left: 'auto', transform: 'none'}),
             }}
         >
-            {/*<LoadingWrapper loading={loading}>*/}
             <AbstractEntitySelector {...entitySelectorOptions}/>
-            {/*</LoadingWrapper>*/}
         </PneModal>
     );
 };

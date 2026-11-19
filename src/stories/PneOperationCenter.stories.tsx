@@ -95,7 +95,7 @@ const OperationCenterDemo = ({
             <Typography component='h1' sx={{fontSize: 20, fontWeight: 700}}>
                 Host-owned background work
             </Typography>
-            <Typography color='text.secondary' sx={{fontSize: 14, mt: 0.5}}>
+            <Typography color='textSecondary' sx={{fontSize: 14, mt: 0.5}}>
                 Navigate freely: the host keeps these operations alive and passes only their view model to pne-ui.
             </Typography>
             <OverlayHost

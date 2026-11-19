@@ -87,7 +87,6 @@ export const GroupingCriterion = () => {
             unMappedList={available}
             mappedList={selected}
             onClose={handleClose}
-            loading={false}
             optionRenderer={groupTypeRenderer}
             containerProps={{
                 ...createSearchUIOwnedAutoTestAttributes(
