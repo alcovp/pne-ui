@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types -- TypeScript validates this generic MUI-derived prop contract. */
 import React, {ReactNode, useId} from 'react'
 import {Autocomplete, AutocompleteProps, SxProps} from '@mui/material'
 import type {ChipTypeMap} from '@mui/material/Chip'

@@ -1,7 +1,8 @@
 import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import globals from 'globals'
-import reactPlugin from 'eslint-plugin-react'
+import eslintReact from '@eslint-react/eslint-plugin'
+import stylistic from '@stylistic/eslint-plugin'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import storybookPlugin from 'eslint-plugin-storybook'
 
@@ -43,7 +44,7 @@ export default [
     },
     js.configs.recommended,
     ...tsPlugin.configs['flat/recommended'],
-    reactPlugin.configs.flat.recommended,
+    eslintReact.configs['recommended-typescript'],
     ...storybookPlugin.configs['flat/recommended'],
     {
         files: ['**/*.{js,mjs,jsx,ts,tsx}'],
@@ -63,11 +64,7 @@ export default [
         },
         plugins: {
             'react-hooks': reactHooksPlugin,
-        },
-        settings: {
-            react: {
-                version: 'detect',
-            },
+            '@stylistic': stylistic,
         },
         rules: {
             indent: [
@@ -81,19 +78,43 @@ export default [
                 'error',
                 'unix',
             ],
-            'react/jsx-first-prop-new-line': [
+            '@stylistic/jsx-first-prop-new-line': [
                 'error',
                 'multiline',
             ],
-            'react/jsx-closing-bracket-location': [
+            '@stylistic/jsx-closing-bracket-location': [
                 2,
                 'line-aligned',
             ],
             'no-restricted-syntax': ['error', ...buttonRules],
-            'react/display-name': 'off',
-            'react/react-in-jsx-scope': 'off',
+            // The two rules of hooks come from the plugin of the React team, under the names the
+            // code already disables them by.
             'react-hooks/rules-of-hooks': 'error',
             'react-hooks/exhaustive-deps': 'warn',
+            '@eslint-react/rules-of-hooks': 'off',
+            '@eslint-react/exhaustive-deps': 'off',
+            // The library compiles JSX to React.createElement, where the place of `key` costs
+            // nothing; a `key` after the spread overrides the key MUI puts into the props.
+            '@eslint-react/jsx-no-key-after-spread': 'off',
+            // Off since the plugin came (ESLint 10, 2026-11): each of them has findings in the
+            // code as it is, and nobody has gone through them yet. Hits then: set-state-in-effect
+            // 42, no-forward-ref 36, no-use-context 34, no-context-provider 19, no-array-index-key
+            // 14, ref and id names 8, use-state 7, purity 5, the Children API and cloneElement 6,
+            // dangerouslySetInnerHTML 2.
+            '@eslint-react/set-state-in-effect': 'off',
+            '@eslint-react/no-forward-ref': 'off',
+            '@eslint-react/no-use-context': 'off',
+            '@eslint-react/no-context-provider': 'off',
+            '@eslint-react/no-array-index-key': 'off',
+            '@eslint-react/naming-convention-ref-name': 'off',
+            '@eslint-react/naming-convention-id-name': 'off',
+            '@eslint-react/use-state': 'off',
+            '@eslint-react/purity': 'off',
+            '@eslint-react/no-children-to-array': 'off',
+            '@eslint-react/no-children-map': 'off',
+            '@eslint-react/no-children-count': 'off',
+            '@eslint-react/no-clone-element': 'off',
+            '@eslint-react/dom-no-dangerously-set-innerhtml': 'off',
             'no-prototype-builtins': 'warn',
             '@typescript-eslint/no-non-null-assertion': 'off',
             '@typescript-eslint/ban-ts-comment': 'off',
@@ -110,6 +131,13 @@ export default [
                 'error',
                 'never',
             ],
+        },
+    },
+    {
+        // A story explains itself in prose, and a sentence may end a tag with a semicolon.
+        files: ['src/stories/**', 'src/**/*.stories.tsx'],
+        rules: {
+            '@eslint-react/jsx-no-leaked-semicolon': 'off',
         },
     },
     {

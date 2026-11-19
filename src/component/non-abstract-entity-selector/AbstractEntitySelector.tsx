@@ -128,6 +128,16 @@ const checkInitialType = (item: AbstractEntitySelectorProp): string | undefined 
     return undefined
 }
 
+// Declared once: a component defined inside the selector would be a new type on every render, and
+// the list would remount each of its rows.
+const HeightPreservingItem: React.FunctionComponent<HTMLAttributes<HTMLDivElement>> = ({children, ...props}) => {
+    return (
+        <div {...props} style={{minHeight: '32px'}}>
+            {children}
+        </div>
+    );
+};
+
 export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(props: React.PropsWithChildren<IAbstractEntityOptions<T>>) => {
     const {
         reset,
@@ -536,14 +546,6 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
             )}
         </Draggable>
     );
-
-    const HeightPreservingItem: React.FunctionComponent<HTMLAttributes<HTMLDivElement>> = ({children, ...props}) => {
-        return (
-            <div {...props} style={{minHeight: '32px'}}>
-                {children}
-            </div>
-        );
-    };
 
     return (
         <>

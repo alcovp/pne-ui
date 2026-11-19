@@ -10,6 +10,7 @@ jest.mock('react-i18next', () => ({
 }))
 
 jest.mock('@hello-pangea/dnd', () => {
+    // eslint-disable-next-line no-useless-assignment -- the JSX below compiles to React.createElement
     const React = require('react')
 
     return {
