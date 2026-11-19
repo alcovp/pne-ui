@@ -23,7 +23,7 @@ const asObject = (value: unknown): SlotObject | undefined =>
  * goes into a picker as `slots.textField`; the pickers of the library put it there themselves. Inside
  * PneField it takes the field's id, label, helper text, error and disabled state, as PneTextField does.
  */
-const PnePickerTextField = React.forwardRef<HTMLDivElement, PnePickerTextFieldProps>((props, ref) => {
+const PnePickerTextField = ({ref, ...props}: React.PropsWithoutRef<PnePickerTextFieldProps> & {ref?: React.Ref<HTMLDivElement>}) => {
     const {
         'aria-describedby': ariaDescribedBy,
         'aria-labelledby': ariaLabelledBy,
@@ -93,7 +93,7 @@ const PnePickerTextField = React.forwardRef<HTMLDivElement, PnePickerTextFieldPr
         sx={[pnePickerFieldSx, ...(Array.isArray(sx) ? sx : [sx])]}
         variant='outlined'
     />
-})
+}
 
 PnePickerTextField.displayName = 'PnePickerTextField'
 

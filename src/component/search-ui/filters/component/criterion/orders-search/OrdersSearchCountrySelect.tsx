@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import {Box, Chip} from '@mui/material';
 import {PneChevronDownIcon} from '../../../../../dropdown/dropdownLook';
 import {useSearchUIFiltersStore} from "../../../state/store";
@@ -26,12 +26,13 @@ export const OrdersSearchCountrySelect = () => {
     const [availableCountries, setAvailableCountries] = useState<Country[]>([])
     const [loading, setLoading] = useState(true)
 
-    const {getCountries} = useContext(SearchUIDefaultsContext)
+    const {getCountries} = use(SearchUIDefaultsContext)
     const autoTestOwner = useSearchUIAutoTestScope()
 
     useEffect(() => {
         let active = true
 
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- the flag of a request
         setLoading(true)
         getCountries()
             .then(response => {
@@ -61,6 +62,7 @@ export const OrdersSearchCountrySelect = () => {
     const inputAriaLabel = t('react.searchUI.ordersSearch.value', {defaultValue: 'Order search value'})
 
     useEffect(() => {
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- a select that became disabled closes
         if (disabled) setOpen(false)
     }, [disabled])
 

@@ -23,9 +23,7 @@ type BridgeLinkProps = LinkProps & {
     href: string
 }
 
-const BridgeLink = React.forwardRef<HTMLAnchorElement, BridgeLinkProps>(
-    (props, ref) => <Link data-bridge-link='true' ref={ref} {...props}/>,
-)
+const BridgeLink = ({ref, ...props}: BridgeLinkProps & {ref?: React.Ref<HTMLAnchorElement>}) => <Link data-bridge-link='true' ref={ref} {...props}/>
 
 const baseItems: readonly PneBreadcrumbItem[] = [
     {

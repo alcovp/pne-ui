@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { use, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchUIFiltersStore } from '../../state/store'
 import { AbstractEntity } from '../../../../../common'
@@ -16,7 +16,7 @@ export const ProcessorLogEntryTypesCriterion = () => {
     const processorLogEntryType = useSearchUIFiltersStore(s => s.processorLogEntryType)
     const setProcessorLogEntryType = useSearchUIFiltersStore(s => s.setProcessorLogEntryType)
 
-    const {getProcessorLogEntryTypes} = useContext(SearchUIDefaultsContext)
+    const {getProcessorLogEntryTypes} = use(SearchUIDefaultsContext)
 
     useEffect(() => {
         getProcessorLogEntryTypes()

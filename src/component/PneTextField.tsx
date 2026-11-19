@@ -1,4 +1,4 @@
-import React, {forwardRef, useId, useMemo} from 'react'
+import React, {useId, useMemo} from 'react'
 import {type MenuProps, TextField, TextFieldOwnerState, TextFieldProps} from '@mui/material'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
 import {useForkRef} from '@mui/material/utils'
@@ -27,7 +27,7 @@ interface ResolvedAccessibilitySlots {
     select: ResolvedSlotProps
 }
 
-const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) => {
+const PneTextField = ({ref, ...props}: React.PropsWithoutRef<PneTextFieldProps> & {ref?: React.Ref<HTMLDivElement>}) => {
     const themedProps = useDefaultProps({
         name: 'MuiTextField',
         props,
@@ -129,7 +129,7 @@ const PneTextField = forwardRef<HTMLDivElement, PneTextFieldProps>((props, ref) 
             {...(hasDefaultRows ? {rows: MULTILINE_DEFAULT_ROWS} : undefined)}
         />
     </DefaultPropsProvider>
-})
+}
 
 PneTextField.displayName = 'PneTextField'
 

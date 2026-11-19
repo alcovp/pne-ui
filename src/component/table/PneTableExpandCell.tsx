@@ -1,4 +1,4 @@
-import React, {forwardRef, MouseEvent} from 'react'
+import React, {MouseEvent} from 'react'
 import {IconButton} from '@mui/material'
 import type {SxProps, Theme} from '@mui/material/styles'
 import {AutoTestValue, createAutoTestAttributes} from '../AutoTestAttribute'
@@ -27,7 +27,7 @@ const expandedSx: SxProps<Theme> = theme => ({
  * A cell with the chevron that opens and closes a row (UI Kit Cell: Expand and Cell: Collapse):
  * an icon action in a control cell; the chevron points right on a closed row and up on an open one.
  */
-const PneTableExpandCell = forwardRef<HTMLTableCellElement, PneTableExpandCellProps>((props, ref) => {
+const PneTableExpandCell = ({ref, ...props}: React.PropsWithoutRef<PneTableExpandCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {
         'aria-label': ariaLabel,
         autoTestId = 'row-expand',
@@ -62,7 +62,7 @@ const PneTableExpandCell = forwardRef<HTMLTableCellElement, PneTableExpandCellPr
             <PneChevronDownIcon sx={{transform: expanded ? 'rotate(180deg)' : 'rotate(-90deg)'}}/>
         </IconButton>
     </PneTableControlCell>
-})
+}
 
 PneTableExpandCell.displayName = 'PneTableExpandCell'
 

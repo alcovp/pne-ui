@@ -1,4 +1,4 @@
-import React, {useContext, useId, useState} from 'react';
+import React, {use, useId, useState} from 'react';
 import {Alert, Collapse, Button} from '@mui/material';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
@@ -36,7 +36,7 @@ const SearchUITemplateEditor = (props: IProps) => {
     const templateEditorId = useId()
     const [templateName, setTemplateName] = useState('')
     const [showFeedback, setShowFeedback] = useState(false)
-    const {searchTemplateExists} = useContext(SearchUIDefaultsContext)
+    const {searchTemplateExists} = use(SearchUIDefaultsContext)
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         // Spaces alone are no name: the field stays empty, and its required check stops the form.

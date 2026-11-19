@@ -174,6 +174,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
             return getListEntity(item, list.length + index + 1);
         });
         const type = list.length > 0 ? checkInitialType(list[0]) : checkInitialType(selected[0]);
+        /* eslint-disable @eslint-react/set-state-in-effect -- the lists start over from the props on `reset` */
         setInitialType(type);
         setInitialAddedIds(new Set(selectedArray.map(item => item.id)));
         if (list.length > 0) {
@@ -192,6 +193,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 return textRepresentation === 'ID' ? item.id : item.displayName;
             }).toString();
             setTextValue(array);
+        /* eslint-enable @eslint-react/set-state-in-effect */
         }
     }, [reset]);
 

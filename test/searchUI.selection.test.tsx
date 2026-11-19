@@ -51,10 +51,10 @@ const SelectionHarness = ({
     onSelectionChange,
     searchData,
 }: SelectionHarnessProps) => {
-    const [selection, setSelection] = React.useState<TableSelectionModel<number>>({
+    const [selection, setSelection] = React.useState<TableSelectionModel<number>>(() => ({
         mode: 'explicit',
         selectedIds: new Set(),
-    })
+    }))
     const tableSelection: SearchUITableSelectionConfig<Row, number> = {
         getRowId: row => row.id,
         onSelectionChange: (nextSelection, details) => {
@@ -202,10 +202,10 @@ const ViewsSelectionHarness = ({
     searchData: (params: SearchParams) => Promise<Row[]>
 }) => {
     const [view, setView] = React.useState<ViewId>('summary')
-    const [selection, setSelection] = React.useState<TableSelectionModel<number>>({
+    const [selection, setSelection] = React.useState<TableSelectionModel<number>>(() => ({
         mode: 'explicit',
         selectedIds: new Set(),
-    })
+    }))
 
     return <SearchUI<Row, ViewId, number>
         autoTestId='view-gates'

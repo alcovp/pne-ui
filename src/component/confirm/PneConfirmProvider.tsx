@@ -1,9 +1,10 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import React, { createContext, useCallback, use, useEffect, useMemo, useRef, useState } from 'react'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import PneModal from '../PneModal'
 import PneModalActions from '../PneModalActions'
 import { type AutoTestValue, createAutoTestAttributes } from '../AutoTestAttribute'
+import { hasRenderableContent } from '../internal/hasRenderableContent'
 
 export type PneConfirmOptions = {
     /** Stable owner identity copied to the portal dialog's Selenium scope. */
@@ -52,10 +53,6 @@ const MISSING_PROVIDER_ERROR = 'usePneConfirm must be used within <PneConfirmPro
 const normalizeTitle = (title?: string): string | undefined => {
     if (!title) return undefined
     return title.trim().length > 0 ? title : undefined
-}
-const hasMessage = (message: React.ReactNode): boolean => {
-    if (typeof message === 'string') return message.trim().length > 0
-    return React.Children.toArray(message).length > 0
 }
 
 export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: PneConfirmProviderProps) => {
@@ -150,7 +147,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
     )
 
     return (
-        <PneConfirmContext.Provider value={contextValue}>
+        <PneConfirmContext value={contextValue}>
             {children}
             <PneModal
                 actions={<PneModalActions
@@ -184,7 +181,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                 title={current?.title ?? fallbackStrings.title}
                 containerSx={{ maxWidth: 560, width: 'calc(100% - 32px)', minWidth: 0 }}
             >
-                {current && hasMessage(current.message) ? (
+                {current && hasRenderableContent(current.message) ? (
                     <Stack spacing={3}>
                         <Box {...createAutoTestAttributes('alert.message')}>
                             <Typography
@@ -202,12 +199,12 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                     </Stack>
                 ) : null}
             </PneModal>
-        </PneConfirmContext.Provider>
+        </PneConfirmContext>
     )
 }
 
 export const usePneConfirm = (): PneConfirmContextValue => {
-    const context = useContext(PneConfirmContext)
+    const context = use(PneConfirmContext)
     if (!context) {
         throw new Error(MISSING_PROVIDER_ERROR)
     }
@@ -218,6 +215,6 @@ export const usePneConfirm = (): PneConfirmContextValue => {
  * Library-internal variant for components that must keep working without a provider:
  * returns `null` instead of throwing. Not part of the public barrel.
  */
-export const useOptionalPneConfirm = (): PneConfirmContextValue | null => useContext(PneConfirmContext)
+export const useOptionalPneConfirm = (): PneConfirmContextValue | null => use(PneConfirmContext)
 
 export default PneConfirmProvider

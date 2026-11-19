@@ -114,11 +114,11 @@ const timestamp = () => new Date().toLocaleTimeString('ru-RU', {hour12: false})
 const DynamicsRow = ({outcome, title, log}: {outcome: Outcome, title: string, log: (text: string) => void}) => {
     const [checked, setChecked] = React.useState(false)
     const [status, setStatus] = React.useState('Готово · клик')
-    const requests = React.useRef(0)
+    const requestsRef = React.useRef(0)
 
     const change = (_event: React.ChangeEvent<HTMLInputElement>, next: boolean) => {
-        requests.current += 1
-        const request = requests.current
+        requestsRef.current += 1
+        const request = requestsRef.current
         setStatus(`Сохранение… · запрос ${request}`)
         log(`${title}: запрос ${request}, значение ${next ? 'on' : 'off'}`)
         return new Promise<void>((resolve, reject) => {

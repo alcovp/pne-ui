@@ -1,4 +1,4 @@
-import React, {useContext, useId, useState} from 'react';
+import React, {use, useId, useState} from 'react';
 import {Box, Popover, SxProps, Typography} from '@mui/material';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -149,9 +149,9 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
     const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
     const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
     const autoTestOwner = useSearchUIAutoTestScope()
-    const radioGroupName = useId()
+    const radioGroupId = useId()
     const fieldLabel = t('react.searchUI.ordersSearch.label', {defaultValue: 'Order search field'})
-    const {showCMSOrderSearchLabels} = useContext(SearchUIDefaultsContext)
+    const {showCMSOrderSearchLabels} = use(SearchUIDefaultsContext)
     const cmsOrderSearchLabelsVisible = showCMSOrderSearchLabels()
     const visibleGroups = cmsOrderSearchLabelsVisible
         ? ORDERS_SEARCH_LABEL_GROUPS
@@ -259,7 +259,7 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                                     component={'input'}
                                     id={optionId}
                                     type={'radio'}
-                                    name={radioGroupName}
+                                    name={radioGroupId}
                                     value={item.value}
                                     checked={checked}
                                     autoFocus={open && isExpanded && checked}

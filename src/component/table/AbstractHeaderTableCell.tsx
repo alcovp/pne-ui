@@ -1,4 +1,4 @@
-import React, {useContext} from 'react';
+import React, {use} from 'react';
 import {SxProps, TableCell, TableCellProps} from '@mui/material';
 import type {Theme} from '@mui/material/styles';
 import {resolvePneSemanticPalette} from '../../createTheme';
@@ -11,7 +11,7 @@ const AbstractHeaderTableCell = (props: TableCellProps) => {
         ...rest
     } = props;
 
-    const island = useContext(PneTableHeaderVariantContext) === 'island';
+    const island = use(PneTableHeaderVariantContext) === 'island';
 
     const _sx: SxProps<Theme> = [
         island ? islandHeaderCellSx : mainHeaderCellSx,

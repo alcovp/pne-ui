@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react'
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react'
 import {Switch, SwitchProps, Tooltip} from '@mui/material'
 import type {SwitchOwnerState} from '@mui/material/Switch'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
@@ -48,7 +48,7 @@ type ResolvedSwitchInputSlotProps = Record<string, unknown> & {
     onClick?: React.MouseEventHandler<HTMLInputElement>
 }
 
-const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
+const PneSwitch = ({ref, ...props}: React.PropsWithoutRef<PneSwitchProps> & {ref?: React.Ref<HTMLSpanElement>}) => {
     const propsWithDefaultSize: PneSwitchProps = props.size === undefined
         ? {...props, size: 'medium'}
         : props
@@ -343,7 +343,7 @@ const PneSwitch = forwardRef<HTMLSpanElement, PneSwitchProps>((props, ref) => {
         />
         {showsDisabledHint ? <PneSwitchDisabledHint hint={disabledHint} ref={disabledHintRef}/> : null}
     </DefaultPropsProvider>
-})
+}
 
 PneSwitch.displayName = 'PneSwitch'
 
@@ -366,9 +366,9 @@ type DisabledHintRootListeners = {
  * render and its DOM; the hidden span only satisfies the Tooltip child contract
  * while the popper anchors to the hovered switch root.
  */
-const PneSwitchDisabledHint = forwardRef<DisabledHintHandle, {
+const PneSwitchDisabledHint = ({hint, ref}: {
     hint: Exclude<React.ReactNode, boolean>
-}>(({hint}, ref) => {
+} & {ref?: React.Ref<DisabledHintHandle>}) => {
     const {t} = useTranslation()
     const [anchor, setAnchor] = useState<HTMLElement | null>(null)
     const enterTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
@@ -397,7 +397,7 @@ const PneSwitchDisabledHint = forwardRef<DisabledHintHandle, {
     >
         <span hidden/>
     </Tooltip>
-})
+}
 
 PneSwitchDisabledHint.displayName = 'PneSwitchDisabledHint'
 

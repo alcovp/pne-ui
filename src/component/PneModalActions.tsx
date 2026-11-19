@@ -1,4 +1,4 @@
-import React, {forwardRef, ReactNode} from 'react'
+import React, {ReactNode} from 'react'
 import {SxProps, styled, Theme} from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
 import {pneActionSpacing} from '../actionSpacing'
@@ -19,56 +19,55 @@ export type PneModalActionsProps = Omit<
     sx?: SxProps<Theme>
 }
 
-const PneModalActions = forwardRef<HTMLDivElement, PneModalActionsProps>(
-    function PneModalActions({
-        primary,
-        secondary,
-        leading,
-        groupLeading = false,
-        ...rootProps
-    }, ref) {
-        const safeRootProps = sanitizeRootProps(rootProps)
-        const isNarrow = useMediaQuery('(max-width:480px)')
-        const leadingAction = leading != null
-            ? <LeadingActionSlot
-                $groupLeading={groupLeading}
-                key='leading'
-                data-pne-modal-action='leading'
-            >
-                {leading}
-            </LeadingActionSlot>
-            : null
-        const secondaryAction = secondary != null
-            ? <ActionSlot key='secondary' data-pne-modal-action='secondary'>
-                {secondary}
-            </ActionSlot>
-            : null
-        const primaryAction = <ActionSlot key='primary' data-pne-modal-action='primary'>
-            {primary}
+const PneModalActions = function PneModalActions({
+    primary,
+    secondary,
+    leading,
+    groupLeading = false,
+    ref,
+    ...rootProps
+}: React.PropsWithoutRef<PneModalActionsProps> & {ref?: React.Ref<HTMLDivElement>}) {
+    const safeRootProps = sanitizeRootProps(rootProps)
+    const isNarrow = useMediaQuery('(max-width:480px)')
+    const leadingAction = leading != null
+        ? <LeadingActionSlot
+            $groupLeading={groupLeading}
+            key='leading'
+            data-pne-modal-action='leading'
+        >
+            {leading}
+        </LeadingActionSlot>
+        : null
+    const secondaryAction = secondary != null
+        ? <ActionSlot key='secondary' data-pne-modal-action='secondary'>
+            {secondary}
         </ActionSlot>
-        const trailingActions = <TrailingActions
-            key='trailing'
-            data-pne-modal-actions-group='trailing'
+        : null
+    const primaryAction = <ActionSlot key='primary' data-pne-modal-action='primary'>
+        {primary}
+    </ActionSlot>
+    const trailingActions = <TrailingActions
+        key='trailing'
+        data-pne-modal-actions-group='trailing'
+    >
+        {isNarrow
+            ? <>{primaryAction}{secondaryAction}</>
+            : <>{secondaryAction}{primaryAction}</>}
+    </TrailingActions>
+
+    return (
+        <ActionsRoot
+            {...safeRootProps}
+            $groupLeading={groupLeading}
+            ref={ref}
+            data-pne-modal-actions='true'
         >
             {isNarrow
-                ? <>{primaryAction}{secondaryAction}</>
-                : <>{secondaryAction}{primaryAction}</>}
-        </TrailingActions>
-
-        return (
-            <ActionsRoot
-                {...safeRootProps}
-                $groupLeading={groupLeading}
-                ref={ref}
-                data-pne-modal-actions='true'
-            >
-                {isNarrow
-                    ? <>{trailingActions}{leadingAction}</>
-                    : <>{leadingAction}{trailingActions}</>}
-            </ActionsRoot>
-        )
-    },
-)
+                ? <>{trailingActions}{leadingAction}</>
+                : <>{leadingAction}{trailingActions}</>}
+        </ActionsRoot>
+    )
+}
 
 export default PneModalActions
 

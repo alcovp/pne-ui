@@ -117,7 +117,7 @@ const bannerSx: SxProps<Theme> = theme => {
  * radius 8, the 20px sign of the tone on the left, then a title, the text and an action link, and a
  * small close cross on the right. An error is announced as an alert, the other tones as a status.
  */
-const PneBanner = React.forwardRef<HTMLDivElement, PneBannerProps>(function PneBanner(props, ref) {
+const PneBanner = function PneBanner({ref, ...props}: React.PropsWithoutRef<PneBannerProps> & {ref?: React.Ref<HTMLDivElement>}) {
     const {
         actionLabel,
         actionProps,
@@ -174,6 +174,6 @@ const PneBanner = React.forwardRef<HTMLDivElement, PneBannerProps>(function PneB
             <PneCloseIcon/>
         </IconButton> : null}
     </Box>
-})
+}
 
 export default PneBanner

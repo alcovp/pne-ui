@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react'
+import React from 'react'
 import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
 import {IconButton, SxProps, Theme, Tooltip, Button} from '@mui/material'
 import {useTranslation} from 'react-i18next'
@@ -31,58 +31,56 @@ const iconButtonSx = pneIconActionSx('small')
  * Entry point to the column settings dialog. Place it in the table toolbar or
  * in the view selector `actions` slot next to the view it configures.
  */
-const PneTableColumnSettingsAction = forwardRef<HTMLButtonElement, PneTableColumnSettingsActionProps>(
-    function PneTableColumnSettingsAction(props, ref) {
-        const {
-            autoTestId,
-            disabled = false,
-            label,
-            onClick,
-            sx,
-            variant = 'icon',
-        } = props
-        const {t} = useTranslation()
-        const resolvedLabel = label ?? t('pneTable.columnSettings.action', {defaultValue: 'Table settings'})
+const PneTableColumnSettingsAction = function PneTableColumnSettingsAction({ref, ...props}: React.PropsWithoutRef<PneTableColumnSettingsActionProps> & {ref?: React.Ref<HTMLButtonElement>}) {
+    const {
+        autoTestId,
+        disabled = false,
+        label,
+        onClick,
+        sx,
+        variant = 'icon',
+    } = props
+    const {t} = useTranslation()
+    const resolvedLabel = label ?? t('pneTable.columnSettings.action', {defaultValue: 'Table settings'})
 
-        if (variant === 'button') {
-            return <Button
-                size='large'
+    if (variant === 'button') {
+        return <Button
+            size='large'
+            {...createAutoTestAttributes(COLUMN_SETTINGS_ACTION_AUTOTEST_ID, autoTestId)}
+            disabled={disabled}
+            onClick={onClick}
+            variant='outlined'
+            ref={ref}
+            startIcon={<ViewColumnOutlinedIcon/>}
+            sx={sx}
+        >
+            {resolvedLabel}
+        </Button>
+    }
+
+    return <Tooltip
+        enterDelay={300}
+        enterNextDelay={300}
+        title={resolvedLabel}
+    >
+        <span>
+            <IconButton
                 {...createAutoTestAttributes(COLUMN_SETTINGS_ACTION_AUTOTEST_ID, autoTestId)}
+                aria-label={resolvedLabel}
                 disabled={disabled}
                 onClick={onClick}
-                variant='outlined'
+                disableRipple
                 ref={ref}
-                startIcon={<ViewColumnOutlinedIcon/>}
-                sx={sx}
+                size='small'
+                sx={[
+                    iconButtonSx,
+                    ...(Array.isArray(sx) ? sx : [sx]),
+                ]}
             >
-                {resolvedLabel}
-            </Button>
-        }
-
-        return <Tooltip
-            enterDelay={300}
-            enterNextDelay={300}
-            title={resolvedLabel}
-        >
-            <span>
-                <IconButton
-                    {...createAutoTestAttributes(COLUMN_SETTINGS_ACTION_AUTOTEST_ID, autoTestId)}
-                    aria-label={resolvedLabel}
-                    disabled={disabled}
-                    onClick={onClick}
-                    disableRipple
-                    ref={ref}
-                    size='small'
-                    sx={[
-                        iconButtonSx,
-                        ...(Array.isArray(sx) ? sx : [sx]),
-                    ]}
-                >
-                    <ViewColumnOutlinedIcon/>
-                </IconButton>
-            </span>
-        </Tooltip>
-    },
-)
+                <ViewColumnOutlinedIcon/>
+            </IconButton>
+        </span>
+    </Tooltip>
+}
 
 export default PneTableColumnSettingsAction

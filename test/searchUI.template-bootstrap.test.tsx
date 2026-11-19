@@ -74,7 +74,7 @@ const renderFilters = ({
     strictMode = false,
 }: RenderFiltersOptions) => {
     const getSearchTemplates = jest.fn(() => deferred.promise)
-    const filters = <SearchUIDefaultsContext.Provider
+    const filters = <SearchUIDefaultsContext
         value={{
             ...initialSearchUIDefaults,
             getSearchTemplates,
@@ -92,7 +92,7 @@ const renderFilters = ({
                 manualSearch,
             }}
         />
-    </SearchUIDefaultsContext.Provider>
+    </SearchUIDefaultsContext>
 
     return {
         getSearchTemplates,
@@ -121,7 +121,7 @@ describe('SearchUI template bootstrap', () => {
         const searchData = jest.fn().mockResolvedValue([])
 
         render(
-            <SearchUIDefaultsContext.Provider
+            <SearchUIDefaultsContext
                 value={{...initialSearchUIDefaults, getSearchTemplates}}
             >
                 <SearchUI
@@ -136,7 +136,7 @@ describe('SearchUI template bootstrap', () => {
                         hideTemplatesSelect: true,
                     }}
                 />
-            </SearchUIDefaultsContext.Provider>,
+            </SearchUIDefaultsContext>,
         )
 
         await waitFor(() => expect(getSearchTemplates).toHaveBeenCalledTimes(1))
@@ -315,7 +315,7 @@ describe('SearchUI template bootstrap', () => {
         const contextName = 'template-bootstrap-retention'
         const firstOnFiltersUpdate = jest.fn()
         const firstView = render(
-            <SearchUIDefaultsContext.Provider
+            <SearchUIDefaultsContext
                 value={{
                     ...initialSearchUIDefaults,
                     getSearchTemplates: jest.fn().mockResolvedValue([]),
@@ -332,7 +332,7 @@ describe('SearchUI template bootstrap', () => {
                         hideTemplatesSelect: true,
                     }}
                 />
-            </SearchUIDefaultsContext.Provider>,
+            </SearchUIDefaultsContext>,
         )
 
         await waitFor(() => {

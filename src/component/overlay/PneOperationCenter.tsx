@@ -495,6 +495,8 @@ export function PneOperationCenter({
                                 minWidth: 0,
                             }}
                         >
+                            {/* A fixed order of texts: the place is the identity. */}
+                            {/* eslint-disable-next-line @eslint-react/no-array-index-key */}
                             {summaryParts.map((part, index) => <Box component='span' key={index}>{part}</Box>)}
                         </Stack>
                     </Box>

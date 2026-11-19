@@ -362,10 +362,10 @@ describe('SearchUI table views', () => {
 
         const FilteredViewsHarness = () => {
             const [value, setValue] = React.useState<FilteredViewId>('brief')
-            const [selection, setSelection] = React.useState<TableSelectionModel<string>>({
+            const [selection, setSelection] = React.useState<TableSelectionModel<string>>(() => ({
                 mode: 'explicit' as const,
                 selectedIds: new Set<string>(),
-            })
+            }))
             const views: readonly SearchUIView<Row, FilteredViewId>[] = [
                 {
                     id: 'brief',

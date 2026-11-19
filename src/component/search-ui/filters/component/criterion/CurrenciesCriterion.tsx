@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
@@ -10,7 +10,7 @@ export const CurrenciesCriterion = () => {
     const currencies = useSearchUIFiltersStore(s => s.currencies)
     const setCurrenciesCriterion = useSearchUIFiltersStore(s => s.setCurrenciesCriterion)
 
-    const {getCurrencies} = useContext(SearchUIDefaultsContext)
+    const {getCurrencies} = use(SearchUIDefaultsContext)
 
     useEffect(() => {
         getCurrencies()

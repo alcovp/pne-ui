@@ -105,25 +105,6 @@ export default [
             // The library compiles JSX to React.createElement, where the place of `key` costs
             // nothing; a `key` after the spread overrides the key MUI puts into the props.
             '@eslint-react/jsx-no-key-after-spread': 'off',
-            // Off since the plugin came (ESLint 10, 2026-11): each of them has findings in the
-            // code as it is, and nobody has gone through them yet. Hits then: set-state-in-effect
-            // 42, no-forward-ref 36, no-use-context 34, no-context-provider 19, no-array-index-key
-            // 14, ref and id names 8, use-state 7, purity 5, the Children API and cloneElement 6,
-            // dangerouslySetInnerHTML 2.
-            '@eslint-react/set-state-in-effect': 'off',
-            '@eslint-react/no-forward-ref': 'off',
-            '@eslint-react/no-use-context': 'off',
-            '@eslint-react/no-context-provider': 'off',
-            '@eslint-react/no-array-index-key': 'off',
-            '@eslint-react/naming-convention-ref-name': 'off',
-            '@eslint-react/naming-convention-id-name': 'off',
-            '@eslint-react/use-state': 'off',
-            '@eslint-react/purity': 'off',
-            '@eslint-react/no-children-to-array': 'off',
-            '@eslint-react/no-children-map': 'off',
-            '@eslint-react/no-children-count': 'off',
-            '@eslint-react/no-clone-element': 'off',
-            '@eslint-react/dom-no-dangerously-set-innerhtml': 'off',
             'no-prototype-builtins': 'warn',
             '@typescript-eslint/no-non-null-assertion': 'off',
             '@typescript-eslint/ban-ts-comment': 'off',
@@ -147,6 +128,15 @@ export default [
         files: ['src/stories/**', 'src/**/*.stories.tsx'],
         rules: {
             '@eslint-react/jsx-no-leaked-semicolon': 'off',
+            // The event log of a story only grows at its end.
+            '@eslint-react/no-array-index-key': 'off',
+        },
+    },
+    {
+        // Contract tests only type-check: one of them passes every prop a slot accepts.
+        files: ['type-tests/**'],
+        rules: {
+            '@eslint-react/dom-no-dangerously-set-innerhtml': 'off',
         },
     },
     {

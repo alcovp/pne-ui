@@ -1,4 +1,4 @@
-import React, {forwardRef, MouseEvent} from 'react'
+import React, {MouseEvent} from 'react'
 import {Box} from '@mui/material'
 import type {SxProps, Theme} from '@mui/material/styles'
 import {resolvePneSemanticPalette} from '../../createTheme'
@@ -76,7 +76,7 @@ const pseudoLinkSx: SxProps<Theme> = theme => {
  * record: put the link of your router inside, the cell gives it the look. A pseudo link acts in
  * place: pass `onAction` and the content becomes an underlined button.
  */
-const PneTableLinkCell = forwardRef<HTMLTableCellElement, PneTableLinkCellProps>((props, ref) => {
+const PneTableLinkCell = ({ref, ...props}: React.PropsWithoutRef<PneTableLinkCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {actionProps, children, onAction, sx, ...rest} = props
 
     if (onAction) {
@@ -105,7 +105,7 @@ const PneTableLinkCell = forwardRef<HTMLTableCellElement, PneTableLinkCellProps>
     >
         {children}
     </PneTableCell>
-})
+}
 
 PneTableLinkCell.displayName = 'PneTableLinkCell'
 

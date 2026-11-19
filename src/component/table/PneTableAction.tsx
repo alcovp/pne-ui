@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react'
+import React from 'react'
 import {IconButton, IconButtonProps, Tooltip} from '@mui/material'
 import type {SxProps, Theme} from '@mui/material/styles'
 import {pneIconActionSx} from '../iconActionLook'
@@ -27,7 +27,7 @@ const dangerSx: SxProps<Theme> = theme => {
  * 14px icon and no background; the pointer colours only the icon. The icon is the child, as with
  * an icon button.
  */
-const PneTableAction = forwardRef<HTMLButtonElement, PneTableActionProps>((props, ref) => {
+const PneTableAction = ({ref, ...props}: React.PropsWithoutRef<PneTableActionProps> & {ref?: React.Ref<HTMLButtonElement>}) => {
     const {children, onClick, sx, tone = 'neutral', tooltip, ...rest} = props
 
     const button = <IconButton
@@ -58,7 +58,7 @@ const PneTableAction = forwardRef<HTMLButtonElement, PneTableActionProps>((props
         {/* A disabled button takes no pointer events: the wrapper hears the pointer for it. */}
         <span style={{display: 'inline-flex', flexShrink: 0}}>{button}</span>
     </Tooltip>
-})
+}
 
 PneTableAction.displayName = 'PneTableAction'
 

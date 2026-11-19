@@ -132,12 +132,12 @@ type SaveState = 'ready' | 'saving' | 'saved' | 'failed'
 
 const SaveButton = ({fails, withIcon = true}: {fails?: boolean, withIcon?: boolean}) => {
     const [state, setState] = React.useState<SaveState>('ready')
-    const timer = React.useRef<number | undefined>(undefined)
-    React.useEffect(() => () => window.clearTimeout(timer.current), [])
+    const timerRef = React.useRef<number | undefined>(undefined)
+    React.useEffect(() => () => window.clearTimeout(timerRef.current), [])
 
     const save = () => {
         setState('saving')
-        timer.current = window.setTimeout(() => setState(fails ? 'failed' : 'saved'), 1500)
+        timerRef.current = window.setTimeout(() => setState(fails ? 'failed' : 'saved'), 1500)
     }
 
     return (

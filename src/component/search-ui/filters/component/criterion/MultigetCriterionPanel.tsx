@@ -82,6 +82,7 @@ export const MultigetCriterionPanel = (props: IProps) => {
             return <Chip
                 {...autoTestAttributes}
                 label={name}
+                // eslint-disable-next-line @eslint-react/no-array-index-key -- a value without an id has only its name and place
                 key={Number.isNaN(id) ? `${name}-${index}` : id}
                 size={'small'}
             />

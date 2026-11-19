@@ -13,6 +13,7 @@ const ControlledLabeledCheckbox: React.FC<React.ComponentProps<typeof PneLabeled
     const [checked, setChecked] = React.useState(args.checked ?? false)
 
     React.useEffect(() => {
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- the story follows its control
         setChecked(args.checked ?? false)
     }, [args.checked])
 

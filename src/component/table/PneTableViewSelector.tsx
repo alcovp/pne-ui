@@ -1,4 +1,4 @@
-import React, {forwardRef, ReactNode, Ref} from 'react'
+import React, {ReactNode, Ref} from 'react'
 import {useTranslation} from 'react-i18next'
 import {
     Box,
@@ -109,9 +109,8 @@ const viewButtonSx: SxProps<Theme> = theme => ({
     },
 })
 
-const PneTableViewSelectorInner = <TViewId extends string, >(
-    props: PneTableViewSelectorProps<TViewId>,
-    ref: Ref<HTMLDivElement>,
+export const PneTableViewSelector = <TViewId extends string = string, >(
+    {ref, ...props}: PneTableViewSelectorProps<TViewId> & {ref?: Ref<HTMLDivElement>},
 ) => {
     const {
         'aria-label': ariaLabel,
@@ -221,7 +220,3 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
         </> : null}
     </Box>
 }
-
-export const PneTableViewSelector = forwardRef(PneTableViewSelectorInner) as <
-    TViewId extends string = string,
->(props: PneTableViewSelectorProps<TViewId> & React.RefAttributes<HTMLDivElement>) => React.ReactElement

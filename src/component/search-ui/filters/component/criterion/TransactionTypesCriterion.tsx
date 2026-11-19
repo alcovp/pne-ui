@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
@@ -13,10 +13,11 @@ export const TransactionTypesCriterion = () => {
         s => s.prefetchedData.allowedTransactionTypes,
     )
 
-    const {getTransactionTypes} = useContext(SearchUIDefaultsContext)
+    const {getTransactionTypes} = use(SearchUIDefaultsContext)
 
     useEffect(() => {
         if (allowedTransactionTypes !== undefined) {
+            // eslint-disable-next-line @eslint-react/set-state-in-effect -- the options the host gave are taken as they are
             setAvailableOptions(allowedTransactionTypes)
             return
         }

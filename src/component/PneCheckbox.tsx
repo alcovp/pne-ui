@@ -1,4 +1,4 @@
-import React, {forwardRef, useCallback, useMemo} from 'react'
+import React, {useCallback, useMemo} from 'react'
 import {Checkbox, CheckboxProps} from '@mui/material'
 import type {CheckboxOwnerState} from '@mui/material/Checkbox'
 import {useDefaultProps} from '@mui/material/DefaultPropsProvider'
@@ -20,7 +20,7 @@ export interface PneCheckboxProps extends CheckboxProps {
 
 type CheckboxInputSlotProps = NonNullable<NonNullable<CheckboxProps['slotProps']>['input']>
 
-export const PneCheckbox = forwardRef<HTMLSpanElement, PneCheckboxProps>((props, ref) => {
+export const PneCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneCheckboxProps> & {ref?: React.Ref<HTMLSpanElement>}) => {
     const propsWithDefaultSize: PneCheckboxProps = props.size === undefined
         ? {...props, size: 'small'}
         : props
@@ -122,7 +122,7 @@ export const PneCheckbox = forwardRef<HTMLSpanElement, PneCheckboxProps>((props,
             sx={_sx}
         />
     </DefaultPropsProvider>
-})
+}
 
 PneCheckbox.displayName = 'PneCheckbox'
 

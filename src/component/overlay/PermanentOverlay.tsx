@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef } from 'react'
+import { use, useEffect, useRef } from 'react'
 import { PermanentOverlayContext } from './PermanentOverlayContext'
 import type { PermanentOverlayRender, PermanentOverlaySlot } from './types'
 
@@ -17,7 +17,7 @@ type PermanentOverlayProps = {
  * Only one overlay per slot is kept; the latest registered wins.
  */
 export function PermanentOverlay({ id, slot = DEFAULT_SLOT, render, offset, zIndex }: PermanentOverlayProps) {
-    const ctx = useContext(PermanentOverlayContext)
+    const ctx = use(PermanentOverlayContext)
     const renderRef = useRef(render)
 
     useEffect(() => {

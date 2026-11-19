@@ -23,7 +23,10 @@ const CustomIconWrapper = (props: Props) => {
         xmlns="http://www.w3.org/2000/svg"
         {...props}
     >
+        {/* The shapes of an icon take the colour of the text whatever their own attributes say. */}
+        {/* eslint-disable-next-line @eslint-react/no-children-map */}
         {React.Children.map(children, (child: IconChild) => {
+            // eslint-disable-next-line @eslint-react/no-clone-element
             return React.cloneElement(child, {
                 stroke: 'currentColor',
                 fill: 'none',

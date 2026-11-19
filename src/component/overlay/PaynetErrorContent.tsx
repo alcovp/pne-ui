@@ -105,45 +105,45 @@ const hasTextSelectionWithin = (element: HTMLElement): boolean => {
 const CopyableErrorId = ({ errorId }: { errorId: string }) => {
     const { t } = useTranslation()
     const [copied, setCopied] = React.useState(false)
-    const mounted = React.useRef(true)
-    const resetTimer = React.useRef<number | undefined>(undefined)
-    const pointerDownPosition = React.useRef<{ x: number; y: number } | null>(null)
-    const pointerDragged = React.useRef(false)
+    const mountedRef = React.useRef(true)
+    const resetTimerRef = React.useRef<number | undefined>(undefined)
+    const pointerDownPositionRef = React.useRef<{ x: number; y: number } | null>(null)
+    const pointerDraggedRef = React.useRef(false)
     const copyLabel = String(t('pne.error.copyErrorId', { defaultValue: 'Copy error ID' }))
     const copiedLabel = String(t('pne.error.errorIdCopied', { defaultValue: 'Error ID copied' }))
 
     React.useEffect(() => {
-        mounted.current = true
+        mountedRef.current = true
         return () => {
-            mounted.current = false
-            if (resetTimer.current !== undefined) window.clearTimeout(resetTimer.current)
+            mountedRef.current = false
+            if (resetTimerRef.current !== undefined) window.clearTimeout(resetTimerRef.current)
         }
     }, [])
 
     const handleCopy = async () => {
-        if (!await copyTextToClipboard(errorId) || !mounted.current) return
+        if (!await copyTextToClipboard(errorId) || !mountedRef.current) return
 
         setCopied(true)
-        if (resetTimer.current !== undefined) window.clearTimeout(resetTimer.current)
-        resetTimer.current = window.setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS)
+        if (resetTimerRef.current !== undefined) window.clearTimeout(resetTimerRef.current)
+        resetTimerRef.current = window.setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS)
     }
 
     const handleMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
         if (event.button !== 0) return
 
-        pointerDownPosition.current = { x: event.clientX, y: event.clientY }
-        pointerDragged.current = false
+        pointerDownPositionRef.current = { x: event.clientX, y: event.clientY }
+        pointerDraggedRef.current = false
     }
 
     const handleMouseMove = (event: React.MouseEvent<HTMLSpanElement>) => {
-        const start = pointerDownPosition.current
+        const start = pointerDownPositionRef.current
         if (!start || (event.buttons & 1) === 0) return
 
         if (
             Math.abs(event.clientX - start.x) >= TEXT_SELECTION_DRAG_THRESHOLD_PX
             || Math.abs(event.clientY - start.y) >= TEXT_SELECTION_DRAG_THRESHOLD_PX
         ) {
-            pointerDragged.current = true
+            pointerDraggedRef.current = true
         }
     }
 
@@ -152,10 +152,10 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
     ) => {
         const keyboardActivation = event.type === 'keydown' || event.type === 'keyup' || event.detail === 0
         const suppressPointerCopy = !keyboardActivation
-            && (pointerDragged.current || hasTextSelectionWithin(event.currentTarget))
+            && (pointerDraggedRef.current || hasTextSelectionWithin(event.currentTarget))
 
-        pointerDownPosition.current = null
-        pointerDragged.current = false
+        pointerDownPositionRef.current = null
+        pointerDraggedRef.current = false
 
         if (suppressPointerCopy) return
         void handleCopy()
@@ -173,7 +173,7 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={() => {
-                pointerDownPosition.current = null
+                pointerDownPositionRef.current = null
             }}
             title={copied ? copiedLabel : copyLabel}
             sx={{
@@ -232,6 +232,7 @@ const renderMessage = (message: string, errorId?: string): React.ReactNode => {
 
     const parts = message.split(ERROR_ID_PLACEHOLDER)
     return parts.map((part, index) => (
+        // eslint-disable-next-line @eslint-react/no-array-index-key -- pieces of one text: the place is the identity
         <React.Fragment key={`${index}-${part}`}>
             {part}
             {index < parts.length - 1 ? <CopyableErrorId errorId={errorId} /> : null}
@@ -243,8 +244,8 @@ const renderMessage = (message: string, errorId?: string): React.ReactNode => {
 export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErrorContentProps) => {
     const { t } = useTranslation()
     const [detailsOpen, setDetailsOpen] = React.useState(false)
-    const overlayPortalContainer = React.useContext(OverlayPortalContainerContext)
-    const presentation = React.useContext(PaynetErrorPresentationContext)
+    const overlayPortalContainer = React.use(OverlayPortalContainerContext)
+    const presentation = React.use(PaynetErrorPresentationContext)
     const resolveViolation = resolveViolationMessage ?? presentation.resolveViolationMessage
     const title = t('react.unexpected.exception.title', { defaultValue: 'Error' })
 
@@ -338,6 +339,7 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
                             <li
                                 data-name='error-violation'
                                 data-property-path={violation.propertyPath}
+                                // eslint-disable-next-line @eslint-react/no-array-index-key -- two violations may name one property
                                 key={`${violation.propertyPath}-${index}`}
                                 style={{ overflowWrap: 'anywhere' }}
                             >

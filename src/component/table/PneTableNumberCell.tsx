@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react'
+import React from 'react'
 import type {SxProps, Theme} from '@mui/material/styles'
 import {PNE_MONO_FONT} from '../../fonts/monoFont'
 import PneTableCell, {PneTableCellProps} from './PneTableCell'
@@ -17,7 +17,7 @@ const numberCellSx: SxProps<Theme> = {
  * A cell with a number: an amount, a count, a rate (UI Kit Cell: Numbers). The value stands at the
  * right edge in the mono font and does not wrap, so the digits of a column line up.
  */
-const PneTableNumberCell = forwardRef<HTMLTableCellElement, PneTableNumberCellProps>((props, ref) => {
+const PneTableNumberCell = ({ref, ...props}: React.PropsWithoutRef<PneTableNumberCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {sx, ...rest} = props
 
     return <PneTableCell
@@ -27,7 +27,7 @@ const PneTableNumberCell = forwardRef<HTMLTableCellElement, PneTableNumberCellPr
         ref={ref}
         sx={[numberCellSx, ...(Array.isArray(sx) ? sx : [sx])] as PneTableCellProps['sx']}
     />
-})
+}
 
 PneTableNumberCell.displayName = 'PneTableNumberCell'
 

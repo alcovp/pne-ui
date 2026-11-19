@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
@@ -10,7 +10,7 @@ export const TransactionStatusesCriterion = () => {
     const options = useSearchUIFiltersStore(s => s.transactionStatuses);
     const setCriterion = useSearchUIFiltersStore(s => s.setTransactionStatusesCriterion);
 
-    const {getTransactionStatuses} = useContext(SearchUIDefaultsContext);
+    const {getTransactionStatuses} = use(SearchUIDefaultsContext);
 
     useEffect(() => {
         getTransactionStatuses()

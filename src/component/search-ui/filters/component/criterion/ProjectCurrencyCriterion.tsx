@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {Box, Chip, FormControlLabel, FormGroup, SxProps} from '@mui/material';
 import {useTranslation} from 'react-i18next';
@@ -27,7 +27,7 @@ export const ProjectCurrencyCriterion = () => {
     const {
         getDefaultCurrency,
         getProjectAvailableCurrencies,
-    } = useContext(SearchUIDefaultsContext)
+    } = use(SearchUIDefaultsContext)
     const autoTestOwner = useSearchUIAutoTestScope()
 
     const currency = useSearchUIFiltersStore(s => s.projectCurrency.currency)
@@ -42,6 +42,7 @@ export const ProjectCurrencyCriterion = () => {
     useEffect(() => {
         let active = true
 
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- the flag of a request
         setLoading(true)
         getProjectAvailableCurrencies({
             searchConditions: criteria,
@@ -76,6 +77,7 @@ export const ProjectCurrencyCriterion = () => {
     })
 
     useEffect(() => {
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- a select that became disabled closes
         if (disabled) setOpen(false)
     }, [disabled])
 

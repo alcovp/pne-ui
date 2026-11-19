@@ -48,6 +48,7 @@ const SearchUIAbstractEntityChipSelect = (props: IProps) => {
 
     useEffect(() => {
         if (disabled) {
+            // eslint-disable-next-line @eslint-react/set-state-in-effect -- a select that became disabled closes
             setOpen(false)
         }
     }, [disabled])

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+import React, { use, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CustomerLevel } from '../../types'
 import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
@@ -12,7 +12,7 @@ const CRITERION_CUSTOMER_LEVEL_OPTION_AUTOTEST_ID = 'criterion-customer-level-op
 
 export const CustomerLevelCriterion = () => {
     const { t } = useTranslation()
-    const { getCustomerLevels } = useContext(SearchUIDefaultsContext)
+    const { getCustomerLevels } = use(SearchUIDefaultsContext)
 
     const multigetCriteria = useSearchUIFiltersStore(state => state.multigetCriteria)
     const currencies = useSearchUIFiltersStore(state => state.currencies)
@@ -34,18 +34,22 @@ export const CustomerLevelCriterion = () => {
 
     useEffect(() => {
         if (merchantId === null || requestKey === null) {
+            /* eslint-disable @eslint-react/set-state-in-effect -- no merchant: nothing to show */
             setAvailableLevels([])
             setLoadedRequestKey(null)
             setFailedRequestKey(null)
             setLoading(false)
+            /* eslint-enable @eslint-react/set-state-in-effect */
             return
         }
 
         let active = true
+        /* eslint-disable @eslint-react/set-state-in-effect -- a new request: the previous answer goes at once */
         setAvailableLevels([])
         setLoadedRequestKey(null)
         setFailedRequestKey(null)
         setLoading(true)
+        /* eslint-enable @eslint-react/set-state-in-effect */
 
         getCustomerLevels({ merchantId, currencyIds })
             .then(levels => {

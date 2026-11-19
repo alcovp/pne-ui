@@ -1,4 +1,4 @@
-import React, {ChangeEvent, forwardRef, MouseEvent} from 'react'
+import React, {ChangeEvent, MouseEvent} from 'react'
 import {SxProps, TableCellProps, Theme} from '@mui/material'
 import type {SwitchOwnerState} from '@mui/material/Switch'
 import PneSwitch, {PneSwitchProps} from '../PneSwitch'
@@ -81,7 +81,7 @@ const resolveInputSlotProps = (
         : slotProps ?? {}
 }
 
-const PneTableSwitchCell = forwardRef<HTMLTableCellElement, PneTableSwitchCellProps>((props, ref) => {
+const PneTableSwitchCell = ({ref, ...props}: React.PropsWithoutRef<PneTableSwitchCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {
         'aria-label': ariaLabel,
         'aria-labelledby': ariaLabelledBy,
@@ -156,7 +156,7 @@ const PneTableSwitchCell = forwardRef<HTMLTableCellElement, PneTableSwitchCellPr
             }}
         />
     </PneTableControlCell>
-})
+}
 
 PneTableSwitchCell.displayName = 'PneTableSwitchCell'
 

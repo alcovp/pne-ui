@@ -281,12 +281,12 @@ export const SearchUIProvider = (props: Props) => {
         children,
     } = props
 
-    return <SearchUIDefaultsContext.Provider
+    return <SearchUIDefaultsContext
         value={{
             ...initialSearchUIDefaults,
             ...defaults,
         }}
     >
         {children}
-    </SearchUIDefaultsContext.Provider>
+    </SearchUIDefaultsContext>
 }

@@ -42,7 +42,7 @@ export type OverlayToastProps = {
  * and carrying the same timer bar.
  */
 // The snackbar's transition holds the card by its ref and style, so both go to the root.
-const OverlayToast = React.forwardRef<HTMLDivElement, OverlayToastProps>(function OverlayToast({
+const OverlayToast = function OverlayToast({
     action,
     children,
     closeLabel = 'Close',
@@ -52,7 +52,8 @@ const OverlayToast = React.forwardRef<HTMLDivElement, OverlayToastProps>(functio
     progress,
     style,
     tone = 'info',
-}, ref) {
+    ref,
+}: React.PropsWithoutRef<OverlayToastProps> & {ref?: React.Ref<HTMLDivElement>}) {
     const timer = progress != null ? <span
         aria-hidden='true'
         data-pne-toast-timer='true'
@@ -108,7 +109,7 @@ const OverlayToast = React.forwardRef<HTMLDivElement, OverlayToastProps>(functio
             ? <span data-pne-toast-description='true'>{description}</span>
             : null}
     </Alert>
-})
+}
 
 export default OverlayToast
 

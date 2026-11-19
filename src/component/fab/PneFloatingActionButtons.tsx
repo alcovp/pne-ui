@@ -130,6 +130,7 @@ export function PneFloatingActionButtons({
             const offset = window.scrollY ?? document.documentElement.scrollTop ?? 0
             setShowScrollTop(offset > 16)
         }
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- the first reading of the scroll position, which lives outside React
         update()
         const handleScroll = () => {
             if (frameId !== null) return

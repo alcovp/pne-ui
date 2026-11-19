@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react'
+import React from 'react'
 import {Box} from '@mui/material'
 import PneTableCell, {PneTableCellProps} from './PneTableCell'
 
@@ -14,7 +14,7 @@ const JUSTIFY: Record<string, string> = {
  * the middle of the row. `align` puts them at the left edge (the default), in the centre or at the
  * right edge of the cell.
  */
-const PneTableActionsCell = forwardRef<HTMLTableCellElement, PneTableActionsCellProps>((props, ref) => {
+const PneTableActionsCell = ({ref, ...props}: React.PropsWithoutRef<PneTableActionsCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {align, children, sx, ...rest} = props
 
     return <PneTableCell
@@ -39,7 +39,7 @@ const PneTableActionsCell = forwardRef<HTMLTableCellElement, PneTableActionsCell
             {children}
         </Box>
     </PneTableCell>
-})
+}
 
 PneTableActionsCell.displayName = 'PneTableActionsCell'
 

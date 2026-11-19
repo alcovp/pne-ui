@@ -115,6 +115,9 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     }
     let initialPageNumber = 0
 
+    // The saved settings of the table are read on every render on purpose: the effects below follow
+    // them when another table of the same context changes them.
+    /* eslint-disable @eslint-react/purity */
     if (settingsContextName) {
         if (sessionStorage.hasOwnProperty(settingsContextName + PAGE_SIZE_SETTING_NAME)) {
             initialPageSize = +ensure(
@@ -137,6 +140,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
             ) as Order
         }
     }
+    /* eslint-enable @eslint-react/purity */
 
     if (resetKey !== undefined) {
         initialPageNumber = 0
@@ -207,6 +211,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         // The requested identity has committed. Aborted concurrent renders never invalidate its predecessor.
         requestSequenceRef.current += 1
         skippedFetchRef.current = null
+        /* eslint-disable @eslint-react/set-state-in-effect -- a new identity of the table: its state starts over */
         setActiveResetKey(resetKey)
         setDataResetKey(fetchData ? UNRESOLVED_DATA_KEY : resetKey)
         setPageNumber(renderedPageNumber)
@@ -215,6 +220,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         setHasNext(false)
         setDisableActions(false)
         setLoading(!!fetchData)
+        /* eslint-enable @eslint-react/set-state-in-effect */
     }, [
         activeResetKey,
         fetchData,
@@ -241,10 +247,12 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     }
 
     useEffect(() => {
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- follows the saved page size
         setPageSize(initialPageSize)
     }, [initialPageSize])
 
     useEffect(() => {
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- follows the saved page
         setPageNumber(initialPageNumber)
     }, [initialPageNumber])
 
@@ -475,6 +483,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
             const requestId = ++requestSequenceRef.current
             const isLatestRequest = () => mounted && requestId === requestSequenceRef.current
 
+            // eslint-disable-next-line @eslint-react/set-state-in-effect -- the flag of a request
             setLoading(true)
             getter()
                 .then(dataList => {

@@ -1,4 +1,4 @@
-import React, {forwardRef, useId, useRef, useState} from 'react'
+import React, {useId, useRef, useState} from 'react'
 import {
     FormControl,
     FormControlLabel,
@@ -39,7 +39,7 @@ const HIT_PADDING = 11
 const LABEL_LINE = 20
 const LABEL_GAP = 8
 
-export const PneLabeledCheckbox = forwardRef<HTMLSpanElement, PneLabeledCheckboxProps>((props, ref) => {
+export const PneLabeledCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneLabeledCheckboxProps> & {ref?: React.Ref<HTMLSpanElement>}) => {
     const {
         'aria-describedby': ariaDescribedBy,
         'aria-invalid': ariaInvalid,
@@ -119,7 +119,7 @@ export const PneLabeledCheckbox = forwardRef<HTMLSpanElement, PneLabeledCheckbox
             )}
         </FormControl>
     )
-})
+}
 
 PneLabeledCheckbox.displayName = 'PneLabeledCheckbox'
 

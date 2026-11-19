@@ -443,7 +443,7 @@ describe('SearchUI automatic in-memory state retention', () => {
 
         render(
             <React.StrictMode>
-                <SearchUIDefaultsContext.Provider
+                <SearchUIDefaultsContext
                     value={{
                         ...initialSearchUIDefaults,
                         getSearchTemplates,
@@ -458,7 +458,7 @@ describe('SearchUI automatic in-memory state retention', () => {
                             hideTemplatesSelect: true,
                         }}
                     />
-                </SearchUIDefaultsContext.Provider>
+                </SearchUIDefaultsContext>
             </React.StrictMode>,
         )
 

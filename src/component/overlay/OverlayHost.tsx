@@ -106,6 +106,7 @@ const useHorizontalCollision = (
 
     useOverlayLayoutEffect(() => {
         if (!firstElement || !secondElement) {
+            // eslint-disable-next-line @eslint-react/set-state-in-effect -- nothing to measure
             setCollision(null)
             return undefined
         }
@@ -119,6 +120,7 @@ const useHorizontalCollision = (
             setCollision(current => current === nextCollision ? current : nextCollision)
         }
 
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- measures two elements of the page
         measure()
         window.addEventListener('resize', measure)
 
@@ -247,6 +249,7 @@ const ManagedSnackbar = ({
             return undefined
         }
 
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- the timer of a toast lives outside React
         startTimer(autoHideMs)
         return stopTimer
     }, [autoHideMs, open, startTimer, stopTimer])
@@ -543,6 +546,7 @@ export function OverlayHost({
     const presentationKeyRef = React.useRef(0)
 
     React.useEffect(() => {
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- the shown toasts follow the store and keep a leaving one for its exit
         setPresentedSnackbars(current => {
             const visibleById = new Map(keyedVisibleSnackbars.map(snackbar => [snackbar.id, snackbar]))
             const next = current.map(presented => {
@@ -717,18 +721,18 @@ export function OverlayHost({
     )
 
     return (
-        <OverlayPortalContainerContext.Provider value={container}>
-            <PaynetErrorPresentationContext.Provider value={presentationContextValue}>
-                <PermanentOverlayContext.Provider value={contextValue}>
+        <OverlayPortalContainerContext value={container}>
+            <PaynetErrorPresentationContext value={presentationContextValue}>
+                <PermanentOverlayContext value={contextValue}>
                     {children}
                     {container === null ? overlayContent : (
                         <Portal container={container}>
                             {overlayContent}
                         </Portal>
                     )}
-                </PermanentOverlayContext.Provider>
-            </PaynetErrorPresentationContext.Provider>
-        </OverlayPortalContainerContext.Provider>
+                </PermanentOverlayContext>
+            </PaynetErrorPresentationContext>
+        </OverlayPortalContainerContext>
     )
 }
 

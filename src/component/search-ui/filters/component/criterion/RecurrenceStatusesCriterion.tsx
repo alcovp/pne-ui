@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
@@ -10,7 +10,7 @@ export const RecurrenceStatusesCriterion = () => {
     const options = useSearchUIFiltersStore(s => s.recurrenceStatuses)
     const setCriterion = useSearchUIFiltersStore(s => s.setRecurrenceStatusesCriterion)
 
-    const {getRecurringPaymentStatuses} = useContext(SearchUIDefaultsContext)
+    const {getRecurringPaymentStatuses} = use(SearchUIDefaultsContext)
 
     useEffect(() => {
         getRecurringPaymentStatuses()

@@ -210,17 +210,17 @@ const DynamicsDemo = () => {
     const log = (text: string) => setEntries(current => [...current.slice(-11), {at: timestamp(), text}])
     const [value, setValue] = React.useState<Currency | null>(null)
     const [error, setError] = React.useState(false)
-    const picked = React.useRef(false)
+    const pickedRef = React.useRef(false)
 
     const change = (next: Currency) => {
-        picked.current = true
+        pickedRef.current = true
         setValue(next)
         setError(false)
         log(`Выбрано «${next.title}» → список закрыт`)
     }
     const close = () => {
-        if (!picked.current) log('Закрыт без выбора (Esc или клик мимо)')
-        picked.current = false
+        if (!pickedRef.current) log('Закрыт без выбора (Esc или клик мимо)')
+        pickedRef.current = false
     }
     const submit = () => {
         setError(value === null)

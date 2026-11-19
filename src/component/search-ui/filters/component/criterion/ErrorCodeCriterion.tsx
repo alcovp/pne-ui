@@ -1,5 +1,5 @@
 import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
-import React, { useContext } from 'react'
+import React, { use } from 'react'
 import { Box, SxProps } from '@mui/material'
 import type { Theme } from '@mui/material/styles'
 import { useSearchUIFiltersStore } from '../../state/store'
@@ -26,7 +26,7 @@ export const ErrorCodeCriterion = () => {
     const errorCode = useSearchUIFiltersStore(s => s.errorCode)
     const setErrorCode = useSearchUIFiltersStore(s => s.setErrorCodeCriterion)
 
-    const { searchErrorCodes } = useContext(SearchUIDefaultsContext)
+    const { searchErrorCodes } = use(SearchUIDefaultsContext)
     const inputAriaLabel = t('react.CriterionTypeEnum.ERROR_CODE', {
         defaultValue: 'Error code',
     })

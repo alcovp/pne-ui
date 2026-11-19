@@ -28,10 +28,7 @@ const orderItems: readonly PneBreadcrumbItem[] = [
     },
 ]
 
-const DemoLink = React.forwardRef<
-    HTMLAnchorElement,
-    React.ComponentPropsWithoutRef<typeof Link>
->((props, ref) => <Link ref={ref} {...props}/>)
+const DemoLink = ({ref, ...props}: React.ComponentPropsWithoutRef<typeof Link> & {ref?: React.Ref<HTMLAnchorElement>}) => <Link ref={ref} {...props}/>
 
 const meta = {
     title: 'pne-ui/PneBreadcrumbs',

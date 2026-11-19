@@ -38,6 +38,8 @@ const useDelayedLoading = (loading: boolean, resetKey?: string | number): boolea
         renderState = {
             ...state,
             showSkeleton: true,
+            // The moment the skeleton appears is state: it is read once, when the state is derived.
+            // eslint-disable-next-line @eslint-react/purity
             skeletonShownAt: Date.now(),
             waitForStructuralLoading: false,
         };
@@ -80,6 +82,7 @@ const useDelayedLoading = (loading: boolean, resetKey?: string | number): boolea
         }
 
         if (renderState.showSkeleton) {
+            // eslint-disable-next-line @eslint-react/set-state-in-effect -- the skeleton leaves when the loading ends
             setState(current => ({
                 ...current,
                 showSkeleton: false,

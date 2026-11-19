@@ -168,9 +168,7 @@ describe('PneTextField (UI Kit look)', () => {
     })
 
     it('keeps an input component of the consumer in a multiline field of fixed rows', () => {
-        const Editor = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
-            (props, ref) => <textarea {...props} data-testid='ConsumerEditor' ref={ref}/>,
-        )
+        const Editor = ({ref, ...props}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & {ref?: React.Ref<HTMLTextAreaElement>}) => <textarea {...props} data-testid='ConsumerEditor' ref={ref}/>
         Editor.displayName = 'Editor'
         renderField(<PneTextField aria-label='Comment' multiline slotProps={{input: {inputComponent: Editor}}}/>)
 

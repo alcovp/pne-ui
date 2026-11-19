@@ -11,9 +11,7 @@ type BridgeLinkProps = Omit<React.ComponentPropsWithoutRef<'a'>, 'href'> & {
     href: string
 }
 
-const BridgeLink = React.forwardRef<HTMLAnchorElement, BridgeLinkProps>(
-    ({href, ...props}, ref) => <a href={href} ref={ref} {...props}/>,
-)
+const BridgeLink = ({href, ref, ...props}: BridgeLinkProps & {ref?: React.Ref<HTMLAnchorElement>}) => <a href={href} ref={ref} {...props}/>
 
 const items = [
     {

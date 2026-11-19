@@ -240,9 +240,9 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
                 {label}
             </FormLabel>
             : null}
-        <PneFieldContext.Provider value={adapter}>
+        <PneFieldContext value={adapter}>
             {resolvedChildren}
-        </PneFieldContext.Provider>
+        </PneFieldContext>
         {hasHelperText
             ? <FormHelperText
                 {...helperTextSlotProps}
@@ -368,6 +368,8 @@ const validateChildren = (children: React.ReactElement, hasLabel: boolean) => {
         ? children.props.children
         : children
 
+    // The count of what was passed, as React counts children.
+    // eslint-disable-next-line @eslint-react/no-children-count
     if (React.Children.count(directChildren) !== 1) {
         throw new Error('PneField expects exactly one logical control or group.')
     }

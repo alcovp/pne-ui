@@ -1,4 +1,4 @@
-import React, {useContext, useEffect} from 'react'
+import React, {use, useEffect} from 'react'
 import {Alert, Box, FormControlLabel, InputAdornment, SxProps, ToggleButton, ToggleButtonGroup, Button} from '@mui/material'
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types'
 import {useTranslation} from 'react-i18next'
@@ -44,7 +44,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
         actionsPlacement = 'inline',
     } = props
     const {t} = useTranslation()
-    const {getMatchLinkedItems} = useContext(SearchUIDefaultsContext)
+    const {getMatchLinkedItems} = use(SearchUIDefaultsContext)
 
     const filterType = useMultigetSelectStore()(s => s.filterType)
     const onlyEnabledStatus = useMultigetSelectStore()(s => s.onlyEnabledStatus)

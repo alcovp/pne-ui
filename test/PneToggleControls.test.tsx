@@ -43,15 +43,15 @@ const createDeferred = <T,>(): Deferred<T> => {
 
 type CustomInputProps = React.ComponentPropsWithoutRef<'input'> & {ownerState?: unknown}
 
-const FirstNativeInput = React.forwardRef<HTMLInputElement, CustomInputProps>((props, ref) => {
+const FirstNativeInput = ({ref, ...props}: CustomInputProps & {ref?: React.Ref<HTMLInputElement>}) => {
     const {ownerState: _ownerState, ...inputProps} = props
     return <input {...inputProps} data-input-slot='first' ref={ref}/>
-})
+}
 
-const SecondNativeInput = React.forwardRef<HTMLInputElement, CustomInputProps>((props, ref) => {
+const SecondNativeInput = ({ref, ...props}: CustomInputProps & {ref?: React.Ref<HTMLInputElement>}) => {
     const {ownerState: _ownerState, ...inputProps} = props
     return <input {...inputProps} data-input-slot='second' ref={ref}/>
-})
+}
 
 describe('PneCheckbox', () => {
     it('forwards separate span and native input refs while moving ARIA to the input', () => {

@@ -1,4 +1,4 @@
-import {createContext, useContext} from 'react'
+import {createContext, use} from 'react'
 import {useStore} from 'zustand'
 import {createStore, StoreApi} from 'zustand/vanilla'
 import {immer} from 'zustand/middleware/immer'
@@ -28,7 +28,7 @@ export type SearchUIFiltersStoreContextValue = {
 export const SearchUIFiltersStoreContext = createContext<SearchUIFiltersStoreContextValue | null>(null)
 
 export const useSearchUIFiltersStoreContext = (): SearchUIFiltersStoreContextValue => {
-    const context = useContext(SearchUIFiltersStoreContext)
+    const context = use(SearchUIFiltersStoreContext)
     if (!context) {
         throw new Error('SearchUI store is missing. Render SearchUI components inside their store scope.')
     }

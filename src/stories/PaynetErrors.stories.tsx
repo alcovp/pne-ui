@@ -182,6 +182,7 @@ const ErrorFixturePreview = ({ fixture }: { fixture: ErrorFixture }) => {
 
     React.useEffect(() => {
         let active = true
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- another fixture: the previous error goes at once
         setError(null)
 
         void normalizePaynetError(fixture.createError()).then(normalized => {

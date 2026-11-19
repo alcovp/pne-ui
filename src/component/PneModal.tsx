@@ -13,6 +13,7 @@ import {
     PneSurfaceFooter,
     PneSurfaceHeader,
 } from './internal/PneSurface'
+import {hasRenderableContent} from './internal/hasRenderableContent'
 import {usePneModalFrame} from './internal/usePneModalFrame'
 
 export type PneModalDataAttributes = {
@@ -152,7 +153,7 @@ export type PneModalProps = PneModalOwnProps
     & PneModalAccessibleName
     & PneModalDataAttributes
 
-const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneModal(props, ref) {
+const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneModalProps> & {ref?: React.Ref<HTMLDivElement>}) {
     const {
         actions,
         ariaDescribedBy,
@@ -382,17 +383,12 @@ const PneModal = React.forwardRef<HTMLDivElement, PneModalProps>(function PneMod
             </BlockingOverlaySlot>}
         </Container>
     </Modal>
-})
+}
 
 export default PneModal
 
-const hasRenderableContent = (value: React.ReactNode): boolean => {
-    if (typeof value === 'string') return value.trim().length > 0
-    return React.Children.toArray(value).length > 0
-}
-
 const exposeForwardedRef = <T,>(
-    forwardedRef: React.ForwardedRef<T>,
+    forwardedRef: React.Ref<T> | undefined,
     value: T | null,
 ): (() => void) | undefined => {
     if (!forwardedRef || value === null) return undefined

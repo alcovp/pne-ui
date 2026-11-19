@@ -183,8 +183,10 @@ export const PneBreadcrumbs = ({
 
     React.useEffect(() => {
         expandedWidthRef.current = 0
+        /* eslint-disable @eslint-react/set-state-in-effect -- another set of items is measured anew: the fold and the menu start over */
         setCollapsed(false)
         setAnchorEl(null)
+        /* eslint-enable @eslint-react/set-state-in-effect */
     }, [measurementKey])
 
     const measure = React.useCallback(() => {

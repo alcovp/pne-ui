@@ -36,9 +36,9 @@ export const SearchUIFiltersStoreProvider = ({settingsContextName, children}: Pr
         instanceId: instanceIdRef.current,
     }), [store])
 
-    return <SearchUIFiltersStoreContext.Provider value={contextValue}>
+    return <SearchUIFiltersStoreContext value={contextValue}>
         {children}
-    </SearchUIFiltersStoreContext.Provider>
+    </SearchUIFiltersStoreContext>
 }
 
 const useStoreLifecycleEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect

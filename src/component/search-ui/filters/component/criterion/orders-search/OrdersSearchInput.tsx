@@ -4,6 +4,7 @@ import {useSearchUIFiltersStore} from "../../../state/store";
 import {exhaustiveCheck} from "../../../../../../common/pne/type";
 import PneTextField from "../../../../../PneTextField";
 import {SxProps} from "@mui/material";
+import type {InputBaseComponentProps} from "@mui/material/InputBase";
 import {useTranslation} from "react-i18next";
 import {OrdersSearchLabelsConfig} from "../../../state/actions";
 import {AmountMaskInput} from "./AmountMaskInput";
@@ -76,7 +77,7 @@ export const OrdersSearchInput = () => {
                     slotProps={{
                         input: {
                             disableUnderline: true,
-                            inputComponent: AmountMaskInput,
+                            inputComponent: AmountMaskInput as React.ElementType<InputBaseComponentProps>,
                         },
                         htmlInput: nativeInputProps,
                     }}
@@ -107,7 +108,7 @@ export const OrdersSearchInput = () => {
                     slotProps={{
                         input: {
                             disableUnderline: true,
-                            inputComponent: Card6And4MaskInput,
+                            inputComponent: Card6And4MaskInput as React.ElementType<InputBaseComponentProps>,
                         },
                         htmlInput: nativeInputProps,
                     }}

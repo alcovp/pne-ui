@@ -1,4 +1,4 @@
-import React, {createContext, useContext, useMemo} from 'react'
+import React, {createContext, use, useMemo} from 'react'
 
 import {AutoTestAttributes, createAutoTestAttributes} from '../../AutoTestAttribute'
 import type {CriterionTypeEnum} from './types'
@@ -30,26 +30,26 @@ export const SearchUIAutoTestScopeProvider = ({children, scope}: {
 }) => {
     const value = useMemo(() => ({scope}), [scope])
 
-    return <SearchUIAutoTestScopeContext.Provider value={value}>
+    return <SearchUIAutoTestScopeContext value={value}>
         {children}
-    </SearchUIAutoTestScopeContext.Provider>
+    </SearchUIAutoTestScopeContext>
 }
 
 export const SearchUICriterionAutoTestScopeProvider = ({children, criterionType}: {
     children: React.ReactNode
     criterionType: CriterionTypeEnum
 }) => {
-    const parentScope = useContext(SearchUIAutoTestScopeContext)
+    const parentScope = use(SearchUIAutoTestScopeContext)
     const value = useMemo(() => ({
         ...parentScope,
         criterionType,
     }), [criterionType, parentScope])
 
-    return <SearchUIAutoTestScopeContext.Provider value={value}>
+    return <SearchUIAutoTestScopeContext value={value}>
         {children}
-    </SearchUIAutoTestScopeContext.Provider>
+    </SearchUIAutoTestScopeContext>
 }
 
 export const useSearchUIAutoTestScope = (): SearchUIAutoTestScope | undefined => (
-    useContext(SearchUIAutoTestScopeContext)
+    use(SearchUIAutoTestScopeContext)
 )

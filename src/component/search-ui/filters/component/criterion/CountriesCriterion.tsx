@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react'
+import React, {use, useEffect, useState} from 'react'
 import {Country} from '../../../../../common/paynet/type'
 import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
 import {useSearchUIFiltersStore} from '../../state/store'
@@ -10,7 +10,7 @@ export const CountriesCriterion = () => {
     const countries = useSearchUIFiltersStore(s => s.countries)
     const setCountriesCriterion = useSearchUIFiltersStore(s => s.setCountriesCriterion)
 
-    const {getCountries} = useContext(SearchUIDefaultsContext)
+    const {getCountries} = use(SearchUIDefaultsContext)
 
     useEffect(() => {
         getCountries()

@@ -166,6 +166,7 @@ const useTableSelection = <TRow, TKey extends TableRowId>(
         if (isControlled
             && configuredSelectionIsCanonicalEmpty
             && pendingControlledScopeKey !== NO_PENDING_CONTROLLED_SCOPE) {
+            // eslint-disable-next-line @eslint-react/set-state-in-effect -- a controlled selection that came back empty clears the pending scope
             setPendingControlledScopeKey(NO_PENDING_CONTROLLED_SCOPE)
         }
     }, [configuredSelectionIsCanonicalEmpty, isControlled, pendingControlledScopeKey])

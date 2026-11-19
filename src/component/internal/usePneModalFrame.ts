@@ -122,8 +122,10 @@ export const usePneModalFrame = ({
     // The next opening starts from the centre; a window that lost both features goes back there as well.
     React.useEffect(() => {
         if (!open || (!movable && !resizable)) {
+            /* eslint-disable @eslint-react/set-state-in-effect -- a closed window, or one that can no longer move, forgets its place */
             stopSession()
             setFrame(null)
+            /* eslint-enable @eslint-react/set-state-in-effect */
         }
     }, [movable, open, resizable, stopSession])
 

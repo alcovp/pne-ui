@@ -1,4 +1,4 @@
-import React, {forwardRef} from 'react';
+import React from 'react';
 import {SxProps} from '@mui/material/styles';
 import AbstractTableCell from './AbstractTableCell';
 import {TableCellProps} from '@mui/material';
@@ -10,7 +10,7 @@ export type PneTableCellProps = Omit<TableCellProps, 'ref'> & { selected?: boole
 // 10 + 20 + 9 and the 1px line of the row make the 40px of the UI Kit row.
 const CELL_PADDING = '10px 12px 9px'
 
-const PneTableCell = forwardRef<HTMLTableCellElement, PneTableCellProps>((props, ref) => {
+const PneTableCell = ({ref, ...props}: React.PropsWithoutRef<PneTableCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const theme = usePneTheme()
 
     const {
@@ -37,7 +37,7 @@ const PneTableCell = forwardRef<HTMLTableCellElement, PneTableCellProps>((props,
     ]
 
     return <AbstractTableCell ref={ref} sx={_sx} onClick={onClick} {...rest}>{children}</AbstractTableCell>
-})
+}
 
 PneTableCell.displayName = 'PneTableCell'
 

@@ -7,30 +7,28 @@ type MaskProps = Omit<InputBaseComponentProps, 'onChange'> & {
     onChange: (event: { target: { name: string; value: string } }) => void
 }
 
-export const AmountMaskInput = React.forwardRef<HTMLInputElement, MaskProps>(
-    function AmountMaskInput(props, ref) {
-        const {
-            onChange,
-            ...other
-        } = props
-        return <IMaskInput
-            {...other}
-            mask={Number}
-            scale={2}                // Количество знаков после запятой (копейки)
-            // signed={false}           // Запрещаем отрицательные значения
-            thousandsSeparator=" "    // Разделитель тысяч (пробел)
-            radix="."                // Разделитель целой и дробной части (.)
-            mapToRadix={[","]}       // Чтобы и запятая тоже воспринималась
-            // unmask:
-            //  - false => сохраняется форматированная строка (например, "12 345.67")
-            //  - true => сохраняется "сырой" формат ("12345.67")
-            //  - "typed" => число как число (напр. 12345.67)
-            unmask={true}
-            // `unmask` is true, so the accepted value is the raw string. The annotation also keeps the
-            // CJS build (Node16 resolution) quiet: react-imask's types import './input' without an
-            // extension, which that resolution cannot follow, so IMaskInput is `any` there.
-            onAccept={(value: string) => onChange({target: {name: props.name, value}})}
-            inputRef={ref}
-        />
-    }
-)
+export const AmountMaskInput = function AmountMaskInput({ref, ...props}: React.PropsWithoutRef<MaskProps> & {ref?: React.Ref<HTMLInputElement>}) {
+    const {
+        onChange,
+        ...other
+    } = props
+    return <IMaskInput
+        {...other}
+        mask={Number}
+        scale={2}                // Количество знаков после запятой (копейки)
+        // signed={false}           // Запрещаем отрицательные значения
+        thousandsSeparator=" "    // Разделитель тысяч (пробел)
+        radix="."                // Разделитель целой и дробной части (.)
+        mapToRadix={[","]}       // Чтобы и запятая тоже воспринималась
+        // unmask:
+        //  - false => сохраняется форматированная строка (например, "12 345.67")
+        //  - true => сохраняется "сырой" формат ("12345.67")
+        //  - "typed" => число как число (напр. 12345.67)
+        unmask={true}
+        // `unmask` is true, so the accepted value is the raw string. The annotation also keeps the
+        // CJS build (Node16 resolution) quiet: react-imask's types import './input' without an
+        // extension, which that resolution cannot follow, so IMaskInput is `any` there.
+        onAccept={(value: string) => onChange({target: {name: props.name, value}})}
+        inputRef={ref}
+    />
+}

@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {AbstractEntity} from '../../../../../common/paynet/type';
@@ -10,7 +10,7 @@ export const MfoConfigurationTypesCriterion = () => {
     const options = useSearchUIFiltersStore(s => s.mfoConfigurationTypes)
     const setCriterion = useSearchUIFiltersStore(s => s.setMfoConfigurationTypesCriterion)
 
-    const {getMFOTypes} = useContext(SearchUIDefaultsContext)
+    const {getMFOTypes} = use(SearchUIDefaultsContext)
 
     useEffect(() => {
         getMFOTypes()

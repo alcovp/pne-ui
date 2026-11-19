@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, {use, useEffect, useState} from 'react';
 import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
 import {useSearchUIFiltersStore} from '../../state/store';
 import {AbstractEntity} from '../../../../../common/paynet/type';
@@ -10,7 +10,7 @@ export const CardTypesCriterion = () => {
     const cardTypes = useSearchUIFiltersStore(s => s.cardTypes)
     const setCardTypesCriterion = useSearchUIFiltersStore(s => s.setCardTypesCriterion)
 
-    const {getCardTypes} = useContext(SearchUIDefaultsContext)
+    const {getCardTypes} = use(SearchUIDefaultsContext)
 
     useEffect(() => {
         getCardTypes()

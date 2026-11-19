@@ -1,4 +1,4 @@
-import {createContext, useContext} from 'react'
+import {createContext, use} from 'react'
 import type {AriaAttributes} from 'react'
 
 export interface PneFieldControlDomProps {
@@ -52,7 +52,7 @@ export interface ResolvedPneFieldControlProps extends PneFieldControlProps {
 
 export const PneFieldContext = createContext<PneFieldControlAdapter | undefined>(undefined)
 
-export const usePneFieldControl = (): PneFieldControlAdapter | undefined => useContext(PneFieldContext)
+export const usePneFieldControl = (): PneFieldControlAdapter | undefined => use(PneFieldContext)
 
 export const usePneFieldControlProps = (
     props: PneFieldControlProps = {},

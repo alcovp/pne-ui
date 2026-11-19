@@ -107,10 +107,10 @@ const AsyncSelectionHarness = ({
     searchData = jest.fn().mockResolvedValue(rows),
     selectionOverride,
 }: AsyncSelectionHarnessProps) => {
-    const [selection, setSelection] = React.useState<TableSelectionModel<number>>({
+    const [selection, setSelection] = React.useState<TableSelectionModel<number>>(() => ({
         mode: 'explicit',
         selectedIds: new Set(),
-    })
+    }))
 
     return <SearchUI<Row, string, number>
         autoTestId='async-gates'
@@ -158,10 +158,10 @@ const AsyncViewsHarness = ({
     resolveAllMatchingCount: (scope: SearchUITableSelectionScope) => Promise<number>
 }) => {
     const [view, setView] = React.useState<ViewId>('summary')
-    const [selection, setSelection] = React.useState<TableSelectionModel<number>>({
+    const [selection, setSelection] = React.useState<TableSelectionModel<number>>(() => ({
         mode: 'explicit',
         selectedIds: new Set(),
-    })
+    }))
     const searchData = React.useCallback(() => Promise.resolve(rows), [])
     const views = React.useMemo<readonly SearchUIView<Row, ViewId, number>[]>(() => [
         {

@@ -101,7 +101,7 @@ type PaginationActionsContextValue = {
 const PaginationActionsContext = React.createContext<PaginationActionsContextValue | null>(null)
 
 const StablePaginationActions = (props: TablePaginationActionsProps) => {
-    const context = React.useContext(PaginationActionsContext)
+    const context = React.use(PaginationActionsContext)
 
     if (!context) {
         throw new Error('StablePaginationActions must be rendered inside PaginationActionsContext')
@@ -281,7 +281,7 @@ const AbstractTable = <D, >(
 
         const observedToolbar = position === 'top' ? toolbar : undefined
 
-        return <PaginationActionsContext.Provider
+        return <PaginationActionsContext
             value={{
                 paginator,
                 shouldRequestScroll: position === 'bottom',
@@ -311,7 +311,7 @@ const AbstractTable = <D, >(
                 ActionsComponent={StablePaginationActions}
                 sx={paginationSx?.[position]}
             />
-        </PaginationActionsContext.Provider>;
+        </PaginationActionsContext>;
     }
     const skeletonRowCount = paginator?.rowsPerPage || 10;
     const cellPadding = 19; // 10px over the text and 9px under it
@@ -485,27 +485,30 @@ const AbstractTable = <D, >(
                 {showSkeleton && skeletonGeometry?.columnPercents && (
                     <colgroup>
                         {skeletonGeometry.columnPercents.map((percent, i) => (
+                            // eslint-disable-next-line @eslint-react/no-array-index-key -- columns of a skeleton: the place is the identity
                             <col key={i} style={{width: `${percent}%`}} />
                         ))}
                     </colgroup>
                 )}
                 <TableHead data-pne-header={headerVariant}>
-                    <PneTableHeaderVariantContext.Provider value={headerVariant}>
+                    <PneTableHeaderVariantContext value={headerVariant}>
                         {createTableHeader({
                             sortOptions: sortOptions
                         })}
-                    </PneTableHeaderVariantContext.Provider>
+                    </PneTableHeaderVariantContext>
                 </TableHead>
                 <TableBody>
                     {showSkeleton ? (
                         Array.from({length: skeletonRowCount}).map((_, rowIndex) => (
                             <PneTableRow
+                                // eslint-disable-next-line @eslint-react/no-array-index-key -- rows of a skeleton
                                 key={`skeleton-${rowIndex}`}
                                 hover={false}
                                 sx={skeletonRowSx}
                             >
                                 {Array.from({length: columnCount}).map((_, colIndex) => (
                                     <PneTableCell
+                                        // eslint-disable-next-line @eslint-react/no-array-index-key -- cells of a skeleton
                                         key={`skeleton-${rowIndex}-${colIndex}`}
                                         sx={skeletonCellSx}
                                         style={skeletonLinesFitting > 1

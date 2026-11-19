@@ -55,7 +55,7 @@ const renderFilters = ({
     initialSearchConditions,
     searchConditions,
 }: RenderFiltersOptions = {}) => render(
-    <SearchUIDefaultsContext.Provider
+    <SearchUIDefaultsContext
         value={{
             ...initialSearchUIDefaults,
             getTransactionTypes,
@@ -76,7 +76,7 @@ const renderFilters = ({
                 } : {}),
             }}
         />
-    </SearchUIDefaultsContext.Provider>,
+    </SearchUIDefaultsContext>,
 )
 
 describe('SearchUIFilters restricted transaction types', () => {
@@ -182,7 +182,7 @@ describe('SearchUIFilters restricted transaction types', () => {
         })
 
         view.rerender(
-            <SearchUIDefaultsContext.Provider
+            <SearchUIDefaultsContext
                 value={{
                     ...initialSearchUIDefaults,
                     getTransactionTypes: jest.fn().mockResolvedValue(transactionTypes),
@@ -209,7 +209,7 @@ describe('SearchUIFilters restricted transaction types', () => {
                         transactionTypes: {allowedNames},
                     }}
                 />
-            </SearchUIDefaultsContext.Provider>,
+            </SearchUIDefaultsContext>,
         )
 
         await waitFor(() => {

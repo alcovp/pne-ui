@@ -8,5 +8,5 @@ type Props = {
 export const MultigetSelectStoreProvider = ({children}: Props) => {
     const store = useRef(createIsolatedMultigetSelectStore()).current
 
-    return <MultigetSelectStoreContext.Provider value={store}>{children}</MultigetSelectStoreContext.Provider>
+    return <MultigetSelectStoreContext value={store}>{children}</MultigetSelectStoreContext>
 }

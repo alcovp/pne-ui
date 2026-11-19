@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {use, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {
     CUSTOMER_LEVEL_DEPENDENCIES,
     CriterionTypeEnum,
@@ -277,7 +277,7 @@ const RestrictedTransactionTypesSearchUIFiltersContent = (
     props: RestrictedTransactionTypesSearchUIFiltersContentProps,
 ) => {
     const {allowedNames, ...filtersProps} = props
-    const {getTransactionTypes} = useContext(SearchUIDefaultsContext)
+    const {getTransactionTypes} = use(SearchUIDefaultsContext)
     const loadPromiseRef = useRef<Promise<AbstractEntity[]> | null>(null)
     const [loadState, setLoadState] = useState<RestrictedTransactionTypesLoadState>({status: 'loading'})
 
@@ -374,7 +374,7 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
         config,
         allowedTransactionTypes,
     } = props
-    const defaults = useContext(SearchUIDefaultsContext)
+    const defaults = use(SearchUIDefaultsContext)
     const {instanceId} = useSearchUIFiltersStoreContext()
     const bootstrapWorkRef = useRef<SearchUIFiltersBootstrapWork | null>(null)
     const [bootstrapResult, setBootstrapResult] = useState<SearchUIFiltersBootstrapResult | null>(null)
@@ -526,7 +526,7 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
         initialSearchConditions,
         config,
     } = props
-    const defaults = useContext(SearchUIDefaultsContext)
+    const defaults = use(SearchUIDefaultsContext)
     const collapsed = !config?.hideShowFiltersButton
         && defaults.peekSearchFiltersCollapsed?.(settingsContextName) === true
     const implied = resolveImpliedCriteria(
@@ -594,6 +594,7 @@ const useCollapsibleRows = (shown: boolean, panelRef: React.RefObject<HTMLDivEle
 
     // Before the paint, so the zero-height rows never show at full height for a frame.
     useLayoutEffect(() => {
+        // eslint-disable-next-line @eslint-react/set-state-in-effect -- the phase of the fold follows `shown` before the paint
         setPhase(current => {
             if (shown) {
                 return current === 'open' || current === 'opening' ? current : 'mounting'
@@ -659,7 +660,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         collapsed = false,
     } = props
 
-    const defaults = useContext(SearchUIDefaultsContext)
+    const defaults = use(SearchUIDefaultsContext)
     const hasExternalSearchConditions = searchConditions !== undefined
         && Object.keys(searchConditions).length > 0
     const initialSearchConditionsState = useMemo(() => toSearchUIConditionsState(

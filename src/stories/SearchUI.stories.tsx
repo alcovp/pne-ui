@@ -496,10 +496,10 @@ const selectableTableViewStoryViews: readonly SearchUIView<
 
 const TableSelectionViewsWrap = () => {
     const [value, setValue] = useState<TableViewStoryId>('summary')
-    const [selection, setSelection] = useState<TableSelectionModel<string>>({
+    const [selection, setSelection] = useState<TableSelectionModel<string>>(() => ({
         mode: 'explicit',
         selectedIds: new Set(),
-    })
+    }))
 
     return <Box
         data-story-section='pne-ui-search-ui-selection-views'

@@ -102,6 +102,8 @@ const ResetKeyHarness = ({
 }
 
 const ManualDataHarness = ({view}: {view: ViewId}) => {
+    // The pair goes to the hook whole, as `dataUseState`.
+    // eslint-disable-next-line @eslint-react/use-state
     const dataState = React.useState<Row[]>([{id: 'manual', label: 'Manual row'}])
     const table = useTable<Row>({
         dataUseState: dataState,
