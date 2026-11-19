@@ -602,7 +602,7 @@ export function PneOperationCenter({
                                                         },
                                                     }}
                                                 >
-                                                    <CloseIcon aria-hidden='true' fontSize='small'/>
+                                                    <CloseIcon aria-hidden='true' sx={{fontSize: 20}}/>
                                                 </IconButton>
                                             ) : null}
                                         </Stack>

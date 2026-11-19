@@ -252,7 +252,7 @@ const PneCoachmark = React.forwardRef<HTMLDivElement, PneCoachmarkProps>(
                     sx={pneSurfaceCloseButtonSx}
                     type='button'
                 >
-                    <CloseIcon fontSize='small'/>
+                    <CloseIcon sx={{fontSize: 20}}/>
                 </IconButton>}
             </PneSurfaceHeader>}
             {children != null && <PneSurfaceBody

@@ -137,7 +137,7 @@ export const AsPagesUseIt: Story = {
                     sx={{width: 240}}
                 />
             </Case>
-            <Case title='Next to a value: copy (small, the page asked for a 20px icon)'>
+            <Case title='Next to a value: copy (small, with the usual `fontSize="small"` icon)'>
                 <Stack direction='row' spacing={1} sx={{alignItems: 'center'}}>
                     <Typography sx={{fontFamily: 'monospace', fontSize: 14}}>u07a00g</Typography>
                     <IconButton aria-label='copy' size='small'><ContentCopyIcon fontSize='small'/></IconButton>

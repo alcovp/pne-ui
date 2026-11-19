@@ -76,11 +76,17 @@ describe('MUI IconButton under the pne-ui theme', () => {
         expect(ruleValue(icon!, '&', 'font-size')).toBe('var(--pne-icon-size, 1.5rem)')
     })
 
+    it('treats `fontSize="small"`, the usual pair of a small icon button, the same way', () => {
+        const small = renderButton({size: 'small'}, <SettingsOutlinedIcon fontSize='small'/>).icon!
+
+        expect(ruleValue(small, '&', 'font-size')).toBe('var(--pne-icon-size, 1.25rem)')
+    })
+
     it('leaves an icon the page sized itself alone', () => {
-        const small = renderButton({}, <SettingsOutlinedIcon fontSize='small'/>).icon!
+        const large = renderButton({}, <SettingsOutlinedIcon fontSize='large'/>).icon!
         const own = renderButton({}, <SettingsOutlinedIcon sx={{fontSize: 22}}/>).icon!
 
-        expect(ruleValue(small, '&', 'font-size')).toBe('1.25rem')
+        expect(ruleValue(large, '&', 'font-size')).toBe('2.1875rem')
         expect(ruleValue(own, '&', 'font-size')).toBe('22px')
     })
 

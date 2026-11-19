@@ -10,8 +10,8 @@ import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP} from './themeColors'
  *
  * The box does not depend on the glyph: `size='small'` is 24px (rows, table cells), the default
  * `medium` 32px (forms, the close cross of a window), `large` 40px (in a row with 40px fields). A MUI
- * icon of the default size inside takes 14 · 16 · 18px, the icon scale of the buttons; an icon the page
- * sized itself keeps its size.
+ * icon of the default or the `small` size inside takes 14 · 16 · 18px, the icon scale of the buttons;
+ * an icon the page sized by `sx` keeps its size.
  *
  * | `color`                  | Look                                                              |
  * |--------------------------|-------------------------------------------------------------------|
@@ -172,16 +172,22 @@ export const createPneIconButtonOverrides = (
 })
 
 /**
- * The `MuiSvgIcon` entry of the theme: an icon of the default size takes the size its icon button
- * names, and 24px anywhere else. The size is read from an inherited custom property, so the rule adds
- * no weight: an icon the page sized with `fontSize` or `sx` keeps its size.
+ * The `MuiSvgIcon` entry of the theme: an icon of the default size, or of `fontSize='small'` (the usual
+ * pair of a small icon button), takes the size its icon button names; anywhere else it keeps MUI's 24
+ * and 20px. The size is read from an inherited custom property, so the rule adds no weight: an icon
+ * the page sized with `sx`, or asked to be `large` or `inherit`, keeps its size.
  */
 export const createPneSvgIconOverrides = (): NonNullable<Components<Theme>['MuiSvgIcon']> => ({
     styleOverrides: {
-        root: ({ownerState, theme}) => (
-            (ownerState.fontSize ?? 'medium') === 'medium'
-                ? {fontSize: `var(${PNE_ICON_SIZE_VAR}, ${theme.typography.pxToRem(24)})`}
-                : {}
-        ),
+        root: ({ownerState, theme}) => {
+            switch (ownerState.fontSize ?? 'medium') {
+                case 'medium':
+                    return {fontSize: `var(${PNE_ICON_SIZE_VAR}, ${theme.typography.pxToRem(24)})`}
+                case 'small':
+                    return {fontSize: `var(${PNE_ICON_SIZE_VAR}, ${theme.typography.pxToRem(20)})`}
+                default:
+                    return {}
+            }
+        },
     },
 })
