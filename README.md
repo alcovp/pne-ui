@@ -308,7 +308,8 @@ import {ToggleButton, ToggleButtonGroup} from '@mui/material'
 - `fullWidth` делит ширину между пунктами поровну, `orientation="vertical"` ставит их столбцом;
 - `ToggleButton` без группы — не вкладка, тема его не рисует.
 
-Так же библиотека рисует выбор вида таблицы и переключатели окна Multiget.
+Выбор вида таблицы и переключатели окна Multiget — та же группа `size="small"` (32 px): в окне она стоит
+в ряд с полем поиска 32 px.
 
 Сторис: `pne-ui/Tooltip`, `pne-ui/Radio`, `pne-ui/Chip` и `pne-ui/ToggleButton`.
 

@@ -1,4 +1,4 @@
-import type {Components, Theme} from '@mui/material/styles'
+import type {Components, CSSObject, Theme} from '@mui/material/styles'
 import {PNE_BUTTON_SIZE} from './buttonLook'
 import {
     tableControlActiveLook,
@@ -25,27 +25,38 @@ type ToggleGroupSize = 'small' | 'medium'
 
 const GROUPED = '&& .MuiToggleButtonGroup-grouped'
 
+/**
+ * The group's look from a palette. The theme draws every stock group with it; a composite that has to
+ * look right without the theme too (the Multiget panel of SearchUI) puts the same look into its `sx`.
+ */
+export const pneToggleGroupLook = (
+    theme: Theme,
+    pne: PneSemanticPalette,
+    size: ToggleGroupSize = 'medium',
+    orientation: 'horizontal' | 'vertical' = 'horizontal',
+): CSSObject => ({
+    ...tableControlShellLook(pne, 'tabs', PNE_BUTTON_SIZE[size].height + 2 * TABLE_CONTROL_SHELL_PADDING),
+    // A stacked group stretches its buttons to the widest one.
+    ...(orientation === 'vertical' ? {alignItems: 'stretch'} : undefined),
+    // The text button of the table bands, as the views of a table are drawn.
+    [GROUPED]: {
+        ...tableControlTextButtonLook(theme, pne, size),
+        border: 0,
+        borderRadius: '4px',
+        margin: 0,
+    },
+    [`${GROUPED}.Mui-selected`]: tableControlActiveLook(pne),
+})
+
 export const createPneToggleGroupOverrides = (
     resolvePalette: (theme: Theme) => PneSemanticPalette,
 ): NonNullable<Components<Theme>['MuiToggleButtonGroup']> => ({
     styleOverrides: {
-        root: ({ownerState, theme}) => {
-            const pne = resolvePalette(theme)
-            const size: ToggleGroupSize = ownerState.size === 'small' ? 'small' : 'medium'
-
-            return {
-                ...tableControlShellLook(pne, 'tabs', PNE_BUTTON_SIZE[size].height + 2 * TABLE_CONTROL_SHELL_PADDING),
-                // A stacked group stretches its buttons to the widest one.
-                ...(ownerState.orientation === 'vertical' ? {alignItems: 'stretch'} : undefined),
-                // The text button of the table bands, as the views of a table are drawn.
-                [GROUPED]: {
-                    ...tableControlTextButtonLook(theme, pne, size),
-                    border: 0,
-                    borderRadius: '4px',
-                    margin: 0,
-                },
-                [`${GROUPED}.Mui-selected`]: tableControlActiveLook(pne),
-            }
-        },
+        root: ({ownerState, theme}) => pneToggleGroupLook(
+            theme,
+            resolvePalette(theme),
+            ownerState.size === 'small' ? 'small' : 'medium',
+            ownerState.orientation === 'vertical' ? 'vertical' : 'horizontal',
+        ),
     },
 })

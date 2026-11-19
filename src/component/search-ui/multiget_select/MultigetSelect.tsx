@@ -321,7 +321,6 @@ const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): Abs
 }
 
 const toggleSx: SxProps = {
-    textTransform: 'none',
     flex: 1,
 }
 

@@ -4,6 +4,7 @@ import type {ToggleButtonGroupProps} from '@mui/material'
 import {fireEvent, render, screen} from '@testing-library/react'
 
 import {PneThemeProvider, type Skin} from '../src'
+import {searchUITabsGroupSx} from '../src/component/search-ui/tabsGroupSx'
 
 const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
@@ -115,5 +116,21 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
 
         expect(button.classList.contains('MuiToggleButtonGroup-grouped')).toBe(false)
         expect(ruleValue(button, '&', 'text-transform')).toBe('uppercase')
+    })
+
+    it('gives the Multiget window the small group of the theme, with the theme and without it', () => {
+        const group = <Group size='small' sx={searchUITabsGroupSx}/>
+        const themed = renderGroup(group).root
+        const bare = render(group).container.querySelector<HTMLElement>('.MuiToggleButtonGroup-root')!
+
+        for (const root of [themed, bare]) {
+            expect(ruleValue(root, '&', 'min-height')).toBe('32px')
+            expect(ruleValue(root, GROUPED, 'height')).toBe('24px')
+            expect(ruleValue(root, GROUPED, 'font-size')).toBe('12px')
+            expect(ruleValue(root, GROUPED + ':hover', 'background-color')).toBe(
+                ruleValue(renderGroup(<Group size='small'/>).root, GROUPED + ':hover', 'background-color'),
+            )
+            expect(ruleValue(root, PICKED, 'box-shadow')).toMatch(/rgba?\(/)
+        }
     })
 })
