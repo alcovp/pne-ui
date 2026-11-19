@@ -5,7 +5,6 @@ import {
     ProjectCurrency,
     SearchUIConditions,
     ThreeDCriterionEnum,
-    TransactionSessionGroup,
 } from '../types'
 import {SearchUIFiltersState} from './type';
 import {AbstractEntityAllableCollection} from '../../../../common/paynet/type';

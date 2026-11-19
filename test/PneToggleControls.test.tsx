@@ -333,7 +333,7 @@ describe('PneSwitch', () => {
     })
 
     it('lets a functional track slot extend and override the shared transition', () => {
-        const trackSlot = jest.fn((ownerState: SwitchOwnerState) => ({
+        const trackSlot = jest.fn((_ownerState: SwitchOwnerState) => ({
             'data-consumer-track': 'true',
             sx: {transitionDuration: '333ms'},
         }))

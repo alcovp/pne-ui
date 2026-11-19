@@ -1,5 +1,5 @@
 import React, { ChangeEvent, FocusEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { CriterionTypeEnum, DateRangeSpecType } from '../../types'
+import { CriterionTypeEnum } from '../../types'
 import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect'
 import type { Dayjs } from 'dayjs'
 import { dayjs } from '../../dayjsSetup'
@@ -313,13 +313,6 @@ export const DateRangeCriterion = (props: Props) => {
             return
         }
         commitTypedRange()
-    }
-
-    const handleSetDateRangeSpecType = (dateRangeSpecType: DateRangeSpecType) => {
-        setDateRangeCriterion({
-            ...dateRangeSpec,
-            dateRangeSpecType: dateRangeSpecType,
-        })
     }
 
     const isSmallScreen = useMediaQuery('(max-width:599px)')

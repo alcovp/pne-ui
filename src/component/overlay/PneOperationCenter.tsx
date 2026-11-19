@@ -541,7 +541,6 @@ export function PneOperationCenter({
                         {operations.map((operation, index) => {
                             const terminal = TERMINAL_STATUSES.has(operation.status)
                             const resolvedStatusLabel = operation.statusLabel ?? statusLabels[operation.status]
-                            const titleText = toAccessibleText(operation.title)
                             const operationAccessibleName = getOperationAccessibleName(operation, index)
                             const resolvedDismissLabel = `${dismissLabel}: ${operationAccessibleName}`
                             const resolvedProgressLabel = `${progressLabel}: ${operationAccessibleName}`

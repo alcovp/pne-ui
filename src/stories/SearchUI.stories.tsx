@@ -779,7 +779,7 @@ const HookWrapContent = (props: HookWrapProps) => {
                     { id: 2, displayName: 'MFO type 2' },
                 ]
             },
-            searchErrorCodes: async request => {
+            searchErrorCodes: async () => {
                 return [
                     { choiceId: 1, displayName: 'Timeout', description: 'EXTERNAL:1 Timeout 05' },
                     { choiceId: 2, displayName: 'Timeout', description: 'EXTERNAL:2 Timeout 51' },
@@ -835,7 +835,7 @@ const HookWrapContent = (props: HookWrapProps) => {
             dataUseState={[data, setData]}
             initialSearchConditions={initialSearchConditions}
             searchConditions={searchConditions}
-            createTableHeader={(headerParams) =>
+            createTableHeader={() =>
                 <PneTableRow>
                     <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
                     <PneHeaderTableCell>{'header2'}</PneHeaderTableCell>

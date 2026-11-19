@@ -1,4 +1,4 @@
-import React, {useEffect, useLayoutEffect, useRef, useState} from "react";
+import React, {useLayoutEffect, useRef, useState} from "react";
 import Box from "@mui/material/Box";
 import {Icon, IconButton, SxProps} from "@mui/material";
 import {PaginatorProps} from "./AbstractTable";
@@ -107,8 +107,6 @@ const useControlRowThreshold = (
 
     return threshold
 }
-const PAGINATION_ROWS_BREAKPOINT = 340
-
 const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const {
         // count,
@@ -118,8 +116,6 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         paginator,
         shouldRequestScroll,
         toolbar,
-        toolbarElementKey,
-        toolbarElementType,
     } = props;
 
     const {
@@ -218,7 +214,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     };
 
     const populateRowsPerPageOptions = () => {
-        return rowsPerPageOptions.map((option, index) => {
+        return rowsPerPageOptions.map(option => {
             let size: number;
             let label: string;
             if (typeof option === 'number') {

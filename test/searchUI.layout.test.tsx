@@ -358,18 +358,6 @@ describe('SearchUIFilters layout', () => {
     })
 })
 
-const rectAt = (left: number): DOMRect => ({
-    x: left,
-    y: 0,
-    left,
-    top: 0,
-    width: 200,
-    height: 28,
-    right: left + 200,
-    bottom: 28,
-    toJSON: () => ({}),
-} as DOMRect)
-
 describe('SearchUIFilters actions row', () => {
     afterEach(() => {
         jest.restoreAllMocks()

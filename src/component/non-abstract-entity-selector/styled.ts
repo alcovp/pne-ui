@@ -40,7 +40,7 @@ export const PropertyGroupTitle = styled('div')`
 
 export const EntitySelectorListItem = styled('div', {
     shouldForwardProp: prop => prop !== 'isAdded'
-})<{ isAdded?: boolean }>(({theme}) => ({
+})<{ isAdded?: boolean }>(() => ({
     // backgroundColor: theme.color.background, //TODO theme
     borderRadius: '4px',
     marginBottom: '2px',

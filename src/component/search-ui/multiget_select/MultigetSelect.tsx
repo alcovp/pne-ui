@@ -137,7 +137,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                 <ToggleButtonGroup
                     value={filterType}
                     exclusive
-                    onChange={(e, value: MultichoiceFilterTypeEnum) => {
+                    onChange={(_event, value: MultichoiceFilterTypeEnum) => {
                         if (value === 'NONE') {
                             onIncludeClick()
                         } else {
@@ -197,7 +197,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                 {showGateSearchLabels ? <ToggleButtonGroup
                     value={searchLabel}
                     exclusive
-                    onChange={(e, value: MultigetSearchLabel | null) => {
+                    onChange={(_event, value: MultigetSearchLabel | null) => {
                         if (value !== null) {
                             setSearchLabel(value)
                         }

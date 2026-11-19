@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {act, render, screen, within} from '@testing-library/react'
+import {render, screen, within} from '@testing-library/react'
 
 import {
     PneHeaderTableCell,

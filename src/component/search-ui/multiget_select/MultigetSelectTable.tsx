@@ -93,7 +93,7 @@ export const MultigetSelectTable = () => {
                 page={currentPage}
                 siblingCount={0}
                 showFirstButton
-                onChange={(event, value: number) => {
+                onChange={(_event, value: number) => {
                     if (value === currentPage) {
                         return
                     }

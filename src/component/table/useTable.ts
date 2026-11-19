@@ -329,7 +329,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         rowsPerPage: pageSize,
         page: renderedPageNumber,
         disableActions: renderedDisableActions,
-        onPageChange: (event, newPage) => {
+        onPageChange: (_event, newPage) => {
             setDisableActions(true)
             setPageNumber(newPage);
             if (settingsContextName) {

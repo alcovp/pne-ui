@@ -194,10 +194,6 @@ type Props = {
     children: React.ReactNode
 }
 
-const NOT_CONFIGURED_ERROR = 'Search UI default setting is not configured. Use SearchUIProvider and useContext(SearchUIDefaultsContext)'
-const NOT_CONFIGURED_CALLBACK = () => {
-    throw new Error(NOT_CONFIGURED_ERROR)
-}
 
 const createEmptyTransactionSessionStatuses = (): TransactionSessionStatuses => ({
     APPROVED: [],

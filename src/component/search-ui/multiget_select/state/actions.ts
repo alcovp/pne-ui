@@ -4,7 +4,7 @@ import {MultichoiceFilterTypeEnum} from "../../filters/types";
 
 export const getMultigetSelectActions = (
     set: ZustandStoreImmerSet<MultigetSelectStore>,
-    get: ZustandStoreGet<MultigetSelectStore>,
+    _get: ZustandStoreGet<MultigetSelectStore>,
 ): MultigetSelectActions => ({
     setFilterType: (searchType: MultichoiceFilterTypeEnum) => {
         set((draft) => {

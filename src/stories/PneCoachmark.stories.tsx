@@ -271,7 +271,7 @@ export const ResponsiveActions: Story = {
         expect(surfaceRect.left).toBeGreaterThanOrEqual(16)
         expect(surfaceRect.right).toBeLessThanOrEqual(iframeWindow.innerWidth - 16)
         const buttonRects = buttons.map(button => button.getBoundingClientRect())
-        buttons.forEach((button, index) => {
+        buttons.forEach((_button, index) => {
             expect(Math.abs(buttonRects[index].width - actions.clientWidth))
                 .toBeLessThanOrEqual(1)
             expect(buttonRects[index].height).toBe(40)

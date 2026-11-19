@@ -136,7 +136,6 @@ describe('PneTable pagination isolation', () => {
                 />,
             )
 
-            const ordersBottom = getPagination(container, 'orders', 'bottom')
             const getOrdersNext = () => within(
                 getPagination(container, 'orders', 'bottom'),
             ).getByRole('button', {name: 'next page'}) as HTMLButtonElement

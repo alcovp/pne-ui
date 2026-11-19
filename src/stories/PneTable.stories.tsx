@@ -71,7 +71,7 @@ const HookWrap = () => {
         </Button>
         <PneTable
             data={data}
-            createRow={(rowData: DataType, index: number, arr: DataType[]) =>
+            createRow={(rowData: DataType, index: number) =>
                 <PneTableRow onClick={() => alert('Row clicked: ' + index)} key={rowData.id}>
                     <PneTableCell
                         onClick={(event) => {

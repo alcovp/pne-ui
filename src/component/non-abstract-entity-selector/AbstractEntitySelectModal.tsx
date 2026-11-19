@@ -47,7 +47,6 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         handleSave,
         title,
         subTitle,
-        loading = false,
         virtualized: requestedVirtualization = true,
         dragHandle = 'row',
         disableMoving,
