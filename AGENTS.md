@@ -6,7 +6,7 @@ This file gives Codex a quick-start cheat sheet: tools, commands, and where to l
 Fast facts
 ----------
 - Package manager: Yarn 4.18.1 (berry; repo ships `.yarn/`). Use `yarn`, not `npm`.
-- Development/release runtime: Node 24.22.3 (`.nvmrc`) with its bundled npm (publication needs npm 11.5.1+); Yarn 4.18.1 (TypeScript 6, React 19, MUI 9).
+- Development/release runtime: Node 24.22.3 (`.nvmrc`) with its bundled npm (publication needs npm 11.5.1+); Yarn 4.18.1 (TypeScript 7, React 19, MUI 9).
 - Sources live in `src/`, tests in `test/`. Built outputs `cjs/`, `esm/`, `storybook-static/` are generated — do not edit.
 
 Core commands
@@ -44,6 +44,7 @@ Before changing things
 
 Notable specifics
 -----------------
+- Two TypeScript packages. `typescript-7` (an alias of `typescript@7`, the native compiler) builds the library and runs every type check: `yarn tsc` is its `tsc`, and the build and `typecheck:*` scripts go through it. `typescript` stays 6 for the tools that need the compiler API, which TypeScript 7 does not have yet: typescript-eslint, `scripts/usage-map.mjs`, Storybook and the IDE. Drop version 6 when typescript-eslint accepts 7.
 - Dependencies: `.yarnrc.yml` refuses a version younger than a week (`npmMinimalAgeGate`), and Yarn 4.18 runs no install scripts. When refreshing `yarn.lock`, keep `@mui/*` and `@emotion/*` where they are (`yarn up -R` with the other names): a full re-resolve brings a second `@mui/system` under `@mui/material` and the build fails with TS2883.
 - Theming comes from `createPneTheme(skin)` and MUI palette extensions (module declarations in `src/index.ts`).
 - SearchUI stores state in zustand (`src/component/search-ui/state/*`); filters and table sync via `settingsContextName`.

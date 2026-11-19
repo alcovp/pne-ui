@@ -140,14 +140,10 @@ const missingObjectLabel: PneSelectProps<Region, string> = {
     getOptionKey: region => region.code,
 }
 
-const invalidObjectKey = <PneSelect
-    options={regions}
-    value={regions[0]}
-    onChange={() => undefined}
-    // @ts-expect-error Select keys are restricted to strings and numbers.
-    getOptionKey={region => region.disabled}
-    getOptionLabel={region => region.title}
-/>
+// One line: a compiler reports a call that matches no overload on the attribute it stopped at, and
+// TypeScript 6 and 7 stop at different ones.
+// @ts-expect-error Select keys are restricted to strings and numbers.
+const invalidObjectKey = <PneSelect options={regions} value={regions[0]} onChange={() => undefined} getOptionKey={region => region.disabled} getOptionLabel={region => region.title}/>
 
 // @ts-expect-error PneSelect forwards its ref to the non-native MUI root div.
 const wrongRef = <PneSelect options={deliveryOptions} value='email' onChange={() => undefined} ref={wrongRootRef}/>

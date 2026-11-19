@@ -22,11 +22,12 @@
     "scripts": {
         "clean": "rm -rf cjs esm",
         "build": "yarn clean && yarn build:esm && yarn build:cjs",
-        "build:esm": "tsc",
-        "build:cjs": "tsc -p tsconfig.cjs.json",
+        "tsc": "node node_modules/typescript-7/bin/tsc",
+        "build:esm": "yarn tsc",
+        "build:cjs": "yarn tsc -p tsconfig.cjs.json",
         "lint": "eslint \"{**/*,*}.{js,mjs,ts,jsx,tsx}\"",
         "test": "jest --config jestconfig.json --maxWorkers=2",
-        "typecheck:api": "tsc -p tsconfig.type-tests.json --pretty false",
+        "typecheck:api": "yarn tsc -p tsconfig.type-tests.json --pretty false",
         "check": "yarn build && yarn check:built",
         "npmLogin": "npm login --registry=https://registry.npmjs.org/",
         "version:patch": "npm version patch --no-git-tag-version",
@@ -40,9 +41,9 @@
         "build-storybook": "storybook build",
         "storybook:check": "node scripts/storybook-check.mjs",
         "usage:map": "node scripts/usage-map.mjs",
-        "typecheck:contracts": "tsc --project tsconfig.contracts.json",
-        "typecheck:stories": "tsc --project tsconfig.stories.json",
-        "typecheck:tests": "tsc --project tsconfig.test.json",
+        "typecheck:contracts": "yarn tsc --project tsconfig.contracts.json",
+        "typecheck:stories": "yarn tsc --project tsconfig.stories.json",
+        "typecheck:tests": "yarn tsc --project tsconfig.test.json",
         "check:built": "yarn typecheck:api && yarn test && yarn test:release && yarn lint && yarn typecheck:contracts && yarn typecheck:stories && yarn typecheck:tests",
         "test:release": "node --test test-release/*.test.mjs",
         "release:prepare": "node scripts/release.mjs prepare",
@@ -128,7 +129,8 @@
         "react-dom": "19.2.5",
         "react-i18next": "11.18.6",
         "storybook": "10.6.7",
-        "typescript": "6.0.3"
+        "typescript": "6.0.3",
+        "typescript-7": "npm:typescript@7.0.2"
     },
     "dependencies": {
         "@hello-pangea/dnd": "^18.0.1",
