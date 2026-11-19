@@ -144,6 +144,8 @@ const PneTableViewSelectorInner = <TViewId extends string, >(
             aria-labelledby={ariaLabelledBy}
             disabled={disabled}
             exclusive
+            // The size the theme draws as these 24px views, so the theme and the styles here agree.
+            size='small'
             sx={groupSx}
             value={value}
         >

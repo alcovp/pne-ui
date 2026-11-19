@@ -229,10 +229,11 @@ import {Button} from '@mui/material'
 | `activated` | `aria-disabled` и `tabIndex={-1}` на кнопке `text` + `success` |
 | `data-pne-variant`, `data-pne-size`, `data-pne-loading` | классы MUI: `MuiButton-contained`, `MuiButton-colorError`, `MuiButton-sizeSmall`, `MuiButton-loading` |
 
-## Подсказка, радиокнопка и чип: вид рисует тема
+## Подсказка, радиокнопка, чип и группа переключателей: вид рисует тема
 
-Своих компонентов подсказки, радиокнопки и чипа в `pne-ui` нет. Берите `Tooltip`, `Radio` и `Chip` из
-`@mui/material`: под темой `createPneTheme` они выглядят по UI Kit, без дополнительных свойств.
+Своих компонентов подсказки, радиокнопки, чипа и группы переключателей в `pne-ui` нет. Берите `Tooltip`,
+`Radio`, `Chip` и `ToggleButtonGroup` из `@mui/material`: под темой `createPneTheme` они выглядят по UI Kit, без
+дополнительных свойств.
 
 ```tsx
 import {FormControlLabel, Radio, RadioGroup, Tooltip} from '@mui/material'
@@ -288,7 +289,28 @@ import {Chip} from '@mui/material'
 - свой `deleteIcon` страницы сохраняет собственные размеры;
 - чипы внутри `PneAutocomplete` и в фильтрах SearchUI рисуют сами эти компоненты, тема их не меняет.
 
-Сторис: `pne-ui/Tooltip`, `pne-ui/Radio` и `pne-ui/Chip`.
+`ToggleButtonGroup` (UI Kit Tabs: выбор одного из нескольких):
+
+```tsx
+import {ToggleButton, ToggleButtonGroup} from '@mui/material'
+
+<ToggleButtonGroup exclusive value={status} onChange={(_event, next) => next && setStatus(next)}>
+    <ToggleButton value="disabled">Disabled</ToggleButton>
+    <ToggleButton value="enabled">Enabled</ToggleButton>
+</ToggleButtonGroup>
+```
+
+- серая подложка в кольце, отступ 4 px вокруг пунктов и между ними; пункты — текстовые кнопки без капса;
+  выбранный — белая плитка с тенью;
+- `size="medium"` (по умолчанию) — группа 40 px, встаёт в ряд с полями и кнопками форм; `size="small"` —
+  32 px, как в полосах таблицы;
+- вид один: `color` группы ничего не меняет;
+- `fullWidth` делит ширину между пунктами поровну, `orientation="vertical"` ставит их столбцом;
+- `ToggleButton` без группы — не вкладка, тема его не рисует.
+
+Так же библиотека рисует выбор вида таблицы и переключатели окна Multiget.
+
+Сторис: `pne-ui/Tooltip`, `pne-ui/Radio`, `pne-ui/Chip` и `pne-ui/ToggleButton`.
 
 ## PneField
 

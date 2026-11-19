@@ -1,0 +1,51 @@
+import type {Components, Theme} from '@mui/material/styles'
+import {PNE_BUTTON_SIZE} from './buttonLook'
+import {
+    tableControlActiveLook,
+    tableControlShellLook,
+    tableControlTextButtonLook,
+} from './component/table/tableControlLook'
+import {TABLE_CONTROL_SHELL_PADDING} from './component/table/tableControlMetrics'
+import type {PneSemanticPalette} from './createTheme'
+
+/**
+ * The look of the MUI `ToggleButtonGroup` under the PNE UI theme (UI Kit Tabs group: one choice out of
+ * a few). The library has no group of its own: the theme draws the stock one. A grey shell with 4px
+ * around its buttons and 4px between them; the buttons are text buttons without capitals, the picked
+ * one is a white tile with the tab shadow. MUI's own borders, joined corners and overlapping margins
+ * of a group are taken off.
+ *
+ * `size='medium'` (MUI's default) is the 40px group that stands in a row with fields and buttons of
+ * forms (32px buttons inside), `size='small'` the 32px group of the table bands (24px buttons).
+ * The UI Kit draws one look, so `color` of the group changes nothing.
+ *
+ * A `ToggleButton` outside a group is not a tab and keeps MUI's look.
+ */
+type ToggleGroupSize = 'small' | 'medium'
+
+const GROUPED = '&& .MuiToggleButtonGroup-grouped'
+
+export const createPneToggleGroupOverrides = (
+    resolvePalette: (theme: Theme) => PneSemanticPalette,
+): NonNullable<Components<Theme>['MuiToggleButtonGroup']> => ({
+    styleOverrides: {
+        root: ({ownerState, theme}) => {
+            const pne = resolvePalette(theme)
+            const size: ToggleGroupSize = ownerState.size === 'small' ? 'small' : 'medium'
+
+            return {
+                ...tableControlShellLook(pne, 'tabs', PNE_BUTTON_SIZE[size].height + 2 * TABLE_CONTROL_SHELL_PADDING),
+                // A stacked group stretches its buttons to the widest one.
+                ...(ownerState.orientation === 'vertical' ? {alignItems: 'stretch'} : undefined),
+                // The text button of the table bands, as the views of a table are drawn.
+                [GROUPED]: {
+                    ...tableControlTextButtonLook(theme, pne, size),
+                    border: 0,
+                    borderRadius: '4px',
+                    margin: 0,
+                },
+                [`${GROUPED}.Mui-selected`]: tableControlActiveLook(pne),
+            }
+        },
+    },
+})

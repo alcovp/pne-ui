@@ -1,16 +1,7 @@
 import {Theme} from '@mui/material'
 import type {SystemStyleObject} from '@mui/system'
-import {PNE_BUTTON_SIZE} from '../../buttonLook'
 import {resolvePneSemanticPalette} from '../../createTheme'
-import {
-    TABLE_CONTROL_BAND_SIZE,
-    TABLE_CONTROL_GAP,
-    TABLE_CONTROL_SHELL_PADDING,
-    TABLE_CONTROL_SIZE,
-} from './tableControlMetrics'
-
-// The small step of the button sizes; the theme draws the MUI `Button` from the same table.
-const SIZE = PNE_BUTTON_SIZE.small
+import {tableControlActiveLook, tableControlShellLook, tableControlTextButtonLook} from './tableControlLook'
 
 /**
  * A button of the table bands by the UI Kit (Button Tertiary sm): 24px, a 12/16 Medium label on the
@@ -21,39 +12,8 @@ const SIZE = PNE_BUTTON_SIZE.small
  * These controls are toggle buttons, page items and arrows of a calendar, which the `MuiButton` entry
  * of the theme does not reach; the sizes and the colours are the ones of the theme's small text button.
  */
-export const createTableControlTextButtonStyle = (theme: Theme): SystemStyleObject<Theme> => {
-    const pne = resolvePneSemanticPalette(theme)
-    const colors = pne.button.text
-    return {
-        ...theme.typography.button,
-        backgroundColor: colors.default.fill,
-        borderRadius: '4px',
-        color: colors.default.text,
-        fontSize: `${SIZE.fontSize}px`,
-        fontWeight: 500,
-        height: `${TABLE_CONTROL_SIZE}px`,
-        letterSpacing: 'normal',
-        lineHeight: `${SIZE.lineHeight}px`,
-        padding: `${SIZE.paddingBlock}px ${SIZE.paddingInline}px`,
-        textTransform: 'none' as const,
-        '&:hover': {
-            backgroundColor: colors.hover.fill,
-            color: colors.hover.text,
-        },
-        '&:active': {
-            backgroundColor: colors.pressed.fill,
-            color: colors.pressed.text,
-        },
-        '&.Mui-disabled': {
-            backgroundColor: colors.disabled.fill,
-            color: colors.disabled.text,
-        },
-        '&.Mui-focusVisible': {
-            outline: `2px solid ${pne.focusRing}`,
-            outlineOffset: '-2px',
-        },
-    }
-}
+export const createTableControlTextButtonStyle = (theme: Theme): SystemStyleObject<Theme> =>
+    tableControlTextButtonLook(theme, resolvePneSemanticPalette(theme))
 
 /**
  * The current value of a set of band buttons that is an action on the rows - the page size in force:
@@ -81,20 +41,8 @@ export const createTableControlCurrentStyle = (theme: Theme): SystemStyleObject<
  * The picked item of a set of band buttons that switches a view (UI Kit Tertiary, State=Active): the
  * surface fill with the tab shadow; the label keeps its colour, under the pointer too.
  */
-export const createTableControlActiveStyle = (theme: Theme): SystemStyleObject<Theme> => {
-    const colors = resolvePneSemanticPalette(theme).button.text
-    const active = colors.active ?? colors.default
-    const look = {
-        backgroundColor: active.fill,
-        boxShadow: active.shadow ?? 'none',
-        color: active.text,
-    }
-    return {
-        ...look,
-        '&:hover': look,
-        '&:active': look,
-    }
-}
+export const createTableControlActiveStyle = (theme: Theme): SystemStyleObject<Theme> =>
+    tableControlActiveLook(resolvePneSemanticPalette(theme))
 
 /**
  * The shell of a group of band controls: 32px high with 4px around its 24px controls and 4px between
@@ -105,17 +53,4 @@ export const createTableControlActiveStyle = (theme: Theme): SystemStyleObject<T
 export const createTableControlShellStyle = (
     theme: Theme,
     kind: 'actions' | 'tabs',
-): SystemStyleObject<Theme> => {
-    const band = resolvePneSemanticPalette(theme).table.band
-    const colors = kind === 'tabs' ? band.tabs : band.shell
-    return {
-        alignItems: 'center',
-        backgroundColor: colors.fill,
-        borderRadius: '8px',
-        boxShadow: `inset 0 0 0 1px ${colors.ring}`,
-        boxSizing: 'border-box',
-        gap: `${TABLE_CONTROL_GAP}px`,
-        minHeight: `${TABLE_CONTROL_BAND_SIZE}px`,
-        padding: `${TABLE_CONTROL_SHELL_PADDING}px`,
-    }
-}
+): SystemStyleObject<Theme> => tableControlShellLook(resolvePneSemanticPalette(theme), kind)

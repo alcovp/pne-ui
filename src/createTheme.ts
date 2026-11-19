@@ -18,6 +18,7 @@ import {
 import {createPneCheckboxPalette, type PneCheckboxPalette} from './checkboxPalette'
 import {createPneChipOverrides} from './chipLook'
 import {createPneRadioOverrides} from './radioLook'
+import {createPneToggleGroupOverrides} from './toggleLook'
 import {createPneTooltipOverrides} from './tooltipLook'
 import {createPneDropdownPalette, type PneDropdownPalette} from './dropdownPalette'
 import {createPneModalPalette, type PneModalPalette} from './modalPalette'
@@ -366,13 +367,7 @@ const createPneComponentOverrides = (mode: PneColorMode): ThemeOptions['componen
     MuiChip: createPneChipOverrides(resolvePneSemanticPalette),
     MuiRadio: createPneRadioOverrides(resolvePneSemanticPalette),
     MuiTooltip: createPneTooltipOverrides(),
-    MuiToggleButtonGroup: {
-        styleOverrides: {
-            root: ({ownerState, theme}) => ownerState.color === 'pneAccentuated'
-                ? {backgroundColor: mode === 'light' ? '#ffffff' : theme.palette.pne.surface.raised}
-                : {},
-        },
-    },
+    MuiToggleButtonGroup: createPneToggleGroupOverrides(resolvePneSemanticPalette),
 })
 
 const createBaseThemeOptions = (skin: Skin, mode: PneColorMode): ThemeOptions => {
