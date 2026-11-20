@@ -175,10 +175,6 @@ export type SearchUIDefaults = {
      * Existing search conditions that use these labels are preserved.
      */
     showCMSOrderSearchLabels: () => boolean
-    // showFormPaymentTemplatesCriterion: () => boolean,
-    // showFormFinishTemplatesCriterion: () => boolean,
-    // showFormWaitTemplatesCriterion: () => boolean,
-    // showFormPayment3dsTemplatesCriterion: () => boolean,
 
     showProjectCodeGrouping: () => boolean
     showManagerGrouping: () => boolean
@@ -239,15 +235,10 @@ export const initialSearchUIDefaults: SearchUIDefaults = {
     showMerchantsCriterion: () => true,
     showManagersCriterion: () => true,
     showResellersCriterion: () => true,
-    // showSuperiorsCriterion: () => true,
     showDealersCriterion: () => true,
     showCompaniesCriterion: () => true,
     showProjectCurrencyCriterion: () => true,
     showCMSOrderSearchLabels: () => true,
-    // showFormPaymentTemplatesCriterion: () => true,
-    // showFormFinishTemplatesCriterion: () => true,
-    // showFormWaitTemplatesCriterion: () => true,
-    // showFormPayment3dsTemplatesCriterion: () => true,
 
     showProjectCodeGrouping: () => true,
     showManagerGrouping: () => true,

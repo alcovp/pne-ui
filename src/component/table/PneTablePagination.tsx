@@ -25,6 +25,6 @@ const PneTablePagination = styled(TablePagination)`
         margin-bottom: 6px;
         min-height: ${TABLE_CONTROL_BAND_SIZE}px;
     }
-`;
+` as typeof TablePagination;
 
 export default PneTablePagination;

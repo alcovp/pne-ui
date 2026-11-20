@@ -17,7 +17,6 @@ export const CurrenciesCriterion = () => {
             .then(response => {
                 setAvailableCurrencies(response)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     }, [])
 

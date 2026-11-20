@@ -1,12 +1,7 @@
 import React from 'react';
 
-interface IProps {
-    /** Kept for the callers; the icon takes the colour of its button, disabled or not. */
-    disabled?: boolean
-}
-
 /** A 14px glyph of the pagination, drawn in the colour of the button it stands in (UI Kit Button sm). */
-const PneNextPageIcon = (_props: IProps) => (
+const PneNextPageIcon = () => (
     <svg
         aria-hidden="true"
         fill="none"

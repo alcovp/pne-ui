@@ -99,11 +99,6 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         resetStateOnKeyChange = 'reset',
     } = params;
 
-    // const [initialDisplayOptions, setInitialDisplayOptions] = useState<TableDisplayOptions>({
-    //     pageSize: 10,
-    //     sortColumnIndex: 1,
-    //     sortAsc: true
-    // })
     let initialPageSize = rowsPerPageOptions[rowsPerPageOptions.length - 1]
     if (displayOptions?.pageSize && rowsPerPageOptions.includes(displayOptions?.pageSize)) {
         initialPageSize = displayOptions?.pageSize

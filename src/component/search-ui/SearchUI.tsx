@@ -311,7 +311,6 @@ const SearchUIContent = <
     const filtersSettingsContextName = useSearchUIFiltersStore(store => store.settingsContextName)
     const filtersContextReady = filtersSettingsContextName === settingsContextName
 
-    // const [criteria, setCriteria] = useSearchCriteria()
     const defaultDisplayOptions: TableDisplayOptions = {
         ...initialDisplayOptions,
         ...tableParams?.displayOptions,

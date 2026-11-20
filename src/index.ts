@@ -1,8 +1,6 @@
 import type {Skin} from './common/paynet/skin'
 import type {PneSemanticPalette} from './createTheme'
 
-// TODO нужно ли тут импортировать и экспортировать после декларирования модулей? как сделать общую тему с
-// возможностью ее дополнять?
 declare module '@mui/material/styles' {
     interface Theme {
         skin: Skin

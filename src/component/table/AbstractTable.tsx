@@ -298,9 +298,6 @@ const AbstractTable = <D, >(
                 {...createAutoTestAttributes(TABLE_PAGINATION_AUTOTEST_ID, position)}
                 ref={position === 'bottom' ? paginator.paginationRef : undefined}
                 count={-1}
-                /*
-                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                // @ts-ignore */
                 component={'div'}
                 labelDisplayedRows={() => null}
                 labelRowsPerPage={null}

@@ -271,7 +271,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             aria-label="first page"
             {...createAutoTestAttributes('first-page')}
         >
-            <PneFirstPageIcon disabled={disableActions || page === 0}/>
+            <PneFirstPageIcon/>
         </IconButton>
         <IconButton
             sx={buttonStyle}
@@ -280,7 +280,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             aria-label="previous page"
             {...createAutoTestAttributes('prev-page')}
         >
-            <PnePreviousPageIcon disabled={disableActions || page === 0}/>
+            <PnePreviousPageIcon/>
         </IconButton>
         <Icon
             sx={displayedRowsStyle}
@@ -295,7 +295,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
             aria-label="next page"
             {...createAutoTestAttributes('next-page')}
         >
-            <PneNextPageIcon disabled={disableActions || !hasNext}/>
+            <PneNextPageIcon/>
         </IconButton>
     </Box>
 

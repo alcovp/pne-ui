@@ -13,7 +13,7 @@ import {
 import type {Theme} from '@mui/material/styles'
 import {useForkRef} from '@mui/material/utils'
 import {resolvePneSemanticPalette} from '../createTheme'
-import {mergeAriaDescribedBy} from './PneFieldContext'
+import {mergeAriaIds} from './PneFieldContext'
 import {PneCheckbox, PneCheckboxProps, type PneCheckboxSize} from './PneCheckbox'
 
 /** `card` is the UI Kit Frame layout: a card for a few large options, tinted and ringed when picked. */
@@ -102,7 +102,7 @@ export const PneLabeledCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneLab
                     control={
                         <PneCheckbox
                             {...rest}
-                            aria-describedby={mergeAriaDescribedBy(ariaDescribedBy, helperTextId)}
+                            aria-describedby={mergeAriaIds(ariaDescribedBy, helperTextId)}
                             aria-invalid={error ? true : ariaInvalid}
                             inputRef={handleInputRef}
                             onChange={handleChange}

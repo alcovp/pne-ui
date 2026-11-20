@@ -17,7 +17,6 @@ export const MarkerTypesCriterion = () => {
             .then(response => {
                 setAvailableOptions(response)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     }, [])
 

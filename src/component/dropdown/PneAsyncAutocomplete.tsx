@@ -28,7 +28,7 @@ import {
 import {PNE_FIELD_SIZE, resolvePneFieldSize} from '../fieldSize'
 import PneTextField from '../PneTextField'
 import {PneChevronDownIcon, PneCloseIcon, pneAutocompleteFieldSx} from './dropdownLook'
-import {mergeAriaDescribedBy, usePneFieldControlProps} from '../PneFieldContext'
+import {mergeAriaIds, usePneFieldControlProps} from '../PneFieldContext'
 import type {
     PneAutocompleteBuiltInProps,
     PneAutocompleteCustomProps,
@@ -736,7 +736,7 @@ const PneAsyncAutocompleteImplementation = <
                         return {
                             ...mergedInputProps as Record<string, unknown>,
                             'aria-busy': loading,
-                            'aria-describedby': mergeAriaDescribedBy(
+                            'aria-describedby': mergeAriaIds(
                                 getString(mergedInputProps['aria-describedby']),
                                 controlProps.ariaDescribedBy,
                                 statusContent === undefined ? undefined : statusId,

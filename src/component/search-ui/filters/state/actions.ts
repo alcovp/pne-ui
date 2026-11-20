@@ -54,7 +54,6 @@ import {
     getSearchUIInitialDateTo,
 } from './initial'
 import type { Draft } from 'immer'
-// import {raiseUIError} from '../../../../../error';
 import type { Dayjs } from 'dayjs'
 import { dayjs } from '../dayjsSetup'
 import cloneDeep from 'lodash/cloneDeep'
@@ -617,7 +616,6 @@ export const getSearchUIFiltersActions = (
                 })
                 captureTemplateBaseline(set, get)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     },
     updateTemplate: (templateName: string) => {
@@ -647,7 +645,6 @@ export const getSearchUIFiltersActions = (
                     get().criteria.length,
                 )
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     },
     removeTemplate: (template: SearchUITemplate) => {
@@ -681,7 +678,6 @@ export const getSearchUIFiltersActions = (
                 }
                 postUpdate(set, get)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     },
     setDefaults: (defaults: SearchUIDefaults) => {
@@ -808,7 +804,6 @@ export const getSearchUIFiltersActions = (
                         }
                     })
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     },
     setJustAddedCriterion: (criterionType: CriterionTypeEnum | null) => {

@@ -26,7 +26,6 @@ export const TransactionTypesCriterion = () => {
             .then(response => {
                 setAvailableOptions(response)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     }, [allowedTransactionTypes, getTransactionTypes])
 

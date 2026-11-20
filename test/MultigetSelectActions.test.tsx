@@ -8,6 +8,7 @@ import {
     MultigetSelect,
     MultigetSelectActions,
     MultigetSelectStoreProvider,
+    SearchUIProvider,
 } from '../src'
 
 jest.mock('react-i18next', () => ({
@@ -75,5 +76,35 @@ describe('MultigetSelect external actions', () => {
 
         fireEvent.click(screen.getByRole('button', {name: 'cancel'}))
         expect(onCancel).toHaveBeenCalledTimes(1)
+    })
+
+    it('leaves the loading state when the request of the list fails', async () => {
+        const failure = new Error('The list is not available')
+        const getMatchLinkedItems = jest.fn().mockRejectedValue(failure)
+        const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+
+        try {
+            const {container} = render(
+                <SearchUIProvider defaults={{getMatchLinkedItems}}>
+                    <MultigetSelectStoreProvider>
+                        <MultigetSelect
+                            linkedMultigetCriteria={[]}
+                            multigetCriterion={criterion}
+                            onCancel={jest.fn()}
+                            onSave={jest.fn()}
+                        />
+                    </MultigetSelectStoreProvider>
+                </SearchUIProvider>,
+            )
+
+            await waitFor(() => {
+                expect(consoleError).toHaveBeenCalledWith(failure)
+            })
+            await waitFor(() => {
+                expect(container.querySelector('[aria-busy]')?.getAttribute('aria-busy')).toBe('false')
+            })
+        } finally {
+            consoleError.mockRestore()
+        }
     })
 })

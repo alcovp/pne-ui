@@ -17,7 +17,6 @@ export const RecurrenceStatusesCriterion = () => {
             .then(response => {
                 setAvailableOptions(response)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     }, [])
 

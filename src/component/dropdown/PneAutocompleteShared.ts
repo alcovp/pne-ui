@@ -7,7 +7,7 @@ import type {
 } from '../../common/paynet/dropdown'
 import type {SxProps, Theme} from '@mui/material/styles'
 import type {PneFieldSize} from '../fieldSize'
-import {mergeAriaDescribedBy} from '../PneFieldContext'
+import {mergeAriaIds} from '../PneFieldContext'
 import {PneCloseIcon, pneAutocompletePaperSx} from './dropdownLook'
 
 type PneAutocompleteDataAttributes = {
@@ -115,7 +115,7 @@ export const resolveAutocompleteListboxName = ({
     }
 
     const ownerLabelId = hasTextFieldLabel ? `${inputId}-label` : controlLabelId
-    const ariaLabelledBy = mergeAriaDescribedBy(
+    const ariaLabelledBy = mergeAriaIds(
         ownerLabelId,
         htmlInputProps?.['aria-labelledby'],
     )
@@ -254,11 +254,11 @@ export const mergeAutocompleteHtmlInputProps = <T extends object>(
 
     const muiInputRecord = muiInputProps as Record<string, unknown>
 
-    const ariaDescribedBy = mergeAriaDescribedBy(
+    const ariaDescribedBy = mergeAriaIds(
         getString(muiInputRecord['aria-describedby']),
         safeInputProps['aria-describedby'],
     )
-    const ariaLabelledBy = mergeAriaDescribedBy(
+    const ariaLabelledBy = mergeAriaIds(
         getString(muiInputRecord['aria-labelledby']),
         safeInputProps['aria-labelledby'],
     )

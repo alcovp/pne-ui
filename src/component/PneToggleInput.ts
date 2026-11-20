@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import {mergeAriaDescribedBy} from './PneFieldContext'
+import {mergeAriaIds} from './PneFieldContext'
 
 type ToggleInputSlotProps = Record<string, unknown> & {
     onClick?: React.MouseEventHandler<HTMLInputElement>
@@ -70,7 +70,7 @@ export const composeToggleInputSlotProps = <OwnerState, >(
         const resolvedProps: ToggleInputSlotProps = {
             ...topLevelAriaProps,
             ...externalProps,
-            'aria-describedby': mergeAriaDescribedBy(
+            'aria-describedby': mergeAriaIds(
                 getString(topLevelAriaProps['aria-describedby']),
                 ...resolvedExternalProps.map(slotProps => (
                     getString(slotProps['aria-describedby'])
@@ -82,7 +82,7 @@ export const composeToggleInputSlotProps = <OwnerState, >(
                 : externalProps['aria-disabled'] ?? topLevelAriaProps['aria-disabled'],
             'aria-labelledby': isNonBlankString(effectiveAriaLabel)
                 ? undefined
-                : mergeAriaDescribedBy(
+                : mergeAriaIds(
                     getString(topLevelAriaProps['aria-labelledby']),
                     ...resolvedExternalProps.map(slotProps => (
                         getString(slotProps['aria-labelledby'])

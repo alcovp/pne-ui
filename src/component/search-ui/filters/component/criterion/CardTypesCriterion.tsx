@@ -17,7 +17,6 @@ export const CardTypesCriterion = () => {
             .then(response => {
                 setAvailableCardTypes(response)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     }, [])
 

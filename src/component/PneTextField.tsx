@@ -7,7 +7,7 @@ import DefaultPropsProvider from '@mui/system/DefaultPropsProvider'
 import {PneChevronDownIcon, pneSelectIconSx, withPneDropdownMenuLook} from './dropdown/dropdownLook'
 import {pneFieldBoxSx} from './fieldLook'
 import {type PneFieldSize, resolvePneFieldSize} from './fieldSize'
-import {mergeAriaDescribedBy, usePneFieldControlProps} from './PneFieldContext'
+import {mergeAriaIds, usePneFieldControlProps} from './PneFieldContext'
 import {usePneFieldFilled} from './usePneFieldFilled'
 
 export type PneTextFieldProps = TextFieldProps & {
@@ -241,7 +241,7 @@ const createObjectSlotProps = (
     const helperTextId = hasHelperText
         ? getId(formHelperTextSlotProps) ?? defaultHelperTextId
         : undefined
-    const resolvedAriaDescribedBy = mergeAriaDescribedBy(
+    const resolvedAriaDescribedBy = mergeAriaIds(
         ariaDescribedBy,
         getAriaDescribedBy(inputSlotProps),
         getAriaDescribedBy(htmlInputSlotProps),
@@ -366,7 +366,7 @@ const createAccessibilitySlotResolver = (
         const helperTextId = hasHelperText
             ? getId(formHelperTextSlotProps) ?? defaultHelperTextId
             : undefined
-        const resolvedAriaDescribedBy = mergeAriaDescribedBy(
+        const resolvedAriaDescribedBy = mergeAriaIds(
             ariaDescribedBy,
             getAriaDescribedBy(inputSlotProps),
             getAriaDescribedBy(htmlInputSlotProps),
@@ -524,7 +524,7 @@ const resolveAriaLabelledBy = (
         return undefined
     }
 
-    return mergeAriaDescribedBy(
+    return mergeAriaIds(
         controlAriaLabelledBy,
         getStringProperty(inputSlotProps, 'aria-labelledby'),
         getStringProperty(htmlInputSlotProps, 'aria-labelledby'),
@@ -560,7 +560,7 @@ const withSelectAccessibility = (
     options: SelectAccessibilityOptions,
 ): ResolvedSlotProps => {
     const displayProps = getPropsObject(slotProps?.SelectDisplayProps)
-    const displayAriaDescribedBy = mergeAriaDescribedBy(
+    const displayAriaDescribedBy = mergeAriaIds(
         options.ariaDescribedBy,
         getAriaDescribedBy(displayProps),
     )
@@ -569,7 +569,7 @@ const withSelectAccessibility = (
         ?? getNonBlankString(options.ariaLabel)
     const resolvedAriaLabelledBy = resolvedAriaLabel
         ? undefined
-        : mergeAriaDescribedBy(
+        : mergeAriaIds(
             options.ariaLabelledBy,
             getStringProperty(slotProps, 'labelId'),
             getStringProperty(slotProps, 'aria-labelledby'),

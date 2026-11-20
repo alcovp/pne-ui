@@ -17,7 +17,6 @@ export const RecurrenceTypesCriterion = () => {
             .then(response => {
                 setAvailableOptions(response)
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     }, [])
 

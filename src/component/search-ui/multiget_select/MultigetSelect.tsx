@@ -15,7 +15,6 @@ import {MultigetSearchLabel} from './state/type'
 import {MultigetSelectTable} from './MultigetSelectTable'
 import {MULTIGET_PAGE_SIZE} from './constants'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
-// import {raiseUIError} from '../../../../error'; //TODO migration
 
 const CRITERION_MULTIGET_MODE_AUTOTEST_ID = 'criterion-multiget-mode'
 const CRITERION_MULTIGET_ONLY_ENABLED_AUTOTEST_ID = 'criterion-multiget-only-enabled'
@@ -92,8 +91,11 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                 }
                 setHasNextPage(entities.length > MULTIGET_PAGE_SIZE)
             })
-            // .catch(raiseUIError);
-            .catch(console.error)
+            .catch((error: unknown) => {
+                // The application shows the error of its request; the list is free to ask again.
+                console.error(error)
+                setLoading(false)
+            })
     }, [
         searchString,
         searchLabel,

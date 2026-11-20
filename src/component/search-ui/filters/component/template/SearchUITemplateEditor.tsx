@@ -65,7 +65,6 @@ const SearchUITemplateEditor = (props: IProps) => {
                     onClose()
                 }
             })
-            // .catch(raiseUIError)
             .catch(console.error)
     };
 

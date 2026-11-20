@@ -102,6 +102,3 @@ export const mergeAriaIds = (
 
 const isAriaTrue = (value: AriaAttributes['aria-required']): boolean =>
     value === true || value === 'true'
-
-/** @deprecated Use `mergeAriaIds`; this alias remains for internal source compatibility. */
-export const mergeAriaDescribedBy = mergeAriaIds

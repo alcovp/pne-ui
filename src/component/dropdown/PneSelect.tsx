@@ -19,7 +19,7 @@ import {resolvePneSemanticPalette} from '../../createTheme'
 import {pneFieldBoxSx} from '../fieldLook'
 import {resolvePneFieldSize} from '../fieldSize'
 import {usePneFieldFilled} from '../usePneFieldFilled'
-import {mergeAriaDescribedBy, usePneFieldControlProps} from '../PneFieldContext'
+import {mergeAriaIds, usePneFieldControlProps} from '../PneFieldContext'
 import {PneChevronDownIcon, pneSelectIconSx, withPneDropdownMenuLook} from './dropdownLook'
 
 export type PneSelectKey = string | number
@@ -414,7 +414,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
     const supplementalLabelId = !hasLabel && controlProps.labelId
         ? labelIdProp
         : undefined
-    const mergedAriaDescribedBy = mergeAriaDescribedBy(
+    const mergedAriaDescribedBy = mergeAriaIds(
         controlProps.ariaDescribedBy,
         SelectDisplayProps?.['aria-describedby'],
     )
@@ -452,7 +452,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         && resolvedAriaLabel.trim() !== ''
     const mergedAriaLabelledBy = hasExplicitAriaLabel
         ? undefined
-        : mergeAriaDescribedBy(
+        : mergeAriaIds(
             listenerLabelId,
             supplementalLabelId,
             controlProps.ariaLabelledBy,
