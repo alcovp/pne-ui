@@ -2,6 +2,14 @@
 
 React component library on MUI. Sources are in `src/`, tests in `test/`, type contracts of the public API in `type-tests/`. `cjs/`, `esm/` and `storybook-static/` are generated: do not edit them. `ARCHITECTURE.md` maps the code; `README.md` is the reference for applications.
 
+## What gets added
+
+A component is added only when all three hold. If one fails, it stays in the application: moving it in later is easier than removing it from the public API.
+
+1. Two applications need it now: each has a place that uses it today. "It may come in handy" and several pages of one application do not count. The exception is a component that many pages depend on: it is added with one application as well, so that its changes go through the checks and releases of the library. The maintainer of the library decides.
+2. It knows nothing about the application: no API calls, routes, permissions or storage. Data and services come as props or through a provider.
+3. It repeats nothing that exists: a similar component or variant is extended. The look of a stock MUI component is set in the theme, not by a new wrapper.
+
 ## Commands
 
 Node comes from `.nvmrc`, Yarn from `packageManager`; use `yarn`, not `npm`.
