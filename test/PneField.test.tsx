@@ -84,32 +84,6 @@ describe('PneField', () => {
         expect(computedStyle.getPropertyValue('overflow')).toBe('hidden')
     })
 
-    it('preserves built-in helper text styles when theme options add component overrides', () => {
-        const theme = createPneTheme(testSkin, {
-            components: {
-                MuiFormHelperText: {
-                    styleOverrides: {
-                        root: {
-                            backgroundColor: 'rgb(1, 2, 3)',
-                        },
-                    },
-                },
-            },
-        })
-
-        render(<ThemeProvider theme={theme}>
-            <PneField helperText='Hint' label='Report file name'>
-                <PneTextField/>
-            </PneField>
-        </ThemeProvider>)
-
-        const computedStyle = window.getComputedStyle(screen.getByText('Hint'))
-
-        expect(computedStyle.getPropertyValue('overflow-wrap')).toBe('anywhere')
-        expect(computedStyle.getPropertyValue('background-color')).toBe('rgb(1, 2, 3)')
-        expect(computedStyle.getPropertyValue('-webkit-line-clamp')).toBe('')
-    })
-
     it('links helper text to a generated text input', () => {
         render(<PneField
             helperText='Required'

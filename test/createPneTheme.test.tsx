@@ -126,25 +126,34 @@ describe('createPneTheme', () => {
             .toEqual(brand)
     })
 
-    it('deeply composes caller options without dropping the PNE palette or component overrides', () => {
-        const theme = createPneTheme(createSkin('#0a91bc'), {
+    it('takes nothing but the colour mode from the application', () => {
+        // What an application typed in JavaScript, or cast, still passes at run time.
+        const options = {
             colorMode: 'dark',
-            palette: {
-                error: {main: '#FF1234'},
-            },
-            components: {
-                MuiPaper: {
-                    defaultProps: {square: true},
-                },
-            },
-        })
+            palette: {warning: {main: '#B86A11'}, error: {main: '#FF1234'}},
+            components: {MuiPaper: {defaultProps: {square: true}}},
+        } as {colorMode: 'dark'}
+        const theme = createPneTheme(createSkin('#0a91bc'), options)
+        const own = createPneTheme(createSkin('#0a91bc'), {colorMode: 'dark'})
 
         expect(theme.palette.mode).toBe('dark')
-        expect(theme.palette.primary.main).not.toBe('#90caf9')
-        expect(theme.palette.pne.brand.seed).toBe('#0A91BC')
-        expect(theme.palette.error.main).toBe('#FF1234')
-        expect(theme.components?.MuiButton?.styleOverrides?.root).toBeDefined()
-        expect(theme.components?.MuiPaper?.defaultProps?.square).toBe(true)
+        expect(theme.palette.warning.main).toBe(own.palette.warning.main)
+        expect(theme.palette.error.main).toBe(own.palette.error.main)
+        expect(theme.components?.MuiPaper).toBeUndefined()
+    })
+
+    it('draws warnings in the Amber of the UI Kit under every skin', () => {
+        for (const seed of ['#0a91bc', '#D25A5B']) {
+            const light = createPneTheme(createSkin(seed))
+            const dark = createPneTheme(createSkin(seed), {colorMode: 'dark'})
+
+            expect(light.palette.warning).toMatchObject({main: '#A65C03', light: '#FA9A40', dark: '#8E4E01'})
+            expect(dark.palette.warning).toMatchObject({main: '#FA9A40', light: '#FFC393', dark: '#D97A05'})
+            // Text of this colour reads on the page, and a white label reads on its fill.
+            expect(getContrastRatio(light.palette.warning.main, light.palette.background.paper)).toBeGreaterThanOrEqual(4.5)
+            expect(getContrastRatio(dark.palette.warning.main, dark.palette.background.paper)).toBeGreaterThanOrEqual(4.5)
+            expect(getContrastRatio('#fff', light.palette.warning.main)).toBeGreaterThanOrEqual(4.5)
+        }
     })
 })
 

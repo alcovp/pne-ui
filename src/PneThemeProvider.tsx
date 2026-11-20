@@ -2,11 +2,7 @@ import {ThemeProvider} from '@mui/material/styles'
 import React, {createContext, useCallback, use, useMemo, useState} from 'react'
 import type {Skin} from './common/paynet/skin'
 import {PneActionSpacingStyles} from './actionSpacing'
-import {
-    createPneTheme,
-    type PneColorMode,
-    type PneCreateThemeOptions,
-} from './createTheme'
+import {createPneTheme, type PneColorMode} from './createTheme'
 
 export type PneColorModeContextValue = {
     mode: PneColorMode
@@ -21,7 +17,6 @@ export type PneThemeProviderProps = {
     /** In-memory fallback for stories and standalone consumers. No browser storage is used. */
     defaultMode?: PneColorMode
     onModeChange?: (mode: PneColorMode) => void
-    themeOptions?: Omit<PneCreateThemeOptions, 'colorMode'>
 }
 
 const PneColorModeContext = createContext<PneColorModeContextValue | null>(null)
@@ -32,7 +27,6 @@ export const PneThemeProvider = ({
     mode: controlledMode,
     defaultMode = 'light',
     onModeChange,
-    themeOptions,
 }: PneThemeProviderProps) => {
     const [uncontrolledMode, setUncontrolledMode] = useState<PneColorMode>(defaultMode)
     const mode = controlledMode ?? uncontrolledMode
@@ -47,8 +41,8 @@ export const PneThemeProvider = ({
         [mode, setMode],
     )
     const theme = useMemo(
-        () => createPneTheme(skin, {...themeOptions, colorMode: mode}),
-        [mode, skin, themeOptions],
+        () => createPneTheme(skin, {colorMode: mode}),
+        [mode, skin],
     )
 
     return (

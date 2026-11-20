@@ -21,13 +21,14 @@ import {createPneRadioOverrides} from './radioLook'
 import {createPneIconButtonOverrides, createPneSvgIconOverrides} from './iconButtonLook'
 import {createPneToggleGroupOverrides} from './toggleLook'
 import {createPneTooltipOverrides} from './tooltipLook'
+import {createPneTypographyOverrides} from './typographyLook'
 import {createPneDropdownPalette, type PneDropdownPalette} from './dropdownPalette'
 import {createPneModalPalette, type PneModalPalette} from './modalPalette'
 import {createPneTablePalette, type PneTablePalette} from './tablePalette'
 import {createPneToastPalette, type PneToastPalette} from './toastPalette'
 import {createPneFieldPalette, type PneFieldPalette} from './fieldPalette'
 import {createPneSwitchPalette, type PneSwitchPalette} from './switchPalette'
-import {PNE_DARK_COLORS, PNE_LIGHT_COLORS, type PneColorMode} from './themeColors'
+import {PNE_DARK_COLORS, PNE_LIGHT_COLORS, PNE_STATUS_COLORS, type PneColorMode} from './themeColors'
 
 export {PNE_DARK_COLORS} from './themeColors'
 export type {PneColorMode} from './themeColors'
@@ -99,8 +100,13 @@ export type PneSemanticPalette = {
     link: string
 }
 
-export type PneCreateThemeOptions = Omit<ThemeOptions, 'skin'> & {
-    /** PNE color mode. `palette.mode` remains supported for compatibility. */
+/**
+ * Everything an application chooses about the theme besides its skin. The theme takes no palette,
+ * typography or component overrides: a colour or a look an application lacks is added to the library,
+ * so every application under one skin draws the same.
+ */
+export type PneCreateThemeOptions = {
+    /** Light by default. */
     colorMode?: PneColorMode
 }
 
@@ -278,28 +284,6 @@ const createSemanticSurfaces = (
     brand: createBrandPalette(seed, mode),
 })
 
-const isPlainObject = (value: unknown): value is Record<string, unknown> => {
-    if (value === null || typeof value !== 'object') return false
-    // A React element (the spinner of a waiting button) is one value, not a set of options.
-    if ('$$typeof' in value) return false
-    const prototype = Object.getPrototypeOf(value)
-    return prototype === Object.prototype || prototype === null
-}
-
-const mergeThemeObjects = <T>(base: T, override: unknown): T => {
-    if (!isPlainObject(base) || !isPlainObject(override)) {
-        return (override === undefined ? base : override) as T
-    }
-
-    const result: Record<string, unknown> = {...base}
-    Object.entries(override).forEach(([key, value]) => {
-        result[key] = key in result
-            ? mergeThemeObjects(result[key], value)
-            : value
-    })
-    return result as T
-}
-
 const createPneComponentOverrides = (): ThemeOptions['components'] => ({
     MuiFormHelperText: {
         styleOverrides: {
@@ -322,7 +306,21 @@ const createPneComponentOverrides = (): ThemeOptions['components'] => ({
     MuiRadio: createPneRadioOverrides(resolvePneSemanticPalette),
     MuiTooltip: createPneTooltipOverrides(),
     MuiToggleButtonGroup: createPneToggleGroupOverrides(resolvePneSemanticPalette),
+    MuiTypography: createPneTypographyOverrides(),
 })
+
+/**
+ * The Amber of the UI Kit, as the warning button and toast. `main` is the fill a white label reads on
+ * and text on a light page (600), or text on a dark one (400). All three shades are named: MUI derives
+ * the tint and the text of its warning `Alert` from `light`, and the theme's `tonalOffset` would make a
+ * derived `light` nearly white.
+ */
+const createWarningPalette = (mode: PneColorMode) => {
+    const amber = PNE_STATUS_COLORS.warning
+    return mode === 'dark'
+        ? {main: amber[400], light: amber[300], dark: amber[500]}
+        : {main: amber[600], light: amber[400], dark: amber[700]}
+}
 
 const createBaseThemeOptions = (skin: Skin, mode: PneColorMode): ThemeOptions => {
     const seed = normalizeHexColor(skin.experimentalColor)
@@ -365,6 +363,7 @@ const createBaseThemeOptions = (skin: Skin, mode: PneColorMode): ThemeOptions =>
                     contrastText: chooseContrastText(pne.brand.foreground),
                 }
                 : {main: seed},
+            warning: createWarningPalette(mode),
             pne,
             pneNeutral: {main: seed},
             pnePrimary: {main: seed},
@@ -375,24 +374,7 @@ const createBaseThemeOptions = (skin: Skin, mode: PneColorMode): ThemeOptions =>
     }
 }
 
-const createPneThemeOptions = (
-    skin: Skin,
-    options: PneCreateThemeOptions = {},
-): ThemeOptions => {
-    const {colorMode, palette, ...themeOverrides} = options
-    const {mode: paletteMode, ...paletteOverrides} = palette ?? {}
-    const mode = colorMode ?? paletteMode ?? 'light'
-    const normalizedMode: PneColorMode = mode === 'dark' ? 'dark' : 'light'
-    const overrides: ThemeOptions = {
-        ...themeOverrides,
-        ...(palette ? {palette: paletteOverrides} : {}),
-    }
-
-    return mergeThemeObjects(createBaseThemeOptions(skin, normalizedMode), overrides)
-}
-
 export const createPneTheme = (
     skin: Skin,
-    options?: PneCreateThemeOptions,
-    ...args: object[]
-): Theme => createTheme(createPneThemeOptions(skin, options), ...args)
+    options: PneCreateThemeOptions = {},
+): Theme => createTheme(createBaseThemeOptions(skin, options.colorMode === 'dark' ? 'dark' : 'light'))
