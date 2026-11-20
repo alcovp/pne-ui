@@ -1,52 +1,30 @@
-Architecture Map
-================
+# Architecture
 
-Purpose
--------
-`pne-ui` is a React component kit (MUI + TypeScript) for Payneteasy projects. The public API is assembled via the main barrel `src/index.ts`; builds land in `esm/` and `cjs/`.
+## Layout
 
-Layers and directories
-----------------------
-- `src/common`: types and utilities.
-  - `common/pne`: core helpers (`ensure`, `exhaustiveCheck`, `Order`, Zustand setter types).
-  - `common/paynet`: domain types and type guards (`AbstractEntity`, `AutoCompleteChoice`, pagination requests).
-- `src/component`: UI components.
-  - Base controls: `PneTextField`, `PneCheckbox`, `PneSwitch`, modals. The button is the MUI `Button` drawn by the theme (`src/buttonLook.ts`).
-  - Dropdown/autocomplete: `component/dropdown`.
-  - Table: `component/table/*` (core `AbstractTable`, header/row factories, sorting/pagination, helper `useTable`).
-  - SearchUI: `component/search-ui/*` stitches filter panel and results table, using zustand (`state/*`) to hold criteria.
-  - Entity selectors: `component/non-abstract-entity-selector`.
-- Theming: `createTheme.ts` builds light/dark MUI themes and semantic tokens from `Skin`; `PneThemeProvider.tsx` scopes a controlled or in-memory color mode without owning persistence; `usePneTheme.ts` is a convenience hook.
-- Stories: `src/stories/*.stories.tsx` show props and usage patterns.
-- Tests: `test/` — Jest + `@swc/jest`; currently cover parts of SearchUI (store/utils) and shared helpers.
+- `src/index.ts`: the public API. It re-exports the barrels of `src/exports/` (one per area) and declares the MUI module extensions (the palette, the `large` field size, the `soft` button).
+- `src/common`: types and helpers without React. `pne` has `ensure`, `exhaustiveCheck`, `Order` and the zustand setter types; `paynet` has the backend-facing types and guards (`type.ts`), the autocomplete options and `Skin`; `responsive` has the breakpoints.
+- `src/component`: the components.
+  - Fields: `PneField`, `PneTextField`, `PneCheckbox`, `PneSwitch`, `dropdown/` (the select and the autocompletes), `date/` (the pickers).
+  - Windows and messages: `PneModal`, `PneModalActions`, `confirm/`, `overlay/` (`OverlayHost`, toasts, the operation centre, API errors), `PneCoachmark`, `PneBanner`.
+  - `table/`: `PneTable` over `AbstractTable`, the cells, pagination, selection, `column-settings/` and the `useTable` hook.
+  - `search-ui/`: the filter panel (`filters/`), the entity picker (`multiget_select/`) and `SearchUI`, which joins the panel to a table.
+  - `non-abstract-entity-selector/`, `fab/`, `PneBreadcrumbs`.
+- `src/stories`: one block per component, `pne-ui/<Component>`.
+- `test/` (Jest), `type-tests/` (compile-only contracts of the public API), `test-release/` (the release scripts, `node --test`).
+- `scripts/`: the release, `storybook:check` and `usage:map`. `.storybook/`: the test skins (`skins.ts`) and the page the stories stand on (`hostPage.tsx`).
 
-Key flows
----------
-- SearchUI:
-  - Each mounted SearchUI/SearchUIFilters owns an instance-scoped zustand store.
-  - Filter conditions and the last applied criteria are retained in memory by `settingsContextName` and restored after route remounts.
-  - Retained snapshots contain user search state only; callbacks, configuration, async data, and table results are recreated.
-  - Filters render via `SearchUIFilters` and push updates into the store.
-  - Table uses `PneTable` + `useTable`: criteria become request params via `createSearchParams`, then `searchData` is called.
-  - Controlled `tableViews` can provide a per-view `searchDataKey` for external request inputs. The combined view/data identity invalidates stale rows and requests; `tableStateOnActivate='restore'` recalls page and sort independently for identities visited by the mounted table.
-  - A view can declare `disabledCriteria` when its backend does not support part of the shared filter set. Active values remain in the shared filter context for other views, while their controls are disabled and neutral values are passed to that view's `searchData`.
-  - A view option `onClick` runs for both inactive and selected views. Consumers may call `preventDefault()` to open configuration before changing the controlled view.
-  - `settingsContextName` is used as a key-prefix for persisted settings/context.
-- Theming:
-  - `createPneTheme(skin, {colorMode})` takes the skin and the colour mode only (no palette or component overrides: a colour of one page is a constant next to its component), injects `skin`, derives accessible `palette.pne` surface/brand roles at runtime, and retains the compatibility palettes (`pneNeutral`, `pnePrimary`, `pneAccentuated`) via module declarations in `src/index.ts`.
-  - `palette.pne.border.subtle` is the low-emphasis separator for sections on `background.paper`; modal and coachmark header/footer dividers and the SearchUI filter rows consume it without weakening the global MUI divider role.
-  - `palette.pne.text.default` is the full-strength label colour (filter names in SearchUI): the light slate the panel always had, `text.primary` in dark mode.
-  - `palette.pne.control.*` colours the secondary controls (table pagination and view selector, sort arrow, SearchUI filter icons, the off `PneSwitch` track): neutral greys that no skin tints, the resting one at 3:1 or better against the page; `src/component/table/tableControlColors.ts` keeps the light stand-ins for themes without the PNE palette.
-  - `PneThemeProvider` owns only React/MUI context, while applications own profile or other persistence.
-  - `actionSpacing.tsx` owns independent button/group spacing tokens. `PneThemeProvider` mounts `PneActionSpacingStyles`; consumers with their own provider mount it once. `PneModalActions` consumes the same variables with library-owned fallbacks. See `docs/action-spacing.md`.
-  - MUI components (`MuiIconButton`, `MuiButton`, `MuiToggleButtonGroup`) define styleOverrides for custom colors.
+## Theme
 
-Working with the public API
----------------------------
-- Exports are grouped via `src/index.ts` and the sub-barrels in `src/exports/`. When adding/renaming components, update exports and stories accordingly.
-- Peer dependencies target React 19 and MUI 9. Earlier majors are outside the supported contract.
+- `createPneTheme(skin, {colorMode})` in `src/createTheme.ts` takes nothing else. `PneThemeProvider` holds the colour mode in React only; saving it is the application's job.
+- The skin gives one brand colour. `brandRamp.ts` turns it into the steps 0…950; `themeColors.ts` has the neutrals of the light and the dark mode and the status colours.
+- Colours reach the components as roles in `theme.palette.pne` (`PneSemanticPalette`); each `src/*Palette.ts` builds the roles of one component family. `resolvePneSemanticPalette(theme)` gives them under a plain MUI theme as well.
+- The stock MUI components (`Button`, `IconButton`, `Chip`, `Radio`, `Tooltip`, `ToggleButtonGroup`, `Typography`) have no wrappers: the theme draws them from the `src/*Look.ts` files.
+- `actionSpacing.tsx`: the gaps between buttons and between button groups, see `docs/action-spacing.md`.
 
-Navigation tips
----------------
-- Backend-facing types and type guards: `src/common/paynet/type.ts`.
-- Stories show prop interplay; table header/row factories (`createTableHeader`, `createTableRow`) are demonstrated in `src/stories/PneTable.stories.tsx`.
+## SearchUI
+
+- Every mounted `SearchUI` or `SearchUIFilters` owns its zustand store (`search-ui/filters/state`).
+- `settingsContextName` names the instance. The conditions and the last applied criteria stay in memory under it and come back after a route remount; it also prefixes what the application persists. Only the user's search state is kept: callbacks, configuration, loaded data and table rows are made anew.
+- `SearchUI` turns the criteria into request parameters with `createSearchParams` and calls `searchData`.
+- The application gives its services and defaults through `SearchUIProvider`.
