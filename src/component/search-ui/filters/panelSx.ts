@@ -37,7 +37,10 @@ export const rootSx: Sx = theme => ({
     columnGap: SEARCH_UI_FILTERS_COLUMN_GAP,
     display: 'grid',
     gridTemplateColumns: SEARCH_UI_FILTERS_COLUMNS,
+    // The panel is a framed block of its own: 8px off whatever stands over and under it (the line of a page
+    // header, the band of the table), 16px off the sides.
     mx: '16px',
+    my: '8px',
     [SEARCH_UI_FILTERS_PHONE_MEDIA]: {
         gridTemplateColumns: 'minmax(0, 1fr)',
     },

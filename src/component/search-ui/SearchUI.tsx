@@ -16,7 +16,7 @@ import {
     SearchCriteria,
     SearchUIConditionsInput,
 } from './filters/types'
-import { Box, Divider, SxProps } from '@mui/material'
+import { Box, SxProps } from '@mui/material'
 import { Order } from '../../common'
 import { ITableCreateHeaderParams } from '../table/AbstractTable'
 import PneTable from '../table/PneTable'
@@ -478,7 +478,6 @@ const SearchUIContent = <
             config={config}
             searchLoading={loading}
         />
-        <Divider/>
         <Box sx={tableBoxSx}>
             {table}
         </Box>
@@ -914,8 +913,9 @@ const initialDisplayOptions: TableDisplayOptions = {
 // last row to the bottom pagination row and nothing under it (Evgeniy Sinev in #171399: the density
 // comes from the space around the pagination). The sides keep 16px: on phones, tablets and with the
 // left menu it is the only gutter of the page.
+// The table stands 8px under the filter panel: the bottom margin of the panel is the gap.
 const tableBoxSx: SxProps = {
-    p: '6px 16px 0 16px',
+    p: '0 16px',
 }
 
 const tableFrameSx: SxProps = {

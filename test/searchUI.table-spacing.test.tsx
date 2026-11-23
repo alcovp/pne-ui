@@ -27,7 +27,7 @@ const renderSearchUI = (duplicatePagination: boolean) => render(
 )
 
 describe('SearchUI table spacing', () => {
-    it('sets the table 6px under the divider and the bottom pagination 6px under the last row', async () => {
+    it('sets the table 8px under the filter panel, with no line between them, and the bottom pagination 6px under the last row', async () => {
         const {container} = renderSearchUI(true)
 
         const table = await waitFor(() => {
@@ -36,11 +36,15 @@ describe('SearchUI table spacing', () => {
             return element as HTMLElement
         })
         const tableBox = table.parentElement as HTMLElement
-        const divider = tableBox.previousElementSibling as HTMLElement
+        const panel = tableBox.previousElementSibling as HTMLElement
 
-        expect(divider.tagName).toBe('HR')
-        // 6px under the divider, the 16px gutter on the sides, nothing at the bottom.
-        expect(getComputedStyle(tableBox).paddingTop).toBe('6px')
+        // The panel is a framed block: no line under it, 8px over and under it, 16px at its sides.
+        expect(container.querySelector('hr')).toBeNull()
+        expect(getComputedStyle(panel).marginTop).toBe('8px')
+        expect(getComputedStyle(panel).marginBottom).toBe('8px')
+        expect(getComputedStyle(panel).marginLeft).toBe('16px')
+        // The margin of the panel is the gap: the box of the table adds nothing over it, only the 16px gutter.
+        expect(getComputedStyle(tableBox).paddingTop).toBe('0px')
         expect(getComputedStyle(tableBox).paddingLeft).toBe('16px')
         expect(getComputedStyle(tableBox).paddingRight).toBe('16px')
         expect(getComputedStyle(tableBox).paddingBottom).toBe('0px')

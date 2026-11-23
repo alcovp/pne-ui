@@ -1,5 +1,5 @@
 import React from 'react'
-import {Box, Divider, Stack, Typography} from '@mui/material'
+import {Box, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
 import {
     CriterionTypeEnum,
@@ -45,7 +45,6 @@ const Panel = (props: {collapsed: boolean, context: string}) => <SearchUIProvide
         onFiltersUpdate={() => undefined}
         config={{manualSearch: true}}
     />
-    <Divider/>
 </SearchUIProvider>
 
 /**
