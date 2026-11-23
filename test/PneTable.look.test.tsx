@@ -82,6 +82,22 @@ describe('PneTable frame (UI Kit look)', () => {
         expect(ruleValue(row, 'tbody > &:hover', 'background-color')).toBe('#F0F4F8')
     })
 
+    it('drops the line of a cell that spans rows down to the last one', () => {
+        renderTable()
+        const rules = Array.from(document.styleSheets)
+            .flatMap(sheet => Array.from(sheet.cssRules))
+            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
+        const selectors = rules
+            .filter(rule => rule.style.getPropertyValue('border-bottom-color') === 'transparent')
+            .map(rule => rule.selectorText.replace(/\s+/g, ''))
+            .join(',')
+
+        // Two rows from the end with a span of two, three with three and so on: the cell ends where the table does.
+        expect(selectors).toContain(':nth-last-of-type(2)>td[rowspan="2"]')
+        expect(selectors).toContain(':nth-last-of-type(12)>td[rowspan="12"]')
+        expect(selectors).not.toContain(':nth-last-of-type(1)>td')
+    })
+
     it('leaves a row without the hover fill when the consumer switches it off', () => {
         render(<PneThemeProvider skin={UI_KIT_SKIN}>
             <Table><TableBody><PneTableRow data-testid='plain-row' hover={false}><PneTableCell>x</PneTableCell></PneTableRow></TableBody></Table>

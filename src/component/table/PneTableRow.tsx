@@ -9,6 +9,11 @@ import {resolvePneSemanticPalette} from '../../createTheme';
  * (`hover={false}` switches it off). The cells carry the line, so a row keeps its height whatever
  * stands in it.
  */
+// `tr:nth-last-of-type(n) > td[rowspan="n"]` for the spans a table is likely to have.
+const SPANS_TO_LAST_ROW = Array.from({length: 11}, (_, index) => index + 2)
+    .map(span => `tbody > &:nth-last-of-type(${span}) > td[rowspan="${span}"]`)
+    .join(', ')
+
 const PneTableRow = styled(TableRow, {
     shouldForwardProp: prop => prop !== 'hover'
 })<{ hover?: boolean }>(({theme, hover = true}) => {
@@ -21,6 +26,10 @@ const PneTableRow = styled(TableRow, {
         lineHeight: '20px',
         // The table drops the line of its last row.
         'tbody > &:last-of-type': {
+            borderBottomColor: 'transparent',
+        },
+        // So does a cell that spans rows down to the last one: its line would stand alone under one column.
+        [SPANS_TO_LAST_ROW]: {
             borderBottomColor: 'transparent',
         },
         ...(hover ? {
