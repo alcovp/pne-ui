@@ -17,7 +17,8 @@ import type {PneSemanticPalette} from './createTheme'
  *
  * `size='medium'` (MUI's default) is the 40px group that stands in a row with fields and buttons of
  * forms (32px buttons inside), `size='small'` the 32px group of the table bands (24px buttons).
- * The UI Kit draws one look, so `color` of the group changes nothing.
+ * The UI Kit draws one look, so `color` of the group changes nothing. The group is as wide as its
+ * buttons; `fullWidth` makes it fill the row and share it between the buttons.
  *
  * A `ToggleButton` outside a group is not a tab and keeps MUI's look.
  */
@@ -52,11 +53,17 @@ export const createPneToggleGroupOverrides = (
     resolvePalette: (theme: Theme) => PneSemanticPalette,
 ): NonNullable<Components<Theme>['MuiToggleButtonGroup']> => ({
     styleOverrides: {
-        root: ({ownerState, theme}) => pneToggleGroupLook(
-            theme,
-            resolvePalette(theme),
-            ownerState.size === 'small' ? 'small' : 'medium',
-            ownerState.orientation === 'vertical' ? 'vertical' : 'horizontal',
-        ),
+        root: ({ownerState, theme}) => ({
+            ...pneToggleGroupLook(
+                theme,
+                resolvePalette(theme),
+                ownerState.size === 'small' ? 'small' : 'medium',
+                ownerState.orientation === 'vertical' ? 'vertical' : 'horizontal',
+            ),
+            // The shell is as wide as its buttons. A column of a form stretches its children, and the
+            // grey shell would run across the whole form with the buttons at its left; `fullWidth` is
+            // the way to ask for a group that fills its row.
+            ...(ownerState.fullWidth ? undefined : {width: 'fit-content'}),
+        }),
     },
 })

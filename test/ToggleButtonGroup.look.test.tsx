@@ -86,6 +86,15 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
         expect(screen.getAllByRole('button', {name: 'Enabled'})[0].getAttribute('aria-pressed')).toBe('true')
     })
 
+    it('is as wide as its buttons unless it is asked to fill the row', () => {
+        // A column of a form stretches its children: the shell must not run across the form.
+        const {root} = renderGroup(<Group/>)
+        const {root: filling} = renderGroup(<Group fullWidth/>)
+
+        expect(ruleValue(root, '&', 'width')).toBe('fit-content')
+        expect(ruleValue(filling, '&', 'width')).not.toBe('fit-content')
+    })
+
     it('stretches the buttons of a stacked group', () => {
         const {root} = renderGroup(<Group orientation='vertical'/>)
 
