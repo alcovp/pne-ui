@@ -84,6 +84,33 @@ export const Frame: Story = {
     render: () => <FrameDemo/>,
 }
 
+const WIDE_COLUMNS = [
+    'Balance topup ID', 'Session ID', 'Transaction amount', 'Currency', 'Insert time stamp', 'Bank date',
+    'Transaction type ID', 'Transaction type', 'Transaction status ID', 'Transaction status', 'Manager', 'Merchant',
+]
+
+// An empty table wider than its container: the message stands in the middle of what is seen and
+// stays there while the table scrolls sideways.
+export const EmptyWide: Story = {
+    render: () => (
+        <Box sx={{width: 720}}>
+            <PneTable<{id: number}>
+                data={[]}
+                noRowsMessage='Nothing is found.'
+                tableAriaLabel='Empty wide table'
+                createTableHeader={() => (
+                    <PneTableRow>
+                        {WIDE_COLUMNS.map(column => (
+                            <PneHeaderTableCell key={column} sx={{whiteSpace: 'nowrap'}}>{column}</PneHeaderTableCell>
+                        ))}
+                    </PneTableRow>
+                )}
+                createRow={row => <PneTableRow key={row.id}><PneTableCell>{row.id}</PneTableCell></PneTableRow>}
+            />
+        </Box>
+    ),
+}
+
 type Row = typeof ROWS[number]
 
 // Figma «PneTable — части», Cell: Header-island. A page with several tables, each under its own

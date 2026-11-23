@@ -1,6 +1,6 @@
 import React from 'react';
 import {SxProps, type Theme} from '@mui/material/styles';
-import {TableSortLabel, tableSortLabelClasses, TableSortLabelProps} from '@mui/material';
+import {tableCellClasses, TableSortLabel, tableSortLabelClasses, TableSortLabelProps} from '@mui/material';
 import {TableSortOptions} from './AbstractTable';
 import {resolvePneSemanticPalette} from '../../createTheme';
 
@@ -95,6 +95,11 @@ const pneTableSortLabelSx: SxProps<Theme> = theme => {
             marginRight: 0,
             opacity: 1,
             transform: 'none',
+        },
+        // A right-aligned header puts the sign before the label: the gap moves to the other side.
+        [`.${tableCellClasses.alignRight} ${icon}`]: {
+            marginLeft: 0,
+            marginRight: '4px',
         },
         [`&:hover ${icon.slice(2)}`]: {
             color: sort.active,

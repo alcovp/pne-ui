@@ -222,6 +222,34 @@ const AbstractTable = <D, >(
         [data, sortOptions?.order, sortOptions?.sortIndex],
     );
 
+    // A table wider than its container scrolls sideways. The message of an empty table is as wide as
+    // what is seen and stays there (sticky), instead of standing in the middle of the whole width.
+    const hasEmptyState = !showSkeleton && visibleRows.length === 0 && showNothingIsFoundRow;
+    useLayoutEffect(() => {
+        const container = tableContainerRef.current;
+        if (!hasEmptyState || !container) {
+            return;
+        }
+
+        const measure = () => {
+            const width = container.clientWidth - 2 * EMPTY_STATE_PADDING_X;
+            if (width > 0) {
+                container.style.setProperty(EMPTY_STATE_WIDTH_PROPERTY, `${width}px`);
+            } else {
+                // Not laid out: the message keeps the width of its cell.
+                container.style.removeProperty(EMPTY_STATE_WIDTH_PROPERTY);
+            }
+        };
+        measure();
+        if (typeof ResizeObserver === 'undefined') {
+            return;
+        }
+
+        const observer = new ResizeObserver(measure);
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, [hasEmptyState]);
+
     // The header decides the columns. Measured before paint, so that a switched view
     // never shows a frame with the previous view's column count.
     useLayoutEffect(() => {
@@ -548,17 +576,24 @@ const AbstractTable = <D, >(
 // UI Kit Empty state, the look only: the message of an empty table stands in the middle under a
 // glyph in a 48px round fill, 14/20 Medium, with 32px over and under it. The table knows no more
 // than its message, so there is no description and no action.
+const EMPTY_STATE_PADDING_X = 24
+const EMPTY_STATE_WIDTH_PROPERTY = '--pne-table-empty-state-width'
+
 const emptyStateCellSx: SxProps = {
-    padding: '32px 24px',
+    padding: `32px ${EMPTY_STATE_PADDING_X}px`,
 }
 
 const emptyStateSx: SxProps<Theme> = {
     alignItems: 'center',
+    boxSizing: 'border-box',
     display: 'flex',
     flexDirection: 'column',
     fontWeight: 500,
     gap: '8px',
+    left: `${EMPTY_STATE_PADDING_X}px`,
+    position: 'sticky',
     textAlign: 'center',
+    width: `var(${EMPTY_STATE_WIDTH_PROPERTY}, 100%)`,
 }
 
 const emptyStateSignSx: SxProps<Theme> = theme => {

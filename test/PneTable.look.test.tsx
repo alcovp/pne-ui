@@ -199,6 +199,31 @@ describe('PneTable frame (UI Kit look)', () => {
         expect(style(sign.parentElement!).textAlign).toBe('center')
         expect(cell.querySelectorAll('button, a')).toHaveLength(0)
     })
+
+    it('keeps the message of an empty table inside the seen part of a table wider than its container', () => {
+        // jsdom lays nothing out: the container reports the width the test gives it.
+        const clientWidth = jest.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(600)
+        try {
+            const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneTable<{id: string}>
+                    autoTestId='empty-wide'
+                    createRow={row => <tr key={row.id}><td>{row.id}</td></tr>}
+                    createTableHeader={() => <tr><th>ID</th></tr>}
+                    data={[]}
+                />
+            </PneThemeProvider>)
+            const message = container.querySelector<HTMLElement>('[data-autotest="empty-state"] td > div')!
+            const scroller = container.querySelector<HTMLElement>('.MuiTableContainer-root')!
+
+            // The seen width less the 24px paddings of the cell; the message sticks to the seen left edge.
+            expect(scroller.style.getPropertyValue('--pne-table-empty-state-width')).toBe('552px')
+            expect(style(message).position).toBe('sticky')
+            expect(style(message).left).toBe('24px')
+            expect(style(message).width).toBe('var(--pne-table-empty-state-width, 100%)')
+        } finally {
+            clientWidth.mockRestore()
+        }
+    })
 })
 
 // UI Kit Cell/Header-island: the header of a table that is one of several on its page.
