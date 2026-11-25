@@ -50,6 +50,8 @@ describe('label centring', () => {
             verticalAlign: `calc((1cap - ${config.icon}px) / 2)`,
             whiteSpace: 'nowrap',
         })
+        // A block in an inline slot would break the line of the button: the icon is an inline block.
+        expect(labelOnly['&&& .MuiButton-startIcon > *, &&& .MuiButton-endIcon > *']).toEqual({display: 'inline-block'})
         // A word joiner inside the slot glues the icon to the label: no icon on a line of its own.
         expect(labelOnly['&&& .MuiButton-startIcon::after, &&& .MuiButton-endIcon::before']).toEqual({content: '"\\2060"'})
         expect(labelOnly['&&& .MuiButton-startIcon']).toEqual({marginRight: `${config.gap - config.iconPull}px`})

@@ -175,6 +175,9 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
                     verticalAlign: pneIconOnCapitals(config.icon),
                     whiteSpace: 'nowrap',
                 },
+                // A block inside the inline slot (an image a page set to `display: block`) would break the line
+                // of the button in two: whatever stands in a slot is an inline block.
+                '&&& .MuiButton-startIcon > *, &&& .MuiButton-endIcon > *': {display: 'inline-block'},
                 '&&& .MuiButton-startIcon': {marginRight: `${config.gap - config.iconPull}px`},
                 '&&& .MuiButton-endIcon': {marginLeft: `${config.gap - config.iconPull}px`},
                 '&&& .MuiButton-startIcon::after, &&& .MuiButton-endIcon::before': {content: WORD_JOINER},
