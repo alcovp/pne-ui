@@ -81,6 +81,10 @@ const pneTableSortLabelSx: SxProps<Theme> = theme => {
     const active = `&.${tableSortLabelClasses.active}`
     return {
         color: 'inherit',
+        // MUI centres the label on the x-height of the line, which lifts the line of the cell by a part of a
+        // pixel: a sortable header then stands lower than a plain one beside it. From the top of the line both
+        // are placed by the same half-leading.
+        verticalAlign: 'top',
         '&:hover, &:focus': {
             color: 'inherit',
         },

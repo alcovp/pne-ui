@@ -39,13 +39,19 @@ describe('label centring', () => {
 
         expect(labelOnly).toMatchObject({alignContent: 'center', display: 'inline-block', textBox: TRIM})
         // The padding takes over the room the trim removed, so a label of two lines keeps its air.
-        expect(labelOnly.paddingBlock).toBe(`calc((${config.height}px - 1cap) / 2 - 1px)`)
+        expect(labelOnly['--pne-button-padding-block']).toBe(`calc((${config.height}px - 1cap) / 2 - 1px)`)
+        // The padding itself is a plain declaration of the button, so a padding from the `sx` of a page wins.
+        expect(buttonStyle(size).paddingTop).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
+        expect(buttonStyle(size).paddingBottom).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
         expect(labelOnly['&.MuiButton-fullWidth']).toEqual({display: 'block'})
         // The gap of the flex layout and the pull of the icon become one margin of the same size.
         expect(only(labelOnly, '.MuiButton-startIcon, &&& .MuiButton-endIcon')).toMatchObject({
-            display: 'inline-block',
+            display: 'inline',
             verticalAlign: `calc((1cap - ${config.icon}px) / 2)`,
+            whiteSpace: 'nowrap',
         })
+        // A word joiner inside the slot glues the icon to the label: no icon on a line of its own.
+        expect(labelOnly['&&& .MuiButton-startIcon::after, &&& .MuiButton-endIcon::before']).toEqual({content: '"\\2060"'})
         expect(labelOnly['&&& .MuiButton-startIcon']).toEqual({marginRight: `${config.gap - config.iconPull}px`})
         expect(labelOnly['&&& .MuiButton-endIcon']).toEqual({marginLeft: `${config.gap - config.iconPull}px`})
         // MUI's zero-width strut is a flex item and took a whole gap before a start icon.

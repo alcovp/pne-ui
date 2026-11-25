@@ -1,9 +1,26 @@
 import * as React from 'react'
 import {Button} from '@mui/material'
+import type {CSSObject} from '@mui/material/styles'
 import {render, screen} from '@testing-library/react'
 
 import {createPneTheme, PneThemeProvider, type Skin} from '../src'
-import {resolvePneButtonVariant} from '../src/buttonLook'
+import {createPneButtonOverrides, resolvePneButtonVariant} from '../src/buttonLook'
+import {resolvePneSemanticPalette} from '../src/createTheme'
+
+// The block padding goes through a custom property (buttonLook.ts), and jsdom computes no padding that is given
+// through `var()`: the paddings are read from the style object of the theme.
+const lookOf = (variant: string, size: string): CSSObject => {
+    const root = createPneButtonOverrides(resolvePneSemanticPalette).styleOverrides?.root
+    if (typeof root !== 'function') throw new Error('the button look is a function of the owner state')
+    const theme = createPneTheme({experimentalColor: '#026fd7'} as Skin)
+    return root({ownerState: {size, variant, color: 'primary'}, theme} as never) as CSSObject
+}
+const paddingOf = (block: string, inline: string) => ({
+    paddingBottom: `var(--pne-button-padding-block, ${block})`,
+    paddingLeft: inline,
+    paddingRight: inline,
+    paddingTop: `var(--pne-button-padding-block, ${block})`,
+})
 
 const expectComputedStyle = (
     element: HTMLElement,
@@ -86,12 +103,9 @@ describe('MUI Button under the pne-ui theme', () => {
             'line-height': lineHeight,
             'min-height': minHeight,
             'min-width': '0px',
-            'padding-bottom': paddingBlock,
-            'padding-left': paddingInline,
-            'padding-right': paddingInline,
-            'padding-top': paddingBlock,
             'text-transform': 'none',
         })
+        expect(lookOf('contained', size)).toMatchObject(paddingOf(paddingBlock, paddingInline))
     })
 
     it.each(['contained', 'outlined', 'text', 'soft'] as const)(
@@ -105,9 +119,8 @@ describe('MUI Button under the pne-ui theme', () => {
             expectComputedStyle(screen.getByRole('button', {name: 'Button'}), {
                 'border-bottom-width': '',
                 'min-height': '32px',
-                'padding-left': '12px',
-                'padding-top': '6px',
             })
+            expect(lookOf(variant, 'medium')).toMatchObject(paddingOf('6px', '12px'))
             // MUI gives a disabled outlined button a 1px border of its own.
             expect(ruleValue(screen.getByRole('button', {name: 'Disabled'}), '.Mui-disabled', 'border')).toMatch(/^(none|0px)/)
         },

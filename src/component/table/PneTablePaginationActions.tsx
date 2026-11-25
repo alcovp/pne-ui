@@ -12,6 +12,7 @@ import {
     createTableControlTextButtonStyle,
 } from "./tableControlButtonStyle";
 import {usePneTheme} from "../../usePneTheme";
+import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from "../../labelCentring";
 import {resolvePneSemanticPalette} from "../../createTheme";
 import {measureNaturalWidth} from "./measureNaturalWidth";
 import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from "./tableControlMetrics";
@@ -180,13 +181,25 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         overflow: 'hidden',
         borderRadius: '4px',
         background: controlColors.default.fill,
+        // The range is text in an icon slot: without a font of its own it takes the font of the page.
+        fontFamily: theme.typography.button.fontFamily,
         fontWeight: 500,
         fontSize: '12px',
         lineHeight: '16px',
         color: controlColors.default.text,
         textOverflow: 'ellipsis',
         whiteSpace: 'nowrap',
-        ...activeActionSx
+        ...activeActionSx,
+        // The range stands in the middle of its tile at every screen scale (labelCentring.ts).
+        [PNE_LABEL_TRIM_SUPPORT]: {
+            alignContent: 'center',
+            display: 'block',
+            // A trimmed line is lower than its letters: clipped along the line only, as the label of a chip.
+            overflowX: 'clip',
+            overflowY: 'visible',
+            textAlign: 'center',
+            ...PNE_LABEL_TRIM,
+        },
     } as SxProps
 
     const handleFirstPageButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {

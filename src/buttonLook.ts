@@ -98,6 +98,9 @@ const WAITING_CENTRE = '&.MuiButton-loading.MuiButton-loadingPositionCenter'
 // `:where` keeps the weight of the rule at one class, so `display` from the `sx` of a page still wins.
 const LABEL_ONLY = '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))'
 
+const PADDING_BLOCK = '--pne-button-padding-block'
+const WORD_JOINER = '"\\2060"'
+
 const sizeStyle = (size: PneButtonLookSize): CSSObject => {
     const config = PNE_BUTTON_SIZE[size]
     const iconPull = config.iconPull === 0 ? '0px' : `-${config.iconPull}px`
@@ -114,7 +117,12 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
         lineHeight: `${config.lineHeight}px`,
         minHeight: `${config.height}px`,
         minWidth: '0px',
-        padding: `${config.paddingBlock}px ${config.paddingInline}px`,
+        // The block padding is read through a property that only the trimmed layout below sets, so the padding
+        // itself stays a plain declaration of the button: a padding from the `sx` of a page still replaces it.
+        paddingBottom: `var(${PADDING_BLOCK}, ${config.paddingBlock}px)`,
+        paddingLeft: `${config.paddingInline}px`,
+        paddingRight: `${config.paddingInline}px`,
+        paddingTop: `var(${PADDING_BLOCK}, ${config.paddingBlock}px)`,
         textAlign: 'center',
         textTransform: 'none',
         transition: 'background-color 120ms linear, box-shadow 120ms linear, color 120ms linear',
@@ -152,29 +160,41 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
                 // A trimmed line is as high as its capitals, so the padding grows by what the trim took: a
                 // label of two lines keeps the room over and under it that a label of one line has. 1px less
                 // than the exact half, so that the rounding of the cap height never makes a button 1px higher.
-                paddingBlock: `calc((${config.height}px - 1cap) / 2 - 1px)`,
+                [PADDING_BLOCK]: `calc((${config.height}px - 1cap) / 2 - 1px)`,
                 ...PNE_LABEL_TRIM,
                 '&.MuiButton-fullWidth': {display: 'block'},
                 // MUI's zero-width strut keeps the baseline of a flex button that starts with an icon; a block
                 // has its text for that, and the strut would only take a gap before the icon.
                 '&::before': {content: 'none'},
+                // An icon never leaves the word beside it for a line of its own, as it never did in the flex
+                // layout: its slot is an inline box that ends (or starts) with a word joiner. The slot does not
+                // wrap inside, because a line may break after an inline picture even before a joiner.
                 '&&& .MuiButton-startIcon, &&& .MuiButton-endIcon': {
-                    display: 'inline-block',
+                    display: 'inline',
                     lineHeight: 0,
                     verticalAlign: pneIconOnCapitals(config.icon),
+                    whiteSpace: 'nowrap',
                 },
                 '&&& .MuiButton-startIcon': {marginRight: `${config.gap - config.iconPull}px`},
                 '&&& .MuiButton-endIcon': {marginLeft: `${config.gap - config.iconPull}px`},
+                '&&& .MuiButton-startIcon::after, &&& .MuiButton-endIcon::before': {content: WORD_JOINER},
                 [`${WAITING} .MuiButton-startIcon, ${WAITING} .MuiButton-endIcon`]: {display: 'none'},
                 [`${WAITING} .MuiButton-loadingIndicator`]: {
-                    display: 'inline-block',
+                    display: 'inline',
                     lineHeight: 0,
                     marginRight: `${config.gap}px`,
                     verticalAlign: pneIconOnCapitals(config.icon),
+                    whiteSpace: 'nowrap',
+                },
+                [`${WAITING}:not(.MuiButton-loadingPositionEnd) .MuiButton-loadingIndicator::after`]: {
+                    content: WORD_JOINER,
                 },
                 [`${WAITING}.MuiButton-loadingPositionEnd .MuiButton-loadingIndicator`]: {
                     marginLeft: `${config.gap}px`,
                     marginRight: 0,
+                },
+                [`${WAITING}.MuiButton-loadingPositionEnd .MuiButton-loadingIndicator::before`]: {
+                    content: WORD_JOINER,
                 },
             },
         },
