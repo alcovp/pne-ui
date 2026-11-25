@@ -949,6 +949,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
             {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
             role={'region'}
             aria-label={filtersLabel}
+            data-pne-folding={phase === 'mounting' || phase === 'opening' || phase === 'closing' ? 'true' : undefined}
             sx={rootSx}
         >
             <Box

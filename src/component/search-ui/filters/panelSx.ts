@@ -30,6 +30,13 @@ export const searchButtonSx: SystemStyleObject<Theme> = {
 
 // The shell: radius 8 inside a 1px line, 16px from the sides of the page as the table under it.
 export const rootSx: Sx = theme => ({
+    // While the panel folds, what follows it (the table) is a layer of its own: the fold moves it every frame,
+    // and as a layer it moves without being painted again. A table of 50 rows took 25-30 ms of paint per frame.
+    '@media (prefers-reduced-motion: no-preference)': {
+        '&[data-pne-folding] ~ *': {
+            willChange: 'transform',
+        },
+    },
     alignItems: 'center',
     backgroundColor: theme.palette.background.paper,
     border: `1px solid ${shellOf(theme).ring}`,

@@ -115,13 +115,17 @@ describe('SearchUIFilters layout', () => {
         expect(precedes(scope.querySelector('[data-autotest="criterion"]'), scope.querySelector('[data-autotest="run-search"]'))).toBe(true)
         expect(scope.querySelector('[data-autotest="filters-footer"] [data-autotest="run-search"]')).not.toBeNull()
 
+        expect(scope.hasAttribute('data-pne-folding')).toBe(false)
         fireEvent.click(toggle as HTMLButtonElement)
 
         expect(toggle?.getAttribute('aria-expanded')).toBe('false')
+        // While it folds, the panel says so: what follows it is then a layer of its own (panelSx.ts).
+        expect(scope.getAttribute('data-pne-folding')).toBe('true')
         // The rows fold with a transition and leave the DOM once it is over.
         await waitFor(() => {
             expect(panel?.hidden).toBe(true)
         })
+        expect(scope.hasAttribute('data-pne-folding')).toBe(false)
         expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
         expect(scope.querySelector('[data-autotest="toggle-filters"]')).not.toBeNull()
         expect(scope.querySelector('[data-autotest="templates"]')).not.toBeNull()
@@ -133,10 +137,14 @@ describe('SearchUIFilters layout', () => {
         fireEvent.click(toggle as HTMLButtonElement)
 
         expect(toggle?.getAttribute('aria-expanded')).toBe('true')
+        expect(scope.getAttribute('data-pne-folding')).toBe('true')
         await waitFor(() => {
             expect(panel?.hidden).toBe(false)
         })
         expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
+        await waitFor(() => {
+            expect(scope.hasAttribute('data-pne-folding')).toBe(false)
+        })
     })
 
     it('remembers the fold with the host and opens folded when the host says so', async () => {
