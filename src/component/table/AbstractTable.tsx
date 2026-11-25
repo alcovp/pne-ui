@@ -221,6 +221,9 @@ const AbstractTable = <D, >(
         () => data,
         [data, sortOptions?.order, sortOptions?.sortIndex],
     );
+    // The same rows from the same factory are the same elements: React then leaves them as they are when the
+    // table renders for anything else (loading, a page change still on its way, the controls).
+    const rowElements = React.useMemo(() => visibleRows.map(createRow), [visibleRows, createRow]);
 
     // A table wider than its container scrolls sideways. The message of an empty table is as wide as
     // what is seen and stays there (sticky), instead of standing in the middle of the whole width.
@@ -297,7 +300,9 @@ const AbstractTable = <D, >(
             headerHeight,
             columnText,
         });
-    });
+        // Measured when the rows or the columns change, not on every render: each measurement makes the browser lay
+        // the whole table out at once.
+    }, [showSkeleton, visibleRows, loadingKey, columnCount]);
 
     const getPneTablePagination = (
         position: 'top' | 'bottom',
@@ -547,7 +552,7 @@ const AbstractTable = <D, >(
                         ))
                     ) : (
                         <>
-                            {visibleRows.map(createRow)}
+                            {rowElements}
                             {visibleRows.length === 0 && showNothingIsFoundRow && (
                                 <PneTableRow
                                     {...createAutoTestAttributes(TABLE_EMPTY_STATE_AUTOTEST_ID)}

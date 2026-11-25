@@ -414,6 +414,19 @@ const SearchUIContent = <
         )
         : undefined
 
+    // A table without selection keeps one row factory while what its rows are made of stays: a page change, the
+    // skeleton or the loading state then leave the rows on screen as they are instead of drawing them all anew.
+    const createTableRow = resolvedTable.createTableRow
+    const viewId = resolvedTable.viewId
+    const createRowWithoutSelection = useCallback(
+        (item: D, index: number, arr: D[]) => createTableRow(item, index, arr, setData, {
+            appliedSearchCriteria: effectiveSearchCriteria,
+            selection: undefined,
+            viewId,
+        }),
+        [createTableRow, setData, effectiveSearchCriteria, viewId],
+    )
+
     const renderTable = (
         selection: SearchUITableSelectionController<D, TKey, TViewId> | undefined,
         toolbar: React.ReactNode,
@@ -439,13 +452,9 @@ const SearchUIContent = <
                 setSortIndex,
                 onSortChange,
             }}
-            createRow={(item, index, arr) => resolvedTable.createTableRow(
-                item,
-                index,
-                arr,
-                setData,
-                factoryContext,
-            )}
+            createRow={selection
+                ? (item, index, arr) => resolvedTable.createTableRow(item, index, arr, setData, factoryContext)
+                : createRowWithoutSelection}
             paginator={paginator}
             loading={loading}
             loadingKey={tableResetIdentity}

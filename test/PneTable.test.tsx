@@ -494,6 +494,39 @@ describe('PneTable autotest scope', () => {
         expect(view.container.querySelector('[data-autotest="empty-state"]')).toBeNull()
     })
 
+    it('leaves its rows as they are when it renders for anything but the rows', () => {
+        const rendered: string[] = []
+        const RowView = ({row}: {row: Row}) => {
+            rendered.push(row.id)
+            return <tr><td>{row.label}</td></tr>
+        }
+        const data = [{id: 'order-1', label: 'One'}, {id: 'order-2', label: 'Two'}]
+        const createRow = (item: Row) => <RowView key={item.id} row={item}/>
+        const table = (loading: boolean, rows: Row[], factory: (item: Row) => React.ReactElement) => (
+            <PneTable<Row>
+                autoTestId='orders'
+                data={rows}
+                loading={loading}
+                paginator={createPaginator(false)}
+                createTableHeader={() => <tr><th>Name</th></tr>}
+                createRow={factory}
+            />
+        )
+        const view = render(table(false, data, createRow))
+        expect(rendered).toEqual(['order-1', 'order-2'])
+
+        // A page on its way: loading, the same rows from the same factory.
+        view.rerender(table(true, data, createRow))
+        expect(rendered).toEqual(['order-1', 'order-2'])
+
+        // New rows, or a new factory, draw the rows again.
+        const next = [{id: 'order-3', label: 'Three'}]
+        view.rerender(table(false, next, createRow))
+        expect(rendered).toEqual(['order-1', 'order-2', 'order-3'])
+        view.rerender(table(false, next, item => <RowView key={item.id} row={item}/>))
+        expect(rendered).toEqual(['order-1', 'order-2', 'order-3', 'order-3'])
+    })
+
     it('marks the existing empty-result row within its table scope', () => {
         const {container} = render(
             createTable(
