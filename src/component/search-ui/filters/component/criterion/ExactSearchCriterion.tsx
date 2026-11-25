@@ -2,7 +2,7 @@ import React from 'react';
 import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSelect';
 import {useTranslation} from 'react-i18next';
 import {useSearchUIFiltersStore} from '../../state/store';
-import {Box, SxProps} from '@mui/material';
+import {Box, SxProps, type Theme} from '@mui/material';
 import PneTextField from '../../../../PneTextField';
 import { filtersInputSx } from './style';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
@@ -38,13 +38,18 @@ export const ExactSearchCriterion = () => {
                 },
             }}
         />
-        <Box component={'span'} sx={{display: 'inline-block', color: theme => theme.palette.pne?.text.muted ?? '#808080'}}>{t('in')}</Box>
+        <Box component={'span'} sx={inSx}>{t('in')}</Box>
         <SearchUIExactSearchLabelSelect
             value={exactSearchLabel}
             options={exactSearchLabels}
             onChange={setExactCriterionSearchLabel}
         />
     </Box>
+}
+
+const inSx: SxProps<Theme> = {
+    display: 'inline-block',
+    color: theme => theme.palette.pne?.text.muted ?? '#808080',
 }
 
 const centerSx: SxProps = {

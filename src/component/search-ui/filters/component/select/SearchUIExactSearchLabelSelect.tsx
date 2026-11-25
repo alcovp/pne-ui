@@ -73,4 +73,6 @@ const SearchUIExactSearchLabelSelect = (props: IProps) => {
     </Box>
 }
 
-export default SearchUIExactSearchLabelSelect
+// The value typed beside it changes on every key; the label select, a chip over a Select, draws again only when its
+// own props change.
+export default React.memo(SearchUIExactSearchLabelSelect)
