@@ -251,9 +251,11 @@ describe('SearchUIFilters layout', () => {
             `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.CURRENCY}"]`,
         )
         for (const iconId of ['remove-criterion', 'clear-criterion']) {
-            const icon = currency?.querySelector<HTMLElement>(`[data-autotest="${iconId}"]`) as HTMLElement
+            const find = () => currency?.querySelector<HTMLElement>(`[data-autotest="${iconId}"]`) as HTMLElement
 
-            fireEvent.mouseOver(icon)
+            fireEvent.mouseOver(find())
+            // The first pointer mounts the tooltip (PneTooltip), which draws the icon anew.
+            const icon = find()
             const tooltip = await screen.findByRole('tooltip')
             expect(tooltip.textContent).toBe(icon.getAttribute('aria-label'))
             // It may cover the next row's icons: it lets the pointer through to them.
@@ -312,6 +314,12 @@ describe('SearchUIFilters layout', () => {
         const nameCell = (type: CriterionTypeEnum) => scope.querySelector<HTMLElement>(
             `[data-autotest="criterion"][data-autotest-value="${type}"]`,
         )?.children[1].firstElementChild as HTMLElement
+        // The first pointer mounts the tooltip of a name (PneTooltip) and draws the name anew: the names are
+        // looked up again after it.
+        for (const type of [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]) {
+            fireEvent.mouseOver(nameCell(type))
+            fireEvent.mouseLeave(nameCell(type))
+        }
         const status = nameCell(CriterionTypeEnum.STATUS)
         const currency = nameCell(CriterionTypeEnum.CURRENCY)
         expect(status.textContent).toBe('react.CriterionTypeEnum.STATUS')

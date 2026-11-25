@@ -371,10 +371,13 @@ const PneSwitchDisabledHint = ({hint, ref}: {
 } & {ref?: React.Ref<DisabledHintHandle>}) => {
     const {t} = useTranslation()
     const [anchor, setAnchor] = useState<HTMLElement | null>(null)
+    // The Tooltip mounts on the first hover: a column of disabled switches does not carry a closed Tooltip each.
+    const [hovered, setHovered] = useState(false)
     const enterTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
     useImperativeHandle(ref, () => ({
         show: element => {
+            setHovered(true)
             clearTimeout(enterTimerRef.current)
             enterTimerRef.current = setTimeout(() => setAnchor(element), disabledHintEnterDelayMs)
         },
@@ -385,6 +388,10 @@ const PneSwitchDisabledHint = ({hint, ref}: {
     }), [])
 
     useEffect(() => () => clearTimeout(enterTimerRef.current), [])
+
+    if (!hovered) {
+        return null
+    }
 
     return <Tooltip
         describeChild

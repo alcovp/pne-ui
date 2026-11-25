@@ -91,7 +91,6 @@ const useControlRowThreshold = (
             })
         }
 
-        // eslint-disable-next-line @eslint-react/set-state-in-effect -- measures the natural width of its parts
         measure(false)
 
         /*

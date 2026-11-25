@@ -1,5 +1,5 @@
 import React from 'react';
-import {Tooltip} from '@mui/material';
+import PneTooltip from '../../../../PneTooltip';
 import {SEARCH_UI_FILTERS_TOOLTIP_DELAY, SearchUIFiltersCriterionHeaderButton} from '../../styled';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 
@@ -17,7 +17,7 @@ const SearchUIFiltersCriterionHeaderRemoveButton = (props: IProps) => {
     } = props
 
     // The icon alone does not say what it does: the tooltip shows the same text as the label.
-    return <Tooltip
+    return <PneTooltip
         disableInteractive
         enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
@@ -42,7 +42,7 @@ const SearchUIFiltersCriterionHeaderRemoveButton = (props: IProps) => {
                 <path d="M4 4L12 12" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
         </SearchUIFiltersCriterionHeaderButton>
-    </Tooltip>
+    </PneTooltip>
 }
 
 export default SearchUIFiltersCriterionHeaderRemoveButton;

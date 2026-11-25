@@ -1,7 +1,8 @@
 import React, {useState} from 'react';
 import {CriterionTypeEnum} from '../../types';
 import {useTranslation} from 'react-i18next';
-import {Box, Tooltip} from '@mui/material';
+import {Box} from '@mui/material';
+import PneTooltip from '../../../../PneTooltip';
 import type {SxProps, Theme} from '@mui/material/styles';
 import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from '../../styled';
 
@@ -25,7 +26,7 @@ export const CriterionLeft = (props: Props) => {
     }
 
     // A name that does not fit its column is cut with an ellipsis, never wrapped.
-    return <Tooltip
+    return <PneTooltip
         disableInteractive
         enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
         enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
@@ -36,7 +37,7 @@ export const CriterionLeft = (props: Props) => {
                 {label}
             </Box>
         </Box>
-    </Tooltip>
+    </PneTooltip>
 }
 
 // Full-strength label colour from the palette, so dark mode reads; the light colour stands in

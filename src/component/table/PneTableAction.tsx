@@ -1,5 +1,6 @@
 import React from 'react'
-import {IconButton, IconButtonProps, Tooltip} from '@mui/material'
+import {IconButton, IconButtonProps} from '@mui/material'
+import PneTooltip from '../PneTooltip'
 import type {SxProps, Theme} from '@mui/material/styles'
 import {pneIconActionSx} from '../iconActionLook'
 import {PNE_STATUS_COLORS} from '../../themeColors'
@@ -54,10 +55,10 @@ const PneTableAction = ({ref, ...props}: React.PropsWithoutRef<PneTableActionPro
         return button
     }
 
-    return <Tooltip enterDelay={300} enterNextDelay={300} title={tooltip}>
+    return <PneTooltip enterDelay={300} enterNextDelay={300} title={tooltip}>
         {/* A disabled button takes no pointer events: the wrapper hears the pointer for it. */}
         <span style={{display: 'inline-flex', flexShrink: 0}}>{button}</span>
-    </Tooltip>
+    </PneTooltip>
 }
 
 PneTableAction.displayName = 'PneTableAction'

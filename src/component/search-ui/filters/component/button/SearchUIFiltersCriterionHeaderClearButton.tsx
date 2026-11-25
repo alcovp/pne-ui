@@ -1,5 +1,5 @@
 import React from 'react';
-import {Tooltip} from '@mui/material';
+import PneTooltip from '../../../../PneTooltip';
 import {SEARCH_UI_FILTERS_TOOLTIP_DELAY, SearchUIFiltersCriterionHeaderButton} from '../../styled';
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
 
@@ -18,7 +18,7 @@ const SearchUIFiltersCriterionHeaderClearButton = (props: IProps) => {
 
     // The icon alone does not say what it does: the tooltip shows the same text as the label.
     return (
-        <Tooltip
+        <PneTooltip
             disableInteractive
             enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
             enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
@@ -32,7 +32,7 @@ const SearchUIFiltersCriterionHeaderClearButton = (props: IProps) => {
             >
                 <ReloadIcon/>
             </SearchUIFiltersCriterionHeaderButton>
-        </Tooltip>
+        </PneTooltip>
     );
 }
 

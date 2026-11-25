@@ -1,5 +1,6 @@
 import React from 'react'
-import {ButtonBase, ButtonBaseProps, SxProps, Theme, Tooltip} from '@mui/material'
+import {ButtonBase, ButtonBaseProps, SxProps, Theme} from '@mui/material'
+import PneTooltip from '../PneTooltip'
 import {PNE_BUTTON_SIZE} from '../../buttonLook'
 import {resolvePneSemanticPalette} from '../../createTheme'
 import {PneChevronDownIcon} from '../dropdown/dropdownLook'
@@ -67,10 +68,10 @@ const PneTableControlButton = function PneTableControlButton({ref, ...props}: Re
     }
 
     // The hint describes the button rather than naming it, so its visible label stays its name.
-    return <Tooltip describeChild enterDelay={300} enterNextDelay={300} title={tooltip}>
+    return <PneTooltip describeChild enterDelay={300} enterNextDelay={300} title={tooltip}>
         {/* A disabled button takes no pointer events: the wrapper hears the pointer for it. */}
         <span style={{display: 'inline-flex', flexShrink: 0}}>{button}</span>
-    </Tooltip>
+    </PneTooltip>
 }
 
 export default PneTableControlButton
