@@ -18,25 +18,32 @@
  * screen; taken out of flow, the element keeps its own cascade. Callers must run
  * this inside `useLayoutEffect`, where the swap happens before paint.
  */
-export const measureNaturalWidth = (element: HTMLElement | null | undefined): number => {
-    if (!element) {
-        return 0
-    }
+export const measureNaturalWidth = (element: HTMLElement | null | undefined): number =>
+    measureNaturalWidths([element])[0]
 
-    const savedCssText = element.style.cssText
+/**
+ * Natural widths of several elements in one layout: all of them leave the flow, are read, and come back. Taken out
+ * of flow they do not affect each other, so the widths are those of one-by-one measurements, at the cost of a
+ * single layout instead of one per element.
+ */
+export const measureNaturalWidths = (elements: ReadonlyArray<HTMLElement | null | undefined>): number[] => {
+    const present = elements.filter((element): element is HTMLElement => !!element)
+    const savedCssTexts = present.map(element => element.style.cssText)
 
-    Object.assign(element.style, {
+    present.forEach(element => Object.assign(element.style, {
         left: '-99999px',
         maxWidth: 'none',
         position: 'fixed',
         top: '0',
         visibility: 'hidden',
         width: 'max-content',
+    }))
+
+    const widths = new Map(present.map(element => [element, element.getBoundingClientRect().width]))
+
+    present.forEach((element, index) => {
+        element.style.cssText = savedCssTexts[index]
     })
 
-    const naturalWidth = element.getBoundingClientRect().width
-
-    element.style.cssText = savedCssText
-
-    return naturalWidth
+    return elements.map(element => (element ? widths.get(element) ?? 0 : 0))
 }

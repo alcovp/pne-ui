@@ -14,7 +14,7 @@ import {
 import {usePneTheme} from "../../usePneTheme";
 import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from "../../labelCentring";
 import {resolvePneSemanticPalette} from "../../createTheme";
-import {measureNaturalWidth} from "./measureNaturalWidth";
+import {measureNaturalWidths} from "./measureNaturalWidth";
 import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from "./tableControlMetrics";
 
 interface IPaginationActionsProps {
@@ -65,13 +65,23 @@ const useControlRowThreshold = (
     gap: number,
 ) => {
     const [threshold, setThreshold] = useState(0)
+    const measuredContentRef = useRef<string | null>(null)
 
     useLayoutEffect(() => {
-        const measure = () => {
-            const toolbarContent = refs.toolbar.current?.firstElementChild
-            const naturalWidth = measureNaturalWidth(refs.navigation.current)
-                + measureNaturalWidth(refs.pageSizes.current)
-                + measureNaturalWidth(toolbarContent as HTMLElement | null)
+        const measure = (force: boolean) => {
+            const toolbarContent = refs.toolbar.current?.firstElementChild as HTMLElement | null | undefined
+            const parts = [refs.navigation.current, refs.pageSizes.current, toolbarContent]
+            // The band renders often (loading, every page); its content changes seldom. The same text in the same
+            // number of elements has the same natural width, and is not measured again: each measurement lays the
+            // page out at once.
+            const content = parts
+                .map(part => (part ? `${part.querySelectorAll('*').length}:${part.textContent}` : '-'))
+                .join('\u0001')
+            if (!force && content === measuredContentRef.current) {
+                return
+            }
+            measuredContentRef.current = content
+            const naturalWidth = measureNaturalWidths(parts).reduce((sum, width) => sum + width, 0)
             const gaps = refs.toolbar.current ? gap * 2 : gap
 
             setThreshold(current => {
@@ -82,7 +92,7 @@ const useControlRowThreshold = (
         }
 
         // eslint-disable-next-line @eslint-react/set-state-in-effect -- measures the natural width of its parts
-        measure()
+        measure(false)
 
         /*
          * Web fonts land after the first layout and change every label width, so
@@ -98,7 +108,7 @@ const useControlRowThreshold = (
 
         fonts.ready.then(() => {
             if (!cancelled) {
-                measure()
+                measure(true)
             }
         })
 

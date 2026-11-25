@@ -1,4 +1,4 @@
-import {measureNaturalWidth} from '../src/component/table/measureNaturalWidth'
+import {measureNaturalWidth, measureNaturalWidths} from '../src/component/table/measureNaturalWidth'
 
 describe('measureNaturalWidth', () => {
     it('reports nothing for a missing element', () => {
@@ -46,6 +46,35 @@ describe('measureNaturalWidth', () => {
             expect(element.parentElement).toBe(parent)
         } finally {
             parent.remove()
+        }
+    })
+
+    it('measures several elements in one layout, all of them out of flow at once, and restores each', () => {
+        const first = document.createElement('div')
+        const second = document.createElement('div')
+        first.style.cssText = 'color: red;'
+        document.body.append(first, second)
+        const outOfFlowWhileRead: string[] = []
+
+        for (const [element, width] of [[first, 40], [second, 60]] as const) {
+            Object.defineProperty(element, 'getBoundingClientRect', {
+                configurable: true,
+                value: () => {
+                    outOfFlowWhileRead.push(`${first.style.position}/${second.style.position}`)
+                    return {width} as DOMRect
+                },
+            })
+        }
+
+        try {
+            expect(measureNaturalWidths([first, null, second])).toEqual([40, 0, 60])
+            // Both left the flow before the first read: one layout serves every measurement.
+            expect(outOfFlowWhileRead).toEqual(['fixed/fixed', 'fixed/fixed'])
+            expect(first.style.cssText).toBe('color: red;')
+            expect(second.style.position).toBe('')
+        } finally {
+            first.remove()
+            second.remove()
         }
     })
 
