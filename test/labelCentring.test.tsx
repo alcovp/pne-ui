@@ -34,16 +34,20 @@ describe('label centring', () => {
         const config = PNE_BUTTON_SIZE[size]
         const supported = buttonStyle(size)[PNE_LABEL_TRIM_SUPPORT] as CSSObject
         // Only a button that holds its label and MUI's own slots: any other child keeps the flex layout.
-        // `:where` keeps the rule as light as one class: `display` set by the `sx` of a page still wins.
+        // `:where` keeps the rule as light as one class.
         const labelOnly = only(supported, '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))')
 
-        expect(labelOnly).toMatchObject({alignContent: 'center', display: 'inline-block', textBox: TRIM})
+        expect(labelOnly).toMatchObject({alignContent: 'center', '--pne-button-display': 'inline-block', textBox: TRIM})
+        // The rule sets only the property: `display` stays a plain declaration of the button, which the `sx` of a
+        // page replaces (a button hidden with `display: 'none'` stays hidden).
+        expect(labelOnly.display).toBeUndefined()
+        expect(buttonStyle(size).display).toBe('var(--pne-button-display, inline-flex)')
         // The padding takes over the room the trim removed, so a label of two lines keeps its air.
         expect(labelOnly['--pne-button-padding-block']).toBe(`calc((${config.height}px - 1cap) / 2 - 1px)`)
         // The padding itself is a plain declaration of the button, so a padding from the `sx` of a page wins.
         expect(buttonStyle(size).paddingTop).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
         expect(buttonStyle(size).paddingBottom).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
-        expect(labelOnly['&.MuiButton-fullWidth']).toEqual({display: 'block'})
+        expect(labelOnly['&.MuiButton-fullWidth']).toEqual({'--pne-button-display': 'block'})
         // The gap of the flex layout and the pull of the icon become one margin of the same size.
         expect(only(labelOnly, '.MuiButton-startIcon, &&& .MuiButton-endIcon')).toMatchObject({
             display: 'inline',

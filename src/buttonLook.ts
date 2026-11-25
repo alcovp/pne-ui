@@ -95,9 +95,13 @@ const WAITING_CENTRE = '&.MuiButton-loading.MuiButton-loadingPositionCenter'
 
 // A button that holds its label and the slots MUI itself renders, nothing else. A button with other children
 // (a bare icon, a box of its own) keeps the flex layout: only flex centres what the page put inside.
-// `:where` keeps the weight of the rule at one class, so `display` from the `sx` of a page still wins.
 const LABEL_ONLY = '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))'
 
+// The trimmed layout changes `display` and the block padding through properties that only it sets: the
+// declarations themselves stay plain declarations of the button, so a `display` or a padding from the `sx` of a
+// page replaces them. A rule of its own would come later in the same class and win: a button a page hid with
+// `display: 'none'` showed up again.
+const DISPLAY = '--pne-button-display'
 const PADDING_BLOCK = '--pne-button-padding-block'
 const WORD_JOINER = '"\\2060"'
 
@@ -109,6 +113,7 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
         border: 'none',
         borderRadius: '4px',
         boxSizing: 'border-box',
+        display: `var(${DISPLAY}, inline-flex)`,
         fontFamily: PNE_BUTTON_FONT_FAMILY,
         fontSize: `${config.fontSize}px`,
         fontWeight: 500,
@@ -117,8 +122,6 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
         lineHeight: `${config.lineHeight}px`,
         minHeight: `${config.height}px`,
         minWidth: '0px',
-        // The block padding is read through a property that only the trimmed layout below sets, so the padding
-        // itself stays a plain declaration of the button: a padding from the `sx` of a page still replaces it.
         paddingBottom: `var(${PADDING_BLOCK}, ${config.paddingBlock}px)`,
         paddingLeft: `${config.paddingInline}px`,
         paddingRight: `${config.paddingInline}px`,
@@ -156,13 +159,13 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
         [PNE_LABEL_TRIM_SUPPORT]: {
             [LABEL_ONLY]: {
                 alignContent: 'center',
-                display: 'inline-block',
+                [DISPLAY]: 'inline-block',
                 // A trimmed line is as high as its capitals, so the padding grows by what the trim took: a
                 // label of two lines keeps the room over and under it that a label of one line has. 1px less
                 // than the exact half, so that the rounding of the cap height never makes a button 1px higher.
                 [PADDING_BLOCK]: `calc((${config.height}px - 1cap) / 2 - 1px)`,
                 ...PNE_LABEL_TRIM,
-                '&.MuiButton-fullWidth': {display: 'block'},
+                '&.MuiButton-fullWidth': {[DISPLAY]: 'block'},
                 // MUI's zero-width strut keeps the baseline of a flex button that starts with an icon; a block
                 // has its text for that, and the strut would only take a gap before the icon.
                 '&::before': {content: 'none'},
