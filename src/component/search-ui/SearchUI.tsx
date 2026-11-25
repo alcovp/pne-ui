@@ -310,6 +310,8 @@ const SearchUIContent = <
     const searchCriteria = useSearchUIFiltersStore(store => store.appliedSearchCriteria)
     const filtersSettingsContextName = useSearchUIFiltersStore(store => store.settingsContextName)
     const filtersContextReady = filtersSettingsContextName === settingsContextName
+    // False while the panel starts: a remembered set of filters is still loading, and the first search waits for it.
+    const filtersStarted = useSearchUIFiltersStore(store => store.initialized) && filtersContextReady
 
     const defaultDisplayOptions: TableDisplayOptions = {
         ...initialDisplayOptions,
@@ -347,12 +349,12 @@ const SearchUIContent = <
     const fetchDataExtraDeps = useMemo(
         () => [
             effectiveSearchCriteria,
-            filtersContextReady,
+            filtersStarted,
             resolvedTable.viewId,
             disabledCriteriaKey,
             hiddenCriteriaKey,
         ],
-        [effectiveSearchCriteria, filtersContextReady, resolvedTable.viewId, disabledCriteriaKey, hiddenCriteriaKey],
+        [effectiveSearchCriteria, filtersStarted, resolvedTable.viewId, disabledCriteriaKey, hiddenCriteriaKey],
     )
 
     const {
@@ -382,7 +384,13 @@ const SearchUIContent = <
         resetKey: tableResetIdentity,
         resetStateOnKeyChange: resolvedTable.tableStateOnActivate,
         fetchData: ({ page, pageSize, order, sortIndex }) => {
-            if (!effectiveSearchCriteria?.initialized || !filtersContextReady) {
+            if (!filtersStarted) {
+                // The first search is on its way: the table keeps its skeleton until the panel has started. An
+                // empty answer here would show "Nothing is found" between the skeleton and the rows.
+                return new Promise<D[]>(() => undefined)
+            }
+            if (!effectiveSearchCriteria?.initialized) {
+                // The panel has started without a search (its filters do not pass validation): nothing to show.
                 return Promise.resolve<D[]>([])
             }
 

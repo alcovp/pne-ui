@@ -154,6 +154,86 @@ describe('SearchUI template bootstrap', () => {
         expect(searchData).not.toHaveBeenCalledWith(expect.objectContaining({status: null}))
     })
 
+    it('keeps the table skeleton while the saved template loads: no empty row between it and the rows', async () => {
+        const contextName = 'template-bootstrap-skeleton'
+        localStorage.setItem(`last_template_name${contextName}`, storedTemplate.name)
+        const templates = createDeferred<SearchUITemplate[]>()
+        const rows = createDeferred<{id: number}[]>()
+        const searchData = jest.fn(() => rows.promise)
+
+        const {container} = render(
+            <SearchUIDefaultsContext
+                value={{...initialSearchUIDefaults, getSearchTemplates: jest.fn(() => templates.promise)}}
+            >
+                <SearchUI
+                    settingsContextName={contextName}
+                    possibleCriteria={[CriterionTypeEnum.STATUS]}
+                    predefinedCriteria={[CriterionTypeEnum.STATUS]}
+                    searchData={searchData}
+                    createTableHeader={() => <tr><th>Result</th></tr>}
+                    createTableRow={() => <tr><td>Found row</td></tr>}
+                    config={{
+                        hideShowFiltersButton: true,
+                        hideTemplatesSelect: true,
+                    }}
+                />
+            </SearchUIDefaultsContext>,
+        )
+        const tableSkeleton = () => container.querySelector('table .MuiSkeleton-root')
+        const emptyRow = () => container.textContent?.includes('advancedSearch.noRows')
+
+        expect(tableSkeleton()).not.toBeNull()
+        // Longer than the skeleton is held at least: the table still waits for the first search.
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 700))
+        })
+        expect(tableSkeleton()).not.toBeNull()
+        expect(emptyRow()).toBe(false)
+
+        await act(async () => {
+            templates.resolve([storedTemplate])
+            await templates.promise
+        })
+        await waitFor(() => expect(searchData).toHaveBeenCalledTimes(1))
+        // The search runs: still the skeleton, not a moment of "Nothing is found".
+        await act(async () => {
+            await new Promise(resolve => setTimeout(resolve, 50))
+        })
+        expect(tableSkeleton()).not.toBeNull()
+        expect(emptyRow()).toBe(false)
+
+        await act(async () => {
+            rows.resolve([{id: 1}])
+            await rows.promise
+        })
+        await waitFor(() => expect(container.textContent).toContain('Found row'))
+        expect(emptyRow()).toBe(false)
+    })
+
+    it('shows the empty row when the panel starts without a search', async () => {
+        const searchData = jest.fn().mockResolvedValue([])
+
+        const {container} = render(
+            <SearchUIDefaultsContext value={initialSearchUIDefaults}>
+                <SearchUI
+                    settingsContextName='template-bootstrap-no-search'
+                    possibleCriteria={[CriterionTypeEnum.STATUS]}
+                    predefinedCriteria={[CriterionTypeEnum.STATUS]}
+                    searchData={searchData}
+                    createTableHeader={() => <tr><th>Result</th></tr>}
+                    createTableRow={() => <tr><td>Found row</td></tr>}
+                    config={{
+                        hideShowFiltersButton: true,
+                        hideTemplatesSelect: true,
+                    }}
+                />
+            </SearchUIDefaultsContext>,
+        )
+
+        await waitFor(() => expect(container.textContent).toContain('advancedSearch.noRows'))
+        expect(container.querySelector('table .MuiSkeleton-root')).toBeNull()
+    })
+
     it('publishes defaults immediately when no last template is saved', async () => {
         const deferred = createDeferred<SearchUITemplate[]>()
         const onFiltersUpdate = jest.fn()
