@@ -702,7 +702,19 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const manualSearch = useSearchUIFiltersStore(s => s.config?.manualSearch)
     const triggerSearch = useSearchUIFiltersStore(s => s.triggerSearch)
     const updateConditions = useSearchUIFiltersStore(s => s.updateConditions)
-    const filtersState = useSearchUIFiltersStore(s => s)
+    // Only the criteria that availability rules name depend on the conditions: the panel subscribes to which of
+    // them are unavailable now, not to the whole store, so a key typed into a criterion does not draw the whole
+    // panel again (it did, 25-80 ms a key on a list page).
+    const availabilityRules = config?.criterionAvailabilityRules
+    const unavailableCriteriaKey = useSearchUIFiltersStore(state => (availabilityRules ?? [])
+        .map(rule => rule.criterion)
+        .filter((criterion, index, list) => list.indexOf(criterion) === index)
+        .filter(criterion => !isCriterionAvailable(criterion, state, config))
+        .join('|'))
+    const unavailableCriteria = useMemo(
+        () => new Set(unavailableCriteriaKey === '' ? [] : unavailableCriteriaKey.split('|')),
+        [unavailableCriteriaKey],
+    )
     const validationResult = useSearchUIFiltersStore(s => s.validationResult)
 
     const [showFilters, setShowFilters] = useState(!collapsed)
@@ -823,7 +835,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                 : [possibleC]
 
             return criteriaToAdd.every(candidate => {
-                if (!isCriterionAvailable(candidate, filtersState, config)) {
+                if (unavailableCriteria.has(candidate)) {
                     return false
                 }
 
