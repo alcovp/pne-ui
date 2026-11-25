@@ -337,6 +337,8 @@ export const PneBreadcrumbs = ({
                     {
                         justifyContent: 'left',
                         padding: 0,
+                        // The same for the button laid out as a block (labelCentring.ts).
+                        textAlign: 'left',
                         '&:hover': {
                             backgroundColor: 'background.default',
                             textDecoration: 'none',

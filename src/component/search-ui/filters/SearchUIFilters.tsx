@@ -20,6 +20,7 @@ import {Box, SxProps, Tooltip, Button} from '@mui/material';
 import type {Theme} from '@mui/material/styles';
 import {PneChevronDownIcon} from '../../dropdown/dropdownLook';
 import {resolvePneSemanticPalette} from '../../../createTheme';
+import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from '../../../labelCentring';
 import isEqual from 'lodash/isEqual';
 import SearchUIAddFilter from './component/select/SearchUIAddFilter';
 import {CriterionContainer} from './CriterionContainer';
@@ -1020,6 +1021,13 @@ const filtersCountSx: SxProps<Theme> = theme => {
         lineHeight: '16px',
         minWidth: '20px',
         px: '6px',
+        // The digits stand in the middle of the badge at every screen scale (labelCentring.ts).
+        [PNE_LABEL_TRIM_SUPPORT]: {
+            alignContent: 'center',
+            display: 'inline-block',
+            textAlign: 'center',
+            ...PNE_LABEL_TRIM,
+        },
     }
 }
 

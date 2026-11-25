@@ -4,6 +4,7 @@ import type {PneBrandRamp} from './brandRamp'
 import type {PneButtonPalette} from './buttonPalette'
 import {PneCloseIcon} from './component/PneCloseIcon'
 import type {PneDropdownPalette} from './dropdownPalette'
+import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from './labelCentring'
 import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP, PNE_STATUS_COLORS} from './themeColors'
 
 /**
@@ -167,6 +168,9 @@ const chipStyle = (
         '& .MuiChip-label': {
             paddingLeft: `${geometry.paddingInline}px`,
             paddingRight: `${deletable ? geometry.gap : geometry.paddingInline}px`,
+            // The label stands in the middle of the chip at every screen scale (labelCentring.ts). A trimmed
+            // box is lower than its letters, so it clips along the line only: descenders stay whole.
+            [PNE_LABEL_TRIM_SUPPORT]: {...PNE_LABEL_TRIM, overflowX: 'clip', overflowY: 'visible'},
         },
         '& .MuiChip-icon, & .MuiChip-avatar': {
             color: tone.icon,

@@ -2,6 +2,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import type {Components, CSSObject, Theme} from '@mui/material/styles'
 import * as React from 'react'
 import type {PneButtonPalette, PneButtonStateColors, PneButtonVariant} from './buttonPalette'
+import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT, pneIconOnCapitals} from './labelCentring'
 
 /**
  * The look of the MUI `Button` under the PNE UI theme (UI Kit Button: Variant × Size × State). The
@@ -92,6 +93,11 @@ const picked = (suffix = ''): string => PICKED.map(mark => `&${mark}${suffix}`).
 const WAITING = '&&&.MuiButton-loading:not(.MuiButton-loadingPositionCenter)'
 const WAITING_CENTRE = '&.MuiButton-loading.MuiButton-loadingPositionCenter'
 
+// A button that holds its label and the slots MUI itself renders, nothing else. A button with other children
+// (a bare icon, a box of its own) keeps the flex layout: only flex centres what the page put inside.
+// `:where` keeps the weight of the rule at one class, so `display` from the `sx` of a page still wins.
+const LABEL_ONLY = '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))'
+
 const sizeStyle = (size: PneButtonLookSize): CSSObject => {
     const config = PNE_BUTTON_SIZE[size]
     const iconPull = config.iconPull === 0 ? '0px' : `-${config.iconPull}px`
@@ -136,6 +142,42 @@ const sizeStyle = (size: PneButtonLookSize): CSSObject => {
             position: 'static',
         },
         [`${WAITING_CENTRE} .MuiButton-loadingIndicator`]: {fontSize: config.icon},
+        // The label stands in the middle of the button at every screen scale (labelCentring.ts): the button is a
+        // block whose one line is trimmed to the capital band and centred, and the icons are inline boxes
+        // raised to the middle of that band. The gaps of the flex layout become margins of the same size.
+        [PNE_LABEL_TRIM_SUPPORT]: {
+            [LABEL_ONLY]: {
+                alignContent: 'center',
+                display: 'inline-block',
+                // A trimmed line is as high as its capitals, so the padding grows by what the trim took: a
+                // label of two lines keeps the room over and under it that a label of one line has. 1px less
+                // than the exact half, so that the rounding of the cap height never makes a button 1px higher.
+                paddingBlock: `calc((${config.height}px - 1cap) / 2 - 1px)`,
+                ...PNE_LABEL_TRIM,
+                '&.MuiButton-fullWidth': {display: 'block'},
+                // MUI's zero-width strut keeps the baseline of a flex button that starts with an icon; a block
+                // has its text for that, and the strut would only take a gap before the icon.
+                '&::before': {content: 'none'},
+                '&&& .MuiButton-startIcon, &&& .MuiButton-endIcon': {
+                    display: 'inline-block',
+                    lineHeight: 0,
+                    verticalAlign: pneIconOnCapitals(config.icon),
+                },
+                '&&& .MuiButton-startIcon': {marginRight: `${config.gap - config.iconPull}px`},
+                '&&& .MuiButton-endIcon': {marginLeft: `${config.gap - config.iconPull}px`},
+                [`${WAITING} .MuiButton-startIcon, ${WAITING} .MuiButton-endIcon`]: {display: 'none'},
+                [`${WAITING} .MuiButton-loadingIndicator`]: {
+                    display: 'inline-block',
+                    lineHeight: 0,
+                    marginRight: `${config.gap}px`,
+                    verticalAlign: pneIconOnCapitals(config.icon),
+                },
+                [`${WAITING}.MuiButton-loadingPositionEnd .MuiButton-loadingIndicator`]: {
+                    marginLeft: `${config.gap}px`,
+                    marginRight: 0,
+                },
+            },
+        },
     }
 }
 

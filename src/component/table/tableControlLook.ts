@@ -1,6 +1,7 @@
 import type {CSSObject, Theme} from '@mui/material/styles'
 import {PNE_BUTTON_SIZE, type PneButtonLookSize} from '../../buttonLook'
 import type {PneSemanticPalette} from '../../createTheme'
+import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from '../../labelCentring'
 import {TABLE_CONTROL_BAND_SIZE, TABLE_CONTROL_GAP, TABLE_CONTROL_SHELL_PADDING} from './tableControlMetrics'
 
 /*
@@ -45,6 +46,16 @@ export const tableControlTextButtonLook = (
         '&.Mui-focusVisible': {
             outline: `2px solid ${pne.focusRing}`,
             outlineOffset: '-2px',
+        },
+        // The label stands in the middle at every screen scale (labelCentring.ts). A button that holds
+        // more than its label (an icon of its own) keeps the flex layout; `:where` leaves `display` to `sx`.
+        [PNE_LABEL_TRIM_SUPPORT]: {
+            '&:where(:not(:has(> :not(.MuiTouchRipple-root))))': {
+                alignContent: 'center',
+                display: 'inline-block',
+                textAlign: 'center',
+                ...PNE_LABEL_TRIM,
+            },
         },
     }
 }
