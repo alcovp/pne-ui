@@ -27,12 +27,13 @@ describe('PneModal', () => {
             .toBe('rgb(242, 242, 242)')
     })
 
-    it('does not override an existing light-skin heading color', () => {
+    // The class of the title outweighs a heading rule of a skin (`h3 {color}`) in a browser. jsdom has
+    // no specificity: with such a rule in the page the answer would depend on the order of the sheets.
+    it('gives the title the UI Kit color in the light theme as well', () => {
         const theme = createPneTheme({experimentalColor: '#0a91bc'} as Skin)
 
         render(
             <ThemeProvider theme={theme}>
-                <style>{'h3 { color: rgb(6, 63, 83); }'}</style>
                 <PneModal
                     onClose={jest.fn()}
                     open
@@ -43,7 +44,7 @@ describe('PneModal', () => {
         )
 
         expect(window.getComputedStyle(screen.getByTestId('light-modal-title')).color)
-            .toBe('rgb(6, 63, 83)')
+            .toBe('rgb(44, 49, 54)')
     })
 
     it('keeps an explicit title color ahead of the dark default', () => {
