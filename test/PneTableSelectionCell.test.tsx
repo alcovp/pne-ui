@@ -9,20 +9,12 @@ describe('PneTable selection cells', () => {
             <table>
                 <thead>
                     <tr>
-                        <PneTableSelectionHeaderCell
-                            aria-label='Select this page'
-                            onChange={jest.fn()}
-                            state='none'
-                        />
+                        <PneTableSelectionHeaderCell aria-label='Select this page' onChange={jest.fn()} state='none' />
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <PneTableSelectionCell
-                            aria-label='Select gate 42'
-                            checked={false}
-                            onChange={jest.fn()}
-                        />
+                        <PneTableSelectionCell aria-label='Select gate 42' checked={false} onChange={jest.fn()} />
                     </tr>
                 </tbody>
             </table>,
@@ -52,11 +44,7 @@ describe('PneTable selection cells', () => {
             <table>
                 <thead>
                     <tr>
-                        <PneTableSelectionHeaderCell
-                            aria-label='Select this page'
-                            onChange={jest.fn()}
-                            state='some'
-                        />
+                        <PneTableSelectionHeaderCell aria-label='Select this page' onChange={jest.fn()} state='some' />
                     </tr>
                 </thead>
             </table>,
@@ -71,11 +59,7 @@ describe('PneTable selection cells', () => {
             <table>
                 <thead>
                     <tr>
-                        <PneTableSelectionHeaderCell
-                            aria-label='Select this page'
-                            onChange={jest.fn()}
-                            state='all'
-                        />
+                        <PneTableSelectionHeaderCell aria-label='Select this page' onChange={jest.fn()} state='all' />
                     </tr>
                 </thead>
             </table>,
@@ -102,11 +86,7 @@ describe('PneTable selection cells', () => {
                 </thead>
                 <tbody>
                     <tr>
-                        <PneTableSelectionCell
-                            aria-label='Select gate 42'
-                            checked={false}
-                            onChange={onRowChange}
-                        />
+                        <PneTableSelectionCell aria-label='Select gate 42' checked={false} onChange={onRowChange} />
                     </tr>
                 </tbody>
             </table>,
@@ -174,11 +154,7 @@ describe('PneTable selection cells', () => {
             <table>
                 <tbody>
                     <tr>
-                        <PneTableSelectionCell
-                            aria-label='Select gate 42'
-                            checked={false}
-                            onChange={jest.fn()}
-                        />
+                        <PneTableSelectionCell aria-label='Select gate 42' checked={false} onChange={jest.fn()} />
                     </tr>
                 </tbody>
             </table>,
@@ -212,8 +188,8 @@ describe('PneTable selection cells', () => {
 
         expect(onPageChange).toHaveBeenCalledTimes(1)
         expect(onHeaderRowClick).not.toHaveBeenCalled()
-        expect(container.querySelector(
-            'input[data-autotest="parentCheckbox"][data-autotest-value="gates"]',
-        )).toBe(checkbox)
+        expect(container.querySelector('input[data-autotest="parentCheckbox"][data-autotest-value="gates"]')).toBe(
+            checkbox,
+        )
     })
 })

@@ -1,10 +1,6 @@
 import React from 'react'
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
-import {
-    PneTable,
-    useTable,
-    type UseTableParams,
-} from '../src'
+import {PneTable, useTable, type UseTableParams} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({t: (key: string) => key}),
@@ -19,7 +15,7 @@ type Row = {
 
 type FetchData = NonNullable<UseTableParams<Row>['fetchData']>
 
-const createDeferred = <T, >() => {
+const createDeferred = <T,>() => {
     let resolve!: (value: T) => void
     let reject!: (reason?: unknown) => void
     const promise = new Promise<T>((promiseResolve, promiseReject) => {
@@ -64,41 +60,45 @@ const ResetKeyHarness = ({
         throw suspendOnFull
     }
 
-    return <>
-        <output data-testid='page'>{table.page}</output>
-        <output data-testid='sort'>{`${table.sortIndex}:${table.order}`}</output>
-        <output data-testid='actions-disabled'>{String(table.paginator.disableActions)}</output>
-        <output data-testid='external-data'>{externalData.map(row => row.label).join(',')}</output>
-        <button
-            onClick={() => table.paginator.onPageChange(null, 2)}
-            type='button'
-        >
-            Go to page three
-        </button>
-        <button
-            onClick={() => {
-                table.setSortIndex(9)
-                table.setOrder('desc')
-            }}
-            type='button'
-        >
-            Change sort
-        </button>
-        <button
-            onClick={() => table.paginator.requestScrollToPagination?.()}
-            type='button'
-        >
-            Request pagination scroll
-        </button>
-        <div data-testid='pagination-target' ref={table.paginator.paginationRef}/>
-        <PneTable<Row>
-            autoTestId='reset-table'
-            createTableHeader={() => <tr><th>Label</th></tr>}
-            createRow={row => <tr key={row.id}><td>{row.label}</td></tr>}
-            data={table.data}
-            loading={table.loading}
-        />
-    </>
+    return (
+        <>
+            <output data-testid='page'>{table.page}</output>
+            <output data-testid='sort'>{`${table.sortIndex}:${table.order}`}</output>
+            <output data-testid='actions-disabled'>{String(table.paginator.disableActions)}</output>
+            <output data-testid='external-data'>{externalData.map(row => row.label).join(',')}</output>
+            <button onClick={() => table.paginator.onPageChange(null, 2)} type='button'>
+                Go to page three
+            </button>
+            <button
+                onClick={() => {
+                    table.setSortIndex(9)
+                    table.setOrder('desc')
+                }}
+                type='button'
+            >
+                Change sort
+            </button>
+            <button onClick={() => table.paginator.requestScrollToPagination?.()} type='button'>
+                Request pagination scroll
+            </button>
+            <div data-testid='pagination-target' ref={table.paginator.paginationRef} />
+            <PneTable<Row>
+                autoTestId='reset-table'
+                createTableHeader={() => (
+                    <tr>
+                        <th>Label</th>
+                    </tr>
+                )}
+                createRow={row => (
+                    <tr key={row.id}>
+                        <td>{row.label}</td>
+                    </tr>
+                )}
+                data={table.data}
+                loading={table.loading}
+            />
+        </>
+    )
 }
 
 const ManualDataHarness = ({view}: {view: ViewId}) => {
@@ -117,53 +117,58 @@ const SimpleFetchHarness = ({getter}: {getter: () => Promise<Row[]>}) => {
     const table = useTable<Row>({rowsPerPageOptions: [10]})
     table.useSimpleFetch(getter)
 
-    return <>
-        <output data-testid='simple-actions-disabled'>
-            {String(table.paginator.disableActions)}
-        </output>
-        <button onClick={() => table.paginator.onPageChange(null, 2)} type='button'>
-            Change simple-fetch page
-        </button>
-        <PneTable<Row>
-            createTableHeader={() => <tr><th>Label</th></tr>}
-            createRow={row => <tr key={row.id}><td>{row.label}</td></tr>}
-            data={table.data}
-            loading={table.loading}
-        />
-    </>
+    return (
+        <>
+            <output data-testid='simple-actions-disabled'>{String(table.paginator.disableActions)}</output>
+            <button onClick={() => table.paginator.onPageChange(null, 2)} type='button'>
+                Change simple-fetch page
+            </button>
+            <PneTable<Row>
+                createTableHeader={() => (
+                    <tr>
+                        <th>Label</th>
+                    </tr>
+                )}
+                createRow={row => (
+                    <tr key={row.id}>
+                        <td>{row.label}</td>
+                    </tr>
+                )}
+                data={table.data}
+                loading={table.loading}
+            />
+        </>
+    )
 }
 
 describe('useTable resetKey', () => {
     it('does not invalidate the committed request from an aborted view render', async () => {
         const briefResponse = createDeferred<Row[]>()
         const neverResolves = new Promise<never>(() => undefined)
-        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const briefSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockReturnValue(briefResponse.promise)
-        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const fullSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockResolvedValue([{id: 'full', label: 'Full row'}])
         const searchByView = {brief: briefSearch, full: fullSearch}
 
         const ConcurrentHarness = () => {
             const [view, setView] = React.useState<ViewId>('brief')
 
-            return <>
-                <button
-                    onClick={() => React.startTransition(() => setView('full'))}
-                    type='button'
-                >
-                    Start interrupted Full transition
-                </button>
-                <React.Suspense fallback={<output data-testid='fallback'>Loading Full</output>}>
-                    <ResetKeyHarness
-                        searchByView={searchByView}
-                        suspendOnFull={neverResolves}
-                        view={view}
-                    />
-                </React.Suspense>
-            </>
+            return (
+                <>
+                    <button onClick={() => React.startTransition(() => setView('full'))} type='button'>
+                        Start interrupted Full transition
+                    </button>
+                    <React.Suspense fallback={<output data-testid='fallback'>Loading Full</output>}>
+                        <ResetKeyHarness searchByView={searchByView} suspendOnFull={neverResolves} view={view} />
+                    </React.Suspense>
+                </>
+            )
         }
 
-        render(<ConcurrentHarness/>)
+        render(<ConcurrentHarness />)
         await waitFor(() => expect(briefSearch).toHaveBeenCalledTimes(1))
 
         fireEvent.click(screen.getByRole('button', {name: 'Start interrupted Full transition'}))
@@ -181,12 +186,12 @@ describe('useTable resetKey', () => {
 
     it('resets page/sort, clears external rows, and fetches the new identity once', async () => {
         const fullResponse = createDeferred<Row[]>()
-        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const briefSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockResolvedValue([{id: 'brief', label: 'Brief row'}])
-        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
-            .mockReturnValue(fullResponse.promise)
+        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>().mockReturnValue(fullResponse.promise)
         const searchByView = {brief: briefSearch, full: fullSearch}
-        const view = render(<ResetKeyHarness view='brief' searchByView={searchByView}/>)
+        const view = render(<ResetKeyHarness view='brief' searchByView={searchByView} />)
 
         await waitFor(() => {
             expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
@@ -202,7 +207,7 @@ describe('useTable resetKey', () => {
         })
 
         briefSearch.mockClear()
-        view.rerender(<ResetKeyHarness view='full' searchByView={searchByView}/>)
+        view.rerender(<ResetKeyHarness view='full' searchByView={searchByView} />)
 
         expect(screen.queryByText('Brief row')).toBeNull()
         expect(screen.getByTestId('page').textContent).toBe('0')
@@ -211,11 +216,13 @@ describe('useTable resetKey', () => {
             expect(screen.getByTestId('external-data').textContent).toBe('')
             expect(fullSearch).toHaveBeenCalledTimes(1)
         })
-        expect(fullSearch).toHaveBeenLastCalledWith(expect.objectContaining({
-            page: 0,
-            sortIndex: 7,
-            order: 'asc',
-        }))
+        expect(fullSearch).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                page: 0,
+                sortIndex: 7,
+                order: 'asc',
+            }),
+        )
         expect(briefSearch).not.toHaveBeenCalled()
 
         await act(async () => {
@@ -229,17 +236,17 @@ describe('useTable resetKey', () => {
     it('ignores an older identity response that resolves after the current view', async () => {
         const briefResponse = createDeferred<Row[]>()
         const fullResponse = createDeferred<Row[]>()
-        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const briefSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockReturnValue(briefResponse.promise)
-        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
-            .mockReturnValue(fullResponse.promise)
+        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>().mockReturnValue(fullResponse.promise)
         const searchByView = {brief: briefSearch, full: fullSearch}
-        const view = render(<ResetKeyHarness view='brief' searchByView={searchByView}/>)
+        const view = render(<ResetKeyHarness view='brief' searchByView={searchByView} />)
 
         await waitFor(() => {
             expect(briefSearch).toHaveBeenCalledTimes(1)
         })
-        view.rerender(<ResetKeyHarness view='full' searchByView={searchByView}/>)
+        view.rerender(<ResetKeyHarness view='full' searchByView={searchByView} />)
         await waitFor(() => {
             expect(fullSearch).toHaveBeenCalledTimes(1)
         })
@@ -261,16 +268,14 @@ describe('useTable resetKey', () => {
     })
 
     it('preserves sort only when the destination explicitly opts in', async () => {
-        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const briefSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockResolvedValue([{id: 'brief', label: 'Brief row'}])
-        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const fullSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockResolvedValue([{id: 'full', label: 'Full row'}])
         const searchByView = {brief: briefSearch, full: fullSearch}
-        const view = render(<ResetKeyHarness
-            preserveSortOnReset
-            searchByView={searchByView}
-            view='brief'
-        />)
+        const view = render(<ResetKeyHarness preserveSortOnReset searchByView={searchByView} view='brief' />)
 
         await waitFor(() => {
             expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
@@ -283,35 +288,31 @@ describe('useTable resetKey', () => {
         })
 
         fullSearch.mockClear()
-        view.rerender(<ResetKeyHarness
-            preserveSortOnReset
-            searchByView={searchByView}
-            view='full'
-        />)
+        view.rerender(<ResetKeyHarness preserveSortOnReset searchByView={searchByView} view='full' />)
 
         expect(screen.getByTestId('page').textContent).toBe('0')
         expect(screen.getByTestId('sort').textContent).toBe('9:desc')
         await waitFor(() => {
             expect(fullSearch).toHaveBeenCalledTimes(1)
         })
-        expect(fullSearch).toHaveBeenCalledWith(expect.objectContaining({
-            order: 'desc',
-            page: 0,
-            sortIndex: 9,
-        }))
+        expect(fullSearch).toHaveBeenCalledWith(
+            expect.objectContaining({
+                order: 'desc',
+                page: 0,
+                sortIndex: 9,
+            }),
+        )
     })
 
     it('restores independent page and sort state for each previously visited key', async () => {
-        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const briefSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockResolvedValue([{id: 'brief', label: 'Brief row'}])
-        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const fullSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockResolvedValue([{id: 'full', label: 'Full row'}])
         const searchByView = {brief: briefSearch, full: fullSearch}
-        const view = render(<ResetKeyHarness
-            restoreStateOnReset
-            searchByView={searchByView}
-            view='brief'
-        />)
+        const view = render(<ResetKeyHarness restoreStateOnReset searchByView={searchByView} view='brief' />)
 
         await waitFor(() => {
             expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
@@ -321,76 +322,70 @@ describe('useTable resetKey', () => {
         await waitFor(() => {
             expect(screen.getByTestId('page').textContent).toBe('2')
             expect(screen.getByTestId('sort').textContent).toBe('9:desc')
-            expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({
-                order: 'desc',
-                page: 2,
-                sortIndex: 9,
-            }))
+            expect(briefSearch).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    order: 'desc',
+                    page: 2,
+                    sortIndex: 9,
+                }),
+            )
         })
 
-        view.rerender(<ResetKeyHarness
-            restoreStateOnReset
-            searchByView={searchByView}
-            view='full'
-        />)
+        view.rerender(<ResetKeyHarness restoreStateOnReset searchByView={searchByView} view='full' />)
         expect(screen.getByTestId('page').textContent).toBe('0')
         expect(screen.getByTestId('sort').textContent).toBe('7:asc')
         await waitFor(() => {
-            expect(fullSearch).toHaveBeenLastCalledWith(expect.objectContaining({
-                order: 'asc',
-                page: 0,
-                sortIndex: 7,
-            }))
+            expect(fullSearch).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    order: 'asc',
+                    page: 0,
+                    sortIndex: 7,
+                }),
+            )
         })
 
-        view.rerender(<ResetKeyHarness
-            restoreStateOnReset
-            searchByView={searchByView}
-            view='brief'
-        />)
+        view.rerender(<ResetKeyHarness restoreStateOnReset searchByView={searchByView} view='brief' />)
         expect(screen.getByTestId('page').textContent).toBe('2')
         expect(screen.getByTestId('sort').textContent).toBe('9:desc')
         await waitFor(() => {
-            expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({
-                order: 'desc',
-                page: 2,
-                sortIndex: 9,
-            }))
+            expect(briefSearch).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    order: 'desc',
+                    page: 2,
+                    sortIndex: 9,
+                }),
+            )
         })
 
-        view.rerender(<ResetKeyHarness
-            restoreStateOnReset
-            searchByView={searchByView}
-            view='full'
-        />)
+        view.rerender(<ResetKeyHarness restoreStateOnReset searchByView={searchByView} view='full' />)
         expect(screen.getByTestId('page').textContent).toBe('0')
         expect(screen.getByTestId('sort').textContent).toBe('7:asc')
         await waitFor(() => {
             expect(screen.getAllByText('Full row').length).toBeGreaterThan(0)
-            expect(fullSearch).toHaveBeenLastCalledWith(expect.objectContaining({
-                order: 'asc',
-                page: 0,
-                sortIndex: 7,
-            }))
+            expect(fullSearch).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    order: 'asc',
+                    page: 0,
+                    sortIndex: 7,
+                }),
+            )
         })
     })
 
     it('falls back once to page zero when a restored page no longer has rows', async () => {
         let emptyRestoredPage = false
-        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
-            .mockImplementation(({page}) => Promise.resolve(
-                emptyRestoredPage && page === 2
-                    ? []
-                    : [{id: `brief-${page}`, label: `Brief page ${page}`}],
-            ))
-        const fullSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+        const briefSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockImplementation(({page}) =>
+                Promise.resolve(
+                    emptyRestoredPage && page === 2 ? [] : [{id: `brief-${page}`, label: `Brief page ${page}`}],
+                ),
+            )
+        const fullSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
             .mockResolvedValue([{id: 'full', label: 'Full row'}])
         const searchByView = {brief: briefSearch, full: fullSearch}
-        const view = render(<ResetKeyHarness
-            restoreStateOnReset
-            searchByView={searchByView}
-            view='brief'
-        />)
+        const view = render(<ResetKeyHarness restoreStateOnReset searchByView={searchByView} view='brief' />)
 
         await waitFor(() => {
             expect(screen.getAllByText('Brief page 0').length).toBeGreaterThan(0)
@@ -400,22 +395,14 @@ describe('useTable resetKey', () => {
             expect(screen.getAllByText('Brief page 2').length).toBeGreaterThan(0)
         })
 
-        view.rerender(<ResetKeyHarness
-            restoreStateOnReset
-            searchByView={searchByView}
-            view='full'
-        />)
+        view.rerender(<ResetKeyHarness restoreStateOnReset searchByView={searchByView} view='full' />)
         await waitFor(() => {
             expect(screen.getAllByText('Full row').length).toBeGreaterThan(0)
         })
         emptyRestoredPage = true
         const callsBeforeRestore = briefSearch.mock.calls.length
 
-        view.rerender(<ResetKeyHarness
-            restoreStateOnReset
-            searchByView={searchByView}
-            view='brief'
-        />)
+        view.rerender(<ResetKeyHarness restoreStateOnReset searchByView={searchByView} view='brief' />)
 
         await waitFor(() => {
             expect(screen.getAllByText('Brief page 0').length).toBeGreaterThan(0)
@@ -425,29 +412,28 @@ describe('useTable resetKey', () => {
     })
 
     it('keeps manual external data visible when resetKey has no fetch lifecycle', () => {
-        const view = render(<ManualDataHarness view='brief'/>)
+        const view = render(<ManualDataHarness view='brief' />)
 
         expect(screen.getByTestId('manual-data').textContent).toBe('Manual row')
-        view.rerender(<ManualDataHarness view='full'/>)
+        view.rerender(<ManualDataHarness view='full' />)
         expect(screen.getByTestId('manual-data').textContent).toBe('Manual row')
     })
 
     it('unlocks pagination actions when the latest page request fails', async () => {
         const failedPage = createDeferred<Row[]>()
-        const briefSearch = jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
-            .mockImplementation(({page}) => page === 0
-                ? Promise.resolve(Array.from(
-                    {length: 11},
-                    (_, index) => ({id: `brief-${index}`, label: `Brief row ${index}`}),
-                ))
-                : failedPage.promise)
+        const briefSearch = jest
+            .fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            .mockImplementation(({page}) =>
+                page === 0
+                    ? Promise.resolve(
+                          Array.from({length: 11}, (_, index) => ({id: `brief-${index}`, label: `Brief row ${index}`})),
+                      )
+                    : failedPage.promise,
+            )
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
 
         try {
-            render(<ResetKeyHarness
-                searchByView={{brief: briefSearch, full: jest.fn()}}
-                view='brief'
-            />)
+            render(<ResetKeyHarness searchByView={{brief: briefSearch, full: jest.fn()}} view='brief' />)
             await waitFor(() => expect(screen.getAllByText('Brief row 0').length).toBeGreaterThan(0))
 
             fireEvent.click(screen.getByRole('button', {name: 'Go to page three'}))
@@ -470,13 +456,14 @@ describe('useTable resetKey', () => {
 
     it('clears stale rows and unlocks actions when useSimpleFetch fails', async () => {
         const failedRequest = createDeferred<Row[]>()
-        const getter = jest.fn<Promise<Row[]>, []>()
+        const getter = jest
+            .fn<Promise<Row[]>, []>()
             .mockResolvedValueOnce([{id: 'initial', label: 'Simple initial row'}])
             .mockReturnValueOnce(failedRequest.promise)
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
 
         try {
-            render(<SimpleFetchHarness getter={getter}/>)
+            render(<SimpleFetchHarness getter={getter} />)
             await waitFor(() => expect(screen.getAllByText('Simple initial row').length).toBeGreaterThan(0))
 
             fireEvent.click(screen.getByRole('button', {name: 'Change simple-fetch page'}))
@@ -499,12 +486,12 @@ describe('useTable resetKey', () => {
     it('drops a pending pagination scroll when the request identity changes', async () => {
         const fullResponse = createDeferred<Row[]>()
         const searchByView = {
-            brief: jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
+            brief: jest
+                .fn<ReturnType<FetchData>, Parameters<FetchData>>()
                 .mockResolvedValue([{id: 'brief', label: 'Brief row'}]),
-            full: jest.fn<ReturnType<FetchData>, Parameters<FetchData>>()
-                .mockReturnValue(fullResponse.promise),
+            full: jest.fn<ReturnType<FetchData>, Parameters<FetchData>>().mockReturnValue(fullResponse.promise),
         }
-        const view = render(<ResetKeyHarness view='brief' searchByView={searchByView}/>)
+        const view = render(<ResetKeyHarness view='brief' searchByView={searchByView} />)
         const scrollIntoView = jest.fn()
         Object.defineProperty(screen.getByTestId('pagination-target'), 'scrollIntoView', {
             configurable: true,
@@ -515,7 +502,7 @@ describe('useTable resetKey', () => {
             expect(screen.getAllByText('Brief row').length).toBeGreaterThan(0)
         })
         fireEvent.click(screen.getByRole('button', {name: 'Request pagination scroll'}))
-        view.rerender(<ResetKeyHarness view='full' searchByView={searchByView}/>)
+        view.rerender(<ResetKeyHarness view='full' searchByView={searchByView} />)
 
         await act(async () => {
             fullResponse.resolve([{id: 'full', label: 'Full row'}])

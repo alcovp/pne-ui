@@ -14,13 +14,10 @@ type SearchUIFiltersCollapsedHost = Pick<
 
 const hasHostStore = (
     defaults: SearchUIFiltersCollapsedHost,
-): defaults is SearchUIFiltersCollapsedHost & Required<Pick<
-    SearchUIFiltersCollapsedHost,
-    'getSearchFiltersCollapsed' | 'saveSearchFiltersCollapsed'
->> => (
-    typeof defaults.getSearchFiltersCollapsed === 'function'
-    && typeof defaults.saveSearchFiltersCollapsed === 'function'
-)
+): defaults is SearchUIFiltersCollapsedHost &
+    Required<Pick<SearchUIFiltersCollapsedHost, 'getSearchFiltersCollapsed' | 'saveSearchFiltersCollapsed'>> =>
+    typeof defaults.getSearchFiltersCollapsed === 'function' &&
+    typeof defaults.saveSearchFiltersCollapsed === 'function'
 
 /**
  * Synchronous without a host store, so such a page renders in the same tick as before.
@@ -40,7 +37,8 @@ export const readSearchUIFiltersCollapsed = (
         return peeked === true
     }
 
-    return defaults.getSearchFiltersCollapsed(settingsContextName)
+    return defaults
+        .getSearchFiltersCollapsed(settingsContextName)
         .then(collapsed => collapsed === true)
         .catch((error: unknown) => {
             console.warn('SearchUI: the host cannot read whether the filters are collapsed; opening them', error)
@@ -58,7 +56,8 @@ export const rememberSearchUIFiltersCollapsed = (
         return Promise.resolve()
     }
 
-    return defaults.saveSearchFiltersCollapsed({contextName: settingsContextName, collapsed})
+    return defaults
+        .saveSearchFiltersCollapsed({contextName: settingsContextName, collapsed})
         .catch((error: unknown) => {
             console.warn('SearchUI: the host cannot store whether the filters are collapsed', error)
         })

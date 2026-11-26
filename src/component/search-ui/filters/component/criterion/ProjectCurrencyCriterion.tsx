@@ -1,19 +1,16 @@
-import React, {use, useEffect, useState} from 'react';
-import {useSearchUIFiltersStore} from '../../state/store';
-import {Box, Chip, FormControlLabel, FormGroup, SxProps} from '@mui/material';
-import {useTranslation} from 'react-i18next';
-import Typography from '@mui/material/Typography';
-import {chipChevronSx, selectUnderChipSx} from '../select/style';
-import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
-import {AbstractEntity} from '../../../../../common/paynet/type';
-import PneSelect from '../../../../dropdown/PneSelect';
-import {PneCheckbox} from '../../../../PneCheckbox';
-import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope';
+import React, {use, useEffect, useState} from 'react'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {Box, Chip, FormControlLabel, FormGroup, SxProps} from '@mui/material'
+import {useTranslation} from 'react-i18next'
+import Typography from '@mui/material/Typography'
+import {chipChevronSx, selectUnderChipSx} from '../select/style'
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
+import {AbstractEntity} from '../../../../../common/paynet/type'
+import PneSelect from '../../../../dropdown/PneSelect'
+import {PneCheckbox} from '../../../../PneCheckbox'
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
 
 const CRITERION_PROJECT_CURRENCY_AUTOTEST_ID = 'criterion-project-currency'
 const CRITERION_PROJECT_CURRENCY_OPTIONS_AUTOTEST_ID = 'criterion-project-currency-options'
@@ -24,16 +21,15 @@ export const ProjectCurrencyCriterion = () => {
     const {t} = useTranslation()
     const [availableCurrencies, setAvailableCurrencies] = useState<AbstractEntity[]>([])
     const [loading, setLoading] = useState(true)
-    const {
-        getDefaultCurrency,
-        getProjectAvailableCurrencies,
-    } = use(SearchUIDefaultsContext)
+    const {getDefaultCurrency, getProjectAvailableCurrencies} = use(SearchUIDefaultsContext)
     const autoTestOwner = useSearchUIAutoTestScope()
 
     const currency = useSearchUIFiltersStore(s => s.projectCurrency.currency)
     const convertToUserCurrency = useSearchUIFiltersStore(s => s.projectCurrency.convertToUserCurrency)
     const setProjectCurrencyCriterionCurrency = useSearchUIFiltersStore(s => s.setProjectCurrencyCriterionCurrency)
-    const setProjectCurrencyCriterionConvertFlag = useSearchUIFiltersStore(s => s.setProjectCurrencyCriterionConvertFlag)
+    const setProjectCurrencyCriterionConvertFlag = useSearchUIFiltersStore(
+        s => s.setProjectCurrencyCriterionConvertFlag,
+    )
     const criteria = useSearchUIFiltersStore(s => s.criteria)
     const multigetCriteria = useSearchUIFiltersStore(s => s.multigetCriteria)
 
@@ -50,10 +46,12 @@ export const ProjectCurrencyCriterion = () => {
         })
             .then(response => {
                 if (active) {
-                    setAvailableCurrencies(response.map(choice => ({
-                        id: choice.choiceId,
-                        displayName: choice.displayName,
-                    })))
+                    setAvailableCurrencies(
+                        response.map(choice => ({
+                            id: choice.choiceId,
+                            displayName: choice.displayName,
+                        })),
+                    )
                     setLoading(false)
                 }
             })
@@ -86,80 +84,74 @@ export const ProjectCurrencyCriterion = () => {
     }
 
     const getConvertToUserCurrencyLabel = () => {
-        return t('performanceReport.convertAllTo')
-            + ' '
-            + t('performanceReport.userCurrency')
-            + ` (${getDefaultCurrency().displayName})`
+        return (
+            t('performanceReport.convertAllTo') +
+            ' ' +
+            t('performanceReport.userCurrency') +
+            ` (${getDefaultCurrency().displayName})`
+        )
     }
 
-    return <Box sx={containerSx}>
-        <Box sx={{position: 'relative'}}>
-            <Chip
-                onDelete={openSelect}
-                deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
-                label={currency.displayName}
-                size={'small'}
-                aria-hidden={true}
-                tabIndex={-1}
-                sx={{pointerEvents: 'none'}}
-            />
-            <PneSelect
-                size='large'
-                disabled={disabled}
-                open={open}
-                onClose={() => setOpen(false)}
-                onOpen={openSelect}
-                sx={selectUnderChipSx}
-                value={selectedCurrency ?? null}
-                onChange={setProjectCurrencyCriterionCurrency}
-                options={availableCurrencies}
-                getOptionKey={option => option.id}
-                getOptionLabel={option => option.displayName}
-                getOptionProps={option => createAutoTestAttributes(
-                    CRITERION_PROJECT_CURRENCY_OPTION_AUTOTEST_ID,
-                    option.id,
-                )}
-                MenuProps={{
-                    slotProps: {
-                        list: createSearchUIOwnedAutoTestAttributes(
-                            CRITERION_PROJECT_CURRENCY_OPTIONS_AUTOTEST_ID,
-                            autoTestOwner,
-                        ),
-                    },
-                }}
-                SelectDisplayProps={{
-                    ...createAutoTestAttributes(
-                        CRITERION_PROJECT_CURRENCY_AUTOTEST_ID,
-                        currency.id,
-                    ),
-                    'aria-label': currencyAriaLabel,
-                    'aria-busy': loading,
-                }}
-            />
-        </Box>
-        <FormGroup>
-            <FormControlLabel
-                // The 38px pointer area of the checkbox stays; the row counts the 32px of a value.
-                sx={checkboxRowSx}
-                label={
-                    <Typography sx={checkBoxLabelSx}>
-                        {getConvertToUserCurrencyLabel()}
-                    </Typography>
-                }
-                control={
-                    <PneCheckbox
-                        checked={convertToUserCurrency}
-                        onChange={e => setProjectCurrencyCriterionConvertFlag(e.target.checked)}
-                        slotProps={{
-                            input: createAutoTestAttributes(
-                                CRITERION_PROJECT_CURRENCY_CONVERT_AUTOTEST_ID,
+    return (
+        <Box sx={containerSx}>
+            <Box sx={{position: 'relative'}}>
+                <Chip
+                    onDelete={openSelect}
+                    deleteIcon={<PneChevronDownIcon sx={chipChevronSx} />}
+                    label={currency.displayName}
+                    size={'small'}
+                    aria-hidden={true}
+                    tabIndex={-1}
+                    sx={{pointerEvents: 'none'}}
+                />
+                <PneSelect
+                    size='large'
+                    disabled={disabled}
+                    open={open}
+                    onClose={() => setOpen(false)}
+                    onOpen={openSelect}
+                    sx={selectUnderChipSx}
+                    value={selectedCurrency ?? null}
+                    onChange={setProjectCurrencyCriterionCurrency}
+                    options={availableCurrencies}
+                    getOptionKey={option => option.id}
+                    getOptionLabel={option => option.displayName}
+                    getOptionProps={option =>
+                        createAutoTestAttributes(CRITERION_PROJECT_CURRENCY_OPTION_AUTOTEST_ID, option.id)
+                    }
+                    MenuProps={{
+                        slotProps: {
+                            list: createSearchUIOwnedAutoTestAttributes(
+                                CRITERION_PROJECT_CURRENCY_OPTIONS_AUTOTEST_ID,
+                                autoTestOwner,
                             ),
-                        }}
-                    />
-                }
-            />
-        </FormGroup>
-    </Box>
+                        },
+                    }}
+                    SelectDisplayProps={{
+                        ...createAutoTestAttributes(CRITERION_PROJECT_CURRENCY_AUTOTEST_ID, currency.id),
+                        'aria-label': currencyAriaLabel,
+                        'aria-busy': loading,
+                    }}
+                />
+            </Box>
+            <FormGroup>
+                <FormControlLabel
+                    // The 38px pointer area of the checkbox stays; the row counts the 32px of a value.
+                    sx={checkboxRowSx}
+                    label={<Typography sx={checkBoxLabelSx}>{getConvertToUserCurrencyLabel()}</Typography>}
+                    control={
+                        <PneCheckbox
+                            checked={convertToUserCurrency}
+                            onChange={e => setProjectCurrencyCriterionConvertFlag(e.target.checked)}
+                            slotProps={{
+                                input: createAutoTestAttributes(CRITERION_PROJECT_CURRENCY_CONVERT_AUTOTEST_ID),
+                            }}
+                        />
+                    }
+                />
+            </FormGroup>
+        </Box>
+    )
 }
 
 const containerSx: SxProps = {

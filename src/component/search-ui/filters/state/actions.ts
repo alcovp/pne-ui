@@ -13,7 +13,7 @@ import {
     AutoCompleteChoice,
     Status,
 } from '../../../../common/paynet/type'
-import { exhaustiveCheck, ZustandStoreGet, ZustandStoreImmerSet } from '../../../../common/pne/type'
+import {exhaustiveCheck, ZustandStoreGet, ZustandStoreImmerSet} from '../../../../common/pne/type'
 import {
     CountryAllableCollection,
     CUSTOMER_LEVEL_DEPENDENCIES,
@@ -39,10 +39,7 @@ import {
     TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../types'
-import {
-    getCriteriaWithAvailabilityRules,
-    isCriterionAvailable,
-} from '../criterionAvailability'
+import {getCriteriaWithAvailabilityRules, isCriterionAvailable} from '../criterionAvailability'
 import {
     getSearchUIFiltersInitialState,
     getSearchUIInitialGrouping,
@@ -53,9 +50,9 @@ import {
     getSearchUIInitialDateFrom,
     getSearchUIInitialDateTo,
 } from './initial'
-import type { Draft } from 'immer'
-import type { Dayjs } from 'dayjs'
-import { dayjs } from '../dayjsSetup'
+import type {Draft} from 'immer'
+import type {Dayjs} from 'dayjs'
+import {dayjs} from '../dayjsSetup'
 import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
 import pick from 'lodash/pick'
@@ -70,28 +67,20 @@ import {
     reviveSearchUIDate,
     SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE,
 } from '../dateRangeTimeZone'
-import { getConcreteCustomerLevelMerchantId } from '../customerLevelDependencies'
-import { getLinkedEntityTypeByCriterion, isLinkedEntityCriterionActive } from '../linkedEntityCriteria'
-import {
-    extractRestrictedEntityIds,
-    normalizeRestrictedEntityCollection,
-} from '../entityOptionRestriction'
-import { isSearchUIRetentionSnapshotCompatible } from './retention'
+import {getConcreteCustomerLevelMerchantId} from '../customerLevelDependencies'
+import {getLinkedEntityTypeByCriterion, isLinkedEntityCriterionActive} from '../linkedEntityCriteria'
+import {extractRestrictedEntityIds, normalizeRestrictedEntityCollection} from '../entityOptionRestriction'
+import {isSearchUIRetentionSnapshotCompatible} from './retention'
 import {
     discardLegacyLastSearchUITemplateName,
     forgetLastSearchUITemplateName,
     readLastSearchUITemplateName,
     rememberLastSearchUITemplateName,
 } from '../templateStorage'
-import {
-    validateSearchUIFiltersState,
-    type SearchUIValidationResult,
-} from '../validation'
+import {validateSearchUIFiltersState, type SearchUIValidationResult} from '../validation'
 
-const isConfiguredCriterion = (
-    draft: Draft<SearchUIFiltersStore>,
-    criterion: CriterionTypeEnum,
-): boolean => draft.possibleCriteria.includes(criterion) || draft.predefinedCriteria.includes(criterion)
+const isConfiguredCriterion = (draft: Draft<SearchUIFiltersStore>, criterion: CriterionTypeEnum): boolean =>
+    draft.possibleCriteria.includes(criterion) || draft.predefinedCriteria.includes(criterion)
 
 const getInitialMultigetCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion => ({
     entityType: entityType,
@@ -138,10 +127,7 @@ const normalizeSearchUITemplate = (template: SearchUITemplate): SearchUITemplate
     }
 }
 
-const orderTemplatesByName = (
-    templates: SearchUITemplate[],
-    templateNames: string[],
-): SearchUITemplate[] => {
+const orderTemplatesByName = (templates: SearchUITemplate[], templateNames: string[]): SearchUITemplate[] => {
     const positions = new Map(templateNames.map((name, index) => [name, index]))
     const positionOf = (template: SearchUITemplate, index: number) =>
         positions.get(template.name) ?? templateNames.length + index
@@ -205,8 +191,8 @@ const addCriterionReducer = (
     if (draft.criteria.includes(criterion)) {
         const entityType = getLinkedEntityTypeByCriterion(criterion)
         if (
-            entityType !== null
-            && !draft.multigetCriteria.some(multigetCriterion => multigetCriterion.entityType === entityType)
+            entityType !== null &&
+            !draft.multigetCriteria.some(multigetCriterion => multigetCriterion.entityType === entityType)
         ) {
             draft.multigetCriteria.push(getInitialMultigetCriterion(entityType))
         }
@@ -217,9 +203,7 @@ const addCriterionReducer = (
     addInitialMultigetCriterionReducer(draft, criterion)
 }
 
-const ensureCustomerLevelDependenciesReducer = (
-    draft: Draft<SearchUIFiltersStore>,
-): void => {
+const ensureCustomerLevelDependenciesReducer = (draft: Draft<SearchUIFiltersStore>): void => {
     if (!draft.criteria.includes(CriterionTypeEnum.CUSTOMER_LEVEL)) {
         return
     }
@@ -227,48 +211,30 @@ const ensureCustomerLevelDependenciesReducer = (
     CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
 }
 
-const normalizeRestrictedTransactionTypesReducer = (
-    draft: Draft<SearchUIFiltersStore>,
-): void => {
+const normalizeRestrictedTransactionTypesReducer = (draft: Draft<SearchUIFiltersStore>): void => {
     const allowedTransactionTypes = draft.prefetchedData.allowedTransactionTypes
     if (allowedTransactionTypes === undefined) {
         return
     }
 
-    draft.transactionTypes = normalizeRestrictedEntityCollection(
-        draft.transactionTypes,
-        allowedTransactionTypes,
-    )
+    draft.transactionTypes = normalizeRestrictedEntityCollection(draft.transactionTypes, allowedTransactionTypes)
 }
 
-const applyConditionsReducer = (
-    draft: Draft<SearchUIFiltersStore>,
-    conditions: Partial<SearchUIConditions>,
-): void => {
-    const {
-        criteria: incomingCriteria,
-        multigetCriteria: incomingMultigetCriteria,
-        ...rest
-    } = conditions
+const applyConditionsReducer = (draft: Draft<SearchUIFiltersStore>, conditions: Partial<SearchUIConditions>): void => {
+    const {criteria: incomingCriteria, multigetCriteria: incomingMultigetCriteria, ...rest} = conditions
 
     const prevCriteria = draft.criteria.slice()
 
     Object.assign(draft, rest)
 
     if (incomingCriteria !== undefined) {
-        const allowedCriteria = new Set([
-            ...draft.predefinedCriteria,
-            ...draft.possibleCriteria,
-        ])
+        const allowedCriteria = new Set([...draft.predefinedCriteria, ...draft.possibleCriteria])
 
-        const sanitizedIncoming = Array.from(new Set(
-            incomingCriteria.filter(criterion => allowedCriteria.has(criterion)),
-        ))
+        const sanitizedIncoming = Array.from(
+            new Set(incomingCriteria.filter(criterion => allowedCriteria.has(criterion))),
+        )
 
-        const mergedCriteria = Array.from(new Set([
-            ...draft.predefinedCriteria,
-            ...sanitizedIncoming,
-        ]))
+        const mergedCriteria = Array.from(new Set([...draft.predefinedCriteria, ...sanitizedIncoming]))
 
         const removedCriteria = prevCriteria.filter(criterion => !mergedCriteria.includes(criterion))
         removedCriteria.forEach(criterion => {
@@ -287,10 +253,7 @@ const applyConditionsReducer = (
     }
 
     if (incomingMultigetCriteria !== undefined) {
-        const sanitizedMultigetCriteria = sanitizeMultigetCriteria(
-            incomingMultigetCriteria,
-            draft.criteria,
-        )
+        const sanitizedMultigetCriteria = sanitizeMultigetCriteria(incomingMultigetCriteria, draft.criteria)
 
         const missingEntityTypes = draft.criteria
             .map(getLinkedEntityTypeByCriterion)
@@ -330,12 +293,10 @@ const resetToPageDefaultsReducer = (
 }
 
 /** The first load fills an empty statuses list from the prefetched ones; a reset or a re-added criterion gets the same. */
-const refillTransactionSessionStatusesReducer = (
-    draft: Draft<SearchUIFiltersStore>,
-): void => {
+const refillTransactionSessionStatusesReducer = (draft: Draft<SearchUIFiltersStore>): void => {
     if (
-        !draft.criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)
-        || draft.transactionSessionStatuses.length > 0
+        !draft.criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS) ||
+        draft.transactionSessionStatuses.length > 0
     ) {
         return
     }
@@ -394,12 +355,13 @@ export const getSearchUIFiltersActions = (
         },
     ) => {
         const normalizedTemplates = options?.templates?.map(normalizeSearchUITemplate)
-        const normalizedInitialTemplate = options?.initialTemplate === undefined
-            ? undefined
-            : normalizedTemplates?.find(template => template.name === options.initialTemplate?.name)
-                ?? normalizeSearchUITemplate(options.initialTemplate)
+        const normalizedInitialTemplate =
+            options?.initialTemplate === undefined
+                ? undefined
+                : (normalizedTemplates?.find(template => template.name === options.initialTemplate?.name) ??
+                  normalizeSearchUITemplate(options.initialTemplate))
 
-        set((draft) => {
+        set(draft => {
             const initialState = {
                 ...draft,
                 ...getSearchUIFiltersInitialState(),
@@ -441,9 +403,7 @@ export const getSearchUIFiltersActions = (
             draft.initialized = true
         })
 
-        const retainedDraftSearchCriteria = get().restoredFromRetention
-            ? extractSearchCriteriaFromState(get())
-            : null
+        const retainedDraftSearchCriteria = get().restoredFromRetention ? extractSearchCriteriaFromState(get()) : null
 
         syncCriterionAvailability(set, get)
         normalizeRetainedDateRange(set, get)
@@ -460,11 +420,7 @@ export const getSearchUIFiltersActions = (
         if (get().restoredFromRetention && retainedSnapshot && retainedDraftSearchCriteria) {
             const currentSearchCriteria = extractSearchCriteriaFromState(get())
             const appliedSearchCriteria = get().config?.manualSearch
-                ? restoreAppliedSearchCriteria(
-                    retainedSnapshot,
-                    retainedDraftSearchCriteria,
-                    currentSearchCriteria,
-                )
+                ? restoreAppliedSearchCriteria(retainedSnapshot, retainedDraftSearchCriteria, currentSearchCriteria)
                 : currentSearchCriteria
 
             if (!validationResult.isValid) {
@@ -480,22 +436,19 @@ export const getSearchUIFiltersActions = (
             }
 
             get().onFiltersUpdate(appliedSearchCriteria)
-            set((draft) => {
+            set(draft => {
                 draft.prevSearchCriteria = currentSearchCriteria
                 draft.appliedSearchCriteria = appliedSearchCriteria
-                draft.hasUnappliedFilters = !!draft.config?.manualSearch
-                    && !isEqual(currentSearchCriteria, appliedSearchCriteria)
+                draft.hasUnappliedFilters =
+                    !!draft.config?.manualSearch && !isEqual(currentSearchCriteria, appliedSearchCriteria)
             })
             return
         }
 
         checkIfFiltersChanged(set, get)
     },
-    updateConditions: (
-        conditions: Partial<SearchUIConditions>,
-        options?: SearchUIConditionsUpdateOptions,
-    ) => {
-        set((draft) => {
+    updateConditions: (conditions: Partial<SearchUIConditions>, options?: SearchUIConditionsUpdateOptions) => {
+        set(draft => {
             applyConditionsReducer(draft, conditions)
 
             if (options?.resetTemplate) {
@@ -512,12 +465,7 @@ export const getSearchUIFiltersActions = (
     },
     restoreClearCriteriaSnapshot: snapshot => {
         const restoredSnapshot = cloneDeep(snapshot)
-        const {
-            template,
-            templateBaseline,
-            hasUnappliedFilters,
-            ...conditions
-        } = restoredSnapshot
+        const {template, templateBaseline, hasUnappliedFilters, ...conditions} = restoredSnapshot
 
         set(draft => {
             Object.assign(draft, conditions)
@@ -550,16 +498,14 @@ export const getSearchUIFiltersActions = (
             if (validationResult.isValid && !hasUnappliedFilters) {
                 draft.appliedSearchCriteria = currentSearchCriteria
             }
-            draft.hasUnappliedFilters = validationResult.isValid
-                ? hasUnappliedFilters
-                : true
+            draft.hasUnappliedFilters = validationResult.isValid ? hasUnappliedFilters : true
         })
     },
     clearCriteria: (options?: SearchUIUpdateOptions) => {
         void forgetLastSearchUITemplateName(get().defaults, get().settingsContextName)
         const pageDefaults = cloneDeep(get().pageDefaults)
 
-        set((draft) => {
+        set(draft => {
             resetToPageDefaultsReducer(draft, pageDefaults)
         })
         normalizeRelativeDateRange(set, get)
@@ -568,7 +514,7 @@ export const getSearchUIFiltersActions = (
     clearCriterion: (criterionType: CriterionTypeEnum) => {
         const pageDefaults = cloneDeep(get().pageDefaults)
 
-        set((draft) => {
+        set(draft => {
             resetCriterionToPageDefaultsReducer(draft, criterionType, pageDefaults)
         })
         if (CRITERION_CONDITION_KEYS[criterionType].includes('dateRangeSpec')) {
@@ -577,7 +523,7 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get)
     },
     addCriterion: (criterionType: CriterionTypeEnum) => {
-        set((draft) => {
+        set(draft => {
             if (criterionType === CriterionTypeEnum.CUSTOMER_LEVEL) {
                 CUSTOMER_LEVEL_DEPENDENCIES.forEach(dependency => addCriterionReducer(draft, dependency, true))
             }
@@ -588,7 +534,7 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get)
     },
     removeCriterion: (criterionType: CriterionTypeEnum) => {
-        set((draft) => {
+        set(draft => {
             clearCriterionReducer(draft, criterionType)
             draft.criteria = draft.criteria.filter(criterion => criterion !== criterionType)
         })
@@ -596,11 +542,12 @@ export const getSearchUIFiltersActions = (
     },
     createTemplate: (templateName: string) => {
         const template = getTemplate(templateName, get())
-        get().defaults.saveSearchTemplate({
-            contextName: get().settingsContextName,
-            template: template,
-            templateName: templateName,
-        })
+        get()
+            .defaults.saveSearchTemplate({
+                contextName: get().settingsContextName,
+                template: template,
+                templateName: templateName,
+            })
             .then(() => {
                 void rememberLastSearchUITemplateName(
                     get().defaults,
@@ -609,7 +556,7 @@ export const getSearchUIFiltersActions = (
                     get().criteria.length,
                 )
 
-                set((draft) => {
+                set(draft => {
                     draft.templates.push(template)
                     draft.template = template
                     draft.activeTemplateName = template.name
@@ -620,13 +567,14 @@ export const getSearchUIFiltersActions = (
     },
     updateTemplate: (templateName: string) => {
         const template = getTemplate(templateName, get())
-        get().defaults.saveSearchTemplate({
-            contextName: get().settingsContextName,
-            template: template,
-            templateName: templateName,
-        })
+        get()
+            .defaults.saveSearchTemplate({
+                contextName: get().settingsContextName,
+                template: template,
+                templateName: templateName,
+            })
             .then(() => {
-                set((draft) => {
+                set(draft => {
                     const index = draft.templates.findIndex(t => t.name === templateName)
                     if (index >= 0) {
                         draft.templates[index].searchConditions = template.searchConditions
@@ -648,23 +596,25 @@ export const getSearchUIFiltersActions = (
             .catch(console.error)
     },
     removeTemplate: (template: SearchUITemplate) => {
-        get().defaults.deleteSearchTemplate({
-            contextName: get().settingsContextName,
-            templateName: template.name,
-        })
+        get()
+            .defaults.deleteSearchTemplate({
+                contextName: get().settingsContextName,
+                templateName: template.name,
+            })
             .then(() => {
                 const {defaults, settingsContextName} = get()
-                void Promise.resolve(readLastSearchUITemplateName(defaults, settingsContextName))
-                    .then(({name: lastTemplateName}) => {
+                void Promise.resolve(readLastSearchUITemplateName(defaults, settingsContextName)).then(
+                    ({name: lastTemplateName}) => {
                         if (lastTemplateName === template.name) {
                             return forgetLastSearchUITemplateName(defaults, settingsContextName)
                         }
                         return undefined
-                    })
+                    },
+                )
 
                 const wasActive = get().template?.name === template.name
                 const pageDefaults = cloneDeep(get().pageDefaults)
-                set((draft) => {
+                set(draft => {
                     const index = draft.templates.findIndex(t => t.name === template.name)
                     if (index >= 0) {
                         draft.templates.splice(index, 1)
@@ -689,7 +639,7 @@ export const getSearchUIFiltersActions = (
         if (Array.from(keys).every(key => Object.is(previous[key], defaults[key]))) {
             return
         }
-        set((draft) => {
+        set(draft => {
             draft.defaults = defaults
         })
     },
@@ -705,7 +655,7 @@ export const getSearchUIFiltersActions = (
             return Promise.resolve()
         }
 
-        set((draft) => {
+        set(draft => {
             draft.templates = reordered
         })
         const applied = get().templates
@@ -716,7 +666,7 @@ export const getSearchUIFiltersActions = (
         }).catch((error: unknown) => {
             // A later reorder, load, create or delete owns the list now; keep its result.
             if (get().templates === applied) {
-                set((draft) => {
+                set(draft => {
                     draft.templates = previous
                 })
             }
@@ -725,21 +675,18 @@ export const getSearchUIFiltersActions = (
     },
     setTemplate: (template: SearchUITemplate, options?: SearchUIUpdateOptions) => {
         const defaults = getSearchUIInitialSearchCriteria(get().defaults)
-        const conditions = { ...defaults, ...template.searchConditions }
+        const conditions = {...defaults, ...template.searchConditions}
         conditions.multigetCriteria = (conditions.multigetCriteria ?? []).map(normalizeMultigetCriterion)
 
         if (conditions.dateRangeSpec.dateRangeSpecType !== 'EXACTLY') {
-            const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(
-                conditions.criteria,
-                get().config,
-            )
+            const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(conditions.criteria, get().config)
             conditions.dateRangeSpec = calculateNonExactDates(
                 conditions.dateRangeSpec,
                 getNonExactDateRangeTimeZone(get().config, timeSelectionEnabled),
             )
         }
 
-        set((draft) => {
+        set(draft => {
             Object.assign(draft, defaults)
             draft.template = template
             draft.activeTemplateName = template.name
@@ -755,24 +702,25 @@ export const getSearchUIFiltersActions = (
         )
         captureTemplateBaseline(set, get)
     },
-    loadTemplates: (options) => {
+    loadTemplates: options => {
         const settingsContextName = get().settingsContextName
         const defaults = get().defaults
 
-        defaults.getSearchTemplates(settingsContextName)
+        defaults
+            .getSearchTemplates(settingsContextName)
             .then(templates => {
                 if (get().settingsContextName !== settingsContextName) {
                     return
                 }
 
                 const normalizedTemplates = templates.map(normalizeSearchUITemplate)
-                set((draft) => {
+                set(draft => {
                     draft.templates = normalizedTemplates
                 })
 
                 if (get().restoredFromRetention) {
                     const activeTemplate = normalizedTemplates.find(t => t.name === get().activeTemplateName) ?? null
-                    set((draft) => {
+                    set(draft => {
                         draft.template = activeTemplate
                         draft.activeTemplateName = activeTemplate?.name ?? null
                         if (activeTemplate === null) {
@@ -789,12 +737,12 @@ export const getSearchUIFiltersActions = (
                     return
                 }
 
-                return Promise.resolve(readLastSearchUITemplateName(defaults, settingsContextName))
-                    .then(({name: lastTemplateName, legacy}) => {
+                return Promise.resolve(readLastSearchUITemplateName(defaults, settingsContextName)).then(
+                    ({name: lastTemplateName, legacy}) => {
                         const lastTemplate = normalizedTemplates.find(t => t.name === lastTemplateName)
                         if (lastTemplate) {
                             // setTemplate remembers the name again, which also moves a browser-kept one to the host.
-                            get().setTemplate(lastTemplate, { forceSearch: true })
+                            get().setTemplate(lastTemplate, {forceSearch: true})
                         } else if (lastTemplateName !== null) {
                             if (legacy) {
                                 discardLegacyLastSearchUITemplateName(settingsContextName)
@@ -802,20 +750,22 @@ export const getSearchUIFiltersActions = (
                                 void forgetLastSearchUITemplateName(defaults, settingsContextName)
                             }
                         }
-                    })
+                    },
+                )
             })
             .catch(console.error)
     },
     setJustAddedCriterion: (criterionType: CriterionTypeEnum | null) => {
-        set((draft) => {
+        set(draft => {
             draft.justAddedCriterion = criterionType
         })
     },
     setMultigetCriterion: (criterion: MultigetCriterion) => {
-        set((draft) => {
-            const previousMerchantId = criterion.entityType === LinkedEntityTypeEnum.MERCHANT
-                ? getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
-                : null
+        set(draft => {
+            const previousMerchantId =
+                criterion.entityType === LinkedEntityTypeEnum.MERCHANT
+                    ? getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
+                    : null
             const index = draft.multigetCriteria.findIndex(c => c.entityType === criterion.entityType)
             if (index >= 0) {
                 draft.multigetCriteria[index] = criterion
@@ -827,8 +777,8 @@ export const getSearchUIFiltersActions = (
             }
 
             if (
-                criterion.entityType === LinkedEntityTypeEnum.MERCHANT
-                && previousMerchantId !== getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
+                criterion.entityType === LinkedEntityTypeEnum.MERCHANT &&
+                previousMerchantId !== getConcreteCustomerLevelMerchantId(draft.multigetCriteria)
             ) {
                 draft.customerLevel = null
             }
@@ -836,65 +786,64 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get)
     },
     set3DCriterion: (threeD: ThreeDCriterionEnum) => {
-        set((draft) => {
+        set(draft => {
             draft.threeD = threeD
         })
         postUpdate(set, get)
     },
     setStatusCriterion: (status: StatusCriterion) => {
-        set((draft) => {
+        set(draft => {
             draft.status = status
         })
         postUpdate(set, get)
     },
     setOtpStatusCriterion: (otpStatus: OtpStatusCriterion) => {
-        set((draft) => {
+        set(draft => {
             draft.otpStatus = otpStatus
         })
         postUpdate(set, get)
     },
     setExactCriterionSearchLabel: (searchLabel: ExactCriterionSearchLabelEnum) => {
-        set((draft) => {
+        set(draft => {
             draft.exactSearchLabel = searchLabel
         })
         postUpdate(set, get)
     },
     setExactCriterionSearchValue: (searchValue: string) => {
-        set((draft) => {
+        set(draft => {
             draft.exactSearchValue = searchValue
         })
         postUpdate(set, get)
     },
     setOrderSearchCriterionLabel: searchLabel => {
         const oldLabel = get().ordersSearchLabel
-        set((draft) => {
+        set(draft => {
             draft.ordersSearchLabel = searchLabel
         })
 
         // если выбран новый по типу search label, то сбрасываем значение
         if (OrdersSearchLabelsConfig[oldLabel].type !== OrdersSearchLabelsConfig[searchLabel].type) {
-            set((draft) => {
+            set(draft => {
                 draft.ordersSearchValue = ''
             })
         }
         postUpdate(set, get)
     },
     setOrderSearchCriterionValue: searchValue => {
-        set((draft) => {
+        set(draft => {
             draft.ordersSearchValue = searchValue
         })
         postUpdate(set, get)
     },
     setCustomerLevelCriterion: customerLevel => {
-        set((draft) => {
-            draft.customerLevel = getConcreteCustomerLevelMerchantId(draft.multigetCriteria) === null
-                ? null
-                : customerLevel
+        set(draft => {
+            draft.customerLevel =
+                getConcreteCustomerLevelMerchantId(draft.multigetCriteria) === null ? null : customerLevel
         })
         postUpdate(set, get)
     },
     setCurrenciesCriterion: (currencies: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             if (!isEqual(draft.currencies, currencies)) {
                 draft.customerLevel = null
             }
@@ -903,13 +852,13 @@ export const getSearchUIFiltersActions = (
         postUpdate(set, get)
     },
     setCountriesCriterion: (countries: CountryAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.countries = countries
         })
         postUpdate(set, get)
     },
     setDateRangeCriterionOrderDateType: orderDateType => {
-        set((draft) => {
+        set(draft => {
             draft.orderDateType = orderDateType
         })
         postUpdate(set, get)
@@ -917,16 +866,13 @@ export const getSearchUIFiltersActions = (
     setDateRangeCriterion: (dateRangeSpec: DateRangeSpec) => {
         const prevDateRangeSpec = get().dateRangeSpec
         const prevDateRangeSpecType = prevDateRangeSpec.dateRangeSpecType
-        const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(
-            get().criteria,
-            get().config,
-        )
+        const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(get().criteria, get().config)
 
         const switchingToExact =
-            dateRangeSpec.dateRangeSpecType === 'EXACTLY'
-            && prevDateRangeSpecType !== 'EXACTLY'
-            && prevDateRangeSpec.dateFrom === dateRangeSpec.dateFrom
-            && prevDateRangeSpec.dateTo === dateRangeSpec.dateTo
+            dateRangeSpec.dateRangeSpecType === 'EXACTLY' &&
+            prevDateRangeSpecType !== 'EXACTLY' &&
+            prevDateRangeSpec.dateFrom === dateRangeSpec.dateFrom &&
+            prevDateRangeSpec.dateTo === dateRangeSpec.dateTo
 
         let spec = dateRangeSpec
 
@@ -957,99 +903,99 @@ export const getSearchUIFiltersActions = (
             )
         }
 
-        set((draft) => {
+        set(draft => {
             draft.dateRangeSpec = spec
         })
         postUpdate(set, get)
     },
     setProjectCurrencyCriterionCurrency: (currency: AbstractEntity) => {
-        set((draft) => {
+        set(draft => {
             draft.projectCurrency.currency = currency
         })
         postUpdate(set, get)
     },
     setProjectCurrencyCriterionConvertFlag: (convertToUserCurrency: boolean) => {
-        set((draft) => {
+        set(draft => {
             draft.projectCurrency.convertToUserCurrency = convertToUserCurrency
         })
         postUpdate(set, get)
     },
     setCardTypesCriterion: (cardTypes: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.cardTypes = cardTypes
         })
         postUpdate(set, get)
     },
     setTransactionTypesCriterion: (transactionTypes: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.transactionTypes = transactionTypes
             normalizeRestrictedTransactionTypesReducer(draft)
         })
         postUpdate(set, get)
     },
     setTransactionStatusesCriterion: (transactionStatuses: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.transactionStatuses = transactionStatuses
         })
         postUpdate(set, get)
     },
     setTransactionSessionStatusGroupCriterion: (transactionSessionStatusGroup: TransactionSessionGroup) => {
-        set((draft) => {
+        set(draft => {
             draft.transactionSessionStatusGroup = transactionSessionStatusGroup
         })
         postUpdate(set, get)
     },
     setTransactionSessionStatusesCriterion: (transactionSessionStatuses: TransactionSessionStatus[]) => {
-        set((draft) => {
+        set(draft => {
             draft.transactionSessionStatuses = transactionSessionStatuses
         })
         postUpdate(set, get)
     },
     setGroupingCriterionDateType: (dateType: GroupingDateType) => {
-        set((draft) => {
+        set(draft => {
             draft.grouping.dateType = dateType
         })
         postUpdate(set, get)
     },
     setGroupingCriterionGroups: (available: GroupingType[], selected: GroupingType[]) => {
-        set((draft) => {
+        set(draft => {
             draft.grouping.availableGroupingTypes = available
             draft.grouping.selectedGroupingTypes = selected
         })
         postUpdate(set, get)
     },
     setRecurrenceTypesCriterion: (recurrenceTypes: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.recurrenceTypes = recurrenceTypes
         })
         postUpdate(set, get)
     },
     setRecurrenceStatusesCriterion: (recurrenceStatuses: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.recurrenceStatuses = recurrenceStatuses
         })
         postUpdate(set, get)
     },
     setMfoConfigurationTypesCriterion: (mfoConfigurationTypes: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.mfoConfigurationTypes = mfoConfigurationTypes
         })
         postUpdate(set, get)
     },
     setMarkerTypesCriterion: (markerTypes: AbstractEntityAllableCollection) => {
-        set((draft) => {
+        set(draft => {
             draft.markerTypes = markerTypes
         })
         postUpdate(set, get)
     },
     setMarkerStatusCriterion: (status: MarkerStatusCriterion) => {
-        set((draft) => {
+        set(draft => {
             draft.markerStatus = status
         })
         postUpdate(set, get)
     },
     setProcessorLogEntryType: entryType => {
-        set((draft) => {
+        set(draft => {
             draft.processorLogEntryType = entryType
         })
         postUpdate(set, get)
@@ -1108,7 +1054,7 @@ export const getSearchUIFiltersActions = (
 
         const currentSearchCriteria = extractSearchCriteriaFromState(get())
         get().onFiltersUpdate(currentSearchCriteria)
-        set((draft) => {
+        set(draft => {
             draft.prevSearchCriteria = currentSearchCriteria
             draft.appliedSearchCriteria = currentSearchCriteria
             draft.hasUnappliedFilters = false
@@ -1183,10 +1129,7 @@ const addInitialMultigetCriterionReducer = (
     }
 }
 
-const clearCriterionReducer = (
-    draft: Draft<SearchUIFiltersStore>,
-    criterionType: CriterionTypeEnum,
-): void => {
+const clearCriterionReducer = (draft: Draft<SearchUIFiltersStore>, criterionType: CriterionTypeEnum): void => {
     switch (criterionType) {
         case CriterionTypeEnum.STATUS:
             draft.status = getSearchUIInitialSearchCriteria(draft.defaults).status
@@ -1380,9 +1323,10 @@ const resetCriterionToPageDefaultsReducer = (
     Object.assign(draft, pick(startingConditions, CRITERION_CONDITION_KEYS[criterionType]))
 
     const entityType = getLinkedEntityTypeByCriterion(criterionType)
-    const pageSelection = entityType === null
-        ? undefined
-        : pageDefaults.multigetCriteria?.find(multigetCriterion => multigetCriterion.entityType === entityType)
+    const pageSelection =
+        entityType === null
+            ? undefined
+            : pageDefaults.multigetCriteria?.find(multigetCriterion => multigetCriterion.entityType === entityType)
     if (entityType !== null && pageSelection !== undefined) {
         removeMultigetCriterionReducer(draft, entityType)
         draft.multigetCriteria.push(normalizeMultigetCriterion(pageSelection))
@@ -1392,10 +1336,7 @@ const resetCriterionToPageDefaultsReducer = (
     refillTransactionSessionStatusesReducer(draft)
 }
 
-const removeMultigetCriterionReducer = (
-    draft: Draft<SearchUIFiltersStore>,
-    entityType: LinkedEntityTypeEnum,
-): void => {
+const removeMultigetCriterionReducer = (draft: Draft<SearchUIFiltersStore>, entityType: LinkedEntityTypeEnum): void => {
     const index = draft.multigetCriteria.findIndex(c => c.entityType === entityType)
     if (index >= 0) {
         draft.multigetCriteria.splice(index, 1)
@@ -1457,7 +1398,7 @@ const extractExactSearchLabel = (label: ExactCriterionSearchLabelEnum | undefine
     return label
 }
 
-const extractEntitiesIds = (allable: AllableCollection<{ id: number }>): number[] => {
+const extractEntitiesIds = (allable: AllableCollection<{id: number}>): number[] => {
     if (allable.all) {
         return []
     }
@@ -1498,8 +1439,7 @@ const isDateRangeTimeSelectionEnabled = (
     criteria: CriterionTypeEnum[],
     config: SearchUIFiltersState['config'],
 ): boolean => {
-    return criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS)
-        || !!config?.dateRange?.enableTimeSelection
+    return criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS) || !!config?.dateRange?.enableTimeSelection
 }
 
 const getConfiguredDateOnlyTimeZone = (config: SearchUIFiltersState['config']): string | null => {
@@ -1573,19 +1513,14 @@ const extractTransactionSessionStatuses = (
     criteria: CriterionTypeEnum[],
     statuses: TransactionSessionStatus[],
 ): string | null => {
-    if (!criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS))
-        return null
-    const selectedStatuses = statuses
-        .filter(status => status.selected)
-        .map(status => status.displayName)
+    if (!criteria.includes(CriterionTypeEnum.TRANSACTION_SESSION_STATUS)) return null
+    const selectedStatuses = statuses.filter(status => status.selected).map(status => status.displayName)
 
     return selectedStatuses.length ? selectedStatuses.join(',') : null
 }
 
-const copyTransactionSessionStatuses = (
-    statuses: TransactionSessionStatus[],
-): TransactionSessionStatus[] => {
-    return statuses.map(status => ({ ...status }))
+const copyTransactionSessionStatuses = (statuses: TransactionSessionStatus[]): TransactionSessionStatus[] => {
+    return statuses.map(status => ({...status}))
 }
 
 const createTransactionSessionStatusesPrefetchedMap = (
@@ -1609,7 +1544,7 @@ function ensureTransactionSessionStatusesPrefetched(
         return
     }
 
-    const { prefetchedData, prefetchedDataLoading, prefetchedDataMeta } = state
+    const {prefetchedData, prefetchedDataLoading, prefetchedDataMeta} = state
 
     const prefetchedMap = prefetchedData.transactionSessionStatuses
     if (prefetchedMap) {
@@ -1647,7 +1582,8 @@ function ensureTransactionSessionStatusesPrefetched(
         draft.prefetchedDataLoading.transactionSessionStatuses = true
     })
 
-    state.defaults.getTransactionSessionStatuses()
+    state.defaults
+        .getTransactionSessionStatuses()
         .then(statusesMap => {
             const templatePristine = isSearchUITemplatePristine(get())
             let statusesUpdated = false
@@ -1709,8 +1645,8 @@ const normalizeRelativeDateRange = (
 ): void => {
     const state = get()
     if (
-        state.dateRangeSpec.dateRangeSpecType === 'EXACTLY'
-        || state.dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT'
+        state.dateRangeSpec.dateRangeSpecType === 'EXACTLY' ||
+        state.dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT'
     ) {
         return
     }
@@ -1755,10 +1691,7 @@ const syncCriterionAvailability = (
 
             criteriaWithRules.forEach(criterion => {
                 if (isCriterionAvailable(criterion, draft, draft.config)) {
-                    if (
-                        draft.predefinedCriteria.includes(criterion)
-                        && !draft.criteria.includes(criterion)
-                    ) {
+                    if (draft.predefinedCriteria.includes(criterion) && !draft.criteria.includes(criterion)) {
                         restorePredefinedCriterionReducer(draft, criterion)
                         changed = true
                     }
@@ -1779,23 +1712,17 @@ const syncCriterionAvailability = (
     })
 }
 
-const restorePredefinedCriterionReducer = (
-    draft: Draft<SearchUIFiltersStore>,
-    criterion: CriterionTypeEnum,
-): void => {
+const restorePredefinedCriterionReducer = (draft: Draft<SearchUIFiltersStore>, criterion: CriterionTypeEnum): void => {
     addInitialMultigetCriterionReducer(draft, criterion)
 
-    const activePredefinedCriteria = draft.predefinedCriteria.filter(predefinedCriterion => (
-        predefinedCriterion === criterion || draft.criteria.includes(predefinedCriterion)
-    ))
-    const activeCustomCriteria = draft.criteria.filter(activeCriterion => (
-        !draft.predefinedCriteria.includes(activeCriterion)
-    ))
+    const activePredefinedCriteria = draft.predefinedCriteria.filter(
+        predefinedCriterion => predefinedCriterion === criterion || draft.criteria.includes(predefinedCriterion),
+    )
+    const activeCustomCriteria = draft.criteria.filter(
+        activeCriterion => !draft.predefinedCriteria.includes(activeCriterion),
+    )
 
-    draft.criteria = Array.from(new Set([
-        ...activePredefinedCriteria,
-        ...activeCustomCriteria,
-    ]))
+    draft.criteria = Array.from(new Set([...activePredefinedCriteria, ...activeCustomCriteria]))
 }
 
 const checkIfFiltersChanged = (
@@ -1821,22 +1748,19 @@ const checkIfFiltersChanged = (
         const shouldForceSearch = options?.forceSearch === true
 
         if (isManualSearch && !isInitialLoad && !shouldForceSearch) {
-            set((draft) => {
+            set(draft => {
                 draft.prevSearchCriteria = currentSearchCriteria
                 draft.hasUnappliedFilters = true
             })
         } else {
             get().onFiltersUpdate(currentSearchCriteria)
-            set((draft) => {
+            set(draft => {
                 draft.prevSearchCriteria = currentSearchCriteria
                 draft.appliedSearchCriteria = currentSearchCriteria
                 draft.hasUnappliedFilters = false
             })
         }
-    } else if (
-        get().hasUnappliedFilters
-        && isEqual(get().appliedSearchCriteria, currentSearchCriteria)
-    ) {
+    } else if (get().hasUnappliedFilters && isEqual(get().appliedSearchCriteria, currentSearchCriteria)) {
         set(draft => {
             draft.hasUnappliedFilters = false
         })
@@ -1868,10 +1792,11 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
     const timeSelectionEnabled = isDateRangeTimeSelectionEnabled(state.criteria, state.config)
     const dateOnlyTimeZone = getConfiguredDateOnlyTimeZone(state.config)
     const nonExactTimeZone = getNonExactDateRangeTimeZone(state.config, timeSelectionEnabled)
-    const customerLevelDependenciesSatisfied = state.criteria.includes(CriterionTypeEnum.CUSTOMER_LEVEL)
-        && state.criteria.includes(CriterionTypeEnum.MERCHANT)
-        && state.criteria.includes(CriterionTypeEnum.CURRENCY)
-        && getConcreteCustomerLevelMerchantId(state.multigetCriteria) !== null
+    const customerLevelDependenciesSatisfied =
+        state.criteria.includes(CriterionTypeEnum.CUSTOMER_LEVEL) &&
+        state.criteria.includes(CriterionTypeEnum.MERCHANT) &&
+        state.criteria.includes(CriterionTypeEnum.CURRENCY) &&
+        getConcreteCustomerLevelMerchantId(state.multigetCriteria) !== null
 
     return {
         initialized: true,
@@ -1879,9 +1804,7 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         exactSearchValue: state.exactSearchValue,
         ordersSearchLabel: state.ordersSearchLabel,
         ordersSearchValue: state.ordersSearchValue,
-        customerLevelId: customerLevelDependenciesSatisfied
-            ? state.customerLevel?.id ?? null
-            : null,
+        customerLevelId: customerLevelDependenciesSatisfied ? (state.customerLevel?.id ?? null) : null,
         status: extractStatus(state.status),
         otpStatus: extractOtpStatus(state.otpStatus),
         threeD: extract3D(state.threeD),
@@ -1898,9 +1821,9 @@ const extractSearchCriteriaFromState = (state: SearchUIFiltersState): SearchCrit
         projectCurrencyConvert: state.projectCurrency.convertToUserCurrency,
         groupTypes: extractGroupTypes(state.grouping),
         // Only what the user sees: a selection without its criterion never reaches the search.
-        multigetCriteria: state.multigetCriteria.filter(selection => (
-            isLinkedEntityCriterionActive(state.criteria, selection.entityType)
-        )),
+        multigetCriteria: state.multigetCriteria.filter(selection =>
+            isLinkedEntityCriterionActive(state.criteria, selection.entityType),
+        ),
         recurrenceTypes: extractEntitiesIds(state.recurrenceTypes),
         recurrenceStatuses: extractEntitiesIds(state.recurrenceStatuses),
         mfoConfigurationTypes: extractEntitiesIds(state.mfoConfigurationTypes),
@@ -1931,8 +1854,9 @@ const getTemplateFingerprint = (state: SearchUIFiltersState): string => {
     return JSON.stringify({
         ...searchCriteria,
         criteria: [...state.criteria].sort(),
-        multigetCriteria: [...searchCriteria.multigetCriteria]
-            .sort((left, right) => left.entityType.localeCompare(right.entityType)),
+        multigetCriteria: [...searchCriteria.multigetCriteria].sort((left, right) =>
+            left.entityType.localeCompare(right.entityType),
+        ),
         dateRangeSpecType,
         beforeCount: counted ? beforeCount : null,
         dateFrom: exact ? searchCriteria.dateFrom : null,
@@ -1941,17 +1865,15 @@ const getTemplateFingerprint = (state: SearchUIFiltersState): string => {
 }
 
 /** The applied template no longer matches the filters, so saving it or discarding the changes makes sense. */
-export const isSearchUITemplateModified = (state: SearchUIFiltersState): boolean => (
-    state.template !== null
-    && state.templateBaseline !== null
-    && getTemplateFingerprint(state) !== state.templateBaseline
-)
+export const isSearchUITemplateModified = (state: SearchUIFiltersState): boolean =>
+    state.template !== null &&
+    state.templateBaseline !== null &&
+    getTemplateFingerprint(state) !== state.templateBaseline
 
-const isSearchUITemplatePristine = (state: SearchUIFiltersState): boolean => (
-    state.template !== null
-    && state.templateBaseline !== null
-    && getTemplateFingerprint(state) === state.templateBaseline
-)
+const isSearchUITemplatePristine = (state: SearchUIFiltersState): boolean =>
+    state.template !== null &&
+    state.templateBaseline !== null &&
+    getTemplateFingerprint(state) === state.templateBaseline
 
 const captureTemplateBaseline = (
     set: ZustandStoreImmerSet<SearchUIFiltersStore>,
@@ -2024,16 +1946,14 @@ const calculateNonExactDates = (
     const nowLocal = dayjs()
     const nowServer = timeZone ? dayjs().utc().tz(timeZone) : dayjs()
 
-    let from: Dayjs = dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom)
-        : getSearchUIInitialDateFrom()
-    let to: Dayjs = dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo)
-        : getSearchUIInitialDateTo()
+    let from: Dayjs = dateRangeSpec.dateFrom ? dayjs(dateRangeSpec.dateFrom) : getSearchUIInitialDateFrom()
+    let to: Dayjs = dateRangeSpec.dateTo ? dayjs(dateRangeSpec.dateTo) : getSearchUIInitialDateTo()
 
     // endOf мы тут используем только при работе с месяцами или неделями. в случае дня, бд не различает начало и конец
     // поэтом указываем начало следующего дня
     switch (dateRangeSpec.dateRangeSpecType) {
         case 'EXACTLY':
-            throw new Error('Don\'t do like this')
+            throw new Error("Don't do like this")
         case 'DATE_INDEPENDENT':
             break
         case 'TODAY':
@@ -2062,14 +1982,14 @@ const calculateNonExactDates = (
             break
         case 'DAYS_BEFORE':
             if (dateRangeSpec.beforeCount === null) {
-                throw new Error('Don\'t do like this')
+                throw new Error("Don't do like this")
             }
             from = nowLocal.startOf('day').subtract(dateRangeSpec.beforeCount, 'd')
             to = nowLocal.startOf('day').add(1, 'day')
             break
         case 'HOURS_BEFORE':
             if (dateRangeSpec.beforeCount === null) {
-                throw new Error('Don\'t do like this')
+                throw new Error("Don't do like this")
             }
             to = nowServer
             from = nowServer.subtract(dateRangeSpec.beforeCount, 'hour')
@@ -2092,59 +2012,59 @@ type OrderSearchInputType = {
 }
 
 export const OrdersSearchLabelsConfig: Readonly<Record<OrderSearchLabel, OrderSearchInputType>> = {
-    'merchant_invoice_id': { type: 'string', maxLength: 128 },
-    'order_id': { type: 'integer', maxLength: 10 },
-    'processor_order_id': { type: 'string', maxLength: 128 },
-    'purpose': { type: 'string', maxLength: 128 },
-    'transaction_amount': { type: 'amount', maxLength: 128 },
-    'session_token': { type: 'string', maxLength: 36 },
-    'customer_phone': { type: 'string', maxLength: 128 },
-    'customer_email': { type: 'string', maxLength: 128 },
-    'customer_ip': { type: 'ip', maxLength: 128 },
-    'customer_ip_country': { type: 'country', maxLength: 128 },
-    'customer_billing_country': { type: 'country', maxLength: 128 },
-    'customer_dna_id': { type: 'integer', maxLength: 10 },
-    'customer_id': { type: 'integer', maxLength: 10 },
-    'merchant_customer_identifier': { type: 'string', maxLength: 128 },
-    'batch_id': { type: 'integer', maxLength: 10 },
-    'source_bank_name': { type: 'string', maxLength: 128 },
-    'source_country': { type: 'country', maxLength: 128 },
-    'source_from_order_id': { type: 'integer', maxLength: 10 },
-    'source_bin': { type: 'integer', maxLength: 6 },
-    'source_bin_range_from_order_id': { type: 'integer', maxLength: 10 },
-    'source_last4': { type: 'string', maxLength: 4 },
-    'source_bin_last4': { type: 'card6and4', maxLength: 128 },
-    'source_auth_code': { type: 'string', maxLength: 10 },
-    'source_arn': { type: 'string', maxLength: 64 },
-    'source_rrn': { type: 'string', maxLength: 20 },
-    'source_card_holder': { type: 'string', maxLength: 128 },
-    'source_card_ref_id': { type: 'integer', maxLength: 10 },
-    'dest_bank_name': { type: 'string', maxLength: 128 },
-    'dest_country': { type: 'country', maxLength: 128 },
-    'dest_from_order_id': { type: 'integer', maxLength: 10 },
-    'dest_bin': { type: 'integer', maxLength: 6 },
-    'dest_bin_range_from_order_id': { type: 'integer', maxLength: 10 },
-    'dest_last4': { type: 'string', maxLength: 4 },
-    'dest_bin_last': { type: 'card6and4', maxLength: 128 },
-    'dest_auth_code': { type: 'string', maxLength: 10 },
-    'dest_arn': { type: 'string', maxLength: 64 },
-    'dest_rrn': { type: 'string', maxLength: 20 },
-    'dest_card_ref_id': { type: 'integer', maxLength: 10 },
-    'account_number': { type: 'string', maxLength: 64 },
-    'routing_number': { type: 'string', maxLength: 16 },
-    'reader_key_serial_number': { type: 'string', maxLength: 16 },
-    'reader_device_serial_number': { type: 'string', maxLength: 16 },
-    'device_serial_number': { type: 'string', maxLength: 64 },
-    'phone_serial_number': { type: 'string', maxLength: 128 },
-    'phone_imei': { type: 'string', maxLength: 128 },
-    'reader_id': { type: 'string', maxLength: 128 },
-    'registration_info_id': { type: 'string', maxLength: 128 },
-    'inn': { type: 'string', maxLength: 128 },
-    'mtcn': { type: 'string', maxLength: 128 },
-    'rebill': { type: 'string', maxLength: 128 },
-    'swift_number': { type: 'string', maxLength: 128 },
-    'webmoney_account': { type: 'string', maxLength: 128 },
-    'yamoney_account': { type: 'string', maxLength: 128 },
-    'wire_account': { type: 'string', maxLength: 128 },
-    'card_number_hash_hash': { type: 'integer', maxLength: 10 },
+    merchant_invoice_id: {type: 'string', maxLength: 128},
+    order_id: {type: 'integer', maxLength: 10},
+    processor_order_id: {type: 'string', maxLength: 128},
+    purpose: {type: 'string', maxLength: 128},
+    transaction_amount: {type: 'amount', maxLength: 128},
+    session_token: {type: 'string', maxLength: 36},
+    customer_phone: {type: 'string', maxLength: 128},
+    customer_email: {type: 'string', maxLength: 128},
+    customer_ip: {type: 'ip', maxLength: 128},
+    customer_ip_country: {type: 'country', maxLength: 128},
+    customer_billing_country: {type: 'country', maxLength: 128},
+    customer_dna_id: {type: 'integer', maxLength: 10},
+    customer_id: {type: 'integer', maxLength: 10},
+    merchant_customer_identifier: {type: 'string', maxLength: 128},
+    batch_id: {type: 'integer', maxLength: 10},
+    source_bank_name: {type: 'string', maxLength: 128},
+    source_country: {type: 'country', maxLength: 128},
+    source_from_order_id: {type: 'integer', maxLength: 10},
+    source_bin: {type: 'integer', maxLength: 6},
+    source_bin_range_from_order_id: {type: 'integer', maxLength: 10},
+    source_last4: {type: 'string', maxLength: 4},
+    source_bin_last4: {type: 'card6and4', maxLength: 128},
+    source_auth_code: {type: 'string', maxLength: 10},
+    source_arn: {type: 'string', maxLength: 64},
+    source_rrn: {type: 'string', maxLength: 20},
+    source_card_holder: {type: 'string', maxLength: 128},
+    source_card_ref_id: {type: 'integer', maxLength: 10},
+    dest_bank_name: {type: 'string', maxLength: 128},
+    dest_country: {type: 'country', maxLength: 128},
+    dest_from_order_id: {type: 'integer', maxLength: 10},
+    dest_bin: {type: 'integer', maxLength: 6},
+    dest_bin_range_from_order_id: {type: 'integer', maxLength: 10},
+    dest_last4: {type: 'string', maxLength: 4},
+    dest_bin_last: {type: 'card6and4', maxLength: 128},
+    dest_auth_code: {type: 'string', maxLength: 10},
+    dest_arn: {type: 'string', maxLength: 64},
+    dest_rrn: {type: 'string', maxLength: 20},
+    dest_card_ref_id: {type: 'integer', maxLength: 10},
+    account_number: {type: 'string', maxLength: 64},
+    routing_number: {type: 'string', maxLength: 16},
+    reader_key_serial_number: {type: 'string', maxLength: 16},
+    reader_device_serial_number: {type: 'string', maxLength: 16},
+    device_serial_number: {type: 'string', maxLength: 64},
+    phone_serial_number: {type: 'string', maxLength: 128},
+    phone_imei: {type: 'string', maxLength: 128},
+    reader_id: {type: 'string', maxLength: 128},
+    registration_info_id: {type: 'string', maxLength: 128},
+    inn: {type: 'string', maxLength: 128},
+    mtcn: {type: 'string', maxLength: 128},
+    rebill: {type: 'string', maxLength: 128},
+    swift_number: {type: 'string', maxLength: 128},
+    webmoney_account: {type: 'string', maxLength: 128},
+    yamoney_account: {type: 'string', maxLength: 128},
+    wire_account: {type: 'string', maxLength: 128},
+    card_number_hash_hash: {type: 'integer', maxLength: 10},
 }

@@ -16,7 +16,11 @@ const Group = (props: ToggleButtonGroupProps) => (
 )
 
 const renderGroup = (ui: React.ReactElement, mode: 'light' | 'dark' = 'light') => {
-    const view = render(<PneThemeProvider mode={mode} skin={UI_KIT_SKIN}>{ui}</PneThemeProvider>)
+    const view = render(
+        <PneThemeProvider mode={mode} skin={UI_KIT_SKIN}>
+            {ui}
+        </PneThemeProvider>,
+    )
     const root = view.container.querySelector<HTMLElement>('.MuiToggleButtonGroup-root')!
     return {...view, root}
 }
@@ -48,7 +52,7 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
         {size: 'large', shell: '40px', button: '32px', font: '14px', line: '20px', padding: '6px 12px'},
         {size: 'small', shell: '32px', button: '24px', font: '12px', line: '16px', padding: '4px 8px'},
     ] as const)('is the UI Kit tabs group of size $size', ({size, shell, button, font, line, padding}) => {
-        const {root} = renderGroup(<Group size={size}/>)
+        const {root} = renderGroup(<Group size={size} />)
 
         expect(ruleValue(root, '&', 'min-height')).toBe(shell)
         expect(ruleValue(root, '&', 'background-color')).toBe('#F0F4F8')
@@ -64,8 +68,8 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
         expect(ruleValue(root, GROUPED, 'font-weight')).toBe('500')
     })
 
-    it('takes MUI\'s borders, joined corners and overlapping margins off the buttons', () => {
-        const {root} = renderGroup(<Group/>)
+    it("takes MUI's borders, joined corners and overlapping margins off the buttons", () => {
+        const {root} = renderGroup(<Group />)
 
         expect(ruleValue(root, GROUPED, 'border')).toMatch(/^0/)
         expect(ruleValue(root, GROUPED, 'border-radius')).toBe('4px')
@@ -75,8 +79,8 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
     })
 
     it('draws the picked button as a white tile with the tab shadow, whatever the colour of the group', () => {
-        const plain = renderGroup(<Group/>).root
-        const primary = renderGroup(<Group color='primary'/>).root
+        const plain = renderGroup(<Group />).root
+        const primary = renderGroup(<Group color='primary' />).root
 
         for (const root of [plain, primary]) {
             expect(ruleValue(root, PICKED, 'background-color')).toBe('#FFFFFF')
@@ -88,21 +92,21 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
 
     it('is as wide as its buttons unless it is asked to fill the row', () => {
         // A column of a form stretches its children: the shell must not run across the form.
-        const {root} = renderGroup(<Group/>)
-        const {root: filling} = renderGroup(<Group fullWidth/>)
+        const {root} = renderGroup(<Group />)
+        const {root: filling} = renderGroup(<Group fullWidth />)
 
         expect(ruleValue(root, '&', 'width')).toBe('fit-content')
         expect(ruleValue(filling, '&', 'width')).not.toBe('fit-content')
     })
 
     it('stretches the buttons of a stacked group', () => {
-        const {root} = renderGroup(<Group orientation='vertical'/>)
+        const {root} = renderGroup(<Group orientation='vertical' />)
 
         expect(ruleValue(root, '&', 'align-items')).toBe('stretch')
     })
 
     it('is the dark shell on a dark page', () => {
-        const {root} = renderGroup(<Group/>, 'dark')
+        const {root} = renderGroup(<Group />, 'dark')
 
         expect(ruleValue(root, '&', 'background-color')).toBe('#242424')
         expect(ruleValue(root, PICKED, 'background-color')).toBe('#303030')
@@ -110,7 +114,7 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
 
     it('still switches the value', () => {
         const onChange = jest.fn()
-        renderGroup(<Group onChange={(_event, value) => onChange(value)}/>)
+        renderGroup(<Group onChange={(_event, value) => onChange(value)} />)
 
         fireEvent.click(screen.getByRole('button', {name: 'Disabled'}))
 
@@ -118,9 +122,11 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
     })
 
     it('leaves a toggle button that stands alone to MUI', () => {
-        const view = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <ToggleButton value='details'>Details</ToggleButton>
-        </PneThemeProvider>)
+        const view = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <ToggleButton value='details'>Details</ToggleButton>
+            </PneThemeProvider>,
+        )
         const button = view.container.querySelector<HTMLElement>('.MuiToggleButton-root')!
 
         expect(button.classList.contains('MuiToggleButtonGroup-grouped')).toBe(false)
@@ -128,7 +134,7 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
     })
 
     it('gives the Multiget window the small group of the theme, with the theme and without it', () => {
-        const group = <Group size='small' sx={searchUITabsGroupSx}/>
+        const group = <Group size='small' sx={searchUITabsGroupSx} />
         const themed = renderGroup(group).root
         const bare = render(group).container.querySelector<HTMLElement>('.MuiToggleButtonGroup-root')!
 
@@ -137,7 +143,7 @@ describe('MUI ToggleButtonGroup under the pne-ui theme', () => {
             expect(ruleValue(root, GROUPED, 'height')).toBe('24px')
             expect(ruleValue(root, GROUPED, 'font-size')).toBe('12px')
             expect(ruleValue(root, GROUPED + ':hover', 'background-color')).toBe(
-                ruleValue(renderGroup(<Group size='small'/>).root, GROUPED + ':hover', 'background-color'),
+                ruleValue(renderGroup(<Group size='small' />).root, GROUPED + ':hover', 'background-color'),
             )
             expect(ruleValue(root, PICKED, 'box-shadow')).toMatch(/rgba?\(/)
         }

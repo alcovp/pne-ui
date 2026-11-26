@@ -1,5 +1,5 @@
-import React, {ReactNode, useRef} from "react";
-import {createIsolatedMultigetSelectStore, MultigetSelectStoreContext} from "./store";
+import React, {ReactNode, useRef} from 'react'
+import {createIsolatedMultigetSelectStore, MultigetSelectStoreContext} from './store'
 
 type Props = {
     children: ReactNode

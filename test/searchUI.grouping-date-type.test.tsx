@@ -3,11 +3,7 @@ import {fireEvent, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {CriterionTypeEnum, SearchUIFilters, SearchUIProvider} from '../src'
 import {GROUPING_DATE_TYPES} from '../src/component/search-ui/filters/types'
 
 jest.mock('react-i18next', () => ({
@@ -25,8 +21,8 @@ const neverResolves = <T,>(): Promise<T> => new Promise(() => undefined)
 
 const getGroupingCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.GROUPING}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.GROUPING}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -44,16 +40,17 @@ const getDateTypeControl = (criterion: HTMLElement): HTMLElement => {
     return control as HTMLElement
 }
 
-const getOwnedOptions = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="listbox"][data-autotest="criterion-grouping-date-type-options"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.GROUPING}"]`,
-)
+const getOwnedOptions = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="listbox"][data-autotest="criterion-grouping-date-type-options"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.GROUPING}"]`,
+    )
 
-const getOption = (listbox: HTMLElement, value: string): HTMLElement | null => listbox.querySelector<HTMLElement>(
-    '[role="option"][data-autotest="criterion-grouping-date-type-option"]'
-    + `[data-autotest-value="${value}"]`,
-)
+const getOption = (listbox: HTMLElement, value: string): HTMLElement | null =>
+    listbox.querySelector<HTMLElement>(
+        '[role="option"][data-autotest="criterion-grouping-date-type-option"]' + `[data-autotest-value="${value}"]`,
+    )
 
 describe('SearchUI grouping date-type Selenium contract', () => {
     beforeEach(() => {
@@ -66,8 +63,8 @@ describe('SearchUI grouping date-type Selenium contract', () => {
         const {container} = render(
             <SearchUIProvider defaults={{getSearchTemplates: neverResolves}}>
                 <SearchUIFilters
-                    autoTestId="grouping-date-first"
-                    settingsContextName="grouping-date-first-context"
+                    autoTestId='grouping-date-first'
+                    settingsContextName='grouping-date-first-context'
                     possibleCriteria={[CriterionTypeEnum.GROUPING]}
                     predefinedCriteria={[CriterionTypeEnum.GROUPING]}
                     initialSearchConditions={{
@@ -81,8 +78,8 @@ describe('SearchUI grouping date-type Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="grouping-date-second"
-                    settingsContextName="grouping-date-second-context"
+                    autoTestId='grouping-date-second'
+                    settingsContextName='grouping-date-second-context'
                     possibleCriteria={[CriterionTypeEnum.GROUPING]}
                     predefinedCriteria={[CriterionTypeEnum.GROUPING]}
                     initialSearchConditions={{
@@ -99,12 +96,16 @@ describe('SearchUI grouping date-type Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                groupTypes: ['MERCHANT', 'MONTH'],
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                groupTypes: ['MERCHANT', 'CLOSE_DAY'],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    groupTypes: ['MERCHANT', 'MONTH'],
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    groupTypes: ['MERCHANT', 'CLOSE_DAY'],
+                }),
+            )
         })
 
         const firstCriterion = getGroupingCriterion(container, 'grouping-date-first')
@@ -117,12 +118,8 @@ describe('SearchUI grouping date-type Selenium contract', () => {
         expect(secondControl.getAttribute('data-autotest-value')).toBe('CLOSE_DAY')
 
         for (const criterion of [firstCriterion, secondCriterion]) {
-            expect(criterion.querySelectorAll(
-                '[data-autotest="criterion-grouping-date-type"]',
-            )).toHaveLength(1)
-            expect(criterion.querySelector(
-                '[role="button"][aria-hidden="true"][tabindex="-1"]',
-            )).not.toBeNull()
+            expect(criterion.querySelectorAll('[data-autotest="criterion-grouping-date-type"]')).toHaveLength(1)
+            expect(criterion.querySelector('[role="button"][aria-hidden="true"][tabindex="-1"]')).not.toBeNull()
         }
 
         fireEvent.mouseDown(firstControl)
@@ -143,11 +140,13 @@ describe('SearchUI grouping date-type Selenium contract', () => {
             expect(control.getAttribute('aria-expanded')).toBe('true')
             expect(control.getAttribute('aria-controls')).toBe(listbox.id)
             expect(criterion.contains(listbox)).toBe(false)
-            expect(Array.from(listbox.querySelectorAll<HTMLElement>(
-                '[role="option"][data-autotest="criterion-grouping-date-type-option"]',
-            )).map(option => option.getAttribute('data-autotest-value'))).toEqual(
-                GROUPING_DATE_TYPES,
-            )
+            expect(
+                Array.from(
+                    listbox.querySelectorAll<HTMLElement>(
+                        '[role="option"][data-autotest="criterion-grouping-date-type-option"]',
+                    ),
+                ).map(option => option.getAttribute('data-autotest-value')),
+            ).toEqual(GROUPING_DATE_TYPES)
 
             for (const dateType of GROUPING_DATE_TYPES) {
                 expect(getOption(listbox, dateType)?.getAttribute('aria-selected')).toBe(
@@ -162,9 +161,11 @@ describe('SearchUI grouping date-type Selenium contract', () => {
 
         await waitFor(() => {
             expect(firstControl.getAttribute('data-autotest-value')).toBe('SETTLEMENT_DAY')
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                groupTypes: ['MERCHANT', 'SETTLEMENT_DAY'],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    groupTypes: ['MERCHANT', 'SETTLEMENT_DAY'],
+                }),
+            )
         })
         expect(secondControl.getAttribute('data-autotest-value')).toBe('CLOSE_DAY')
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()

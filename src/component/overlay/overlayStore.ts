@@ -1,18 +1,12 @@
 import React from 'react'
-import type { SxProps, Theme } from '@mui/material/styles'
-import { resolvePneSemanticPalette } from '../../createTheme'
-import { Button } from '@mui/material'
-import { create } from 'zustand'
-import type {
-    ErrorSnackbarOptions,
-    OverlayState,
-    SnackbarOptions,
-    SnackbarVariant,
-    UndoSnackbarOptions,
-} from './types'
-import { reportMissingOverlayHost } from './overlayRuntime'
-import { normalizePaynetError } from './paynetError'
-import { PaynetErrorContent } from './PaynetErrorContent'
+import type {SxProps, Theme} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../createTheme'
+import {Button} from '@mui/material'
+import {create} from 'zustand'
+import type {ErrorSnackbarOptions, OverlayState, SnackbarOptions, SnackbarVariant, UndoSnackbarOptions} from './types'
+import {reportMissingOverlayHost} from './overlayRuntime'
+import {normalizePaynetError} from './paynetError'
+import {PaynetErrorContent} from './PaynetErrorContent'
 
 const defaultAutoHideMs = 5000
 
@@ -50,24 +44,24 @@ export const useOverlayStore = create<OverlayState>(set => ({
                         autoHideMs: hasExplicitAutoHideMs
                             ? snackbar.autoHideMs
                             : variant === 'error'
-                                ? undefined
-                                : defaultAutoHideMs,
+                              ? undefined
+                              : defaultAutoHideMs,
                     },
                 ],
             }
         }),
-    removeSnackbar: id => set(state => ({ snackbars: state.snackbars.filter(snack => snack.id !== id) })),
-    clearSnackbars: () => set({ snackbars: [] }),
+    removeSnackbar: id => set(state => ({snackbars: state.snackbars.filter(snack => snack.id !== id)})),
+    clearSnackbars: () => set({snackbars: []}),
 }))
 
 const showWithVariant = (variant: SnackbarVariant) => (snackbar: Omit<SnackbarOptions, 'variant'>) => {
     reportMissingOverlayHost(`show${variant.charAt(0).toUpperCase()}${variant.slice(1)}`)
-    useOverlayStore.getState().enqueueSnackbar({ ...snackbar, variant })
+    useOverlayStore.getState().enqueueSnackbar({...snackbar, variant})
 }
 
 const showError = (snackbar: ErrorSnackbarOptions): void => {
     if ('error' in snackbar) {
-        const { error, ...options } = snackbar
+        const {error, ...options} = snackbar
         void normalizePaynetError(error).then(normalized => {
             if (!normalized) return
 
@@ -75,7 +69,7 @@ const showError = (snackbar: ErrorSnackbarOptions): void => {
             useOverlayStore.getState().enqueueSnackbar({
                 ...options,
                 id: options.id ?? normalized.notificationId,
-                message: React.createElement(PaynetErrorContent, { error: normalized }),
+                message: React.createElement(PaynetErrorContent, {error: normalized}),
                 variant: 'error',
             })
         })
@@ -83,7 +77,7 @@ const showError = (snackbar: ErrorSnackbarOptions): void => {
     }
 
     reportMissingOverlayHost('showError')
-    useOverlayStore.getState().enqueueSnackbar({ ...snackbar, variant: 'error' })
+    useOverlayStore.getState().enqueueSnackbar({...snackbar, variant: 'error'})
 }
 
 export const overlayActions = {
@@ -108,7 +102,7 @@ export const overlayActions = {
      * Shows an info snackbar with a built-in undo button and returns the snackbar id.
      * By default it behaves like other non-error snackbars and auto-hides after 5000 ms unless `autoHideMs` is overridden.
      */
-    showUndoSnackbar: ({ undoLabel = 'Undo', onUndo, ...snackbar }: UndoSnackbarOptions) => {
+    showUndoSnackbar: ({undoLabel = 'Undo', onUndo, ...snackbar}: UndoSnackbarOptions) => {
         const id = snackbar.id ?? makeId()
         reportMissingOverlayHost('showUndoSnackbar')
 

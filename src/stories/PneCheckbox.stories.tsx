@@ -41,23 +41,28 @@ const MATRIX_COLUMNS: MatrixColumn[] = [
 
 type MatrixValue = 'checked' | 'unchecked' | 'indeterminate'
 
-const MATRIX_ROWS: Array<{size: PneCheckboxSize, value: MatrixValue}> = (['small', 'medium', 'large'] as const)
-    .flatMap(size => (['checked', 'unchecked', 'indeterminate'] as const).map(value => ({size, value})))
+const MATRIX_ROWS: Array<{size: PneCheckboxSize; value: MatrixValue}> = (['small', 'medium', 'large'] as const).flatMap(
+    size => (['checked', 'unchecked', 'indeterminate'] as const).map(value => ({size, value})),
+)
 
 export const Matrix: Story = {
     parameters: {controls: {disable: true}},
     render: () => (
         <Box sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 2}}>
-                Rows are size × value, columns the states as in the Figma matrix. Hover, Pressed and Focus are
-                pinned with <code>data-pne-state</code>; product code never sets it.
+                Rows are size × value, columns the states as in the Figma matrix. Hover, Pressed and Focus are pinned
+                with <code>data-pne-state</code>; product code never sets it.
             </Typography>
             <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 4px', ml: -2}}>
                 <thead>
                     <tr>
-                        <th/>
+                        <th />
                         {MATRIX_COLUMNS.map(column => (
-                            <Box component='th' key={column.label} sx={{...LABEL_SX, fontWeight: 400, textAlign: 'center'}}>
+                            <Box
+                                component='th'
+                                key={column.label}
+                                sx={{...LABEL_SX, fontWeight: 400, textAlign: 'center'}}
+                            >
                                 {column.label}
                             </Box>
                         ))}
@@ -90,7 +95,11 @@ export const Matrix: Story = {
 }
 
 // Figma «С подписью — Checkboxes/Set»: the Plain and the Frame layouts of PneLabeledCheckbox.
-const SET_COLUMNS: Array<{label: string, props: Partial<React.ComponentProps<typeof PneLabeledCheckbox>>, hover?: boolean}> = [
+const SET_COLUMNS: Array<{
+    label: string
+    props: Partial<React.ComponentProps<typeof PneLabeledCheckbox>>
+    hover?: boolean
+}> = [
     {label: 'Enable', props: {}},
     {label: 'Hover', props: {'data-pne-state': 'hover'}, hover: true},
     {label: 'Focus', props: {'data-pne-state': 'focus'}},
@@ -99,23 +108,28 @@ const SET_COLUMNS: Array<{label: string, props: Partial<React.ComponentProps<typ
     {label: 'Read-only', props: {readOnly: true}},
 ]
 
-const SET_ROWS = (['plain', 'card'] as const)
-    .flatMap(variant => (['checked', 'unchecked', 'indeterminate'] as const).map(value => ({variant, value})))
+const SET_ROWS = (['plain', 'card'] as const).flatMap(variant =>
+    (['checked', 'unchecked', 'indeterminate'] as const).map(value => ({variant, value})),
+)
 
 export const WithLabel: Story = {
     parameters: {controls: {disable: true}},
     render: () => (
         <Stack spacing={3} sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary'}}>
-                PneLabeledCheckbox: <code>variant=&quot;plain&quot;</code> and <code>variant=&quot;card&quot;</code> (Figma
-                Frame). The card is tinted and ringed when picked and takes a click anywhere on it.
+                PneLabeledCheckbox: <code>variant=&quot;plain&quot;</code> and <code>variant=&quot;card&quot;</code>{' '}
+                (Figma Frame). The card is tinted and ringed when picked and takes a click anywhere on it.
             </Typography>
             <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 8px', ml: -2}}>
                 <thead>
                     <tr>
-                        <th/>
+                        <th />
                         {SET_COLUMNS.map(column => (
-                            <Box component='th' key={column.label} sx={{...LABEL_SX, fontWeight: 400, textAlign: 'left'}}>
+                            <Box
+                                component='th'
+                                key={column.label}
+                                sx={{...LABEL_SX, fontWeight: 400, textAlign: 'left'}}
+                            >
                                 {column.label}
                             </Box>
                         ))}
@@ -132,7 +146,9 @@ export const WithLabel: Story = {
                                     <PneLabeledCheckbox
                                         checked={row.value === 'checked'}
                                         containerSx={row.variant === 'card' ? {width: 200} : undefined}
-                                        formControlProps={column.hover ? {'data-pne-state': 'hover'} as object : undefined}
+                                        formControlProps={
+                                            column.hover ? ({'data-pne-state': 'hover'} as object) : undefined
+                                        }
                                         indeterminate={row.value === 'indeterminate'}
                                         label='Mark'
                                         onChange={() => undefined}
@@ -147,7 +163,12 @@ export const WithLabel: Story = {
                 </tbody>
             </Box>
             <Stack direction='row' spacing={2} sx={{alignItems: 'flex-start'}}>
-                <PneLabeledCheckbox defaultChecked helperText='Visa, Mastercard, Mir' label='Bank cards' size='medium'/>
+                <PneLabeledCheckbox
+                    defaultChecked
+                    helperText='Visa, Mastercard, Mir'
+                    label='Bank cards'
+                    size='medium'
+                />
                 <PneLabeledCheckbox
                     containerSx={{width: 240}}
                     defaultChecked
@@ -171,7 +192,7 @@ export const WithLabel: Story = {
 
 const CURRENCIES = ['USD', 'EUR', 'GBP'] as const
 
-type LogEntry = {at: string, text: string}
+type LogEntry = {at: string; text: string}
 
 const timestamp = () => new Date().toLocaleTimeString('ru-RU', {hour12: false})
 
@@ -204,9 +225,8 @@ const DynamicsDemo = () => {
     return (
         <Stack spacing={3} sx={{p: 3, maxWidth: 560}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary'}}>
-                Группа: родитель показывает «частично», когда выбрана часть детей; клик по родителю выбирает или
-                снимает всех. Обязательный флажок подсвечивается ошибкой при отправке и очищается, как только его
-                отметили.
+                Группа: родитель показывает «частично», когда выбрана часть детей; клик по родителю выбирает или снимает
+                всех. Обязательный флажок подсвечивается ошибкой при отправке и очищается, как только его отметили.
             </Typography>
             <Box>
                 <PneLabeledCheckbox
@@ -242,12 +262,18 @@ const DynamicsDemo = () => {
                     required
                     size='medium'
                 />
-                <Button onClick={submit} variant='contained' size='medium'>Отправить</Button>
+                <Button onClick={submit} variant='contained' size='medium'>
+                    Отправить
+                </Button>
             </Stack>
             <Box>
                 <Typography sx={{...LABEL_SX, mb: 0.5}}>Лог</Typography>
                 <Box component='ul' sx={{m: 0, pl: 2, fontSize: 12, lineHeight: '18px', color: 'text.secondary'}}>
-                    {entries.map((entry, index) => <li key={index}>{entry.at} — {entry.text}</li>)}
+                    {entries.map((entry, index) => (
+                        <li key={index}>
+                            {entry.at} — {entry.text}
+                        </li>
+                    ))}
                 </Box>
             </Box>
         </Stack>
@@ -256,13 +282,13 @@ const DynamicsDemo = () => {
 
 export const Dynamics: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <DynamicsDemo/>,
+    render: () => <DynamicsDemo />,
 }
 
 export const Playground: Story = {
     render: args => (
         <Box sx={{p: 3}}>
-            <PneCheckbox {...args}/>
+            <PneCheckbox {...args} />
         </Box>
     ),
 }

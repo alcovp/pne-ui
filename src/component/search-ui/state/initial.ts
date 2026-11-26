@@ -1,4 +1,4 @@
-import {SearchUIState} from './type';
+import {SearchUIState} from './type'
 
 export const getSearchUIInitialState = (): SearchUIState => ({
     searchCriteria: {
@@ -37,5 +37,5 @@ export const getSearchUIInitialState = (): SearchUIState => ({
         recurrentFilter: 'ALL',
         timeZoneOffsetHours: null,
         csvCharset: null,
-    }
+    },
 })

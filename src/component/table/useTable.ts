@@ -1,8 +1,8 @@
-import {Dispatch, SetStateAction, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {PaginatorProps, RowsPerPageOption} from './AbstractTable';
-import {SxProps} from '@mui/material';
-import {ensure, Order} from "../../common/pne/type";
-import {TableDisplayOptions} from "./type";
+import {Dispatch, SetStateAction, useEffect, useLayoutEffect, useRef, useState} from 'react'
+import {PaginatorProps, RowsPerPageOption} from './AbstractTable'
+import {SxProps} from '@mui/material'
+import {ensure, Order} from '../../common/pne/type'
+import {TableDisplayOptions} from './type'
 
 const PAGE_SIZE_SETTING_NAME = 'page_size'
 const PAGE_NUMBER_SETTING_NAME = 'page_number'
@@ -12,10 +12,10 @@ const UNRESOLVED_DATA_KEY = Symbol('unresolved-table-data')
 const useCommittedIdentityEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 type FetchDataArgs = {
-    page: number,
-    pageSize: number,
-    order: Order,
-    sortIndex: number,
+    page: number
+    pageSize: number
+    order: Order
+    sortIndex: number
     extraDeps?: unknown[]
 }
 
@@ -36,15 +36,14 @@ type FetchSignature = {
     extraDeps: readonly unknown[]
 }
 
-const sameFetchSignature = (left: FetchSignature, right: FetchSignature): boolean => (
-    Object.is(left.resetKey, right.resetKey)
-    && left.page === right.page
-    && left.pageSize === right.pageSize
-    && left.order === right.order
-    && left.sortIndex === right.sortIndex
-    && left.extraDeps.length === right.extraDeps.length
-    && left.extraDeps.every((value, index) => Object.is(value, right.extraDeps[index]))
-)
+const sameFetchSignature = (left: FetchSignature, right: FetchSignature): boolean =>
+    Object.is(left.resetKey, right.resetKey) &&
+    left.page === right.page &&
+    left.pageSize === right.pageSize &&
+    left.order === right.order &&
+    left.sortIndex === right.sortIndex &&
+    left.extraDeps.length === right.extraDeps.length &&
+    left.extraDeps.every((value, index) => Object.is(value, right.extraDeps[index]))
 
 export type UseTableParams<D> = {
     displayOptions?: Partial<TableDisplayOptions>
@@ -54,7 +53,7 @@ export type UseTableParams<D> = {
     rowsPerPageOptions?: RowsPerPageOption[]
     settingsContextName?: string
     dataUseState?: [D[], Dispatch<SetStateAction<D[]>>]
-    fetchData?: (args: FetchDataArgs) => Promise<D[]>,
+    fetchData?: (args: FetchDataArgs) => Promise<D[]>
     fetchDataExtraDeps?: unknown[]
     /** Stable identity whose change invalidates rows and requests, then applies resetStateOnKeyChange. */
     resetKey?: string | number
@@ -83,12 +82,12 @@ interface IUseTableResult<D> {
     useSimpleFetch: (dataGetter: () => Promise<D[]>) => void
 }
 
-const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
+const useTable = <D>(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const {
         displayOptions,
         onDisplayOptionsChange,
         paginatorActiveActionSx = {},
-        rowsPerPageOptions = [10, 25, 50/*, {label: '∞', value: -1}*/],
+        rowsPerPageOptions = [10, 25, 50 /*, {label: '∞', value: -1}*/],
         settingsContextName,
         dataUseState,
         fetchData,
@@ -97,7 +96,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         resetKey,
         resetDisplayOptions,
         resetStateOnKeyChange = 'reset',
-    } = params;
+    } = params
 
     let initialPageSize = rowsPerPageOptions[rowsPerPageOptions.length - 1]
     if (displayOptions?.pageSize && rowsPerPageOptions.includes(displayOptions?.pageSize)) {
@@ -115,23 +114,17 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     /* eslint-disable @eslint-react/purity */
     if (settingsContextName) {
         if (sessionStorage.hasOwnProperty(settingsContextName + PAGE_SIZE_SETTING_NAME)) {
-            initialPageSize = +ensure(
-                sessionStorage.getItem(settingsContextName + PAGE_SIZE_SETTING_NAME)
-            )
+            initialPageSize = +ensure(sessionStorage.getItem(settingsContextName + PAGE_SIZE_SETTING_NAME))
         }
         if (sessionStorage.hasOwnProperty(settingsContextName + PAGE_NUMBER_SETTING_NAME)) {
-            initialPageNumber = +ensure(
-                sessionStorage.getItem(settingsContextName + PAGE_NUMBER_SETTING_NAME)
-            )
+            initialPageNumber = +ensure(sessionStorage.getItem(settingsContextName + PAGE_NUMBER_SETTING_NAME))
         }
         if (sessionStorage.hasOwnProperty(settingsContextName + SORT_INDEX_SETTING_NAME)) {
-            initialSortIndex = +ensure(
-                sessionStorage.getItem(settingsContextName + SORT_INDEX_SETTING_NAME)
-            )
+            initialSortIndex = +ensure(sessionStorage.getItem(settingsContextName + SORT_INDEX_SETTING_NAME))
         }
         if (sessionStorage.hasOwnProperty(settingsContextName + SORT_ORDER_ASC_SETTING_NAME)) {
             initialSortOrder = ensure(
-                sessionStorage.getItem(settingsContextName + SORT_ORDER_ASC_SETTING_NAME)
+                sessionStorage.getItem(settingsContextName + SORT_ORDER_ASC_SETTING_NAME),
             ) as Order
         }
     }
@@ -162,30 +155,23 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const skippedFetchRef = useRef<FetchSignature | null>(null)
 
     const preserveSortOnReset = resetDisplayOptions === 'preserve'
-    const resetSortIndex = preserveSortOnReset
-        ? sortIndex
-        : resetDisplayOptions?.sortColumnIndex ?? initialSortIndex
+    const resetSortIndex = preserveSortOnReset ? sortIndex : (resetDisplayOptions?.sortColumnIndex ?? initialSortIndex)
     const resetSortOrder: Order = preserveSortOnReset
         ? order
         : resetDisplayOptions?.sortAsc === undefined
-            ? initialSortOrder
-            : resetDisplayOptions.sortAsc ? 'asc' : 'desc'
+          ? initialSortOrder
+          : resetDisplayOptions.sortAsc
+            ? 'asc'
+            : 'desc'
 
     const identityTransitionPending = !Object.is(activeResetKey, resetKey)
-    const restoredState = identityTransitionPending
-        && resetStateOnKeyChange === 'restore'
-        && resetKey !== undefined
-        ? resetStateByKeyRef.current.get(resetKey)
-        : undefined
-    const renderedPageNumber = identityTransitionPending
-        ? restoredState?.page ?? 0
-        : pageNumber
-    const renderedSortIndex = identityTransitionPending
-        ? restoredState?.sortIndex ?? resetSortIndex
-        : sortIndex
-    const renderedOrder = identityTransitionPending
-        ? restoredState?.order ?? resetSortOrder
-        : order
+    const restoredState =
+        identityTransitionPending && resetStateOnKeyChange === 'restore' && resetKey !== undefined
+            ? resetStateByKeyRef.current.get(resetKey)
+            : undefined
+    const renderedPageNumber = identityTransitionPending ? (restoredState?.page ?? 0) : pageNumber
+    const renderedSortIndex = identityTransitionPending ? (restoredState?.sortIndex ?? resetSortIndex) : sortIndex
+    const renderedOrder = identityTransitionPending ? (restoredState?.order ?? resetSortOrder) : order
     const renderedHasNext = identityTransitionPending ? false : hasNext
     const renderedDisableActions = identityTransitionPending ? false : disableActions
     const renderedLoading = identityTransitionPending ? !!fetchData : loading
@@ -263,22 +249,20 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
     const displayedRowsLabel = () => {
         if (getData().length === 0) {
             if (renderedPageNumber === 0) {
-                return 'Ø';
+                return 'Ø'
             } else {
-                return (renderedPageNumber * pageSize + 1) + ' - '
-                    + (renderedPageNumber * pageSize + pageSize)
+                return renderedPageNumber * pageSize + 1 + ' - ' + (renderedPageNumber * pageSize + pageSize)
             }
         }
-        return (renderedPageNumber * pageSize + 1) + ' - '
-            + (renderedPageNumber * pageSize + getData().length)
+        return renderedPageNumber * pageSize + 1 + ' - ' + (renderedPageNumber * pageSize + getData().length)
     }
 
     const onSortChange = (sortIndex: number, sortOrder: Order) => {
         if (settingsContextName) {
-            sessionStorage.setItem(settingsContextName + SORT_INDEX_SETTING_NAME, sortIndex.toString());
+            sessionStorage.setItem(settingsContextName + SORT_INDEX_SETTING_NAME, sortIndex.toString())
         }
         if (settingsContextName) {
-            sessionStorage.setItem(settingsContextName + SORT_ORDER_ASC_SETTING_NAME, sortOrder);
+            sessionStorage.setItem(settingsContextName + SORT_ORDER_ASC_SETTING_NAME, sortOrder)
         }
     }
 
@@ -320,7 +304,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                     paginationScrollTimeoutRef.current = null
                 }
                 if (paginationRef.current) {
-                    paginationRef.current.scrollIntoView({behavior: "smooth", block: "end"})
+                    paginationRef.current.scrollIntoView({behavior: 'smooth', block: 'end'})
                 }
             }, 100)
             paginationScrollTimeoutRef.current = timeoutId
@@ -334,28 +318,28 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         disableActions: renderedDisableActions,
         onPageChange: (_event, newPage) => {
             setDisableActions(true)
-            setPageNumber(newPage);
+            setPageNumber(newPage)
             if (settingsContextName) {
-                sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, newPage.toString());
+                sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, newPage.toString())
             }
         },
-        onPageSizeChange: (pageSize) => {
+        onPageSizeChange: pageSize => {
             //infinity case
             if (pageSize < 0) {
-                setPageSize(999);
-                sessionStorage.setItem(settingsContextName + PAGE_SIZE_SETTING_NAME, '999');
+                setPageSize(999)
+                sessionStorage.setItem(settingsContextName + PAGE_SIZE_SETTING_NAME, '999')
             } else {
-                setPageSize(pageSize);
-                sessionStorage.setItem(settingsContextName + PAGE_SIZE_SETTING_NAME, pageSize.toString());
+                setPageSize(pageSize)
+                sessionStorage.setItem(settingsContextName + PAGE_SIZE_SETTING_NAME, pageSize.toString())
             }
-            setPageNumber(0);
-            sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, '0');
+            setPageNumber(0)
+            sessionStorage.setItem(settingsContextName + PAGE_NUMBER_SETTING_NAME, '0')
             if (onDisplayOptionsChange) {
                 onDisplayOptionsChange({
                     pageSize: pageSize,
                     sortColumnIndex: sortIndex,
-                    sortAsc: order === 'asc'
-                });
+                    sortAsc: order === 'asc',
+                })
             }
         },
         hasNext: renderedHasNext,
@@ -364,7 +348,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
         duplicatePagination: duplicatePagination,
         paginationRef: paginationRef,
         requestScrollToPagination,
-    };
+    }
 
     const afterDataFetch = (dataList: D[]) => {
         getSetData()(dataList.slice(0, pageSize))
@@ -486,7 +470,7 @@ const useTable = <D, >(params: UseTableParams<D> = {}): IUseTableResult<D> => {
                         afterDataFetch(dataList)
                     }
                 })
-                .catch((err) => {
+                .catch(err => {
                     if (isLatestRequest()) {
                         console.error(err)
                         shouldScrollToPaginationRef.current = false

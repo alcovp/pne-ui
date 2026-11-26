@@ -1,4 +1,4 @@
-import React, {createContext, useMemo} from 'react';
+import React, {createContext, useMemo} from 'react'
 import {
     AbstractEntity,
     AutoCompleteChoice,
@@ -14,7 +14,7 @@ import {
     MultigetCriterion,
     SearchUITemplate,
     TransactionSessionStatuses,
-} from "./filters/types";
+} from './filters/types'
 
 type GetMatchLinkedItemsRequest = {
     type: LinkedEntityTypeEnum
@@ -152,12 +152,12 @@ export type SearchUIDefaults = {
     getMFOTypes: () => Promise<AbstractEntity[]>
     getTransactionTypes: () => Promise<AbstractEntity[]>
     getTransactionStatuses: () => Promise<AbstractEntity[]>
-    getTransactionSessionStatuses: () => Promise<TransactionSessionStatuses>,
+    getTransactionSessionStatuses: () => Promise<TransactionSessionStatuses>
     getTransactionMarkerTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentTypes: () => Promise<AbstractEntity[]>
     getRecurringPaymentStatuses: () => Promise<AbstractEntity[]>
     getProcessorLogEntryTypes: () => Promise<AbstractEntity[]>
-    searchErrorCodes: (request: { searchString?: string }) => Promise<AutoCompleteChoice[]>
+    searchErrorCodes: (request: {searchString?: string}) => Promise<AutoCompleteChoice[]>
 
     showProcessorsCriterion: () => boolean
     showGatesCriterion: () => boolean
@@ -169,7 +169,7 @@ export type SearchUIDefaults = {
     // showSuperiorsCriterion: () => boolean
     showDealersCriterion: () => boolean
     showCompaniesCriterion: () => boolean
-    showProjectCurrencyCriterion: () => boolean,
+    showProjectCurrencyCriterion: () => boolean
     /**
      * Controls whether CMS-specific labels are offered by the Orders Search selector.
      * Existing search conditions that use these labels are preserved.
@@ -189,7 +189,6 @@ type Props = {
     defaults: Partial<SearchUIDefaults>
     children: React.ReactNode
 }
-
 
 const createEmptyTransactionSessionStatuses = (): TransactionSessionStatuses => ({
     APPROVED: [],
@@ -270,10 +269,7 @@ export const SearchUIDefaultsContext = createContext<SearchUIDefaults>(initialSe
  * @param props.children Дерево компонентов, которые должны читать контекст.
  */
 export const SearchUIProvider = (props: Props) => {
-    const {
-        defaults,
-        children,
-    } = props
+    const {defaults, children} = props
     const value = useMemo<SearchUIDefaults>(
         () => ({
             ...initialSearchUIDefaults,
@@ -282,7 +278,5 @@ export const SearchUIProvider = (props: Props) => {
         [defaults],
     )
 
-    return <SearchUIDefaultsContext value={value}>
-        {children}
-    </SearchUIDefaultsContext>
+    return <SearchUIDefaultsContext value={value}>{children}</SearchUIDefaultsContext>
 }

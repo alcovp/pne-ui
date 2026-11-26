@@ -16,9 +16,7 @@ import {
     TransactionReportScope,
 } from './types'
 
-const hasOwn = (value: object, key: PropertyKey): boolean => (
-    Object.prototype.hasOwnProperty.call(value, key)
-)
+const hasOwn = (value: object, key: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(value, key)
 
 const fail = (source: string, message: string): never => {
     throw new Error(`[pne-ui] Invalid ${source}: ${message}`)
@@ -32,11 +30,7 @@ const assertObject = (value: unknown, source: string): Record<string, unknown> =
     return value as Record<string, unknown>
 }
 
-const assertOnlyKeys = (
-    value: Record<string, unknown>,
-    allowedKeys: readonly string[],
-    source: string,
-): void => {
+const assertOnlyKeys = (value: Record<string, unknown>, allowedKeys: readonly string[], source: string): void => {
     const unsupportedKey = Object.keys(value).find(key => !allowedKeys.includes(key))
     if (unsupportedKey) {
         fail(source, `field "${unsupportedKey}" is not allowed for ${String(value.dateRangeSpecType)}`)
@@ -67,11 +61,7 @@ const assertString = (value: unknown, source: string): string => {
     return value
 }
 
-const assertStringValue = <T extends string>(
-    value: unknown,
-    allowedValues: readonly T[],
-    source: string,
-): T => {
+const assertStringValue = <T extends string>(value: unknown, allowedValues: readonly T[], source: string): T => {
     if (typeof value !== 'string' || !allowedValues.includes(value as T)) {
         return fail(source, `unknown value "${String(value)}"`)
     }
@@ -85,9 +75,9 @@ const assertTimeZoneOffsetHours = (value: unknown, source: string): TimeZoneOffs
     }
 
     if (
-        typeof value !== 'number'
-        || !Number.isInteger(value)
-        || !(TIME_ZONE_OFFSET_HOURS as readonly number[]).includes(value)
+        typeof value !== 'number' ||
+        !Number.isInteger(value) ||
+        !(TIME_ZONE_OFFSET_HOURS as readonly number[]).includes(value)
     ) {
         return fail(source, 'expected null or an integer from -12 through 12')
     }
@@ -130,9 +120,9 @@ export const toDateRangeState = (input: unknown, source: string): DateRangeSpec 
         case 'HOURS_BEFORE': {
             assertOnlyKeys(value, ['dateRangeSpecType', 'beforeCount'], source)
             if (
-                typeof value.beforeCount !== 'number'
-                || !Number.isInteger(value.beforeCount)
-                || value.beforeCount <= 0
+                typeof value.beforeCount !== 'number' ||
+                !Number.isInteger(value.beforeCount) ||
+                value.beforeCount <= 0
             ) {
                 return fail(source, `${dateRangeSpecType} requires beforeCount to be a positive integer`)
             }
@@ -189,10 +179,7 @@ export const toSearchUIConditionsState = (
     delete stateConditions.csvCharset
 
     if (dateRangeSpec !== undefined) {
-        stateConditions.dateRangeSpec = toDateRangeState(
-            dateRangeSpec,
-            `${source}.dateRangeSpec`,
-        )
+        stateConditions.dateRangeSpec = toDateRangeState(dateRangeSpec, `${source}.dateRangeSpec`)
     }
 
     if (hasOwn(value, 'scope') && value.scope !== undefined) {

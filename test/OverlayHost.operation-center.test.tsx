@@ -22,13 +22,13 @@ describe('OverlayHost operation center slot', () => {
     })
 
     it('does not add the dedicated slot when no operation center is supplied', () => {
-        render(<OverlayHost container={null}/>)
+        render(<OverlayHost container={null} />)
 
         expect(document.querySelector('[data-pne-overlay-operation-center]')).toBeNull()
     })
 
     it('portals a presentation-only operation center into a safe bottom-right slot', () => {
-        render(<OverlayHost operationCenter={<div>Operation center content</div>}/>)
+        render(<OverlayHost operationCenter={<div>Operation center content</div>} />)
 
         const content = screen.getByText('Operation center content')
         const slot = content.closest<HTMLElement>('[data-pne-overlay-operation-center]')!
@@ -49,7 +49,8 @@ describe('OverlayHost operation center slot', () => {
 
     it('keeps the default bottom-left snackbar at the viewport edge on desktop', async () => {
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
                 if (this.hasAttribute('data-pne-overlay-stack')) {
                     return {
@@ -64,21 +65,22 @@ describe('OverlayHost operation center slot', () => {
                         toJSON: () => ({}),
                     }
                 }
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return {
-                    bottom: 120,
-                    height: 120,
-                    left: 608,
-                    right: 1008,
-                    top: 0,
-                    width: 400,
-                    x: 608,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return {
+                        bottom: 120,
+                        height: 120,
+                        left: 608,
+                        right: 1008,
+                        top: 0,
+                        width: 400,
+                        x: 608,
+                        y: 0,
+                        toJSON: () => ({}),
+                    }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
-            render(<OverlayHost container={null} operationCenter={<div>Running report</div>}/>)
+            render(<OverlayHost container={null} operationCenter={<div>Running report</div>} />)
 
             act(() => {
                 overlayActions.showInfo({
@@ -106,34 +108,37 @@ describe('OverlayHost operation center slot', () => {
     it('keeps separated overlays side by side even below the former width breakpoint', async () => {
         setViewportWidth(760)
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
-                if (this.hasAttribute('data-pne-overlay-stack')) return {
-                    bottom: 72,
-                    height: 60,
-                    left: 24,
-                    right: 360,
-                    top: 12,
-                    width: 336,
-                    x: 24,
-                    y: 12,
-                    toJSON: () => ({}),
-                }
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return {
-                    bottom: 120,
-                    height: 120,
-                    left: 520,
-                    right: 744,
-                    top: 0,
-                    width: 224,
-                    x: 520,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.hasAttribute('data-pne-overlay-stack'))
+                    return {
+                        bottom: 72,
+                        height: 60,
+                        left: 24,
+                        right: 360,
+                        top: 12,
+                        width: 336,
+                        x: 24,
+                        y: 12,
+                        toJSON: () => ({}),
+                    }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return {
+                        bottom: 120,
+                        height: 120,
+                        left: 520,
+                        right: 744,
+                        top: 0,
+                        width: 224,
+                        x: 520,
+                        y: 0,
+                        toJSON: () => ({}),
+                    }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
-            render(<OverlayHost container={null} operationCenter={<div>Compact operation</div>}/>)
+            render(<OverlayHost container={null} operationCenter={<div>Compact operation</div>} />)
             act(() => {
                 overlayActions.showInfo({
                     autoHideMs: undefined,
@@ -142,8 +147,9 @@ describe('OverlayHost operation center slot', () => {
                 })
             })
 
-            const stack = (await screen.findByText('Separated feedback'))
-                .closest<HTMLElement>('[data-pne-overlay-stack]')!
+            const stack = (await screen.findByText('Separated feedback')).closest<HTMLElement>(
+                '[data-pne-overlay-stack]',
+            )!
             await waitFor(() => {
                 expect(window.getComputedStyle(stack).bottom).toBe('16px')
             })
@@ -154,34 +160,37 @@ describe('OverlayHost operation center slot', () => {
 
     it('stacks a wide desktop snackbar when its actual footprint overlaps the center', async () => {
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
-                if (this.hasAttribute('data-pne-overlay-stack')) return {
-                    bottom: 72,
-                    height: 60,
-                    left: 24,
-                    right: 900,
-                    top: 12,
-                    width: 876,
-                    x: 24,
-                    y: 12,
-                    toJSON: () => ({}),
-                }
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return {
-                    bottom: 120,
-                    height: 120,
-                    left: 800,
-                    right: 1008,
-                    top: 0,
-                    width: 208,
-                    x: 800,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.hasAttribute('data-pne-overlay-stack'))
+                    return {
+                        bottom: 72,
+                        height: 60,
+                        left: 24,
+                        right: 900,
+                        top: 12,
+                        width: 876,
+                        x: 24,
+                        y: 12,
+                        toJSON: () => ({}),
+                    }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return {
+                        bottom: 120,
+                        height: 120,
+                        left: 800,
+                        right: 1008,
+                        top: 0,
+                        width: 208,
+                        x: 800,
+                        y: 0,
+                        toJSON: () => ({}),
+                    }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
-            render(<OverlayHost container={null} operationCenter={<div>Desktop operation</div>}/>)
+            render(<OverlayHost container={null} operationCenter={<div>Desktop operation</div>} />)
             act(() => {
                 overlayActions.showInfo({
                     autoHideMs: undefined,
@@ -190,8 +199,9 @@ describe('OverlayHost operation center slot', () => {
                 })
             })
 
-            const stack = (await screen.findByText('A deliberately wide desktop feedback message'))
-                .closest<HTMLElement>('[data-pne-overlay-stack]')!
+            const stack = (
+                await screen.findByText('A deliberately wide desktop feedback message')
+            ).closest<HTMLElement>('[data-pne-overlay-stack]')!
             await waitFor(() => {
                 expect(window.getComputedStyle(stack).bottom).toBe('136px')
             })
@@ -203,39 +213,38 @@ describe('OverlayHost operation center slot', () => {
     it('remeasures horizontal overlap when a snackbar position prop changes without resizing', async () => {
         let stackLeft = 24
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
-                if (this.hasAttribute('data-pne-overlay-stack')) return {
-                    bottom: 72,
-                    height: 60,
-                    left: stackLeft,
-                    right: stackLeft + 336,
-                    top: 12,
-                    width: 336,
-                    x: stackLeft,
-                    y: 12,
-                    toJSON: () => ({}),
-                }
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return {
-                    bottom: 120,
-                    height: 120,
-                    left: 608,
-                    right: 1008,
-                    top: 0,
-                    width: 400,
-                    x: 608,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.hasAttribute('data-pne-overlay-stack'))
+                    return {
+                        bottom: 72,
+                        height: 60,
+                        left: stackLeft,
+                        right: stackLeft + 336,
+                        top: 12,
+                        width: 336,
+                        x: stackLeft,
+                        y: 12,
+                        toJSON: () => ({}),
+                    }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return {
+                        bottom: 120,
+                        height: 120,
+                        left: 608,
+                        right: 1008,
+                        top: 0,
+                        width: 400,
+                        x: 608,
+                        y: 0,
+                        toJSON: () => ({}),
+                    }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
             const view = render(
-                <OverlayHost
-                    container={null}
-                    leftOffset={24}
-                    operationCenter={<div>Offset operation</div>}
-                />,
+                <OverlayHost container={null} leftOffset={24} operationCenter={<div>Offset operation</div>} />,
             )
             act(() => {
                 overlayActions.showInfo({
@@ -245,19 +254,16 @@ describe('OverlayHost operation center slot', () => {
                 })
             })
 
-            const stack = (await screen.findByText('Position-aware feedback'))
-                .closest<HTMLElement>('[data-pne-overlay-stack]')!
+            const stack = (await screen.findByText('Position-aware feedback')).closest<HTMLElement>(
+                '[data-pne-overlay-stack]',
+            )!
             await waitFor(() => {
                 expect(window.getComputedStyle(stack).bottom).toBe('16px')
             })
 
             stackLeft = 500
             view.rerender(
-                <OverlayHost
-                    container={null}
-                    leftOffset={500}
-                    operationCenter={<div>Offset operation</div>}
-                />,
+                <OverlayHost container={null} leftOffset={500} operationCenter={<div>Offset operation</div>} />,
             )
 
             await waitFor(() => {
@@ -271,34 +277,37 @@ describe('OverlayHost operation center slot', () => {
     it('stacks the default bottom-left snackbar above the operation center on narrow screens', async () => {
         setViewportWidth(390)
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
-                if (this.hasAttribute('data-pne-overlay-stack')) return {
-                    bottom: 92,
-                    height: 80,
-                    left: 24,
-                    right: 345,
-                    top: 12,
-                    width: 321,
-                    x: 24,
-                    y: 12,
-                    toJSON: () => ({}),
-                }
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return {
-                    bottom: 120,
-                    height: 120,
-                    left: 16,
-                    right: 374,
-                    top: 0,
-                    width: 358,
-                    x: 16,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.hasAttribute('data-pne-overlay-stack'))
+                    return {
+                        bottom: 92,
+                        height: 80,
+                        left: 24,
+                        right: 345,
+                        top: 12,
+                        width: 321,
+                        x: 24,
+                        y: 12,
+                        toJSON: () => ({}),
+                    }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return {
+                        bottom: 120,
+                        height: 120,
+                        left: 16,
+                        right: 374,
+                        top: 0,
+                        width: 358,
+                        x: 16,
+                        y: 0,
+                        toJSON: () => ({}),
+                    }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
-            render(<OverlayHost container={null} operationCenter={<div>Mobile operation</div>}/>)
+            render(<OverlayHost container={null} operationCenter={<div>Mobile operation</div>} />)
             act(() => {
                 overlayActions.showInfo({
                     autoHideMs: undefined,
@@ -320,23 +329,25 @@ describe('OverlayHost operation center slot', () => {
 
     it('reserves the measured operation-center height for bottom-right snackbars', async () => {
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return {
-                    bottom: 120,
-                    height: 120,
-                    left: 624,
-                    right: 1008,
-                    top: 0,
-                    width: 384,
-                    x: 624,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return {
+                        bottom: 120,
+                        height: 120,
+                        left: 624,
+                        right: 1008,
+                        top: 0,
+                        width: 384,
+                        x: 624,
+                        y: 0,
+                        toJSON: () => ({}),
+                    }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
-            render(<OverlayHost operationCenter={<div>Measured operation</div>}/>)
+            render(<OverlayHost operationCenter={<div>Measured operation</div>} />)
             act(() => {
                 overlayActions.showInfo({
                     anchorOrigin: {horizontal: 'right', vertical: 'bottom'},
@@ -357,7 +368,8 @@ describe('OverlayHost operation center slot', () => {
 
     it('stacks a permanent bottom overlay above the operation center', async () => {
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
                 if (!this.hasAttribute('data-pne-overlay-operation-center')) {
                     return originalGetBoundingClientRect.call(this)
@@ -377,12 +389,13 @@ describe('OverlayHost operation center slot', () => {
         try {
             render(
                 <OverlayHost container={null} operationCenter={<div>Running report</div>}>
-                    <PermanentOverlay id='permanent' render={() => <div>Permanent tools</div>}/>
+                    <PermanentOverlay id='permanent' render={() => <div>Permanent tools</div>} />
                 </OverlayHost>,
             )
 
-            const permanent = (await screen.findByText('Permanent tools'))
-                .closest<HTMLElement>('[data-pne-overlay-slot="bottom-right"]')!
+            const permanent = (await screen.findByText('Permanent tools')).closest<HTMLElement>(
+                '[data-pne-overlay-slot="bottom-right"]',
+            )!
             expect(window.getComputedStyle(permanent).bottom).toBe('156px')
         } finally {
             measure.mockRestore()
@@ -391,7 +404,8 @@ describe('OverlayHost operation center slot', () => {
 
     it('keeps a zero-offset permanent bottom overlay clear of the inset operation center', async () => {
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
                 if (!this.hasAttribute('data-pne-overlay-operation-center')) {
                     return originalGetBoundingClientRect.call(this)
@@ -419,8 +433,9 @@ describe('OverlayHost operation center slot', () => {
                 </OverlayHost>,
             )
 
-            const permanent = (await screen.findByText('Zero-offset tools'))
-                .closest<HTMLElement>('[data-pne-overlay-slot="bottom-right"]')!
+            const permanent = (await screen.findByText('Zero-offset tools')).closest<HTMLElement>(
+                '[data-pne-overlay-slot="bottom-right"]',
+            )!
             expect(window.getComputedStyle(permanent).bottom).toBe('148px')
         } finally {
             measure.mockRestore()
@@ -429,55 +444,57 @@ describe('OverlayHost operation center slot', () => {
 
     it('only lifts a bottom-left permanent overlay when the narrow viewport can overlap the center', async () => {
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
-                if (this.getAttribute('data-pne-overlay-slot') === 'bottom-left') return {
-                    bottom: 84,
-                    height: 60,
-                    left: 24,
-                    right: 224,
-                    top: 24,
-                    width: 200,
-                    x: 24,
-                    y: 24,
-                    toJSON: () => ({}),
-                }
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return window.innerWidth < 800 ? {
-                    bottom: 120,
-                    height: 120,
-                    left: 16,
-                    right: 374,
-                    top: 0,
-                    width: 358,
-                    x: 16,
-                    y: 0,
-                    toJSON: () => ({}),
-                } : {
-                    bottom: 120,
-                    height: 120,
-                    left: 608,
-                    right: 1008,
-                    top: 0,
-                    width: 400,
-                    x: 608,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.getAttribute('data-pne-overlay-slot') === 'bottom-left')
+                    return {
+                        bottom: 84,
+                        height: 60,
+                        left: 24,
+                        right: 224,
+                        top: 24,
+                        width: 200,
+                        x: 24,
+                        y: 24,
+                        toJSON: () => ({}),
+                    }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return window.innerWidth < 800
+                        ? {
+                              bottom: 120,
+                              height: 120,
+                              left: 16,
+                              right: 374,
+                              top: 0,
+                              width: 358,
+                              x: 16,
+                              y: 0,
+                              toJSON: () => ({}),
+                          }
+                        : {
+                              bottom: 120,
+                              height: 120,
+                              left: 608,
+                              right: 1008,
+                              top: 0,
+                              width: 400,
+                              x: 608,
+                              y: 0,
+                              toJSON: () => ({}),
+                          }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
             const view = render(
                 <OverlayHost container={null} operationCenter={<div>Responsive operation</div>}>
-                    <PermanentOverlay
-                        id='left-permanent'
-                        slot='bottom-left'
-                        render={() => <div>Left tools</div>}
-                    />
+                    <PermanentOverlay id='left-permanent' slot='bottom-left' render={() => <div>Left tools</div>} />
                 </OverlayHost>,
             )
 
-            let permanent = (await screen.findByText('Left tools'))
-                .closest<HTMLElement>('[data-pne-overlay-slot="bottom-left"]')!
+            let permanent = (await screen.findByText('Left tools')).closest<HTMLElement>(
+                '[data-pne-overlay-slot="bottom-left"]',
+            )!
             await waitFor(() => {
                 expect(window.getComputedStyle(permanent).bottom).toBe('24px')
             })
@@ -486,15 +503,10 @@ describe('OverlayHost operation center slot', () => {
             act(() => window.dispatchEvent(new Event('resize')))
             view.rerender(
                 <OverlayHost container={null} operationCenter={<div>Responsive operation</div>}>
-                    <PermanentOverlay
-                        id='left-permanent'
-                        slot='bottom-left'
-                        render={() => <div>Left tools</div>}
-                    />
+                    <PermanentOverlay id='left-permanent' slot='bottom-left' render={() => <div>Left tools</div>} />
                 </OverlayHost>,
             )
-            permanent = screen.getByText('Left tools')
-                .closest<HTMLElement>('[data-pne-overlay-slot="bottom-left"]')!
+            permanent = screen.getByText('Left tools').closest<HTMLElement>('[data-pne-overlay-slot="bottom-left"]')!
             await waitFor(() => {
                 expect(window.getComputedStyle(permanent).bottom).toBe('156px')
             })
@@ -506,30 +518,33 @@ describe('OverlayHost operation center slot', () => {
     it('remeasures permanent-overlay overlap when its offset changes without resizing', async () => {
         let permanentLeft = 24
         const originalGetBoundingClientRect = HTMLElement.prototype.getBoundingClientRect
-        const measure = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        const measure = jest
+            .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
             .mockImplementation(function getBoundingClientRect(this: HTMLElement) {
-                if (this.getAttribute('data-pne-overlay-slot') === 'bottom-left') return {
-                    bottom: 84,
-                    height: 60,
-                    left: permanentLeft,
-                    right: permanentLeft + 200,
-                    top: 24,
-                    width: 200,
-                    x: permanentLeft,
-                    y: 24,
-                    toJSON: () => ({}),
-                }
-                if (this.hasAttribute('data-pne-overlay-operation-center')) return {
-                    bottom: 120,
-                    height: 120,
-                    left: 608,
-                    right: 1008,
-                    top: 0,
-                    width: 400,
-                    x: 608,
-                    y: 0,
-                    toJSON: () => ({}),
-                }
+                if (this.getAttribute('data-pne-overlay-slot') === 'bottom-left')
+                    return {
+                        bottom: 84,
+                        height: 60,
+                        left: permanentLeft,
+                        right: permanentLeft + 200,
+                        top: 24,
+                        width: 200,
+                        x: permanentLeft,
+                        y: 24,
+                        toJSON: () => ({}),
+                    }
+                if (this.hasAttribute('data-pne-overlay-operation-center'))
+                    return {
+                        bottom: 120,
+                        height: 120,
+                        left: 608,
+                        right: 1008,
+                        top: 0,
+                        width: 400,
+                        x: 608,
+                        y: 0,
+                        toJSON: () => ({}),
+                    }
                 return originalGetBoundingClientRect.call(this)
             })
         try {
@@ -544,8 +559,9 @@ describe('OverlayHost operation center slot', () => {
                 </OverlayHost>
             )
             const view = render(renderOverlay(24))
-            const permanent = (await screen.findByText('Offset-aware tools'))
-                .closest<HTMLElement>('[data-pne-overlay-slot="bottom-left"]')!
+            const permanent = (await screen.findByText('Offset-aware tools')).closest<HTMLElement>(
+                '[data-pne-overlay-slot="bottom-left"]',
+            )!
             await waitFor(() => {
                 expect(window.getComputedStyle(permanent).bottom).toBe('24px')
             })

@@ -1,21 +1,18 @@
 import * as React from 'react'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import {cleanup, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import { SearchUI } from '../src/component/search-ui/SearchUI'
-import { SearchUIFilters } from '../src/component/search-ui/filters/SearchUIFilters'
-import { SearchUIFiltersStoreProvider } from '../src/component/search-ui/filters/state/SearchUIFiltersStoreProvider'
-import {
-    useSearchUIFiltersStore,
-    useSearchUIFiltersStoreContext,
-} from '../src/component/search-ui/filters/state/store'
+import {SearchUI} from '../src/component/search-ui/SearchUI'
+import {SearchUIFilters} from '../src/component/search-ui/filters/SearchUIFilters'
+import {SearchUIFiltersStoreProvider} from '../src/component/search-ui/filters/state/SearchUIFiltersStoreProvider'
+import {useSearchUIFiltersStore, useSearchUIFiltersStoreContext} from '../src/component/search-ui/filters/state/store'
 import {
     getRetainedSearchUIState,
     resetSearchUIRetentionForTests,
 } from '../src/component/search-ui/filters/state/retention'
-import { CriterionTypeEnum, SearchCriteria } from '../src/component/search-ui/filters/types'
-import { initialSearchUIDefaults, SearchUIDefaultsContext } from '../src/component/search-ui/SearchUIProvider'
+import {CriterionTypeEnum, SearchCriteria} from '../src/component/search-ui/filters/types'
+import {initialSearchUIDefaults, SearchUIDefaultsContext} from '../src/component/search-ui/SearchUIProvider'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -35,11 +32,8 @@ type RetentionHarnessProps = {
 }
 
 const RetentionHarness = (props: RetentionHarnessProps): React.ReactElement => (
-    <SearchUIFiltersStoreProvider
-        key={props.settingsContextName}
-        settingsContextName={props.settingsContextName}
-    >
-        <RetentionHarnessContent {...props}/>
+    <SearchUIFiltersStoreProvider key={props.settingsContextName} settingsContextName={props.settingsContextName}>
+        <RetentionHarnessContent {...props} />
     </SearchUIFiltersStoreProvider>
 )
 
@@ -48,7 +42,7 @@ const RetentionHarnessContent = ({
     onFiltersUpdate,
     manualSearch = false,
 }: RetentionHarnessProps): React.ReactElement => {
-    const { store, instanceId } = useSearchUIFiltersStoreContext()
+    const {store, instanceId} = useSearchUIFiltersStoreContext()
     const initialized = useSearchUIFiltersStore(state => state.initialized)
     const restoredFromRetention = useSearchUIFiltersStore(state => state.restoredFromRetention)
     const status = useSearchUIFiltersStore(state => state.status)
@@ -58,27 +52,36 @@ const RetentionHarnessContent = ({
     const triggerSearch = useSearchUIFiltersStore(state => state.triggerSearch)
 
     React.useEffect(() => {
-        store.getState().setInitialState({
-            defaults: initialSearchUIDefaults,
-            settingsContextName,
-            possibleCriteria: [CriterionTypeEnum.STATUS],
-            predefinedCriteria: [CriterionTypeEnum.STATUS],
-            exactSearchLabels: [],
-            config: { manualSearch },
-            onFiltersUpdate,
-        }, getRetainedSearchUIState(settingsContextName, instanceId))
+        store.getState().setInitialState(
+            {
+                defaults: initialSearchUIDefaults,
+                settingsContextName,
+                possibleCriteria: [CriterionTypeEnum.STATUS],
+                predefinedCriteria: [CriterionTypeEnum.STATUS],
+                exactSearchLabels: [],
+                config: {manualSearch},
+                onFiltersUpdate,
+            },
+            getRetainedSearchUIState(settingsContextName, instanceId),
+        )
     }, [instanceId, manualSearch, onFiltersUpdate, settingsContextName, store])
 
-    return <>
-        <output data-testid="context">{settingsContextName}</output>
-        <output data-testid="initialized">{String(initialized)}</output>
-        <output data-testid="restored">{String(restoredFromRetention)}</output>
-        <output data-testid="draft-status">{status}</output>
-        <output data-testid="applied-status">{appliedStatus ?? 'null'}</output>
-        <output data-testid="dirty">{String(hasUnappliedFilters)}</output>
-        <button type="button" onClick={() => setStatusCriterion('ENABLED')}>Set enabled</button>
-        <button type="button" onClick={triggerSearch}>Search</button>
-    </>
+    return (
+        <>
+            <output data-testid='context'>{settingsContextName}</output>
+            <output data-testid='initialized'>{String(initialized)}</output>
+            <output data-testid='restored'>{String(restoredFromRetention)}</output>
+            <output data-testid='draft-status'>{status}</output>
+            <output data-testid='applied-status'>{appliedStatus ?? 'null'}</output>
+            <output data-testid='dirty'>{String(hasUnappliedFilters)}</output>
+            <button type='button' onClick={() => setStatusCriterion('ENABLED')}>
+                Set enabled
+            </button>
+            <button type='button' onClick={triggerSearch}>
+                Search
+            </button>
+        </>
+    )
 }
 
 describe('SearchUI automatic in-memory state retention', () => {
@@ -95,24 +98,16 @@ describe('SearchUI automatic in-memory state retention', () => {
         const onFiltersUpdateA = jest.fn()
         const onFiltersUpdateB = jest.fn()
         const view = render(
-            <RetentionHarness
-                settingsContextName="retention-context-a"
-                onFiltersUpdate={onFiltersUpdateA}
-            />,
+            <RetentionHarness settingsContextName='retention-context-a' onFiltersUpdate={onFiltersUpdateA} />,
         )
 
         await waitFor(() => {
             expect(screen.getByTestId('initialized').textContent).toBe('true')
         })
-        fireEvent.click(screen.getByRole('button', { name: 'Set enabled' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Set enabled'}))
         expect(screen.getByTestId('draft-status').textContent).toBe('ENABLED')
 
-        view.rerender(
-            <RetentionHarness
-                settingsContextName="retention-context-b"
-                onFiltersUpdate={onFiltersUpdateB}
-            />,
-        )
+        view.rerender(<RetentionHarness settingsContextName='retention-context-b' onFiltersUpdate={onFiltersUpdateB} />)
 
         await waitFor(() => {
             expect(screen.getByTestId('context').textContent).toBe('retention-context-b')
@@ -121,19 +116,14 @@ describe('SearchUI automatic in-memory state retention', () => {
         expect(screen.getByTestId('draft-status').textContent).toBe('ANY')
         expect(screen.getByTestId('restored').textContent).toBe('false')
 
-        view.rerender(
-            <RetentionHarness
-                settingsContextName="retention-context-a"
-                onFiltersUpdate={onFiltersUpdateA}
-            />,
-        )
+        view.rerender(<RetentionHarness settingsContextName='retention-context-a' onFiltersUpdate={onFiltersUpdateA} />)
 
         await waitFor(() => {
             expect(screen.getByTestId('context').textContent).toBe('retention-context-a')
             expect(screen.getByTestId('restored').textContent).toBe('true')
         })
         expect(screen.getByTestId('draft-status').textContent).toBe('ENABLED')
-        expect(onFiltersUpdateA).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'E' }))
+        expect(onFiltersUpdateA).toHaveBeenLastCalledWith(expect.objectContaining({status: 'E'}))
     })
 
     it('restores state when the same context is replaced in one React commit', async () => {
@@ -141,8 +131,8 @@ describe('SearchUI automatic in-memory state retention', () => {
         const restoredOnFiltersUpdate = jest.fn()
         const view = render(
             <RetentionHarness
-                key="first-instance"
-                settingsContextName="same-commit-context"
+                key='first-instance'
+                settingsContextName='same-commit-context'
                 onFiltersUpdate={firstOnFiltersUpdate}
             />,
         )
@@ -150,38 +140,34 @@ describe('SearchUI automatic in-memory state retention', () => {
         await waitFor(() => {
             expect(screen.getByTestId('initialized').textContent).toBe('true')
         })
-        fireEvent.click(screen.getByRole('button', { name: 'Set enabled' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Set enabled'}))
 
         view.rerender(
             <RetentionHarness
-                key="replacement-instance"
-                settingsContextName="same-commit-context"
+                key='replacement-instance'
+                settingsContextName='same-commit-context'
                 onFiltersUpdate={restoredOnFiltersUpdate}
             />,
         )
 
         await waitFor(() => {
             expect(screen.getByTestId('restored').textContent).toBe('true')
-            expect(restoredOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'E' }))
+            expect(restoredOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({status: 'E'}))
         })
         expect(screen.getByTestId('draft-status').textContent).toBe('ENABLED')
     })
 
     it('keeps simultaneously mounted SearchUI stores isolated', async () => {
-        render(<>
-            <section data-testid="instance-a">
-                <RetentionHarness
-                    settingsContextName="concurrent-context-a"
-                    onFiltersUpdate={jest.fn()}
-                />
-            </section>
-            <section data-testid="instance-b">
-                <RetentionHarness
-                    settingsContextName="concurrent-context-b"
-                    onFiltersUpdate={jest.fn()}
-                />
-            </section>
-        </>)
+        render(
+            <>
+                <section data-testid='instance-a'>
+                    <RetentionHarness settingsContextName='concurrent-context-a' onFiltersUpdate={jest.fn()} />
+                </section>
+                <section data-testid='instance-b'>
+                    <RetentionHarness settingsContextName='concurrent-context-b' onFiltersUpdate={jest.fn()} />
+                </section>
+            </>,
+        )
 
         const instanceA = within(screen.getByTestId('instance-a'))
         const instanceB = within(screen.getByTestId('instance-b'))
@@ -191,7 +177,7 @@ describe('SearchUI automatic in-memory state retention', () => {
             expect(instanceB.getByTestId('initialized').textContent).toBe('true')
         })
 
-        fireEvent.click(instanceA.getByRole('button', { name: 'Set enabled' }))
+        fireEvent.click(instanceA.getByRole('button', {name: 'Set enabled'}))
 
         expect(instanceA.getByTestId('draft-status').textContent).toBe('ENABLED')
         expect(instanceB.getByTestId('draft-status').textContent).toBe('ANY')
@@ -204,11 +190,8 @@ describe('SearchUI automatic in-memory state retention', () => {
             const onFiltersUpdateB = jest.fn()
             const view = render(
                 <div>
-                    <section data-testid="duplicate-instance-a">
-                        <RetentionHarness
-                            settingsContextName="duplicate-context"
-                            onFiltersUpdate={onFiltersUpdateA}
-                        />
+                    <section data-testid='duplicate-instance-a'>
+                        <RetentionHarness settingsContextName='duplicate-context' onFiltersUpdate={onFiltersUpdateA} />
                     </section>
                 </div>,
             )
@@ -217,21 +200,15 @@ describe('SearchUI automatic in-memory state retention', () => {
             await waitFor(() => {
                 expect(instanceA.getByTestId('initialized').textContent).toBe('true')
             })
-            fireEvent.click(instanceA.getByRole('button', { name: 'Set enabled' }))
+            fireEvent.click(instanceA.getByRole('button', {name: 'Set enabled'}))
 
             view.rerender(
                 <div>
-                    <section data-testid="duplicate-instance-a">
-                        <RetentionHarness
-                            settingsContextName="duplicate-context"
-                            onFiltersUpdate={onFiltersUpdateA}
-                        />
+                    <section data-testid='duplicate-instance-a'>
+                        <RetentionHarness settingsContextName='duplicate-context' onFiltersUpdate={onFiltersUpdateA} />
                     </section>
-                    <section data-testid="duplicate-instance-b">
-                        <RetentionHarness
-                            settingsContextName="duplicate-context"
-                            onFiltersUpdate={onFiltersUpdateB}
-                        />
+                    <section data-testid='duplicate-instance-b'>
+                        <RetentionHarness settingsContextName='duplicate-context' onFiltersUpdate={onFiltersUpdateB} />
                     </section>
                 </div>,
             )
@@ -251,34 +228,33 @@ describe('SearchUI automatic in-memory state retention', () => {
 
     it('does not hydrate either duplicate when same-key instances mount together', async () => {
         const seedView = render(
-            <RetentionHarness
-                settingsContextName="simultaneous-duplicate-context"
-                onFiltersUpdate={jest.fn()}
-            />,
+            <RetentionHarness settingsContextName='simultaneous-duplicate-context' onFiltersUpdate={jest.fn()} />,
         )
 
         await waitFor(() => {
             expect(screen.getByTestId('initialized').textContent).toBe('true')
         })
-        fireEvent.click(screen.getByRole('button', { name: 'Set enabled' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Set enabled'}))
         seedView.unmount()
 
         const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
         try {
-            render(<>
-                <section data-testid="simultaneous-duplicate-a">
-                    <RetentionHarness
-                        settingsContextName="simultaneous-duplicate-context"
-                        onFiltersUpdate={jest.fn()}
-                    />
-                </section>
-                <section data-testid="simultaneous-duplicate-b">
-                    <RetentionHarness
-                        settingsContextName="simultaneous-duplicate-context"
-                        onFiltersUpdate={jest.fn()}
-                    />
-                </section>
-            </>)
+            render(
+                <>
+                    <section data-testid='simultaneous-duplicate-a'>
+                        <RetentionHarness
+                            settingsContextName='simultaneous-duplicate-context'
+                            onFiltersUpdate={jest.fn()}
+                        />
+                    </section>
+                    <section data-testid='simultaneous-duplicate-b'>
+                        <RetentionHarness
+                            settingsContextName='simultaneous-duplicate-context'
+                            onFiltersUpdate={jest.fn()}
+                        />
+                    </section>
+                </>,
+            )
 
             const instanceA = within(screen.getByTestId('simultaneous-duplicate-a'))
             const instanceB = within(screen.getByTestId('simultaneous-duplicate-b'))
@@ -301,18 +277,18 @@ describe('SearchUI automatic in-memory state retention', () => {
         const firstOnFiltersUpdate = jest.fn()
         const firstView = render(
             <RetentionHarness
-                settingsContextName="manual-retention-context"
+                settingsContextName='manual-retention-context'
                 manualSearch
                 onFiltersUpdate={firstOnFiltersUpdate}
             />,
         )
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: null }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({status: null}))
         })
         firstOnFiltersUpdate.mockClear()
 
-        fireEvent.click(screen.getByRole('button', { name: 'Set enabled' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Set enabled'}))
 
         expect(screen.getByTestId('draft-status').textContent).toBe('ENABLED')
         expect(screen.getByTestId('applied-status').textContent).toBe('null')
@@ -324,7 +300,7 @@ describe('SearchUI automatic in-memory state retention', () => {
         const restoredOnFiltersUpdate = jest.fn()
         render(
             <RetentionHarness
-                settingsContextName="manual-retention-context"
+                settingsContextName='manual-retention-context'
                 manualSearch
                 onFiltersUpdate={restoredOnFiltersUpdate}
             />,
@@ -332,16 +308,16 @@ describe('SearchUI automatic in-memory state retention', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('restored').textContent).toBe('true')
-            expect(restoredOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({ status: null }))
+            expect(restoredOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({status: null}))
         })
         expect(screen.getByTestId('draft-status').textContent).toBe('ENABLED')
         expect(screen.getByTestId('applied-status').textContent).toBe('null')
         expect(screen.getByTestId('dirty').textContent).toBe('true')
-        expect(restoredOnFiltersUpdate).not.toHaveBeenCalledWith(expect.objectContaining({ status: 'E' }))
+        expect(restoredOnFiltersUpdate).not.toHaveBeenCalledWith(expect.objectContaining({status: 'E'}))
 
-        fireEvent.click(screen.getByRole('button', { name: 'Search' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Search'}))
 
-        expect(restoredOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'E' }))
+        expect(restoredOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({status: 'E'}))
         expect(screen.getByTestId('applied-status').textContent).toBe('E')
         expect(screen.getByTestId('dirty').textContent).toBe('false')
     })
@@ -350,7 +326,7 @@ describe('SearchUI automatic in-memory state retention', () => {
         const firstOnFiltersUpdate = jest.fn()
         const firstView = render(
             <SearchUIFilters
-                settingsContextName="empty-external-conditions"
+                settingsContextName='empty-external-conditions'
                 possibleCriteria={[CriterionTypeEnum.STATUS]}
                 predefinedCriteria={[CriterionTypeEnum.STATUS]}
                 searchConditions={{}}
@@ -364,14 +340,14 @@ describe('SearchUI automatic in-memory state retention', () => {
 
         fireEvent.click(await screen.findByText('ENABLED'))
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'E' }))
+            expect(firstOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({status: 'E'}))
         })
         firstView.unmount()
 
         const restoredOnFiltersUpdate = jest.fn()
         render(
             <SearchUIFilters
-                settingsContextName="empty-external-conditions"
+                settingsContextName='empty-external-conditions'
                 possibleCriteria={[CriterionTypeEnum.STATUS]}
                 predefinedCriteria={[CriterionTypeEnum.STATUS]}
                 searchConditions={{}}
@@ -384,17 +360,25 @@ describe('SearchUI automatic in-memory state retention', () => {
         )
 
         await waitFor(() => {
-            expect(restoredOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'E' }))
+            expect(restoredOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({status: 'E'}))
         })
     })
 
     it('refetches SearchUI table data with the restored applied criteria', async () => {
         const firstSearchData = jest.fn().mockResolvedValue([])
-        const createTableHeader = () => <tr><th>Result</th></tr>
-        const createTableRow = () => <tr><td>Result</td></tr>
+        const createTableHeader = () => (
+            <tr>
+                <th>Result</th>
+            </tr>
+        )
+        const createTableRow = () => (
+            <tr>
+                <td>Result</td>
+            </tr>
+        )
         const firstView = render(
             <SearchUI
-                settingsContextName="search-ui-table-retention"
+                settingsContextName='search-ui-table-retention'
                 possibleCriteria={[CriterionTypeEnum.STATUS]}
                 predefinedCriteria={[CriterionTypeEnum.STATUS]}
                 searchData={firstSearchData}
@@ -408,18 +392,18 @@ describe('SearchUI automatic in-memory state retention', () => {
         )
 
         await waitFor(() => {
-            expect(firstSearchData).toHaveBeenCalledWith(expect.objectContaining({ status: null }))
+            expect(firstSearchData).toHaveBeenCalledWith(expect.objectContaining({status: null}))
         })
         fireEvent.click(screen.getByText('ENABLED'))
         await waitFor(() => {
-            expect(firstSearchData).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'E' }))
+            expect(firstSearchData).toHaveBeenLastCalledWith(expect.objectContaining({status: 'E'}))
         })
         firstView.unmount()
 
         const restoredSearchData = jest.fn().mockResolvedValue([])
         render(
             <SearchUI
-                settingsContextName="search-ui-table-retention"
+                settingsContextName='search-ui-table-retention'
                 possibleCriteria={[CriterionTypeEnum.STATUS]}
                 predefinedCriteria={[CriterionTypeEnum.STATUS]}
                 searchData={restoredSearchData}
@@ -433,7 +417,7 @@ describe('SearchUI automatic in-memory state retention', () => {
         )
 
         await waitFor(() => {
-            expect(restoredSearchData).toHaveBeenCalledWith(expect.objectContaining({ status: 'E' }))
+            expect(restoredSearchData).toHaveBeenCalledWith(expect.objectContaining({status: 'E'}))
         })
     })
 
@@ -450,7 +434,7 @@ describe('SearchUI automatic in-memory state retention', () => {
                     }}
                 >
                     <SearchUIFilters
-                        settingsContextName="strict-mode-context"
+                        settingsContextName='strict-mode-context'
                         possibleCriteria={[]}
                         onFiltersUpdate={onFiltersUpdate}
                         config={{

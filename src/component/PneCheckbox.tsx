@@ -20,10 +20,11 @@ export interface PneCheckboxProps extends CheckboxProps {
 
 type CheckboxInputSlotProps = NonNullable<NonNullable<CheckboxProps['slotProps']>['input']>
 
-export const PneCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneCheckboxProps> & {ref?: React.Ref<HTMLSpanElement>}) => {
-    const propsWithDefaultSize: PneCheckboxProps = props.size === undefined
-        ? {...props, size: 'small'}
-        : props
+export const PneCheckbox = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneCheckboxProps> & {ref?: React.Ref<HTMLSpanElement>}) => {
+    const propsWithDefaultSize: PneCheckboxProps = props.size === undefined ? {...props, size: 'small'} : props
     const theme = useTheme()
     const consumerInputSlotProps = props.slotProps?.input
     const defaultInputSlotProps = theme.components?.MuiCheckbox?.defaultProps?.slotProps?.input
@@ -65,11 +66,14 @@ export const PneCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneCheckboxPr
         id: props.id,
         required: props.required,
     })
-    const setNativeInput = useCallback((input: HTMLInputElement | null) => {
-        if (input) {
-            input.indeterminate = indeterminate
-        }
-    }, [indeterminate])
+    const setNativeInput = useCallback(
+        (input: HTMLInputElement | null) => {
+            if (input) {
+                input.indeterminate = indeterminate
+            }
+        },
+        [indeterminate],
+    )
     const inputSlotProps = composeToggleInputSlotProps<CheckboxOwnerState>(
         [defaultInputSlotProps, consumerInputSlotProps],
         {
@@ -90,38 +94,37 @@ export const PneCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneCheckboxPr
     // The error look follows the field error and an explicit aria-invalid alike.
     const invalid = controlProps.error === true || isAriaInvalid(inputAriaProps['aria-invalid'])
 
-    const _sx: SxProps<Theme> = [
-        checkboxSx,
-        ...(Array.isArray(sx) ? sx : [sx]),
-    ]
+    const _sx: SxProps<Theme> = [checkboxSx, ...(Array.isArray(sx) ? sx : [sx])]
     // MUI still declares Checkbox's forwarded ref as a button even though
     // SwitchBase renders its root as a span. Keep that mismatch inside PNE.
     const muiRootRef = ref as React.Ref<HTMLButtonElement>
 
-    return <DefaultPropsProvider value={componentsWithoutCheckboxDefaults}>
-        <Checkbox
-            {...rootProps}
-            checkedIcon={checkedIcon ?? <PneCheckboxBox value='on'/>}
-            data-pne-error={invalid || undefined}
-            data-pne-readonly={readOnly || undefined}
-            data-pne-state={pinnedState}
-            disableRipple={disableRipple}
-            disabled={controlProps.disabled ?? disabled}
-            icon={icon ?? <PneCheckboxBox value='off'/>}
-            id={controlProps.id ?? id}
-            indeterminate={indeterminate}
-            indeterminateIcon={indeterminateIcon ?? <PneCheckboxBox value='indeterminate'/>}
-            readOnly={readOnly}
-            ref={muiRootRef}
-            required={controlProps.required ?? required}
-            size={size}
-            slotProps={{
-                ...slotProps,
-                input: inputSlotProps,
-            }}
-            sx={_sx}
-        />
-    </DefaultPropsProvider>
+    return (
+        <DefaultPropsProvider value={componentsWithoutCheckboxDefaults}>
+            <Checkbox
+                {...rootProps}
+                checkedIcon={checkedIcon ?? <PneCheckboxBox value='on' />}
+                data-pne-error={invalid || undefined}
+                data-pne-readonly={readOnly || undefined}
+                data-pne-state={pinnedState}
+                disableRipple={disableRipple}
+                disabled={controlProps.disabled ?? disabled}
+                icon={icon ?? <PneCheckboxBox value='off' />}
+                id={controlProps.id ?? id}
+                indeterminate={indeterminate}
+                indeterminateIcon={indeterminateIcon ?? <PneCheckboxBox value='indeterminate' />}
+                readOnly={readOnly}
+                ref={muiRootRef}
+                required={controlProps.required ?? required}
+                size={size}
+                slotProps={{
+                    ...slotProps,
+                    input: inputSlotProps,
+                }}
+                sx={_sx}
+            />
+        </DefaultPropsProvider>
+    )
 }
 
 PneCheckbox.displayName = 'PneCheckbox'
@@ -144,9 +147,8 @@ const useComponentsWithoutCheckboxDefaults = () => {
 
         return {
             ...components,
-            MuiCheckbox: Object.keys(checkboxConfigWithoutDefaults).length > 0
-                ? checkboxConfigWithoutDefaults
-                : undefined,
+            MuiCheckbox:
+                Object.keys(checkboxConfigWithoutDefaults).length > 0 ? checkboxConfigWithoutDefaults : undefined,
         }
     }, [theme.components])
 }
@@ -170,44 +172,69 @@ const RING_INSET = 1 + RING_WIDTH / 2
 // UI Kit Checkbox: sm 16, md 20 and, as in the Figma matrix, lg 24; the check and the bar are
 // the UI Kit glyphs placed in the box.
 const BOX_GEOMETRY: Record<PneCheckboxSize, CheckboxBoxGeometry> = {
-    small: {size: 16, radius: 2.25, check: 'M4.2 8.2 L6.6 10.6 L11.8 5.4', checkWidth: 1.5, bar: 'M4.75 8 H11.25', barWidth: 1.5},
-    medium: {size: 20, radius: 2.25, check: 'M5 10.2 L8.2 13.4 L15 6.6', checkWidth: 1.5, bar: 'M6 10 H14', barWidth: 2},
-    large: {size: 24, radius: 3.25, check: 'M5.9 12.2 L9.8 16.1 L18.1 7.8', checkWidth: 2, bar: 'M7.25 12 H16.75', barWidth: 2.5},
+    small: {
+        size: 16,
+        radius: 2.25,
+        check: 'M4.2 8.2 L6.6 10.6 L11.8 5.4',
+        checkWidth: 1.5,
+        bar: 'M4.75 8 H11.25',
+        barWidth: 1.5,
+    },
+    medium: {
+        size: 20,
+        radius: 2.25,
+        check: 'M5 10.2 L8.2 13.4 L15 6.6',
+        checkWidth: 1.5,
+        bar: 'M6 10 H14',
+        barWidth: 2,
+    },
+    large: {
+        size: 24,
+        radius: 3.25,
+        check: 'M5.9 12.2 L9.8 16.1 L18.1 7.8',
+        checkWidth: 2,
+        bar: 'M7.25 12 H16.75',
+        barWidth: 2.5,
+    },
 }
 
 /**
  * The box MUI renders as `icon`, `checkedIcon` or `indeterminateIcon`. MUI hands it the checkbox
  * size as `fontSize`; the colours come from the root's rules.
  */
-const PneCheckboxBox = ({fontSize, value}: {fontSize?: string, value: CheckboxBoxValue}) => {
+const PneCheckboxBox = ({fontSize, value}: {fontSize?: string; value: CheckboxBoxValue}) => {
     const geometry = BOX_GEOMETRY[fontSize as PneCheckboxSize] ?? BOX_GEOMETRY.medium
     const square = geometry.size - 2 * RING_INSET
 
-    return <svg
-        aria-hidden
-        className={`PneCheckbox-box PneCheckbox-${value === 'off' ? 'off' : 'on'}`}
-        height={geometry.size}
-        viewBox={`0 0 ${geometry.size} ${geometry.size}`}
-        width={geometry.size}
-    >
-        <rect
-            className='PneCheckbox-square'
-            height={square}
-            rx={geometry.radius}
-            strokeWidth={RING_WIDTH}
-            width={square}
-            x={RING_INSET}
-            y={RING_INSET}
-        />
-        {value === 'off' ? null : <path
-            className='PneCheckbox-mark'
-            d={value === 'on' ? geometry.check : geometry.bar}
-            fill='none'
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            strokeWidth={value === 'on' ? geometry.checkWidth : geometry.barWidth}
-        />}
-    </svg>
+    return (
+        <svg
+            aria-hidden
+            className={`PneCheckbox-box PneCheckbox-${value === 'off' ? 'off' : 'on'}`}
+            height={geometry.size}
+            viewBox={`0 0 ${geometry.size} ${geometry.size}`}
+            width={geometry.size}
+        >
+            <rect
+                className='PneCheckbox-square'
+                height={square}
+                rx={geometry.radius}
+                strokeWidth={RING_WIDTH}
+                width={square}
+                x={RING_INSET}
+                y={RING_INSET}
+            />
+            {value === 'off' ? null : (
+                <path
+                    className='PneCheckbox-mark'
+                    d={value === 'on' ? geometry.check : geometry.bar}
+                    fill='none'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={value === 'on' ? geometry.checkWidth : geometry.barWidth}
+                />
+            )}
+        </svg>
+    )
 }
 
 /**

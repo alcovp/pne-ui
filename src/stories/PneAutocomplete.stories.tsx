@@ -35,7 +35,7 @@ type Story = StoryObj<PlaygroundArgs>
 
 const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 
-type Currency = {id: string, displayName: string}
+type Currency = {id: string; displayName: string}
 
 const CURRENCIES: readonly Currency[] = [
     {id: 'USD', displayName: 'Доллар США'},
@@ -60,7 +60,9 @@ const renderCurrency = (
     <li key={key} {...optionProps} data-pne-state={option.id === 'KZT' ? 'hover' : undefined}>
         <Box component='span' sx={{display: 'flex', flex: 1, gap: 2, justifyContent: 'space-between'}}>
             <span>{option.displayName}</span>
-            <Box component='span' sx={{color: 'text.secondary', fontSize: 12}}>{option.id}</Box>
+            <Box component='span' sx={{color: 'text.secondary', fontSize: 12}}>
+                {option.id}
+            </Box>
         </Box>
     </li>
 )
@@ -70,7 +72,7 @@ const renderCurrency = (
 type MatrixColumn = {
     label: string
     value?: Currency
-    field?: {error?: boolean, disabled?: boolean}
+    field?: {error?: boolean; disabled?: boolean}
     pinned?: 'hover' | 'focus'
 }
 
@@ -83,7 +85,7 @@ const MATRIX_COLUMNS: MatrixColumn[] = [
     {label: 'Disable', field: {disabled: true}},
 ]
 
-type MatrixRow = {title: string, size: 'small' | 'medium' | 'large', variant: 'outlined' | 'filled'}
+type MatrixRow = {title: string; size: 'small' | 'medium' | 'large'; variant: 'outlined' | 'filled'}
 
 const MATRIX_ROWS: MatrixRow[] = [
     {title: 'small · fill', size: 'small', variant: 'filled'},
@@ -99,16 +101,20 @@ export const Matrix: Story = {
     render: () => (
         <Box sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 2, maxWidth: 900}}>
-                Rows are size × variant, columns the states of the closed field as in the Figma matrix. The label
-                above the box is PneField. Hover and Focus are pinned with <code>data-pne-state</code>; product code
-                never sets it. MUI shows the clear cross on hover and focus. The open lists are in Modes.
+                Rows are size × variant, columns the states of the closed field as in the Figma matrix. The label above
+                the box is PneField. Hover and Focus are pinned with <code>data-pne-state</code>; product code never
+                sets it. MUI shows the clear cross on hover and focus. The open lists are in Modes.
             </Typography>
             <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 12px', ml: -2}}>
                 <thead>
                     <tr>
-                        <th/>
+                        <th />
                         {MATRIX_COLUMNS.map(column => (
-                            <Box component='th' key={column.label} sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>
+                            <Box
+                                component='th'
+                                key={column.label}
+                                sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}
+                            >
                                 {column.label}
                             </Box>
                         ))}
@@ -117,7 +123,10 @@ export const Matrix: Story = {
                 <tbody>
                     {MATRIX_ROWS.map(row => (
                         <tr key={row.title}>
-                            <Box component='th' sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}>
+                            <Box
+                                component='th'
+                                sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}
+                            >
                                 {row.title}
                             </Box>
                             {MATRIX_COLUMNS.map(column => (
@@ -156,9 +165,9 @@ const ModesDemo = () => {
         <Box sx={{p: 3, minHeight: 520}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 3, maxWidth: 900}}>
                 Single: the picked row is tinted and checked, a hovered row is grey (pinned on «Казахстанский тенге»).
-                Multi: the values are UI Kit badges in the field, the list draws a checkbox in each row. Rows a
-                consumer renders with <code>renderOption</code> keep their own content; in a multiple list their
-                picked rows are tinted, as they may carry a checkbox of their own.
+                Multi: the values are UI Kit badges in the field, the list draws a checkbox in each row. Rows a consumer
+                renders with <code>renderOption</code> keep their own content; in a multiple list their picked rows are
+                tinted, as they may carry a checkbox of their own.
             </Typography>
             <Stack direction='row' spacing={4} sx={{alignItems: 'flex-start'}}>
                 <PneField helperText='Подсказка о формате значения' label='Валюта' sx={{width: 260}}>
@@ -204,7 +213,7 @@ const ModesDemo = () => {
 
 export const Modes: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <ModesDemo/>,
+    render: () => <ModesDemo />,
 }
 
 const POPULAR = new Set(['USD', 'EUR'])
@@ -221,16 +230,21 @@ const SizesDemo = () => {
     return (
         <Stack spacing={2} sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
-                The list follows the size of its field: rows of 24, 32 and 40px, the text and the checkbox of that
-                size. The values of a multiple field are badges 8px lower than the box.
+                The list follows the size of its field: rows of 24, 32 and 40px, the text and the checkbox of that size.
+                The values of a multiple field are badges 8px lower than the box.
             </Typography>
             {SIZES.map(size => (
-                <Stack direction='row' key={size} spacing={4} sx={{alignItems: 'flex-start', minHeight: size === 'large' ? 420 : size === 'medium' ? 360 : 300}}>
+                <Stack
+                    direction='row'
+                    key={size}
+                    spacing={4}
+                    sx={{alignItems: 'flex-start', minHeight: size === 'large' ? 420 : size === 'medium' ? 360 : 300}}
+                >
                     <Typography sx={{...CAPTION_SX, width: 56, pt: 3}}>{size}</Typography>
                     <PneField label='Валюта' sx={{width: 240}}>
                         <PneAutocomplete<Currency>
                             data-pne-state='focus'
-                            groupBy={option => POPULAR.has(option.id) ? 'Популярные' : 'Все валюты'}
+                            groupBy={option => (POPULAR.has(option.id) ? 'Популярные' : 'Все валюты')}
                             onChange={(_event, value) => setSingle(value)}
                             open
                             options={CURRENCIES}
@@ -244,7 +258,7 @@ const SizesDemo = () => {
                         <PneAutocomplete<Currency, true>
                             data-pne-state='focus'
                             disableCloseOnSelect
-                            groupBy={option => POPULAR.has(option.id) ? 'Популярные' : 'Все валюты'}
+                            groupBy={option => (POPULAR.has(option.id) ? 'Популярные' : 'Все валюты')}
                             multiple
                             onChange={(_event, value) => setMany(value)}
                             open
@@ -273,10 +287,10 @@ const SizesDemo = () => {
 
 export const Sizes: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <SizesDemo/>,
+    render: () => <SizesDemo />,
 }
 
-type LogEntry = {at: string, text: string}
+type LogEntry = {at: string; text: string}
 
 const timestamp = () => new Date().toLocaleTimeString('ru-RU', {hour12: false})
 
@@ -284,13 +298,14 @@ const DynamicsDemo = () => {
     const [entries, setEntries] = React.useState<LogEntry[]>([])
     const log = (text: string) => setEntries(current => [...current.slice(-11), {at: timestamp(), text}])
     const [value, setValue] = React.useState<Currency | null>(null)
-    const hasMatches = (query: string) => CURRENCIES.some(option => option.displayName.toLowerCase().includes(query.trim().toLowerCase()))
+    const hasMatches = (query: string) =>
+        CURRENCIES.some(option => option.displayName.toLowerCase().includes(query.trim().toLowerCase()))
 
     return (
         <Stack spacing={3} sx={{p: 3, maxWidth: 560, minHeight: 480}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary'}}>
-                Ввод фильтрует список, выбор закрывает его и ставит значение; крестик очищает поле. Запрос без совпадений
-                показывает «Ничего не найдено».
+                Ввод фильтрует список, выбор закрывает его и ставит значение; крестик очищает поле. Запрос без
+                совпадений показывает «Ничего не найдено».
             </Typography>
             <PneField helperText='Начните вводить название валюты' label='Валюта' sx={{width: 320}}>
                 <PneAutocomplete<Currency>
@@ -302,7 +317,11 @@ const DynamicsDemo = () => {
                     onClose={() => log('Список закрыт')}
                     onInputChange={(_event, next, reason) => {
                         if (reason === 'input') {
-                            log(next === '' ? 'Запрос стёрт' : `«${next}» → ${hasMatches(next) ? 'список отфильтрован' : 'Ничего не найдено'}`)
+                            log(
+                                next === ''
+                                    ? 'Запрос стёрт'
+                                    : `«${next}» → ${hasMatches(next) ? 'список отфильтрован' : 'Ничего не найдено'}`,
+                            )
                         }
                     }}
                     onOpen={() => log('Открыт список')}
@@ -314,7 +333,11 @@ const DynamicsDemo = () => {
             <Box>
                 <Typography sx={{...CAPTION_SX, mb: 0.5}}>Лог</Typography>
                 <Box component='ul' sx={{m: 0, pl: 2, fontSize: 12, lineHeight: '18px', color: 'text.secondary'}}>
-                    {entries.map((entry, index) => <li key={index}>{entry.at} — {entry.text}</li>)}
+                    {entries.map((entry, index) => (
+                        <li key={index}>
+                            {entry.at} — {entry.text}
+                        </li>
+                    ))}
                 </Box>
             </Box>
         </Stack>
@@ -323,7 +346,7 @@ const DynamicsDemo = () => {
 
 export const Dynamics: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <DynamicsDemo/>,
+    render: () => <DynamicsDemo />,
 }
 
 const PlaygroundDemo = (args: PlaygroundArgs) => {
@@ -341,27 +364,25 @@ const PlaygroundDemo = (args: PlaygroundArgs) => {
 
     return (
         <Box sx={{p: 3, width: 360}}>
-            {args.multiple
-                ? <PneAutocomplete<Currency, true>
+            {args.multiple ? (
+                <PneAutocomplete<Currency, true>
                     {...common}
                     multiple
                     onChange={(_event, value) => setMany(value)}
                     value={many}
                 />
-                : <PneAutocomplete<Currency>
-                    {...common}
-                    onChange={(_event, value) => setSingle(value)}
-                    value={single}
-                />}
+            ) : (
+                <PneAutocomplete<Currency> {...common} onChange={(_event, value) => setSingle(value)} value={single} />
+            )}
         </Box>
     )
 }
 
 export const Playground: Story = {
-    render: args => <PlaygroundDemo {...args}/>,
+    render: args => <PlaygroundDemo {...args} />,
 }
 
-type Region = {code: string, title: string}
+type Region = {code: string; title: string}
 
 const REGIONS: readonly Region[] = [
     {code: 'eu', title: 'Shared display label'},
@@ -389,7 +410,7 @@ const CustomObjectDemo = () => {
 /** Explicit keys keep duplicate labels distinct; a value restored from the API is matched by key. */
 export const CustomObjectWithDuplicateLabels: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <CustomObjectDemo/>,
+    render: () => <CustomObjectDemo />,
 }
 
 const MultipleFreeSoloDemo = () => {
@@ -411,5 +432,5 @@ const MultipleFreeSoloDemo = () => {
 
 export const MultipleFreeSolo: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <MultipleFreeSoloDemo/>,
+    render: () => <MultipleFreeSoloDemo />,
 }

@@ -5,7 +5,7 @@ import {
     AutoCompleteChoice,
     Country,
     Status,
-} from '../../../common/paynet/type';
+} from '../../../common/paynet/type'
 
 export enum CriterionTypeEnum {
     EXACT = 'EXACT',
@@ -48,10 +48,7 @@ export enum CriterionTypeEnum {
     CSV_CHARSET = 'CSV_CHARSET',
 }
 
-export const CUSTOMER_LEVEL_DEPENDENCIES = [
-    CriterionTypeEnum.MERCHANT,
-    CriterionTypeEnum.CURRENCY,
-] as const
+export const CUSTOMER_LEVEL_DEPENDENCIES = [CriterionTypeEnum.MERCHANT, CriterionTypeEnum.CURRENCY] as const
 
 export const ORDER_DATE_TYPES = [
     'SESSION_CREATED',
@@ -61,7 +58,7 @@ export const ORDER_DATE_TYPES = [
     'TX_SETTLED',
     'TX_UNSETTLED',
 ] as const
-export type OrderDate = typeof ORDER_DATE_TYPES[number];
+export type OrderDate = (typeof ORDER_DATE_TYPES)[number]
 
 export const DATE_RANGE_SPEC_TYPES = [
     'EXACTLY',
@@ -76,19 +73,11 @@ export const DATE_RANGE_SPEC_TYPES = [
     'DATE_INDEPENDENT',
 ] as const
 
-export type DateRangeSpecType = typeof DATE_RANGE_SPEC_TYPES[number];
+export type DateRangeSpecType = (typeof DATE_RANGE_SPEC_TYPES)[number]
 
-type SearchUICalendarDateRangeSpecType =
-    | 'TODAY'
-    | 'YESTERDAY'
-    | 'THIS_WEEK'
-    | 'LAST_WEEK'
-    | 'THIS_MONTH'
-    | 'LAST_MONTH'
+type SearchUICalendarDateRangeSpecType = 'TODAY' | 'YESTERDAY' | 'THIS_WEEK' | 'LAST_WEEK' | 'THIS_MONTH' | 'LAST_MONTH'
 
-type SearchUICountedDateRangeSpecType =
-    | 'DAYS_BEFORE'
-    | 'HOURS_BEFORE'
+type SearchUICountedDateRangeSpecType = 'DAYS_BEFORE' | 'HOURS_BEFORE'
 
 type SearchUIDateRangeWithoutDates = {
     readonly dateFrom?: never
@@ -107,21 +96,23 @@ type SearchUIDateRangeWithoutCount = {
  */
 export type SearchUIDateRangeSpec =
     | {
-        readonly dateRangeSpecType: 'EXACTLY'
-        readonly dateFrom: Date
-        readonly dateTo: Date
-        readonly beforeCount?: never
-    }
+          readonly dateRangeSpecType: 'EXACTLY'
+          readonly dateFrom: Date
+          readonly dateTo: Date
+          readonly beforeCount?: never
+      }
     | ({
-        readonly dateRangeSpecType: SearchUICalendarDateRangeSpecType
-    } & SearchUIDateRangeWithoutDates & SearchUIDateRangeWithoutCount)
+          readonly dateRangeSpecType: SearchUICalendarDateRangeSpecType
+      } & SearchUIDateRangeWithoutDates &
+          SearchUIDateRangeWithoutCount)
     | ({
-        readonly dateRangeSpecType: SearchUICountedDateRangeSpecType
-        readonly beforeCount: number
-    } & SearchUIDateRangeWithoutDates)
+          readonly dateRangeSpecType: SearchUICountedDateRangeSpecType
+          readonly beforeCount: number
+      } & SearchUIDateRangeWithoutDates)
     | ({
-        readonly dateRangeSpecType: 'DATE_INDEPENDENT'
-    } & SearchUIDateRangeWithoutDates & SearchUIDateRangeWithoutCount)
+          readonly dateRangeSpecType: 'DATE_INDEPENDENT'
+      } & SearchUIDateRangeWithoutDates &
+          SearchUIDateRangeWithoutCount)
 
 /**
  * Resolved date-range state used internally and in persisted user templates.
@@ -142,7 +133,7 @@ export const TRANSACTION_REPORT_SCOPES = [
     'SELECTED_BY_MOTHER_PROCESSOR_TX_ID',
     'SELECTED_BY_TX_RRN',
 ] as const
-export type TransactionReportScope = typeof TRANSACTION_REPORT_SCOPES[number]
+export type TransactionReportScope = (typeof TRANSACTION_REPORT_SCOPES)[number]
 
 /**
  * Supported transaction date dimensions for reports.
@@ -151,28 +142,18 @@ export type TransactionReportScope = typeof TRANSACTION_REPORT_SCOPES[number]
  * resolves to the same created-date range as CREATED.
  */
 export const TRANSACTION_DATE_TYPES = ['CREATED'] as const
-export type TransactionDateType = typeof TRANSACTION_DATE_TYPES[number]
+export type TransactionDateType = (typeof TRANSACTION_DATE_TYPES)[number]
 
-export const TRANSACTION_RECURRENT_FILTERS = [
-    'ALL',
-    'RECURRENTS_ONLY',
-    'NON_RECURRENTS_ONLY',
-] as const
-export type TransactionRecurrentFilter = typeof TRANSACTION_RECURRENT_FILTERS[number]
+export const TRANSACTION_RECURRENT_FILTERS = ['ALL', 'RECURRENTS_ONLY', 'NON_RECURRENTS_ONLY'] as const
+export type TransactionRecurrentFilter = (typeof TRANSACTION_RECURRENT_FILTERS)[number]
 
 export const TIME_ZONE_OFFSET_HOURS = [
-    -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1,
-    0,
-    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+    -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
 ] as const
-export type TimeZoneOffsetHours = typeof TIME_ZONE_OFFSET_HOURS[number]
+export type TimeZoneOffsetHours = (typeof TIME_ZONE_OFFSET_HOURS)[number]
 
-export const CSV_CHARSETS = [
-    'UTF-8',
-    'UTF-8-SIG',
-    'windows-1251',
-] as const
-export type CsvCharset = typeof CSV_CHARSETS[number]
+export const CSV_CHARSETS = ['UTF-8', 'UTF-8-SIG', 'windows-1251'] as const
+export type CsvCharset = (typeof CSV_CHARSETS)[number]
 
 export type ProjectCurrency = {
     convertToUserCurrency: boolean
@@ -181,14 +162,8 @@ export type ProjectCurrency = {
 
 export type CountryAllableCollection = AllableCollection<Country>
 
-export const GROUPING_DATE_TYPES = [
-    'MONTH',
-    'DAY',
-    'CLOSE_DAY',
-    'SETTLEMENT_DAY',
-    'SETTLEMENT_MONTH',
-] as const
-export type GroupingDateType = typeof GROUPING_DATE_TYPES[number];
+export const GROUPING_DATE_TYPES = ['MONTH', 'DAY', 'CLOSE_DAY', 'SETTLEMENT_DAY', 'SETTLEMENT_MONTH'] as const
+export type GroupingDateType = (typeof GROUPING_DATE_TYPES)[number]
 
 export const GROUPING_TYPES = [
     'MERCHANT',
@@ -206,7 +181,7 @@ export const GROUPING_TYPES = [
 
     ...GROUPING_DATE_TYPES,
 ] as const
-export type GroupingType = typeof GROUPING_TYPES[number];
+export type GroupingType = (typeof GROUPING_TYPES)[number]
 
 export type Grouping = {
     dateType: GroupingDateType
@@ -214,28 +189,16 @@ export type Grouping = {
     selectedGroupingTypes: GroupingType[]
 }
 
-export const STATUS_CRITERION_VALUES = [
-    'ANY',
-    'DISABLED',
-    'ENABLED',
-] as const
-export type StatusCriterion = typeof STATUS_CRITERION_VALUES[number]
+export const STATUS_CRITERION_VALUES = ['ANY', 'DISABLED', 'ENABLED'] as const
+export type StatusCriterion = (typeof STATUS_CRITERION_VALUES)[number]
 
-export const OTP_STATUS_CRITERION_VALUES = [
-    'ANY',
-    'DISABLED',
-    'ENABLED',
-] as const
-export type OtpStatusCriterion = typeof OTP_STATUS_CRITERION_VALUES[number]
+export const OTP_STATUS_CRITERION_VALUES = ['ANY', 'DISABLED', 'ENABLED'] as const
+export type OtpStatusCriterion = (typeof OTP_STATUS_CRITERION_VALUES)[number]
 /** Значение otpStatus в запросе: ANY означает отсутствие фильтра и передаётся как null. */
 export type OtpStatusSearchValue = Exclude<OtpStatusCriterion, 'ANY'>
 
-export const MARKER_STATUS_CRITERION_VALUES = [
-    'any',
-    'unprocessed',
-    'processed'
-] as const
-export type MarkerStatusCriterion = typeof MARKER_STATUS_CRITERION_VALUES[number]
+export const MARKER_STATUS_CRITERION_VALUES = ['any', 'unprocessed', 'processed'] as const
+export type MarkerStatusCriterion = (typeof MARKER_STATUS_CRITERION_VALUES)[number]
 
 export type TransactionSessionGroup =
     | 'APPROVED'
@@ -327,7 +290,7 @@ export const ORDER_SEARCH_LABELS = [
     'wire_account',
     'card_number_hash_hash',
 ] as const
-export type OrderSearchLabel = typeof ORDER_SEARCH_LABELS[number]
+export type OrderSearchLabel = (typeof ORDER_SEARCH_LABELS)[number]
 
 /**
  * CMS customer level available for an explicitly selected merchant.
@@ -351,17 +314,17 @@ export enum ExactCriterionSearchLabelEnum {
     IDENTIFIER = 'IDENTIFIER',
     BEAN = 'BEAN',
     END_POINT_GROUP_ID = 'END_POINT_GROUP_ID',
-    ID = "ID",
-    AMOUNT = "AMOUNT",
-    FINAL_CLEARING_DATE = "FINAL_CLEARING_DATE",
-    MANAGER = "MANAGER",
-    SERIAL_NUMBER = "SERIAL_NUMBER",
-    INVOICE = "INVOICE",
-    CARD_FROM_RECURRENCE_NUMBER = "CARD_FROM_RECURRENCE_NUMBER",
-    FIRST_6 = "FIRST_6",
-    LAST_4 = "LAST_4",
-    FIRST_6_LAST_4 = "FIRST_6_LAST_4",
-    ORDER_IDENTIFIER = "ORDER_IDENTIFIER",
+    ID = 'ID',
+    AMOUNT = 'AMOUNT',
+    FINAL_CLEARING_DATE = 'FINAL_CLEARING_DATE',
+    MANAGER = 'MANAGER',
+    SERIAL_NUMBER = 'SERIAL_NUMBER',
+    INVOICE = 'INVOICE',
+    CARD_FROM_RECURRENCE_NUMBER = 'CARD_FROM_RECURRENCE_NUMBER',
+    FIRST_6 = 'FIRST_6',
+    LAST_4 = 'LAST_4',
+    FIRST_6_LAST_4 = 'FIRST_6_LAST_4',
+    ORDER_IDENTIFIER = 'ORDER_IDENTIFIER',
     EMAIL = 'EMAIL',
     LOGIN = 'LOGIN',
     PRINCIPAL_DEALER = 'PRINCIPAL_DEALER',
@@ -396,7 +359,7 @@ export enum LinkedEntityTypeEnum {
     FORM_TEMPLATE_PAYMENT = 'FORM_TEMPLATE_PAYMENT',
     FORM_TEMPLATE_WAIT = 'FORM_TEMPLATE_WAIT',
     FORM_TEMPLATE_FINISH = 'FORM_TEMPLATE_FINISH',
-    FORM_TEMPLATE_TDS_METHOD = 'FORM_TEMPLATE_TDS_METHOD'
+    FORM_TEMPLATE_TDS_METHOD = 'FORM_TEMPLATE_TDS_METHOD',
 }
 
 /**
@@ -444,7 +407,7 @@ export type SearchCriteria = {
     cardTypes: number[]
     transactionTypes: number[]
     transactionStatuses: number[]
-    transactionSessionStatuses: string | null,
+    transactionSessionStatuses: string | null
     projectCurrencyId: number | null
     projectCurrencyConvert: boolean | null
     groupTypes: GroupingType[]
@@ -487,7 +450,7 @@ export type SearchUIConditions = {
     transactionTypes: AbstractEntityAllableCollection
     transactionStatuses: AbstractEntityAllableCollection
     transactionSessionStatusGroup: TransactionSessionGroup
-    transactionSessionStatuses: TransactionSessionStatus[],
+    transactionSessionStatuses: TransactionSessionStatus[]
     projectCurrency: ProjectCurrency
     grouping: Grouping
     recurrenceTypes: AbstractEntityAllableCollection

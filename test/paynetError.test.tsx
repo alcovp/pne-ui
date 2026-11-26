@@ -1,17 +1,13 @@
 import * as React from 'react'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
 
-import {
-    normalizePaynetError,
-    OverlayHost,
-    overlayActions,
-    useOverlayStore,
-} from '../src'
-import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRuntime'
+import {normalizePaynetError, OverlayHost, overlayActions, useOverlayStore} from '../src'
+import {resetOverlayRuntimeForTests} from '../src/component/overlay/overlayRuntime'
 
 const translations: Record<string, string> = {
     'react.unexpected.exception.title': 'Error',
-    'react.unexpected.exception.message': 'Unexpected error occurred. Please contact our support and provide them the error id {errorId}',
+    'react.unexpected.exception.message':
+        'Unexpected error occurred. Please contact our support and provide them the error id {errorId}',
     'react.validation.exception.message': 'The request contains invalid data',
     'react.validation.countryCode': 'Unknown country code',
     'react.validation.size': 'Length must be between {{min}} and {{max}}',
@@ -23,11 +19,11 @@ const clipboardWriteText = jest.fn<Promise<void>, [string]>()
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, options?: Record<string, unknown> & { defaultValue?: string }) => {
+        t: (key: string, options?: Record<string, unknown> & {defaultValue?: string}) => {
             const template = translations[key] ?? options?.defaultValue ?? key
-            return template.replace(/\{\{(\w+)\}\}/g, (placeholder, name: string) => (
-                options && name in options ? String(options[name]) : placeholder
-            ))
+            return template.replace(/\{\{(\w+)\}\}/g, (placeholder, name: string) =>
+                options && name in options ? String(options[name]) : placeholder,
+            )
         },
     }),
 }))
@@ -64,13 +60,15 @@ describe('Paynet error normalization', () => {
             }),
         })
 
-        expect(normalized).toEqual(expect.objectContaining({
-            notificationId: expect.stringMatching(/^paynet-error:/),
-            errorId: 'direct-response',
-            messageId: 'react.unexpected.exception.message',
-            details: 'Direct response details',
-            httpStatus: 500,
-        }))
+        expect(normalized).toEqual(
+            expect.objectContaining({
+                notificationId: expect.stringMatching(/^paynet-error:/),
+                errorId: 'direct-response',
+                messageId: 'react.unexpected.exception.message',
+                details: 'Direct response details',
+                httpStatus: 500,
+            }),
+        )
     })
 
     it('serializes structured details without dropping their content', async () => {
@@ -97,36 +95,45 @@ describe('Paynet error normalization', () => {
     })
 
     it('unwraps a promised AxiosError with a JSON Blob response', async () => {
-        const response = new Blob([JSON.stringify({
-            errorId: 'blob-response',
-            messageId: 'react.unexpected.exception.message',
-            details: 'Blob details',
-            errorType: 'SERVER_ERROR',
-            errorI18N: 'translated.detail',
-        })], { type: 'application/json' })
+        const response = new Blob(
+            [
+                JSON.stringify({
+                    errorId: 'blob-response',
+                    messageId: 'react.unexpected.exception.message',
+                    details: 'Blob details',
+                    errorType: 'SERVER_ERROR',
+                    errorI18N: 'translated.detail',
+                }),
+            ],
+            {type: 'application/json'},
+        )
 
-        const normalized = await normalizePaynetError(Promise.resolve({
-            response: {
-                status: 422,
-                data: response,
-            },
-        }))
+        const normalized = await normalizePaynetError(
+            Promise.resolve({
+                response: {
+                    status: 422,
+                    data: response,
+                },
+            }),
+        )
 
-        expect(normalized).toEqual(expect.objectContaining({
-            notificationId: expect.stringMatching(/^paynet-error:/),
-            errorId: 'blob-response',
-            details: 'Blob details',
-            errorType: 'SERVER_ERROR',
-            errorI18N: 'translated.detail',
-            httpStatus: 422,
-        }))
+        expect(normalized).toEqual(
+            expect.objectContaining({
+                notificationId: expect.stringMatching(/^paynet-error:/),
+                errorId: 'blob-response',
+                details: 'Blob details',
+                errorType: 'SERVER_ERROR',
+                errorI18N: 'translated.detail',
+                httpStatus: 422,
+            }),
+        )
     })
 
     it.each([
-        { code: 'ERR_CANCELED' },
-        { name: 'AbortError' },
-        { name: 'CanceledError' },
-        { config: { signal: { aborted: true } } },
+        {code: 'ERR_CANCELED'},
+        {name: 'AbortError'},
+        {name: 'CanceledError'},
+        {config: {signal: {aborted: true}}},
     ])('suppresses canceled requests: %o', async cancellation => {
         await expect(normalizePaynetError(cancellation)).resolves.toBeNull()
     })
@@ -144,9 +151,9 @@ describe('Paynet error normalization', () => {
                     messageFormat: 'must not be blank',
                     messageParams: {},
                 },
-                { propertyPath: 'request', message: 'class-level rule' },
-                { propertyPath: 'request.name' },
-                { message: 'no path' },
+                {propertyPath: 'request', message: 'class-level rule'},
+                {propertyPath: 'request.name'},
+                {message: 'no path'},
                 'junk',
             ],
         })
@@ -159,14 +166,16 @@ describe('Paynet error normalization', () => {
                 messageFormat: 'must not be blank',
                 messageParams: {},
             },
-            { propertyPath: 'request', message: 'class-level rule' },
+            {propertyPath: 'request', message: 'class-level rule'},
         ])
     })
 
     it('leaves violations undefined when the envelope has none', async () => {
-        expect((await normalizePaynetError({ errorId: '1', messageId: 'x', violations: [] }))?.violations).toBeUndefined()
-        expect((await normalizePaynetError({ errorId: '1', messageId: 'x', violations: 'no' }))?.violations).toBeUndefined()
-        expect((await normalizePaynetError({ errorId: '1', messageId: 'x' }))?.violations).toBeUndefined()
+        expect((await normalizePaynetError({errorId: '1', messageId: 'x', violations: []}))?.violations).toBeUndefined()
+        expect(
+            (await normalizePaynetError({errorId: '1', messageId: 'x', violations: 'no'}))?.violations,
+        ).toBeUndefined()
+        expect((await normalizePaynetError({errorId: '1', messageId: 'x'}))?.violations).toBeUndefined()
     })
 
     it('uses a separate internal notification id when the backend has no error id', async () => {
@@ -189,7 +198,7 @@ describe('structured overlay errors', () => {
         clipboardWriteText.mockResolvedValue(undefined)
         Object.defineProperty(navigator, 'clipboard', {
             configurable: true,
-            value: { writeText: clipboardWriteText },
+            value: {writeText: clipboardWriteText},
         })
     })
 
@@ -216,11 +225,12 @@ describe('structured overlay errors', () => {
         })
 
         await waitFor(() => {
-            expect(document.querySelector('[data-name="error-message"]')?.textContent)
-                .toBe('Unexpected error occurred. Please contact our support and provide them the error id validation-7')
+            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe(
+                'Unexpected error occurred. Please contact our support and provide them the error id validation-7',
+            )
         })
         expect(screen.getByText('This login already exists')).toBeTruthy()
-        expect(screen.getByRole('button', { name: 'Copy error ID: validation-7' })).toBeTruthy()
+        expect(screen.getByRole('button', {name: 'Copy error ID: validation-7'})).toBeTruthy()
         expect(document.querySelector('[data-name="error-type"]')).toBeNull()
         expect(document.querySelector('[data-name="error-status"]')).toBeNull()
         expect(screen.queryByText('Details')).toBeNull()
@@ -231,17 +241,14 @@ describe('structured overlay errors', () => {
         expect(details.tagName).toBe('DIV')
         expect(window.getComputedStyle(detailsSection).borderTopStyle).toBe('solid')
         expect(window.getComputedStyle(detailsSection).borderTopWidth).toBe('1px')
-        expect(window.getComputedStyle(details).fontFamily)
-            .toBe(window.getComputedStyle(message).fontFamily)
-        expect(window.getComputedStyle(details).fontSize)
-            .toBe(window.getComputedStyle(message).fontSize)
-        expect(window.getComputedStyle(details).lineHeight)
-            .toBe(window.getComputedStyle(message).lineHeight)
+        expect(window.getComputedStyle(details).fontFamily).toBe(window.getComputedStyle(message).fontFamily)
+        expect(window.getComputedStyle(details).fontSize).toBe(window.getComputedStyle(message).fontSize)
+        expect(window.getComputedStyle(details).lineHeight).toBe(window.getComputedStyle(message).lineHeight)
     })
 
     it('keeps a preview of long details inline and opens the complete diagnostic in a dialog', async () => {
         const details = Array.from(
-            { length: 10 },
+            {length: 10},
             (_, index) => `at com.payneteasy.processing.Step${index + 1}.run(Step${index + 1}.java:42)`,
         ).join('\n')
 
@@ -262,9 +269,9 @@ describe('structured overlay errors', () => {
         expect(inlineDetails?.textContent).toContain('Step1.run')
         expect(inlineDetails?.textContent).not.toContain('Step10.run')
 
-        fireEvent.click(screen.getByRole('button', { name: 'Show full details' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Show full details'}))
 
-        expect(await screen.findByRole('dialog', { name: 'Details' })).toBeTruthy()
+        expect(await screen.findByRole('dialog', {name: 'Details'})).toBeTruthy()
         const dialogDetails = document.querySelector<HTMLElement>('[data-name="error-details-dialog"]')!
         expect(dialogDetails.textContent).toBe(details)
         const dialogDetailsStyle = window.getComputedStyle(dialogDetails)
@@ -276,9 +283,9 @@ describe('structured overlay errors', () => {
         expect(dialogDetailsStyle.borderTopStyle).toBe('solid')
         expect(dialogDetailsStyle.whiteSpace).toBe('pre')
 
-        fireEvent.click(screen.getByRole('button', { name: 'Close details' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Close details'}))
         await waitFor(() => {
-            expect(screen.queryByRole('dialog', { name: 'Details' })).toBeNull()
+            expect(screen.queryByRole('dialog', {name: 'Details'})).toBeNull()
         })
     })
 
@@ -305,13 +312,13 @@ describe('structured overlay errors', () => {
 
         expect(await screen.findByText('Transaction declined')).toBeTruthy()
         expect(document.querySelector('[data-name="error-details"]')?.textContent).toBe(details)
-        expect(screen.queryByRole('button', { name: 'Show full details' })).toBeNull()
+        expect(screen.queryByRole('button', {name: 'Show full details'})).toBeNull()
     })
 
     it('keeps the full-details dialog in a custom OverlayHost portal target', async () => {
         const portalTarget = document.createElement('div')
         document.body.appendChild(portalTarget)
-        const details = Array.from({ length: 10 }, (_, index) => `Stack frame ${index + 1}`).join('\n')
+        const details = Array.from({length: 10}, (_, index) => `Stack frame ${index + 1}`).join('\n')
         const view = render(<OverlayHost container={portalTarget} />)
 
         act(() => {
@@ -324,9 +331,9 @@ describe('structured overlay errors', () => {
             })
         })
 
-        fireEvent.click(await screen.findByRole('button', { name: 'Show full details' }))
+        fireEvent.click(await screen.findByRole('button', {name: 'Show full details'}))
 
-        const dialog = await screen.findByRole('dialog', { name: 'Details' })
+        const dialog = await screen.findByRole('dialog', {name: 'Details'})
         expect(portalTarget.contains(dialog)).toBe(true)
 
         view.unmount()
@@ -353,12 +360,14 @@ describe('structured overlay errors', () => {
     })
 
     it('lists the violations under the message: host resolver first, then a translated template key, then the server text', async () => {
-        render((
+        render(
             <OverlayHost
                 container={null}
-                resolveViolationMessage={violation => (violation.messageFormat === 'must not be blank' ? 'Value is required' : undefined)}
-            />
-        ))
+                resolveViolationMessage={violation =>
+                    violation.messageFormat === 'must not be blank' ? 'Value is required' : undefined
+                }
+            />,
+        )
 
         act(() => {
             overlayActions.showError({
@@ -367,18 +376,49 @@ describe('structured overlay errors', () => {
                     messageId: 'react.validation.exception.message',
                     errorType: 'VALIDATION_ERROR',
                     violations: [
-                        { property: 'levelName', propertyPath: 'request.levelName', message: 'must not be blank', messageFormat: 'must not be blank', messageParams: {} },
-                        { property: 'countriesString', propertyPath: 'request.subEndpoints[1].countriesString', message: '{react.validation.countryCode}', messageFormat: '{react.validation.countryCode}', messageParams: {} },
-                        { property: 'name', propertyPath: 'request.name', message: 'size must be between 0 and 3', messageFormat: '{react.validation.size}', messageParams: { min: 0, max: 3 } },
-                        { property: 'code', propertyPath: 'request.code', message: 'must be a prime number', messageFormat: 'must be a prime number', messageParams: {} },
-                        { propertyPath: 'request', message: 'exactly one default is required', messageFormat: 'exactly one default is required', messageParams: {} },
+                        {
+                            property: 'levelName',
+                            propertyPath: 'request.levelName',
+                            message: 'must not be blank',
+                            messageFormat: 'must not be blank',
+                            messageParams: {},
+                        },
+                        {
+                            property: 'countriesString',
+                            propertyPath: 'request.subEndpoints[1].countriesString',
+                            message: '{react.validation.countryCode}',
+                            messageFormat: '{react.validation.countryCode}',
+                            messageParams: {},
+                        },
+                        {
+                            property: 'name',
+                            propertyPath: 'request.name',
+                            message: 'size must be between 0 and 3',
+                            messageFormat: '{react.validation.size}',
+                            messageParams: {min: 0, max: 3},
+                        },
+                        {
+                            property: 'code',
+                            propertyPath: 'request.code',
+                            message: 'must be a prime number',
+                            messageFormat: 'must be a prime number',
+                            messageParams: {},
+                        },
+                        {
+                            propertyPath: 'request',
+                            message: 'exactly one default is required',
+                            messageFormat: 'exactly one default is required',
+                            messageParams: {},
+                        },
                     ],
                 },
             })
         })
 
         await waitFor(() => {
-            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe('The request contains invalid data')
+            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe(
+                'The request contains invalid data',
+            )
         })
         const items = Array.from(document.querySelectorAll<HTMLElement>('[data-name="error-violation"]'))
         expect(items.map(item => item.textContent)).toEqual([
@@ -408,7 +448,7 @@ describe('structured overlay errors', () => {
                     errorId: 'validation-12',
                     messageId: 'react.validation.exception.message',
                     errorType: 'VALIDATION_ERROR',
-                    violations: Array.from({ length: 11 }, (_, index) => ({
+                    violations: Array.from({length: 11}, (_, index) => ({
                         property: `field${index}`,
                         propertyPath: `request.items[${index}].field${index}`,
                         message: 'must not be null',
@@ -438,9 +478,13 @@ describe('structured overlay errors', () => {
         })
 
         await waitFor(() => {
-            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe('The request contains invalid data')
+            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe(
+                'The request contains invalid data',
+            )
         })
-        expect(document.querySelector('[data-name="error-validation-message"]')?.textContent).toBe('This login already exists')
+        expect(document.querySelector('[data-name="error-validation-message"]')?.textContent).toBe(
+            'This login already exists',
+        )
         expect(document.querySelector('[data-name="error-violations"]')).toBeNull()
     })
 
@@ -449,7 +493,7 @@ describe('structured overlay errors', () => {
 
         act(() => {
             overlayActions.showError({
-                error: { messageId: 'react.unexpected.exception.message' },
+                error: {messageId: 'react.unexpected.exception.message'},
             })
         })
 
@@ -479,7 +523,7 @@ describe('structured overlay errors', () => {
         render(<OverlayHost container={null} />)
 
         act(() => {
-            overlayActions.showError({ error: new Error('literal.message.key') })
+            overlayActions.showError({error: new Error('literal.message.key')})
         })
 
         expect(await screen.findByText('literal.message.key')).toBeTruthy()
@@ -499,8 +543,9 @@ describe('structured overlay errors', () => {
         })
 
         await waitFor(() => {
-            expect(document.querySelector('[data-name="error-message"]')?.textContent)
-                .toBe('Unexpected error occurred. Please contact our support and provide them the error id substituted-9')
+            expect(document.querySelector('[data-name="error-message"]')?.textContent).toBe(
+                'Unexpected error occurred. Please contact our support and provide them the error id substituted-9',
+            )
         })
         expect(document.querySelector('[data-name="error-id"]')).toBeNull()
         const errorId = document.querySelector<HTMLElement>('[data-name="error-id-value"]')!
@@ -513,13 +558,13 @@ describe('structured overlay errors', () => {
         expect(window.getComputedStyle(errorId).textDecoration).toBe('underline')
         expect(window.getComputedStyle(errorId).overflowWrap).toBe('anywhere')
         expect(window.getComputedStyle(errorId).wordBreak).toBe('break-all')
-        expect(window.getComputedStyle(
-            document.querySelector<HTMLElement>('[data-name="error-id-tail"]')!,
-        ).whiteSpace).toBe('nowrap')
+        expect(
+            window.getComputedStyle(document.querySelector<HTMLElement>('[data-name="error-id-tail"]')!).whiteSpace,
+        ).toBe('nowrap')
 
         jest.useFakeTimers()
-        const copyButton = screen.getByRole('button', { name: 'Copy error ID: substituted-9' })
-        fireEvent.keyDown(copyButton, { key: 'Enter' })
+        const copyButton = screen.getByRole('button', {name: 'Copy error ID: substituted-9'})
+        fireEvent.keyDown(copyButton, {key: 'Enter'})
 
         await act(async () => {
             await Promise.resolve()
@@ -550,7 +595,7 @@ describe('structured overlay errors', () => {
             })
         })
 
-        const copyControl = await screen.findByRole('button', { name: 'Copy error ID: selectable-error-id' })
+        const copyControl = await screen.findByRole('button', {name: 'Copy error ID: selectable-error-id'})
         const message = document.querySelector<HTMLElement>('[data-name="error-message"]')!
         const selection = window.getSelection()!
         const range = document.createRange()
@@ -574,16 +619,16 @@ describe('structured overlay errors', () => {
             })
         })
 
-        const copyControl = await screen.findByRole('button', { name: 'Copy error ID: activation-error-id' })
+        const copyControl = await screen.findByRole('button', {name: 'Copy error ID: activation-error-id'})
 
-        fireEvent.click(copyControl, { detail: 1 })
+        fireEvent.click(copyControl, {detail: 1})
         await waitFor(() => expect(clipboardWriteText).toHaveBeenCalledTimes(1))
 
-        fireEvent.keyDown(copyControl, { key: 'Enter', code: 'Enter' })
+        fireEvent.keyDown(copyControl, {key: 'Enter', code: 'Enter'})
         await waitFor(() => expect(clipboardWriteText).toHaveBeenCalledTimes(2))
 
-        fireEvent.keyDown(copyControl, { key: ' ', code: 'Space' })
-        fireEvent.keyUp(copyControl, { key: ' ', code: 'Space' })
+        fireEvent.keyDown(copyControl, {key: ' ', code: 'Space'})
+        fireEvent.keyUp(copyControl, {key: ' ', code: 'Space'})
         await waitFor(() => expect(clipboardWriteText).toHaveBeenCalledTimes(3))
         expect(clipboardWriteText).toHaveBeenNthCalledWith(1, 'activation-error-id')
         expect(clipboardWriteText).toHaveBeenNthCalledWith(2, 'activation-error-id')
@@ -602,7 +647,7 @@ describe('structured overlay errors', () => {
             })
         })
 
-        const copyControl = await screen.findByRole('button', { name: 'Copy error ID: dragged-error-id' })
+        const copyControl = await screen.findByRole('button', {name: 'Copy error ID: dragged-error-id'})
         const errorId = document.querySelector<HTMLElement>('[data-name="error-id-value"]')!
         const selection = window.getSelection()!
         const range = document.createRange()
@@ -610,14 +655,14 @@ describe('structured overlay errors', () => {
         selection.removeAllRanges()
         selection.addRange(range)
 
-        fireEvent.click(copyControl, { detail: 1 })
+        fireEvent.click(copyControl, {detail: 1})
         expect(clipboardWriteText).not.toHaveBeenCalled()
 
         selection.removeAllRanges()
-        fireEvent.mouseDown(copyControl, { button: 0, clientX: 10, clientY: 10 })
-        fireEvent.mouseMove(copyControl, { buttons: 1, clientX: 20, clientY: 10 })
-        fireEvent.mouseUp(copyControl, { button: 0, clientX: 20, clientY: 10 })
-        fireEvent.click(copyControl, { detail: 1 })
+        fireEvent.mouseDown(copyControl, {button: 0, clientX: 10, clientY: 10})
+        fireEvent.mouseMove(copyControl, {buttons: 1, clientX: 20, clientY: 10})
+        fireEvent.mouseUp(copyControl, {button: 0, clientX: 20, clientY: 10})
+        fireEvent.click(copyControl, {detail: 1})
 
         expect(clipboardWriteText).not.toHaveBeenCalled()
         expect(copyControl.getAttribute('data-copy-state')).toBe('idle')
@@ -625,9 +670,11 @@ describe('structured overlay errors', () => {
 
     it('ignores a delayed clipboard completion after the error is removed', async () => {
         let resolveCopy!: () => void
-        clipboardWriteText.mockReturnValue(new Promise<void>(resolve => {
-            resolveCopy = resolve
-        }))
+        clipboardWriteText.mockReturnValue(
+            new Promise<void>(resolve => {
+                resolveCopy = resolve
+            }),
+        )
         render(<OverlayHost container={null} />)
 
         act(() => {
@@ -639,7 +686,7 @@ describe('structured overlay errors', () => {
             })
         })
 
-        const copyButton = await screen.findByRole('button', { name: 'Copy error ID: delayed-copy' })
+        const copyButton = await screen.findByRole('button', {name: 'Copy error ID: delayed-copy'})
         const setTimeoutSpy = jest.spyOn(window, 'setTimeout')
         fireEvent.click(copyButton)
 
@@ -667,8 +714,8 @@ describe('structured overlay errors', () => {
         }
 
         act(() => {
-            overlayActions.showError({ error })
-            overlayActions.showError({ error: Promise.resolve(error) })
+            overlayActions.showError({error})
+            overlayActions.showError({error: Promise.resolve(error)})
         })
 
         await waitFor(() => {
@@ -685,7 +732,7 @@ describe('structured overlay errors', () => {
 
     it('does not enqueue or report a missing host for a canceled request', async () => {
         act(() => {
-            overlayActions.showError({ error: { config: { signal: { aborted: true } } } })
+            overlayActions.showError({error: {config: {signal: {aborted: true}}}})
         })
 
         await act(async () => {

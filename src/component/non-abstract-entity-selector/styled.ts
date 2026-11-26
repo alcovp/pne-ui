@@ -1,22 +1,24 @@
 // The Material `styled`: its default theme has a palette when no provider stands over the list.
-import {styled} from '@mui/material/styles';
-import {resolvePneSemanticPalette} from '../../createTheme';
-import {ListItemButton} from '@mui/material';
+import {styled} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../createTheme'
+import {ListItemButton} from '@mui/material'
 
 export const Container = styled('div', {
-    shouldForwardProp: prop => prop !== 'height'
-})<{ height?: string }>(() => ({
+    shouldForwardProp: prop => prop !== 'height',
+})<{height?: string}>(() => ({
     boxSizing: 'border-box',
     minHeight: '320px',
     display: 'flex',
     justifyContent: 'space-between',
-}));
+}))
 
-export const ColumnWrapper = styled('div', {})(() => ({
+export const ColumnWrapper = styled(
+    'div',
+    {},
+)(() => ({
     width: 'calc(50% - 8px)',
     boxSizing: 'border-box',
-
-}));
+}))
 
 // UI Kit Transfer list: a caption with the action of the whole list over a box with a hairline; the
 // box is the list itself, virtual or not, so its 4px inset scrolls with the rows.
@@ -40,7 +42,7 @@ export const AddedListWrapper = styled('div')(({theme}) => ({
         paddingLeft: '4px',
         paddingRight: '4px',
     },
-}));
+}))
 
 export const HeaderColumnWrapper = styled('div')`
     min-height: 24px;
@@ -49,14 +51,14 @@ export const HeaderColumnWrapper = styled('div')`
     align-items: center;
     position: relative;
     margin-bottom: 8px;
-`;
+`
 
 export const HeaderColumn = styled('div')(({theme}) => ({
-    color: (theme).palette.text.secondary,
+    color: theme.palette.text.secondary,
     fontSize: '12px',
     fontWeight: 500,
     lineHeight: '16px',
-}));
+}))
 
 /**
  * A row of a transfer list (UI Kit): 32px, 14/20, the name and the sign of what a click does at the
@@ -93,7 +95,7 @@ export const StyledListItemButton = styled(ListItemButton)(({theme}) => {
             color: resolvePneSemanticPalette(theme).link,
         },
         '&:hover [data-pne-transfer-sign="remove"], &.Mui-focusVisible [data-pne-transfer-sign="remove"]': {
-            color: (theme).palette.error.main,
+            color: theme.palette.error.main,
         },
     }
-}) as typeof ListItemButton;
+}) as typeof ListItemButton

@@ -114,9 +114,10 @@ const TemplatesStory = ({
             saveSearchTemplate: async ({template}) => {
                 await respond()
                 const index = savedRef.current.findIndex(saved => saved.name === template.name)
-                savedRef.current = index === -1
-                    ? [...savedRef.current, template]
-                    : savedRef.current.map(saved => saved.name === template.name ? template : saved)
+                savedRef.current =
+                    index === -1
+                        ? [...savedRef.current, template]
+                        : savedRef.current.map(saved => (saved.name === template.name ? template : saved))
                 publish()
             },
             deleteSearchTemplate: async ({templateName}) => {
@@ -124,43 +125,44 @@ const TemplatesStory = ({
                 savedRef.current = savedRef.current.filter(template => template.name !== templateName)
                 publish()
             },
-            ...(reorder === 'unsupported' ? {} : {
-                reorderSearchTemplates: async ({templateNames: orderedNames}) => {
-                    await respond()
-                    if (reorder === 'fails') {
-                        throw new Error('Template storage is unavailable')
-                    }
-                    const byName = new Map(savedRef.current.map(template => [template.name, template]))
-                    savedRef.current = orderedNames.flatMap(name => byName.get(name) ?? [])
-                    publish()
-                },
-            }),
+            ...(reorder === 'unsupported'
+                ? {}
+                : {
+                      reorderSearchTemplates: async ({templateNames: orderedNames}) => {
+                          await respond()
+                          if (reorder === 'fails') {
+                              throw new Error('Template storage is unavailable')
+                          }
+                          const byName = new Map(savedRef.current.map(template => [template.name, template]))
+                          savedRef.current = orderedNames.flatMap(name => byName.get(name) ?? [])
+                          publish()
+                      },
+                  }),
         }
     }, [latencyMs, reorder])
 
-    return <OverlayHost>
-        <SearchUIProvider defaults={defaults}>
-            <Box data-story-section='pne-ui-search-ui-templates' sx={{backgroundColor: 'background.paper'}}>
-                <SearchUIFilters
-                    autoTestId='storybook-templates'
-                    settingsContextName={`storybook-templates-${reorder}`}
-                    possibleCriteria={[CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.STATUS]}
-                    predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
-                    onFiltersUpdate={() => undefined}
-                />
-                <Typography
-                    color='textSecondary'
-                    data-story-saved-order='true'
-                    sx={{px: 2, pb: 2}}
-                    variant='body2'
-                >
-                    {'Saved order: '}{savedOrder || '—'}
-                    <br/>
-                    {'Last chosen: '}{lastName ?? '—'}
-                </Typography>
-            </Box>
-        </SearchUIProvider>
-    </OverlayHost>
+    return (
+        <OverlayHost>
+            <SearchUIProvider defaults={defaults}>
+                <Box data-story-section='pne-ui-search-ui-templates' sx={{backgroundColor: 'background.paper'}}>
+                    <SearchUIFilters
+                        autoTestId='storybook-templates'
+                        settingsContextName={`storybook-templates-${reorder}`}
+                        possibleCriteria={[CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.STATUS]}
+                        predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                        onFiltersUpdate={() => undefined}
+                    />
+                    <Typography color='textSecondary' data-story-saved-order='true' sx={{px: 2, pb: 2}} variant='body2'>
+                        {'Saved order: '}
+                        {savedOrder || '—'}
+                        <br />
+                        {'Last chosen: '}
+                        {lastName ?? '—'}
+                    </Typography>
+                </Box>
+            </SearchUIProvider>
+        </OverlayHost>
+    )
 }
 
 export default {
@@ -169,10 +171,11 @@ export default {
     parameters: {
         docs: {
             description: {
-                component: 'The templates menu of SearchUI filters. Drag a template by its grip, or focus it and '
-                    + 'press Alt+↑ / Alt+↓, to change its position; the host persists the order through '
-                    + '`reorderSearchTemplates`. "Saved order" below shows what the fake backend stored; '
-                    + '"Last chosen" is the name it keeps through `saveLastSearchTemplateName`.',
+                component:
+                    'The templates menu of SearchUI filters. Drag a template by its grip, or focus it and ' +
+                    'press Alt+↑ / Alt+↓, to change its position; the host persists the order through ' +
+                    '`reorderSearchTemplates`. "Saved order" below shows what the fake backend stored; ' +
+                    '"Last chosen" is the name it keeps through `saveLastSearchTemplateName`.',
             },
         },
     },

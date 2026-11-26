@@ -1,4 +1,4 @@
-import type { SnackbarOrigin } from '@mui/material'
+import type {SnackbarOrigin} from '@mui/material'
 import type React from 'react'
 
 export type SnackbarVariant = 'info' | 'success' | 'warning' | 'error'
@@ -109,7 +109,7 @@ export type OverlayState = {
     clearSnackbars: () => void
 }
 
-export type PermanentOverlayRender = (context: { breakpoint: number }) => React.ReactNode
+export type PermanentOverlayRender = (context: {breakpoint: number}) => React.ReactNode
 
 export type PermanentOverlaySlot = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 

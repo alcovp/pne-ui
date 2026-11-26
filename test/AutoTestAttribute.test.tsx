@@ -22,11 +22,7 @@ describe('createAutoTestAttributes', () => {
     })
 
     it('can be attached directly to the intended DOM node', () => {
-        render(
-            <button {...createAutoTestAttributes('orders.submit', false)}>
-                Submit
-            </button>,
-        )
+        render(<button {...createAutoTestAttributes('orders.submit', false)}>Submit</button>)
 
         const button = screen.getByRole('button', {name: 'Submit'})
 

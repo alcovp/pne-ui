@@ -12,15 +12,17 @@ describe('PneCalendarActionBar', () => {
         const onAccept = jest.fn()
         const onClose = jest.fn()
 
-        render(<LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DesktopDateTimePicker
-                defaultValue={dayjs('2026-01-05T10:00:00')}
-                onAccept={onAccept}
-                onClose={onClose}
-                open
-                slots={{actionBar: PneCalendarActionBar}}
-            />
-        </LocalizationProvider>)
+        render(
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DesktopDateTimePicker
+                    defaultValue={dayjs('2026-01-05T10:00:00')}
+                    onAccept={onAccept}
+                    onClose={onClose}
+                    open
+                    slots={{actionBar: PneCalendarActionBar}}
+                />
+            </LocalizationProvider>,
+        )
 
         const bar = await waitFor(() => {
             const element = document.querySelector<HTMLElement>('[data-pne-calendar-actions]')

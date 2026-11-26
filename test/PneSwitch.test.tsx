@@ -21,9 +21,11 @@ const ruleValue = (root: HTMLElement, selectorSuffix: string, property: string, 
         .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
         .filter(rule => {
             const selector = rule.selectorText.replace(/\s+/g, '')
-            return rootClasses.some(className => exact || selectorSuffix === ''
-                ? selector === `.${className}${selectorSuffix}`
-                : selector.startsWith(`.${className}`) && selector.endsWith(selectorSuffix))
+            return rootClasses.some(className =>
+                exact || selectorSuffix === ''
+                    ? selector === `.${className}${selectorSuffix}`
+                    : selector.startsWith(`.${className}`) && selector.endsWith(selectorSuffix),
+            )
         })
         .map(rule => rule.style.getPropertyValue(property))
         .filter(Boolean)
@@ -38,21 +40,51 @@ const KNOB_ON = '.MuiSwitch-switchBase.Mui-checked.MuiSwitch-thumb'
 
 describe('PneSwitch (UI Kit look)', () => {
     it.each([
-        {rootHeight: '32px', rootWidth: '58px', size: 'medium', trackHeight: '20px', trackLeft: '13px', trackTop: '6px', trackWidth: '32px', thumb: '16px'},
-        {rootHeight: '24px', rootWidth: '40px', size: 'small', trackHeight: '16px', trackLeft: '8px', trackTop: '4px', trackWidth: '24px', thumb: '12px'},
-    ] as const)('lays the $size switch out as the UI Kit Switcher', ({rootHeight, rootWidth, size, trackHeight, trackLeft, trackTop, trackWidth, thumb}) => {
-        const {root} = renderSwitch(<PneSwitch aria-label='Sized' size={size}/>)
+        {
+            rootHeight: '32px',
+            rootWidth: '58px',
+            size: 'medium',
+            trackHeight: '20px',
+            trackLeft: '13px',
+            trackTop: '6px',
+            trackWidth: '32px',
+            thumb: '16px',
+        },
+        {
+            rootHeight: '24px',
+            rootWidth: '40px',
+            size: 'small',
+            trackHeight: '16px',
+            trackLeft: '8px',
+            trackTop: '4px',
+            trackWidth: '24px',
+            thumb: '12px',
+        },
+    ] as const)(
+        'lays the $size switch out as the UI Kit Switcher',
+        ({rootHeight, rootWidth, size, trackHeight, trackLeft, trackTop, trackWidth, thumb}) => {
+            const {root} = renderSwitch(<PneSwitch aria-label='Sized' size={size} />)
 
-        expect([ruleValue(root, '', 'width'), ruleValue(root, '', 'height')]).toEqual([rootWidth, rootHeight])
-        expect([ruleValue(root, '.MuiSwitch-track', 'width'), ruleValue(root, '.MuiSwitch-track', 'height')]).toEqual([trackWidth, trackHeight])
-        expect([ruleValue(root, '.MuiSwitch-track', 'left'), ruleValue(root, '.MuiSwitch-track', 'top')]).toEqual([trackLeft, trackTop])
-        // The track starts where the fields of a column do: the hit area before it hangs out of the layout.
-        expect(ruleValue(root, '', 'margin-left')).toBe(`-${trackLeft}`)
-        expect([ruleValue(root, '.MuiSwitch-thumb', 'width'), ruleValue(root, '.MuiSwitch-thumb', 'height')]).toEqual([thumb, thumb])
-    })
+            expect([ruleValue(root, '', 'width'), ruleValue(root, '', 'height')]).toEqual([rootWidth, rootHeight])
+            expect([
+                ruleValue(root, '.MuiSwitch-track', 'width'),
+                ruleValue(root, '.MuiSwitch-track', 'height'),
+            ]).toEqual([trackWidth, trackHeight])
+            expect([ruleValue(root, '.MuiSwitch-track', 'left'), ruleValue(root, '.MuiSwitch-track', 'top')]).toEqual([
+                trackLeft,
+                trackTop,
+            ])
+            // The track starts where the fields of a column do: the hit area before it hangs out of the layout.
+            expect(ruleValue(root, '', 'margin-left')).toBe(`-${trackLeft}`)
+            expect([
+                ruleValue(root, '.MuiSwitch-thumb', 'width'),
+                ruleValue(root, '.MuiSwitch-thumb', 'height'),
+            ]).toEqual([thumb, thumb])
+        },
+    )
 
     it('draws the off value as a white knob on a neutral track and the on value on the brand fill, with no ring and no shadow', () => {
-        const {root} = renderSwitch(<PneSwitch aria-label='Values'/>)
+        const {root} = renderSwitch(<PneSwitch aria-label='Values' />)
 
         expect(ruleValue(root, TRACK_OFF, 'background-color', true)).toBe('#CED5DC')
         expect(ruleValue(root, TRACK_OFF, 'box-shadow', true)).toBe('none')
@@ -64,49 +96,72 @@ describe('PneSwitch (UI Kit look)', () => {
     })
 
     it('keeps the track opaque where MUI fades it', () => {
-        const {root} = renderSwitch(<PneSwitch aria-label='Opaque'/>)
+        const {root} = renderSwitch(<PneSwitch aria-label='Opaque' />)
 
         expect(ruleValue(root, TRACK_OFF, 'opacity', true)).toBe('1')
         expect(ruleValue(root, TRACK_ON, 'opacity', true)).toBe('1')
-        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-checked.Mui-disabled+.MuiSwitch-track', 'opacity', true)).toBe('1')
+        expect(
+            ruleValue(root, '.MuiSwitch-switchBase.Mui-checked.Mui-disabled+.MuiSwitch-track', 'opacity', true),
+        ).toBe('1')
     })
 
     it('has hover, pressed, read-only and disabled rules by UI Kit role', () => {
-        const {root} = renderSwitch(<PneSwitch aria-label='States'/>)
+        const {root} = renderSwitch(<PneSwitch aria-label='States' />)
 
         expect(ruleValue(root, `[data-pne-state="hover"]${TRACK_OFF}`, 'background-color')).toBe('#B2B8BF')
         expect(ruleValue(root, `[data-pne-state="hover"]${KNOB_OFF}`, 'background-color')).toBe('#FFFFFF')
         // The track pressed while off already takes the colour of on.
         expect(ruleValue(root, `[data-pne-state="pressed"]${TRACK_OFF}`, 'background-color')).toBe('#026FD7')
         expect(ruleValue(root, `[data-pne-state="pressed"]${TRACK_ON}`, 'background-color')).toBe('#004B96')
-        expect(ruleValue(root, `:hover.MuiSwitch-switchBase:not(.Mui-disabled)${TRACK_ON.slice('.MuiSwitch-switchBase'.length)}`, 'background-color')).toBe('#005EB9')
+        expect(
+            ruleValue(
+                root,
+                `:hover.MuiSwitch-switchBase:not(.Mui-disabled)${TRACK_ON.slice('.MuiSwitch-switchBase'.length)}`,
+                'background-color',
+            ),
+        ).toBe('#005EB9')
         expect(ruleValue(root, `[data-pne-readonly]${TRACK_ON}`, 'background-color')).toBe('#6E747A')
         expect(ruleValue(root, `[data-pne-readonly]${TRACK_OFF}`, 'background-color')).toBe('#E2E9F0')
         expect(ruleValue(root, `[data-pne-readonly]${KNOB_OFF}`, 'background-color')).toBe('#6E747A')
-        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-disabled+.MuiSwitch-track', 'background-color')).toBe('#CED5DC')
-        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-checked.Mui-disabled+.MuiSwitch-track', 'background-color')).toBe('#CED5DC')
-        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-disabled.MuiSwitch-thumb', 'background-color')).toBe('#B2B8BF')
+        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-disabled+.MuiSwitch-track', 'background-color')).toBe(
+            '#CED5DC',
+        )
+        expect(
+            ruleValue(root, '.MuiSwitch-switchBase.Mui-checked.Mui-disabled+.MuiSwitch-track', 'background-color'),
+        ).toBe('#CED5DC')
+        expect(ruleValue(root, '.MuiSwitch-switchBase.Mui-disabled.MuiSwitch-thumb', 'background-color')).toBe(
+            '#B2B8BF',
+        )
     })
 
     it('puts the focus ring on the track and the spinner into the knob', () => {
-        const {root} = renderSwitch(<PneSwitch aria-label='Focus'/>)
+        const {root} = renderSwitch(<PneSwitch aria-label='Focus' />)
 
         // The focus rule is a selector list; its last member is the pinned specimen state.
-        expect(ruleValue(root, '[data-pne-state="focus"].MuiSwitch-switchBase+.MuiSwitch-track::before', 'box-shadow'))
-            .toBe('0 0 0 2px #fff,0 0 0 4px #026FD7')
+        expect(
+            ruleValue(root, '[data-pne-state="focus"].MuiSwitch-switchBase+.MuiSwitch-track::before', 'box-shadow'),
+        ).toBe('0 0 0 2px #fff,0 0 0 4px #026FD7')
         // The spinner rules are selector lists too; their last member is the pinned loading state.
-        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'border')).toBe('1.5px solid #026FD7')
-        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-switchBase.Mui-checked.MuiSwitch-thumb::after', 'border')).toBe('1.5px solid #026FD7')
+        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'border')).toBe(
+            '1.5px solid #026FD7',
+        )
+        expect(
+            ruleValue(
+                root,
+                '[data-pne-state="loading"].MuiSwitch-switchBase.Mui-checked.MuiSwitch-thumb::after',
+                'border',
+            ),
+        ).toBe('1.5px solid #026FD7')
         expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'inset')).toBe('2px')
     })
 
     it('marks read-only and pinned states on the root span', () => {
-        const readOnly = renderSwitch(<PneSwitch aria-label='Read only' defaultChecked readOnly/>)
+        const readOnly = renderSwitch(<PneSwitch aria-label='Read only' defaultChecked readOnly />)
         expect(readOnly.root.getAttribute('data-pne-readonly')).toBe('true')
         expect(readOnly.root.querySelector('.MuiSwitch-switchBase')?.getAttribute('data-pne-readonly')).toBeNull()
         readOnly.unmount()
 
-        const pinned = renderSwitch(<PneSwitch aria-label='Pinned' data-pne-state='hover'/>)
+        const pinned = renderSwitch(<PneSwitch aria-label='Pinned' data-pne-state='hover' />)
         expect(pinned.root.getAttribute('data-pne-state')).toBe('hover')
     })
 
@@ -115,7 +170,7 @@ describe('PneSwitch (UI Kit look)', () => {
         const request = new Promise<void>(resolve => {
             resolveRequest = resolve
         })
-        const {root} = renderSwitch(<PneSwitch aria-label='Pending' onChange={() => request}/>)
+        const {root} = renderSwitch(<PneSwitch aria-label='Pending' onChange={() => request} />)
         const input = screen.getByRole('switch', {name: 'Pending'}) as HTMLInputElement
 
         fireEvent.click(input)

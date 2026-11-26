@@ -3,64 +3,53 @@ import {fireEvent, render, screen} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    createAutoTestAttributes,
-    PneField,
-    PneSelect,
-    type PneSelectPrimitiveProps,
-} from '../src'
+import {createAutoTestAttributes, PneField, PneSelect, type PneSelectPrimitiveProps} from '../src'
 
 describe('PneSelect', () => {
     it('renders placeholder text for an empty value without a floating label', () => {
         const rootRef = React.createRef<HTMLDivElement>()
 
-        render(<PneSelect
-            options={['Email', 'SFTP']}
-            placeholder='Please select'
-            ref={rootRef}
-            value={null}
-            onChange={() => undefined}
-        />)
+        render(
+            <PneSelect
+                options={['Email', 'SFTP']}
+                placeholder='Please select'
+                ref={rootRef}
+                value={null}
+                onChange={() => undefined}
+            />,
+        )
 
         expect(screen.getByText('Please select')).toBeTruthy()
         expect(rootRef.current?.tagName).toBe('DIV')
     })
 
     it('places standalone aria-disabled on the semantic combobox', () => {
-        render(<PneSelect
-            aria-disabled
-            options={['Email', 'SFTP']}
-            value='Email'
-            onChange={() => undefined}
-        />)
+        render(<PneSelect aria-disabled options={['Email', 'SFTP']} value='Email' onChange={() => undefined} />)
 
         expect(screen.getByRole('combobox').getAttribute('aria-disabled')).toBe('true')
     })
 
     it('composes top-level managed ARIA with PneField semantics', () => {
-        render(<>
-            <span id='external-select-label'>External name</span>
-            <span id='consumer-select-label'>Consumer label</span>
-            <span id='external-select-help'>External help</span>
-            <PneField
-                disabled
-                helperText='Field help'
-                id='delivery-field'
-                label='Delivery channel'
-            >
-                <PneSelect
-                    aria-describedby='external-select-help'
-                    aria-disabled={false}
-                    aria-invalid='grammar'
-                    aria-labelledby='external-select-label'
-                    aria-required
-                    labelId='consumer-select-label'
-                    options={['Email', 'SFTP']}
-                    value='Email'
-                    onChange={() => undefined}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='external-select-label'>External name</span>
+                <span id='consumer-select-label'>Consumer label</span>
+                <span id='external-select-help'>External help</span>
+                <PneField disabled helperText='Field help' id='delivery-field' label='Delivery channel'>
+                    <PneSelect
+                        aria-describedby='external-select-help'
+                        aria-disabled={false}
+                        aria-invalid='grammar'
+                        aria-labelledby='external-select-label'
+                        aria-required
+                        labelId='consumer-select-label'
+                        options={['Email', 'SFTP']}
+                        value='Email'
+                        onChange={() => undefined}
+                    />
+                </PneField>
+            </>,
+        )
 
         const select = screen.getByRole('combobox')
 
@@ -80,29 +69,31 @@ describe('PneSelect', () => {
     })
 
     it('lets explicit top-level and display names override generated labels', () => {
-        render(<>
-            <PneField id='top-level-name' label='First field name'>
-                <PneSelect
-                    aria-label='Explicit top-level name'
-                    aria-labelledby='ignored-top-level-label'
-                    options={['Email', 'SFTP']}
-                    value='Email'
-                    onChange={() => undefined}
-                />
-            </PneField>
-            <PneField id='display-name' label='Second field name'>
-                <PneSelect
-                    aria-label='Ignored top-level name'
-                    options={['Email', 'SFTP']}
-                    SelectDisplayProps={{
-                        'aria-label': 'Explicit display name',
-                        'aria-labelledby': 'ignored-display-label',
-                    }}
-                    value='SFTP'
-                    onChange={() => undefined}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <PneField id='top-level-name' label='First field name'>
+                    <PneSelect
+                        aria-label='Explicit top-level name'
+                        aria-labelledby='ignored-top-level-label'
+                        options={['Email', 'SFTP']}
+                        value='Email'
+                        onChange={() => undefined}
+                    />
+                </PneField>
+                <PneField id='display-name' label='Second field name'>
+                    <PneSelect
+                        aria-label='Ignored top-level name'
+                        options={['Email', 'SFTP']}
+                        SelectDisplayProps={{
+                            'aria-label': 'Explicit display name',
+                            'aria-labelledby': 'ignored-display-label',
+                        }}
+                        value='SFTP'
+                        onChange={() => undefined}
+                    />
+                </PneField>
+            </>,
+        )
 
         const topLevelNamed = screen.getByRole('combobox', {name: 'Explicit top-level name'})
         const displayNamed = screen.getByRole('combobox', {name: 'Explicit display name'})
@@ -117,17 +108,19 @@ describe('PneSelect', () => {
     })
 
     it('keeps the PneField label as focus owner when a consumer labelId is merged', () => {
-        render(<>
-            <span id='consumer-label-id'>Consumer name</span>
-            <PneField id='listener-field' label='Field owner'>
-                <PneSelect
-                    labelId='consumer-label-id'
-                    options={['Email', 'SFTP']}
-                    value='Email'
-                    onChange={() => undefined}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='consumer-label-id'>Consumer name</span>
+                <PneField id='listener-field' label='Field owner'>
+                    <PneSelect
+                        labelId='consumer-label-id'
+                        options={['Email', 'SFTP']}
+                        value='Email'
+                        onChange={() => undefined}
+                    />
+                </PneField>
+            </>,
+        )
 
         const select = screen.getByRole('combobox', {
             name: 'Field owner Consumer name',
@@ -138,22 +131,24 @@ describe('PneSelect', () => {
     })
 
     it('forwards caller-owned attributes to each semantic option', () => {
-        render(<PneSelect
-            options={['Email', 'SFTP']}
-            value='Email'
-            onChange={() => undefined}
-            getOptionProps={option => createAutoTestAttributes('delivery-option', option)}
-            SelectDisplayProps={{'aria-label': 'Delivery type'}}
-        />)
+        render(
+            <PneSelect
+                options={['Email', 'SFTP']}
+                value='Email'
+                onChange={() => undefined}
+                getOptionProps={option => createAutoTestAttributes('delivery-option', option)}
+                SelectDisplayProps={{'aria-label': 'Delivery type'}}
+            />,
+        )
 
         fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Delivery type'}))
 
-        expect(document.querySelector(
-            '[role="option"][data-autotest="delivery-option"][data-autotest-value="Email"]',
-        )).not.toBeNull()
-        expect(document.querySelector(
-            '[role="option"][data-autotest="delivery-option"][data-autotest-value="SFTP"]',
-        )).not.toBeNull()
+        expect(
+            document.querySelector('[role="option"][data-autotest="delivery-option"][data-autotest-value="Email"]'),
+        ).not.toBeNull()
+        expect(
+            document.querySelector('[role="option"][data-autotest="delivery-option"][data-autotest-value="SFTP"]'),
+        ).not.toBeNull()
     })
 
     it('keeps combobox and listbox behavior when untyped callers pass managed MUI props', () => {
@@ -238,12 +233,7 @@ describe('PneSelect', () => {
             },
         } as unknown as Partial<PneSelectPrimitiveProps<string>>
 
-        render(<PneSelect
-            {...unsafeProps}
-            options={['Email', 'SFTP']}
-            value='Email'
-            onChange={() => undefined}
-        />)
+        render(<PneSelect {...unsafeProps} options={['Email', 'SFTP']} value='Email' onChange={() => undefined} />)
 
         const select = screen.getByRole('combobox')
         expect(select.getAttribute('aria-haspopup')).toBe('listbox')
@@ -277,12 +267,14 @@ describe('PneSelect', () => {
     it('preserves primitive numeric values through selection', () => {
         const onChange = jest.fn<void, [number]>()
 
-        render(<PneSelect
-            options={[10, 20]}
-            value={10}
-            onChange={onChange}
-            SelectDisplayProps={{'aria-label': 'Page size'}}
-        />)
+        render(
+            <PneSelect
+                options={[10, 20]}
+                value={10}
+                onChange={onChange}
+                SelectDisplayProps={{'aria-label': 'Page size'}}
+            />,
+        )
 
         fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Page size'}))
         fireEvent.click(screen.getByRole('option', {name: '20'}))
@@ -296,12 +288,14 @@ describe('PneSelect', () => {
         try {
             const onChange = jest.fn<void, [number]>()
 
-            render(<PneSelect
-                options={[10, 20]}
-                value={10}
-                onChange={onChange}
-                SelectDisplayProps={{'aria-label': 'Page size'}}
-            />)
+            render(
+                <PneSelect
+                    options={[10, 20]}
+                    value={10}
+                    onChange={onChange}
+                    SelectDisplayProps={{'aria-label': 'Page size'}}
+                />,
+            )
 
             fireEvent.mouseDown(screen.getByRole('combobox', {name: 'Page size'}))
 
@@ -345,18 +339,20 @@ describe('PneSelect', () => {
         const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
 
         try {
-            render(<PneSelect
-                options={regions}
-                value={rehydratedValue}
-                onChange={onChange}
-                getOptionKey={option => option.code}
-                getOptionLabel={getOptionLabel}
-                getOptionProps={getOptionProps}
-                getOptionDisabled={getOptionDisabled}
-                renderOption={option => <span>Choice: {option.title}</span>}
-                renderValue={option => option?.title ?? 'No region'}
-                SelectDisplayProps={{'aria-label': 'Region'}}
-            />)
+            render(
+                <PneSelect
+                    options={regions}
+                    value={rehydratedValue}
+                    onChange={onChange}
+                    getOptionKey={option => option.code}
+                    getOptionLabel={getOptionLabel}
+                    getOptionProps={getOptionProps}
+                    getOptionDisabled={getOptionDisabled}
+                    renderOption={option => <span>Choice: {option.title}</span>}
+                    renderValue={option => option?.title ?? 'No region'}
+                    SelectDisplayProps={{'aria-label': 'Region'}}
+                />,
+            )
 
             expect(screen.getByRole('combobox', {name: 'Region'}).textContent).toContain('Europe')
             expect(consoleWarn).not.toHaveBeenCalledWith(expect.stringContaining('out-of-range'))
@@ -388,48 +384,44 @@ describe('PneSelect', () => {
         const consoleWarn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
 
         try {
-            render(<PneSelect
-                options={[{code: 'eu', title: 'Europe'}] satisfies Region[]}
-                value={{code: 'removed', title: 'Removed region'}}
-                onChange={() => undefined}
-                getOptionKey={option => option.code}
-                getOptionLabel={option => option.title}
-                placeholder='Please select'
-                SelectDisplayProps={{'aria-label': 'Region'}}
-            />)
+            render(
+                <PneSelect
+                    options={[{code: 'eu', title: 'Europe'}] satisfies Region[]}
+                    value={{code: 'removed', title: 'Removed region'}}
+                    onChange={() => undefined}
+                    getOptionKey={option => option.code}
+                    getOptionLabel={option => option.title}
+                    placeholder='Please select'
+                    SelectDisplayProps={{'aria-label': 'Region'}}
+                />,
+            )
 
             expect(screen.getByRole('combobox', {name: 'Region'}).textContent).toContain('Please select')
-            expect(consoleWarn.mock.calls.flat().some(argument => (
-                String(argument).includes('out-of-range')
-            ))).toBe(false)
+            expect(consoleWarn.mock.calls.flat().some(argument => String(argument).includes('out-of-range'))).toBe(
+                false,
+            )
         } finally {
             consoleWarn.mockRestore()
         }
     })
 
     it('rejects keys that collide after serialization', () => {
-        expect(() => render(<PneSelect
-            options={[1, '1'] as const}
-            value={null}
-            onChange={() => undefined}
-        />)).toThrow('PneSelect option keys must be unique after serialization: 1')
+        expect(() => render(<PneSelect options={[1, '1'] as const} value={null} onChange={() => undefined} />)).toThrow(
+            'PneSelect option keys must be unique after serialization: 1',
+        )
     })
 
     it('reserves the empty serialized key for the null value', () => {
-        expect(() => render(<PneSelect
-            options={[''] as const}
-            value={null}
-            onChange={() => undefined}
-        />)).toThrow('PneSelect option keys must not serialize to an empty string')
+        expect(() => render(<PneSelect options={[''] as const} value={null} onChange={() => undefined} />)).toThrow(
+            'PneSelect option keys must not serialize to an empty string',
+        )
     })
 
     it('also rejects an empty key from a non-null controlled value', () => {
         const options: readonly string[] = ['Email']
 
-        expect(() => render(<PneSelect
-            options={options}
-            value=''
-            onChange={() => undefined}
-        />)).toThrow('PneSelect option keys must not serialize to an empty string')
+        expect(() => render(<PneSelect options={options} value='' onChange={() => undefined} />)).toThrow(
+            'PneSelect option keys must not serialize to an empty string',
+        )
     })
 })

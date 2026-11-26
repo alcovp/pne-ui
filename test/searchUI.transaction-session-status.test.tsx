@@ -3,12 +3,7 @@ import {act, fireEvent, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-    TransactionSessionStatuses,
-} from '../src'
+import {CriterionTypeEnum, SearchUIFilters, SearchUIProvider, TransactionSessionStatuses} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -68,9 +63,9 @@ const createDeferredStatuses = () => {
 
 const getCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"]`
-        + `[data-autotest-value="${CriterionTypeEnum.TRANSACTION_SESSION_STATUS}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"]` +
+            `[data-autotest-value="${CriterionTypeEnum.TRANSACTION_SESSION_STATUS}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -88,18 +83,18 @@ const getTrigger = (criterion: HTMLElement): HTMLButtonElement => {
     return trigger as HTMLButtonElement
 }
 
-const getValues = (criterion: HTMLElement): string[] => Array.from(
-    criterion.querySelectorAll<HTMLElement>(
-        '[data-autotest="criterion-transaction-session-status-value"]',
-    ),
-    value => value.getAttribute('data-autotest-value') ?? '',
-)
+const getValues = (criterion: HTMLElement): string[] =>
+    Array.from(
+        criterion.querySelectorAll<HTMLElement>('[data-autotest="criterion-transaction-session-status-value"]'),
+        value => value.getAttribute('data-autotest-value') ?? '',
+    )
 
-const getOwnedPanel = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="dialog"][data-autotest="criterion-transaction-session-status-panel"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_SESSION_STATUS}"]`,
-)
+const getOwnedPanel = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="dialog"][data-autotest="criterion-transaction-session-status-panel"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_SESSION_STATUS}"]`,
+    )
 
 const getGroupControl = (panel: HTMLElement): HTMLElement => {
     const control = panel.querySelector<HTMLElement>(
@@ -111,25 +106,24 @@ const getGroupControl = (panel: HTMLElement): HTMLElement => {
     return control as HTMLElement
 }
 
-const getOwnedGroupOptions = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="listbox"][data-autotest="criterion-transaction-session-status-group-options"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_SESSION_STATUS}"]`,
-)
+const getOwnedGroupOptions = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="listbox"][data-autotest="criterion-transaction-session-status-group-options"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_SESSION_STATUS}"]`,
+    )
 
-const getGroupOption = (listbox: HTMLElement, group: string): HTMLElement | null => (
+const getGroupOption = (listbox: HTMLElement, group: string): HTMLElement | null =>
     listbox.querySelector<HTMLElement>(
-        '[role="option"][data-autotest="criterion-transaction-session-status-group-option"]'
-        + `[data-autotest-value="${group}"]`,
+        '[role="option"][data-autotest="criterion-transaction-session-status-group-option"]' +
+            `[data-autotest-value="${group}"]`,
     )
-)
 
-const getStatusOption = (panel: HTMLElement, status: string): HTMLInputElement | null => (
+const getStatusOption = (panel: HTMLElement, status: string): HTMLInputElement | null =>
     panel.querySelector<HTMLInputElement>(
-        'input[type="checkbox"][data-autotest="criterion-transaction-session-status-option"]'
-        + `[data-autotest-value="${status}"]`,
+        'input[type="checkbox"][data-autotest="criterion-transaction-session-status-option"]' +
+            `[data-autotest-value="${status}"]`,
     )
-)
 
 describe('SearchUI transaction-session-status Selenium contract', () => {
     beforeEach(() => {
@@ -149,8 +143,8 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="session-status-first"
-                    settingsContextName="session-status-first-context"
+                    autoTestId='session-status-first'
+                    settingsContextName='session-status-first-context'
                     possibleCriteria={[CriterionTypeEnum.TRANSACTION_SESSION_STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.TRANSACTION_SESSION_STATUS]}
                     initialSearchConditions={{
@@ -164,8 +158,8 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="session-status-second"
-                    settingsContextName="session-status-second-context"
+                    autoTestId='session-status-second'
+                    settingsContextName='session-status-second-context'
                     possibleCriteria={[CriterionTypeEnum.TRANSACTION_SESSION_STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.TRANSACTION_SESSION_STATUS]}
                     initialSearchConditions={{
@@ -183,12 +177,16 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
 
         await waitFor(() => {
             expect(getTransactionSessionStatuses).toHaveBeenCalledTimes(2)
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                transactionSessionStatuses: 'AUTHORIZED',
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                transactionSessionStatuses: 'DECLINED,SYSTEM_ERROR',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionSessionStatuses: 'AUTHORIZED',
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionSessionStatuses: 'DECLINED,SYSTEM_ERROR',
+                }),
+            )
         })
 
         const firstCriterion = getCriterion(container, 'session-status-first')
@@ -205,18 +203,23 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
         expect(secondTrigger.getAttribute('data-autotest-value')).toBe('ERROR')
         expect(secondTrigger.getAttribute('aria-busy')).toBe('true')
         expect(firstTrigger.querySelectorAll('button')).toHaveLength(0)
-        expect(firstCriterion.querySelector(
-            '[data-autotest="criterion-transaction-session-status-group-value"]'
-            + '[data-autotest-value="APPROVED"]',
-        )).not.toBeNull()
-        expect(secondCriterion.querySelector(
-            '[data-autotest="criterion-transaction-session-status-group-value"]'
-            + '[data-autotest-value="ERROR"]',
-        )).not.toBeNull()
+        expect(
+            firstCriterion.querySelector(
+                '[data-autotest="criterion-transaction-session-status-group-value"]' +
+                    '[data-autotest-value="APPROVED"]',
+            ),
+        ).not.toBeNull()
+        expect(
+            secondCriterion.querySelector(
+                '[data-autotest="criterion-transaction-session-status-group-value"]' + '[data-autotest-value="ERROR"]',
+            ),
+        ).not.toBeNull()
         // The group is the neutral badge, its statuses the badges in a ring.
-        expect(firstCriterion.querySelector(
-            '[data-autotest="criterion-transaction-session-status-group-value"]',
-        )?.getAttribute('data-pne-tone')).toBe('neutral')
+        expect(
+            firstCriterion
+                .querySelector('[data-autotest="criterion-transaction-session-status-group-value"]')
+                ?.getAttribute('data-pne-tone'),
+        ).toBe('neutral')
         expect(getValues(firstCriterion)).toEqual(['AUTHORIZED'])
         expect(getValues(secondCriterion)).toEqual(['DECLINED', 'SYSTEM_ERROR'])
 
@@ -248,10 +251,12 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
         expect(firstPanel.id).not.toBe(secondPanel.id)
         expect(firstPanel.getAttribute('aria-label')).toBeNull()
         expect(secondPanel.getAttribute('aria-label')).toBeNull()
-        expect(document.getElementById(firstPanel.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('react.searchUI.addSessionStatusTitle')
-        expect(document.getElementById(secondPanel.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('react.searchUI.addSessionStatusTitle')
+        expect(document.getElementById(firstPanel.getAttribute('aria-labelledby')!)?.textContent).toBe(
+            'react.searchUI.addSessionStatusTitle',
+        )
+        expect(document.getElementById(secondPanel.getAttribute('aria-labelledby')!)?.textContent).toBe(
+            'react.searchUI.addSessionStatusTitle',
+        )
         expect(firstPanel.getAttribute('aria-modal')).toBe('true')
         expect(firstPanel.getAttribute('aria-busy')).toBe('false')
         expect(secondPanel.getAttribute('aria-busy')).toBe('false')
@@ -261,9 +266,7 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
         const firstGroupControl = getGroupControl(firstPanel)
         const secondGroupControl = getGroupControl(secondPanel)
 
-        expect(firstGroupControl.getAttribute('aria-label')).toBe(
-            'Transaction session status group',
-        )
+        expect(firstGroupControl.getAttribute('aria-label')).toBe('Transaction session status group')
         expect(firstGroupControl.getAttribute('data-autotest-value')).toBe('APPROVED')
         expect(secondGroupControl.getAttribute('data-autotest-value')).toBe('ERROR')
         expect(firstGroupControl.getAttribute('aria-busy')).toBe('false')
@@ -287,11 +290,14 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
             expect(control.getAttribute('aria-expanded')).toBe('true')
             expect(control.getAttribute('aria-controls')).toBe(listbox.id)
             expect(panel.contains(listbox)).toBe(false)
-            expect(Array.from(listbox.querySelectorAll<HTMLElement>(
-                '[role="option"][data-autotest="criterion-transaction-session-status-group-option"]',
-            ), option => option.getAttribute('data-autotest-value'))).toEqual(
-                transactionSessionGroups,
-            )
+            expect(
+                Array.from(
+                    listbox.querySelectorAll<HTMLElement>(
+                        '[role="option"][data-autotest="criterion-transaction-session-status-group-option"]',
+                    ),
+                    option => option.getAttribute('data-autotest-value'),
+                ),
+            ).toEqual(transactionSessionGroups)
 
             for (const group of transactionSessionGroups) {
                 expect(getGroupOption(listbox, group)?.getAttribute('aria-selected')).toBe(
@@ -311,9 +317,11 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
 
         await waitFor(() => {
             expect(getStatusOption(firstPanel, 'CHARGED')?.checked).toBe(true)
-            expect(firstOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionSessionStatuses: 'AUTHORIZED,CHARGED',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionSessionStatuses: 'AUTHORIZED,CHARGED',
+                }),
+            )
         })
         expect(getStatusOption(secondPanel, 'DECLINED')?.checked).toBe(true)
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()
@@ -325,14 +333,18 @@ describe('SearchUI transaction-session-status Selenium contract', () => {
             expect(firstGroupControl.getAttribute('data-autotest-value')).toBe('PROCESSING')
             expect(firstTrigger.getAttribute('data-autotest-value')).toBe('PROCESSING')
             expect(getStatusOption(firstPanel, 'PROCESSING')?.checked).toBe(true)
-            expect(firstOnFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionSessionStatuses: 'PROCESSING',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionSessionStatuses: 'PROCESSING',
+                }),
+            )
         })
-        expect(firstCriterion.querySelector(
-            '[data-autotest="criterion-transaction-session-status-group-value"]'
-            + '[data-autotest-value="PROCESSING"]',
-        )).not.toBeNull()
+        expect(
+            firstCriterion.querySelector(
+                '[data-autotest="criterion-transaction-session-status-group-value"]' +
+                    '[data-autotest-value="PROCESSING"]',
+            ),
+        ).not.toBeNull()
         expect(getValues(firstCriterion)).toEqual(['PROCESSING'])
         expect(secondGroupControl.getAttribute('data-autotest-value')).toBe('ERROR')
         expect(getValues(secondCriterion)).toEqual(['DECLINED', 'SYSTEM_ERROR'])

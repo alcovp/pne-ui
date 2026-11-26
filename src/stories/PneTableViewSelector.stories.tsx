@@ -2,10 +2,7 @@ import React, {ReactNode, useState} from 'react'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import {Box, IconButton, Tooltip} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {
-    PneTableViewOption,
-    PneTableViewSelector,
-} from '../index'
+import {PneTableViewOption, PneTableViewSelector} from '../index'
 
 type ViewId = 'brief' | 'detailed' | 'full' | 'risk'
 
@@ -29,80 +26,90 @@ const StorySelector = (props: {
 }) => {
     const [value, setValue] = useState<ViewId>(props.initialValue ?? props.views[0].id)
 
-    return <Box sx={{p: 2}}>
-        <PneTableViewSelector
-            aria-label='Table view'
-            actions={props.actions}
-            autoTestId='storybook-table'
-            disabled={props.disabled}
-            onChange={setValue}
-            value={value}
-            views={props.views}
-        />
-    </Box>
+    return (
+        <Box sx={{p: 2}}>
+            <PneTableViewSelector
+                aria-label='Table view'
+                actions={props.actions}
+                autoTestId='storybook-table'
+                disabled={props.disabled}
+                onChange={setValue}
+                value={value}
+                views={props.views}
+            />
+        </Box>
+    )
 }
 
-const settingsAction = <Tooltip
-    enterDelay={300}
-    enterNextDelay={300}
-    title='Full View Settings'
->
-    <IconButton
-        aria-label='Full View Settings'
-        size='small'
-        sx={{borderRadius: '4px', height: '32px', padding: '8px', width: '32px'}}
-    >
-        <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
-    </IconButton>
-</Tooltip>
+const settingsAction = (
+    <Tooltip enterDelay={300} enterNextDelay={300} title='Full View Settings'>
+        <IconButton
+            aria-label='Full View Settings'
+            size='small'
+            sx={{borderRadius: '4px', height: '32px', padding: '8px', width: '32px'}}
+        >
+            <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}} />
+        </IconButton>
+    </Tooltip>
+)
 
 export const OrdersStyle: Story = {
-    render: () => <StorySelector
-        actions={settingsAction}
-        views={[
-            {id: 'brief', label: 'Brief'},
-            {id: 'full', label: 'Full'},
-        ]}
-    />,
+    render: () => (
+        <StorySelector
+            actions={settingsAction}
+            views={[
+                {id: 'brief', label: 'Brief'},
+                {id: 'full', label: 'Full'},
+            ]}
+        />
+    ),
 }
 
 export const ThreeGenericViews: Story = {
-    render: () => <StorySelector
-        views={[
-            {id: 'brief', label: 'Summary'},
-            {id: 'full', label: 'Operations'},
-            {id: 'risk', label: 'Risk'},
-        ]}
-    />,
+    render: () => (
+        <StorySelector
+            views={[
+                {id: 'brief', label: 'Summary'},
+                {id: 'full', label: 'Operations'},
+                {id: 'risk', label: 'Risk'},
+            ]}
+        />
+    ),
 }
 
 export const DetailedKpiCount: Story = {
-    render: () => <StorySelector
-        views={[
-            {id: 'brief', label: 'Brief'},
-            {id: 'full', label: 'Full'},
-            {id: 'detailed', label: 'Detailed (5)'},
-        ]}
-    />,
+    render: () => (
+        <StorySelector
+            views={[
+                {id: 'brief', label: 'Brief'},
+                {id: 'full', label: 'Full'},
+                {id: 'detailed', label: 'Detailed (5)'},
+            ]}
+        />
+    ),
 }
 
 export const DisabledStates: Story = {
-    render: () => <StorySelector
-        views={[
-            {id: 'brief', label: 'Brief'},
-            {id: 'full', label: 'Full'},
-            {id: 'risk', label: 'Risk', disabled: true},
-        ]}
-    />,
+    render: () => (
+        <StorySelector
+            views={[
+                {id: 'brief', label: 'Brief'},
+                {id: 'full', label: 'Full'},
+                {id: 'risk', label: 'Risk', disabled: true},
+            ]}
+        />
+    ),
 }
 
 export const DisabledSelector: Story = {
-    render: () => <StorySelector
-        actions={settingsAction}
-        disabled
-        views={[
-            {id: 'brief', label: 'Brief'},
-            {id: 'full', label: 'Full'},
-        ]}
-    />,
+    render: () => (
+        <StorySelector
+            actions={settingsAction}
+            disabled
+            views={[
+                {id: 'brief', label: 'Brief'},
+                {id: 'full', label: 'Full'},
+            ]}
+        />
+    ),
 }

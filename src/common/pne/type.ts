@@ -1,4 +1,4 @@
-import type {Draft} from 'immer';
+import type {Draft} from 'immer'
 
 export const exhaustiveCheck = (value: never | never[]) => {
     return value
@@ -13,37 +13,25 @@ export const ensure = <T>(argument: T | undefined | null, message = 'This value 
 }
 
 export const isObject = (value: unknown): value is object => {
-    return typeof value === 'object' && value !== null;
+    return typeof value === 'object' && value !== null
 }
 
 export function assertObject(value: unknown): asserts value is object {
     if (typeof value !== 'object' || value === null) {
-        throw new Error('Not an object: ' + value);
+        throw new Error('Not an object: ' + value)
     }
 }
 
 export type Order = 'asc' | 'desc'
 
 export type ZustandStoreSet<STORE> = {
-    (
-        partial: STORE | Partial<STORE> | ((state: STORE) => STORE | Partial<STORE>),
-        replace?: false,
-    ): void
+    (partial: STORE | Partial<STORE> | ((state: STORE) => STORE | Partial<STORE>), replace?: false): void
     (state: STORE | ((state: STORE) => STORE), replace: true): void
 }
 
 export type ZustandStoreImmerSet<STORE> = {
-    (
-        nextStateOrUpdater:
-            | STORE
-            | Partial<STORE>
-            | ((state: Draft<STORE>) => void),
-        shouldReplace?: false,
-    ): void
-    (
-        nextStateOrUpdater: STORE | ((state: Draft<STORE>) => void),
-        shouldReplace: true,
-    ): void
+    (nextStateOrUpdater: STORE | Partial<STORE> | ((state: Draft<STORE>) => void), shouldReplace?: false): void
+    (nextStateOrUpdater: STORE | ((state: Draft<STORE>) => void), shouldReplace: true): void
 }
 
 export type ZustandStoreGet<STORE> = () => Readonly<STORE>

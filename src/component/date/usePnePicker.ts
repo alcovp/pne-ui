@@ -48,7 +48,7 @@ type PickerDefaults = {
 }
 
 const asObject = (value: unknown): SlotObject | undefined =>
-    typeof value === 'object' && value !== null ? value as SlotObject : undefined
+    typeof value === 'object' && value !== null ? (value as SlotObject) : undefined
 
 const mergeSlotObjects = (ours: SlotObject, theirs: SlotObject | undefined): SlotObject => {
     if (!theirs) {
@@ -61,9 +61,8 @@ const mergeSlotObjects = (ours: SlotObject, theirs: SlotObject | undefined): Slo
             continue
         }
 
-        merged[key] = key === 'sx' && ours.sx !== undefined
-            ? [ours.sx, ...(Array.isArray(value) ? value : [value])]
-            : value
+        merged[key] =
+            key === 'sx' && ours.sx !== undefined ? [ours.sx, ...(Array.isArray(value) ? value : [value])] : value
     }
 
     return merged
@@ -110,16 +109,7 @@ export const usePnePicker = <Props extends MuiPickerProps>(
     props: Props & PnePickerFieldProps & {onError?: unknown},
     defaults: PickerDefaults,
 ): Props => {
-    const {
-        'data-pne-state': pinnedState,
-        error,
-        fullWidth,
-        helperText,
-        id,
-        required,
-        size,
-        ...rest
-    } = props
+    const {'data-pne-state': pinnedState, error, fullWidth, helperText, id, required, size, ...rest} = props
     const picker = rest as unknown as MuiPickerProps & {onError?: (reason: unknown, value: unknown) => void}
 
     // A disabled PneField disables the whole picker, the button of the calendar included; the field
@@ -153,10 +143,10 @@ export const usePnePicker = <Props extends MuiPickerProps>(
     return {
         ...(defaults.time
             ? {
-                ampm: false,
-                timeSteps: {minutes: 1, seconds: 1},
-                views: /s/.test(format) ? [...defaults.time.views, 'seconds'] : undefined,
-            }
+                  ampm: false,
+                  timeSteps: {minutes: 1, seconds: 1},
+                  views: /s/.test(format) ? [...defaults.time.views, 'seconds'] : undefined,
+              }
             : undefined),
         ...picker,
         disabled: field?.disabled === true ? true : picker.disabled,

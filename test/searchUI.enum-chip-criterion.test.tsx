@@ -1,10 +1,7 @@
 import * as React from 'react'
 import {fireEvent, render, waitFor} from '@testing-library/react'
 
-import {
-    CriterionTypeEnum,
-    SearchUIFilters,
-} from '../src'
+import {CriterionTypeEnum, SearchUIFilters} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -40,14 +37,10 @@ const criterionMatrix = [
 
 const criterionTypes = criterionMatrix.map(({type}) => type)
 
-const getCriterion = (
-    container: HTMLElement,
-    scope: string,
-    criterionType: CriterionTypeEnum,
-): HTMLElement => {
+const getCriterion = (container: HTMLElement, scope: string, criterionType: CriterionTypeEnum): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"][data-autotest-value="${criterionType}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"][data-autotest-value="${criterionType}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -66,16 +59,16 @@ describe('SearchUI enum-chip criterion Selenium contract', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="enum-chips-first"
-                    settingsContextName="enum-chips-first-context"
+                    autoTestId='enum-chips-first'
+                    settingsContextName='enum-chips-first-context'
                     possibleCriteria={criterionTypes}
                     predefinedCriteria={criterionTypes}
                     onFiltersUpdate={firstOnFiltersUpdate}
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="enum-chips-second"
-                    settingsContextName="enum-chips-second-context"
+                    autoTestId='enum-chips-second'
+                    settingsContextName='enum-chips-second-context'
                     possibleCriteria={criterionTypes}
                     predefinedCriteria={criterionTypes}
                     onFiltersUpdate={secondOnFiltersUpdate}
@@ -93,12 +86,10 @@ describe('SearchUI enum-chip criterion Selenium contract', () => {
             for (const {type, values, initialValue} of criterionMatrix) {
                 const criterion = getCriterion(container, scope, type)
                 const group = criterion.querySelector<HTMLElement>('[role="group"]')
-                const options = Array.from(criterion.querySelectorAll<HTMLElement>(
-                    '[role="button"][data-autotest="criterion-option"]',
-                ))
-                const pressedOptions = options.filter(option => (
-                    option.getAttribute('aria-pressed') === 'true'
-                ))
+                const options = Array.from(
+                    criterion.querySelectorAll<HTMLElement>('[role="button"][data-autotest="criterion-option"]'),
+                )
+                const pressedOptions = options.filter(option => option.getAttribute('aria-pressed') === 'true')
 
                 expect(group?.getAttribute('aria-label')).toBe(`react.CriterionTypeEnum.${type}`)
                 expect(options.map(option => option.getAttribute('data-autotest-value'))).toEqual(values)
@@ -114,8 +105,7 @@ describe('SearchUI enum-chip criterion Selenium contract', () => {
         for (const {type, initialValue, nextValue} of criterionMatrix) {
             const firstCriterion = getCriterion(container, 'enum-chips-first', type)
             const nextOption = firstCriterion.querySelector<HTMLElement>(
-                `[role="button"][data-autotest="criterion-option"]`
-                + `[data-autotest-value="${nextValue}"]`,
+                `[role="button"][data-autotest="criterion-option"]` + `[data-autotest-value="${nextValue}"]`,
             )
 
             fireEvent.click(nextOption as HTMLElement)
@@ -123,20 +113,26 @@ describe('SearchUI enum-chip criterion Selenium contract', () => {
             await waitFor(() => {
                 expect(nextOption?.getAttribute('aria-pressed')).toBe('true')
             })
-            expect(firstCriterion.querySelector(
-                `[data-autotest="criterion-option"][data-autotest-value="${initialValue}"]`,
-            )?.getAttribute('aria-pressed')).toBe('false')
-            expect(getCriterion(container, 'enum-chips-second', type).querySelector(
-                `[data-autotest="criterion-option"][data-autotest-value="${initialValue}"]`,
-            )?.getAttribute('aria-pressed')).toBe('true')
+            expect(
+                firstCriterion
+                    .querySelector(`[data-autotest="criterion-option"][data-autotest-value="${initialValue}"]`)
+                    ?.getAttribute('aria-pressed'),
+            ).toBe('false')
+            expect(
+                getCriterion(container, 'enum-chips-second', type)
+                    .querySelector(`[data-autotest="criterion-option"][data-autotest-value="${initialValue}"]`)
+                    ?.getAttribute('aria-pressed'),
+            ).toBe('true')
         }
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                status: 'E',
-                threeD: true,
-                markerStatus: 'processed',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    status: 'E',
+                    threeD: true,
+                    markerStatus: 'processed',
+                }),
+            )
         })
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()
     })

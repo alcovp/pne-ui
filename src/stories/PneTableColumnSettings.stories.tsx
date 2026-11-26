@@ -49,9 +49,7 @@ const fullColumns: readonly ItemColumn[] = [
     {id: 'updated', label: 'Updated', render: item => item.updated, defaultVisible: false},
 ]
 
-const briefColumns: readonly ItemColumn[] = fullColumns.filter(column => (
-    ['id', 'name', 'status'].includes(column.id)
-))
+const briefColumns: readonly ItemColumn[] = fullColumns.filter(column => ['id', 'name', 'status'].includes(column.id))
 
 /** Stands in for the consumer's storage adapter: any async setter works. */
 const useFakeStorage = (delay = 400, fail = false) => {
@@ -66,24 +64,27 @@ const useFakeStorage = (delay = 400, fail = false) => {
     return {value, save}
 }
 
-const ItemsTable = (props: {
-    columns: readonly ItemColumn[]
-    toolbar: React.ReactNode
-}) => <PneTable<Item>
-    autoTestId='items'
-    data={items}
-    toolbar={props.toolbar}
-    createTableHeader={() => <PneTableRow>
-        {props.columns.map(column => <PneHeaderTableCell key={column.id}>
-            {column.label}
-        </PneHeaderTableCell>)}
-    </PneTableRow>}
-    createRow={item => <PneTableRow key={item.id}>
-        {props.columns.map(column => <PneTableCell key={column.id}>
-            {column.render(item)}
-        </PneTableCell>)}
-    </PneTableRow>}
-/>
+const ItemsTable = (props: {columns: readonly ItemColumn[]; toolbar: React.ReactNode}) => (
+    <PneTable<Item>
+        autoTestId='items'
+        data={items}
+        toolbar={props.toolbar}
+        createTableHeader={() => (
+            <PneTableRow>
+                {props.columns.map(column => (
+                    <PneHeaderTableCell key={column.id}>{column.label}</PneHeaderTableCell>
+                ))}
+            </PneTableRow>
+        )}
+        createRow={item => (
+            <PneTableRow key={item.id}>
+                {props.columns.map(column => (
+                    <PneTableCell key={column.id}>{column.render(item)}</PneTableCell>
+                ))}
+            </PneTableRow>
+        )}
+    />
+)
 
 const SingleViewStory = (props: {failSave?: boolean}) => {
     const storage = useFakeStorage(400, props.failSave)
@@ -93,23 +94,30 @@ const SingleViewStory = (props: {failSave?: boolean}) => {
         value: storage.value,
     })
 
-    return <Box sx={{background: '#FFFFFF', p: 2}}>
-        <ItemsTable
-            columns={settings.visibleColumns}
-            toolbar={<PneTableToolbar
-                aria-label='Items table controls'
-                persistent={<PneTableColumnSettingsAction
-                    autoTestId='items'
-                    onClick={settings.openDialog}
-                    variant='button'
-                />}
-            />}
-        />
-        <PneTableColumnSettingsDialog {...settings.dialogProps} autoTestId='items'/>
-        <Typography color='textSecondary' sx={{mt: 2}} variant='body2'>
-            {'Stored value: '}{JSON.stringify(storage.value ?? null)}
-        </Typography>
-    </Box>
+    return (
+        <Box sx={{background: '#FFFFFF', p: 2}}>
+            <ItemsTable
+                columns={settings.visibleColumns}
+                toolbar={
+                    <PneTableToolbar
+                        aria-label='Items table controls'
+                        persistent={
+                            <PneTableColumnSettingsAction
+                                autoTestId='items'
+                                onClick={settings.openDialog}
+                                variant='button'
+                            />
+                        }
+                    />
+                }
+            />
+            <PneTableColumnSettingsDialog {...settings.dialogProps} autoTestId='items' />
+            <Typography color='textSecondary' sx={{mt: 2}} variant='body2'>
+                {'Stored value: '}
+                {JSON.stringify(storage.value ?? null)}
+            </Typography>
+        </Box>
+    )
 }
 
 type ViewId = 'brief' | 'full'
@@ -129,29 +137,37 @@ const PerViewStory = () => {
         value: fullStorage.value,
     })
     const active = viewId === 'brief' ? briefSettings : fullSettings
-    const views = useMemo(() => [
-        {id: 'brief' as const, label: 'Brief'},
-        {id: 'full' as const, label: 'Full'},
-    ], [])
+    const views = useMemo(
+        () => [
+            {id: 'brief' as const, label: 'Brief'},
+            {id: 'full' as const, label: 'Full'},
+        ],
+        [],
+    )
 
-    return <Box sx={{background: '#FFFFFF', p: 2}}>
-        <ItemsTable
-            columns={active.visibleColumns}
-            toolbar={<PneTableViewSelector<ViewId>
-                aria-label='Items view'
-                actions={<PneTableColumnSettingsAction
-                    autoTestId={viewId}
-                    onClick={active.openDialog}
-                />}
-                autoTestId='items'
-                onChange={setViewId}
-                value={viewId}
-                views={views}
-            />}
-        />
-        <PneTableColumnSettingsDialog {...briefSettings.dialogProps} autoTestId='brief' title='Brief view columns'/>
-        <PneTableColumnSettingsDialog {...fullSettings.dialogProps} autoTestId='full' title='Full view columns'/>
-    </Box>
+    return (
+        <Box sx={{background: '#FFFFFF', p: 2}}>
+            <ItemsTable
+                columns={active.visibleColumns}
+                toolbar={
+                    <PneTableViewSelector<ViewId>
+                        aria-label='Items view'
+                        actions={<PneTableColumnSettingsAction autoTestId={viewId} onClick={active.openDialog} />}
+                        autoTestId='items'
+                        onChange={setViewId}
+                        value={viewId}
+                        views={views}
+                    />
+                }
+            />
+            <PneTableColumnSettingsDialog
+                {...briefSettings.dialogProps}
+                autoTestId='brief'
+                title='Brief view columns'
+            />
+            <PneTableColumnSettingsDialog {...fullSettings.dialogProps} autoTestId='full' title='Full view columns' />
+        </Box>
+    )
 }
 
 const meta = {
@@ -167,13 +183,13 @@ export default meta
 type Story = StoryObj<Record<string, never>>
 
 export const SingleView: Story = {
-    render: () => <SingleViewStory/>,
+    render: () => <SingleViewStory />,
 }
 
 export const PerView: Story = {
-    render: () => <PerViewStory/>,
+    render: () => <PerViewStory />,
 }
 
 export const SaveFailure: Story = {
-    render: () => <SingleViewStory failSave/>,
+    render: () => <SingleViewStory failSave />,
 }

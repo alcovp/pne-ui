@@ -23,8 +23,7 @@ const rowRule = (row: HTMLElement, selectorEnd: string): CSSStyleDeclaration | u
     return Array.from(document.styleSheets)
         .flatMap(sheet => Array.from(sheet.cssRules))
         .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
-        .find(rule => rule.selectorText === `.${rowClass} ${selectorEnd}`)
-        ?.style
+        .find(rule => rule.selectorText === `.${rowClass} ${selectorEnd}`)?.style
 }
 
 const renderPanel = async () => {
@@ -46,9 +45,10 @@ const renderPanel = async () => {
         />,
     )
     await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalled())
-    const criterion = (type: CriterionTypeEnum) => utils.container.querySelector<HTMLElement>(
-        `[data-autotest="criterion"][data-autotest-value="${type}"]`,
-    ) as HTMLElement
+    const criterion = (type: CriterionTypeEnum) =>
+        utils.container.querySelector<HTMLElement>(
+            `[data-autotest="criterion"][data-autotest-value="${type}"]`,
+        ) as HTMLElement
 
     return {...utils, criterion}
 }
@@ -81,7 +81,9 @@ describe('SearchUI filter values look', () => {
         expect(value?.getPropertyValue('line-height')).toBe('20px')
 
         expect(rowRule(row, `${chip}.MuiChip-deletable .MuiChip-label`)?.getPropertyValue('padding-right')).toBe('4px')
-        expect(rowRule(row, `${chip}.MuiChip-deletable .MuiChip-deleteIcon`)?.getPropertyValue('margin-right')).toBe('4px')
+        expect(rowRule(row, `${chip}.MuiChip-deletable .MuiChip-deleteIcon`)?.getPropertyValue('margin-right')).toBe(
+            '4px',
+        )
 
         const badge = `${chip}:not(.MuiChip-deletable):not(.MuiChip-clickable)`
         expect(rowRule(row, badge)?.getPropertyValue('box-shadow')).toMatch(/^inset 0 0 0 1px /)

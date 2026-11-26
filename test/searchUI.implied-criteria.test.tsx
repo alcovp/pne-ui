@@ -36,26 +36,30 @@ const project = selection(LinkedEntityTypeEnum.PROJECT, '3', 'Project 3')
 
 const renderFilters = (props: Partial<SearchUIFiltersProps> = {}) => {
     const onFiltersUpdate = jest.fn()
-    render(<SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([])}}>
-        <SearchUIFilters
-            autoTestId="implied"
-            settingsContextName={CONTEXT_NAME}
-            possibleCriteria={[CriterionTypeEnum.PROJECT]}
-            predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
-            initialSearchConditions={{multigetCriteria: [merchant, project]}}
-            onFiltersUpdate={onFiltersUpdate}
-            config={{hideShowFiltersButton: true}}
-            {...props}
-        />
-    </SearchUIProvider>)
+    render(
+        <SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([])}}>
+            <SearchUIFilters
+                autoTestId='implied'
+                settingsContextName={CONTEXT_NAME}
+                possibleCriteria={[CriterionTypeEnum.PROJECT]}
+                predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                initialSearchConditions={{multigetCriteria: [merchant, project]}}
+                onFiltersUpdate={onFiltersUpdate}
+                config={{hideShowFiltersButton: true}}
+                {...props}
+            />
+        </SearchUIProvider>,
+    )
     return onFiltersUpdate
 }
 
-const criterion = (type: CriterionTypeEnum) => document.body.querySelector<HTMLElement>(
-    `[data-autotest="criterion"][data-autotest-value="${type}"]`,
-)
-const sentSelections = (onFiltersUpdate: jest.Mock) => (onFiltersUpdate.mock.calls.at(-1)?.[0].multigetCriteria ?? [])
-    .map((item: MultigetCriterion) => [item.entityType, item.selectedItems])
+const criterion = (type: CriterionTypeEnum) =>
+    document.body.querySelector<HTMLElement>(`[data-autotest="criterion"][data-autotest-value="${type}"]`)
+const sentSelections = (onFiltersUpdate: jest.Mock) =>
+    (onFiltersUpdate.mock.calls.at(-1)?.[0].multigetCriteria ?? []).map((item: MultigetCriterion) => [
+        item.entityType,
+        item.selectedItems,
+    ])
 
 describe('SearchUI criteria implied by the initial selections', () => {
     let consoleError: jest.SpyInstance
@@ -137,10 +141,12 @@ describe('SearchUI criteria implied by the initial selections', () => {
         })
         fireEvent.click(defaultItem)
 
-        await waitFor(() => expect(sentSelections(onFiltersUpdate)).toEqual([
-            [LinkedEntityTypeEnum.MERCHANT, '7'],
-            [LinkedEntityTypeEnum.PROJECT, '3'],
-        ]))
+        await waitFor(() =>
+            expect(sentSelections(onFiltersUpdate)).toEqual([
+                [LinkedEntityTypeEnum.MERCHANT, '7'],
+                [LinkedEntityTypeEnum.PROJECT, '3'],
+            ]),
+        )
         expect(criterion(CriterionTypeEnum.PROJECT)?.textContent).toContain('Project 3')
     })
 })

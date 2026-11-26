@@ -23,7 +23,7 @@ export type PneSwitchPalette = {
     on: PneSwitchValueColors
     off: PneSwitchValueColors
     /** The spinner inside the knob while a change is pending. */
-    spinner: {on: string, off: string}
+    spinner: {on: string; off: string}
 }
 
 const TRANSPARENT = 'transparent'

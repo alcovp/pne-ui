@@ -75,7 +75,9 @@ export default function useImmediateTouchSensor(api: SensorAPI): void {
             const actions = api.tryGetLock(id, forceStop, {sourceEvent: event})
             if (!actions) return
             gesture = {
-                phase: 'pending', actions, handle,
+                phase: 'pending',
+                actions,
+                handle,
                 pointerId: event.pointerId,
                 origin: {x: event.clientX, y: event.clientY},
             }
@@ -95,7 +97,11 @@ export default function useImmediateTouchSensor(api: SensorAPI): void {
             }
             const point = {x: event.clientX, y: event.clientY}
             if (current.phase === 'pending') {
-                if (Math.max(Math.abs(point.x - current.origin.x), Math.abs(point.y - current.origin.y)) < movementThreshold) return
+                if (
+                    Math.max(Math.abs(point.x - current.origin.x), Math.abs(point.y - current.origin.y)) <
+                    movementThreshold
+                )
+                    return
                 const actions = current.actions.fluidLift(current.origin)
                 if (!actions.isActive()) {
                     forceStop()
@@ -142,8 +148,12 @@ export default function useImmediateTouchSensor(api: SensorAPI): void {
         const onTouchMove = (event: TouchEvent) => {
             // Pointer events move the item, while native touch gestures must also be
             // consumed. Otherwise Chrome can swallow the first tap after a drag.
-            if (gesture && gesture.phase !== 'pending'
-                && event.target instanceof Node && gesture.handle.contains(event.target)) {
+            if (
+                gesture &&
+                gesture.phase !== 'pending' &&
+                event.target instanceof Node &&
+                gesture.handle.contains(event.target)
+            ) {
                 event.preventDefault()
             }
         }

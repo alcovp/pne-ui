@@ -39,7 +39,10 @@ const HIT_PADDING = 11
 const LABEL_LINE = 20
 const LABEL_GAP = 8
 
-export const PneLabeledCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneLabeledCheckboxProps> & {ref?: React.Ref<HTMLSpanElement>}) => {
+export const PneLabeledCheckbox = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneLabeledCheckboxProps> & {ref?: React.Ref<HTMLSpanElement>}) => {
     const {
         'aria-describedby': ariaDescribedBy,
         'aria-invalid': ariaInvalid,
@@ -59,9 +62,7 @@ export const PneLabeledCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneLab
     } = props
     const generatedId = useId()
     const hasHelperText = helperText !== undefined && helperText !== null
-    const helperTextId = hasHelperText
-        ? helperTextProps?.id ?? `${generatedId}-helper-text`
-        : undefined
+    const helperTextId = hasHelperText ? (helperTextProps?.id ?? `${generatedId}-helper-text`) : undefined
     const size = rest.size ?? 'small'
     const isCard = variant === 'card'
     // The card is tinted by the value, which an uncontrolled checkbox keeps to itself.
@@ -92,10 +93,12 @@ export const PneLabeledCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneLab
             error={error}
             {...formControlProps}
             onClick={handleContainerClick}
-            sx={[
-                labeledCheckboxSx(size, isCard),
-                ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
-            ] as SxProps<Theme>}
+            sx={
+                [
+                    labeledCheckboxSx(size, isCard),
+                    ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
+                ] as SxProps<Theme>
+            }
         >
             <FormGroup {...formGroupProps}>
                 <FormControlLabel
@@ -115,7 +118,9 @@ export const PneLabeledCheckbox = ({ref, ...props}: React.PropsWithoutRef<PneLab
                 />
             </FormGroup>
             {hasHelperText && (
-                <FormHelperText {...helperTextProps} id={helperTextId}>{helperText}</FormHelperText>
+                <FormHelperText {...helperTextProps} id={helperTextId}>
+                    {helperText}
+                </FormHelperText>
             )}
         </FormControl>
     )
@@ -128,67 +133,74 @@ PneLabeledCheckbox.displayName = 'PneLabeledCheckbox'
  * 12/16 stands under the label. The box keeps its hit area in the plain layout; in the card the
  * whole card is the target, so the box loses it and the card takes 6px of padding.
  */
-const labeledCheckboxSx = (size: PneCheckboxSize, isCard: boolean): SxProps<Theme> => theme => {
-    const {card, text} = resolvePneSemanticPalette(theme).checkbox
-    const box = BOX_SIZE[size]
-    const hitArea = box + 2 * HIT_PADDING
-    // The label line is centred on the box: by padding around the label, or around the box when it is the smaller.
-    const labelInset = isCard ? Math.max(0, (box - LABEL_LINE) / 2) : (hitArea - LABEL_LINE) / 2
-    const boxInset = isCard ? Math.max(0, (LABEL_LINE - box) / 2) : 0
+const labeledCheckboxSx =
+    (size: PneCheckboxSize, isCard: boolean): SxProps<Theme> =>
+    theme => {
+        const {card, text} = resolvePneSemanticPalette(theme).checkbox
+        const box = BOX_SIZE[size]
+        const hitArea = box + 2 * HIT_PADDING
+        // The label line is centred on the box: by padding around the label, or around the box when it is the smaller.
+        const labelInset = isCard ? Math.max(0, (box - LABEL_LINE) / 2) : (hitArea - LABEL_LINE) / 2
+        const boxInset = isCard ? Math.max(0, (LABEL_LINE - box) / 2) : 0
 
-    return {
-        ...(isCard ? {
-            backgroundColor: card.fill,
-            borderRadius: '8px',
-            boxSizing: 'border-box',
-            cursor: 'pointer',
-            padding: '6px',
-            transition: 'background-color 120ms linear, box-shadow 120ms linear',
-            '&:hover, &[data-pne-state="hover"]': {boxShadow: `inset 0 0 0 1px ${card.ringHover}`},
-            '&[data-pne-checked]': {backgroundColor: card.fillOn, boxShadow: `inset 0 0 0 1px ${card.ringOn}`},
-            '&[data-pne-readonly]': {boxShadow: 'none', cursor: 'default'},
-            '&[data-pne-disabled]': {backgroundColor: card.fill, boxShadow: 'none', cursor: 'default'},
-            '&[data-pne-error]': {boxShadow: `inset 0 0 0 1px ${card.ringError}`},
-            '& .MuiFormControlLabel-root': {
-                alignItems: 'flex-start',
-                gap: `${LABEL_GAP}px`,
-                marginLeft: 0,
-                marginRight: 0,
+        return {
+            ...(isCard
+                ? {
+                      backgroundColor: card.fill,
+                      borderRadius: '8px',
+                      boxSizing: 'border-box',
+                      cursor: 'pointer',
+                      padding: '6px',
+                      transition: 'background-color 120ms linear, box-shadow 120ms linear',
+                      '&:hover, &[data-pne-state="hover"]': {boxShadow: `inset 0 0 0 1px ${card.ringHover}`},
+                      '&[data-pne-checked]': {
+                          backgroundColor: card.fillOn,
+                          boxShadow: `inset 0 0 0 1px ${card.ringOn}`,
+                      },
+                      '&[data-pne-readonly]': {boxShadow: 'none', cursor: 'default'},
+                      '&[data-pne-disabled]': {backgroundColor: card.fill, boxShadow: 'none', cursor: 'default'},
+                      '&[data-pne-error]': {boxShadow: `inset 0 0 0 1px ${card.ringError}`},
+                      '& .MuiFormControlLabel-root': {
+                          alignItems: 'flex-start',
+                          gap: `${LABEL_GAP}px`,
+                          marginLeft: 0,
+                          marginRight: 0,
+                      },
+                      '& .MuiCheckbox-root': {
+                          marginTop: `${boxInset}px`,
+                          padding: 0,
+                      },
+                  }
+                : {
+                      '& .MuiFormControlLabel-root': {
+                          alignItems: 'flex-start',
+                      },
+                  }),
+            '& .MuiFormControlLabel-label': {
+                color: text.label,
+                fontSize: '14px',
+                lineHeight: `${LABEL_LINE}px`,
+                // The hit area leaves 11px after the box; the label stands 8px from it.
+                marginLeft: isCard ? 0 : `${LABEL_GAP - HIT_PADDING}px`,
+                paddingBottom: `${labelInset}px`,
+                paddingTop: `${labelInset}px`,
             },
-            '& .MuiCheckbox-root': {
-                marginTop: `${boxInset}px`,
-                padding: 0,
+            '& .MuiFormControlLabel-label.Mui-disabled': {
+                color: text.disabled,
             },
-        } : {
-            '& .MuiFormControlLabel-root': {
-                alignItems: 'flex-start',
+            '& > .MuiFormHelperText-root': {
+                color: text.helper,
+                fontSize: '12px',
+                lineHeight: '16px',
+                margin: 0,
+                marginLeft: `${box + LABEL_GAP}px`,
+                marginTop: isCard ? 0 : `${-labelInset}px`,
             },
-        }),
-        '& .MuiFormControlLabel-label': {
-            color: text.label,
-            fontSize: '14px',
-            lineHeight: `${LABEL_LINE}px`,
-            // The hit area leaves 11px after the box; the label stands 8px from it.
-            marginLeft: isCard ? 0 : `${LABEL_GAP - HIT_PADDING}px`,
-            paddingBottom: `${labelInset}px`,
-            paddingTop: `${labelInset}px`,
-        },
-        '& .MuiFormControlLabel-label.Mui-disabled': {
-            color: text.disabled,
-        },
-        '& > .MuiFormHelperText-root': {
-            color: text.helper,
-            fontSize: '12px',
-            lineHeight: '16px',
-            margin: 0,
-            marginLeft: `${box + LABEL_GAP}px`,
-            marginTop: isCard ? 0 : `${-labelInset}px`,
-        },
-        '& > .MuiFormHelperText-root.Mui-error': {
-            color: text.error,
-        },
-        '& > .MuiFormHelperText-root.Mui-disabled': {
-            color: text.disabled,
-        },
+            '& > .MuiFormHelperText-root.Mui-error': {
+                color: text.error,
+            },
+            '& > .MuiFormHelperText-root.Mui-disabled': {
+                color: text.disabled,
+            },
+        }
     }
-}

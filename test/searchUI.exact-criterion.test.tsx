@@ -1,11 +1,7 @@
 import * as React from 'react'
 import {fireEvent, render, waitFor} from '@testing-library/react'
 
-import {
-    CriterionTypeEnum,
-    ExactCriterionSearchLabelEnum,
-    SearchUIFilters,
-} from '../src'
+import {CriterionTypeEnum, ExactCriterionSearchLabelEnum, SearchUIFilters} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -40,8 +36,8 @@ describe('SearchUI exact-search Selenium contract', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="exact-orders"
-                    settingsContextName="exact-orders-context"
+                    autoTestId='exact-orders'
+                    settingsContextName='exact-orders-context'
                     possibleCriteria={[CriterionTypeEnum.EXACT]}
                     predefinedCriteria={[CriterionTypeEnum.EXACT]}
                     exactSearchLabels={exactSearchLabels}
@@ -53,8 +49,8 @@ describe('SearchUI exact-search Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="exact-transactions"
-                    settingsContextName="exact-transactions-context"
+                    autoTestId='exact-transactions'
+                    settingsContextName='exact-transactions-context'
                     possibleCriteria={[CriterionTypeEnum.EXACT]}
                     predefinedCriteria={[CriterionTypeEnum.EXACT]}
                     exactSearchLabels={exactSearchLabels}
@@ -69,21 +65,23 @@ describe('SearchUI exact-search Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                exactSearchLabel: ExactCriterionSearchLabelEnum.NAME,
-                exactSearchValue: 'initial order',
-            }))
-            expect(transactionsOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                exactSearchLabel: ExactCriterionSearchLabelEnum.NAME,
-                exactSearchValue: 'initial transaction',
-            }))
+            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    exactSearchLabel: ExactCriterionSearchLabelEnum.NAME,
+                    exactSearchValue: 'initial order',
+                }),
+            )
+            expect(transactionsOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    exactSearchLabel: ExactCriterionSearchLabelEnum.NAME,
+                    exactSearchValue: 'initial transaction',
+                }),
+            )
         })
 
         const ordersCriterion = getExactCriterion(container, 'exact-orders')
         const transactionsCriterion = getExactCriterion(container, 'exact-transactions')
-        const ordersInput = ordersCriterion.querySelector<HTMLInputElement>(
-            'input[data-autotest="criterion-input"]',
-        )
+        const ordersInput = ordersCriterion.querySelector<HTMLInputElement>('input[data-autotest="criterion-input"]')
         const transactionsInput = transactionsCriterion.querySelector<HTMLInputElement>(
             'input[data-autotest="criterion-input"]',
         )
@@ -114,23 +112,25 @@ describe('SearchUI exact-search Selenium contract', () => {
         fireEvent.change(ordersInput as HTMLInputElement, {target: {value: 'updated order'}})
 
         await waitFor(() => {
-            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                exactSearchLabel: ExactCriterionSearchLabelEnum.NAME,
-                exactSearchValue: 'updated order',
-            }))
+            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    exactSearchLabel: ExactCriterionSearchLabelEnum.NAME,
+                    exactSearchValue: 'updated order',
+                }),
+            )
         })
         expect(transactionsInput?.value).toBe('initial transaction')
-        expect(transactionsOnFiltersUpdate).not.toHaveBeenCalledWith(expect.objectContaining({
-            exactSearchValue: 'updated order',
-        }))
+        expect(transactionsOnFiltersUpdate).not.toHaveBeenCalledWith(
+            expect.objectContaining({
+                exactSearchValue: 'updated order',
+            }),
+        )
 
         fireEvent.mouseDown(ordersLabel as HTMLElement)
         fireEvent.mouseDown(transactionsLabel as HTMLElement)
 
         await waitFor(() => {
-            expect(document.body.querySelectorAll(
-                '[data-autotest="criterion-label-options"]',
-            )).toHaveLength(2)
+            expect(document.body.querySelectorAll('[data-autotest="criterion-label-options"]')).toHaveLength(2)
         })
 
         for (const [scope, criterion, label] of [
@@ -146,26 +146,28 @@ describe('SearchUI exact-search Selenium contract', () => {
             expect(listbox?.getAttribute('data-autotest-value')).toBe(scope)
             expect(listbox?.getAttribute('data-autotest-criterion')).toBe(CriterionTypeEnum.EXACT)
             expect(listbox && criterion.contains(listbox)).toBe(false)
-            expect(listbox?.querySelectorAll(
-                '[role="option"][data-autotest="criterion-label-option"]',
-            )).toHaveLength(exactSearchLabels.length)
+            expect(listbox?.querySelectorAll('[role="option"][data-autotest="criterion-label-option"]')).toHaveLength(
+                exactSearchLabels.length,
+            )
             for (const exactSearchLabel of exactSearchLabels) {
-                expect(listbox?.querySelector(
-                    `[role="option"][data-autotest="criterion-label-option"]`
-                    + `[data-autotest-value="${exactSearchLabel}"]`,
-                )).not.toBeNull()
+                expect(
+                    listbox?.querySelector(
+                        `[role="option"][data-autotest="criterion-label-option"]` +
+                            `[data-autotest-value="${exactSearchLabel}"]`,
+                    ),
+                ).not.toBeNull()
             }
         }
 
         const ordersListboxId = ordersLabel?.getAttribute('aria-controls')
         const ordersListbox = ordersListboxId ? document.getElementById(ordersListboxId) : null
         const idOption = ordersListbox?.querySelector<HTMLElement>(
-            `[role="option"][data-autotest="criterion-label-option"]`
-            + `[data-autotest-value="${ExactCriterionSearchLabelEnum.ID}"]`,
+            `[role="option"][data-autotest="criterion-label-option"]` +
+                `[data-autotest-value="${ExactCriterionSearchLabelEnum.ID}"]`,
         )
         const nameOption = ordersListbox?.querySelector<HTMLElement>(
-            `[role="option"][data-autotest="criterion-label-option"]`
-            + `[data-autotest-value="${ExactCriterionSearchLabelEnum.NAME}"]`,
+            `[role="option"][data-autotest="criterion-label-option"]` +
+                `[data-autotest-value="${ExactCriterionSearchLabelEnum.NAME}"]`,
         )
 
         expect(nameOption?.getAttribute('aria-selected')).toBe('true')
@@ -174,10 +176,12 @@ describe('SearchUI exact-search Selenium contract', () => {
 
         await waitFor(() => {
             expect(ordersLabel?.getAttribute('data-autotest-value')).toBe(ExactCriterionSearchLabelEnum.ID)
-            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                exactSearchLabel: ExactCriterionSearchLabelEnum.ID,
-                exactSearchValue: 'updated order',
-            }))
+            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    exactSearchLabel: ExactCriterionSearchLabelEnum.ID,
+                    exactSearchValue: 'updated order',
+                }),
+            )
         })
         expect(transactionsLabel?.getAttribute('data-autotest-value')).toBe(ExactCriterionSearchLabelEnum.NAME)
     })

@@ -27,7 +27,10 @@ interface ResolvedAccessibilitySlots {
     select: ResolvedSlotProps
 }
 
-const PneTextField = ({ref, ...props}: React.PropsWithoutRef<PneTextFieldProps> & {ref?: React.Ref<HTMLDivElement>}) => {
+const PneTextField = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTextFieldProps> & {ref?: React.Ref<HTMLDivElement>}) => {
     const themedProps = useDefaultProps({
         name: 'MuiTextField',
         props,
@@ -85,13 +88,9 @@ const PneTextField = ({ref, ...props}: React.PropsWithoutRef<PneTextFieldProps> 
         ariaRequired: controlProps.ariaRequired,
         controlAriaDescribedBy: controlProps.ariaDescribedBy,
         controlAriaInvalid: controlProps.ariaInvalid,
-        controlAriaLabelledBy: hasLabel
-            ? ariaLabelledBy
-            : controlProps.ariaLabelledBy,
+        controlAriaLabelledBy: hasLabel ? ariaLabelledBy : controlProps.ariaLabelledBy,
         controlId: resolvedId,
-        controlLabelId: hasLabel
-            ? undefined
-            : controlProps.labelId,
+        controlLabelId: hasLabel ? undefined : controlProps.labelId,
         defaultHelperTextId: `${resolvedId}-helper-text`,
         forceDisabled: resolvedDisabled === true,
         forceAriaInvalid: resolvedError === true,
@@ -101,34 +100,36 @@ const PneTextField = ({ref, ...props}: React.PropsWithoutRef<PneTextFieldProps> 
         slotProps,
     })
 
-    return <DefaultPropsProvider value={componentsWithoutTextFieldDefaults}>
-        <TextField
-            disabled={resolvedDisabled}
-            error={resolvedError}
-            fullWidth={resolvedFullWidth}
-            helperText={helperText}
-            data-pne-filled={filled ? '' : undefined}
-            data-pne-resize={hasFixedRows ? (hasDefaultRows ? 'default' : 'rows') : undefined}
-            data-pne-size={resolvedSize}
-            // The label stands over the box, so a filled box keeps no room for it inside.
-            hiddenLabel={themedProps.variant === 'filled' ? true : undefined}
-            id={resolvedId}
-            label={label}
-            onInput={event => {
-                syncFilled()
-                onInput?.(event)
-            }}
-            ref={handleRootRef}
-            required={controlProps.required}
-            select={select}
-            // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
-            size='small'
-            slotProps={hasFixedRows ? withPlainTextarea(resolvedSlotProps) : resolvedSlotProps}
-            sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
-            {...rest}
-            {...(hasDefaultRows ? {rows: MULTILINE_DEFAULT_ROWS} : undefined)}
-        />
-    </DefaultPropsProvider>
+    return (
+        <DefaultPropsProvider value={componentsWithoutTextFieldDefaults}>
+            <TextField
+                disabled={resolvedDisabled}
+                error={resolvedError}
+                fullWidth={resolvedFullWidth}
+                helperText={helperText}
+                data-pne-filled={filled ? '' : undefined}
+                data-pne-resize={hasFixedRows ? (hasDefaultRows ? 'default' : 'rows') : undefined}
+                data-pne-size={resolvedSize}
+                // The label stands over the box, so a filled box keeps no room for it inside.
+                hiddenLabel={themedProps.variant === 'filled' ? true : undefined}
+                id={resolvedId}
+                label={label}
+                onInput={event => {
+                    syncFilled()
+                    onInput?.(event)
+                }}
+                ref={handleRootRef}
+                required={controlProps.required}
+                select={select}
+                // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+                size='small'
+                slotProps={hasFixedRows ? withPlainTextarea(resolvedSlotProps) : resolvedSlotProps}
+                sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
+                {...rest}
+                {...(hasDefaultRows ? {rows: MULTILINE_DEFAULT_ROWS} : undefined)}
+            />
+        </DefaultPropsProvider>
+    )
 }
 
 PneTextField.displayName = 'PneTextField'
@@ -142,14 +143,15 @@ const withPlainTextarea = (slotProps: PneTextFieldProps['slotProps']): PneTextFi
     const input = slotProps?.input
     const withTextarea = (inputProps: unknown) => ({
         inputComponent: 'textarea',
-        ...inputProps as Record<string, unknown> | undefined,
+        ...(inputProps as Record<string, unknown> | undefined),
     })
 
     return {
         ...slotProps,
-        input: typeof input === 'function'
-            ? (ownerState: TextFieldOwnerState) => withTextarea(input(ownerState))
-            : withTextarea(input),
+        input:
+            typeof input === 'function'
+                ? (ownerState: TextFieldOwnerState) => withTextarea(input(ownerState))
+                : withTextarea(input),
     } as PneTextFieldSlotProps
 }
 
@@ -189,16 +191,13 @@ const useComponentsWithoutTextFieldDefaults = () => {
 
         return {
             ...components,
-            MuiTextField: Object.keys(textFieldConfigWithoutDefaults).length > 0
-                ? textFieldConfigWithoutDefaults
-                : undefined,
+            MuiTextField:
+                Object.keys(textFieldConfigWithoutDefaults).length > 0 ? textFieldConfigWithoutDefaults : undefined,
         }
     }, [theme.components])
 }
 
-const createResolvedSlotProps = (
-    options: CreateResolvedSlotPropsOptions,
-): PneTextFieldProps['slotProps'] => {
+const createResolvedSlotProps = (options: CreateResolvedSlotPropsOptions): PneTextFieldProps['slotProps'] => {
     const {slotProps} = options
     const hasFunctionalSlotProps = [
         slotProps?.formHelperText,
@@ -214,9 +213,7 @@ const createResolvedSlotProps = (
     return createObjectSlotProps(options)
 }
 
-const createObjectSlotProps = (
-    options: CreateResolvedSlotPropsOptions,
-): PneTextFieldProps['slotProps'] => {
+const createObjectSlotProps = (options: CreateResolvedSlotPropsOptions): PneTextFieldProps['slotProps'] => {
     const {
         ariaLabel,
         ariaDescribedBy,
@@ -238,9 +235,7 @@ const createObjectSlotProps = (
     const formHelperTextSlotProps = getSlotPropsObject(slotProps?.formHelperText)
     const selectSlotProps = getSlotPropsObject(slotProps?.select)
     const isNativeSelect = selectSlotProps?.native === true
-    const helperTextId = hasHelperText
-        ? getId(formHelperTextSlotProps) ?? defaultHelperTextId
-        : undefined
+    const helperTextId = hasHelperText ? (getId(formHelperTextSlotProps) ?? defaultHelperTextId) : undefined
     const resolvedAriaDescribedBy = mergeAriaIds(
         ariaDescribedBy,
         getAriaDescribedBy(inputSlotProps),
@@ -250,11 +245,7 @@ const createObjectSlotProps = (
         helperTextId,
         controlAriaDescribedBy,
     )
-    const resolvedAriaLabel = resolveAriaLabel(
-        ariaLabel,
-        inputSlotProps,
-        htmlInputSlotProps,
-    )
+    const resolvedAriaLabel = resolveAriaLabel(ariaLabel, inputSlotProps, htmlInputSlotProps)
     const resolvedAriaLabelledBy = resolveAriaLabelledBy(
         controlAriaLabelledBy,
         inputSlotProps,
@@ -270,9 +261,7 @@ const createObjectSlotProps = (
 
     return {
         ...slotProps,
-        formHelperText: helperTextId
-            ? withId(formHelperTextSlotProps, helperTextId)
-            : slotProps?.formHelperText,
+        formHelperText: helperTextId ? withId(formHelperTextSlotProps, helperTextId) : slotProps?.formHelperText,
         htmlInput: withAccessibility(
             htmlInputSlotProps,
             resolvedAriaDescribedBy,
@@ -289,28 +278,23 @@ const createObjectSlotProps = (
             ...(forceAriaInvalid ? {error: true} : {}),
         },
         select: select
-            ? withSelectAccessibility(
-                selectSlotProps,
-                {
-                    ariaDescribedBy: resolvedAriaDescribedBy,
-                    ariaInvalid: resolvedAriaInvalid,
-                    ariaLabel: resolvedAriaLabel,
-                    ariaLabelledBy: resolvedAriaLabelledBy,
-                    ariaRequired,
-                    controlId,
-                    controlLabelId,
-                    forceDisabled,
-                    forceAriaInvalid,
-                    size: options.size,
-                },
-            )
+            ? withSelectAccessibility(selectSlotProps, {
+                  ariaDescribedBy: resolvedAriaDescribedBy,
+                  ariaInvalid: resolvedAriaInvalid,
+                  ariaLabel: resolvedAriaLabel,
+                  ariaLabelledBy: resolvedAriaLabelledBy,
+                  ariaRequired,
+                  controlId,
+                  controlLabelId,
+                  forceDisabled,
+                  forceAriaInvalid,
+                  size: options.size,
+              })
             : slotProps?.select,
     }
 }
 
-const createFunctionalSlotProps = (
-    options: CreateResolvedSlotPropsOptions,
-): PneTextFieldProps['slotProps'] => {
+const createFunctionalSlotProps = (options: CreateResolvedSlotPropsOptions): PneTextFieldProps['slotProps'] => {
     const {hasHelperText, select, slotProps} = options
     const resolveSlots = createAccessibilitySlotResolver(options)
 
@@ -321,9 +305,7 @@ const createFunctionalSlotProps = (
             : slotProps?.formHelperText,
         htmlInput: ownerState => resolveSlots(ownerState).htmlInput,
         input: ownerState => resolveSlots(ownerState).input,
-        select: select
-            ? ownerState => resolveSlots(ownerState).select
-            : slotProps?.select,
+        select: select ? ownerState => resolveSlots(ownerState).select : slotProps?.select,
     }
 }
 
@@ -356,16 +338,10 @@ const createAccessibilitySlotResolver = (
         } = options
         const inputSlotProps = resolveSlotProps(slotProps?.input, ownerState)
         const htmlInputSlotProps = resolveSlotProps(slotProps?.htmlInput, ownerState)
-        const formHelperTextSlotProps = hasHelperText
-            ? resolveSlotProps(slotProps?.formHelperText, ownerState)
-            : {}
-        const selectSlotProps = select
-            ? resolveSlotProps(slotProps?.select, ownerState)
-            : {}
+        const formHelperTextSlotProps = hasHelperText ? resolveSlotProps(slotProps?.formHelperText, ownerState) : {}
+        const selectSlotProps = select ? resolveSlotProps(slotProps?.select, ownerState) : {}
         const isNativeSelect = selectSlotProps.native === true
-        const helperTextId = hasHelperText
-            ? getId(formHelperTextSlotProps) ?? defaultHelperTextId
-            : undefined
+        const helperTextId = hasHelperText ? (getId(formHelperTextSlotProps) ?? defaultHelperTextId) : undefined
         const resolvedAriaDescribedBy = mergeAriaIds(
             ariaDescribedBy,
             getAriaDescribedBy(inputSlotProps),
@@ -375,11 +351,7 @@ const createAccessibilitySlotResolver = (
             helperTextId,
             controlAriaDescribedBy,
         )
-        const resolvedAriaLabel = resolveAriaLabel(
-            ariaLabel,
-            inputSlotProps,
-            htmlInputSlotProps,
-        )
+        const resolvedAriaLabel = resolveAriaLabel(ariaLabel, inputSlotProps, htmlInputSlotProps)
         const resolvedAriaLabelledBy = resolveAriaLabelledBy(
             controlAriaLabelledBy,
             inputSlotProps,
@@ -395,9 +367,7 @@ const createAccessibilitySlotResolver = (
 
         cachedOwnerState = ownerState
         cachedSlots = {
-            formHelperText: helperTextId
-                ? withId(formHelperTextSlotProps, helperTextId)
-                : formHelperTextSlotProps,
+            formHelperText: helperTextId ? withId(formHelperTextSlotProps, helperTextId) : formHelperTextSlotProps,
             htmlInput: withAccessibility(
                 htmlInputSlotProps,
                 resolvedAriaDescribedBy,
@@ -413,21 +383,18 @@ const createAccessibilitySlotResolver = (
                 ...(forceDisabled ? {disabled: true} : {}),
                 ...(forceAriaInvalid ? {error: true} : {}),
             },
-            select: withSelectAccessibility(
-                selectSlotProps,
-                {
-                    ariaDescribedBy: resolvedAriaDescribedBy,
-                    ariaInvalid: resolvedAriaInvalid,
-                    ariaLabel: resolvedAriaLabel,
-                    ariaLabelledBy: resolvedAriaLabelledBy,
-                    ariaRequired,
-                    controlId,
-                    controlLabelId,
-                    forceDisabled,
-                    forceAriaInvalid,
-                    size: options.size,
-                },
-            ),
+            select: withSelectAccessibility(selectSlotProps, {
+                ariaDescribedBy: resolvedAriaDescribedBy,
+                ariaInvalid: resolvedAriaInvalid,
+                ariaLabel: resolvedAriaLabel,
+                ariaLabelledBy: resolvedAriaLabelledBy,
+                ariaRequired,
+                controlId,
+                controlLabelId,
+                forceDisabled,
+                forceAriaInvalid,
+                size: options.size,
+            }),
         }
 
         return cachedSlots
@@ -448,33 +415,25 @@ const resolveSlotProps = (
     return (slotProps as ResolvedSlotProps | undefined) ?? {}
 }
 
-const getSlotPropsObject = (
-    slotProps: PneTextFieldSlotProp | undefined,
-): ResolvedSlotProps | undefined => {
-    return typeof slotProps === 'function'
-        ? undefined
-        : slotProps as ResolvedSlotProps | undefined
+const getSlotPropsObject = (slotProps: PneTextFieldSlotProp | undefined): ResolvedSlotProps | undefined => {
+    return typeof slotProps === 'function' ? undefined : (slotProps as ResolvedSlotProps | undefined)
 }
 
-const getAriaDescribedBy = (
-    props: ResolvedSlotProps | undefined,
-): string | undefined => {
+const getAriaDescribedBy = (props: ResolvedSlotProps | undefined): string | undefined => {
     const value = props?.['aria-describedby']
 
     return typeof value === 'string' ? value : undefined
 }
 
-const getAriaInvalid = (
-    props: ResolvedSlotProps | undefined,
-): React.AriaAttributes['aria-invalid'] | undefined => {
+const getAriaInvalid = (props: ResolvedSlotProps | undefined): React.AriaAttributes['aria-invalid'] | undefined => {
     const value = props?.['aria-invalid']
 
-    return value === false
-        || value === true
-        || value === 'false'
-        || value === 'grammar'
-        || value === 'spelling'
-        || value === 'true'
+    return value === false ||
+        value === true ||
+        value === 'false' ||
+        value === 'grammar' ||
+        value === 'spelling' ||
+        value === 'true'
         ? value
         : undefined
 }
@@ -510,9 +469,10 @@ const resolveAriaLabel = (
     topLevelAriaLabel: string | undefined,
     inputSlotProps: ResolvedSlotProps | undefined,
     htmlInputSlotProps: ResolvedSlotProps | undefined,
-): string | undefined => getNonBlankStringProperty(htmlInputSlotProps, 'aria-label')
-    ?? getNonBlankStringProperty(inputSlotProps, 'aria-label')
-    ?? getNonBlankString(topLevelAriaLabel)
+): string | undefined =>
+    getNonBlankStringProperty(htmlInputSlotProps, 'aria-label') ??
+    getNonBlankStringProperty(inputSlotProps, 'aria-label') ??
+    getNonBlankString(topLevelAriaLabel)
 
 const resolveAriaLabelledBy = (
     controlAriaLabelledBy: string | undefined,
@@ -536,11 +496,10 @@ const resolveAriaInvalid = (
     forceAriaInvalid: boolean,
     inputSlotProps: ResolvedSlotProps | undefined,
     htmlInputSlotProps: ResolvedSlotProps | undefined,
-): React.AriaAttributes['aria-invalid'] | undefined => forceAriaInvalid
-    ? true
-    : getAriaInvalid(htmlInputSlotProps)
-        ?? getAriaInvalid(inputSlotProps)
-        ?? controlAriaInvalid
+): React.AriaAttributes['aria-invalid'] | undefined =>
+    forceAriaInvalid
+        ? true
+        : (getAriaInvalid(htmlInputSlotProps) ?? getAriaInvalid(inputSlotProps) ?? controlAriaInvalid)
 
 interface SelectAccessibilityOptions {
     ariaDescribedBy?: string
@@ -560,46 +519,43 @@ const withSelectAccessibility = (
     options: SelectAccessibilityOptions,
 ): ResolvedSlotProps => {
     const displayProps = getPropsObject(slotProps?.SelectDisplayProps)
-    const displayAriaDescribedBy = mergeAriaIds(
-        options.ariaDescribedBy,
-        getAriaDescribedBy(displayProps),
-    )
-    const resolvedAriaLabel = getNonBlankStringProperty(displayProps, 'aria-label')
-        ?? getNonBlankStringProperty(slotProps, 'aria-label')
-        ?? getNonBlankString(options.ariaLabel)
+    const displayAriaDescribedBy = mergeAriaIds(options.ariaDescribedBy, getAriaDescribedBy(displayProps))
+    const resolvedAriaLabel =
+        getNonBlankStringProperty(displayProps, 'aria-label') ??
+        getNonBlankStringProperty(slotProps, 'aria-label') ??
+        getNonBlankString(options.ariaLabel)
     const resolvedAriaLabelledBy = resolvedAriaLabel
         ? undefined
         : mergeAriaIds(
-            options.ariaLabelledBy,
-            getStringProperty(slotProps, 'labelId'),
-            getStringProperty(slotProps, 'aria-labelledby'),
-            getStringProperty(displayProps, 'aria-labelledby'),
-        )
+              options.ariaLabelledBy,
+              getStringProperty(slotProps, 'labelId'),
+              getStringProperty(slotProps, 'aria-labelledby'),
+              getStringProperty(displayProps, 'aria-labelledby'),
+          )
     const resolvedAriaInvalid = options.forceAriaInvalid
         ? true
-        : getAriaInvalid(displayProps)
-            ?? getAriaInvalid(slotProps)
-            ?? options.ariaInvalid
-    const resolvedDisplayProps = displayProps
-        || displayAriaDescribedBy
-        || resolvedAriaInvalid !== undefined
-        || resolvedAriaLabel
-        || resolvedAriaLabelledBy
-        || options.ariaRequired
-        || options.forceDisabled
-        ? {
-            ...withAccessibility(
-                displayProps,
-                displayAriaDescribedBy,
-                options.ariaRequired,
-                resolvedAriaInvalid,
-                resolvedAriaLabel,
-                resolvedAriaLabelledBy,
-                options.controlId,
-            ),
-            ...(options.forceDisabled ? {'aria-disabled': true} : {}),
-        }
-        : undefined
+        : (getAriaInvalid(displayProps) ?? getAriaInvalid(slotProps) ?? options.ariaInvalid)
+    const resolvedDisplayProps =
+        displayProps ||
+        displayAriaDescribedBy ||
+        resolvedAriaInvalid !== undefined ||
+        resolvedAriaLabel ||
+        resolvedAriaLabelledBy ||
+        options.ariaRequired ||
+        options.forceDisabled
+            ? {
+                  ...withAccessibility(
+                      displayProps,
+                      displayAriaDescribedBy,
+                      options.ariaRequired,
+                      resolvedAriaInvalid,
+                      resolvedAriaLabel,
+                      resolvedAriaLabelledBy,
+                      options.controlId,
+                  ),
+                  ...(options.forceDisabled ? {'aria-disabled': true} : {}),
+              }
+            : undefined
 
     return {
         ...slotProps,
@@ -608,9 +564,7 @@ const withSelectAccessibility = (
         ...(options.forceAriaInvalid ? {error: true} : {}),
         id: options.controlId,
         ...(options.controlLabelId ? {labelId: options.controlLabelId} : {}),
-        ...(options.ariaDescribedBy
-            ? {'aria-describedby': options.ariaDescribedBy}
-            : {}),
+        ...(options.ariaDescribedBy ? {'aria-describedby': options.ariaDescribedBy} : {}),
         ...(resolvedDisplayProps ? {SelectDisplayProps: resolvedDisplayProps} : {}),
     }
 }
@@ -631,33 +585,25 @@ const withSelectLook = (slotProps: ResolvedSlotProps | undefined, size: PneField
     }
 }
 
-const withId = (
-    slotProps: ResolvedSlotProps | undefined,
-    id: string,
-): ResolvedSlotProps => ({
+const withId = (slotProps: ResolvedSlotProps | undefined, id: string): ResolvedSlotProps => ({
     ...slotProps,
     id,
 })
 
 const getPropsObject = (value: unknown): ResolvedSlotProps | undefined => {
     return value !== null && typeof value === 'object' && !Array.isArray(value)
-        ? value as ResolvedSlotProps
+        ? (value as ResolvedSlotProps)
         : undefined
 }
 
-const getStringProperty = (
-    props: ResolvedSlotProps | undefined,
-    property: string,
-): string | undefined => {
+const getStringProperty = (props: ResolvedSlotProps | undefined, property: string): string | undefined => {
     const value = props?.[property]
 
     return typeof value === 'string' && value !== '' ? value : undefined
 }
 
-const getNonBlankStringProperty = (
-    props: ResolvedSlotProps | undefined,
-    property: string,
-): string | undefined => getNonBlankString(props?.[property])
+const getNonBlankStringProperty = (props: ResolvedSlotProps | undefined, property: string): string | undefined =>
+    getNonBlankString(props?.[property])
 
 const getNonBlankString = (value: unknown): string | undefined => {
     return typeof value === 'string' && value.trim() !== '' ? value : undefined

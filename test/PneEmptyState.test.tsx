@@ -7,9 +7,11 @@ const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 describe('PneEmptyState', () => {
     it('says what is not here under the glyph of an empty table, 14/20 Medium in the middle', () => {
-        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <PneEmptyState>No templates yet.</PneEmptyState>
-        </PneThemeProvider>)
+        const {container} = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneEmptyState>No templates yet.</PneEmptyState>
+            </PneThemeProvider>,
+        )
         const root = container.querySelector<HTMLElement>('[data-pne-empty-state]')!
         const style = window.getComputedStyle(root)
 

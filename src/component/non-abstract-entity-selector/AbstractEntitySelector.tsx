@@ -1,25 +1,26 @@
-import React, {HTMLAttributes, useEffect, useState} from 'react';
-import {DragDropContext, Draggable, DraggableProvided, Droppable, DropResult, useKeyboardSensor, useMouseSensor} from '@hello-pangea/dnd';
-import {Box, IconButton, InputAdornment, Stack, Button} from '@mui/material';
-import {Virtuoso} from 'react-virtuoso';
-import {TFunction, useTranslation} from 'react-i18next';
-
-import {AddedListWrapper, ColumnWrapper, Container, HeaderColumn, HeaderColumnWrapper,} from './styled';
-import ItemEntitySelector, {ItemEntitySelectorAttributes} from './ItemEntitySelector';
-import useImmediateTouchSensor from './useImmediateTouchSensor';
+import React, {HTMLAttributes, useEffect, useState} from 'react'
 import {
-    AbstractEntity,
-    assertObject,
-    Country,
-    exhaustiveCheck,
-    isAbstractEntity,
-    isObject
-} from '../../common';
-import PneTextField from '../PneTextField';
+    DragDropContext,
+    Draggable,
+    DraggableProvided,
+    Droppable,
+    DropResult,
+    useKeyboardSensor,
+    useMouseSensor,
+} from '@hello-pangea/dnd'
+import {Box, IconButton, InputAdornment, Stack, Button} from '@mui/material'
+import {Virtuoso} from 'react-virtuoso'
+import {TFunction, useTranslation} from 'react-i18next'
+
+import {AddedListWrapper, ColumnWrapper, Container, HeaderColumn, HeaderColumnWrapper} from './styled'
+import ItemEntitySelector, {ItemEntitySelectorAttributes} from './ItemEntitySelector'
+import useImmediateTouchSensor from './useImmediateTouchSensor'
+import {AbstractEntity, assertObject, Country, exhaustiveCheck, isAbstractEntity, isObject} from '../../common'
+import PneTextField from '../PneTextField'
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import {PneCloseIcon} from '../dropdown/dropdownLook'
 
-const immediateDragSensors = [useMouseSensor, useKeyboardSensor, useImmediateTouchSensor];
+const immediateDragSensors = [useMouseSensor, useKeyboardSensor, useImmediateTouchSensor]
 
 export type AbstractEntitySelectorItemAttributes = ItemEntitySelectorAttributes
 
@@ -52,8 +53,7 @@ const isNamedItem = (value: unknown): value is AbstractEntitySelectorNamedItem =
         return false
     }
 
-    return 'id' in value && typeof value.id === 'number' &&
-        'name' in value && typeof value.name === 'string'
+    return 'id' in value && typeof value.id === 'number' && 'name' in value && typeof value.name === 'string'
 }
 
 export interface IAbstractEntityOptions<T> {
@@ -72,20 +72,13 @@ export interface IAbstractEntityOptions<T> {
     textRepresentationValue?: string
     onChange: (mappedList: T[], unMappedList: T[]) => void
     actionBlock?: React.ReactNode
-    getItemAttributes?: (
-        item: AbstractEntity,
-        list: AbstractEntitySelectorList,
-    ) => AbstractEntitySelectorItemAttributes
+    getItemAttributes?: (item: AbstractEntity, list: AbstractEntitySelectorList) => AbstractEntitySelectorItemAttributes
     elementAttributes?: AbstractEntitySelectorElements
 }
 
 export type AbstractEntitySelectorList = 'AVAILABLE' | 'ADDED'
 
-export type AbstractEntitySelectorProp =
-    string
-    | AbstractEntitySelectorNamedItem
-    | AbstractEntity
-    | Country
+export type AbstractEntitySelectorProp = string | AbstractEntitySelectorNamedItem | AbstractEntity | Country
 
 export interface IMappedUnmappedList<T extends AbstractEntitySelectorProp> {
     mapped: T[]
@@ -96,25 +89,23 @@ const getListEntity = <T extends AbstractEntitySelectorProp>(item: T, index: num
     if (typeof item === 'string') {
         return {
             id: index,
-            displayName: item
-        };
+            displayName: item,
+        }
     }
 
     assertObject(item)
     if (isNamedItem(item)) {
         return {
             displayName: item.name,
-            ...item
-        };
+            ...item,
+        }
     } else if (isAbstractEntity(item)) {
-        return item;
+        return item
     }
 
     exhaustiveCheck(item)
 
-    throw new TypeError('Incompatible types of option:\n'
-        + JSON.stringify(item, null, 4)
-    )
+    throw new TypeError('Incompatible types of option:\n' + JSON.stringify(item, null, 4))
 }
 
 const checkInitialType = (item: AbstractEntitySelectorProp): string | undefined => {
@@ -135,10 +126,12 @@ const HeightPreservingItem: React.FunctionComponent<HTMLAttributes<HTMLDivElemen
         <div {...props} style={{minHeight: '32px'}}>
             {children}
         </div>
-    );
-};
+    )
+}
 
-export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(props: React.PropsWithChildren<IAbstractEntityOptions<T>>) => {
+export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(
+    props: React.PropsWithChildren<IAbstractEntityOptions<T>>,
+) => {
     const {
         reset,
         list,
@@ -155,28 +148,28 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         actionBlock,
         getItemAttributes,
         elementAttributes,
-    } = props;
+    } = props
 
-    const virtualized = requestedVirtualization && dragHandle !== 'button';
+    const virtualized = requestedVirtualization && dragHandle !== 'button'
 
-    const {t} = useTranslation();
+    const {t} = useTranslation()
 
-    const [searchValue, setSearchValue] = useState('');
-    const [availableList, setAvailableList] = useState<AbstractEntity[]>([]);
-    const [addedList, setAddedList] = useState<AbstractEntity[]>([]);
-    const [initialAddedIds, setInitialAddedIds] = useState<Set<number>>(() => new Set());
-    const [textValue, setTextValue] = useState(textRepresentationValue);
-    const [initialType, setInitialType] = useState<string | undefined>(undefined);
+    const [searchValue, setSearchValue] = useState('')
+    const [availableList, setAvailableList] = useState<AbstractEntity[]>([])
+    const [addedList, setAddedList] = useState<AbstractEntity[]>([])
+    const [initialAddedIds, setInitialAddedIds] = useState<Set<number>>(() => new Set())
+    const [textValue, setTextValue] = useState(textRepresentationValue)
+    const [initialType, setInitialType] = useState<string | undefined>(undefined)
 
     useEffect(() => {
-        let availArray: AbstractEntity[] = [];
+        let availArray: AbstractEntity[] = []
         const selectedArray: AbstractEntity[] = selected.map((item, index) => {
-            return getListEntity(item, list.length + index + 1);
-        });
-        const type = list.length > 0 ? checkInitialType(list[0]) : checkInitialType(selected[0]);
+            return getListEntity(item, list.length + index + 1)
+        })
+        const type = list.length > 0 ? checkInitialType(list[0]) : checkInitialType(selected[0])
         /* eslint-disable @eslint-react/set-state-in-effect -- the lists start over from the props on `reset` */
-        setInitialType(type);
-        setInitialAddedIds(new Set(selectedArray.map(item => item.id)));
+        setInitialType(type)
+        setInitialAddedIds(new Set(selectedArray.map(item => item.id)))
         if (list.length > 0) {
             if (type === 'string') {
                 const uniqArray = list.filter(item => selected.indexOf(item) == -1)
@@ -185,61 +178,40 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 availArray = list.map((item, index) => getListEntity(item, index + 1))
             }
         }
-        setAvailableList(availArray);
+        setAvailableList(availArray)
 
-        setAddedList(selectedArray);
+        setAddedList(selectedArray)
         if (textRepresentation) {
-            const array = selectedArray.map(item => {
-                return textRepresentation === 'ID' ? item.id : item.displayName;
-            }).toString();
-            setTextValue(array);
-        /* eslint-enable @eslint-react/set-state-in-effect */
+            const array = selectedArray
+                .map(item => {
+                    return textRepresentation === 'ID' ? item.id : item.displayName
+                })
+                .toString()
+            setTextValue(array)
+            /* eslint-enable @eslint-react/set-state-in-effect */
         }
-    }, [reset]);
+    }, [reset])
 
-    const canMoveFromAvailable = () => disableMoving !== 'AVAILABLE';
+    const canMoveFromAvailable = () => disableMoving !== 'AVAILABLE'
 
     const canMoveFromAdded = (item: AbstractEntity) => {
-        return disableMoving !== 'ADDED'
-            || (allowNewlyAddedRemoval && !initialAddedIds.has(item.id));
-    };
+        return disableMoving !== 'ADDED' || (allowNewlyAddedRemoval && !initialAddedIds.has(item.id))
+    }
 
     const onListChange = (item: AbstractEntity, type: 'ADD' | 'AVAILABLE') => {
-        let tempAddedList: AbstractEntity[];
+        let tempAddedList: AbstractEntity[]
         switch (type) {
             case 'ADD':
                 if (!canMoveFromAdded(item)) {
-                    return;
+                    return
                 }
-                tempAddedList = addedList.filter(i => i.id !== item.id);
+                tempAddedList = addedList.filter(i => i.id !== item.id)
                 setAvailableList(prevState => {
                     return [...prevState, item]
-                });
+                })
                 setAddedList(prevState => {
                     return prevState.filter(i => i.id !== item.id)
-                });
-                if (textRepresentation) {
-                    const tempArray = tempAddedList.map(item => {
-                        if (textRepresentation === 'ID') {
-                            return item.id;
-                        } else {
-                            return item.displayName;
-                        }
-                    });
-                    setTextValue(tempArray.toString());
-                }
-                break;
-            case 'AVAILABLE':
-                if (!canMoveFromAvailable()) {
-                    return;
-                }
-                tempAddedList = [...addedList, item]
-                setAvailableList(prevState => {
-                    return prevState.filter(i => i.id !== item.id)
-                });
-                setAddedList(prevState => {
-                    return [...prevState, item]
-                });
+                })
                 if (textRepresentation) {
                     const tempArray = tempAddedList.map(item => {
                         if (textRepresentation === 'ID') {
@@ -248,7 +220,29 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                             return item.displayName
                         }
                     })
-                    setTextValue(tempArray.toString());
+                    setTextValue(tempArray.toString())
+                }
+                break
+            case 'AVAILABLE':
+                if (!canMoveFromAvailable()) {
+                    return
+                }
+                tempAddedList = [...addedList, item]
+                setAvailableList(prevState => {
+                    return prevState.filter(i => i.id !== item.id)
+                })
+                setAddedList(prevState => {
+                    return [...prevState, item]
+                })
+                if (textRepresentation) {
+                    const tempArray = tempAddedList.map(item => {
+                        if (textRepresentation === 'ID') {
+                            return item.id
+                        } else {
+                            return item.displayName
+                        }
+                    })
+                    setTextValue(tempArray.toString())
                 }
                 break
             default:
@@ -256,250 +250,250 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
         }
     }
 
-
     const onDragEnd = (result: DropResult) => {
-        const {destination, source} = result;
+        const {destination, source} = result
 
         if (!destination) {
-            return;
+            return
         }
 
         if (destination.index === source.index && destination.droppableId === source.droppableId) {
-            return;
+            return
         }
 
         if (source.droppableId === 'addedList' && !canMoveFromAdded(addedList[source.index])) {
-            return;
+            return
         }
 
         if (source.droppableId === 'availableList' && !canMoveFromAvailable()) {
-            return;
+            return
         }
 
         if (destination.droppableId === source.droppableId) {
             let tempAdded: AbstractEntity[] = []
             switch (destination.droppableId) {
                 case 'availableList':
-                    setAvailableList((prev) => {
-                        const temp = [...prev];
-                        const [removed] = temp.splice(availableIndexOf(prev, source.index), 1);
+                    setAvailableList(prev => {
+                        const temp = [...prev]
+                        const [removed] = temp.splice(availableIndexOf(prev, source.index), 1)
                         if (removed === undefined) {
-                            return prev;
+                            return prev
                         }
-                        temp.splice(availableInsertIndex(temp, destination.index), 0, removed);
-                        return temp;
-                    });
-                    break;
+                        temp.splice(availableInsertIndex(temp, destination.index), 0, removed)
+                        return temp
+                    })
+                    break
                 case 'addedList':
-                    setAddedList((prev) => {
-                        const temp = [...prev];
-                        const [removed] = temp.splice(source.index, 1);
-                        temp.splice(destination.index, 0, removed);
-                        tempAdded = temp;
-                        return temp;
-                    });
+                    setAddedList(prev => {
+                        const temp = [...prev]
+                        const [removed] = temp.splice(source.index, 1)
+                        temp.splice(destination.index, 0, removed)
+                        tempAdded = temp
+                        return temp
+                    })
                     if (textRepresentation) {
                         const tempArray = tempAdded.map(item => {
                             if (textRepresentation === 'ID') {
-                                return item.id;
+                                return item.id
                             } else {
-                                return item.displayName;
+                                return item.displayName
                             }
-                        });
-                        setTextValue(tempArray.toString());
+                        })
+                        setTextValue(tempArray.toString())
                     }
-                    break;
+                    break
                 default:
-                    return;
+                    return
             }
         }
         if (destination.droppableId !== result.source.droppableId) {
             if (destination.droppableId === 'availableList') {
-                const sourceList = [...addedList];
-                const destList = [...availableList];
-                const [removed] = sourceList.splice(result.source.index, 1);
-                destList.splice(availableInsertIndex(destList, destination.index), 0, removed);
-                setAvailableList(destList);
-                setAddedList(sourceList);
+                const sourceList = [...addedList]
+                const destList = [...availableList]
+                const [removed] = sourceList.splice(result.source.index, 1)
+                destList.splice(availableInsertIndex(destList, destination.index), 0, removed)
+                setAvailableList(destList)
+                setAddedList(sourceList)
                 if (textRepresentation) {
                     const tempArray = sourceList.map(item => {
                         if (textRepresentation === 'ID') {
-                            return item.id;
+                            return item.id
                         } else {
-                            return item.displayName;
+                            return item.displayName
                         }
-                    });
-                    setTextValue(tempArray.toString());
+                    })
+                    setTextValue(tempArray.toString())
                 }
             } else {
-                const sourceList = [...availableList];
-                const destList = [...addedList];
-                const [removed] = sourceList.splice(availableIndexOf(availableList, result.source.index), 1);
+                const sourceList = [...availableList]
+                const destList = [...addedList]
+                const [removed] = sourceList.splice(availableIndexOf(availableList, result.source.index), 1)
                 if (removed === undefined) {
-                    return;
+                    return
                 }
-                destList.splice(destination.index, 0, removed);
-                setAvailableList(sourceList);
-                setAddedList(destList);
+                destList.splice(destination.index, 0, removed)
+                setAvailableList(sourceList)
+                setAddedList(destList)
                 if (textRepresentation) {
                     const tempArray = destList.map(item => {
                         if (textRepresentation === 'ID') {
-                            return item.id;
+                            return item.id
                         } else {
-                            return item.displayName;
+                            return item.displayName
                         }
-                    });
-                    setTextValue(tempArray.toString());
+                    })
+                    setTextValue(tempArray.toString())
                 }
             }
         }
-        onChangeParentDate();
-    };
+        onChangeParentDate()
+    }
 
     const handleSelectAll = (type: 'AVAILABLE' | 'ADDED') => {
         if (type === 'AVAILABLE') {
             setAddedList(prevState => {
-                return [...prevState, ...availableList];
-            });
+                return [...prevState, ...availableList]
+            })
             if (textRepresentation) {
-                const array = [...addedList, ...availableList].map(item => {
-                    return textRepresentation === 'ID' ? item.id : item.displayName;
-                }).toString();
-                setTextValue(array);
+                const array = [...addedList, ...availableList]
+                    .map(item => {
+                        return textRepresentation === 'ID' ? item.id : item.displayName
+                    })
+                    .toString()
+                setTextValue(array)
             }
-            setAvailableList([]);
+            setAvailableList([])
         } else {
             setAvailableList(prevState => {
-                return [...prevState, ...addedList];
-            });
+                return [...prevState, ...addedList]
+            })
             if (textRepresentation) {
-                setTextValue('');
+                setTextValue('')
             }
-            setAddedList([]);
+            setAddedList([])
         }
-    };
+    }
 
     const handleChangeTextareaValue = (value: string) => {
         if (textRepresentation === 'ID') {
-            const regex = /[\d+,*]$/;
+            const regex = /[\d+,*]$/
             if (value !== '' && !regex.test(value)) {
-                return;
+                return
             }
         }
 
-        setTextValue(value);
-        const dictionary = [...addedList, ...availableList];
+        setTextValue(value)
+        const dictionary = [...addedList, ...availableList]
 
         if (value !== '') {
             if (textRepresentation === 'ID') {
-                const tempArray = value.split(',');
+                const tempArray = value.split(',')
 
                 const newAddedList = dictionary.filter(addedItem => {
                     return tempArray.includes(String(addedItem.id))
-                });
+                })
 
                 const newAvailableList = dictionary.filter(addedItem => {
                     return !tempArray.includes(String(addedItem.id))
-                });
+                })
 
-                setAddedList(newAddedList);
-                setAvailableList(newAvailableList);
+                setAddedList(newAddedList)
+                setAvailableList(newAvailableList)
             } else {
-                const tempArray = value.split(',');
+                const tempArray = value.split(',')
 
                 const newAddedList = dictionary.filter(addedItem => {
                     return tempArray.includes(String(addedItem.displayName))
-                });
+                })
 
                 const newAvailableList = dictionary.filter(addedItem => {
                     return !tempArray.includes(String(addedItem.displayName))
-                });
+                })
 
-                setAddedList(newAddedList);
-                setAvailableList(newAvailableList);
+                setAddedList(newAddedList)
+                setAvailableList(newAvailableList)
             }
         } else {
-            setAvailableList(dictionary);
-            setAddedList([]);
+            setAvailableList(dictionary)
+            setAddedList([])
         }
-    };
+    }
     const renderOption = (option: string) => {
         return optionRenderer ? optionRenderer(option) : option
-    };
+    }
 
-    const isVisibleAvailable = (item: AbstractEntity) => (
+    const isVisibleAvailable = (item: AbstractEntity) =>
         renderOption(item.displayName).toLowerCase().includes(searchValue.toLowerCase())
-    );
     // The available column lists only the items matching the search, so its drag indexes count visible items.
-    const visibleAvailableList = availableList.filter(isVisibleAvailable);
+    const visibleAvailableList = availableList.filter(isVisibleAvailable)
 
     /** Index in the full available list of the visible item at `visibleIndex`; the list length when there is none. */
     const availableIndexOf = (list: AbstractEntity[], visibleIndex: number): number => {
-        let seen = 0;
+        let seen = 0
         for (let index = 0; index < list.length; index++) {
             if (!isVisibleAvailable(list[index])) {
-                continue;
+                continue
             }
             if (seen === visibleIndex) {
-                return index;
+                return index
             }
-            seen += 1;
+            seen += 1
         }
-        return list.length;
-    };
+        return list.length
+    }
 
     /** Where a drop at visible position `visibleIndex` lands: before that visible item, or right after the last one. */
     const availableInsertIndex = (list: AbstractEntity[], visibleIndex: number): number => {
-        let seen = 0;
-        let lastVisible = -1;
+        let seen = 0
+        let lastVisible = -1
         for (let index = 0; index < list.length; index++) {
             if (!isVisibleAvailable(list[index])) {
-                continue;
+                continue
             }
             if (seen === visibleIndex) {
-                return index;
+                return index
             }
-            seen += 1;
-            lastVisible = index;
+            seen += 1
+            lastVisible = index
         }
-        return lastVisible >= 0 ? lastVisible + 1 : list.length;
-    };
+        return lastVisible >= 0 ? lastVisible + 1 : list.length
+    }
 
     const onChangeParentDate = () => {
-        let mapped: T[] = [];
-        let unmapped: T[] = [];
+        let mapped: T[] = []
+        let unmapped: T[] = []
         if (initialType !== undefined) {
             switch (initialType) {
                 case 'string':
-                    mapped = addedList.map(item => item.displayName) as T[];
-                    unmapped = availableList.map(item => item.displayName) as T[];
-                    break;
+                    mapped = addedList.map(item => item.displayName) as T[]
+                    unmapped = availableList.map(item => item.displayName) as T[]
+                    break
                 case 'namedItem':
                     mapped = addedList.map(item => ({
                         ...item,
-                        name: item.displayName
-                    })) as AbstractEntitySelectorNamedItem[] as T[];
+                        name: item.displayName,
+                    })) as AbstractEntitySelectorNamedItem[] as T[]
                     unmapped = availableList.map(item => ({
                         ...item,
-                        name: item.displayName
-                    })) as AbstractEntitySelectorNamedItem[] as T[];
-                    break;
+                        name: item.displayName,
+                    })) as AbstractEntitySelectorNamedItem[] as T[]
+                    break
                 case 'abstractEntity':
-                    mapped = addedList as T[];
-                    unmapped = availableList as T[];
-                    break;
+                    mapped = addedList as T[]
+                    unmapped = availableList as T[]
+                    break
                 default:
-                    throw new Error('please check the types of lists');
+                    throw new Error('please check the types of lists')
             }
         }
-        onChange(mapped, unmapped);
-    };
+        onChange(mapped, unmapped)
+    }
 
     useEffect(() => {
         if (initialType) {
-            onChangeParentDate();
+            onChangeParentDate()
         }
-    }, [addedList, availableList]);
+    }, [addedList, availableList])
 
     const renderAvailableItem = (index: number, item: AbstractEntity) => (
         <Draggable
@@ -509,11 +503,11 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
             isDragDisabled={disableMoving === 'AVAILABLE'}
             disableInteractiveElementBlocking
         >
-            {(provided) => (
+            {provided => (
                 <ItemEntitySelector
                     handleClick={() => {
                         if (disableMoving !== 'AVAILABLE') {
-                            onListChange(item, 'AVAILABLE');
+                            onListChange(item, 'AVAILABLE')
                         }
                     }}
                     provided={provided}
@@ -525,7 +519,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 />
             )}
         </Draggable>
-    );
+    )
 
     const renderAddedItem = (index: number, item: AbstractEntity) => (
         <Draggable
@@ -547,7 +541,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                 />
             )}
         </Draggable>
-    );
+    )
 
     return (
         <>
@@ -556,26 +550,28 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     size='medium'
                     variant={'outlined'}
                     sx={{width: '100%'}}
-                    onChange={(e) => {
+                    onChange={e => {
                         setSearchValue(e.target.value)
                     }}
                     value={searchValue}
                     placeholder={t('search')}
                     slotProps={{
                         input: {
-                            startAdornment: <InputAdornment position='start'>
-                                <SearchRoundedIcon sx={{fontSize: 16}}/>
-                            </InputAdornment>,
+                            startAdornment: (
+                                <InputAdornment position='start'>
+                                    <SearchRoundedIcon sx={{fontSize: 16}} />
+                                </InputAdornment>
+                            ),
                             endAdornment: searchValue && (
-                                <InputAdornment position="end">
+                                <InputAdornment position='end'>
                                     <IconButton
                                         {...elementAttributes?.searchClearButton}
                                         onClick={() => setSearchValue('')}
-                                        edge="end"
+                                        edge='end'
                                         size='small'
                                         type='button'
                                     >
-                                        <PneCloseIcon sx={{fontSize: 16}}/>
+                                        <PneCloseIcon sx={{fontSize: 16}} />
                                     </IconButton>
                                 </InputAdornment>
                             ),
@@ -595,9 +591,7 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                     <ColumnWrapper {...elementAttributes?.availableColumn}>
                         <AddedListWrapper>
                             <HeaderColumnWrapper>
-                                <HeaderColumn>
-                                    {t('abstractSelector.available')}
-                                </HeaderColumn>
+                                <HeaderColumn>{t('abstractSelector.available')}</HeaderColumn>
                                 {disableMoving !== 'AVAILABLE' && (
                                     <Button
                                         size='small'
@@ -616,56 +610,67 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                             <Droppable
                                 droppableId={'availableList'}
                                 mode={virtualized ? 'virtual' : 'standard'}
-                                renderClone={virtualized ? (provided, _snapshot, rubric) => {
-                                    return (
-                                        <ItemEntitySelector
-                                            handleClick={() => {
-                                                if (disableMoving !== 'AVAILABLE') {
-                                                    onListChange(visibleAvailableList[rubric.source.index], 'AVAILABLE');
-                                                }
-                                            }}
-                                            provided={provided}
-                                            item={visibleAvailableList[rubric.source.index]}
-                                            name={renderOption(visibleAvailableList[rubric.source.index].displayName)}
-                                            itemAttributes={getItemAttributes?.(
-                                                visibleAvailableList[rubric.source.index],
-                                                'AVAILABLE',
-                                            )}
-                                            action={canMoveFromAvailable() ? 'add' : undefined}
-                                        />
-                                    )
-                                } : undefined}
+                                renderClone={
+                                    virtualized
+                                        ? (provided, _snapshot, rubric) => {
+                                              return (
+                                                  <ItemEntitySelector
+                                                      handleClick={() => {
+                                                          if (disableMoving !== 'AVAILABLE') {
+                                                              onListChange(
+                                                                  visibleAvailableList[rubric.source.index],
+                                                                  'AVAILABLE',
+                                                              )
+                                                          }
+                                                      }}
+                                                      provided={provided}
+                                                      item={visibleAvailableList[rubric.source.index]}
+                                                      name={renderOption(
+                                                          visibleAvailableList[rubric.source.index].displayName,
+                                                      )}
+                                                      itemAttributes={getItemAttributes?.(
+                                                          visibleAvailableList[rubric.source.index],
+                                                          'AVAILABLE',
+                                                      )}
+                                                      action={canMoveFromAvailable() ? 'add' : undefined}
+                                                  />
+                                              )
+                                          }
+                                        : undefined
+                                }
                             >
-                                {(provided) => virtualized ? (
-                                    <Virtuoso
-                                        components={{
-                                            Item: HeightPreservingItem,
-                                        }}
-                                        scrollerRef={(value) => provided.innerRef(value as HTMLElement)}
-                                        data={visibleAvailableList}
-                                        itemContent={renderAvailableItem}
-                                    >
-                                        {provided.placeholder}
-                                    </Virtuoso>
-                                ) : (
-                                    <Box
-                                        ref={provided.innerRef}
-                                        {...provided.droppableProps}
-                                        sx={{flex: 1, minHeight: 0}}
-                                    >
-                                        {visibleAvailableList.map((item, index) => renderAvailableItem(index, item))}
-                                        {provided.placeholder}
-                                    </Box>
-                                )}
+                                {provided =>
+                                    virtualized ? (
+                                        <Virtuoso
+                                            components={{
+                                                Item: HeightPreservingItem,
+                                            }}
+                                            scrollerRef={value => provided.innerRef(value as HTMLElement)}
+                                            data={visibleAvailableList}
+                                            itemContent={renderAvailableItem}
+                                        >
+                                            {provided.placeholder}
+                                        </Virtuoso>
+                                    ) : (
+                                        <Box
+                                            ref={provided.innerRef}
+                                            {...provided.droppableProps}
+                                            sx={{flex: 1, minHeight: 0}}
+                                        >
+                                            {visibleAvailableList.map((item, index) =>
+                                                renderAvailableItem(index, item),
+                                            )}
+                                            {provided.placeholder}
+                                        </Box>
+                                    )
+                                }
                             </Droppable>
                         </AddedListWrapper>
                     </ColumnWrapper>
                     <ColumnWrapper {...elementAttributes?.addedColumn}>
                         <AddedListWrapper>
                             <HeaderColumnWrapper>
-                                <HeaderColumn>
-                                    {t('abstractSelector.added')}
-                                </HeaderColumn>
+                                <HeaderColumn>{t('abstractSelector.added')}</HeaderColumn>
                                 {disableMoving !== 'ADDED' && (
                                     <Button
                                         size='small'
@@ -684,58 +689,66 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
                             <Droppable
                                 droppableId={'addedList'}
                                 mode={virtualized ? 'virtual' : 'standard'}
-                                renderClone={virtualized ? (provided, _snapshot, rubric) => {
-                                    return (
-                                        <ItemEntitySelector
-                                            handleClick={() => {
-                                                onListChange(addedList[rubric.source.index], 'ADD');
-                                            }}
-                                            provided={provided}
-                                            item={addedList[rubric.source.index]}
-                                            name={renderOption(addedList[rubric.source.index].displayName)}
-                                            itemAttributes={getItemAttributes?.(
-                                                addedList[rubric.source.index],
-                                                'ADDED',
-                                            )}
-                                            action={canMoveFromAdded(addedList[rubric.source.index]) ? 'remove' : undefined}
-                                        />
-                                    )
-                                } : undefined}
+                                renderClone={
+                                    virtualized
+                                        ? (provided, _snapshot, rubric) => {
+                                              return (
+                                                  <ItemEntitySelector
+                                                      handleClick={() => {
+                                                          onListChange(addedList[rubric.source.index], 'ADD')
+                                                      }}
+                                                      provided={provided}
+                                                      item={addedList[rubric.source.index]}
+                                                      name={renderOption(addedList[rubric.source.index].displayName)}
+                                                      itemAttributes={getItemAttributes?.(
+                                                          addedList[rubric.source.index],
+                                                          'ADDED',
+                                                      )}
+                                                      action={
+                                                          canMoveFromAdded(addedList[rubric.source.index])
+                                                              ? 'remove'
+                                                              : undefined
+                                                      }
+                                                  />
+                                              )
+                                          }
+                                        : undefined
+                                }
                             >
-                                {(provided) => virtualized ? (
-                                    <Virtuoso
-                                        components={{
-                                            Item: HeightPreservingItem,
-                                        }}
-                                        scrollerRef={(value) => provided.innerRef(value as HTMLElement)}
-                                        data={addedList}
-                                        itemContent={renderAddedItem}
-                                    >
-                                        {provided.placeholder}
-                                    </Virtuoso>
-                                ) : (
-                                    <Box
-                                        ref={provided.innerRef}
-                                        {...provided.droppableProps}
-                                        sx={{flex: 1, minHeight: 0}}
-                                    >
-                                        {addedList.map((item, index) => renderAddedItem(index, item))}
-                                        {provided.placeholder}
-                                    </Box>
-                                )}
+                                {provided =>
+                                    virtualized ? (
+                                        <Virtuoso
+                                            components={{
+                                                Item: HeightPreservingItem,
+                                            }}
+                                            scrollerRef={value => provided.innerRef(value as HTMLElement)}
+                                            data={addedList}
+                                            itemContent={renderAddedItem}
+                                        >
+                                            {provided.placeholder}
+                                        </Virtuoso>
+                                    ) : (
+                                        <Box
+                                            ref={provided.innerRef}
+                                            {...provided.droppableProps}
+                                            sx={{flex: 1, minHeight: 0}}
+                                        >
+                                            {addedList.map((item, index) => renderAddedItem(index, item))}
+                                            {provided.placeholder}
+                                        </Box>
+                                    )
+                                }
                             </Droppable>
                         </AddedListWrapper>
                     </ColumnWrapper>
                 </Container>
             </DragDropContext>
             {textRepresentation && (
-                <Stack
-                    sx={{marginTop: '38px'}}
-                >
+                <Stack sx={{marginTop: '38px'}}>
                     <PneTextField
                         size='large'
                         value={textValue}
-                        onChange={(event) => {
+                        onChange={event => {
                             handleChangeTextareaValue(event.target.value)
                         }}
                         multiline
@@ -747,5 +760,5 @@ export const AbstractEntitySelector = <T extends AbstractEntitySelectorProp>(pro
             )}
             {actionBlock ? actionBlock : null}
         </>
-    );
-};
+    )
+}

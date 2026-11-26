@@ -1,6 +1,6 @@
-import { use, useEffect, useRef } from 'react'
-import { PermanentOverlayContext } from './PermanentOverlayContext'
-import type { PermanentOverlayRender, PermanentOverlaySlot } from './types'
+import {use, useEffect, useRef} from 'react'
+import {PermanentOverlayContext} from './PermanentOverlayContext'
+import type {PermanentOverlayRender, PermanentOverlaySlot} from './types'
 
 const DEFAULT_SLOT: PermanentOverlaySlot = 'bottom-right'
 
@@ -16,7 +16,7 @@ type PermanentOverlayProps = {
  * Declaratively registers a permanent overlay with the nearest `<OverlayHost />` in the tree.
  * Only one overlay per slot is kept; the latest registered wins.
  */
-export function PermanentOverlay({ id, slot = DEFAULT_SLOT, render, offset, zIndex }: PermanentOverlayProps) {
+export function PermanentOverlay({id, slot = DEFAULT_SLOT, render, offset, zIndex}: PermanentOverlayProps) {
     const ctx = use(PermanentOverlayContext)
     const renderRef = useRef(render)
 

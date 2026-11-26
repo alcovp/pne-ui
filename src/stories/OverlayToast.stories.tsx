@@ -25,7 +25,7 @@ const TONES = [
 // The label of a toast's action reads as the primary text on the soft fill.
 const ACTION_SX = (theme: Theme) => ({color: theme.palette.pne.toast.title})
 
-const Cell = ({caption, children}: {caption: string, children: React.ReactNode}) => (
+const Cell = ({caption, children}: {caption: string; children: React.ReactNode}) => (
     <Box sx={{width: 448}}>
         <Typography sx={{...CAPTION_SX, mb: 0.5}}>{caption}</Typography>
         {children}
@@ -38,24 +38,35 @@ export const Sheet: Story = {
     render: () => (
         <Stack spacing={3} sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
-                A notification of OverlayHost is 448px wide. A toast is filled with the colour of its tone and
-                shows the message as its title, an optional description in the text colour of the tone, an
-                action and the close cross; the 3px bar along the bottom is the time left. The specimens
-                stand in the flow of the page; OverlayHost stacks them at the lower left corner.
+                A notification of OverlayHost is 448px wide. A toast is filled with the colour of its tone and shows the
+                message as its title, an optional description in the text colour of the tone, an action and the close
+                cross; the 3px bar along the bottom is the time left. The specimens stand in the flow of the page;
+                OverlayHost stacks them at the lower left corner.
             </Typography>
             {TONES.map(({tone, title, description}) => (
-                <Stack direction='row' key={tone} spacing={3} sx={{alignItems: 'flex-start', flexWrap: 'wrap', rowGap: 2}}>
+                <Stack
+                    direction='row'
+                    key={tone}
+                    spacing={3}
+                    sx={{alignItems: 'flex-start', flexWrap: 'wrap', rowGap: 2}}
+                >
                     <Cell caption={`${tone} · title`}>
-                        <OverlayToast onClose={noop} tone={tone}>{title}</OverlayToast>
+                        <OverlayToast onClose={noop} tone={tone}>
+                            {title}
+                        </OverlayToast>
                     </Cell>
                     <Cell caption={`${tone} · description, timer`}>
-                        <OverlayToast description={description} onClose={noop} progress={0.64} tone={tone}>{title}</OverlayToast>
+                        <OverlayToast description={description} onClose={noop} progress={0.64} tone={tone}>
+                            {title}
+                        </OverlayToast>
                     </Cell>
                     <Cell caption={`${tone} · action`}>
                         <OverlayToast
-                            action={<Button onClick={noop} variant='soft' size='small' sx={ACTION_SX}>
-                                {tone === 'error' ? 'Повторить' : 'Отменить'}
-                            </Button>}
+                            action={
+                                <Button onClick={noop} variant='soft' size='small' sx={ACTION_SX}>
+                                    {tone === 'error' ? 'Повторить' : 'Отменить'}
+                                </Button>
+                            }
                             description={description}
                             onClose={noop}
                             tone={tone}

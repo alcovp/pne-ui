@@ -15,14 +15,8 @@ const PneCalendarActionBar = (props: PickersActionBarProps) => {
     const attributes = other as Record<string, unknown>
     delete attributes.ownerState
     const translations = usePickerTranslations()
-    const {
-        acceptValueChanges,
-        cancelValueChanges,
-        clearValue,
-        goToNextStep,
-        hasNextStep,
-        setValueToToday,
-    } = usePickerContext()
+    const {acceptValueChanges, cancelValueChanges, clearValue, goToNextStep, hasNextStep, setValueToToday} =
+        usePickerContext()
 
     if (actions == null || actions.length === 0) {
         return null
@@ -31,46 +25,60 @@ const PneCalendarActionBar = (props: PickersActionBarProps) => {
     const button = (action: PickersActionBarAction): React.ReactNode => {
         switch (action) {
             case 'clear':
-                return <Button key={action} onClick={clearValue} variant='text' size='medium'>
-                    {translations.clearButtonLabel}
-                </Button>
-            case 'cancel':
-                return <Button key={action} onClick={cancelValueChanges} variant='text' size='medium'>
-                    {translations.cancelButtonLabel}
-                </Button>
-            case 'today':
-                return <Button key={action} onClick={setValueToToday} variant='text' size='medium'>
-                    {translations.todayButtonLabel}
-                </Button>
-            case 'accept':
-                return <Button variant='contained' key={action} onClick={acceptValueChanges} size='medium'>
-                    {translations.okButtonLabel}
-                </Button>
-            case 'next':
-                return <Button variant='contained' key={action} onClick={goToNextStep} size='medium'>
-                    {translations.nextStepButtonLabel}
-                </Button>
-            case 'nextOrAccept':
-                return hasNextStep
-                    ? <Button variant='contained' key={action} onClick={goToNextStep} size='medium'>
-                        {translations.nextStepButtonLabel}
+                return (
+                    <Button key={action} onClick={clearValue} variant='text' size='medium'>
+                        {translations.clearButtonLabel}
                     </Button>
-                    : <Button variant='contained' key={action} onClick={acceptValueChanges} size='medium'>
+                )
+            case 'cancel':
+                return (
+                    <Button key={action} onClick={cancelValueChanges} variant='text' size='medium'>
+                        {translations.cancelButtonLabel}
+                    </Button>
+                )
+            case 'today':
+                return (
+                    <Button key={action} onClick={setValueToToday} variant='text' size='medium'>
+                        {translations.todayButtonLabel}
+                    </Button>
+                )
+            case 'accept':
+                return (
+                    <Button variant='contained' key={action} onClick={acceptValueChanges} size='medium'>
                         {translations.okButtonLabel}
                     </Button>
+                )
+            case 'next':
+                return (
+                    <Button variant='contained' key={action} onClick={goToNextStep} size='medium'>
+                        {translations.nextStepButtonLabel}
+                    </Button>
+                )
+            case 'nextOrAccept':
+                return hasNextStep ? (
+                    <Button variant='contained' key={action} onClick={goToNextStep} size='medium'>
+                        {translations.nextStepButtonLabel}
+                    </Button>
+                ) : (
+                    <Button variant='contained' key={action} onClick={acceptValueChanges} size='medium'>
+                        {translations.okButtonLabel}
+                    </Button>
+                )
             default:
                 return null
         }
     }
 
-    return <Box
-        {...attributes}
-        className={className}
-        data-pne-calendar-actions='true'
-        sx={[barSx, ...(Array.isArray(sx) ? sx : [sx])]}
-    >
-        {actions.map(button)}
-    </Box>
+    return (
+        <Box
+            {...attributes}
+            className={className}
+            data-pne-calendar-actions='true'
+            sx={[barSx, ...(Array.isArray(sx) ? sx : [sx])]}
+        >
+            {actions.map(button)}
+        </Box>
+    )
 }
 
 export default PneCalendarActionBar

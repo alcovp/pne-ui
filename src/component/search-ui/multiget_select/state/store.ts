@@ -1,18 +1,16 @@
 import {create} from 'zustand'
 import {immer} from 'zustand/middleware/immer'
-import {MultigetSelectStore} from './type';
-import {getMultigetSelectActions} from './actions';
-import {getMultigetSelectInitialState} from './initial';
-import {createContext, use} from 'react';
+import {MultigetSelectStore} from './type'
+import {getMultigetSelectActions} from './actions'
+import {getMultigetSelectInitialState} from './initial'
+import {createContext, use} from 'react'
 
 export const createIsolatedMultigetSelectStore = () => {
     return create<MultigetSelectStore>()(
-        immer(
-            (set, get) => ({
-                ...getMultigetSelectInitialState(),
-                ...getMultigetSelectActions(set, get),
-            })
-        )
+        immer((set, get) => ({
+            ...getMultigetSelectInitialState(),
+            ...getMultigetSelectActions(set, get),
+        })),
     )
 }
 
@@ -20,9 +18,9 @@ type MultigetSelectStoreContextType = ReturnType<typeof createIsolatedMultigetSe
 export const MultigetSelectStoreContext = createContext<MultigetSelectStoreContextType>(null)
 
 export const useMultigetSelectStore = () => {
-    const context = use(MultigetSelectStoreContext);
+    const context = use(MultigetSelectStoreContext)
     if (!context) {
-        throw new Error("useMultigetSelectStore must be used within a StoreProvider")
+        throw new Error('useMultigetSelectStore must be used within a StoreProvider')
     }
     return context
 }

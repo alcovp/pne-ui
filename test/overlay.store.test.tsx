@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { act } from '@testing-library/react'
+import {act} from '@testing-library/react'
 
-import { overlayActions, useOverlayStore } from '../src'
-import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRuntime'
+import {overlayActions, useOverlayStore} from '../src'
+import {resetOverlayRuntimeForTests} from '../src/component/overlay/overlayRuntime'
 
 type UndoActionProps = {
     onClick: () => void
@@ -34,12 +34,14 @@ describe('overlayActions.showUndoSnackbar', () => {
         const state = useOverlayStore.getState()
         expect(id).toBe('undo-1')
         expect(state.snackbars).toHaveLength(1)
-        expect(state.snackbars[0]).toEqual(expect.objectContaining({
-            id: 'undo-1',
-            message: 'Filters cleared',
-            variant: 'info',
-            autoHideMs: 5000,
-        }))
+        expect(state.snackbars[0]).toEqual(
+            expect.objectContaining({
+                id: 'undo-1',
+                message: 'Filters cleared',
+                variant: 'info',
+                autoHideMs: 5000,
+            }),
+        )
 
         expect(React.isValidElement(state.snackbars[0].action)).toBe(true)
         const action = state.snackbars[0].action as React.ReactElement<UndoActionProps>
@@ -79,8 +81,12 @@ describe('overlayActions.showUndoSnackbar', () => {
         })
 
         expect(consoleErrorSpy).toHaveBeenCalledTimes(1)
-        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('overlayActions.showInfo() was called without a mounted <OverlayHost />'))
-        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining('Mount exactly one <OverlayHost /> near the application root.'))
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.stringContaining('overlayActions.showInfo() was called without a mounted <OverlayHost />'),
+        )
+        expect(consoleErrorSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Mount exactly one <OverlayHost /> near the application root.'),
+        )
     })
 
     it('ignores a duplicate explicit id while the first snackbar is pending', () => {
@@ -103,15 +109,12 @@ describe('overlayActions.showUndoSnackbar', () => {
     })
 
     it('enqueues repeated event messages as independent snackbars when no id is provided', () => {
-        overlayActions.showInfo({ message: 'Copied successfully' })
-        overlayActions.showInfo({ message: 'Copied successfully' })
+        overlayActions.showInfo({message: 'Copied successfully'})
+        overlayActions.showInfo({message: 'Copied successfully'})
 
         const snackbars = useOverlayStore.getState().snackbars
         expect(snackbars).toHaveLength(2)
-        expect(snackbars.map(snackbar => snackbar.message)).toEqual([
-            'Copied successfully',
-            'Copied successfully',
-        ])
+        expect(snackbars.map(snackbar => snackbar.message)).toEqual(['Copied successfully', 'Copied successfully'])
         expect(new Set(snackbars.map(snackbar => snackbar.id))).toHaveProperty('size', 2)
     })
 

@@ -50,12 +50,8 @@ describe('PneTableToolbar', () => {
                 />,
             )
             const toolbar = screen.getByRole('group', {name: 'Results controls'})
-            const contextual = container.querySelector(
-                '[data-autotest="table-contextual-controls"]',
-            ) as HTMLElement
-            const persistent = container.querySelector(
-                '[data-autotest="table-persistent-controls"]',
-            ) as HTMLElement
+            const contextual = container.querySelector('[data-autotest="table-contextual-controls"]') as HTMLElement
+            const persistent = container.querySelector('[data-autotest="table-persistent-controls"]') as HTMLElement
 
             expect(constructed).toHaveLength(0)
             expect(Array.from(toolbar.children)).toEqual([contextual, persistent])
@@ -85,10 +81,11 @@ describe('PneTableToolbar', () => {
             />,
         )
 
-        const groups = Array.from(container.querySelectorAll<HTMLElement>(
-            '[data-autotest="table-contextual-controls"],'
-            + '[data-autotest="table-persistent-controls"]',
-        ))
+        const groups = Array.from(
+            container.querySelectorAll<HTMLElement>(
+                '[data-autotest="table-contextual-controls"],' + '[data-autotest="table-persistent-controls"]',
+            ),
+        )
 
         expect(groups).toHaveLength(2)
         groups.forEach(group => {
@@ -102,10 +99,7 @@ describe('PneTableToolbar', () => {
 
     it('omits a group that was not supplied', () => {
         const {container} = render(
-            <PneTableToolbar
-                aria-label='Results controls'
-                persistent={<button type='button'>View</button>}
-            />,
+            <PneTableToolbar aria-label='Results controls' persistent={<button type='button'>View</button>} />,
         )
 
         expect(container.querySelector('[data-autotest="table-contextual-controls"]')).toBeNull()
@@ -113,12 +107,7 @@ describe('PneTableToolbar', () => {
     })
 
     it('renders localized selection summary and actions', () => {
-        render(
-            <PneTableSelectionControls
-                actions={<button type='button'>Clear</button>}
-                summary='3 rows selected'
-            />,
-        )
+        render(<PneTableSelectionControls actions={<button type='button'>Clear</button>} summary='3 rows selected' />)
 
         expect(screen.getByRole('status').textContent).toBe('3 rows selected')
         expect(screen.getByRole('button', {name: 'Clear'})).not.toBeNull()
@@ -126,10 +115,7 @@ describe('PneTableToolbar', () => {
 
     it('draws the summary as a 24px line in the colour of a value and leaves it out while nothing is selected', () => {
         const {rerender} = render(
-            <PneTableSelectionControls
-                actions={<button type='button'>Select all</button>}
-                summary='Selected: 3'
-            />,
+            <PneTableSelectionControls actions={<button type='button'>Select all</button>} summary='Selected: 3' />,
         )
 
         const summary = window.getComputedStyle(screen.getByRole('status'))
@@ -137,7 +123,7 @@ describe('PneTableToolbar', () => {
         expect(summary.fontSize).toBe('14px')
         expect(summary.color).toBe('rgb(44, 49, 54)')
 
-        rerender(<PneTableSelectionControls actions={<button type='button'>Select all</button>}/>)
+        rerender(<PneTableSelectionControls actions={<button type='button'>Select all</button>} />)
 
         expect(screen.queryByRole('status')).toBeNull()
         expect(document.querySelector('[data-autotest="selection-summary"]')).toBeNull()

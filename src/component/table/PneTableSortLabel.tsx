@@ -1,8 +1,8 @@
-import React from 'react';
-import {SxProps, type Theme} from '@mui/material/styles';
-import {tableCellClasses, TableSortLabel, tableSortLabelClasses, TableSortLabelProps} from '@mui/material';
-import {TableSortOptions} from './AbstractTable';
-import {resolvePneSemanticPalette} from '../../createTheme';
+import React from 'react'
+import {SxProps, type Theme} from '@mui/material/styles'
+import {tableCellClasses, TableSortLabel, tableSortLabelClasses, TableSortLabelProps} from '@mui/material'
+import {TableSortOptions} from './AbstractTable'
+import {resolvePneSemanticPalette} from '../../createTheme'
 
 type TableSortLabelPropsOmittingUnion = 'active' | 'direction' | 'onClick'
 
@@ -17,39 +17,47 @@ const PneTableSortLabel = (props: PneTableSortLabelProps) => {
         sortOptions = {
             sortIndex: 1,
             order: 'asc',
-            setSortIndex: () => {throw new Error('Undefined sortOptions.setSortIndex')},
-            setOrder: () => {throw new Error('Undefined sortOptions.setOrder')},
-            onSortChange: () => {throw new Error('Undefined sortOptions.onSortChange')},
+            setSortIndex: () => {
+                throw new Error('Undefined sortOptions.setSortIndex')
+            },
+            setOrder: () => {
+                throw new Error('Undefined sortOptions.setOrder')
+            },
+            onSortChange: () => {
+                throw new Error('Undefined sortOptions.onSortChange')
+            },
         },
         sortIndex,
         children,
         ...rest
-    } = props;
+    } = props
 
     const _sx: SxProps<Theme> = [pneTableSortLabelSx, ...(Array.isArray(sx) ? sx : [sx])]
 
-    return <TableSortLabel
-        active={sortOptions.sortIndex === sortIndex}
-        direction={sortOptions.sortIndex === sortIndex ? sortOptions.order : 'asc'}
-        onClick={() => {
-            if (sortOptions) {
-                sortOptions.setSortIndex(sortIndex);
-                if (sortIndex === sortOptions.sortIndex) {
-                    const order = sortOptions.order === 'asc' ? 'desc' : 'asc';
-                    sortOptions.setOrder(order);
-                    sortOptions.onSortChange(sortIndex, order)
-                } else {
-                    sortOptions.setOrder('asc');
-                    sortOptions.onSortChange(sortIndex, 'asc')
+    return (
+        <TableSortLabel
+            active={sortOptions.sortIndex === sortIndex}
+            direction={sortOptions.sortIndex === sortIndex ? sortOptions.order : 'asc'}
+            onClick={() => {
+                if (sortOptions) {
+                    sortOptions.setSortIndex(sortIndex)
+                    if (sortIndex === sortOptions.sortIndex) {
+                        const order = sortOptions.order === 'asc' ? 'desc' : 'asc'
+                        sortOptions.setOrder(order)
+                        sortOptions.onSortChange(sortIndex, order)
+                    } else {
+                        sortOptions.setOrder('asc')
+                        sortOptions.onSortChange(sortIndex, 'asc')
+                    }
                 }
-            }
-        }}
-        IconComponent={PneSortIcon}
-        sx={_sx}
-        {...rest}
-    >
-        {children}
-    </TableSortLabel>
+            }}
+            IconComponent={PneSortIcon}
+            sx={_sx}
+            {...rest}
+        >
+            {children}
+        </TableSortLabel>
+    )
 }
 
 // UI Kit Sort glyph (Ic/Arrow/Arrow-up-down): the up arrow on the left, the down arrow on the right.
@@ -65,8 +73,14 @@ const PneSortIcon = ({className}: {className?: string}) => (
         viewBox='0 0 24 24'
         width='16'
     >
-        <g className='PneTableSortLabel-up' stroke='currentColor'><path d='M7 20V5'/><path d='M4 7.5 7 4.5l3 3'/></g>
-        <g className='PneTableSortLabel-down' stroke='currentColor'><path d='M17 4v15'/><path d='M14 16.5l3 3 3-3'/></g>
+        <g className='PneTableSortLabel-up' stroke='currentColor'>
+            <path d='M7 20V5' />
+            <path d='M4 7.5 7 4.5l3 3' />
+        </g>
+        <g className='PneTableSortLabel-down' stroke='currentColor'>
+            <path d='M17 4v15' />
+            <path d='M14 16.5l3 3 3-3' />
+        </g>
     </svg>
 )
 
@@ -109,15 +123,15 @@ const pneTableSortLabelSx: SxProps<Theme> = theme => {
             color: sort.active,
             opacity: 1,
         },
-        [`${active}.${tableSortLabelClasses.directionAsc} .PneTableSortLabel-up, `
-            + `${active}.${tableSortLabelClasses.directionDesc} .PneTableSortLabel-down`]: {
+        [`${active}.${tableSortLabelClasses.directionAsc} .PneTableSortLabel-up, ` +
+            `${active}.${tableSortLabelClasses.directionDesc} .PneTableSortLabel-down`]: {
             stroke: sort.active,
         },
-        [`${active}.${tableSortLabelClasses.directionAsc} .PneTableSortLabel-down, `
-            + `${active}.${tableSortLabelClasses.directionDesc} .PneTableSortLabel-up`]: {
+        [`${active}.${tableSortLabelClasses.directionAsc} .PneTableSortLabel-down, ` +
+            `${active}.${tableSortLabelClasses.directionDesc} .PneTableSortLabel-up`]: {
             stroke: sort.inactive,
         },
     }
 }
 
-export default PneTableSortLabel;
+export default PneTableSortLabel

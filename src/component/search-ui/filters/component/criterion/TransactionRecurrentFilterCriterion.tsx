@@ -12,12 +12,14 @@ export const TransactionRecurrentFilterCriterion = () => {
         state => state.setTransactionRecurrentFilterCriterion,
     )
 
-    return <SearchUIEnumChipSelect
-        mode={'select'}
-        value={recurrentFilter}
-        options={TRANSACTION_RECURRENT_FILTERS}
-        onChange={setTransactionRecurrentFilterCriterion}
-        getOptionLabel={value => t(`react.TransactionRecurrentFilterCriterionEnum.${value}`)}
-        ariaLabel={t('react.CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER')}
-    />
+    return (
+        <SearchUIEnumChipSelect
+            mode={'select'}
+            value={recurrentFilter}
+            options={TRANSACTION_RECURRENT_FILTERS}
+            onChange={setTransactionRecurrentFilterCriterion}
+            getOptionLabel={value => t(`react.TransactionRecurrentFilterCriterionEnum.${value}`)}
+            ariaLabel={t('react.CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER')}
+        />
+    )
 }

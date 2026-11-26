@@ -1,10 +1,7 @@
 import * as React from 'react'
 import type {AutocompleteProps} from '@mui/material'
 import type {ChipTypeMap} from '@mui/material/Chip'
-import type {
-    PneAutocompleteKey,
-    PneAutocompleteOption,
-} from '../../common/paynet/dropdown'
+import type {PneAutocompleteKey, PneAutocompleteOption} from '../../common/paynet/dropdown'
 import type {SxProps, Theme} from '@mui/material/styles'
 import type {PneFieldSize} from '../fieldSize'
 import {mergeAriaIds} from '../PneFieldContext'
@@ -65,8 +62,9 @@ type PneAutocompleteManagedHtmlInputProp =
 export type PneAutocompleteHtmlInputProps = Pick<
     React.InputHTMLAttributes<HTMLInputElement>,
     PneAutocompleteSafeAriaAttribute | PneAutocompleteSafeNativeAttribute
-> & PneAutocompleteDataAttributes
-    & Partial<Record<PneAutocompleteManagedHtmlInputProp, never>>
+> &
+    PneAutocompleteDataAttributes &
+    Partial<Record<PneAutocompleteManagedHtmlInputProp, never>>
 
 export interface PneAutocompleteListboxName {
     'aria-label'?: string
@@ -115,10 +113,7 @@ export const resolveAutocompleteListboxName = ({
     }
 
     const ownerLabelId = hasTextFieldLabel ? `${inputId}-label` : controlLabelId
-    const ariaLabelledBy = mergeAriaIds(
-        ownerLabelId,
-        htmlInputProps?.['aria-labelledby'],
-    )
+    const ariaLabelledBy = mergeAriaIds(ownerLabelId, htmlInputProps?.['aria-labelledby'])
 
     return ariaLabelledBy ? {'aria-labelledby': ariaLabelledBy} : {}
 }
@@ -130,55 +125,32 @@ export const withAutocompleteListboxName = <
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
 >(
-        slotProps: MuiAutocompleteProps<
-            T,
-            Multiple,
-            DisableClearable,
-            FreeSolo,
-            ChipComponent
-        >['slotProps'],
-        fallbackName: PneAutocompleteListboxName,
-    ): MuiAutocompleteProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['slotProps'] => {
+    slotProps: MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['slotProps'],
+    fallbackName: PneAutocompleteListboxName,
+): MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['slotProps'] => {
     const {root: _root, ...safeSlotProps} = slotProps ?? {}
     const listbox = safeSlotProps.listbox
     const addName = (resolvedListbox: Record<string, unknown> | undefined) => {
         const listboxProps = resolvedListbox ?? {}
-        const hasExplicitName = Boolean(
-            listboxProps['aria-label'] || listboxProps['aria-labelledby'],
-        )
+        const hasExplicitName = Boolean(listboxProps['aria-label'] || listboxProps['aria-labelledby'])
         const name = hasExplicitName ? {} : fallbackName
         const hasAriaLabel = Boolean(listboxProps['aria-label'] || name['aria-label'])
-        const hasAriaLabelledBy = Boolean(
-            listboxProps['aria-labelledby'] || name['aria-labelledby'],
-        )
+        const hasAriaLabelledBy = Boolean(listboxProps['aria-labelledby'] || name['aria-labelledby'])
 
         return {
             ...listboxProps,
             ...name,
-            ...(!hasAriaLabelledBy || hasAriaLabel
-                ? {'aria-labelledby': undefined}
-                : {}),
+            ...(!hasAriaLabelledBy || hasAriaLabel ? {'aria-labelledby': undefined} : {}),
         }
     }
 
     return {
         ...safeSlotProps,
-        listbox: typeof listbox === 'function'
-            ? ownerState => addName(listbox(ownerState) as Record<string, unknown>)
-            : addName(listbox as Record<string, unknown> | undefined),
-    } as MuiAutocompleteProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >['slotProps']
+        listbox:
+            typeof listbox === 'function'
+                ? ownerState => addName(listbox(ownerState) as Record<string, unknown>)
+                : addName(listbox as Record<string, unknown> | undefined),
+    } as MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['slotProps']
 }
 
 /**
@@ -191,7 +163,7 @@ export const withAutocompleteListboxName = <
 // here: a version typed by them added 1.5M type instantiations and pushed `yarn build` past its heap.
 export const withAutocompleteLook = <S>(
     slotProps: S,
-    look: {ownRows: boolean, size: PneFieldSize, status?: string},
+    look: {ownRows: boolean; size: PneFieldSize; status?: string},
 ): S => {
     const safeSlotProps = (slotProps ?? {}) as Record<string, unknown>
     const {chip, listbox, paper} = safeSlotProps
@@ -206,25 +178,24 @@ export const withAutocompleteLook = <S>(
             sx: [pneAutocompletePaperSx, ...(Array.isArray(consumerSx) ? consumerSx : [consumerSx])],
         }
     }
-    const markRows = (resolvedListbox: unknown) => look.ownRows
-        ? {...resolvedListbox as Record<string, unknown> | undefined, 'data-pne-rows': 'own'}
-        : resolvedListbox
+    const markRows = (resolvedListbox: unknown) =>
+        look.ownRows
+            ? {...(resolvedListbox as Record<string, unknown> | undefined), 'data-pne-rows': 'own'}
+            : resolvedListbox
 
     return {
         ...safeSlotProps,
-        listbox: typeof listbox === 'function'
-            ? (ownerState: unknown) => markRows(listbox(ownerState))
-            : markRows(listbox),
-        paper: typeof paper === 'function'
-            ? (ownerState: unknown) => addLook(paper(ownerState))
-            : addLook(paper),
+        listbox:
+            typeof listbox === 'function' ? (ownerState: unknown) => markRows(listbox(ownerState)) : markRows(listbox),
+        paper: typeof paper === 'function' ? (ownerState: unknown) => addLook(paper(ownerState)) : addLook(paper),
         // MUI spreads the chip slot props as they are, so a function stays the consumer's own.
-        chip: typeof chip === 'function'
-            ? chip
-            : {
-                deleteIcon: React.createElement(PneCloseIcon, {className: 'PneAutocomplete-icon'}),
-                ...chip as Record<string, unknown> | undefined,
-            },
+        chip:
+            typeof chip === 'function'
+                ? chip
+                : {
+                      deleteIcon: React.createElement(PneCloseIcon, {className: 'PneAutocomplete-icon'}),
+                      ...(chip as Record<string, unknown> | undefined),
+                  },
     } as unknown as S
 }
 
@@ -236,9 +207,7 @@ export const sanitizeAutocompleteHtmlInputProps = (
     }
 
     return Object.fromEntries(
-        Object.entries(htmlInputProps).filter(([key]) =>
-            key.startsWith('data-') || safeHtmlInputKeys.has(key),
-        ),
+        Object.entries(htmlInputProps).filter(([key]) => key.startsWith('data-') || safeHtmlInputKeys.has(key)),
     ) as PneAutocompleteHtmlInputProps
 }
 
@@ -258,10 +227,7 @@ export const mergeAutocompleteHtmlInputProps = <T extends object>(
         getString(muiInputRecord['aria-describedby']),
         safeInputProps['aria-describedby'],
     )
-    const ariaLabelledBy = mergeAriaIds(
-        getString(muiInputRecord['aria-labelledby']),
-        safeInputProps['aria-labelledby'],
-    )
+    const ariaLabelledBy = mergeAriaIds(getString(muiInputRecord['aria-labelledby']), safeInputProps['aria-labelledby'])
 
     return {
         ...muiInputRecord,
@@ -278,20 +244,8 @@ export const withoutAutocompleteRootSlot = <
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
 >(
-        slots: MuiAutocompleteProps<
-            T,
-            Multiple,
-            DisableClearable,
-            FreeSolo,
-            ChipComponent
-        >['slots'],
-    ): MuiAutocompleteProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['slots'] => {
+    slots: MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['slots'],
+): MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['slots'] => {
     if (!slots) {
         return undefined
     }
@@ -319,8 +273,7 @@ const getRuntimeOptionKind = (option: unknown): string => {
     return 'object'
 }
 
-const getString = (value: unknown): string | undefined =>
-    typeof value === 'string' ? value : undefined
+const getString = (value: unknown): string | undefined => (typeof value === 'string' ? value : undefined)
 
 const safeHtmlInputKeys = new Set<string>([
     'aria-busy',

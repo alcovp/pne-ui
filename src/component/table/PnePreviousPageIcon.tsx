@@ -1,22 +1,22 @@
-import React from 'react';
+import React from 'react'
 
 /** A 14px glyph of the pagination, drawn in the colour of the button it stands in (UI Kit Button sm). */
 const PnePreviousPageIcon = () => (
     <svg
-        aria-hidden="true"
-        fill="none"
-        height="14"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.5"
-        viewBox="0 0 16 16"
-        width="14"
-        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden='true'
+        fill='none'
+        height='14'
+        stroke='currentColor'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+        strokeWidth='1.5'
+        viewBox='0 0 16 16'
+        width='14'
+        xmlns='http://www.w3.org/2000/svg'
     >
-        <path d="M13.3334 8H2.66669"/>
-        <path d="M6.66669 12L2.66669 8L6.66669 4"/>
+        <path d='M13.3334 8H2.66669' />
+        <path d='M6.66669 12L2.66669 8L6.66669 4' />
     </svg>
 )
 
-export default PnePreviousPageIcon;
+export default PnePreviousPageIcon

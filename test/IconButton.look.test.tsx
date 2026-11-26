@@ -12,12 +12,14 @@ const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 const renderButton = (
     props: IconButtonProps = {},
-    icon: React.ReactNode = <SettingsOutlinedIcon/>,
+    icon: React.ReactNode = <SettingsOutlinedIcon />,
     mode: 'light' | 'dark' = 'light',
 ) => {
     const view = render(
         <PneThemeProvider mode={mode} skin={UI_KIT_SKIN}>
-            <IconButton aria-label='settings' {...props}>{icon}</IconButton>
+            <IconButton aria-label='settings' {...props}>
+                {icon}
+            </IconButton>
         </PneThemeProvider>,
     )
     const root = view.container.querySelector<HTMLElement>('.MuiIconButton-root')!
@@ -77,21 +79,25 @@ describe('MUI IconButton under the pne-ui theme', () => {
     })
 
     it('treats `fontSize="small"`, the usual pair of a small icon button, the same way', () => {
-        const small = renderButton({size: 'small'}, <SettingsOutlinedIcon fontSize='small'/>).icon!
+        const small = renderButton({size: 'small'}, <SettingsOutlinedIcon fontSize='small' />).icon!
 
         expect(ruleValue(small, '&', 'font-size')).toBe('var(--pne-icon-size, 1.25rem)')
     })
 
     it('leaves an icon the page sized itself alone', () => {
-        const large = renderButton({}, <SettingsOutlinedIcon fontSize='large'/>).icon!
-        const own = renderButton({}, <SettingsOutlinedIcon sx={{fontSize: 22}}/>).icon!
+        const large = renderButton({}, <SettingsOutlinedIcon fontSize='large' />).icon!
+        const own = renderButton({}, <SettingsOutlinedIcon sx={{fontSize: 22}} />).icon!
 
         expect(ruleValue(large, '&', 'font-size')).toBe('2.1875rem')
         expect(ruleValue(own, '&', 'font-size')).toBe('22px')
     })
 
     it('keeps 24px for an icon that stands outside an icon button', () => {
-        const view = render(<PneThemeProvider skin={UI_KIT_SKIN}><SettingsOutlinedIcon/></PneThemeProvider>)
+        const view = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <SettingsOutlinedIcon />
+            </PneThemeProvider>,
+        )
         const icon = view.container.querySelector<HTMLElement>('.MuiSvgIcon-root')!
 
         // No button above names a size, so the fallback of the property applies.
@@ -137,7 +143,11 @@ describe('MUI IconButton under the pne-ui theme', () => {
             height: 26px;
         `
         const bySx = renderButton({sx: {height: '40px', width: '40px'}}).root
-        const view = render(<PneThemeProvider skin={UI_KIT_SKIN}><Styled aria-label='node'/></PneThemeProvider>)
+        const view = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <Styled aria-label='node' />
+            </PneThemeProvider>,
+        )
         const byStyled = view.container.querySelector<HTMLElement>('.MuiIconButton-root')!
 
         expect(ruleValue(bySx, '&', 'width')).toBe('40px')
@@ -164,7 +174,7 @@ describe('MUI IconButton under the pne-ui theme', () => {
         const themed = renderButton({size: 'small'}).root
         const bare = render(
             <IconButton aria-label='row action' size='small' sx={pneIconActionSx('small')}>
-                <SettingsOutlinedIcon/>
+                <SettingsOutlinedIcon />
             </IconButton>,
         ).container.querySelector<HTMLElement>('.MuiIconButton-root')!
 

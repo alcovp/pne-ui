@@ -57,11 +57,7 @@ describe('MultigetSelect external actions', () => {
                     onCancel={onCancel}
                     onSave={onSave}
                 />
-                <MultigetSelectActions
-                    multigetCriterion={criterion}
-                    onCancel={onCancel}
-                    onSave={onSave}
-                />
+                <MultigetSelectActions multigetCriterion={criterion} onCancel={onCancel} onSave={onSave} />
             </MultigetSelectStoreProvider>,
         )
 
@@ -79,10 +75,13 @@ describe('MultigetSelect external actions', () => {
     })
 
     it('shows skeleton rows in the available list until its first page comes', async () => {
-        let resolvePage!: (entities: {id: number, displayName: string}[]) => void
-        const getMatchLinkedItems = jest.fn(() => new Promise<{id: number, displayName: string}[]>(resolve => {
-            resolvePage = resolve
-        }))
+        let resolvePage!: (entities: {id: number; displayName: string}[]) => void
+        const getMatchLinkedItems = jest.fn(
+            () =>
+                new Promise<{id: number; displayName: string}[]>(resolve => {
+                    resolvePage = resolve
+                }),
+        )
         const {container} = render(
             <SearchUIProvider defaults={{getMatchLinkedItems}}>
                 <MultigetSelectStoreProvider>
@@ -103,7 +102,10 @@ describe('MultigetSelect external actions', () => {
         expect(rows()).toHaveLength(0)
         expect(container.querySelector('[aria-busy]')?.getAttribute('aria-busy')).toBe('true')
 
-        resolvePage([{id: 21, displayName: 'Processor 21'}, {id: 22, displayName: 'Processor 22'}])
+        resolvePage([
+            {id: 21, displayName: 'Processor 21'},
+            {id: 22, displayName: 'Processor 22'},
+        ])
 
         await waitFor(() => {
             expect(rows()).toHaveLength(2)

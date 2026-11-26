@@ -1,5 +1,5 @@
-import type { Dayjs } from 'dayjs'
-import { dayjs } from './dayjsSetup'
+import type {Dayjs} from 'dayjs'
+import {dayjs} from './dayjsSetup'
 
 export const SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE = 'Europe/Moscow'
 export const SEARCH_UI_DATE_ONLY_LOCAL_TIME_ZONE = 'local'
@@ -53,19 +53,16 @@ const DATE_INDEPENDENT_BOUNDS: Readonly<Record<SearchUIDateRangeBoundary, string
 }
 
 /** Midnight of the bound day in the given timezone, or in the browser's own when it is null. */
-export const getDateIndependentBound = (
-    boundary: SearchUIDateRangeBoundary,
-    timeZone: string | null,
-): Date => applyDateOnlyTimeZone(dayjs(DATE_INDEPENDENT_BOUNDS[boundary]), timeZone).toDate()
+export const getDateIndependentBound = (boundary: SearchUIDateRangeBoundary, timeZone: string | null): Date =>
+    applyDateOnlyTimeZone(dayjs(DATE_INDEPENDENT_BOUNDS[boundary]), timeZone).toDate()
 
 /**
  * An exact range keeps a typed date that is unfinished or does not exist (31.02) as an invalid
  * Date, so validation can report it and no search runs with it. Anything that is not a Date, such
  * as a string that slipped in with a template, counts as invalid instead of throwing.
  */
-export const isValidSearchUIDate = (date: Date | null): date is Date => (
+export const isValidSearchUIDate = (date: Date | null): date is Date =>
     date instanceof Date && !Number.isNaN(date.getTime())
-)
 
 /**
  * A template comes back from the server as JSON, so its dates are strings (Paynet writes them as
@@ -103,10 +100,7 @@ export const createDateOnlySearchDate = (date: Date, timeZone: string | null): D
         return dayjs(date).startOf('day').toDate()
     }
 
-    return dayjs(date)
-        .tz(timeZone)
-        .startOf('day')
-        .toDate()
+    return dayjs(date).tz(timeZone).startOf('day').toDate()
 }
 
 /**
@@ -115,17 +109,10 @@ export const createDateOnlySearchDate = (date: Date, timeZone: string | null): D
  */
 export const createDateOnlySearchEndExclusiveDate = (date: Date, timeZone: string | null): Date => {
     if (!timeZone) {
-        return dayjs(date)
-            .startOf('day')
-            .add(1, 'day')
-            .toDate()
+        return dayjs(date).startOf('day').add(1, 'day').toDate()
     }
 
-    return dayjs(date)
-        .tz(timeZone)
-        .startOf('day')
-        .add(1, 'day')
-        .toDate()
+    return dayjs(date).tz(timeZone).startOf('day').add(1, 'day').toDate()
 }
 
 /**

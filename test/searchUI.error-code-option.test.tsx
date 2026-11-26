@@ -22,14 +22,16 @@ const openErrorCode = (input: HTMLInputElement) => {
 
 describe('formatErrorCodeIdentifiers', () => {
     it('keeps the type, the id and the external code, not the repeated message', () => {
-        expect(formatErrorCodeIdentifiers(`EXTERNAL:25323 ${MESSAGE} 700.300.400 `, MESSAGE))
-            .toBe('EXTERNAL · 25323 · 700.300.400')
+        expect(formatErrorCodeIdentifiers(`EXTERNAL:25323 ${MESSAGE} 700.300.400 `, MESSAGE)).toBe(
+            'EXTERNAL · 25323 · 700.300.400',
+        )
         expect(formatErrorCodeIdentifiers('EXTERNAL:7 Timeout', 'Timeout')).toBe('EXTERNAL · 7')
     })
 
     it('keeps a tail that is not the message', () => {
-        expect(formatErrorCodeIdentifiers('EXTERNAL:40013 Custom text 1013', 'Another message'))
-            .toBe('EXTERNAL · 40013 · Custom text 1013')
+        expect(formatErrorCodeIdentifiers('EXTERNAL:40013 Custom text 1013', 'Another message')).toBe(
+            'EXTERNAL · 40013 · Custom text 1013',
+        )
     })
 
     it('shows a description of another shape as it is and hides an empty one', () => {
@@ -44,8 +46,8 @@ describe('Error code options', () => {
         const utils = render(
             <SearchUIProvider defaults={{getSearchTemplates: () => new Promise(() => undefined), searchErrorCodes}}>
                 <SearchUIFilters
-                    autoTestId="error-code-rows"
-                    settingsContextName="error-code-rows-context"
+                    autoTestId='error-code-rows'
+                    settingsContextName='error-code-rows-context'
                     possibleCriteria={[CriterionTypeEnum.ERROR_CODE]}
                     predefinedCriteria={[CriterionTypeEnum.ERROR_CODE]}
                     initialSearchConditions={{}}

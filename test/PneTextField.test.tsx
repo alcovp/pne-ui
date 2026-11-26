@@ -11,14 +11,12 @@ const getDescriptionIds = (control: HTMLElement): string[] => {
 
 describe('PneTextField', () => {
     it('merges external help with its own helper text when the input id is generated', () => {
-        render(<>
-            <span id='external-help'>External help</span>
-            <PneTextField
-                aria-describedby='external-help'
-                helperText='Field helper'
-                label='Report name'
-            />
-        </>)
+        render(
+            <>
+                <span id='external-help'>External help</span>
+                <PneTextField aria-describedby='external-help' helperText='Field helper' label='Report name' />
+            </>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const helperText = screen.getByText('Field helper')
@@ -29,28 +27,30 @@ describe('PneTextField', () => {
     })
 
     it('keeps an explicit input id while merging object input and htmlInput slot descriptions', () => {
-        render(<>
-            <span id='external-help'>External help</span>
-            <span id='input-slot-help'>Input slot help</span>
-            <span id='html-input-slot-help'>HTML input slot help</span>
-            <PneTextField
-                aria-describedby='external-help'
-                helperText='Field helper'
-                id='report-name'
-                label='Report name'
-                slotProps={{
-                    input: {
-                        'aria-describedby': 'input-slot-help',
-                        className: 'preserved-input-slot-class',
-                    },
-                    htmlInput: {
-                        'aria-describedby': 'html-input-slot-help',
-                        id: 'ignored-html-input-id',
-                        title: 'Preserved HTML input slot title',
-                    },
-                }}
-            />
-        </>)
+        render(
+            <>
+                <span id='external-help'>External help</span>
+                <span id='input-slot-help'>Input slot help</span>
+                <span id='html-input-slot-help'>HTML input slot help</span>
+                <PneTextField
+                    aria-describedby='external-help'
+                    helperText='Field helper'
+                    id='report-name'
+                    label='Report name'
+                    slotProps={{
+                        input: {
+                            'aria-describedby': 'input-slot-help',
+                            className: 'preserved-input-slot-class',
+                        },
+                        htmlInput: {
+                            'aria-describedby': 'html-input-slot-help',
+                            id: 'ignored-html-input-id',
+                            title: 'Preserved HTML input slot title',
+                        },
+                    }}
+                />
+            </>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const helperText = screen.getByText('Field helper')
@@ -74,15 +74,17 @@ describe('PneTextField', () => {
             className: 'preserved-input-slot-class',
         }))
 
-        render(<>
-            <span id='input-slot-help'>Input slot help</span>
-            <PneTextField
-                helperText='Field helper'
-                id='report-name'
-                label='Report name'
-                slotProps={{input: inputSlot}}
-            />
-        </>)
+        render(
+            <>
+                <span id='input-slot-help'>Input slot help</span>
+                <PneTextField
+                    helperText='Field helper'
+                    id='report-name'
+                    label='Report name'
+                    slotProps={{input: inputSlot}}
+                />
+            </>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const helperText = screen.getByText('Field helper')
@@ -100,15 +102,17 @@ describe('PneTextField', () => {
             title: 'Preserved HTML input slot title',
         }))
 
-        render(<>
-            <span id='html-input-slot-help'>HTML input slot help</span>
-            <PneTextField
-                helperText='Field helper'
-                id='report-name'
-                label='Report name'
-                slotProps={{htmlInput: htmlInputSlot}}
-            />
-        </>)
+        render(
+            <>
+                <span id='html-input-slot-help'>HTML input slot help</span>
+                <PneTextField
+                    helperText='Field helper'
+                    id='report-name'
+                    label='Report name'
+                    slotProps={{htmlInput: htmlInputSlot}}
+                />
+            </>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const helperText = screen.getByText('Field helper')
@@ -132,19 +136,16 @@ describe('PneTextField', () => {
             title: 'Preserved HTML input slot title',
         }))
 
-        render(<PneField
-            disabled
-            helperText='Outer helper'
-            id='report-name-field'
-            label='Report name'
-        >
-            <PneTextField
-                slotProps={{
-                    input: inputSlot,
-                    htmlInput: htmlInputSlot,
-                }}
-            />
-        </PneField>)
+        render(
+            <PneField disabled helperText='Outer helper' id='report-name-field' label='Report name'>
+                <PneTextField
+                    slotProps={{
+                        input: inputSlot,
+                        htmlInput: htmlInputSlot,
+                    }}
+                />
+            </PneField>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const helperText = screen.getByText('Outer helper')
@@ -160,9 +161,11 @@ describe('PneTextField', () => {
     })
 
     it('keeps PneField required semantics when native required is explicitly disabled', () => {
-        render(<PneField label='Report name' required>
-            <PneTextField required={false}/>
-        </PneField>)
+        render(
+            <PneField label='Report name' required>
+                <PneTextField required={false} />
+            </PneField>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
 
@@ -175,35 +178,38 @@ describe('PneTextField', () => {
         const htmlInputSlot = jest.fn(() => ({title: 'Preserved HTML input slot title'}))
         const selectSlot = jest.fn(() => ({title: 'Unused select slot'}))
 
-        render(<PneTextField
-            label='Report name'
-            slotProps={{
-                formHelperText: formHelperTextSlot,
-                htmlInput: htmlInputSlot,
-                select: selectSlot,
-            }}
-        />)
+        render(
+            <PneTextField
+                label='Report name'
+                slotProps={{
+                    formHelperText: formHelperTextSlot,
+                    htmlInput: htmlInputSlot,
+                    select: selectSlot,
+                }}
+            />,
+        )
 
-        expect(screen.getByRole('textbox', {name: 'Report name'}).title)
-            .toBe('Preserved HTML input slot title')
+        expect(screen.getByRole('textbox', {name: 'Report name'}).title).toBe('Preserved HTML input slot title')
         expect(formHelperTextSlot).toHaveBeenCalledTimes(1)
         expect(htmlInputSlot).toHaveBeenCalledTimes(1)
         expect(selectSlot).toHaveBeenCalledTimes(1)
     })
 
     it('uses and preserves an object formHelperText slot id', () => {
-        render(<PneTextField
-            helperText='Field helper'
-            id='report-name'
-            label='Report name'
-            slotProps={{
-                formHelperText: {
-                    className: 'preserved-helper-slot-class',
-                    id: 'custom-helper',
-                    title: 'Preserved helper slot title',
-                },
-            }}
-        />)
+        render(
+            <PneTextField
+                helperText='Field helper'
+                id='report-name'
+                label='Report name'
+                slotProps={{
+                    formHelperText: {
+                        className: 'preserved-helper-slot-class',
+                        id: 'custom-helper',
+                        title: 'Preserved helper slot title',
+                    },
+                }}
+            />,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const helperText = screen.getByText('Field helper')
@@ -221,12 +227,14 @@ describe('PneTextField', () => {
             title: 'Preserved helper slot title',
         }))
 
-        render(<PneTextField
-            helperText='Field helper'
-            id='report-name'
-            label='Report name'
-            slotProps={{formHelperText: formHelperTextSlot}}
-        />)
+        render(
+            <PneTextField
+                helperText='Field helper'
+                id='report-name'
+                label='Report name'
+                slotProps={{formHelperText: formHelperTextSlot}}
+            />,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const helperText = screen.getByText('Field helper')
@@ -243,12 +251,7 @@ describe('PneTextField', () => {
         const rootRef = React.createRef<HTMLDivElement>()
         const inputRef = React.createRef<HTMLInputElement>()
 
-        render(<PneTextField
-            data-autotest='report-name'
-            inputRef={inputRef}
-            label='Report name'
-            ref={rootRef}
-        />)
+        render(<PneTextField data-autotest='report-name' inputRef={inputRef} label='Report name' ref={rootRef} />)
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
 
@@ -271,9 +274,11 @@ describe('PneTextField', () => {
             },
         }
 
-        render(<ThemeProvider theme={theme}>
-            <PneTextField label='Report name'/>
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <PneTextField label='Report name' />
+            </ThemeProvider>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const root = input.closest('.MuiTextField-root')
@@ -298,16 +303,13 @@ describe('PneTextField', () => {
             },
         }
 
-        render(<ThemeProvider theme={theme}>
-            <PneTextField
-                className='consumer-text-field'
-                label='Report name'
-                style={{color: 'rgb(0, 0, 255)'}}
-            />
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <PneTextField className='consumer-text-field' label='Report name' style={{color: 'rgb(0, 0, 255)'}} />
+            </ThemeProvider>,
+        )
 
-        const root = screen.getByRole('textbox', {name: 'Report name'})
-            .closest('.MuiTextField-root') as HTMLElement
+        const root = screen.getByRole('textbox', {name: 'Report name'}).closest('.MuiTextField-root') as HTMLElement
 
         expect(root.classList.contains('theme-text-field')).toBe(true)
         expect(root.classList.contains('consumer-text-field')).toBe(true)
@@ -316,16 +318,18 @@ describe('PneTextField', () => {
     })
 
     it('associates generated helper text and external help with a multiline textarea', () => {
-        render(<>
-            <span id='external-help'>External help</span>
-            <PneTextField
-                aria-describedby='external-help'
-                helperText='Field helper'
-                label='Notes'
-                multiline
-                minRows={2}
-            />
-        </>)
+        render(
+            <>
+                <span id='external-help'>External help</span>
+                <PneTextField
+                    aria-describedby='external-help'
+                    helperText='Field helper'
+                    label='Notes'
+                    multiline
+                    minRows={2}
+                />
+            </>,
+        )
 
         const textarea = screen.getByRole('textbox', {name: 'Notes'})
         const helperText = screen.getByText('Field helper')
@@ -336,19 +340,21 @@ describe('PneTextField', () => {
     })
 
     it('associates generated helper text and external help with a select', () => {
-        render(<>
-            <span id='external-help'>External help</span>
-            <PneTextField
-                aria-describedby='external-help'
-                defaultValue='email'
-                helperText='Field helper'
-                label='Delivery method'
-                select
-            >
-                <MenuItem value='email'>Email</MenuItem>
-                <MenuItem value='sftp'>SFTP</MenuItem>
-            </PneTextField>
-        </>)
+        render(
+            <>
+                <span id='external-help'>External help</span>
+                <PneTextField
+                    aria-describedby='external-help'
+                    defaultValue='email'
+                    helperText='Field helper'
+                    label='Delivery method'
+                    select
+                >
+                    <MenuItem value='email'>Email</MenuItem>
+                    <MenuItem value='sftp'>SFTP</MenuItem>
+                </PneTextField>
+            </>,
+        )
 
         const select = screen.getByRole('combobox', {name: 'Delivery method'})
         const helperText = screen.getByText('Field helper')
@@ -358,39 +364,35 @@ describe('PneTextField', () => {
     })
 
     it('labels a select from PneField and preserves object SelectDisplayProps', () => {
-        const {container} = render(<>
-            <span id='select-slot-help'>Select slot help</span>
-            <span id='select-display-help'>Select display help</span>
-            <PneField
-                disabled
-                helperText='Outer helper'
-                id='delivery-field'
-                label='Delivery method'
-                required
-            >
-                <PneTextField
-                    defaultValue='email'
-                    select
-                    slotProps={{
-                        select: {
-                            'aria-describedby': 'select-slot-help',
-                            className: 'preserved-select-slot-class',
-                            disabled: false,
-                            id: 'ignored-select-root-id',
-                            SelectDisplayProps: {
-                                'aria-describedby': 'select-display-help',
-                                'aria-disabled': false,
-                                id: 'ignored-select-display-id',
-                                title: 'Preserved select display title',
+        const {container} = render(
+            <>
+                <span id='select-slot-help'>Select slot help</span>
+                <span id='select-display-help'>Select display help</span>
+                <PneField disabled helperText='Outer helper' id='delivery-field' label='Delivery method' required>
+                    <PneTextField
+                        defaultValue='email'
+                        select
+                        slotProps={{
+                            select: {
+                                'aria-describedby': 'select-slot-help',
+                                className: 'preserved-select-slot-class',
+                                disabled: false,
+                                id: 'ignored-select-root-id',
+                                SelectDisplayProps: {
+                                    'aria-describedby': 'select-display-help',
+                                    'aria-disabled': false,
+                                    id: 'ignored-select-display-id',
+                                    title: 'Preserved select display title',
+                                },
                             },
-                        },
-                    }}
-                >
-                    <MenuItem value='email'>Email</MenuItem>
-                    <MenuItem value='sftp'>SFTP</MenuItem>
-                </PneTextField>
-            </PneField>
-        </>)
+                        }}
+                    >
+                        <MenuItem value='email'>Email</MenuItem>
+                        <MenuItem value='sftp'>SFTP</MenuItem>
+                    </PneTextField>
+                </PneField>
+            </>,
+        )
 
         const select = screen.getByRole('combobox', {name: 'Delivery method'})
         const helperText = screen.getByText('Outer helper')
@@ -400,59 +402,57 @@ describe('PneTextField', () => {
         expect(select.getAttribute('aria-disabled')).toBe('true')
         expect(select.id).toBe('delivery-field-control')
         expect(select.title).toBe('Preserved select display title')
-        expect(getDescriptionIds(select)).toEqual([
-            'select-slot-help',
-            'select-display-help',
-            helperText.id,
-        ])
-        expect(select.closest('.MuiInputBase-root')?.classList.contains('preserved-select-slot-class'))
-            .toBe(true)
+        expect(getDescriptionIds(select)).toEqual(['select-slot-help', 'select-display-help', helperText.id])
+        expect(select.closest('.MuiInputBase-root')?.classList.contains('preserved-select-slot-class')).toBe(true)
         expect(hiddenInput).not.toBeNull()
         expect((hiddenInput as HTMLInputElement).disabled).toBe(true)
         expect(hiddenInput?.hasAttribute('required')).toBe(false)
     })
 
     it('labels a select from PneField without requiring other accessibility props', () => {
-        render(<PneField id='delivery-field' label='Delivery method'>
-            <PneTextField defaultValue='email' select>
-                <MenuItem value='email'>Email</MenuItem>
-                <MenuItem value='sftp'>SFTP</MenuItem>
-            </PneTextField>
-        </PneField>)
+        render(
+            <PneField id='delivery-field' label='Delivery method'>
+                <PneTextField defaultValue='email' select>
+                    <MenuItem value='email'>Email</MenuItem>
+                    <MenuItem value='sftp'>SFTP</MenuItem>
+                </PneTextField>
+            </PneField>,
+        )
 
-        expect(screen.getByRole('combobox', {name: 'Delivery method'}).id)
-            .toBe('delivery-field-control')
+        expect(screen.getByRole('combobox', {name: 'Delivery method'}).id).toBe('delivery-field-control')
     })
 
     it('lets explicit top-level and display names override the PneField label for a select', () => {
-        render(<>
-            <PneField id='top-select-field' label='Top field name'>
-                <PneTextField
-                    aria-label='Explicit top-level select name'
-                    aria-labelledby='ignored-top-select-label'
-                    defaultValue='email'
-                    select
-                >
-                    <MenuItem value='email'>Email</MenuItem>
-                </PneTextField>
-            </PneField>
-            <PneField id='display-select-field' label='Display field name'>
-                <PneTextField
-                    defaultValue='sftp'
-                    select
-                    slotProps={{
-                        select: {
-                            SelectDisplayProps: {
-                                'aria-label': 'Explicit display select name',
-                                'aria-labelledby': 'ignored-display-select-label',
+        render(
+            <>
+                <PneField id='top-select-field' label='Top field name'>
+                    <PneTextField
+                        aria-label='Explicit top-level select name'
+                        aria-labelledby='ignored-top-select-label'
+                        defaultValue='email'
+                        select
+                    >
+                        <MenuItem value='email'>Email</MenuItem>
+                    </PneTextField>
+                </PneField>
+                <PneField id='display-select-field' label='Display field name'>
+                    <PneTextField
+                        defaultValue='sftp'
+                        select
+                        slotProps={{
+                            select: {
+                                SelectDisplayProps: {
+                                    'aria-label': 'Explicit display select name',
+                                    'aria-labelledby': 'ignored-display-select-label',
+                                },
                             },
-                        },
-                    }}
-                >
-                    <MenuItem value='sftp'>SFTP</MenuItem>
-                </PneTextField>
-            </PneField>
-        </>)
+                        }}
+                    >
+                        <MenuItem value='sftp'>SFTP</MenuItem>
+                    </PneTextField>
+                </PneField>
+            </>,
+        )
 
         const topNamed = screen.getByRole('combobox', {name: 'Explicit top-level select name'})
         const displayNamed = screen.getByRole('combobox', {name: 'Explicit display select name'})
@@ -478,24 +478,17 @@ describe('PneTextField', () => {
             title: 'Preserved select root title',
         }))
 
-        render(<>
-            <span id='select-display-help'>Select display help</span>
-            <PneField
-                helperText='Outer helper'
-                id='delivery-field'
-                label='Delivery method'
-                required
-            >
-                <PneTextField
-                    defaultValue='email'
-                    select
-                    slotProps={{select: selectSlot}}
-                >
-                    <MenuItem value='email'>Email</MenuItem>
-                    <MenuItem value='sftp'>SFTP</MenuItem>
-                </PneTextField>
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='select-display-help'>Select display help</span>
+                <PneField helperText='Outer helper' id='delivery-field' label='Delivery method' required>
+                    <PneTextField defaultValue='email' select slotProps={{select: selectSlot}}>
+                        <MenuItem value='email'>Email</MenuItem>
+                        <MenuItem value='sftp'>SFTP</MenuItem>
+                    </PneTextField>
+                </PneField>
+            </>,
+        )
 
         const select = screen.getByRole('combobox', {name: 'Delivery method'})
         const helperText = screen.getByText('Outer helper')
@@ -507,8 +500,7 @@ describe('PneTextField', () => {
         expect(select.getAttribute('tabindex')).toBe('2')
         expect(select.title).toBe('Preserved functional select display title')
         expect(getDescriptionIds(select)).toEqual(['select-display-help', helperText.id])
-        expect(select.closest('.MuiInputBase-root')?.getAttribute('title'))
-            .toBe('Preserved select root title')
+        expect(select.closest('.MuiInputBase-root')?.getAttribute('title')).toBe('Preserved select root title')
     })
 
     it('merges functional select label references and keeps field error authoritative', () => {
@@ -522,34 +514,36 @@ describe('PneTextField', () => {
             },
         }))
 
-        render(<>
-            <span id='top-select-label'>Top name</span>
-            <span id='input-select-label'>Input name</span>
-            <span id='html-select-label'>HTML input name</span>
-            <span id='select-slot-label'>Select slot name</span>
-            <span id='select-display-label'>Select display name</span>
-            <PneField disabled error id='merged-select-field' label='Field name'>
-                <PneTextField
-                    aria-labelledby='top-select-label'
-                    defaultValue='email'
-                    select
-                    slotProps={{
-                        htmlInput: () => ({
-                            'aria-disabled': false,
-                            'aria-labelledby': 'html-select-label',
-                            disabled: false,
-                        }),
-                        input: () => ({
-                            'aria-labelledby': 'input-select-label',
-                            disabled: false,
-                        }),
-                        select: selectSlot,
-                    }}
-                >
-                    <MenuItem value='email'>Email</MenuItem>
-                </PneTextField>
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='top-select-label'>Top name</span>
+                <span id='input-select-label'>Input name</span>
+                <span id='html-select-label'>HTML input name</span>
+                <span id='select-slot-label'>Select slot name</span>
+                <span id='select-display-label'>Select display name</span>
+                <PneField disabled error id='merged-select-field' label='Field name'>
+                    <PneTextField
+                        aria-labelledby='top-select-label'
+                        defaultValue='email'
+                        select
+                        slotProps={{
+                            htmlInput: () => ({
+                                'aria-disabled': false,
+                                'aria-labelledby': 'html-select-label',
+                                disabled: false,
+                            }),
+                            input: () => ({
+                                'aria-labelledby': 'input-select-label',
+                                disabled: false,
+                            }),
+                            select: selectSlot,
+                        }}
+                    >
+                        <MenuItem value='email'>Email</MenuItem>
+                    </PneTextField>
+                </PneField>
+            </>,
+        )
 
         const select = screen.getByRole('combobox', {
             name: 'Field name Top name Input name HTML input name Select slot name Select display name',
@@ -569,25 +563,21 @@ describe('PneTextField', () => {
     })
 
     it('labels a native select from PneField without enabling native validation', () => {
-        render(<PneField
-            disabled
-            helperText='Outer helper'
-            id='delivery-field'
-            label='Delivery method'
-            required
-        >
-            <PneTextField
-                defaultValue='email'
-                select
-                slotProps={{
-                    htmlInput: {disabled: false, id: 'ignored-native-html-id'},
-                    select: {disabled: false, id: 'ignored-native-select-id', native: true},
-                }}
-            >
-                <option value='email'>Email</option>
-                <option value='sftp'>SFTP</option>
-            </PneTextField>
-        </PneField>)
+        render(
+            <PneField disabled helperText='Outer helper' id='delivery-field' label='Delivery method' required>
+                <PneTextField
+                    defaultValue='email'
+                    select
+                    slotProps={{
+                        htmlInput: {disabled: false, id: 'ignored-native-html-id'},
+                        select: {disabled: false, id: 'ignored-native-select-id', native: true},
+                    }}
+                >
+                    <option value='email'>Email</option>
+                    <option value='sftp'>SFTP</option>
+                </PneTextField>
+            </PneField>,
+        )
 
         const select = screen.getByRole('combobox', {name: 'Delivery method'})
         const helperText = screen.getByText('Outer helper')
@@ -622,18 +612,17 @@ describe('PneTextField', () => {
             },
         }
 
-        const {container} = render(<ThemeProvider theme={theme}>
-            <span id='external-help'>External help</span>
-            <PneField controlId='theme-delivery-control' label='Delivery method'>
-                <PneTextField
-                    aria-describedby='external-help'
-                    defaultValue='email'
-                >
-                    <MenuItem value='email'>Email</MenuItem>
-                    <MenuItem value='sftp'>SFTP</MenuItem>
-                </PneTextField>
-            </PneField>
-        </ThemeProvider>)
+        const {container} = render(
+            <ThemeProvider theme={theme}>
+                <span id='external-help'>External help</span>
+                <PneField controlId='theme-delivery-control' label='Delivery method'>
+                    <PneTextField aria-describedby='external-help' defaultValue='email'>
+                        <MenuItem value='email'>Email</MenuItem>
+                        <MenuItem value='sftp'>SFTP</MenuItem>
+                    </PneTextField>
+                </PneField>
+            </ThemeProvider>,
+        )
 
         const select = screen.getByRole('combobox', {name: 'Delivery method'})
         const helperText = screen.getByText('Theme helper')
@@ -667,11 +656,13 @@ describe('PneTextField', () => {
             },
         }
 
-        render(<ThemeProvider theme={theme}>
-            <PneField disabled error fullWidth id='report-field' label='Report name'>
-                <PneTextField/>
-            </PneField>
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <PneField disabled error fullWidth id='report-field' label='Report name'>
+                    <PneTextField />
+                </PneField>
+            </ThemeProvider>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report name'})
         const root = input.closest('.MuiTextField-root')
@@ -684,26 +675,28 @@ describe('PneTextField', () => {
     })
 
     it('merges every object-slot label reference and keeps field error authoritative', () => {
-        render(<>
-            <span id='top-level-label'>Top-level context</span>
-            <span id='input-slot-label'>Input context</span>
-            <span id='html-input-label'>HTML input context</span>
-            <PneField error id='report-field' label='Report name'>
-                <PneTextField
-                    aria-labelledby='top-level-label'
-                    slotProps={{
-                        htmlInput: {
-                            'aria-invalid': false,
-                            'aria-labelledby': 'html-input-label',
-                        },
-                        input: {
-                            'aria-invalid': false,
-                            'aria-labelledby': 'input-slot-label',
-                        },
-                    }}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='top-level-label'>Top-level context</span>
+                <span id='input-slot-label'>Input context</span>
+                <span id='html-input-label'>HTML input context</span>
+                <PneField error id='report-field' label='Report name'>
+                    <PneTextField
+                        aria-labelledby='top-level-label'
+                        slotProps={{
+                            htmlInput: {
+                                'aria-invalid': false,
+                                'aria-labelledby': 'html-input-label',
+                            },
+                            input: {
+                                'aria-invalid': false,
+                                'aria-labelledby': 'input-slot-label',
+                            },
+                        }}
+                    />
+                </PneField>
+            </>,
+        )
 
         const input = screen.getByRole('textbox', {
             name: 'Report name Top-level context Input context HTML input context',
@@ -719,24 +712,26 @@ describe('PneTextField', () => {
     })
 
     it('applies the same label and invalid merge to functional slots', () => {
-        render(<>
-            <span id='functional-input-label'>Functional input context</span>
-            <span id='functional-html-label'>Functional HTML context</span>
-            <PneField error id='functional-field' label='Functional field'>
-                <PneTextField
-                    slotProps={{
-                        htmlInput: () => ({
-                            'aria-invalid': false,
-                            'aria-labelledby': 'functional-html-label',
-                        }),
-                        input: () => ({
-                            'aria-invalid': false,
-                            'aria-labelledby': 'functional-input-label',
-                        }),
-                    }}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='functional-input-label'>Functional input context</span>
+                <span id='functional-html-label'>Functional HTML context</span>
+                <PneField error id='functional-field' label='Functional field'>
+                    <PneTextField
+                        slotProps={{
+                            htmlInput: () => ({
+                                'aria-invalid': false,
+                                'aria-labelledby': 'functional-html-label',
+                            }),
+                            input: () => ({
+                                'aria-invalid': false,
+                                'aria-labelledby': 'functional-input-label',
+                            }),
+                        }}
+                    />
+                </PneField>
+            </>,
+        )
 
         const input = screen.getByRole('textbox', {
             name: 'Functional field Functional input context Functional HTML context',
@@ -751,16 +746,18 @@ describe('PneTextField', () => {
     })
 
     it('keeps an explicit native aria-label as the naming override', () => {
-        render(<PneField id='account-field' label='Account'>
-            <PneTextField
-                slotProps={{
-                    htmlInput: {
-                        'aria-label': 'Explicit account name',
-                        'aria-labelledby': 'ignored-explicit-reference',
-                    },
-                }}
-            />
-        </PneField>)
+        render(
+            <PneField id='account-field' label='Account'>
+                <PneTextField
+                    slotProps={{
+                        htmlInput: {
+                            'aria-label': 'Explicit account name',
+                            'aria-labelledby': 'ignored-explicit-reference',
+                        },
+                    }}
+                />
+            </PneField>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Explicit account name'})
 

@@ -1,11 +1,11 @@
-import React, { useState } from 'react'
+import React, {useState} from 'react'
 import AddIcon from '@mui/icons-material/Add'
 import RefreshIcon from '@mui/icons-material/Refresh'
 import VisibilityIcon from '@mui/icons-material/Visibility'
-import { Box, Typography } from '@mui/material'
-import type { PneFabItem } from '../index'
-import { PneFloatingActionButtons } from '../index'
-import type { Meta, StoryObj } from '@storybook/react-webpack5'
+import {Box, Typography} from '@mui/material'
+import type {PneFabItem} from '../index'
+import {PneFloatingActionButtons} from '../index'
+import type {Meta, StoryObj} from '@storybook/react-webpack5'
 
 const FloatingDemo = () => {
     const [lastAction, setLastAction] = useState('—')
@@ -15,7 +15,7 @@ const FloatingDemo = () => {
             id: 'summary',
             kind: 'content',
             node: (
-                <Box sx={{ minWidth: 220, px: 2, py: 1.5 }}>
+                <Box sx={{minWidth: 220, px: 2, py: 1.5}}>
                     <Typography variant='subtitle2'>Quick actions</Typography>
                     <Typography variant='body2' color='textSecondary'>
                         Content items can contain any application UI.
@@ -23,7 +23,7 @@ const FloatingDemo = () => {
                 </Box>
             ),
         },
-        { id: 'divider-1', kind: 'divider' },
+        {id: 'divider-1', kind: 'divider'},
         {
             id: 'add',
             label: 'Add record',
@@ -45,11 +45,12 @@ const FloatingDemo = () => {
     ]
 
     return (
-        <Box sx={{ minHeight: 360, position: 'relative', p: 2 }}>
-            <Typography variant='body2' color='textSecondary' sx={{ mb: 1 }}>
-                FAB supports application content, actions with right-aligned icons, a primary banner, and collapses to a menu on mobile.
+        <Box sx={{minHeight: 360, position: 'relative', p: 2}}>
+            <Typography variant='body2' color='textSecondary' sx={{mb: 1}}>
+                FAB supports application content, actions with right-aligned icons, a primary banner, and collapses to a
+                menu on mobile.
             </Typography>
-            <Typography variant='body2' sx={{ mb: 2 }}>
+            <Typography variant='body2' sx={{mb: 2}}>
                 Last action: {lastAction}
             </Typography>
             <PneFloatingActionButtons actions={fabItems} bannerText='Record actions' />

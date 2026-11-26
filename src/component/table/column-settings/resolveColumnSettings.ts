@@ -17,10 +17,8 @@ const uniqueIds = (ids: readonly PneTableColumnId[]): PneTableColumnId[] => {
     return result
 }
 
-const sameIds = (
-    left: readonly PneTableColumnId[],
-    right: readonly PneTableColumnId[],
-): boolean => left.length === right.length && left.every((id, index) => id === right[index])
+const sameIds = (left: readonly PneTableColumnId[], right: readonly PneTableColumnId[]): boolean =>
+    left.length === right.length && left.every((id, index) => id === right[index])
 
 /**
  * Allowed shape of a column ID: a letter or digit followed by letters, digits,
@@ -89,8 +87,7 @@ export const resolvePneTableColumnSettings = <TColumn extends PneTableColumnOpti
     const resolveIds = (source: PneTableColumnSettingsValue): PneTableColumnSettingsValue => {
         const visible = uniqueIds(source.visibleColumnIds).filter(id => byId.has(id))
         const visibleSet = new Set(visible)
-        const hidden = uniqueIds(source.hiddenColumnIds)
-            .filter(id => byId.has(id) && !visibleSet.has(id))
+        const hidden = uniqueIds(source.hiddenColumnIds).filter(id => byId.has(id) && !visibleSet.has(id))
         const known = new Set([...visible, ...hidden])
         const added = columns.filter(column => !known.has(column.id)).map(column => column.id)
         return {
@@ -110,7 +107,8 @@ export const resolvePneTableColumnSettings = <TColumn extends PneTableColumnOpti
         visibleColumns: resolved.visibleColumnIds.map(id => byId.get(id) as TColumn),
         hiddenColumns: columns.filter(column => hiddenSet.has(column.id)),
         value: resolved,
-        isDefault: sameIds(resolved.visibleColumnIds, defaults.visibleColumnIds)
-            && sameIds([...resolved.hiddenColumnIds].sort(), [...defaults.hiddenColumnIds].sort()),
+        isDefault:
+            sameIds(resolved.visibleColumnIds, defaults.visibleColumnIds) &&
+            sameIds([...resolved.hiddenColumnIds].sort(), [...defaults.hiddenColumnIds].sort()),
     }
 }

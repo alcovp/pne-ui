@@ -13,17 +13,16 @@ const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntity
 }
 
 const linkedEntityToCriterionMap = new Map<LinkedEntityTypeEnum, CriterionTypeEnum>(
-    (Object.entries(criterionToLinkedEntityMap) as [CriterionTypeEnum, LinkedEntityTypeEnum][])
-        .map(([criterion, entityType]) => [entityType, criterion]),
+    (Object.entries(criterionToLinkedEntityMap) as [CriterionTypeEnum, LinkedEntityTypeEnum][]).map(
+        ([criterion, entityType]) => [entityType, criterion],
+    ),
 )
 
-export const getLinkedEntityTypeByCriterion = (criterion: CriterionTypeEnum): LinkedEntityTypeEnum | null => (
+export const getLinkedEntityTypeByCriterion = (criterion: CriterionTypeEnum): LinkedEntityTypeEnum | null =>
     criterionToLinkedEntityMap[criterion] ?? null
-)
 
-export const getCriterionByLinkedEntityType = (entityType: LinkedEntityTypeEnum): CriterionTypeEnum | null => (
+export const getCriterionByLinkedEntityType = (entityType: LinkedEntityTypeEnum): CriterionTypeEnum | null =>
     linkedEntityToCriterionMap.get(entityType) ?? null
-)
 
 export const isLinkedEntityCriterionActive = (
     criteria: CriterionTypeEnum[],

@@ -3,12 +3,7 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    CriterionTypeEnum,
-    type OrderSearchLabel,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {CriterionTypeEnum, type OrderSearchLabel, SearchUIFilters, SearchUIProvider} from '../src'
 import {ORDER_SEARCH_LABELS} from '../src/component/search-ui/filters/types'
 import {ORDERS_SEARCH_LABEL_GROUPS} from '../src/component/search-ui/filters/component/select/SearchUICollapsableGroupSelect'
 
@@ -63,8 +58,7 @@ const getOrdersCriterion = (container: HTMLElement, scope: string): HTMLElement 
         `[data-autotest="search-filters"][data-autotest-value="${scope}"]`,
     )
     const criterion = filters?.querySelector<HTMLElement>(
-        `[data-autotest="criterion"]`
-        + `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
+        `[data-autotest="criterion"]` + `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -82,11 +76,12 @@ const getLabelTrigger = (criterion: HTMLElement): HTMLButtonElement => {
     return trigger as HTMLButtonElement
 }
 
-const getOwnedDialog = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    `[role="dialog"][data-autotest="criterion-label-options"]`
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
-)
+const getOwnedDialog = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        `[role="dialog"][data-autotest="criterion-label-options"]` +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
+    )
 
 describe('SearchUI orders-search grouped label Selenium contract', () => {
     beforeEach(() => {
@@ -94,17 +89,14 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
     })
 
     it('preserves the seven-group and 45-label product inventory', () => {
-        expect(ORDERS_SEARCH_LABEL_GROUPS.map(group => [
-            group.autoTestValue,
-            group.items.length,
-        ])).toEqual(groupInventory)
+        expect(ORDERS_SEARCH_LABEL_GROUPS.map(group => [group.autoTestValue, group.items.length])).toEqual(
+            groupInventory,
+        )
 
-        const selectableLabels = ORDERS_SEARCH_LABEL_GROUPS.flatMap(group => (
-            group.items.map(item => item.value)
-        ))
-        const expectedSelectableLabels = ORDER_SEARCH_LABELS.filter(label => (
-            !hiddenOrderSearchLabels.includes(label as typeof hiddenOrderSearchLabels[number])
-        ))
+        const selectableLabels = ORDERS_SEARCH_LABEL_GROUPS.flatMap(group => group.items.map(item => item.value))
+        const expectedSelectableLabels = ORDER_SEARCH_LABELS.filter(
+            label => !hiddenOrderSearchLabels.includes(label as (typeof hiddenOrderSearchLabels)[number]),
+        )
 
         expect(selectableLabels).toHaveLength(45)
         expect(new Set(selectableLabels).size).toBe(45)
@@ -117,8 +109,8 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="orders-labels"
-                    settingsContextName="orders-labels-context"
+                    autoTestId='orders-labels'
+                    settingsContextName='orders-labels-context'
                     possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                     predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                     initialSearchConditions={{
@@ -129,8 +121,8 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="transaction-labels"
-                    settingsContextName="transaction-labels-context"
+                    autoTestId='transaction-labels'
+                    settingsContextName='transaction-labels-context'
                     possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                     predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                     initialSearchConditions={{
@@ -144,14 +136,18 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                ordersSearchLabel: 'merchant_invoice_id',
-                ordersSearchValue: 'invoice-001',
-            }))
-            expect(transactionsOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                ordersSearchLabel: 'customer_email',
-                ordersSearchValue: 'person@example.test',
-            }))
+            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ordersSearchLabel: 'merchant_invoice_id',
+                    ordersSearchValue: 'invoice-001',
+                }),
+            )
+            expect(transactionsOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ordersSearchLabel: 'customer_email',
+                    ordersSearchValue: 'person@example.test',
+                }),
+            )
         })
 
         const ordersCriterion = getOrdersCriterion(container, 'orders-labels')
@@ -181,9 +177,7 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             ['orders-labels', ordersCriterion, ordersTrigger, ordersDialog, 'merchant_invoice_id'],
             ['transaction-labels', transactionsCriterion, transactionsTrigger, transactionsDialog, 'customer_email'],
         ] as const) {
-            const groups = dialog.querySelectorAll<HTMLElement>(
-                'summary[data-autotest="criterion-label-group"]',
-            )
+            const groups = dialog.querySelectorAll<HTMLElement>('summary[data-autotest="criterion-label-group"]')
             const radios = dialog.querySelectorAll<HTMLInputElement>(
                 'input[type="radio"][data-autotest="criterion-label-option"]',
             )
@@ -210,8 +204,7 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
 
             for (const [groupValue] of groupInventory) {
                 const summary = dialog.querySelector<HTMLElement>(
-                    `summary[data-autotest="criterion-label-group"]`
-                    + `[data-autotest-value="${groupValue}"]`,
+                    `summary[data-autotest="criterion-label-group"]` + `[data-autotest-value="${groupValue}"]`,
                 )
 
                 expect(summary?.tagName).toBe('SUMMARY')
@@ -240,9 +233,11 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
         })
         expect((ordersMainGroup?.parentElement as HTMLDetailsElement | null)?.open).toBe(false)
         expect(transactionsMainGroup?.getAttribute('aria-expanded')).toBe('true')
-        expect(JSON.parse(
-            localStorage.getItem('SearchUI_ordersSearch_expandedGroups') ?? '{}',
-        )['searchLabelGroupID.orders.main']).toBe(false)
+        expect(
+            JSON.parse(localStorage.getItem('SearchUI_ordersSearch_expandedGroups') ?? '{}')[
+                'searchLabelGroupID.orders.main'
+            ],
+        ).toBe(false)
 
         const sourceLast4 = ordersDialog.querySelector<HTMLInputElement>(
             'input[data-autotest="criterion-label-option"][data-autotest-value="source_last4"]',
@@ -255,15 +250,19 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             expect(ordersTrigger.getAttribute('data-autotest-value')).toBe('source_last4')
             expect(ordersTrigger.textContent).toBe('by last 4 src.')
             expect(ordersTrigger.getAttribute('aria-expanded')).toBe('false')
-            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                ordersSearchLabel: 'source_last4',
-                ordersSearchValue: 'invoice-001',
-            }))
+            expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ordersSearchLabel: 'source_last4',
+                    ordersSearchValue: 'invoice-001',
+                }),
+            )
         })
         expect(transactionsTrigger.getAttribute('data-autotest-value')).toBe('customer_email')
-        expect(transactionsDialog.querySelector<HTMLInputElement>(
-            'input[data-autotest="criterion-label-option"][data-autotest-value="customer_email"]',
-        )?.checked).toBe(true)
+        expect(
+            transactionsDialog.querySelector<HTMLInputElement>(
+                'input[data-autotest="criterion-label-option"][data-autotest-value="customer_email"]',
+            )?.checked,
+        ).toBe(true)
 
         fireEvent.click(ordersTrigger)
 
@@ -280,9 +279,9 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
 
         await waitFor(() => {
             expect(ordersTrigger.getAttribute('data-autotest-value')).toBe('source_bin')
-            expect(ordersCriterion.querySelector<HTMLInputElement>(
-                'input[data-autotest="criterion-input"]',
-            )?.value).toBe('')
+            expect(
+                ordersCriterion.querySelector<HTMLInputElement>('input[data-autotest="criterion-input"]')?.value,
+            ).toBe('')
         })
         expect(transactionsTrigger.getAttribute('data-autotest-value')).toBe('customer_email')
     })
@@ -295,9 +294,7 @@ const renderOrderSearch = (
     settingsContextName = 'order-search-labels',
 ) => {
     const onFiltersUpdate = jest.fn()
-    const defaults = showCMSOrderSearchLabels === undefined
-        ? {}
-        : {showCMSOrderSearchLabels}
+    const defaults = showCMSOrderSearchLabels === undefined ? {} : {showCMSOrderSearchLabels}
 
     const {container} = render(
         <SearchUIProvider defaults={defaults}>
@@ -333,16 +330,12 @@ describe('SearchUI selected order-search label', () => {
         ['source_bin_last4', '4050 64XX XXXX 9579', 'by 6+4 src.'],
         ['dest_bin_last', '4050 64XX XXXX 9579', 'by 6+4 dest.'],
     ] as const)('keeps the card side visible for %s', async (ordersSearchLabel, ordersSearchValue, expectedLabel) => {
-        renderOrderSearch(
-            undefined,
-            ordersSearchLabel,
-            ordersSearchValue,
-            `qualifier-${ordersSearchLabel}`,
-        )
+        renderOrderSearch(undefined, ordersSearchLabel, ordersSearchValue, `qualifier-${ordersSearchLabel}`)
 
         await waitFor(() => {
-            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label'))
-                .map(element => element.textContent)
+            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label')).map(
+                element => element.textContent,
+            )
 
             expect(chipLabels).toContain(expectedLabel)
         })
@@ -352,8 +345,9 @@ describe('SearchUI selected order-search label', () => {
         renderOrderSearch(undefined, 'customer_id', '42', 'qualifier-neutral')
 
         await waitFor(() => {
-            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label'))
-                .map(element => element.textContent)
+            const chipLabels = Array.from(document.querySelectorAll('.MuiChip-label')).map(
+                element => element.textContent,
+            )
 
             expect(chipLabels).toContain('searchLabel.customer_id')
             expect(chipLabels.some(label => label?.includes('src.') || label?.includes('dest.'))).toBe(false)
@@ -361,12 +355,7 @@ describe('SearchUI selected order-search label', () => {
     })
 
     it('keeps the qualifier secondary but readable on the chip background', async () => {
-        renderOrderSearch(
-            undefined,
-            'source_bin_last4',
-            '4050 64XX XXXX 9579',
-            'qualifier-contrast',
-        )
+        renderOrderSearch(undefined, 'source_bin_last4', '4050 64XX XXXX 9579', 'qualifier-contrast')
 
         const labelTip = await screen.findByText('src.')
         const labelTipStyle = getComputedStyle(labelTip)
@@ -376,12 +365,7 @@ describe('SearchUI selected order-search label', () => {
     })
 
     it('updates and clears the qualifier through the native radio picker', async () => {
-        const {container, onFiltersUpdate} = renderOrderSearch(
-            undefined,
-            'source_last4',
-            '9579',
-            'qualifier-selection',
-        )
+        const {container, onFiltersUpdate} = renderOrderSearch(undefined, 'source_last4', '9579', 'qualifier-selection')
         const trigger = getLabelTrigger(getOrdersCriterion(container, 'order-search-visibility'))
 
         await waitFor(() => {
@@ -405,10 +389,12 @@ describe('SearchUI selected order-search label', () => {
                 expect(trigger.textContent).toBe(expectedLabel)
                 expect(trigger.getAttribute('data-autotest-value')).toBe(label)
                 expect(trigger.getAttribute('aria-expanded')).toBe('false')
-                expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                    ordersSearchLabel: label,
-                    ...(label === 'dest_last4' ? {ordersSearchValue: '9579'} : {}),
-                }))
+                expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                    expect.objectContaining({
+                        ordersSearchLabel: label,
+                        ...(label === 'dest_last4' ? {ordersSearchValue: '9579'} : {}),
+                    }),
+                )
             })
         }
     })
@@ -438,36 +424,42 @@ describe('SearchUI order-search label visibility', () => {
         const {container} = renderOrderSearch()
         const {dialog} = await openLabelPicker(container)
 
-        expect(dialog.querySelector(
-            'input[data-autotest="criterion-label-option"][data-autotest-value="customer_id"]',
-        )).not.toBeNull()
-        expect(dialog.querySelector(
-            'input[data-autotest="criterion-label-option"]'
-            + '[data-autotest-value="merchant_customer_identifier"]',
-        )).not.toBeNull()
+        expect(
+            dialog.querySelector('input[data-autotest="criterion-label-option"][data-autotest-value="customer_id"]'),
+        ).not.toBeNull()
+        expect(
+            dialog.querySelector(
+                'input[data-autotest="criterion-label-option"]' +
+                    '[data-autotest-value="merchant_customer_identifier"]',
+            ),
+        ).not.toBeNull()
     })
 
     it('hides only CMS label options while preserving an existing condition', async () => {
         const {container, onFiltersUpdate} = renderOrderSearch(() => false)
 
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                ordersSearchLabel: 'customer_id',
-                ordersSearchValue: '42',
-            }))
+            expect(onFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    ordersSearchLabel: 'customer_id',
+                    ordersSearchValue: '42',
+                }),
+            )
         })
         const {dialog, trigger} = await openLabelPicker(container)
 
         expect(trigger.getAttribute('data-autotest-value')).toBe('customer_id')
-        expect(dialog.querySelector(
-            'input[data-autotest="criterion-label-option"][data-autotest-value="customer_id"]',
-        )).toBeNull()
-        expect(dialog.querySelector(
-            'input[data-autotest="criterion-label-option"]'
-            + '[data-autotest-value="merchant_customer_identifier"]',
-        )).toBeNull()
-        expect(dialog.querySelector(
-            'input[data-autotest="criterion-label-option"][data-autotest-value="customer_phone"]',
-        )).not.toBeNull()
+        expect(
+            dialog.querySelector('input[data-autotest="criterion-label-option"][data-autotest-value="customer_id"]'),
+        ).toBeNull()
+        expect(
+            dialog.querySelector(
+                'input[data-autotest="criterion-label-option"]' +
+                    '[data-autotest-value="merchant_customer_identifier"]',
+            ),
+        ).toBeNull()
+        expect(
+            dialog.querySelector('input[data-autotest="criterion-label-option"][data-autotest-value="customer_phone"]'),
+        ).not.toBeNull()
     })
 })

@@ -41,14 +41,14 @@ export type PneOperationCenterStatus =
 
 export type PneOperationCenterProgress =
     | {
-        kind: 'indeterminate'
-        label?: React.ReactNode
-    }
+          kind: 'indeterminate'
+          label?: React.ReactNode
+      }
     | {
-        kind: 'determinate'
-        value: number
-        label?: React.ReactNode
-    }
+          kind: 'determinate'
+          value: number
+          label?: React.ReactNode
+      }
 
 export type PneOperationCenterAction = {
     id: string
@@ -109,25 +109,11 @@ export type PneOperationCenterProps = {
     sx?: SxProps<Theme>
 }
 
-const ACTIVE_STATUSES = new Set<PneOperationCenterStatus>([
-    'starting',
-    'queued',
-    'running',
-    'finalizing',
-])
+const ACTIVE_STATUSES = new Set<PneOperationCenterStatus>(['starting', 'queued', 'running', 'finalizing'])
 
-const ATTENTION_STATUSES = new Set<PneOperationCenterStatus>([
-    'monitoring-error',
-    'failed',
-    'unknown',
-])
+const ATTENTION_STATUSES = new Set<PneOperationCenterStatus>(['monitoring-error', 'failed', 'unknown'])
 
-const TERMINAL_STATUSES = new Set<PneOperationCenterStatus>([
-    'succeeded',
-    'failed',
-    'cancelled',
-    'unknown',
-])
+const TERMINAL_STATUSES = new Set<PneOperationCenterStatus>(['succeeded', 'failed', 'cancelled', 'unknown'])
 
 const clampProgress = (value: number) => Math.min(Math.max(value, 0), 100)
 
@@ -141,23 +127,23 @@ const toAccessibleText = (value: React.ReactNode): string | undefined => {
 const OperationStatusIcon = ({status}: {status: PneOperationCenterStatus}) => {
     switch (status) {
         case 'starting':
-            return <HourglassTopIcon fontSize='small'/>
+            return <HourglassTopIcon fontSize='small' />
         case 'queued':
-            return <ScheduleIcon fontSize='small'/>
+            return <ScheduleIcon fontSize='small' />
         case 'running':
-            return <AutorenewIcon fontSize='small'/>
+            return <AutorenewIcon fontSize='small' />
         case 'finalizing':
-            return <HourglassBottomIcon fontSize='small'/>
+            return <HourglassBottomIcon fontSize='small' />
         case 'monitoring-error':
-            return <WifiOffIcon fontSize='small'/>
+            return <WifiOffIcon fontSize='small' />
         case 'succeeded':
-            return <CheckCircleOutlineIcon fontSize='small'/>
+            return <CheckCircleOutlineIcon fontSize='small' />
         case 'failed':
-            return <ErrorOutlineIcon fontSize='small'/>
+            return <ErrorOutlineIcon fontSize='small' />
         case 'cancelled':
-            return <CancelOutlinedIcon fontSize='small'/>
+            return <CancelOutlinedIcon fontSize='small' />
         case 'unknown':
-            return <HelpOutlineIcon fontSize='small'/>
+            return <HelpOutlineIcon fontSize='small' />
     }
 }
 
@@ -182,11 +168,13 @@ const OverallStateIcon = ({
     state: OperationCenterOverallState
     prefersReducedMotion: boolean
 }) => {
-    if (state === 'attention') return <ErrorOutlineIcon sx={{fontSize: 16}}/>
-    if (state === 'completed') return <CheckCircleOutlineIcon sx={{fontSize: 16}}/>
-    return prefersReducedMotion
-        ? <AutorenewIcon sx={{fontSize: 16}}/>
-        : <CircularProgress color='inherit' size={12} thickness={5}/>
+    if (state === 'attention') return <ErrorOutlineIcon sx={{fontSize: 16}} />
+    if (state === 'completed') return <CheckCircleOutlineIcon sx={{fontSize: 16}} />
+    return prefersReducedMotion ? (
+        <AutorenewIcon sx={{fontSize: 16}} />
+    ) : (
+        <CircularProgress color='inherit' size={12} thickness={5} />
+    )
 }
 
 const getStatusColor = (status: PneOperationCenterStatus) => {
@@ -226,64 +214,82 @@ export function PneOperationCenter({
     const hasRecordedInitialStateRef = React.useRef(false)
     const [announcement, setAnnouncement] = React.useState('')
 
-    const statusLabels = React.useMemo<Record<PneOperationCenterStatus, React.ReactNode>>(() => ({
-        starting: labels?.status?.starting ?? t('pne.operationCenter.status.starting', {defaultValue: 'Starting'}),
-        queued: labels?.status?.queued ?? t('pne.operationCenter.status.queued', {defaultValue: 'Queued'}),
-        running: labels?.status?.running ?? t('pne.operationCenter.status.running', {defaultValue: 'Running'}),
-        finalizing: labels?.status?.finalizing ?? t('pne.operationCenter.status.finalizing', {defaultValue: 'Finalizing'}),
-        'monitoring-error': labels?.status?.['monitoring-error'] ?? t(
-            'pne.operationCenter.status.monitoringError',
-            {defaultValue: 'Monitoring interrupted'},
-        ),
-        succeeded: labels?.status?.succeeded ?? t('pne.operationCenter.status.succeeded', {defaultValue: 'Completed'}),
-        failed: labels?.status?.failed ?? t('pne.operationCenter.status.failed', {defaultValue: 'Failed'}),
-        cancelled: labels?.status?.cancelled ?? t('pne.operationCenter.status.cancelled', {defaultValue: 'Cancelled'}),
-        unknown: labels?.status?.unknown ?? t('pne.operationCenter.status.unknown', {defaultValue: 'Status unknown'}),
-    }), [labels?.status, t])
+    const statusLabels = React.useMemo<Record<PneOperationCenterStatus, React.ReactNode>>(
+        () => ({
+            starting: labels?.status?.starting ?? t('pne.operationCenter.status.starting', {defaultValue: 'Starting'}),
+            queued: labels?.status?.queued ?? t('pne.operationCenter.status.queued', {defaultValue: 'Queued'}),
+            running: labels?.status?.running ?? t('pne.operationCenter.status.running', {defaultValue: 'Running'}),
+            finalizing:
+                labels?.status?.finalizing ?? t('pne.operationCenter.status.finalizing', {defaultValue: 'Finalizing'}),
+            'monitoring-error':
+                labels?.status?.['monitoring-error'] ??
+                t('pne.operationCenter.status.monitoringError', {defaultValue: 'Monitoring interrupted'}),
+            succeeded:
+                labels?.status?.succeeded ?? t('pne.operationCenter.status.succeeded', {defaultValue: 'Completed'}),
+            failed: labels?.status?.failed ?? t('pne.operationCenter.status.failed', {defaultValue: 'Failed'}),
+            cancelled:
+                labels?.status?.cancelled ?? t('pne.operationCenter.status.cancelled', {defaultValue: 'Cancelled'}),
+            unknown:
+                labels?.status?.unknown ?? t('pne.operationCenter.status.unknown', {defaultValue: 'Status unknown'}),
+        }),
+        [labels?.status, t],
+    )
 
-    const summary = React.useMemo<PneOperationCenterSummary>(() => operations.reduce((result, operation) => {
-        if (ACTIVE_STATUSES.has(operation.status)) {
-            result.active += 1
-        } else if (ATTENTION_STATUSES.has(operation.status)) {
-            result.attention += 1
-        } else {
-            result.completed += 1
-        }
-        result.total += 1
-        return result
-    }, {active: 0, attention: 0, completed: 0, total: 0}), [operations])
+    const summary = React.useMemo<PneOperationCenterSummary>(
+        () =>
+            operations.reduce(
+                (result, operation) => {
+                    if (ACTIVE_STATUSES.has(operation.status)) {
+                        result.active += 1
+                    } else if (ATTENTION_STATUSES.has(operation.status)) {
+                        result.attention += 1
+                    } else {
+                        result.completed += 1
+                    }
+                    result.total += 1
+                    return result
+                },
+                {active: 0, attention: 0, completed: 0, total: 0},
+            ),
+        [operations],
+    )
 
     const terminalIds = React.useMemo(
-        () => operations
-            .filter(operation => TERMINAL_STATUSES.has(operation.status) && operation.dismissible !== false)
-            .map(operation => operation.id),
+        () =>
+            operations
+                .filter(operation => TERMINAL_STATUSES.has(operation.status) && operation.dismissible !== false)
+                .map(operation => operation.id),
         [operations],
     )
     // A single finished operation already has its own dismiss control; the bulk command only pays off for two.
     const showClearTerminal = terminalIds.length > 1 && onClearTerminal !== undefined
 
-    const getOperationAccessibleName = React.useCallback((
-        operation: PneOperationCenterItem,
-        index: number,
-    ) => {
-        const titleText = toAccessibleText(operation.title)
-        const contextText = toAccessibleText(operation.context)
-        const positionText = operations.length > 1
-            ? labels?.position?.(index + 1, operations.length)
-                ?? String(t('pne.operationCenter.position', {
-                    position: index + 1,
-                    total: operations.length,
-                    defaultValue: '{{position}} of {{total}}',
-                }))
-            : undefined
-        return [
-            titleText
-                ?? String(labels?.operation
-                    ?? t('pne.operationCenter.operation', {defaultValue: 'Operation'})),
-            contextText,
-            positionText,
-        ].filter(Boolean).join(', ')
-    }, [labels, operations.length, t])
+    const getOperationAccessibleName = React.useCallback(
+        (operation: PneOperationCenterItem, index: number) => {
+            const titleText = toAccessibleText(operation.title)
+            const contextText = toAccessibleText(operation.context)
+            const positionText =
+                operations.length > 1
+                    ? (labels?.position?.(index + 1, operations.length) ??
+                      String(
+                          t('pne.operationCenter.position', {
+                              position: index + 1,
+                              total: operations.length,
+                              defaultValue: '{{position}} of {{total}}',
+                          }),
+                      ))
+                    : undefined
+            return [
+                titleText ??
+                    String(labels?.operation ?? t('pne.operationCenter.operation', {defaultValue: 'Operation'})),
+                contextText,
+                positionText,
+            ]
+                .filter(Boolean)
+                .join(', ')
+        },
+        [labels, operations.length, t],
+    )
 
     const restoreFocusAfterMutation = () => {
         queueMicrotask(() => {
@@ -306,8 +312,8 @@ export function PneOperationCenter({
                 const previousStatus = previousStatusesRef.current.get(operation.id)
                 if (previousStatus === operation.status) return []
 
-                const statusText = toAccessibleText(operation.statusLabel ?? statusLabels[operation.status])
-                    ?? operation.status
+                const statusText =
+                    toAccessibleText(operation.statusLabel ?? statusLabels[operation.status]) ?? operation.status
                 return [`${getOperationAccessibleName(operation, index)}: ${statusText}`]
             })
 
@@ -332,28 +338,34 @@ export function PneOperationCenter({
     }
 
     const title = labels?.title ?? t('pne.operationCenter.title', {defaultValue: 'Background operations'})
-    const expandLabel = labels?.expand ?? String(t('pne.operationCenter.expand', {defaultValue: 'Show background operations'}))
-    const collapseLabel = labels?.collapse ?? String(t('pne.operationCenter.collapse', {defaultValue: 'Hide background operations'}))
+    const expandLabel =
+        labels?.expand ?? String(t('pne.operationCenter.expand', {defaultValue: 'Show background operations'}))
+    const collapseLabel =
+        labels?.collapse ?? String(t('pne.operationCenter.collapse', {defaultValue: 'Hide background operations'}))
     const dismissLabel = labels?.dismiss ?? String(t('pne.operationCenter.dismiss', {defaultValue: 'Dismiss'}))
     const listLabel = labels?.list ?? String(t('pne.operationCenter.list', {defaultValue: 'Background operations'}))
-    const progressLabel = labels?.progress ?? String(t('pne.operationCenter.progress', {defaultValue: 'Operation progress'}))
+    const progressLabel =
+        labels?.progress ?? String(t('pne.operationCenter.progress', {defaultValue: 'Operation progress'}))
 
     const overallState = getOverallState(summary)
     const summaryParts = [
         summary.active > 0
-            ? labels?.activeCount?.(summary.active)
-                ?? t('pne.operationCenter.summary.active', {count: summary.active, defaultValue: '{{count}} active'})
+            ? (labels?.activeCount?.(summary.active) ??
+              t('pne.operationCenter.summary.active', {count: summary.active, defaultValue: '{{count}} active'}))
             : null,
         summary.attention > 0
-            ? labels?.attentionCount?.(summary.attention)
-                ?? t('pne.operationCenter.summary.attention', {
-                    count: summary.attention,
-                    defaultValue: summary.attention === 1 ? '{{count}} needs attention' : '{{count}} need attention',
-                })
+            ? (labels?.attentionCount?.(summary.attention) ??
+              t('pne.operationCenter.summary.attention', {
+                  count: summary.attention,
+                  defaultValue: summary.attention === 1 ? '{{count}} needs attention' : '{{count}} need attention',
+              }))
             : null,
         summary.completed > 0
-            ? labels?.completedCount?.(summary.completed)
-                ?? t('pne.operationCenter.summary.completed', {count: summary.completed, defaultValue: '{{count}} finished'})
+            ? (labels?.completedCount?.(summary.completed) ??
+              t('pne.operationCenter.summary.completed', {
+                  count: summary.completed,
+                  defaultValue: '{{count}} finished',
+              }))
             : null,
     ].filter((part): part is React.ReactNode => part != null)
 
@@ -363,10 +375,7 @@ export function PneOperationCenter({
             data-pne-operation-center
             onFocusCapture={event => {
                 const previousTarget = event.relatedTarget
-                if (
-                    previousTarget instanceof HTMLElement
-                    && !surfaceRef.current?.contains(previousTarget)
-                ) {
+                if (previousTarget instanceof HTMLElement && !surfaceRef.current?.contains(previousTarget)) {
                     lastExternalFocusRef.current = previousTarget
                 }
             }}
@@ -379,37 +388,34 @@ export function PneOperationCenter({
                     maxWidth: '100%',
                     overflow: 'hidden',
                     position: 'relative',
-                    transition: prefersReducedMotion
-                        ? 'none'
-                        : 'background-color 160ms ease, width 180ms ease',
+                    transition: prefersReducedMotion ? 'none' : 'background-color 160ms ease, width 180ms ease',
                     width: resolvedExpanded ? '400px' : '256px',
                     '@media (max-width: 639.95px)': {
-                        width: resolvedExpanded
-                            ? '100%'
-                            : 'min(256px, calc(100vw - 32px))',
+                        width: resolvedExpanded ? '100%' : 'min(256px, calc(100vw - 32px))',
                     },
-                    ...(!resolvedExpanded ? {
-                        WebkitBackdropFilter: 'blur(8px)',
-                        backdropFilter: 'blur(8px)',
-                        backgroundColor: (theme: Theme) => alpha(
-                            theme.palette.background.paper,
-                            theme.palette.mode === 'dark' ? 0.82 : 0.72,
-                        ),
-                        '@media (hover: hover) and (pointer: fine)': {
-                            '&:hover': {
-                                backgroundColor: (theme: Theme) => alpha(
-                                    theme.palette.background.paper,
-                                    theme.palette.mode === 'dark' ? 0.94 : 0.9,
-                                ),
-                            },
-                            '&:focus-within': {backgroundColor: 'background.paper'},
-                        },
-                        '@media (hover: none), (pointer: coarse)': {
-                            WebkitBackdropFilter: 'none',
-                            backdropFilter: 'none',
-                            backgroundColor: 'background.paper',
-                        },
-                    } : {}),
+                    ...(!resolvedExpanded
+                        ? {
+                              WebkitBackdropFilter: 'blur(8px)',
+                              backdropFilter: 'blur(8px)',
+                              backgroundColor: (theme: Theme) =>
+                                  alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.82 : 0.72),
+                              '@media (hover: hover) and (pointer: fine)': {
+                                  '&:hover': {
+                                      backgroundColor: (theme: Theme) =>
+                                          alpha(
+                                              theme.palette.background.paper,
+                                              theme.palette.mode === 'dark' ? 0.94 : 0.9,
+                                          ),
+                                  },
+                                  '&:focus-within': {backgroundColor: 'background.paper'},
+                              },
+                              '@media (hover: none), (pointer: coarse)': {
+                                  WebkitBackdropFilter: 'none',
+                                  backdropFilter: 'none',
+                                  backgroundColor: 'background.paper',
+                              },
+                          }
+                        : {}),
                 },
                 ...(Array.isArray(sx) ? sx : [sx]),
             ]}
@@ -456,10 +462,7 @@ export function PneOperationCenter({
                     >
                         {title}
                     </Typography>
-                    <Box
-                        component='span'
-                        sx={{alignItems: 'flex-start', display: 'flex', gap: 0.75, mt: 0.25}}
-                    >
+                    <Box component='span' sx={{alignItems: 'flex-start', display: 'flex', gap: 0.75, mt: 0.25}}>
                         <Box
                             aria-hidden='true'
                             component='span'
@@ -475,16 +478,17 @@ export function PneOperationCenter({
                                 width: 16,
                             }}
                         >
-                            <OverallStateIcon
-                                prefersReducedMotion={prefersReducedMotion}
-                                state={overallState}
-                            />
+                            <OverallStateIcon prefersReducedMotion={prefersReducedMotion} state={overallState} />
                         </Box>
                         <Stack
                             component='span'
                             data-pne-operation-center-summary
                             direction='row'
-                            divider={<Box aria-hidden='true' component='span'>•</Box>}
+                            divider={
+                                <Box aria-hidden='true' component='span'>
+                                    •
+                                </Box>
+                            }
                             sx={{
                                 color: 'text.secondary',
                                 display: 'flex',
@@ -496,14 +500,20 @@ export function PneOperationCenter({
                             }}
                         >
                             {/* A fixed order of texts: the place is the identity. */}
-                            {/* eslint-disable-next-line @eslint-react/no-array-index-key */}
-                            {summaryParts.map((part, index) => <Box component='span' key={index}>{part}</Box>)}
+                            {summaryParts.map((part, index) => (
+                                // eslint-disable-next-line @eslint-react/no-array-index-key
+                                <Box component='span' key={index}>
+                                    {part}
+                                </Box>
+                            ))}
                         </Stack>
                     </Box>
                 </Box>
-                {resolvedExpanded
-                    ? <ExpandLessIcon aria-hidden='true' sx={{flex: '0 0 auto'}}/>
-                    : <ExpandMoreIcon aria-hidden='true' sx={{flex: '0 0 auto'}}/>}
+                {resolvedExpanded ? (
+                    <ExpandLessIcon aria-hidden='true' sx={{flex: '0 0 auto'}} />
+                ) : (
+                    <ExpandMoreIcon aria-hidden='true' sx={{flex: '0 0 auto'}} />
+                )}
             </ButtonBase>
 
             {resolvedExpanded ? (
@@ -534,7 +544,8 @@ export function PneOperationCenter({
                                     },
                                 }}
                             >
-                                {labels?.clearFinished ?? t('pne.operationCenter.clearFinished', {defaultValue: 'Clear finished'})}
+                                {labels?.clearFinished ??
+                                    t('pne.operationCenter.clearFinished', {defaultValue: 'Clear finished'})}
                             </Button>
                         </Box>
                     ) : null}
@@ -546,9 +557,10 @@ export function PneOperationCenter({
                             const operationAccessibleName = getOperationAccessibleName(operation, index)
                             const resolvedDismissLabel = `${dismissLabel}: ${operationAccessibleName}`
                             const resolvedProgressLabel = `${progressLabel}: ${operationAccessibleName}`
-                            const progressValue = operation.progress?.kind === 'determinate'
-                                ? clampProgress(operation.progress.value)
-                                : undefined
+                            const progressValue =
+                                operation.progress?.kind === 'determinate'
+                                    ? clampProgress(operation.progress.value)
+                                    : undefined
 
                             return (
                                 <ListItem
@@ -579,7 +591,12 @@ export function PneOperationCenter({
                                                 </Typography>
                                                 {operation.context != null ? (
                                                     <Box
-                                                        sx={{color: 'text.secondary', fontSize: 12, lineHeight: '18px', mt: 0.25}}
+                                                        sx={{
+                                                            color: 'text.secondary',
+                                                            fontSize: 12,
+                                                            lineHeight: '18px',
+                                                            mt: 0.25,
+                                                        }}
                                                     >
                                                         {operation.context}
                                                     </Box>
@@ -603,7 +620,7 @@ export function PneOperationCenter({
                                                         },
                                                     }}
                                                 >
-                                                    <CloseIcon aria-hidden='true' sx={{fontSize: 20}}/>
+                                                    <CloseIcon aria-hidden='true' sx={{fontSize: 20}} />
                                                 </IconButton>
                                             ) : null}
                                         </Stack>
@@ -614,15 +631,25 @@ export function PneOperationCenter({
                                             sx={{alignItems: 'center', color: getStatusColor(operation.status)}}
                                         >
                                             <Box aria-hidden='true' component='span' sx={{display: 'inline-flex'}}>
-                                                <OperationStatusIcon status={operation.status}/>
+                                                <OperationStatusIcon status={operation.status} />
                                             </Box>
-                                            <Typography component='span' sx={{fontSize: 12, fontWeight: 700, lineHeight: '18px'}}>
+                                            <Typography
+                                                component='span'
+                                                sx={{fontSize: 12, fontWeight: 700, lineHeight: '18px'}}
+                                            >
                                                 {resolvedStatusLabel}
                                             </Typography>
                                         </Stack>
 
                                         {operation.detail != null ? (
-                                            <Box sx={{color: 'text.secondary', fontSize: 12, lineHeight: '18px', overflowWrap: 'anywhere'}}>
+                                            <Box
+                                                sx={{
+                                                    color: 'text.secondary',
+                                                    fontSize: 12,
+                                                    lineHeight: '18px',
+                                                    overflowWrap: 'anywhere',
+                                                }}
+                                            >
                                                 {operation.detail}
                                             </Box>
                                         ) : null}
@@ -631,24 +658,38 @@ export function PneOperationCenter({
                                             <Stack direction='row' spacing={1} sx={{alignItems: 'center'}}>
                                                 <LinearProgress
                                                     aria-label={resolvedProgressLabel}
-                                                    aria-valuetext={progressValue !== undefined ? `${Math.round(progressValue)}%` : undefined}
+                                                    aria-valuetext={
+                                                        progressValue !== undefined
+                                                            ? `${Math.round(progressValue)}%`
+                                                            : undefined
+                                                    }
                                                     value={progressValue}
                                                     variant={operation.progress.kind}
                                                     sx={{
                                                         flex: 1,
                                                         minWidth: 0,
-                                                        '& .MuiLinearProgress-bar': prefersReducedMotion ? {
-                                                            animation: 'none',
-                                                            transition: 'none',
-                                                        } : undefined,
+                                                        '& .MuiLinearProgress-bar': prefersReducedMotion
+                                                            ? {
+                                                                  animation: 'none',
+                                                                  transition: 'none',
+                                                              }
+                                                            : undefined,
                                                     }}
                                                 />
                                                 {operation.progress.label != null || progressValue !== undefined ? (
                                                     <Typography
                                                         component='span'
-                                                        sx={{color: 'text.secondary', flex: '0 1 auto', fontSize: 12, lineHeight: '18px', minWidth: 0, overflowWrap: 'anywhere'}}
+                                                        sx={{
+                                                            color: 'text.secondary',
+                                                            flex: '0 1 auto',
+                                                            fontSize: 12,
+                                                            lineHeight: '18px',
+                                                            minWidth: 0,
+                                                            overflowWrap: 'anywhere',
+                                                        }}
                                                     >
-                                                        {operation.progress.label ?? `${Math.round(progressValue ?? 0)}%`}
+                                                        {operation.progress.label ??
+                                                            `${Math.round(progressValue ?? 0)}%`}
                                                     </Typography>
                                                 ) : null}
                                             </Stack>
@@ -657,36 +698,50 @@ export function PneOperationCenter({
                                         {operation.actions && operation.actions.length > 0 ? (
                                             <Stack direction='row' sx={{flexWrap: 'wrap', gap: 1, pt: 0.25}}>
                                                 {operation.actions.map(action => {
-                                                    const actionAccessibleLabel = action.accessibleLabel
-                                                        ?? toAccessibleText(action.label)
-                                                    return <Button
-                                                        aria-label={actionAccessibleLabel
-                                                            ? `${actionAccessibleLabel}: ${operationAccessibleName}`
-                                                            : undefined}
-                                                        aria-busy={action.loading || undefined}
-                                                        disabled={action.disabled || action.loading || !onAction}
-                                                        key={action.id}
-                                                        onClick={() => onAction?.(operation.id, action.id)}
-                                                        variant='text'
-                                                        size='small'
-                                                        startIcon={action.loading
-                                                            ? <CircularProgress
-                                                                aria-hidden='true'
-                                                                size={14}
-                                                                sx={prefersReducedMotion ? {
-                                                                    animation: 'none',
-                                                                    '& .MuiCircularProgress-circle': {animation: 'none'},
-                                                                } : undefined}
-                                                            />
-                                                            : action.icon}
-                                                        sx={{
-                                                            '@media (hover: none), (pointer: coarse)': {
-                                                                minHeight: 44,
-                                                            },
-                                                        }}
-                                                    >
-                                                        {action.label}
-                                                    </Button>
+                                                    const actionAccessibleLabel =
+                                                        action.accessibleLabel ?? toAccessibleText(action.label)
+                                                    return (
+                                                        <Button
+                                                            aria-label={
+                                                                actionAccessibleLabel
+                                                                    ? `${actionAccessibleLabel}: ${operationAccessibleName}`
+                                                                    : undefined
+                                                            }
+                                                            aria-busy={action.loading || undefined}
+                                                            disabled={action.disabled || action.loading || !onAction}
+                                                            key={action.id}
+                                                            onClick={() => onAction?.(operation.id, action.id)}
+                                                            variant='text'
+                                                            size='small'
+                                                            startIcon={
+                                                                action.loading ? (
+                                                                    <CircularProgress
+                                                                        aria-hidden='true'
+                                                                        size={14}
+                                                                        sx={
+                                                                            prefersReducedMotion
+                                                                                ? {
+                                                                                      animation: 'none',
+                                                                                      '& .MuiCircularProgress-circle': {
+                                                                                          animation: 'none',
+                                                                                      },
+                                                                                  }
+                                                                                : undefined
+                                                                        }
+                                                                    />
+                                                                ) : (
+                                                                    action.icon
+                                                                )
+                                                            }
+                                                            sx={{
+                                                                '@media (hover: none), (pointer: coarse)': {
+                                                                    minHeight: 44,
+                                                                },
+                                                            }}
+                                                        >
+                                                            {action.label}
+                                                        </Button>
+                                                    )
                                                 })}
                                             </Stack>
                                         ) : null}

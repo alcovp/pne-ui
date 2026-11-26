@@ -42,8 +42,8 @@ const createCriterion = (
 
 const getCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.GATE}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.GATE}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -52,53 +52,40 @@ const getCriterion = (container: HTMLElement, scope: string): HTMLElement => {
 }
 
 const getTrigger = (criterion: HTMLElement): HTMLButtonElement => {
-    const trigger = criterion.querySelector<HTMLButtonElement>(
-        'button[data-autotest="criterion-multiget-trigger"]',
-    )
+    const trigger = criterion.querySelector<HTMLButtonElement>('button[data-autotest="criterion-multiget-trigger"]')
 
     expect(trigger).not.toBeNull()
 
     return trigger as HTMLButtonElement
 }
 
-const getSummaryValues = (criterion: HTMLElement): string[] => Array.from(
-    criterion.querySelectorAll<HTMLElement>('[data-autotest="criterion-multiget-value"]'),
-    chip => chip.getAttribute('data-autotest-value') ?? '',
-)
+const getSummaryValues = (criterion: HTMLElement): string[] =>
+    Array.from(
+        criterion.querySelectorAll<HTMLElement>('[data-autotest="criterion-multiget-value"]'),
+        chip => chip.getAttribute('data-autotest-value') ?? '',
+    )
 
-const getOwnedPanel = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="dialog"][data-autotest="criterion-multiget-panel"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.GATE}"]`,
-)
+const getOwnedPanel = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="dialog"][data-autotest="criterion-multiget-panel"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.GATE}"]`,
+    )
 
 const getColumn = (panel: HTMLElement, autoTestId: string): HTMLElement => {
-    const column = panel.querySelector<HTMLElement>(
-        `[role="group"][data-autotest="${autoTestId}"]`,
-    )
+    const column = panel.querySelector<HTMLElement>(`[role="group"][data-autotest="${autoTestId}"]`)
 
     expect(column).not.toBeNull()
 
     return column as HTMLElement
 }
 
-const getEntityAction = (
-    column: HTMLElement,
-    autoTestId: string,
-    entityId: number,
-): HTMLButtonElement | null => column.querySelector<HTMLButtonElement>(
-    `button[data-autotest="${autoTestId}"][data-autotest-value="${entityId}"]`,
-)
+const getEntityAction = (column: HTMLElement, autoTestId: string, entityId: number): HTMLButtonElement | null =>
+    column.querySelector<HTMLButtonElement>(`button[data-autotest="${autoTestId}"][data-autotest-value="${entityId}"]`)
 
-const getControlButton = (
-    panel: HTMLElement,
-    autoTestId: string,
-    value?: string,
-): HTMLButtonElement => {
+const getControlButton = (panel: HTMLElement, autoTestId: string, value?: string): HTMLButtonElement => {
     const valueSelector = value === undefined ? '' : `[data-autotest-value="${value}"]`
-    const button = panel.querySelector<HTMLButtonElement>(
-        `button[data-autotest="${autoTestId}"]${valueSelector}`,
-    )
+    const button = panel.querySelector<HTMLButtonElement>(`button[data-autotest="${autoTestId}"]${valueSelector}`)
 
     expect(button).not.toBeNull()
 
@@ -106,22 +93,15 @@ const getControlButton = (
 }
 
 const getControlInput = (panel: HTMLElement, autoTestId: string): HTMLInputElement => {
-    const input = panel.querySelector<HTMLInputElement>(
-        `input[data-autotest="${autoTestId}"]`,
-    )
+    const input = panel.querySelector<HTMLInputElement>(`input[data-autotest="${autoTestId}"]`)
 
     expect(input).not.toBeNull()
 
     return input as HTMLInputElement
 }
 
-const getModalAction = (
-    panel: HTMLElement,
-    placement: 'primary' | 'secondary',
-): HTMLButtonElement => {
-    const button = panel.querySelector<HTMLButtonElement>(
-        `[data-pne-modal-action="${placement}"] button`,
-    )
+const getModalAction = (panel: HTMLElement, placement: 'primary' | 'secondary'): HTMLButtonElement => {
+    const button = panel.querySelector<HTMLButtonElement>(`[data-pne-modal-action="${placement}"] button`)
 
     expect(button).not.toBeNull()
 
@@ -179,8 +159,8 @@ describe('SearchUI multiget outer Selenium contract', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="multiget-first"
-                    settingsContextName="multiget-first-context"
+                    autoTestId='multiget-first'
+                    settingsContextName='multiget-first-context'
                     possibleCriteria={[CriterionTypeEnum.GATE]}
                     predefinedCriteria={[CriterionTypeEnum.GATE]}
                     initialSearchConditions={{multigetCriteria: [firstCriterionState]}}
@@ -188,8 +168,8 @@ describe('SearchUI multiget outer Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="multiget-second"
-                    settingsContextName="multiget-second-context"
+                    autoTestId='multiget-second'
+                    settingsContextName='multiget-second-context'
                     possibleCriteria={[CriterionTypeEnum.GATE]}
                     predefinedCriteria={[CriterionTypeEnum.GATE]}
                     initialSearchConditions={{multigetCriteria: [secondCriterionState]}}
@@ -200,12 +180,16 @@ describe('SearchUI multiget outer Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                multigetCriteria: [firstCriterionState],
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                multigetCriteria: [secondCriterionState],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: [firstCriterionState],
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: [secondCriterionState],
+                }),
+            )
         })
 
         const firstCriterion = getCriterion(container, 'multiget-first')
@@ -214,9 +198,7 @@ describe('SearchUI multiget outer Selenium contract', () => {
         const secondTrigger = getTrigger(secondCriterion)
 
         expect(firstTrigger.type).toBe('button')
-        expect(firstTrigger.getAttribute('aria-label')).toBe(
-            'Edit filter: react.CriterionTypeEnum.GATE',
-        )
+        expect(firstTrigger.getAttribute('aria-label')).toBe('Edit filter: react.CriterionTypeEnum.GATE')
         expect(firstTrigger.getAttribute('aria-haspopup')).toBe('dialog')
         expect(firstTrigger.getAttribute('aria-expanded')).toBe('false')
         expect(firstTrigger.getAttribute('data-autotest-value')).toBe('NONE')
@@ -244,10 +226,12 @@ describe('SearchUI multiget outer Selenium contract', () => {
         expect(firstPanel.getAttribute('aria-label')).toBeNull()
         expect(secondPanel.getAttribute('aria-label')).toBeNull()
         // The dialog edits one filter and carries its name, as the row does.
-        expect(document.getElementById(firstPanel.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('react.CriterionTypeEnum.GATE')
-        expect(document.getElementById(secondPanel.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('react.CriterionTypeEnum.GATE')
+        expect(document.getElementById(firstPanel.getAttribute('aria-labelledby')!)?.textContent).toBe(
+            'react.CriterionTypeEnum.GATE',
+        )
+        expect(document.getElementById(secondPanel.getAttribute('aria-labelledby')!)?.textContent).toBe(
+            'react.CriterionTypeEnum.GATE',
+        )
         expect(firstPanel.getAttribute('aria-modal')).toBe('true')
         expect(firstCriterion.contains(firstPanel)).toBe(false)
         expect(secondCriterion.contains(secondPanel)).toBe(false)
@@ -256,23 +240,19 @@ describe('SearchUI multiget outer Selenium contract', () => {
         const firstSelected = getColumn(firstPanel, 'criterion-multiget-selected')
         const secondAvailable = getColumn(secondPanel, 'criterion-multiget-available')
         const secondSelected = getColumn(secondPanel, 'criterion-multiget-selected')
-        const firstPagination = firstPanel.querySelector<HTMLElement>(
-            'nav[aria-label="pagination navigation"]',
-        )
-        const secondPagination = secondPanel.querySelector<HTMLElement>(
-            'nav[aria-label="pagination navigation"]',
-        )
+        const firstPagination = firstPanel.querySelector<HTMLElement>('nav[aria-label="pagination navigation"]')
+        const secondPagination = secondPanel.querySelector<HTMLElement>('nav[aria-label="pagination navigation"]')
 
         expect(firstAvailable.getAttribute('aria-busy')).toBe('true')
         expect(secondAvailable.getAttribute('aria-busy')).toBe('true')
         expect(firstPagination).not.toBeNull()
         expect(secondPagination).not.toBeNull()
-        expect(Array.from(firstPagination?.querySelectorAll('button') ?? []).every(
-            button => button.disabled,
-        )).toBe(true)
-        expect(Array.from(secondPagination?.querySelectorAll('button') ?? []).every(
-            button => button.disabled,
-        )).toBe(true)
+        expect(Array.from(firstPagination?.querySelectorAll('button') ?? []).every(button => button.disabled)).toBe(
+            true,
+        )
+        expect(Array.from(secondPagination?.querySelectorAll('button') ?? []).every(button => button.disabled)).toBe(
+            true,
+        )
 
         resolveAvailableEntities(availableEntities)
 
@@ -289,9 +269,9 @@ describe('SearchUI multiget outer Selenium contract', () => {
         expect(secondSelected.getAttribute('aria-label')).toBe('react.searchUI.excluded')
         expect(firstPagination?.querySelector('[aria-current="page"]')?.textContent).toBe('1')
         expect(secondPagination?.querySelector('[aria-current="page"]')?.textContent).toBe('1')
-        expect(Array.from(firstPagination?.querySelectorAll('button') ?? []).some(
-            button => !button.disabled,
-        )).toBe(true)
+        expect(Array.from(firstPagination?.querySelectorAll('button') ?? []).some(button => !button.disabled)).toBe(
+            true,
+        )
 
         const firstInclude = getControlButton(firstPanel, 'criterion-multiget-mode', 'NONE')
         const firstExclude = getControlButton(firstPanel, 'criterion-multiget-mode', 'ALL')
@@ -303,11 +283,7 @@ describe('SearchUI multiget outer Selenium contract', () => {
         const secondSearch = getControlInput(secondPanel, 'criterion-multiget-search')
         const firstAllLabel = getControlButton(firstPanel, 'criterion-multiget-search-label', 'all')
         const firstMidLabel = getControlButton(firstPanel, 'criterion-multiget-search-label', 'mid')
-        const firstDescriptorLabel = getControlButton(
-            firstPanel,
-            'criterion-multiget-search-label',
-            'descriptor',
-        )
+        const firstDescriptorLabel = getControlButton(firstPanel, 'criterion-multiget-search-label', 'descriptor')
         const secondAllLabel = getControlButton(secondPanel, 'criterion-multiget-search-label', 'all')
         const secondClear = within(secondSelected).getByRole('button', {name: 'clear'}) as HTMLButtonElement
         const secondCancel = within(secondPanel).getByRole('button', {name: 'cancel'}) as HTMLButtonElement
@@ -341,29 +317,33 @@ describe('SearchUI multiget outer Selenium contract', () => {
             expect(firstSearch.value).toBe('Shared')
             expect(firstAllLabel.getAttribute('aria-pressed')).toBe('false')
             expect(firstMidLabel.getAttribute('aria-pressed')).toBe('true')
-            expect(getMatchLinkedItems).toHaveBeenCalledWith(expect.objectContaining({
-                type: LinkedEntityTypeEnum.GATE,
-                searchString: 'mid:Shared',
-                status: null,
-            }))
+            expect(getMatchLinkedItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    type: LinkedEntityTypeEnum.GATE,
+                    searchString: 'mid:Shared',
+                    status: null,
+                }),
+            )
         })
         expect(secondEnabledOnly.checked).toBe(true)
         expect(secondSearch.value).toBe('')
         expect(secondAllLabel.getAttribute('aria-pressed')).toBe('true')
 
-        const firstSecondPage = Array.from(
-            firstPagination?.querySelectorAll<HTMLButtonElement>('button') ?? [],
-        ).find(button => button.textContent === '2')
+        const firstSecondPage = Array.from(firstPagination?.querySelectorAll<HTMLButtonElement>('button') ?? []).find(
+            button => button.textContent === '2',
+        )
 
         expect(firstSecondPage).not.toBeUndefined()
         fireEvent.click(firstSecondPage as HTMLButtonElement)
 
         await waitFor(() => {
             expect(firstPagination?.querySelector('[aria-current="page"]')?.textContent).toBe('2')
-            expect(getMatchLinkedItems).toHaveBeenCalledWith(expect.objectContaining({
-                startRow: 10,
-                numRows: 10,
-            }))
+            expect(getMatchLinkedItems).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    startRow: 10,
+                    numRows: 10,
+                }),
+            )
         })
         expect(secondPagination?.querySelector('[aria-current="page"]')?.textContent).toBe('1')
 
@@ -392,35 +372,39 @@ describe('SearchUI multiget outer Selenium contract', () => {
         fireEvent.click(firstAddAvailable as HTMLButtonElement)
 
         await waitFor(() => {
-            expect(window.getComputedStyle(
-                getEntityAction(firstAvailable, 'criterion-multiget-add', 22) as HTMLButtonElement,
-            ).visibility).toBe('hidden')
+            expect(
+                window.getComputedStyle(
+                    getEntityAction(firstAvailable, 'criterion-multiget-add', 22) as HTMLButtonElement,
+                ).visibility,
+            ).toBe('hidden')
             expect(getEntityAction(firstSelected, 'criterion-multiget-remove', 22)).not.toBeNull()
         })
-        expect(window.getComputedStyle(
-            getEntityAction(secondAvailable, 'criterion-multiget-add', 22) as HTMLButtonElement,
-        ).visibility).toBe('visible')
+        expect(
+            window.getComputedStyle(getEntityAction(secondAvailable, 'criterion-multiget-add', 22) as HTMLButtonElement)
+                .visibility,
+        ).toBe('visible')
         expect(getEntityAction(secondSelected, 'criterion-multiget-remove', 22)).toBeNull()
 
         fireEvent.click(firstRemoveShared as HTMLButtonElement)
 
         await waitFor(() => {
             expect(getEntityAction(firstSelected, 'criterion-multiget-remove', 7)).toBeNull()
-            expect(window.getComputedStyle(
-                getEntityAction(firstAvailable, 'criterion-multiget-add', 7) as HTMLButtonElement,
-            ).visibility).toBe('visible')
+            expect(
+                window.getComputedStyle(
+                    getEntityAction(firstAvailable, 'criterion-multiget-add', 7) as HTMLButtonElement,
+                ).visibility,
+            ).toBe('visible')
         })
         expect(getEntityAction(secondSelected, 'criterion-multiget-remove', 7)).not.toBeNull()
-        expect(window.getComputedStyle(
-            getEntityAction(secondAvailable, 'criterion-multiget-add', 7) as HTMLButtonElement,
-        ).visibility).toBe('hidden')
+        expect(
+            window.getComputedStyle(getEntityAction(secondAvailable, 'criterion-multiget-add', 7) as HTMLButtonElement)
+                .visibility,
+        ).toBe('hidden')
 
         fireEvent.click(secondClear)
 
         await waitFor(() => {
-            expect(secondSelected.querySelectorAll(
-                'button[data-autotest="criterion-multiget-remove"]',
-            )).toHaveLength(0)
+            expect(secondSelected.querySelectorAll('button[data-autotest="criterion-multiget-remove"]')).toHaveLength(0)
         })
         expect(getEntityAction(firstSelected, 'criterion-multiget-remove', 11)).not.toBeNull()
         expect(getEntityAction(firstSelected, 'criterion-multiget-remove', 22)).not.toBeNull()
@@ -469,8 +453,8 @@ describe('SearchUI multiget outer Selenium contract', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="multiget-commit-first"
-                    settingsContextName="multiget-commit-first-context"
+                    autoTestId='multiget-commit-first'
+                    settingsContextName='multiget-commit-first-context'
                     possibleCriteria={[CriterionTypeEnum.GATE]}
                     predefinedCriteria={[CriterionTypeEnum.GATE]}
                     initialSearchConditions={{multigetCriteria: [firstCriterionState]}}
@@ -478,8 +462,8 @@ describe('SearchUI multiget outer Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="multiget-commit-second"
-                    settingsContextName="multiget-commit-second-context"
+                    autoTestId='multiget-commit-second'
+                    settingsContextName='multiget-commit-second-context'
                     possibleCriteria={[CriterionTypeEnum.GATE]}
                     predefinedCriteria={[CriterionTypeEnum.GATE]}
                     initialSearchConditions={{multigetCriteria: [secondCriterionState]}}
@@ -490,12 +474,16 @@ describe('SearchUI multiget outer Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                multigetCriteria: [firstCriterionState],
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                multigetCriteria: [secondCriterionState],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: [firstCriterionState],
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: [secondCriterionState],
+                }),
+            )
         })
 
         const firstCriterion = getCriterion(container, 'multiget-commit-first')
@@ -536,16 +524,20 @@ describe('SearchUI multiget outer Selenium contract', () => {
         await waitFor(() => {
             expect(getOwnedPanel('multiget-commit-first')).toBeNull()
             expect(getSummaryValues(firstCriterion)).toEqual(['101'])
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                multigetCriteria: [expect.objectContaining({
-                    entityType: LinkedEntityTypeEnum.GATE,
-                    filterType: MultichoiceFilterTypeEnum.NONE,
-                    selectedItems: '101',
-                    selectedItemNames: 'Shared Gate',
-                    deselectedItems: '',
-                    deselectedItemNames: '',
-                })],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: [
+                        expect.objectContaining({
+                            entityType: LinkedEntityTypeEnum.GATE,
+                            filterType: MultichoiceFilterTypeEnum.NONE,
+                            selectedItems: '101',
+                            selectedItemNames: 'Shared Gate',
+                            deselectedItems: '',
+                            deselectedItemNames: '',
+                        }),
+                    ],
+                }),
+            )
         })
         expect(getOwnedPanel('multiget-commit-second')).toBe(secondPanel)
         expect(getSummaryValues(secondCriterion)).toEqual([])
@@ -555,16 +547,20 @@ describe('SearchUI multiget outer Selenium contract', () => {
         await waitFor(() => {
             expect(getOwnedPanel('multiget-commit-second')).toBeNull()
             expect(getSummaryValues(secondCriterion)).toEqual(['101'])
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                multigetCriteria: [expect.objectContaining({
-                    entityType: LinkedEntityTypeEnum.GATE,
-                    filterType: MultichoiceFilterTypeEnum.ALL,
-                    selectedItems: '',
-                    selectedItemNames: '',
-                    deselectedItems: '101',
-                    deselectedItemNames: 'Shared Gate',
-                })],
-            }))
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: [
+                        expect.objectContaining({
+                            entityType: LinkedEntityTypeEnum.GATE,
+                            filterType: MultichoiceFilterTypeEnum.ALL,
+                            selectedItems: '',
+                            selectedItemNames: '',
+                            deselectedItems: '101',
+                            deselectedItemNames: 'Shared Gate',
+                        }),
+                    ],
+                }),
+            )
         })
 
         const firstCommittedCallCount = firstOnFiltersUpdate.mock.calls.length
@@ -584,36 +580,16 @@ describe('SearchUI multiget outer Selenium contract', () => {
         const reopenedSecondSelected = getColumn(reopenedSecondPanel, 'criterion-multiget-selected')
 
         await waitFor(() => {
-            expect(getEntityAction(
-                reopenedFirstSelected,
-                'criterion-multiget-remove',
-                101,
-            )).not.toBeNull()
-            expect(getEntityAction(
-                reopenedSecondSelected,
-                'criterion-multiget-remove',
-                101,
-            )).not.toBeNull()
+            expect(getEntityAction(reopenedFirstSelected, 'criterion-multiget-remove', 101)).not.toBeNull()
+            expect(getEntityAction(reopenedSecondSelected, 'criterion-multiget-remove', 101)).not.toBeNull()
         })
 
-        fireEvent.click(getEntityAction(
-            reopenedFirstSelected,
-            'criterion-multiget-remove',
-            101,
-        ) as HTMLButtonElement)
-        fireEvent.click(getEntityAction(
-            reopenedSecondSelected,
-            'criterion-multiget-remove',
-            101,
-        ) as HTMLButtonElement)
+        fireEvent.click(getEntityAction(reopenedFirstSelected, 'criterion-multiget-remove', 101) as HTMLButtonElement)
+        fireEvent.click(getEntityAction(reopenedSecondSelected, 'criterion-multiget-remove', 101) as HTMLButtonElement)
 
         await waitFor(() => {
-            expect(reopenedFirstSelected.querySelector(
-                'button[data-autotest="criterion-multiget-remove"]',
-            )).toBeNull()
-            expect(reopenedSecondSelected.querySelector(
-                'button[data-autotest="criterion-multiget-remove"]',
-            )).toBeNull()
+            expect(reopenedFirstSelected.querySelector('button[data-autotest="criterion-multiget-remove"]')).toBeNull()
+            expect(reopenedSecondSelected.querySelector('button[data-autotest="criterion-multiget-remove"]')).toBeNull()
         })
         expect(getSummaryValues(firstCriterion)).toEqual(['101'])
         expect(getSummaryValues(secondCriterion)).toEqual(['101'])

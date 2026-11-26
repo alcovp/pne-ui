@@ -21,29 +21,14 @@ type PneFieldDataAttributes = {
 
 export type PneFieldLabelSlotProps = Omit<
     FormLabelProps,
-    | 'children'
-    | 'component'
-    | 'disabled'
-    | 'error'
-    | 'filled'
-    | 'focused'
-    | 'htmlFor'
-    | 'required'
+    'children' | 'component' | 'disabled' | 'error' | 'filled' | 'focused' | 'htmlFor' | 'required'
 > & {
     ref?: React.Ref<HTMLLabelElement>
 } & PneFieldDataAttributes
 
 export type PneFieldHelperTextSlotProps = Omit<
     FormHelperTextProps,
-    | 'children'
-    | 'component'
-    | 'disabled'
-    | 'error'
-    | 'filled'
-    | 'focused'
-    | 'margin'
-    | 'required'
-    | 'variant'
+    'children' | 'component' | 'disabled' | 'error' | 'filled' | 'focused' | 'margin' | 'required' | 'variant'
 > & {
     ref?: React.Ref<HTMLParagraphElement>
 } & PneFieldDataAttributes
@@ -55,9 +40,7 @@ export interface PneFieldSlotProps {
 
 export type PneFieldLabelPosition = 'top' | 'left'
 
-export type PneFieldChildren =
-    | React.ReactElement
-    | ((field: PneFieldControlAdapter) => React.ReactElement)
+export type PneFieldChildren = React.ReactElement | ((field: PneFieldControlAdapter) => React.ReactElement)
 
 type RemovedFormControlProp =
     | 'children'
@@ -97,26 +80,21 @@ type PneFieldOwnProps = Omit<FormControlTypeMap['props'], RemovedFormControlProp
     variant?: never
 }
 
-type PneFieldTypeMap<
-    AdditionalProps = {},
-    RootComponent extends React.ElementType = 'div',
-> = {
+type PneFieldTypeMap<AdditionalProps = {}, RootComponent extends React.ElementType = 'div'> = {
     props: PneFieldOwnProps & AdditionalProps
     defaultComponent: RootComponent
 }
 
-export type PneFieldProps<
-    RootComponent extends React.ElementType = 'div',
-    AdditionalProps = {},
-> = OverrideProps<PneFieldTypeMap<AdditionalProps, RootComponent>, RootComponent> & {
+export type PneFieldProps<RootComponent extends React.ElementType = 'div', AdditionalProps = {}> = OverrideProps<
+    PneFieldTypeMap<AdditionalProps, RootComponent>,
+    RootComponent
+> & {
     component?: RootComponent
 }
 
 type PneFieldComponent = OverridableComponent<PneFieldTypeMap>
 
-const PneFieldImplementation = <C extends React.ElementType = 'div'>(
-    props: PneFieldProps<C, {component?: C}>,
-) => {
+const PneFieldImplementation = <C extends React.ElementType = 'div'>(props: PneFieldProps<C, {component?: C}>) => {
     const {
         children,
         controlId: controlIdProp,
@@ -142,68 +120,58 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
     const hasHelperText = hasRenderableContent(helperText)
     const labelSlotId = normalizeId(slotProps?.label?.id)
     const helperTextSlotId = normalizeId(slotProps?.helperText?.id)
-    const labelId = hasLabel ? labelSlotId ?? `${fieldId}-label` : undefined
-    const helperTextId = hasHelperText
-        ? helperTextSlotId ?? `${fieldId}-helper-text`
-        : undefined
+    const labelId = hasLabel ? (labelSlotId ?? `${fieldId}-label`) : undefined
+    const helperTextId = hasHelperText ? (helperTextSlotId ?? `${fieldId}-helper-text`) : undefined
 
     warnAboutFieldIdConflicts({
         controlId,
         rootId,
     })
 
-    const adapter = React.useMemo<PneFieldControlAdapter>(() => ({
-        controlId,
-        disabled,
-        error,
-        fullWidth,
-        getControlProps: <ControlProps extends object = PneFieldControlDomProps>(
-            controlProps?: ControlProps & PneFieldControlDomProps,
-        ) => {
-            const ownProps: ControlProps & PneFieldControlDomProps = controlProps
-                ?? {} as ControlProps & PneFieldControlDomProps
-            const ownId = normalizeId(ownProps.id)
+    const adapter = React.useMemo<PneFieldControlAdapter>(
+        () => ({
+            controlId,
+            disabled,
+            error,
+            fullWidth,
+            getControlProps: <ControlProps extends object = PneFieldControlDomProps>(
+                controlProps?: ControlProps & PneFieldControlDomProps,
+            ) => {
+                const ownProps: ControlProps & PneFieldControlDomProps =
+                    controlProps ?? ({} as ControlProps & PneFieldControlDomProps)
+                const ownId = normalizeId(ownProps.id)
 
-            if (process.env.NODE_ENV !== 'production' && ownId && ownId !== controlId) {
-                console.warn(
-                    `PneField owns control ID "${controlId}" and ignores conflicting child ID "${ownId}". `
-                    + 'Move the ID to PneField controlId.',
-                )
-            }
+                if (process.env.NODE_ENV !== 'production' && ownId && ownId !== controlId) {
+                    console.warn(
+                        `PneField owns control ID "${controlId}" and ignores conflicting child ID "${ownId}". ` +
+                            'Move the ID to PneField controlId.',
+                    )
+                }
 
-            return {
-                ...ownProps,
-                'aria-describedby': mergeAriaIds(
-                    ownProps['aria-describedby'],
-                    helperTextId,
-                ),
-                'aria-disabled': disabled || ownProps.disabled === true
-                    ? true
-                    : ownProps['aria-disabled'],
-                'aria-invalid': error ? true : ownProps['aria-invalid'],
-                'aria-labelledby': hasAriaLabel(ownProps['aria-label'])
-                    ? undefined
-                    : mergeAriaIds(labelId, ownProps['aria-labelledby']),
-                'aria-required': required ? true : ownProps['aria-required'],
-                disabled: disabled || ownProps.disabled === true,
-                id: controlId,
-            } as Omit<ControlProps, keyof PneFieldControlDomProps>
-                & ResolvedPneFieldControlDomProps
-        },
-        helperTextId,
-        labelId,
-        required,
-    }), [controlId, disabled, error, fullWidth, helperTextId, labelId, required])
+                return {
+                    ...ownProps,
+                    'aria-describedby': mergeAriaIds(ownProps['aria-describedby'], helperTextId),
+                    'aria-disabled': disabled || ownProps.disabled === true ? true : ownProps['aria-disabled'],
+                    'aria-invalid': error ? true : ownProps['aria-invalid'],
+                    'aria-labelledby': hasAriaLabel(ownProps['aria-label'])
+                        ? undefined
+                        : mergeAriaIds(labelId, ownProps['aria-labelledby']),
+                    'aria-required': required ? true : ownProps['aria-required'],
+                    disabled: disabled || ownProps.disabled === true,
+                    id: controlId,
+                } as Omit<ControlProps, keyof PneFieldControlDomProps> & ResolvedPneFieldControlDomProps
+            },
+            helperTextId,
+            labelId,
+            required,
+        }),
+        [controlId, disabled, error, fullWidth, helperTextId, labelId, required],
+    )
 
     const resolvedChildren = typeof children === 'function' ? children(adapter) : children
     validateChildren(resolvedChildren, hasLabel)
 
-    const {
-        id: _labelId,
-        ref: labelRef,
-        sx: labelSlotSx,
-        ...labelSlotProps
-    } = slotProps?.label ?? {}
+    const {id: _labelId, ref: labelRef, sx: labelSlotSx, ...labelSlotProps} = slotProps?.label ?? {}
     const {
         id: _helperTextId,
         ref: helperTextRef,
@@ -211,52 +179,52 @@ const PneFieldImplementation = <C extends React.ElementType = 'div'>(
         ...helperTextSlotProps
     } = slotProps?.helperText ?? {}
 
-    return <FormControl
-        disabled={disabled}
-        error={error}
-        fullWidth={fullWidth}
-        id={rootId}
-        required={required}
-        sx={[
-            hasLabel && labelPosition === 'left' ? fieldLeftLabelLayoutSx : fieldTopLabelLayoutSx,
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-        {...rest}
-        data-pne-label-position={hasLabel ? labelPosition : undefined}
-    >
-        {hasLabel
-            ? <FormLabel
-                {...labelSlotProps}
-                htmlFor={controlId}
-                id={labelId}
-                ref={labelRef}
-                required={required}
-                sx={[
-                    fieldLabelSx,
-                    labelPosition === 'left' ? fieldLeftLabelSx : null,
-                    ...(Array.isArray(labelSlotSx) ? labelSlotSx : [labelSlotSx]),
-                ]}
-            >
-                {label}
-            </FormLabel>
-            : null}
-        <PneFieldContext value={adapter}>
-            {resolvedChildren}
-        </PneFieldContext>
-        {hasHelperText
-            ? <FormHelperText
-                {...helperTextSlotProps}
-                id={helperTextId}
-                ref={helperTextRef}
-                sx={[
-                    fieldHelperTextSx,
-                    ...(Array.isArray(helperTextSlotSx) ? helperTextSlotSx : [helperTextSlotSx]),
-                ]}
-            >
-                {helperText}
-            </FormHelperText>
-            : null}
-    </FormControl>
+    return (
+        <FormControl
+            disabled={disabled}
+            error={error}
+            fullWidth={fullWidth}
+            id={rootId}
+            required={required}
+            sx={[
+                hasLabel && labelPosition === 'left' ? fieldLeftLabelLayoutSx : fieldTopLabelLayoutSx,
+                ...(Array.isArray(sx) ? sx : [sx]),
+            ]}
+            {...rest}
+            data-pne-label-position={hasLabel ? labelPosition : undefined}
+        >
+            {hasLabel ? (
+                <FormLabel
+                    {...labelSlotProps}
+                    htmlFor={controlId}
+                    id={labelId}
+                    ref={labelRef}
+                    required={required}
+                    sx={[
+                        fieldLabelSx,
+                        labelPosition === 'left' ? fieldLeftLabelSx : null,
+                        ...(Array.isArray(labelSlotSx) ? labelSlotSx : [labelSlotSx]),
+                    ]}
+                >
+                    {label}
+                </FormLabel>
+            ) : null}
+            <PneFieldContext value={adapter}>{resolvedChildren}</PneFieldContext>
+            {hasHelperText ? (
+                <FormHelperText
+                    {...helperTextSlotProps}
+                    id={helperTextId}
+                    ref={helperTextRef}
+                    sx={[
+                        fieldHelperTextSx,
+                        ...(Array.isArray(helperTextSlotSx) ? helperTextSlotSx : [helperTextSlotSx]),
+                    ]}
+                >
+                    {helperText}
+                </FormHelperText>
+            ) : null}
+        </FormControl>
+    )
 }
 
 const fieldTopLabelLayoutSx: SxProps<Theme> = {
@@ -344,29 +312,24 @@ const hasRenderableContent = (value: React.ReactNode): boolean =>
 const hasAriaLabel = (value: React.AriaAttributes['aria-label']): boolean =>
     typeof value === 'string' && value.trim() !== ''
 
-const warnAboutFieldIdConflicts = (
-    options: {
-        controlId: string
-        rootId?: string
-    },
-) => {
+const warnAboutFieldIdConflicts = (options: {controlId: string; rootId?: string}) => {
     if (process.env.NODE_ENV === 'production') {
         return
     }
 
     if (options.rootId && options.rootId === options.controlId) {
         console.warn(
-            `PneField root ID and controlId are both "${options.rootId}". `
-            + 'Use distinct IDs to avoid duplicate DOM IDs.',
+            `PneField root ID and controlId are both "${options.rootId}". ` +
+                'Use distinct IDs to avoid duplicate DOM IDs.',
         )
     }
 }
 
 const validateChildren = (children: React.ReactElement, hasLabel: boolean) => {
-    const directChildren = React.isValidElement<{children?: React.ReactNode}>(children)
-        && children.type === React.Fragment
-        ? children.props.children
-        : children
+    const directChildren =
+        React.isValidElement<{children?: React.ReactNode}>(children) && children.type === React.Fragment
+            ? children.props.children
+            : children
 
     // The count of what was passed, as React counts children.
     // eslint-disable-next-line @eslint-react/no-children-count
@@ -379,9 +342,9 @@ const validateChildren = (children: React.ReactElement, hasLabel: boolean) => {
     }
 
     if (
-        hasLabel
-        && React.isValidElement<{label?: React.ReactNode}>(children)
-        && hasRenderableContent(children.props.label)
+        hasLabel &&
+        React.isValidElement<{label?: React.ReactNode}>(children) &&
+        hasRenderableContent(children.props.label)
     ) {
         console.warn(
             'PneField and its direct child both provide labels. Use one label owner to avoid an ambiguous accessible name.',

@@ -4,20 +4,13 @@ import {fireEvent, render, screen} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    createPneTheme,
-    PneField,
-    PneSelect,
-    PneTextField,
-    Skin,
-    usePneFieldControl,
-} from '../src'
+import {createPneTheme, PneField, PneSelect, PneTextField, Skin, usePneFieldControl} from '../src'
 
 const FieldAwareInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
     const field = usePneFieldControl()
     const controlProps = field?.getControlProps(props) ?? props
 
-    return <input {...controlProps}/>
+    return <input {...controlProps} />
 }
 
 const testSkin = {
@@ -26,22 +19,22 @@ const testSkin = {
 
 describe('PneField', () => {
     it('renders the external label and child control', () => {
-        render(<PneField controlId='report-file-name' label='Report file name'>
-            <PneTextField/>
-        </PneField>)
+        render(
+            <PneField controlId='report-file-name' label='Report file name'>
+                <PneTextField />
+            </PneField>,
+        )
 
         expect(screen.getByText('Report file name')).toBeTruthy()
         expect(screen.getByRole('textbox')).toBeTruthy()
     })
 
     it('renders helper text', () => {
-        render(<PneField
-            helperText='Required'
-            id='report-file-field'
-            label='Report file name'
-        >
-            <PneTextField/>
-        </PneField>)
+        render(
+            <PneField helperText='Required' id='report-file-field' label='Report file name'>
+                <PneTextField />
+            </PneField>,
+        )
 
         const helperText = screen.getByText('Required')
 
@@ -65,15 +58,13 @@ describe('PneField', () => {
             },
         })
 
-        render(<ThemeProvider theme={theme}>
-            <PneField
-                error
-                helperText={`Invalid value: ${'x'.repeat(400)}`}
-                label='Report file name'
-            >
-                <PneTextField/>
-            </PneField>
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <PneField error helperText={`Invalid value: ${'x'.repeat(400)}`} label='Report file name'>
+                    <PneTextField />
+                </PneField>
+            </ThemeProvider>,
+        )
 
         const helperText = screen.getByText(/^Invalid value:/)
         const computedStyle = window.getComputedStyle(helperText)
@@ -85,13 +76,11 @@ describe('PneField', () => {
     })
 
     it('links helper text to a generated text input', () => {
-        render(<PneField
-            helperText='Required'
-            id='report-file-field'
-            label='Report file name'
-        >
-            <PneTextField/>
-        </PneField>)
+        render(
+            <PneField helperText='Required' id='report-file-field' label='Report file name'>
+                <PneTextField />
+            </PneField>,
+        )
 
         const input = screen.getByLabelText('Report file name')
         const helperText = screen.getByText('Required')
@@ -100,50 +89,46 @@ describe('PneField', () => {
     })
 
     it('keeps child text field helper text visible when field provides error state', () => {
-        render(<PneField
-            error
-            id='report-file-field'
-            label='Report file name'
-        >
-            <PneTextField helperText='Required'/>
-        </PneField>)
+        render(
+            <PneField error id='report-file-field' label='Report file name'>
+                <PneTextField helperText='Required' />
+            </PneField>,
+        )
 
         expect(screen.getByText('Required')).toBeTruthy()
     })
 
     it('merges field helper text with child text field helper text', () => {
-        render(<PneField
-            helperText='Field helper'
-            id='report-file-field'
-            label='Report file name'
-        >
-            <PneTextField helperText='Child helper'/>
-        </PneField>)
+        render(
+            <PneField helperText='Field helper' id='report-file-field' label='Report file name'>
+                <PneTextField helperText='Child helper' />
+            </PneField>,
+        )
 
         const input = screen.getByLabelText('Report file name')
 
         expect(screen.getByText('Field helper')).toBeTruthy()
         expect(screen.getByText('Child helper')).toBeTruthy()
-        expect(input.getAttribute('aria-describedby')).toBe('report-file-field-control-helper-text report-file-field-helper-text')
+        expect(input.getAttribute('aria-describedby')).toBe(
+            'report-file-field-control-helper-text report-file-field-helper-text',
+        )
     })
 
     it('merges existing text input descriptions with the field helper text', () => {
-        render(<>
-            <div id='custom-help'>Custom help</div>
-            <PneField
-                helperText='Required'
-                id='report-file-field'
-                label='Report file name'
-            >
-                <PneTextField
-                    slotProps={{
-                        htmlInput: {
-                            'aria-describedby': 'custom-help',
-                        },
-                    }}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <div id='custom-help'>Custom help</div>
+                <PneField helperText='Required' id='report-file-field' label='Report file name'>
+                    <PneTextField
+                        slotProps={{
+                            htmlInput: {
+                                'aria-describedby': 'custom-help',
+                            },
+                        }}
+                    />
+                </PneField>
+            </>,
+        )
 
         const input = screen.getByLabelText('Report file name')
         const helperText = screen.getByText('Required')
@@ -152,14 +137,11 @@ describe('PneField', () => {
     })
 
     it('generates text input ids and propagates non-native field state to pne controls', () => {
-        render(<PneField
-            disabled
-            error
-            label='Report file name'
-            required
-        >
-            <PneTextField/>
-        </PneField>)
+        render(
+            <PneField disabled error label='Report file name' required>
+                <PneTextField />
+            </PneField>,
+        )
 
         const input = screen.getByLabelText(/Report file name/)
 
@@ -170,12 +152,11 @@ describe('PneField', () => {
     })
 
     it('does not use field required as native input validation', () => {
-        render(<PneField
-            label='Report file name'
-            required
-        >
-            <PneTextField/>
-        </PneField>)
+        render(
+            <PneField label='Report file name' required>
+                <PneTextField />
+            </PneField>,
+        )
 
         const input = screen.getByLabelText(/Report file name/)
 
@@ -184,9 +165,11 @@ describe('PneField', () => {
     })
 
     it('keeps explicit text input required as native input validation', () => {
-        render(<PneField label='Report file name'>
-            <PneTextField required/>
-        </PneField>)
+        render(
+            <PneField label='Report file name'>
+                <PneTextField required />
+            </PneField>,
+        )
 
         const input = screen.getByLabelText(/Report file name/)
 
@@ -194,9 +177,11 @@ describe('PneField', () => {
     })
 
     it('associates the generated field label with the generated text input', () => {
-        render(<PneField label='Report file name'>
-            <PneTextField/>
-        </PneField>)
+        render(
+            <PneField label='Report file name'>
+                <PneTextField />
+            </PneField>,
+        )
 
         const input = screen.getByLabelText('Report file name')
         const label = screen.getByText('Report file name') as HTMLLabelElement
@@ -205,14 +190,16 @@ describe('PneField', () => {
     })
 
     it('links an external field label to PneSelect via labelId', () => {
-        render(<PneField label='Message server'>
-            <PneSelect
-                options={['Email', 'SFTP']}
-                placeholder='Please select'
-                value={null}
-                onChange={() => undefined}
-            />
-        </PneField>)
+        render(
+            <PneField label='Message server'>
+                <PneSelect
+                    options={['Email', 'SFTP']}
+                    placeholder='Please select'
+                    value={null}
+                    onChange={() => undefined}
+                />
+            </PneField>,
+        )
 
         const select = screen.getByRole('combobox', {name: 'Message server'})
 
@@ -222,18 +209,16 @@ describe('PneField', () => {
     })
 
     it('links helper text to PneSelect', () => {
-        render(<PneField
-            helperText='Required'
-            id='message-server-field'
-            label='Message server'
-        >
-            <PneSelect
-                options={['Email', 'SFTP']}
-                placeholder='Please select'
-                value={null}
-                onChange={() => undefined}
-            />
-        </PneField>)
+        render(
+            <PneField helperText='Required' id='message-server-field' label='Message server'>
+                <PneSelect
+                    options={['Email', 'SFTP']}
+                    placeholder='Please select'
+                    value={null}
+                    onChange={() => undefined}
+                />
+            </PneField>,
+        )
 
         const select = screen.getByRole('combobox', {name: 'Message server'})
         const helperText = screen.getByText('Required')
@@ -242,44 +227,44 @@ describe('PneField', () => {
     })
 
     it('composes external field state and caller ARIA with PneSelect', () => {
-        render(<>
-            <div id='custom-select-help'>Custom help</div>
-            <div id='display-select-help'>Display help</div>
-            <div id='replacement-select-label'>Replacement label</div>
-            <PneField
-                disabled
-                error
-                fullWidth={false}
-                helperText='Required'
-                id='message-server-field'
-                label='Message server'
-                required
-            >
-                <PneSelect
-                    aria-describedby='custom-select-help'
-                    options={['Email', 'SFTP']}
-                    placeholder='Please select'
-                    SelectDisplayProps={{
-                        'aria-describedby': 'display-select-help',
-                        'aria-disabled': 'false',
-                        'aria-invalid': 'false',
-                        'aria-labelledby': 'replacement-select-label',
-                        'aria-required': 'false',
-                        id: 'replacement-select-id',
-                    }}
-                    value={null}
-                    onChange={() => undefined}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <div id='custom-select-help'>Custom help</div>
+                <div id='display-select-help'>Display help</div>
+                <div id='replacement-select-label'>Replacement label</div>
+                <PneField
+                    disabled
+                    error
+                    fullWidth={false}
+                    helperText='Required'
+                    id='message-server-field'
+                    label='Message server'
+                    required
+                >
+                    <PneSelect
+                        aria-describedby='custom-select-help'
+                        options={['Email', 'SFTP']}
+                        placeholder='Please select'
+                        SelectDisplayProps={{
+                            'aria-describedby': 'display-select-help',
+                            'aria-disabled': 'false',
+                            'aria-invalid': 'false',
+                            'aria-labelledby': 'replacement-select-label',
+                            'aria-required': 'false',
+                            id: 'replacement-select-id',
+                        }}
+                        value={null}
+                        onChange={() => undefined}
+                    />
+                </PneField>
+            </>,
+        )
 
         const select = screen.getByRole('combobox', {name: /Message server/})
         const helperText = screen.getByText('Required')
         const selectFormControl = select.closest('.MuiFormControl-root')
 
-        expect(select.getAttribute('aria-describedby')).toBe(
-            `custom-select-help ${helperText.id} display-select-help`,
-        )
+        expect(select.getAttribute('aria-describedby')).toBe(`custom-select-help ${helperText.id} display-select-help`)
         expect(select.getAttribute('aria-disabled')).toBe('true')
         expect(select.getAttribute('aria-invalid')).toBe('true')
         expect(select.getAttribute('aria-required')).toBe('true')
@@ -296,44 +281,48 @@ describe('PneField', () => {
         const labelRef = React.createRef<HTMLLabelElement>()
         const helperTextRef = React.createRef<HTMLParagraphElement>()
 
-        render(<>
-            <div id='custom-period-help'>Custom help</div>
-            <PneField
-                controlId='period-control'
-                disabled
-                error
-                helperText='Choose one period'
-                label='Period'
-                required
-                slotProps={{
-                    helperText: {
-                        'aria-live': 'polite',
-                        'data-slot': 'helper',
-                        id: 'period-help',
-                        ref: helperTextRef,
-                    },
-                    label: {
-                        'data-slot': 'label',
-                        id: 'period-label',
-                        ref: labelRef,
-                    },
-                }}
-            >
-                {field => <ToggleButtonGroup
-                    {...field.getControlProps({
-                        'aria-describedby': 'custom-period-help',
-                        'aria-disabled': false,
-                        'aria-invalid': false,
-                        disabled: false,
-                    })}
-                    exclusive
-                    value='weeks'
+        render(
+            <>
+                <div id='custom-period-help'>Custom help</div>
+                <PneField
+                    controlId='period-control'
+                    disabled
+                    error
+                    helperText='Choose one period'
+                    label='Period'
+                    required
+                    slotProps={{
+                        helperText: {
+                            'aria-live': 'polite',
+                            'data-slot': 'helper',
+                            id: 'period-help',
+                            ref: helperTextRef,
+                        },
+                        label: {
+                            'data-slot': 'label',
+                            id: 'period-label',
+                            ref: labelRef,
+                        },
+                    }}
                 >
-                    <ToggleButton value='days'>Days</ToggleButton>
-                    <ToggleButton value='weeks'>Weeks</ToggleButton>
-                </ToggleButtonGroup>}
-            </PneField>
-        </>)
+                    {field => (
+                        <ToggleButtonGroup
+                            {...field.getControlProps({
+                                'aria-describedby': 'custom-period-help',
+                                'aria-disabled': false,
+                                'aria-invalid': false,
+                                disabled: false,
+                            })}
+                            exclusive
+                            value='weeks'
+                        >
+                            <ToggleButton value='days'>Days</ToggleButton>
+                            <ToggleButton value='weeks'>Weeks</ToggleButton>
+                        </ToggleButtonGroup>
+                    )}
+                </PneField>
+            </>,
+        )
 
         const group = screen.getByRole('group', {name: 'Period'})
 
@@ -349,24 +338,26 @@ describe('PneField', () => {
     })
 
     it('exports reusable field bindings without injecting native required', () => {
-        render(<>
-            <div id='existing-input-help'>Existing help</div>
-            <div id='supplemental-input-label'>Supplemental name</div>
-            <PneField
-                controlId='custom-input'
-                disabled
-                error
-                helperText='Field help'
-                id='custom-field'
-                label='Account'
-                required
-            >
-                <FieldAwareInput
-                    aria-describedby='existing-input-help'
-                    aria-labelledby='supplemental-input-label'
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <div id='existing-input-help'>Existing help</div>
+                <div id='supplemental-input-label'>Supplemental name</div>
+                <PneField
+                    controlId='custom-input'
+                    disabled
+                    error
+                    helperText='Field help'
+                    id='custom-field'
+                    label='Account'
+                    required
+                >
+                    <FieldAwareInput
+                        aria-describedby='existing-input-help'
+                        aria-labelledby='supplemental-input-label'
+                    />
+                </PneField>
+            </>,
+        )
 
         const input = screen.getByRole('textbox', {
             name: 'Account Supplemental name',
@@ -377,21 +368,23 @@ describe('PneField', () => {
         expect(input.hasAttribute('required')).toBe(false)
         expect(input.getAttribute('aria-invalid')).toBe('true')
         expect(input.getAttribute('aria-required')).toBe('true')
-        expect(input.getAttribute('aria-describedby')).toBe(
-            'existing-input-help custom-field-helper-text',
-        )
+        expect(input.getAttribute('aria-describedby')).toBe('existing-input-help custom-field-helper-text')
     })
 
     it('keeps an explicit aria-label as the generic control naming override', () => {
-        render(<PneField label='Field-owned name'>
-            {field => <div
-                {...field.getControlProps({
-                    'aria-label': 'Explicit group name',
-                    'aria-labelledby': 'ignored-label-reference',
-                    role: 'group',
-                })}
-            />}
-        </PneField>)
+        render(
+            <PneField label='Field-owned name'>
+                {field => (
+                    <div
+                        {...field.getControlProps({
+                            'aria-label': 'Explicit group name',
+                            'aria-labelledby': 'ignored-label-reference',
+                            role: 'group',
+                        })}
+                    />
+                )}
+            </PneField>,
+        )
 
         const group = screen.getByRole('group', {name: 'Explicit group name'})
 
@@ -401,9 +394,11 @@ describe('PneField', () => {
     it('keeps the field-owned control ID when a child provides a conflicting ID', () => {
         const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
 
-        render(<PneField controlId='expected-control' label='Report file name'>
-            <PneTextField id='unexpected-control'/>
-        </PneField>)
+        render(
+            <PneField controlId='expected-control' label='Report file name'>
+                <PneTextField id='unexpected-control' />
+            </PneField>,
+        )
 
         expect(screen.getByRole('textbox', {name: 'Report file name'}).id).toBe('expected-control')
         expect(warn).toHaveBeenCalledWith(expect.stringContaining('Move the ID to PneField controlId'))
@@ -412,11 +407,13 @@ describe('PneField', () => {
     })
 
     it('does not mistake a wrapper ID for the nested control ID', () => {
-        const {container} = render(<PneField id='field-root' label='Report file name'>
-            <div id='layout-wrapper'>
-                <PneTextField/>
-            </div>
-        </PneField>)
+        const {container} = render(
+            <PneField id='field-root' label='Report file name'>
+                <div id='layout-wrapper'>
+                    <PneTextField />
+                </div>
+            </PneField>,
+        )
 
         const input = screen.getByRole('textbox', {name: 'Report file name'})
 
@@ -427,10 +424,7 @@ describe('PneField', () => {
     })
 
     it('rejects multiple direct logical controls from untyped callers', () => {
-        const children = [
-            <PneTextField key='first'/>,
-            <PneTextField key='second'/>,
-        ] as unknown as React.ReactElement
+        const children = [<PneTextField key='first' />, <PneTextField key='second' />] as unknown as React.ReactElement
 
         expect(() => render(<PneField>{children}</PneField>)).toThrow(
             'PneField expects exactly one logical control or group.',
@@ -438,9 +432,11 @@ describe('PneField', () => {
     })
 
     it('renders numeric label and helper content', () => {
-        render(<PneField helperText={0} label={0}>
-            {field => <input {...field.getControlProps()}/>}
-        </PneField>)
+        render(
+            <PneField helperText={0} label={0}>
+                {field => <input {...field.getControlProps()} />}
+            </PneField>,
+        )
 
         const input = screen.getByRole('textbox', {name: '0'})
         const helperTextId = input.getAttribute('aria-describedby')
@@ -452,9 +448,11 @@ describe('PneField', () => {
     it('keeps a polymorphic root and ref contract', () => {
         const rootRef = React.createRef<HTMLFieldSetElement>()
 
-        render(<PneField component='fieldset' ref={rootRef}>
-            <input aria-label='Standalone control'/>
-        </PneField>)
+        render(
+            <PneField component='fieldset' ref={rootRef}>
+                <input aria-label='Standalone control' />
+            </PneField>,
+        )
 
         expect(rootRef.current?.tagName).toBe('FIELDSET')
     })
@@ -464,17 +462,14 @@ describe('PneField', () => {
         const GenericControl = (props: Record<string, unknown>) => {
             receivedProps.push(props)
 
-            return <div data-testid='generic-control'/>
+            return <div data-testid='generic-control' />
         }
 
-        render(<PneField
-            disabled
-            error
-            label='Period'
-            required
-        >
-            <GenericControl/>
-        </PneField>)
+        render(
+            <PneField disabled error label='Period' required>
+                <GenericControl />
+            </PneField>,
+        )
 
         expect(screen.getByTestId('generic-control')).toBeTruthy()
         expect(receivedProps[0]).toEqual({})

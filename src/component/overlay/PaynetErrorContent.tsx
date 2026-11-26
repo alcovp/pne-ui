@@ -1,12 +1,12 @@
 import React from 'react'
 import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined'
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined'
-import { AlertTitle, Box, ButtonBase, Stack, Typography } from '@mui/material'
-import { useTranslation } from 'react-i18next'
-import PneModal, { type PneModalRootProps } from '../PneModal'
-import { OverlayPortalContainerContext } from './OverlayPortalContainerContext'
-import { PaynetErrorPresentationContext } from './PaynetErrorPresentationContext'
-import type { NormalizedPaynetError, PaynetViolation, PaynetViolationMessageResolver } from './types'
+import {AlertTitle, Box, ButtonBase, Stack, Typography} from '@mui/material'
+import {useTranslation} from 'react-i18next'
+import PneModal, {type PneModalRootProps} from '../PneModal'
+import {OverlayPortalContainerContext} from './OverlayPortalContainerContext'
+import {PaynetErrorPresentationContext} from './PaynetErrorPresentationContext'
+import type {NormalizedPaynetError, PaynetViolation, PaynetViolationMessageResolver} from './types'
 
 export type PaynetErrorContentProps = {
     error: NormalizedPaynetError
@@ -42,15 +42,15 @@ const unresolvedTemplateKey = (format?: string | null): string | undefined => {
 }
 
 const isLongDetails = (details: string): boolean =>
-    details.length > LONG_DETAILS_CHARACTER_THRESHOLD
-    || details.split('\n').length > LONG_DETAILS_LINE_THRESHOLD
+    details.length > LONG_DETAILS_CHARACTER_THRESHOLD || details.split('\n').length > LONG_DETAILS_LINE_THRESHOLD
 
 const createDetailsPreview = (details: string): string => {
     const lines = details.split('\n').slice(0, DETAILS_PREVIEW_MAX_LINES)
     const linePreview = lines.join('\n')
-    const preview = linePreview.length > DETAILS_PREVIEW_MAX_CHARACTERS
-        ? linePreview.slice(0, DETAILS_PREVIEW_MAX_CHARACTERS)
-        : linePreview
+    const preview =
+        linePreview.length > DETAILS_PREVIEW_MAX_CHARACTERS
+            ? linePreview.slice(0, DETAILS_PREVIEW_MAX_CHARACTERS)
+            : linePreview
 
     return `${preview.trimEnd()}\n…`
 }
@@ -102,15 +102,15 @@ const hasTextSelectionWithin = (element: HTMLElement): boolean => {
     return false
 }
 
-const CopyableErrorId = ({ errorId }: { errorId: string }) => {
-    const { t } = useTranslation()
+const CopyableErrorId = ({errorId}: {errorId: string}) => {
+    const {t} = useTranslation()
     const [copied, setCopied] = React.useState(false)
     const mountedRef = React.useRef(true)
     const resetTimerRef = React.useRef<number | undefined>(undefined)
-    const pointerDownPositionRef = React.useRef<{ x: number; y: number } | null>(null)
+    const pointerDownPositionRef = React.useRef<{x: number; y: number} | null>(null)
     const pointerDraggedRef = React.useRef(false)
-    const copyLabel = String(t('pne.error.copyErrorId', { defaultValue: 'Copy error ID' }))
-    const copiedLabel = String(t('pne.error.errorIdCopied', { defaultValue: 'Error ID copied' }))
+    const copyLabel = String(t('pne.error.copyErrorId', {defaultValue: 'Copy error ID'}))
+    const copiedLabel = String(t('pne.error.errorIdCopied', {defaultValue: 'Error ID copied'}))
 
     React.useEffect(() => {
         mountedRef.current = true
@@ -121,7 +121,7 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
     }, [])
 
     const handleCopy = async () => {
-        if (!await copyTextToClipboard(errorId) || !mountedRef.current) return
+        if (!(await copyTextToClipboard(errorId)) || !mountedRef.current) return
 
         setCopied(true)
         if (resetTimerRef.current !== undefined) window.clearTimeout(resetTimerRef.current)
@@ -131,7 +131,7 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
     const handleMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
         if (event.button !== 0) return
 
-        pointerDownPositionRef.current = { x: event.clientX, y: event.clientY }
+        pointerDownPositionRef.current = {x: event.clientX, y: event.clientY}
         pointerDraggedRef.current = false
     }
 
@@ -140,19 +140,17 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
         if (!start || (event.buttons & 1) === 0) return
 
         if (
-            Math.abs(event.clientX - start.x) >= TEXT_SELECTION_DRAG_THRESHOLD_PX
-            || Math.abs(event.clientY - start.y) >= TEXT_SELECTION_DRAG_THRESHOLD_PX
+            Math.abs(event.clientX - start.x) >= TEXT_SELECTION_DRAG_THRESHOLD_PX ||
+            Math.abs(event.clientY - start.y) >= TEXT_SELECTION_DRAG_THRESHOLD_PX
         ) {
             pointerDraggedRef.current = true
         }
     }
 
-    const handleActivate = (
-        event: React.MouseEvent<HTMLSpanElement> | React.KeyboardEvent<HTMLSpanElement>,
-    ) => {
+    const handleActivate = (event: React.MouseEvent<HTMLSpanElement> | React.KeyboardEvent<HTMLSpanElement>) => {
         const keyboardActivation = event.type === 'keydown' || event.type === 'keyup' || event.detail === 0
-        const suppressPointerCopy = !keyboardActivation
-            && (pointerDraggedRef.current || hasTextSelectionWithin(event.currentTarget))
+        const suppressPointerCopy =
+            !keyboardActivation && (pointerDraggedRef.current || hasTextSelectionWithin(event.currentTarget))
 
         pointerDownPositionRef.current = null
         pointerDraggedRef.current = false
@@ -208,17 +206,17 @@ const CopyableErrorId = ({ errorId }: { errorId: string }) => {
                 }}
             >
                 {errorId.slice(0, -1)}
-                <Box component='span' data-name='error-id-tail' sx={{ whiteSpace: 'nowrap' }}>
+                <Box component='span' data-name='error-id-tail' sx={{whiteSpace: 'nowrap'}}>
                     {errorId.slice(-1)}
                     {copied ? (
                         <CheckOutlinedIcon
                             data-name='error-id-copied-icon'
-                            sx={{ color: 'success.main', fontSize: 15, ml: 0.375, verticalAlign: '-2px' }}
+                            sx={{color: 'success.main', fontSize: 15, ml: 0.375, verticalAlign: '-2px'}}
                         />
                     ) : (
                         <ContentCopyOutlinedIcon
                             data-name='error-id-copy-icon'
-                            sx={{ fontSize: 14, ml: 0.375, verticalAlign: '-2px' }}
+                            sx={{fontSize: 14, ml: 0.375, verticalAlign: '-2px'}}
                         />
                     )}
                 </Box>
@@ -241,34 +239,32 @@ const renderMessage = (message: string, errorId?: string): React.ReactNode => {
 }
 
 /** Shared rich presentation for Paynet errors in an overlay or inline state. */
-export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErrorContentProps) => {
-    const { t } = useTranslation()
+export const PaynetErrorContent = ({error, resolveViolationMessage}: PaynetErrorContentProps) => {
+    const {t} = useTranslation()
     const [detailsOpen, setDetailsOpen] = React.useState(false)
     const overlayPortalContainer = React.use(OverlayPortalContainerContext)
     const presentation = React.use(PaynetErrorPresentationContext)
     const resolveViolation = resolveViolationMessage ?? presentation.resolveViolationMessage
-    const title = t('react.unexpected.exception.title', { defaultValue: 'Error' })
+    const title = t('react.unexpected.exception.title', {defaultValue: 'Error'})
 
     const translateOptional = (key?: string): string | undefined => {
         if (!key) return undefined
-        const translated = String(t(key, { defaultValue: MISSING_TRANSLATION }))
+        const translated = String(t(key, {defaultValue: MISSING_TRANSLATION}))
         return translated === MISSING_TRANSLATION || translated.trim().length === 0 ? undefined : translated
     }
 
     const translatedMessageId = translateOptional(error.messageId)
     const translatedValidation = translateOptional(error.errorI18N)
-    const genericMessage = String(t(
-        'react.unexpected.exception.unknown-message',
-        { defaultValue: 'Internal server error' },
-    ))
+    const genericMessage = String(
+        t('react.unexpected.exception.unknown-message', {defaultValue: 'Internal server error'}),
+    )
     // `message` is an already-presentable literal (for example Error.message
     // or a legacy title). Only backend i18n fields are passed to `t`.
     const messageTemplate = error.messageId
-        ? translatedMessageId ?? translatedValidation ?? genericMessage
-        : error.message ?? translatedValidation ?? genericMessage
-    const presentableMessageTemplate = !error.errorId && messageTemplate.includes(ERROR_ID_PLACEHOLDER)
-        ? genericMessage
-        : messageTemplate
+        ? (translatedMessageId ?? translatedValidation ?? genericMessage)
+        : (error.message ?? translatedValidation ?? genericMessage)
+    const presentableMessageTemplate =
+        !error.errorId && messageTemplate.includes(ERROR_ID_PLACEHOLDER) ? genericMessage : messageTemplate
     const resolvedMessage = replaceErrorId(presentableMessageTemplate, error.errorId)
     const showValidation = translatedValidation && translatedValidation !== resolvedMessage
 
@@ -279,52 +275,41 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
         if (hostText) return hostText
         const key = unresolvedTemplateKey(violation.messageFormat)
         if (key) {
-            const translated = String(t(key, {
-                ...violation.messageParams,
-                defaultValue: MISSING_TRANSLATION,
-                interpolation: { escapeValue: false },
-            }))
+            const translated = String(
+                t(key, {
+                    ...violation.messageParams,
+                    defaultValue: MISSING_TRANSLATION,
+                    interpolation: {escapeValue: false},
+                }),
+            )
             if (translated !== MISSING_TRANSLATION && translated.trim().length > 0) return translated
         }
         const message = violation.message.trim()
-        return message.length > 0 ? message : key ?? violation.propertyPath
+        return message.length > 0 ? message : (key ?? violation.propertyPath)
     }
     const violations = error.violations ?? []
     const visibleViolations = violations.slice(0, VIOLATIONS_PREVIEW_MAX)
     const hiddenViolationCount = violations.length - visibleViolations.length
     const longDetails = Boolean(error.details && isLongDetails(error.details))
-    const inlineDetails = error.details && longDetails
-        ? createDetailsPreview(error.details)
-        : error.details
-    const detailsLabel = String(t('pne.error.details', { defaultValue: 'Details' }))
-    const detailsModalContainer = overlayPortalContainer === null
-        ? undefined
-        : overlayPortalContainer as PneModalRootProps['container']
+    const inlineDetails = error.details && longDetails ? createDetailsPreview(error.details) : error.details
+    const detailsLabel = String(t('pne.error.details', {defaultValue: 'Details'}))
+    const detailsModalContainer =
+        overlayPortalContainer === null ? undefined : (overlayPortalContainer as PneModalRootProps['container'])
 
     return (
-        <Box
-            data-pne-paynet-error
-            sx={{ minWidth: 0, width: 344, maxWidth: '100%' }}
-        >
-            <AlertTitle
-                data-name='error-title'
-                sx={{ mb: 0.5, fontSize: 14, fontWeight: 700, lineHeight: '20px' }}
-            >
+        <Box data-pne-paynet-error sx={{minWidth: 0, width: 344, maxWidth: '100%'}}>
+            <AlertTitle data-name='error-title' sx={{mb: 0.5, fontSize: 14, fontWeight: 700, lineHeight: '20px'}}>
                 {title}
             </AlertTitle>
             <Stack spacing={0.75}>
-                <Typography
-                    data-name='error-message'
-                    component='div'
-                    sx={ERROR_BODY_TEXT_SX}
-                >
+                <Typography data-name='error-message' component='div' sx={ERROR_BODY_TEXT_SX}>
                     {renderMessage(presentableMessageTemplate, error.errorId)}
                 </Typography>
                 {showValidation ? (
                     <Typography
                         data-name='error-validation-message'
                         component='div'
-                        sx={{ fontSize: 13, lineHeight: '18px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}
+                        sx={{fontSize: 13, lineHeight: '18px', whiteSpace: 'pre-wrap', overflowWrap: 'anywhere'}}
                     >
                         {translatedValidation}
                     </Typography>
@@ -333,7 +318,7 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
                     <Box
                         component='ul'
                         data-name='error-violations'
-                        sx={{ fontSize: 13, lineHeight: '18px', m: 0, minWidth: 0, pl: 2.25 }}
+                        sx={{fontSize: 13, lineHeight: '18px', m: 0, minWidth: 0, pl: 2.25}}
                     >
                         {visibleViolations.map((violation, index) => (
                             <li
@@ -341,14 +326,15 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
                                 data-property-path={violation.propertyPath}
                                 // eslint-disable-next-line @eslint-react/no-array-index-key -- two violations may name one property
                                 key={`${violation.propertyPath}-${index}`}
-                                style={{ overflowWrap: 'anywhere' }}
+                                style={{overflowWrap: 'anywhere'}}
                             >
                                 {violation.property ? (
                                     <Box
                                         component='span'
                                         data-name='error-violation-property'
                                         sx={{
-                                            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                                            fontFamily:
+                                                'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                                             fontSize: 12,
                                             mr: 0.5,
                                             opacity: 0.8,
@@ -361,7 +347,7 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
                             </li>
                         ))}
                         {hiddenViolationCount > 0 ? (
-                            <li data-name='error-violations-more' style={{ listStyle: 'none', marginLeft: -18 }}>
+                            <li data-name='error-violations-more' style={{listStyle: 'none', marginLeft: -18}}>
                                 {t('pne.error.moreViolations', {
                                     count: hiddenViolationCount,
                                     defaultValue: '\u2026 and {{count}} more',
@@ -373,13 +359,9 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
                 {inlineDetails ? (
                     <Box
                         data-name='error-details-section'
-                        sx={{ borderColor: 'divider', borderTop: '1px solid', minWidth: 0, pt: 0.75 }}
+                        sx={{borderColor: 'divider', borderTop: '1px solid', minWidth: 0, pt: 0.75}}
                     >
-                        <Typography
-                            component='div'
-                            data-name='error-details'
-                            sx={ERROR_BODY_TEXT_SX}
-                        >
+                        <Typography component='div' data-name='error-details' sx={ERROR_BODY_TEXT_SX}>
                             {inlineDetails}
                         </Typography>
                         {longDetails ? (
@@ -406,7 +388,7 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
                                     },
                                 }}
                             >
-                                {t('pne.error.showFullDetails', { defaultValue: 'Show full details' })}
+                                {t('pne.error.showFullDetails', {defaultValue: 'Show full details'})}
                             </ButtonBase>
                         ) : null}
                     </Box>
@@ -414,11 +396,11 @@ export const PaynetErrorContent = ({ error, resolveViolationMessage }: PaynetErr
             </Stack>
             {error.details && longDetails ? (
                 <PneModal
-                    closeLabel={String(t('pne.error.closeDetails', { defaultValue: 'Close details' }))}
-                    containerSx={{ width: 'min(680px, calc(100vw - 32px))' }}
+                    closeLabel={String(t('pne.error.closeDetails', {defaultValue: 'Close details'}))}
+                    containerSx={{width: 'min(680px, calc(100vw - 32px))'}}
                     modalProps={{
                         container: detailsModalContainer,
-                        sx: { zIndex: theme => theme.zIndex.snackbar + 1 },
+                        sx: {zIndex: theme => theme.zIndex.snackbar + 1},
                     }}
                     onClose={() => setDetailsOpen(false)}
                     open={detailsOpen}

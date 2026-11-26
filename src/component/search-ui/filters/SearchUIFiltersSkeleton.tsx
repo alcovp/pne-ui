@@ -9,15 +9,7 @@ import {
     criterionLeftWrapperSx,
     criterionSx,
 } from './criterionRowSx'
-import {
-    footerLeadSx,
-    footerSx,
-    footerTrailSx,
-    headerGroupSx,
-    headerSx,
-    rootSx,
-    searchButtonSx,
-} from './panelSx'
+import {footerLeadSx, footerSx, footerTrailSx, headerGroupSx, headerSx, rootSx, searchButtonSx} from './panelSx'
 import {SEARCH_UI_FILTERS_PHONE_MEDIA} from './layout'
 
 export const SEARCH_FILTERS_SKELETON_AUTOTEST_ID = 'search-filters-skeleton'
@@ -83,44 +75,54 @@ export const SearchUIFiltersSkeleton = (props: SearchUIFiltersSkeletonProps) => 
     const headerActions = unfolded ? actions.filter(action => action.header) : actions
     const footerActions = unfolded ? actions.filter(action => !action.header) : []
     const buttonHeight = unfolded ? 32 : 24
-    const button = (action: SearchUIFiltersSkeletonAction, index: number, height: number) => <Skeleton
-        height={height}
-        key={index}
-        sx={action.main ? [searchButtonSx, mainButtonSx] : undefined}
-        variant='rounded'
-        width={action.width}
-    />
+    const button = (action: SearchUIFiltersSkeletonAction, index: number, height: number) => (
+        <Skeleton
+            height={height}
+            key={index}
+            sx={action.main ? [searchButtonSx, mainButtonSx] : undefined}
+            variant='rounded'
+            width={action.width}
+        />
+    )
 
-    return <Box
-        {...createAutoTestAttributes(SEARCH_FILTERS_SKELETON_AUTOTEST_ID, autoTestId)}
-        aria-busy='true'
-        sx={rootSx}
-    >
-        <Box data-pne-folded={unfolded ? undefined : 'true'} sx={headerSx}>
-            <Box sx={headerGroupSx}>
-                {/* The name of the panel with its chevron, and the count. */}
-                {toggle ? <Skeleton height={24} variant='rounded' width={96}/> : null}
+    return (
+        <Box
+            {...createAutoTestAttributes(SEARCH_FILTERS_SKELETON_AUTOTEST_ID, autoTestId)}
+            aria-busy='true'
+            sx={rootSx}
+        >
+            <Box data-pne-folded={unfolded ? undefined : 'true'} sx={headerSx}>
+                <Box sx={headerGroupSx}>
+                    {/* The name of the panel with its chevron, and the count. */}
+                    {toggle ? <Skeleton height={24} variant='rounded' width={96} /> : null}
+                </Box>
+                <Box sx={headerGroupSx}>{headerActions.map((action, index) => button(action, index, 24))}</Box>
             </Box>
-            <Box sx={headerGroupSx}>
-                {headerActions.map((action, index) => button(action, index, 24))}
-            </Box>
+            {Array.from({length: shownRows}, (_, index) => (
+                <Box data-pne-skeleton-row='true' key={index} sx={criterionSx}>
+                    <Box sx={[criterionActionsWrapperSx, iconsCellSx]} />
+                    <Box sx={[criterionLeftWrapperSx, nameCellSx]}>
+                        <Skeleton height={14} variant='rounded' width={112} />
+                    </Box>
+                    <Box sx={criterionContentWrapperSx}>
+                        <Skeleton height={24} sx={valuePillSx} variant='rounded' width={220} />
+                    </Box>
+                </Box>
+            ))}
+            {unfolded && footerActions.length > 0 ? (
+                <Box sx={footerSx}>
+                    <Box sx={footerLeadSx}>
+                        {footerActions
+                            .filter(action => !action.main)
+                            .map((action, index) => button(action, index, buttonHeight))}
+                    </Box>
+                    <Box sx={footerTrailSx}>
+                        {footerActions
+                            .filter(action => action.main)
+                            .map((action, index) => button(action, index, buttonHeight))}
+                    </Box>
+                </Box>
+            ) : null}
         </Box>
-        {Array.from({length: shownRows}, (_, index) => <Box data-pne-skeleton-row='true' key={index} sx={criterionSx}>
-            <Box sx={[criterionActionsWrapperSx, iconsCellSx]}/>
-            <Box sx={[criterionLeftWrapperSx, nameCellSx]}>
-                <Skeleton height={14} variant='rounded' width={112}/>
-            </Box>
-            <Box sx={criterionContentWrapperSx}>
-                <Skeleton height={24} sx={valuePillSx} variant='rounded' width={220}/>
-            </Box>
-        </Box>)}
-        {unfolded && footerActions.length > 0 ? <Box sx={footerSx}>
-            <Box sx={footerLeadSx}>
-                {footerActions.filter(action => !action.main).map((action, index) => button(action, index, buttonHeight))}
-            </Box>
-            <Box sx={footerTrailSx}>
-                {footerActions.filter(action => action.main).map((action, index) => button(action, index, buttonHeight))}
-            </Box>
-        </Box> : null}
-    </Box>
+    )
 }

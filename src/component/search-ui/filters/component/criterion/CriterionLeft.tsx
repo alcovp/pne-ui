@@ -1,19 +1,17 @@
-import React, {useState} from 'react';
-import {CriterionTypeEnum} from '../../types';
-import {useTranslation} from 'react-i18next';
-import {Box} from '@mui/material';
-import PneTooltip from '../../../../PneTooltip';
-import type {SxProps, Theme} from '@mui/material/styles';
-import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from '../../styled';
+import React, {useState} from 'react'
+import {CriterionTypeEnum} from '../../types'
+import {useTranslation} from 'react-i18next'
+import {Box} from '@mui/material'
+import PneTooltip from '../../../../PneTooltip'
+import type {SxProps, Theme} from '@mui/material/styles'
+import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from '../../styled'
 
 type Props = {
     criterionType: CriterionTypeEnum
 }
 
 export const CriterionLeft = (props: Props) => {
-    const {
-        criterionType
-    } = props
+    const {criterionType} = props
 
     const {t} = useTranslation()
     const label = t('react.CriterionTypeEnum.' + criterionType)
@@ -26,18 +24,18 @@ export const CriterionLeft = (props: Props) => {
     }
 
     // A name that does not fit its column is cut with an ellipsis, never wrapped.
-    return <PneTooltip
-        disableInteractive
-        enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
-        enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
-        title={truncated ? label : ''}
-    >
-        <Box sx={titleSx} onMouseEnter={measure} onTouchStart={measure}>
-            <Box component={'span'}>
-                {label}
+    return (
+        <PneTooltip
+            disableInteractive
+            enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+            enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+            title={truncated ? label : ''}
+        >
+            <Box sx={titleSx} onMouseEnter={measure} onTouchStart={measure}>
+                <Box component={'span'}>{label}</Box>
             </Box>
-        </Box>
-    </PneTooltip>
+        </PneTooltip>
+    )
 }
 
 // Full-strength label colour from the palette, so dark mode reads; the light colour stands in

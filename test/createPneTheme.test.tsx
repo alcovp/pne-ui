@@ -2,30 +2,24 @@ import {getContrastRatio, useTheme} from '@mui/material/styles'
 import {fireEvent, render, screen} from '@testing-library/react'
 import React from 'react'
 
-import {
-    createPneTheme,
-    PNE_DARK_COLORS,
-    PneThemeProvider,
-    type Skin,
-    usePneColorMode,
-} from '../src'
+import {createPneTheme, PNE_DARK_COLORS, PneThemeProvider, type Skin, usePneColorMode} from '../src'
 
-const createSkin = (experimentalColor: string): Skin => ({experimentalColor} as Skin)
+const createSkin = (experimentalColor: string): Skin => ({experimentalColor}) as Skin
 
 const compositeRgbaOnHex = (foreground: string, background: string): string => {
     const match = /^rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)$/.exec(foreground)
     if (!match) return foreground
 
     const alpha = Number(match[4])
-    const backgroundChannels = [1, 3, 5].map(index =>
-        Number.parseInt(background.slice(index, index + 2), 16),
-    )
+    const backgroundChannels = [1, 3, 5].map(index => Number.parseInt(background.slice(index, index + 2), 16))
     const foregroundChannels = match.slice(1, 4).map(Number)
-    return `#${foregroundChannels.map((channel, index) =>
-        Math.round(channel * alpha + backgroundChannels[index] * (1 - alpha))
-            .toString(16)
-            .padStart(2, '0'),
-    ).join('')}`
+    return `#${foregroundChannels
+        .map((channel, index) =>
+            Math.round(channel * alpha + backgroundChannels[index] * (1 - alpha))
+                .toString(16)
+                .padStart(2, '0'),
+        )
+        .join('')}`
 }
 
 describe('createPneTheme', () => {
@@ -73,58 +67,51 @@ describe('createPneTheme', () => {
         }
         // The resting control keeps the 3:1 floor for interface elements, hover stands out more.
         expect(getContrastRatio(control.foreground, page)).toBeGreaterThanOrEqual(3)
-        expect(getContrastRatio(control.foregroundHover, page))
-            .toBeGreaterThan(getContrastRatio(control.foreground, page))
+        expect(getContrastRatio(control.foregroundHover, page)).toBeGreaterThan(
+            getContrastRatio(control.foreground, page),
+        )
         // Disabled stays visibly weaker than the resting control.
-        expect(getContrastRatio(control.foregroundDisabled, page))
-            .toBeLessThan(getContrastRatio(control.foreground, page))
+        expect(getContrastRatio(control.foregroundDisabled, page)).toBeLessThan(
+            getContrastRatio(control.foreground, page),
+        )
         // The pressed-in background is a step off the page, still far from the control colour.
         expect(getContrastRatio(control.activeBackground, page)).toBeLessThan(1.5)
         expect(getContrastRatio(control.foreground, control.activeBackground)).toBeGreaterThanOrEqual(3)
     })
 
-    it.each([
-        '#000000',
-        '#111111',
-        '#151515',
-        '#FFFFFF',
-        '#FFD600',
-        '#D25A5B',
-        '#1C9941',
-        '#0A91BC',
-        '#0E0A24',
-    ])('derives accessible dark foreground and filled-control text for %s', seed => {
-        const theme = createPneTheme(createSkin(seed), {colorMode: 'dark'})
-        const {brand, surface} = theme.palette.pne
-        const foregroundSurfaces = [
-            theme.palette.background.default,
-            theme.palette.background.paper,
-            surface.sunken,
-            surface.subtle,
-            surface.raised,
-        ]
+    it.each(['#000000', '#111111', '#151515', '#FFFFFF', '#FFD600', '#D25A5B', '#1C9941', '#0A91BC', '#0E0A24'])(
+        'derives accessible dark foreground and filled-control text for %s',
+        seed => {
+            const theme = createPneTheme(createSkin(seed), {colorMode: 'dark'})
+            const {brand, surface} = theme.palette.pne
+            const foregroundSurfaces = [
+                theme.palette.background.default,
+                theme.palette.background.paper,
+                surface.sunken,
+                surface.subtle,
+                surface.raised,
+            ]
 
-        foregroundSurfaces.forEach(background => {
-            expect(getContrastRatio(brand.foreground, background)).toBeGreaterThanOrEqual(4.5)
-            expect(getContrastRatio(brand.foregroundHover, background)).toBeGreaterThanOrEqual(4.5)
-        })
-        expect(getContrastRatio(
-            brand.foreground,
-            compositeRgbaOnHex(brand.soft, theme.palette.background.paper),
-        )).toBeGreaterThanOrEqual(4.5)
-        const fillStates = [brand.fill, brand.fillHover, brand.fillActive]
-        fillStates.forEach(fill => {
-            expect(getContrastRatio(fill, brand.onFill)).toBeGreaterThanOrEqual(4.5)
-        })
+            foregroundSurfaces.forEach(background => {
+                expect(getContrastRatio(brand.foreground, background)).toBeGreaterThanOrEqual(4.5)
+                expect(getContrastRatio(brand.foregroundHover, background)).toBeGreaterThanOrEqual(4.5)
+            })
+            expect(
+                getContrastRatio(brand.foreground, compositeRgbaOnHex(brand.soft, theme.palette.background.paper)),
+            ).toBeGreaterThanOrEqual(4.5)
+            const fillStates = [brand.fill, brand.fillHover, brand.fillActive]
+            fillStates.forEach(fill => {
+                expect(getContrastRatio(fill, brand.onFill)).toBeGreaterThanOrEqual(4.5)
+            })
 
-        const fillBoundaryContrast = getContrastRatio(brand.fill, surface.raised)
-        if (fillBoundaryContrast < 3) {
-            expect(brand.fillBorder).toBe(brand.foreground)
-            expect(getContrastRatio(brand.fillBorder, surface.raised)).toBeGreaterThanOrEqual(3)
-        }
-        expect(createPneTheme(createSkin(seed), {colorMode: 'dark'}).palette.pne.brand)
-            .toEqual(brand)
-    })
+            const fillBoundaryContrast = getContrastRatio(brand.fill, surface.raised)
+            if (fillBoundaryContrast < 3) {
+                expect(brand.fillBorder).toBe(brand.foreground)
+                expect(getContrastRatio(brand.fillBorder, surface.raised)).toBeGreaterThanOrEqual(3)
+            }
+            expect(createPneTheme(createSkin(seed), {colorMode: 'dark'}).palette.pne.brand).toEqual(brand)
+        },
+    )
 
     it('takes nothing but the colour mode from the application', () => {
         // What an application typed in JavaScript, or cast, still passes at run time.
@@ -150,8 +137,12 @@ describe('createPneTheme', () => {
             expect(light.palette.warning).toMatchObject({main: '#A65C03', light: '#FA9A40', dark: '#8E4E01'})
             expect(dark.palette.warning).toMatchObject({main: '#FA9A40', light: '#FFC393', dark: '#D97A05'})
             // Text of this colour reads on the page, and a white label reads on its fill.
-            expect(getContrastRatio(light.palette.warning.main, light.palette.background.paper)).toBeGreaterThanOrEqual(4.5)
-            expect(getContrastRatio(dark.palette.warning.main, dark.palette.background.paper)).toBeGreaterThanOrEqual(4.5)
+            expect(getContrastRatio(light.palette.warning.main, light.palette.background.paper)).toBeGreaterThanOrEqual(
+                4.5,
+            )
+            expect(getContrastRatio(dark.palette.warning.main, dark.palette.background.paper)).toBeGreaterThanOrEqual(
+                4.5,
+            )
             expect(getContrastRatio('#fff', light.palette.warning.main)).toBeGreaterThanOrEqual(4.5)
         }
     })
@@ -180,8 +171,7 @@ describe('PneThemeProvider', () => {
 
         expect(screen.getByRole('button').textContent).toBe('light:light:#fff')
         fireEvent.click(screen.getByRole('button'))
-        expect(screen.getByRole('button').textContent)
-            .toBe(`dark:dark:${PNE_DARK_COLORS.backgroundPaper}`)
+        expect(screen.getByRole('button').textContent).toBe(`dark:dark:${PNE_DARK_COLORS.backgroundPaper}`)
         expect(getItem).not.toHaveBeenCalled()
         expect(setItem).not.toHaveBeenCalled()
 

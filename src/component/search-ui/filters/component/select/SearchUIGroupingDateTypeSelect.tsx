@@ -1,16 +1,13 @@
-import React, {useState} from 'react';
-import {GROUPING_DATE_TYPES} from '../../types';
-import {Box, Chip} from '@mui/material';
-import {useTranslation} from 'react-i18next';
-import {useSearchUIFiltersStore} from '../../state/store';
-import {chipChevronSx, selectUnderChipSx} from './style';
-import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
-import PneSelect from '../../../../dropdown/PneSelect';
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope';
+import React, {useState} from 'react'
+import {GROUPING_DATE_TYPES} from '../../types'
+import {Box, Chip} from '@mui/material'
+import {useTranslation} from 'react-i18next'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {chipChevronSx, selectUnderChipSx} from './style'
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
+import PneSelect from '../../../../dropdown/PneSelect'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
 
 const CRITERION_GROUPING_DATE_TYPE_AUTOTEST_ID = 'criterion-grouping-date-type'
 const CRITERION_GROUPING_DATE_TYPE_OPTIONS_AUTOTEST_ID = 'criterion-grouping-date-type-options'
@@ -29,47 +26,45 @@ const SearchUIGroupingDateTypeSelect = () => {
         defaultValue: 'Grouping date type',
     })
 
-    return <Box sx={{position: 'relative'}}>
-        <Chip
-            onDelete={() => setOpen(true)}
-            deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
-            label={optionRenderer(dateType)}
-            size={'small'}
-            aria-hidden={true}
-            tabIndex={-1}
-            sx={{pointerEvents: 'none'}}
-        />
-        <PneSelect
-            size='large'
-            open={open}
-            onClose={() => setOpen(false)}
-            onOpen={() => setOpen(true)}
-            sx={selectUnderChipSx}
-            getOptionLabel={optionRenderer}
-            value={dateType}
-            onChange={setGroupingCriterionDateType}
-            options={GROUPING_DATE_TYPES}
-            getOptionProps={option => createAutoTestAttributes(
-                CRITERION_GROUPING_DATE_TYPE_OPTION_AUTOTEST_ID,
-                option,
-            )}
-            MenuProps={{
-                slotProps: {
-                    list: createSearchUIOwnedAutoTestAttributes(
-                        CRITERION_GROUPING_DATE_TYPE_OPTIONS_AUTOTEST_ID,
-                        autoTestOwner,
-                    ),
-                },
-            }}
-            SelectDisplayProps={{
-                ...createAutoTestAttributes(
-                    CRITERION_GROUPING_DATE_TYPE_AUTOTEST_ID,
-                    dateType,
-                ),
-                'aria-label': ariaLabel,
-            }}
-        />
-    </Box>
+    return (
+        <Box sx={{position: 'relative'}}>
+            <Chip
+                onDelete={() => setOpen(true)}
+                deleteIcon={<PneChevronDownIcon sx={chipChevronSx} />}
+                label={optionRenderer(dateType)}
+                size={'small'}
+                aria-hidden={true}
+                tabIndex={-1}
+                sx={{pointerEvents: 'none'}}
+            />
+            <PneSelect
+                size='large'
+                open={open}
+                onClose={() => setOpen(false)}
+                onOpen={() => setOpen(true)}
+                sx={selectUnderChipSx}
+                getOptionLabel={optionRenderer}
+                value={dateType}
+                onChange={setGroupingCriterionDateType}
+                options={GROUPING_DATE_TYPES}
+                getOptionProps={option =>
+                    createAutoTestAttributes(CRITERION_GROUPING_DATE_TYPE_OPTION_AUTOTEST_ID, option)
+                }
+                MenuProps={{
+                    slotProps: {
+                        list: createSearchUIOwnedAutoTestAttributes(
+                            CRITERION_GROUPING_DATE_TYPE_OPTIONS_AUTOTEST_ID,
+                            autoTestOwner,
+                        ),
+                    },
+                }}
+                SelectDisplayProps={{
+                    ...createAutoTestAttributes(CRITERION_GROUPING_DATE_TYPE_AUTOTEST_ID, dateType),
+                    'aria-label': ariaLabel,
+                }}
+            />
+        </Box>
+    )
 }
 
 export default SearchUIGroupingDateTypeSelect

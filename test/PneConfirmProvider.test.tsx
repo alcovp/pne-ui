@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
 
-import { PneConfirmProvider, type PneConfirmOptions, usePneConfirm } from '../src'
+import {PneConfirmProvider, type PneConfirmOptions, usePneConfirm} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -17,23 +17,15 @@ const autoTestNode = (id: string): HTMLElement => {
     return node
 }
 
-const ConfirmTrigger = ({
-    onResult,
-    options,
-}: {
-    onResult: (accepted: boolean) => void
-    options?: PneConfirmOptions
-}) => {
-    const { confirm } = usePneConfirm()
+const ConfirmTrigger = ({onResult, options}: {onResult: (accepted: boolean) => void; options?: PneConfirmOptions}) => {
+    const {confirm} = usePneConfirm()
 
-    return <button onClick={() => void (options ? confirm(options) : confirm()).then(onResult)}>
-        Open confirm
-    </button>
+    return <button onClick={() => void (options ? confirm(options) : confirm()).then(onResult)}>Open confirm</button>
 }
 
 describe('PneConfirmProvider', () => {
     it('renders the supported confirm anchors in the modal portal', async () => {
-        const { container } = render(
+        const {container} = render(
             <PneConfirmProvider>
                 <ConfirmTrigger
                     onResult={jest.fn()}
@@ -46,15 +38,13 @@ describe('PneConfirmProvider', () => {
             </PneConfirmProvider>,
         )
 
-        fireEvent.click(screen.getByRole('button', { name: 'Open confirm' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Open confirm'}))
 
         expect(await screen.findByText('This cannot be undone')).toBeTruthy()
         expect(document.body.contains(autoTestNode('alert.container'))).toBe(true)
         expect(container.contains(autoTestNode('alert.container'))).toBe(false)
-        expect(screen.getByRole('dialog', { name: 'Delete item' })).toBe(autoTestNode('alert.container'))
-        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe(
-            'order-action:DELETE_ORDER',
-        )
+        expect(screen.getByRole('dialog', {name: 'Delete item'})).toBe(autoTestNode('alert.container'))
+        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe('order-action:DELETE_ORDER')
         expect(autoTestNode('alert.message').textContent).toBe('This cannot be undone')
         expect(autoTestNode('alert.button.close').getAttribute('aria-label')).toBe('Cancel')
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Cancel')
@@ -65,14 +55,11 @@ describe('PneConfirmProvider', () => {
         const onResult = jest.fn()
         render(
             <PneConfirmProvider>
-                <ConfirmTrigger
-                    onResult={onResult}
-                    options={{ danger: true, message: 'Delete item?' }}
-                />
+                <ConfirmTrigger onResult={onResult} options={{danger: true, message: 'Delete item?'}} />
             </PneConfirmProvider>,
         )
 
-        fireEvent.click(screen.getByRole('button', { name: 'Open confirm' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Open confirm'}))
         const submit = await waitFor(() => autoTestNode('alert.button.submit'))
 
         expect(submit.classList.contains('MuiButton-colorError')).toBe(true)
@@ -83,7 +70,7 @@ describe('PneConfirmProvider', () => {
 
     it.each([
         ['omitted', undefined],
-        ['empty', { message: '' }],
+        ['empty', {message: ''}],
     ] as const)('omits the modal body when the message is %s', async (_case, options) => {
         render(
             <PneConfirmProvider>
@@ -91,9 +78,9 @@ describe('PneConfirmProvider', () => {
             </PneConfirmProvider>,
         )
 
-        fireEvent.click(screen.getByRole('button', { name: 'Open confirm' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Open confirm'}))
 
-        expect(await screen.findByRole('dialog', { name: 'Confirm action' })).toBeTruthy()
+        expect(await screen.findByRole('dialog', {name: 'Confirm action'})).toBeTruthy()
         expect(document.querySelector("[data-autotest='alert.message']")).toBeNull()
         expect(document.querySelector("[data-pne-modal-body='true']")).toBeNull()
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Cancel')
@@ -107,11 +94,11 @@ describe('PneConfirmProvider', () => {
         const onResult = jest.fn()
         render(
             <PneConfirmProvider>
-                <ConfirmTrigger onResult={onResult} options={{ message: 'Continue?' }} />
+                <ConfirmTrigger onResult={onResult} options={{message: 'Continue?'}} />
             </PneConfirmProvider>,
         )
 
-        fireEvent.click(screen.getByRole('button', { name: 'Open confirm' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Open confirm'}))
         await screen.findByText('Continue?')
         fireEvent.click(autoTestNode(autoTestId))
 
@@ -122,14 +109,11 @@ describe('PneConfirmProvider', () => {
         const onResult = jest.fn()
         render(
             <PneConfirmProvider>
-                <ConfirmTrigger
-                    onResult={onResult}
-                    options={{ message: 'Configuration required', showCancel: false }}
-                />
+                <ConfirmTrigger onResult={onResult} options={{message: 'Configuration required', showCancel: false}} />
             </PneConfirmProvider>,
         )
 
-        fireEvent.click(screen.getByRole('button', { name: 'Open confirm' }))
+        fireEvent.click(screen.getByRole('button', {name: 'Open confirm'}))
 
         expect(await screen.findByText('Configuration required')).toBeTruthy()
         expect(document.querySelector("[data-autotest='alert.button.cancel']")).toBeNull()
@@ -161,7 +145,7 @@ describe('PneConfirmProvider', () => {
         )
 
         act(() => {
-            void confirm({ message: 'Inherited defaults' })
+            void confirm({message: 'Inherited defaults'})
             void confirm({
                 title: 'Override title',
                 message: 'Explicit overrides',
@@ -173,14 +157,14 @@ describe('PneConfirmProvider', () => {
         })
 
         expect(await screen.findByText('Inherited defaults')).toBeTruthy()
-        expect(screen.getByRole('dialog', { name: 'Default title' })).toBeTruthy()
+        expect(screen.getByRole('dialog', {name: 'Default title'})).toBeTruthy()
         expect(autoTestNode('alert.button.submit').classList.contains('MuiButton-colorError')).toBe(true)
         expect(autoTestNode('alert.button.submit').textContent).toBe('Proceed')
         expect(document.querySelector("[data-autotest='alert.button.cancel']")).toBeNull()
         fireEvent.click(autoTestNode('alert.button.submit'))
 
         expect(await screen.findByText('Explicit overrides')).toBeTruthy()
-        expect(screen.getByRole('dialog', { name: 'Override title' })).toBeTruthy()
+        expect(screen.getByRole('dialog', {name: 'Override title'})).toBeTruthy()
         expect(autoTestNode('alert.button.submit').classList.contains('MuiButton-colorError')).toBe(false)
         expect(autoTestNode('alert.button.submit').textContent).toBe('Accept')
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Dismiss')
@@ -190,7 +174,7 @@ describe('PneConfirmProvider', () => {
         let confirmDestructive: ReturnType<typeof usePneConfirm>['confirmDestructive'] = async () => false
         let confirmDelete: ReturnType<typeof usePneConfirm>['confirmDelete'] = async () => false
         const CaptureConfirm = () => {
-            ({ confirmDestructive, confirmDelete } = usePneConfirm())
+            ;({confirmDestructive, confirmDelete} = usePneConfirm())
             return null
         }
 
@@ -207,7 +191,7 @@ describe('PneConfirmProvider', () => {
                 message: 'Destructive action',
                 confirmLabel: 'Proceed',
             })
-            deleteResult = confirmDelete({ message: 'Delete item' })
+            deleteResult = confirmDelete({message: 'Delete item'})
         })
 
         expect(await screen.findByText('Destructive action')).toBeTruthy()
@@ -258,7 +242,7 @@ describe('PneConfirmProvider', () => {
         })
 
         expect(await screen.findByText('Delete configured item')).toBeTruthy()
-        expect(screen.getByRole('dialog', { name: 'Call title' })).toBeTruthy()
+        expect(screen.getByRole('dialog', {name: 'Call title'})).toBeTruthy()
         expect(autoTestNode('alert.button.submit').classList.contains('MuiButton-colorError')).toBe(true)
         expect(autoTestNode('alert.button.submit').textContent).toBe('Remove')
         expect(autoTestNode('alert.button.cancel').textContent).toBe('Call cancel')
@@ -293,17 +277,13 @@ describe('PneConfirmProvider', () => {
         })
 
         expect(await screen.findByText('First message')).toBeTruthy()
-        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe(
-            'first-owner',
-        )
+        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe('first-owner')
         expect(screen.queryByText('Second message')).toBeNull()
         fireEvent.click(autoTestNode('alert.button.submit'))
 
         await expect(firstResult!).resolves.toBe(true)
         expect(await screen.findByText('Second message')).toBeTruthy()
-        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe(
-            'second-owner',
-        )
+        expect(autoTestNode('alert.container').getAttribute('data-autotest-value')).toBe('second-owner')
         fireEvent.click(autoTestNode('alert.button.cancel'))
         await expect(secondResult!).resolves.toBe(false)
     })
@@ -325,8 +305,8 @@ describe('PneConfirmProvider', () => {
         let firstResult: Promise<boolean>
         let secondResult: Promise<boolean>
         act(() => {
-            firstResult = confirm({ message: 'First destructive action', danger: true })
-            secondResult = confirm({ message: 'Second destructive action', danger: true })
+            firstResult = confirm({message: 'First destructive action', danger: true})
+            secondResult = confirm({message: 'Second destructive action', danger: true})
             void secondResult.then(() => {
                 secondSettled = true
             })
@@ -352,7 +332,7 @@ describe('PneConfirmProvider', () => {
             return null
         }
 
-        const { unmount } = render(
+        const {unmount} = render(
             <PneConfirmProvider>
                 <CaptureConfirm />
             </PneConfirmProvider>,
@@ -361,8 +341,8 @@ describe('PneConfirmProvider', () => {
         let firstResult: Promise<boolean>
         let secondResult: Promise<boolean>
         act(() => {
-            firstResult = confirm({ message: 'First message' })
-            secondResult = confirm({ message: 'Second message' })
+            firstResult = confirm({message: 'First message'})
+            secondResult = confirm({message: 'Second message'})
         })
 
         unmount()
@@ -377,9 +357,7 @@ describe('PneConfirmProvider', () => {
             return null
         }
 
-        expect(() => render(<MissingProvider />)).toThrow(
-            'usePneConfirm must be used within <PneConfirmProvider>',
-        )
+        expect(() => render(<MissingProvider />)).toThrow('usePneConfirm must be used within <PneConfirmProvider>')
         consoleError.mockRestore()
     })
 })

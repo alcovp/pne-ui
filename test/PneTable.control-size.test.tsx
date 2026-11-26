@@ -31,16 +31,25 @@ const paginator: PaginatorProps = {
     duplicatePagination: true,
 }
 
-const renderTable = (options: {paginator?: PaginatorProps, toolbar?: React.ReactNode}) => render(
-    <PneTable<Row>
-        autoTestId='sizes'
-        data={[{id: '1', label: 'First'}]}
-        paginator={options.paginator}
-        toolbar={options.toolbar}
-        createTableHeader={() => <tr><th>Name</th></tr>}
-        createRow={row => <tr key={row.id}><td>{row.label}</td></tr>}
-    />,
-)
+const renderTable = (options: {paginator?: PaginatorProps; toolbar?: React.ReactNode}) =>
+    render(
+        <PneTable<Row>
+            autoTestId='sizes'
+            data={[{id: '1', label: 'First'}]}
+            paginator={options.paginator}
+            toolbar={options.toolbar}
+            createTableHeader={() => (
+                <tr>
+                    <th>Name</th>
+                </tr>
+            )}
+            createRow={row => (
+                <tr key={row.id}>
+                    <td>{row.label}</td>
+                </tr>
+            )}
+        />,
+    )
 
 const size = (element: Element) => {
     const style = window.getComputedStyle(element)
@@ -56,8 +65,10 @@ describe('PneTable control size', () => {
 
         for (const band of bands) {
             for (const id of ['first-page', 'prev-page', 'next-page']) {
-                expect(size(band.querySelector(`[data-autotest="${id}"]`) as Element))
-                    .toEqual({height: '24px', width: '24px'})
+                expect(size(band.querySelector(`[data-autotest="${id}"]`) as Element)).toEqual({
+                    height: '24px',
+                    width: '24px',
+                })
             }
             const sizes = Array.from(band.querySelectorAll('[data-autotest="page-size"]'))
             expect(sizes).toHaveLength(3)
@@ -81,16 +92,20 @@ describe('PneTable control size', () => {
                 expect(shell.backgroundColor).toBe('rgb(255, 255, 255)')
             }
             // Groups in one row stand 8px apart; on a narrow screen the rows they wrap onto stand 4px apart.
-            expect(window.getComputedStyle(band.querySelector('[data-autotest="pagination-actions"]') as Element).gap)
-                .toBe('4px 8px')
+            expect(
+                window.getComputedStyle(band.querySelector('[data-autotest="pagination-actions"]') as Element).gap,
+            ).toBe('4px 8px')
         }
 
         // jsdom resolves rules by source order, not by specificity, so MUI's own 52px toolbar rule, inserted
         // after ours, wins there. Browsers apply the more specific override, so read the override itself.
         const toolbarMinHeights = Array.from(document.styleSheets)
             .flatMap(sheet => Array.from(sheet.cssRules))
-            .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule
-                && rule.selectorText.endsWith('.MuiToolbar-root.MuiTablePagination-toolbar'))
+            .filter(
+                (rule): rule is CSSStyleRule =>
+                    rule instanceof CSSStyleRule &&
+                    rule.selectorText.endsWith('.MuiToolbar-root.MuiTablePagination-toolbar'),
+            )
             .map(rule => rule.style.getPropertyValue('min-height'))
         expect(toolbarMinHeights).toContain('32px')
         expect(toolbarMinHeights).not.toContain('40px')
@@ -106,21 +121,30 @@ describe('PneTable control size', () => {
     it('wraps the toolbar groups onto rows 4px apart and keeps everything of the selection 4px apart', () => {
         const {container} = renderTable({
             paginator,
-            toolbar: <PneTableToolbar
-                aria-label='Table controls'
-                contextual={<PneTableSelectionControls summary='2 selected' actions={<button type='button'>Clear</button>}/>}
-                persistent={<button type='button'>View</button>}
-            />,
+            toolbar: (
+                <PneTableToolbar
+                    aria-label='Table controls'
+                    contextual={
+                        <PneTableSelectionControls
+                            summary='2 selected'
+                            actions={<button type='button'>Clear</button>}
+                        />
+                    }
+                    persistent={<button type='button'>View</button>}
+                />
+            ),
         })
 
-        expect(window.getComputedStyle(container.querySelector('[data-autotest="table-control-bar"]') as Element).gap)
-            .toBe('4px 8px')
-        expect(window.getComputedStyle(container.querySelector('[data-autotest="selection-controls"]') as Element).gap)
-            .toBe('4px')
+        expect(
+            window.getComputedStyle(container.querySelector('[data-autotest="table-control-bar"]') as Element).gap,
+        ).toBe('4px 8px')
+        expect(
+            window.getComputedStyle(container.querySelector('[data-autotest="selection-controls"]') as Element).gap,
+        ).toBe('4px')
     })
 
     it('draws the column settings icon as a 24px icon action', () => {
-        render(<PneTableColumnSettingsAction autoTestId='sizes' onClick={jest.fn()}/>)
+        render(<PneTableColumnSettingsAction autoTestId='sizes' onClick={jest.fn()} />)
 
         expect(size(screen.getByRole('button', {name: 'Table settings'}))).toEqual({height: '24px', width: '24px'})
     })

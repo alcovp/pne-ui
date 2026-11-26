@@ -53,7 +53,11 @@ const PneTooltip = ({ref, children, ...props}: PneTooltipProps) => {
     }, [armedBy])
 
     if (mounted) {
-        return <Tooltip {...props} ref={tooltipRef}>{child}</Tooltip>
+        return (
+            <Tooltip {...props} ref={tooltipRef}>
+                {child}
+            </Tooltip>
+        )
     }
 
     const {
@@ -95,25 +99,31 @@ const PneTooltip = ({ref, children, ...props}: PneTooltipProps) => {
         ...merged,
         className: joinClassNames(other.className as string | undefined, childProps.className),
         ref: handleRef,
-        ...(disableHoverListener ? {} : {
-            onMouseOver: (event: React.MouseEvent) => {
-                merged.onMouseOver?.(event)
-                arm('mouse')
-            },
-        }),
-        ...(disableFocusListener ? {} : {
-            onFocus: (event: React.FocusEvent) => {
-                merged.onFocus?.(event)
-                arm('focus')
-            },
-        }),
-        ...(disableTouchListener ? {} : {
-            onTouchEnd: (event: React.TouchEvent) => {
-                merged.onTouchEnd?.(event)
-                // After the tap, not inside it: the element the tap is on stays until its click has landed.
-                setTimeout(() => setArmedBy(current => current ?? 'touch'))
-            },
-        }),
+        ...(disableHoverListener
+            ? {}
+            : {
+                  onMouseOver: (event: React.MouseEvent) => {
+                      merged.onMouseOver?.(event)
+                      arm('mouse')
+                  },
+              }),
+        ...(disableFocusListener
+            ? {}
+            : {
+                  onFocus: (event: React.FocusEvent) => {
+                      merged.onFocus?.(event)
+                      arm('focus')
+                  },
+              }),
+        ...(disableTouchListener
+            ? {}
+            : {
+                  onTouchEnd: (event: React.TouchEvent) => {
+                      merged.onTouchEnd?.(event)
+                      // After the tap, not inside it: the element the tap is on stays until its click has landed.
+                      setTimeout(() => setArmedBy(current => current ?? 'touch'))
+                  },
+              }),
     })
 }
 

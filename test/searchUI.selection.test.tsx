@@ -38,10 +38,7 @@ const rows: Row[] = [
 type SelectionHarnessProps = {
     instanceId?: string
     manualSearch?: boolean
-    onSelectionChange?: (
-        selection: TableSelectionModel<number>,
-        details: TableSelectionChangeDetails,
-    ) => void
+    onSelectionChange?: (selection: TableSelectionModel<number>, details: TableSelectionChangeDetails) => void
     searchData: (params: SearchParams) => Promise<Row[]>
 }
 
@@ -63,67 +60,84 @@ const SelectionHarness = ({
         },
         renderControls: ({selection: controller}) => (
             <PneTableSelectionControls
-                actions={<>
-                    <Button variant='contained' onClick={() => controller.selectAllMatching(rows.length)}>
-                        Select all results
-                    </Button>
-                    <Button variant='contained' onClick={controller.clear}>Clear selection</Button>
-                </>}
+                actions={
+                    <>
+                        <Button variant='contained' onClick={() => controller.selectAllMatching(rows.length)}>
+                            Select all results
+                        </Button>
+                        <Button variant='contained' onClick={controller.clear}>
+                            Clear selection
+                        </Button>
+                    </>
+                }
                 summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
             />
         ),
         renderFeedback: ({selection: controller}) => (
-            <div data-testid={`${instanceId}-selection-feedback`}>
-                {controller.selectedCount} selected feedback
-            </div>
+            <div data-testid={`${instanceId}-selection-feedback`}>{controller.selectedCount} selected feedback</div>
         ),
         selection,
         toolbarAriaLabel: 'Gate table controls',
     }
 
-    return <SearchUI<Row, string, number>
-        autoTestId={instanceId}
-        config={{
-            hideShowFiltersButton: true,
-            hideTemplatesSelect: true,
-            manualSearch,
-        }}
-        createTableHeader={({sortOptions}, {selection: controller} = {
-            appliedSearchCriteria: null,
-        }) => <PneTableRow>
-            <PneTableSelectionHeaderCell
-                aria-label='Select current page'
-                disabled={!controller || controller.interactionDisabled}
-                onChange={checked => controller?.setPageSelected(checked)}
-                state={controller?.pageState ?? 'none'}
-            />
-            <PneHeaderTableCell sortIndex={1} sortOptions={sortOptions}>
-                <PneTableSortLabel sortIndex={1} sortOptions={sortOptions}>Name</PneTableSortLabel>
-            </PneHeaderTableCell>
-        </PneTableRow>}
-        createTableRow={(row, _index, _data, _setData, {selection: controller} = {
-            appliedSearchCriteria: null,
-        }) => (
-            <PneTableRow
-                aria-selected={controller?.isRowSelected(row) ?? false}
-                key={row.id}
-                selected={controller?.isRowSelected(row) ?? false}
-            >
-                <PneTableSelectionCell
-                    aria-label={`Select ${row.label}`}
-                    checked={controller?.isRowSelected(row) ?? false}
-                    disabled={!controller || controller.interactionDisabled}
-                    onChange={checked => controller?.setRowSelected(row, checked)}
-                />
-                <PneTableCell>{row.label}</PneTableCell>
-            </PneTableRow>
-        )}
-        possibleCriteria={manualSearch ? [CriterionTypeEnum.STATUS] : []}
-        predefinedCriteria={manualSearch ? [CriterionTypeEnum.STATUS] : []}
-        searchData={searchData}
-        settingsContextName={`${instanceId}-selection-test`}
-        tableSelection={tableSelection}
-    />
+    return (
+        <SearchUI<Row, string, number>
+            autoTestId={instanceId}
+            config={{
+                hideShowFiltersButton: true,
+                hideTemplatesSelect: true,
+                manualSearch,
+            }}
+            createTableHeader={(
+                {sortOptions},
+                {selection: controller} = {
+                    appliedSearchCriteria: null,
+                },
+            ) => (
+                <PneTableRow>
+                    <PneTableSelectionHeaderCell
+                        aria-label='Select current page'
+                        disabled={!controller || controller.interactionDisabled}
+                        onChange={checked => controller?.setPageSelected(checked)}
+                        state={controller?.pageState ?? 'none'}
+                    />
+                    <PneHeaderTableCell sortIndex={1} sortOptions={sortOptions}>
+                        <PneTableSortLabel sortIndex={1} sortOptions={sortOptions}>
+                            Name
+                        </PneTableSortLabel>
+                    </PneHeaderTableCell>
+                </PneTableRow>
+            )}
+            createTableRow={(
+                row,
+                _index,
+                _data,
+                _setData,
+                {selection: controller} = {
+                    appliedSearchCriteria: null,
+                },
+            ) => (
+                <PneTableRow
+                    aria-selected={controller?.isRowSelected(row) ?? false}
+                    key={row.id}
+                    selected={controller?.isRowSelected(row) ?? false}
+                >
+                    <PneTableSelectionCell
+                        aria-label={`Select ${row.label}`}
+                        checked={controller?.isRowSelected(row) ?? false}
+                        disabled={!controller || controller.interactionDisabled}
+                        onChange={checked => controller?.setRowSelected(row, checked)}
+                    />
+                    <PneTableCell>{row.label}</PneTableCell>
+                </PneTableRow>
+            )}
+            possibleCriteria={manualSearch ? [CriterionTypeEnum.STATUS] : []}
+            predefinedCriteria={manualSearch ? [CriterionTypeEnum.STATUS] : []}
+            searchData={searchData}
+            settingsContextName={`${instanceId}-selection-test`}
+            tableSelection={tableSelection}
+        />
+    )
 }
 
 const createViews = (
@@ -133,135 +147,27 @@ const createViews = (
         id: 'summary',
         label: 'Summary',
         searchData,
-        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => <PneTableRow>
-            <PneTableSelectionHeaderCell
-                aria-label='Select current page'
-                disabled={!selection || selection.interactionDisabled}
-                onChange={checked => selection?.setPageSelected(checked)}
-                state={selection?.pageState ?? 'none'}
-            />
-            <PneHeaderTableCell>Summary</PneHeaderTableCell>
-        </PneTableRow>,
-        createTableRow: (row, _index, _data, _setData, {selection} = {
-            appliedSearchCriteria: null,
-        }) => <PneTableRow
-            aria-selected={selection?.isRowSelected(row) ?? false}
-            key={row.id}
-            selected={selection?.isRowSelected(row) ?? false}
-        >
-            <PneTableSelectionCell
-                aria-label={`Select ${row.label}`}
-                checked={selection?.isRowSelected(row) ?? false}
-                disabled={!selection || selection.interactionDisabled}
-                onChange={checked => selection?.setRowSelected(row, checked)}
-            />
-            <PneTableCell>{row.label}</PneTableCell>
-        </PneTableRow>,
-    },
-    {
-        id: 'operations',
-        label: 'Operations',
-        searchData,
-        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => <PneTableRow>
-            <PneTableSelectionHeaderCell
-                aria-label='Select current page'
-                disabled={!selection || selection.interactionDisabled}
-                onChange={checked => selection?.setPageSelected(checked)}
-                state={selection?.pageState ?? 'none'}
-            />
-            <PneHeaderTableCell>Operations</PneHeaderTableCell>
-        </PneTableRow>,
-        createTableRow: (row, _index, _data, _setData, {selection} = {
-            appliedSearchCriteria: null,
-        }) => <PneTableRow
-            aria-selected={selection?.isRowSelected(row) ?? false}
-            key={row.id}
-            selected={selection?.isRowSelected(row) ?? false}
-        >
-            <PneTableSelectionCell
-                aria-label={`Select ${row.label}`}
-                checked={selection?.isRowSelected(row) ?? false}
-                disabled={!selection || selection.interactionDisabled}
-                onChange={checked => selection?.setRowSelected(row, checked)}
-            />
-            <PneTableCell>{row.label}</PneTableCell>
-        </PneTableRow>,
-    },
-]
-
-const ViewsSelectionHarness = ({
-    onSelectionChange,
-    preserveAcrossViews,
-    searchData,
-}: {
-    onSelectionChange: (
-        selection: TableSelectionModel<number>,
-        details: TableSelectionChangeDetails,
-    ) => void
-    preserveAcrossViews: boolean
-    searchData: (params: SearchParams) => Promise<Row[]>
-}) => {
-    const [view, setView] = React.useState<ViewId>('summary')
-    const [selection, setSelection] = React.useState<TableSelectionModel<number>>(() => ({
-        mode: 'explicit',
-        selectedIds: new Set(),
-    }))
-
-    return <SearchUI<Row, ViewId, number>
-        autoTestId='view-gates'
-        config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
-        possibleCriteria={[]}
-        settingsContextName={`view-gates-${preserveAcrossViews}`}
-        tableSelection={{
-            getRowId: row => row.id,
-            onSelectionChange: (nextSelection, details) => {
-                setSelection(nextSelection)
-                onSelectionChange(nextSelection, details)
-            },
-            preserveAcrossViews,
-            renderControls: ({selection: controller}) => (
-                <PneTableSelectionControls summary={`${controller.selectedCount} selected`}/>
-            ),
-            selection,
-            toolbarAriaLabel: 'Gate table controls',
-        }}
-        tableViews={{
-            'aria-label': 'Gate view',
-            onChange: setView,
-            value: view,
-            views: createViews(searchData),
-        }}
-    />
-}
-
-const UncontrolledRemountHarness = ({
-    searchData,
-}: {
-    searchData: (params: SearchParams) => Promise<Row[]>
-}) => {
-    const [mounted, setMounted] = React.useState(true)
-
-    return <>
-        <button onClick={() => setMounted(current => !current)} type='button'>
-            {mounted ? 'Unmount table' : 'Mount table'}
-        </button>
-        {mounted && <SearchUI<Row, string, number>
-            autoTestId='remount-gates'
-            config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
-            createTableHeader={(_params, {selection} = {
-                appliedSearchCriteria: null,
-            }) => <PneTableRow>
+        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => (
+            <PneTableRow>
                 <PneTableSelectionHeaderCell
                     aria-label='Select current page'
                     disabled={!selection || selection.interactionDisabled}
                     onChange={checked => selection?.setPageSelected(checked)}
                     state={selection?.pageState ?? 'none'}
                 />
-                <PneHeaderTableCell>Name</PneHeaderTableCell>
-            </PneTableRow>}
-            createTableRow={(row, _index, _data, _setData, {selection} = {
+                <PneHeaderTableCell>Summary</PneHeaderTableCell>
+            </PneTableRow>
+        ),
+        createTableRow: (
+            row,
+            _index,
+            _data,
+            _setData,
+            {selection} = {
                 appliedSearchCriteria: null,
-            }) => <PneTableRow
+            },
+        ) => (
+            <PneTableRow
                 aria-selected={selection?.isRowSelected(row) ?? false}
                 key={row.id}
                 selected={selection?.isRowSelected(row) ?? false}
@@ -273,20 +179,160 @@ const UncontrolledRemountHarness = ({
                     onChange={checked => selection?.setRowSelected(row, checked)}
                 />
                 <PneTableCell>{row.label}</PneTableCell>
-            </PneTableRow>}
-            possibleCriteria={[CriterionTypeEnum.STATUS]}
-            predefinedCriteria={[CriterionTypeEnum.STATUS]}
-            searchData={searchData}
-            settingsContextName='remount-gates-selection-test'
+            </PneTableRow>
+        ),
+    },
+    {
+        id: 'operations',
+        label: 'Operations',
+        searchData,
+        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => (
+            <PneTableRow>
+                <PneTableSelectionHeaderCell
+                    aria-label='Select current page'
+                    disabled={!selection || selection.interactionDisabled}
+                    onChange={checked => selection?.setPageSelected(checked)}
+                    state={selection?.pageState ?? 'none'}
+                />
+                <PneHeaderTableCell>Operations</PneHeaderTableCell>
+            </PneTableRow>
+        ),
+        createTableRow: (
+            row,
+            _index,
+            _data,
+            _setData,
+            {selection} = {
+                appliedSearchCriteria: null,
+            },
+        ) => (
+            <PneTableRow
+                aria-selected={selection?.isRowSelected(row) ?? false}
+                key={row.id}
+                selected={selection?.isRowSelected(row) ?? false}
+            >
+                <PneTableSelectionCell
+                    aria-label={`Select ${row.label}`}
+                    checked={selection?.isRowSelected(row) ?? false}
+                    disabled={!selection || selection.interactionDisabled}
+                    onChange={checked => selection?.setRowSelected(row, checked)}
+                />
+                <PneTableCell>{row.label}</PneTableCell>
+            </PneTableRow>
+        ),
+    },
+]
+
+const ViewsSelectionHarness = ({
+    onSelectionChange,
+    preserveAcrossViews,
+    searchData,
+}: {
+    onSelectionChange: (selection: TableSelectionModel<number>, details: TableSelectionChangeDetails) => void
+    preserveAcrossViews: boolean
+    searchData: (params: SearchParams) => Promise<Row[]>
+}) => {
+    const [view, setView] = React.useState<ViewId>('summary')
+    const [selection, setSelection] = React.useState<TableSelectionModel<number>>(() => ({
+        mode: 'explicit',
+        selectedIds: new Set(),
+    }))
+
+    return (
+        <SearchUI<Row, ViewId, number>
+            autoTestId='view-gates'
+            config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
+            possibleCriteria={[]}
+            settingsContextName={`view-gates-${preserveAcrossViews}`}
             tableSelection={{
                 getRowId: row => row.id,
-                renderControls: ({selection}) => (
-                    <PneTableSelectionControls summary={`${selection.selectedCount} selected`}/>
+                onSelectionChange: (nextSelection, details) => {
+                    setSelection(nextSelection)
+                    onSelectionChange(nextSelection, details)
+                },
+                preserveAcrossViews,
+                renderControls: ({selection: controller}) => (
+                    <PneTableSelectionControls summary={`${controller.selectedCount} selected`} />
                 ),
-                toolbarAriaLabel: 'Remount gate table controls',
+                selection,
+                toolbarAriaLabel: 'Gate table controls',
             }}
-        />}
-    </>
+            tableViews={{
+                'aria-label': 'Gate view',
+                onChange: setView,
+                value: view,
+                views: createViews(searchData),
+            }}
+        />
+    )
+}
+
+const UncontrolledRemountHarness = ({searchData}: {searchData: (params: SearchParams) => Promise<Row[]>}) => {
+    const [mounted, setMounted] = React.useState(true)
+
+    return (
+        <>
+            <button onClick={() => setMounted(current => !current)} type='button'>
+                {mounted ? 'Unmount table' : 'Mount table'}
+            </button>
+            {mounted && (
+                <SearchUI<Row, string, number>
+                    autoTestId='remount-gates'
+                    config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
+                    createTableHeader={(
+                        _params,
+                        {selection} = {
+                            appliedSearchCriteria: null,
+                        },
+                    ) => (
+                        <PneTableRow>
+                            <PneTableSelectionHeaderCell
+                                aria-label='Select current page'
+                                disabled={!selection || selection.interactionDisabled}
+                                onChange={checked => selection?.setPageSelected(checked)}
+                                state={selection?.pageState ?? 'none'}
+                            />
+                            <PneHeaderTableCell>Name</PneHeaderTableCell>
+                        </PneTableRow>
+                    )}
+                    createTableRow={(
+                        row,
+                        _index,
+                        _data,
+                        _setData,
+                        {selection} = {
+                            appliedSearchCriteria: null,
+                        },
+                    ) => (
+                        <PneTableRow
+                            aria-selected={selection?.isRowSelected(row) ?? false}
+                            key={row.id}
+                            selected={selection?.isRowSelected(row) ?? false}
+                        >
+                            <PneTableSelectionCell
+                                aria-label={`Select ${row.label}`}
+                                checked={selection?.isRowSelected(row) ?? false}
+                                disabled={!selection || selection.interactionDisabled}
+                                onChange={checked => selection?.setRowSelected(row, checked)}
+                            />
+                            <PneTableCell>{row.label}</PneTableCell>
+                        </PneTableRow>
+                    )}
+                    possibleCriteria={[CriterionTypeEnum.STATUS]}
+                    predefinedCriteria={[CriterionTypeEnum.STATUS]}
+                    searchData={searchData}
+                    settingsContextName='remount-gates-selection-test'
+                    tableSelection={{
+                        getRowId: row => row.id,
+                        renderControls: ({selection}) => (
+                            <PneTableSelectionControls summary={`${selection.selectedCount} selected`} />
+                        ),
+                        toolbarAriaLabel: 'Remount gate table controls',
+                    }}
+                />
+            )}
+        </>
+    )
 }
 
 describe('SearchUI table selection', () => {
@@ -317,19 +363,13 @@ describe('SearchUI table selection', () => {
     })
 
     it('shares one controller across controls, header, and rows', async () => {
-        const {container} = render(
-            <SelectionHarness searchData={jest.fn().mockResolvedValue(rows)}/>,
-        )
+        const {container} = render(<SelectionHarness searchData={jest.fn().mockResolvedValue(rows)} />)
 
         const firstRowCheckbox = await screen.findByRole('checkbox', {name: 'Select Gate 1'})
         await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
         const controls = screen.getByRole('group', {name: 'Gate table controls'})
-        const feedback = container.querySelector(
-            '[data-autotest="table-feedback"]',
-        ) as HTMLElement
-        const topControls = container.querySelector(
-            '[data-autotest="table-top-controls"]',
-        ) as HTMLElement
+        const feedback = container.querySelector('[data-autotest="table-feedback"]') as HTMLElement
+        const topControls = container.querySelector('[data-autotest="table-top-controls"]') as HTMLElement
 
         expect(feedback).not.toBeNull()
         expect(feedback.nextElementSibling).toBe(topControls)
@@ -358,11 +398,9 @@ describe('SearchUI table selection', () => {
     it('keeps selection for manual draft edits and same-value refresh, then resets on apply', async () => {
         const onSelectionChange = jest.fn()
         const searchData = jest.fn<Promise<Row[]>, [SearchParams]>().mockResolvedValue(rows)
-        const {container} = render(<SelectionHarness
-            manualSearch
-            onSelectionChange={onSelectionChange}
-            searchData={searchData}
-        />)
+        const {container} = render(
+            <SelectionHarness manualSearch onSelectionChange={onSelectionChange} searchData={searchData} />,
+        )
         const firstRowCheckbox = await screen.findByRole('checkbox', {name: 'Select Gate 1'})
         await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
 
@@ -408,13 +446,12 @@ describe('SearchUI table selection', () => {
             id: index + 1,
             label: `Gate ${index + 1}`,
         }))
-        const searchData = jest.fn<Promise<Row[]>, [SearchParams]>()
-            .mockImplementation(params => Promise.resolve(
-                params.startNum === 0
-                    ? firstPage
-                    : [{id: 51, label: 'Gate 51'}],
-            ))
-        const {container} = render(<SelectionHarness searchData={searchData}/>)
+        const searchData = jest
+            .fn<Promise<Row[]>, [SearchParams]>()
+            .mockImplementation(params =>
+                Promise.resolve(params.startNum === 0 ? firstPage : [{id: 51, label: 'Gate 51'}]),
+            )
+        const {container} = render(<SelectionHarness searchData={searchData} />)
         const firstRowCheckbox = await screen.findByRole('checkbox', {name: 'Select Gate 1'})
         await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
         fireEvent.click(firstRowCheckbox)
@@ -454,15 +491,14 @@ describe('SearchUI table selection', () => {
         const changedSearch = new Promise<Row[]>(resolve => {
             resolveChangedSearch = resolve
         })
-        const searchData = jest.fn<Promise<Row[]>, [SearchParams]>()
+        const searchData = jest
+            .fn<Promise<Row[]>, [SearchParams]>()
             .mockResolvedValueOnce(rows)
             .mockReturnValueOnce(changedSearch)
         const onSelectionChange = jest.fn()
-        const {container} = render(<SelectionHarness
-            manualSearch
-            onSelectionChange={onSelectionChange}
-            searchData={searchData}
-        />)
+        const {container} = render(
+            <SelectionHarness manualSearch onSelectionChange={onSelectionChange} searchData={searchData} />,
+        )
         const firstRowCheckbox = await screen.findByRole('checkbox', {name: 'Select Gate 1'})
         await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
         fireEvent.click(firstRowCheckbox)
@@ -471,9 +507,11 @@ describe('SearchUI table selection', () => {
         const filterScope = container.querySelector(
             '[data-autotest="search-filters"][data-autotest-value="gates"]',
         ) as HTMLElement
-        fireEvent.click(filterScope.querySelector(
-            '[data-autotest="criterion-option"][data-autotest-value="ENABLED"]',
-        ) as HTMLElement)
+        fireEvent.click(
+            filterScope.querySelector(
+                '[data-autotest="criterion-option"][data-autotest-value="ENABLED"]',
+            ) as HTMLElement,
+        )
         fireEvent.click(within(filterScope).getByRole('button', {name: 'react.searchUI.search'}))
 
         await waitFor(() => expect(searchData).toHaveBeenCalledTimes(2))
@@ -481,9 +519,7 @@ describe('SearchUI table selection', () => {
         expect(screen.getByText('0 selected (explicit)')).toBeTruthy()
         fireEvent.click(firstRowCheckbox)
         expect(screen.getByText('0 selected (explicit)')).toBeTruthy()
-        expect(onSelectionChange.mock.calls.filter(
-            ([, details]) => details.reason === 'scope',
-        )).toHaveLength(1)
+        expect(onSelectionChange.mock.calls.filter(([, details]) => details.reason === 'scope')).toHaveLength(1)
 
         resolveChangedSearch(rows)
         await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
@@ -491,16 +527,16 @@ describe('SearchUI table selection', () => {
 
     it('keeps retained applied filters but not uncontrolled selection after remount', async () => {
         const searchData = jest.fn<Promise<Row[]>, [SearchParams]>().mockResolvedValue(rows)
-        const {container} = render(<UncontrolledRemountHarness searchData={searchData}/>)
+        const {container} = render(<UncontrolledRemountHarness searchData={searchData} />)
         const filterScope = container.querySelector(
             '[data-autotest="search-filters"][data-autotest-value="remount-gates"]',
         ) as HTMLElement
-        fireEvent.click(filterScope.querySelector(
-            '[data-autotest="criterion-option"][data-autotest-value="ENABLED"]',
-        ) as HTMLElement)
-        await waitFor(() => expect(searchData).toHaveBeenLastCalledWith(
-            expect.objectContaining({status: 'E'}),
-        ))
+        fireEvent.click(
+            filterScope.querySelector(
+                '[data-autotest="criterion-option"][data-autotest-value="ENABLED"]',
+            ) as HTMLElement,
+        )
+        await waitFor(() => expect(searchData).toHaveBeenLastCalledWith(expect.objectContaining({status: 'E'})))
 
         const firstRowCheckbox = await screen.findByRole('checkbox', {name: 'Select Gate 1'})
         await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
@@ -521,20 +557,16 @@ describe('SearchUI table selection', () => {
     })
 
     it('keeps simultaneous SearchUI selection instances isolated', async () => {
-        render(<>
-            <section aria-label='First gates'>
-                <SelectionHarness
-                    instanceId='first-gates'
-                    searchData={jest.fn().mockResolvedValue(rows)}
-                />
-            </section>
-            <section aria-label='Second gates'>
-                <SelectionHarness
-                    instanceId='second-gates'
-                    searchData={jest.fn().mockResolvedValue(rows)}
-                />
-            </section>
-        </>)
+        render(
+            <>
+                <section aria-label='First gates'>
+                    <SelectionHarness instanceId='first-gates' searchData={jest.fn().mockResolvedValue(rows)} />
+                </section>
+                <section aria-label='Second gates'>
+                    <SelectionHarness instanceId='second-gates' searchData={jest.fn().mockResolvedValue(rows)} />
+                </section>
+            </>,
+        )
         const first = screen.getByRole('region', {name: 'First gates'})
         const second = screen.getByRole('region', {name: 'Second gates'})
         const firstCheckbox = await within(first).findByRole('checkbox', {name: 'Select Gate 1'})
@@ -558,11 +590,13 @@ describe('SearchUI table selection', () => {
         'handles View changes with preserveAcrossViews=$preserveAcrossViews',
         async ({preserveAcrossViews, expectedCount, expectedScopeChanges}) => {
             const onSelectionChange = jest.fn()
-            render(<ViewsSelectionHarness
-                onSelectionChange={onSelectionChange}
-                preserveAcrossViews={preserveAcrossViews}
-                searchData={jest.fn().mockResolvedValue(rows)}
-            />)
+            render(
+                <ViewsSelectionHarness
+                    onSelectionChange={onSelectionChange}
+                    preserveAcrossViews={preserveAcrossViews}
+                    searchData={jest.fn().mockResolvedValue(rows)}
+                />,
+            )
             const firstRowCheckbox = await screen.findByRole('checkbox', {name: 'Select Gate 1'})
             await waitFor(() => expect((firstRowCheckbox as HTMLInputElement).disabled).toBe(false))
             fireEvent.click(firstRowCheckbox)
@@ -576,9 +610,9 @@ describe('SearchUI table selection', () => {
                 expect((currentCheckbox as HTMLInputElement).disabled).toBe(false)
             })
 
-            expect(onSelectionChange.mock.calls.filter(
-                ([, details]) => details.reason === 'scope',
-            )).toHaveLength(expectedScopeChanges)
+            expect(onSelectionChange.mock.calls.filter(([, details]) => details.reason === 'scope')).toHaveLength(
+                expectedScopeChanges,
+            )
         },
     )
 })

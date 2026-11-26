@@ -1,12 +1,7 @@
 import * as React from 'react'
 import {Box, Typography} from '@mui/material'
 import type {Meta, StoryObj} from '@storybook/react-webpack5'
-import {
-    OverlayHost,
-    PneOperationCenter,
-    type PneOperationCenterItem,
-    overlayActions,
-} from '../index'
+import {OverlayHost, PneOperationCenter, type PneOperationCenterItem, overlayActions} from '../index'
 
 const initialOperations: readonly PneOperationCenterItem[] = [
     {
@@ -47,10 +42,7 @@ type OperationCenterDemoProps = {
     showSnackbar?: boolean
 }
 
-const OperationCenterDemo = ({
-    defaultExpanded = true,
-    showSnackbar = false,
-}: OperationCenterDemoProps) => {
+const OperationCenterDemo = ({defaultExpanded = true, showSnackbar = false}: OperationCenterDemoProps) => {
     const [operations, setOperations] = React.useState(initialOperations)
 
     React.useEffect(() => {
@@ -76,18 +68,21 @@ const OperationCenterDemo = ({
             return
         }
 
-        setOperations(current => current.map(operation => {
-            if (operation.id !== operationId) return operation
-            if (actionId === 'cancel') return {...operation, actions: [], progress: undefined, status: 'cancelled'}
-            if (actionId === 'retry-monitoring') return {
-                ...operation,
-                actions: [],
-                detail: 'Connection restored.',
-                progress: {kind: 'indeterminate'},
-                status: 'running',
-            }
-            return operation
-        }))
+        setOperations(current =>
+            current.map(operation => {
+                if (operation.id !== operationId) return operation
+                if (actionId === 'cancel') return {...operation, actions: [], progress: undefined, status: 'cancelled'}
+                if (actionId === 'retry-monitoring')
+                    return {
+                        ...operation,
+                        actions: [],
+                        detail: 'Connection restored.',
+                        progress: {kind: 'indeterminate'},
+                        status: 'running',
+                    }
+                return operation
+            }),
+        )
     }
 
     return (
@@ -99,7 +94,7 @@ const OperationCenterDemo = ({
                 Navigate freely: the host keeps these operations alive and passes only their view model to pne-ui.
             </Typography>
             <OverlayHost
-                operationCenter={(
+                operationCenter={
                     <PneOperationCenter
                         defaultExpanded={defaultExpanded}
                         onAction={handleAction}
@@ -107,7 +102,7 @@ const OperationCenterDemo = ({
                         onDismiss={operationId => removeOperations([operationId])}
                         operations={operations}
                     />
-                )}
+                }
             />
         </Box>
     )

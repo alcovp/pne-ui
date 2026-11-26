@@ -31,25 +31,27 @@ const template: SearchUITemplate = {
     },
 }
 
-const renderFilters = (settingsContextName: string, defaults: Partial<SearchUIDefaults>) => render(
-    <SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([template]), ...defaults}}>
-        <SearchUIFilters
-            autoTestId='last-template'
-            settingsContextName={settingsContextName}
-            possibleCriteria={[CriterionTypeEnum.STATUS]}
-            onFiltersUpdate={jest.fn()}
-            config={{hideShowFiltersButton: true}}
-        />
-    </SearchUIProvider>,
-)
+const renderFilters = (settingsContextName: string, defaults: Partial<SearchUIDefaults>) =>
+    render(
+        <SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([template]), ...defaults}}>
+            <SearchUIFilters
+                autoTestId='last-template'
+                settingsContextName={settingsContextName}
+                possibleCriteria={[CriterionTypeEnum.STATUS]}
+                onFiltersUpdate={jest.fn()}
+                config={{hideShowFiltersButton: true}}
+            />
+        </SearchUIProvider>,
+    )
 
 const query = <T extends HTMLElement>(selector: string): T | null => document.body.querySelector<T>(selector)
 
-const templatesTrigger = (): Promise<HTMLButtonElement> => waitFor(() => {
-    const trigger = query<HTMLButtonElement>('[data-autotest="templates"]')
-    expect(trigger).not.toBeNull()
-    return trigger as HTMLButtonElement
-})
+const templatesTrigger = (): Promise<HTMLButtonElement> =>
+    waitFor(() => {
+        const trigger = query<HTMLButtonElement>('[data-autotest="templates"]')
+        expect(trigger).not.toBeNull()
+        return trigger as HTMLButtonElement
+    })
 
 const expectTemplateApplied = async (): Promise<void> => {
     const trigger = await templatesTrigger()
@@ -81,7 +83,8 @@ const selectTemplate = async (): Promise<void> => {
 /** A host store that answers like the server: one name per context, `null` when nothing is kept. */
 const createHostStore = (initial: string | null) => {
     const getLastSearchTemplateName = jest.fn<Promise<string | null>, [string]>().mockResolvedValue(initial)
-    const saveLastSearchTemplateName = jest.fn<Promise<void>, [{contextName: string, templateName: string | null}]>()
+    const saveLastSearchTemplateName = jest
+        .fn<Promise<void>, [{contextName: string; templateName: string | null}]>()
         .mockResolvedValue(undefined)
     return {getLastSearchTemplateName, saveLastSearchTemplateName}
 }
@@ -156,8 +159,12 @@ describe('SearchUI last chosen template', () => {
 
             renderFilters(context, host)
             await expectTemplateApplied()
-            await waitFor(() => expect(host.saveLastSearchTemplateName)
-                .toHaveBeenCalledWith({contextName: context, templateName: TEMPLATE_NAME}))
+            await waitFor(() =>
+                expect(host.saveLastSearchTemplateName).toHaveBeenCalledWith({
+                    contextName: context,
+                    templateName: TEMPLATE_NAME,
+                }),
+            )
             expect(host.saveLastSearchTemplateName).toHaveBeenCalledTimes(1)
             await waitFor(() => expect(localStorage.getItem(key)).toBeNull())
         })
@@ -180,8 +187,12 @@ describe('SearchUI last chosen template', () => {
 
             renderFilters(context, host)
             await expectNoTemplateApplied()
-            await waitFor(() => expect(host.saveLastSearchTemplateName)
-                .toHaveBeenCalledWith({contextName: context, templateName: null}))
+            await waitFor(() =>
+                expect(host.saveLastSearchTemplateName).toHaveBeenCalledWith({
+                    contextName: context,
+                    templateName: null,
+                }),
+            )
         })
 
         it('remembers a chosen template on the host and leaves no browser key', async () => {
@@ -191,8 +202,13 @@ describe('SearchUI last chosen template', () => {
             renderFilters(context, host)
             await selectTemplate()
             // With the rows the template shows: the host may keep them for the next loading skeleton.
-            await waitFor(() => expect(host.saveLastSearchTemplateName)
-                .toHaveBeenCalledWith({contextName: context, templateName: TEMPLATE_NAME, criteriaCount: 1}))
+            await waitFor(() =>
+                expect(host.saveLastSearchTemplateName).toHaveBeenCalledWith({
+                    contextName: context,
+                    templateName: TEMPLATE_NAME,
+                    criteriaCount: 1,
+                }),
+            )
             expect(localStorage.getItem(getLastSearchUITemplateStorageKey(context))).toBeNull()
         })
 
@@ -203,8 +219,12 @@ describe('SearchUI last chosen template', () => {
             renderFilters(context, host)
             await selectTemplate()
             await clickMenuItem('[data-autotest="select-default-template"]')
-            await waitFor(() => expect(host.saveLastSearchTemplateName)
-                .toHaveBeenLastCalledWith({contextName: context, templateName: null}))
+            await waitFor(() =>
+                expect(host.saveLastSearchTemplateName).toHaveBeenLastCalledWith({
+                    contextName: context,
+                    templateName: null,
+                }),
+            )
         })
 
         it('forgets the name on the host when the remembered template is deleted', async () => {
@@ -215,8 +235,12 @@ describe('SearchUI last chosen template', () => {
             await selectTemplate()
             host.getLastSearchTemplateName.mockResolvedValue(TEMPLATE_NAME)
             await clickMenuItem('[data-autotest="remove-template"]')
-            await waitFor(() => expect(host.saveLastSearchTemplateName)
-                .toHaveBeenLastCalledWith({contextName: context, templateName: null}))
+            await waitFor(() =>
+                expect(host.saveLastSearchTemplateName).toHaveBeenLastCalledWith({
+                    contextName: context,
+                    templateName: null,
+                }),
+            )
         })
 
         it('falls back to the browser while the host cannot store the name', async () => {

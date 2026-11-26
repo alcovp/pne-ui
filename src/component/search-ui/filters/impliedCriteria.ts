@@ -21,12 +21,14 @@ export const resolveImpliedCriteria = (
     possibleCriteria: CriterionTypeEnum[],
     initialSearchConditions: Partial<SearchUIConditions> | undefined,
 ): ImpliedCriteria => {
-    const implied = Array.from(new Set(
-        (initialSearchConditions?.multigetCriteria ?? [])
-            .map(selection => getCriterionByLinkedEntityType(selection.entityType))
-            .filter((criterion): criterion is CriterionTypeEnum => criterion !== null)
-            .filter(criterion => !predefinedCriteria.includes(criterion)),
-    ))
+    const implied = Array.from(
+        new Set(
+            (initialSearchConditions?.multigetCriteria ?? [])
+                .map(selection => getCriterionByLinkedEntityType(selection.entityType))
+                .filter((criterion): criterion is CriterionTypeEnum => criterion !== null)
+                .filter(criterion => !predefinedCriteria.includes(criterion)),
+        ),
+    )
     const defaultCriteria = implied.filter(criterion => possibleCriteria.includes(criterion))
     const undeclaredCriteria = implied.filter(criterion => !possibleCriteria.includes(criterion))
 

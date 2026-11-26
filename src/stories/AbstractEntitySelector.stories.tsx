@@ -10,25 +10,31 @@ const FullViewColumnsExample = () => {
     const [columns, setColumns] = React.useState(allColumns.slice(0, 5))
     const [open, setOpen] = React.useState(false)
 
-    return <Box sx={{p: 2}}>
-        <Button variant='contained' size='large' onClick={() => setOpen(true)}>Configure Full view</Button>
-        <Typography role='status' sx={{mt: 2}}>
-            Saved order: {columns.join(' → ')}
-        </Typography>
-        {open && <AbstractEntitySelectModal<string>
-            handleSave={({mapped}) => {
-                setColumns(mapped)
-                setOpen(false)
-            }}
-            mappedList={columns}
-            onClose={() => setOpen(false)}
-            open
-            title='Full view columns'
-            unMappedList={allColumns.filter(column => !columns.includes(column))}
-            virtualized={false}
-            dragHandle='button'
-        />}
-    </Box>
+    return (
+        <Box sx={{p: 2}}>
+            <Button variant='contained' size='large' onClick={() => setOpen(true)}>
+                Configure Full view
+            </Button>
+            <Typography role='status' sx={{mt: 2}}>
+                Saved order: {columns.join(' → ')}
+            </Typography>
+            {open && (
+                <AbstractEntitySelectModal<string>
+                    handleSave={({mapped}) => {
+                        setColumns(mapped)
+                        setOpen(false)
+                    }}
+                    mappedList={columns}
+                    onClose={() => setOpen(false)}
+                    open
+                    title='Full view columns'
+                    unMappedList={allColumns.filter(column => !columns.includes(column))}
+                    virtualized={false}
+                    dragHandle='button'
+                />
+            )}
+        </Box>
+    )
 }
 
 const meta = {
@@ -37,7 +43,8 @@ const meta = {
     parameters: {
         docs: {
             description: {
-                component: 'Drag the grip beside a column to reorder it, then save and reopen. Touch dragging starts on movement with no long press. Swipe over the column label to scroll; tap the label to move it between lists. Keyboard dragging uses the grip with Space, arrow keys and Space; Escape cancels the drag. The dragHandle="button" mode keeps the original touch target mounted throughout the gesture.',
+                component:
+                    'Drag the grip beside a column to reorder it, then save and reopen. Touch dragging starts on movement with no long press. Swipe over the column label to scroll; tap the label to move it between lists. Keyboard dragging uses the grip with Space, arrow keys and Space; Escape cancels the drag. The dragHandle="button" mode keeps the original touch target mounted throughout the gesture.',
             },
         },
     },

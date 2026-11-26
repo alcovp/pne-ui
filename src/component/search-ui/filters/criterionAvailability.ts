@@ -1,8 +1,4 @@
-import {
-    CriterionTypeEnum,
-    SearchUICriterionAvailabilityRule,
-    SearchUIConditions,
-} from './types'
+import {CriterionTypeEnum, SearchUICriterionAvailabilityRule, SearchUIConditions} from './types'
 
 type CriterionAvailabilityConfig = {
     criterionAvailabilityRules?: SearchUICriterionAvailabilityRule[]
@@ -10,11 +6,7 @@ type CriterionAvailabilityConfig = {
 
 export const getCriteriaWithAvailabilityRules = (
     config: CriterionAvailabilityConfig | undefined,
-): CriterionTypeEnum[] => (
-    Array.from(new Set(
-        (config?.criterionAvailabilityRules ?? []).map(rule => rule.criterion),
-    ))
-)
+): CriterionTypeEnum[] => Array.from(new Set((config?.criterionAvailabilityRules ?? []).map(rule => rule.criterion)))
 
 export const isCriterionAvailable = (
     criterion: CriterionTypeEnum,
@@ -22,7 +14,5 @@ export const isCriterionAvailable = (
     config: CriterionAvailabilityConfig | undefined,
 ): boolean => {
     const rules = config?.criterionAvailabilityRules ?? []
-    return rules
-        .filter(rule => rule.criterion === criterion)
-        .every(rule => rule.isAvailable(conditions))
+    return rules.filter(rule => rule.criterion === criterion).every(rule => rule.isAvailable(conditions))
 }

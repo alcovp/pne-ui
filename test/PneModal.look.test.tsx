@@ -10,18 +10,28 @@ const renderModal = (
     props: Partial<React.ComponentProps<typeof PneModal>> = {},
     body: React.ReactNode = 'Body text',
 ) => {
-    render(<PneThemeProvider skin={UI_KIT_SKIN}>
-        <PneModal
-            actions={<PneModalActions primary={<Button variant='contained' size='medium'>Save</Button>}/>}
-            onClose={() => undefined}
-            open
-            subtitle='3 gates selected'
-            title='Min/max amounts'
-            {...props as object}
-        >
-            {body}
-        </PneModal>
-    </PneThemeProvider>)
+    render(
+        <PneThemeProvider skin={UI_KIT_SKIN}>
+            <PneModal
+                actions={
+                    <PneModalActions
+                        primary={
+                            <Button variant='contained' size='medium'>
+                                Save
+                            </Button>
+                        }
+                    />
+                }
+                onClose={() => undefined}
+                open
+                subtitle='3 gates selected'
+                title='Min/max amounts'
+                {...(props as object)}
+            >
+                {body}
+            </PneModal>
+        </PneThemeProvider>,
+    )
     const dialog = screen.getByRole('dialog')
     return {
         dialog,
@@ -117,9 +127,15 @@ describe('PneModal (UI Kit look)', () => {
             constructor(private readonly callback: () => void) {
                 observers.push(callback)
             }
-            observe() { this.callback() }
-            unobserve() { /* nothing is kept */ }
-            disconnect() { /* nothing is kept */ }
+            observe() {
+                this.callback()
+            }
+            unobserve() {
+                /* nothing is kept */
+            }
+            disconnect() {
+                /* nothing is kept */
+            }
         } as unknown as typeof ResizeObserver
         let bodyHeight = 35
         Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {configurable: true, get: () => bodyHeight})

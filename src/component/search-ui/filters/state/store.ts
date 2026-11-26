@@ -3,22 +3,21 @@ import {useStore} from 'zustand'
 import {createStore, StoreApi} from 'zustand/vanilla'
 import {immer} from 'zustand/middleware/immer'
 import {enableMapSet} from 'immer'
-import {SearchUIFiltersStore} from './type';
-import {getSearchUIFiltersActions} from './actions';
-import {getSearchUIFiltersInitialState} from './initial';
+import {SearchUIFiltersStore} from './type'
+import {getSearchUIFiltersActions} from './actions'
+import {getSearchUIFiltersInitialState} from './initial'
 
 enableMapSet()
 
 export type SearchUIFiltersStoreApi = StoreApi<SearchUIFiltersStore>
 
-export const createSearchUIFiltersStore = (): SearchUIFiltersStoreApi => createStore<SearchUIFiltersStore>()(
-    immer(
-        (set, get) => ({
+export const createSearchUIFiltersStore = (): SearchUIFiltersStoreApi =>
+    createStore<SearchUIFiltersStore>()(
+        immer((set, get) => ({
             ...getSearchUIFiltersInitialState(),
             ...getSearchUIFiltersActions(set, get),
-        })
+        })),
     )
-)
 
 export type SearchUIFiltersStoreContextValue = {
     store: SearchUIFiltersStoreApi
@@ -39,6 +38,6 @@ export const useSearchUIFiltersStoreApi = (): SearchUIFiltersStoreApi => {
     return useSearchUIFiltersStoreContext().store
 }
 
-export const useSearchUIFiltersStore = <T, >(selector: (state: SearchUIFiltersStore) => T): T => {
+export const useSearchUIFiltersStore = <T>(selector: (state: SearchUIFiltersStore) => T): T => {
     return useStore(useSearchUIFiltersStoreApi(), selector)
 }

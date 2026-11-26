@@ -72,13 +72,15 @@ describe('PneTableSwitchCell', () => {
     it('forwards the generic control-cell ref to its table cell', () => {
         const cellRef = React.createRef<HTMLTableCellElement>()
 
-        render(<table>
-            <tbody>
-                <tr>
-                    <PneTableControlCell ref={cellRef}>Control</PneTableControlCell>
-                </tr>
-            </tbody>
-        </table>)
+        render(
+            <table>
+                <tbody>
+                    <tr>
+                        <PneTableControlCell ref={cellRef}>Control</PneTableControlCell>
+                    </tr>
+                </tbody>
+            </table>,
+        )
 
         expect(cellRef.current?.tagName).toBe('TD')
         expect(cellRef.current?.textContent).toBe('Control')
@@ -91,11 +93,7 @@ describe('PneTableSwitchCell', () => {
             <table>
                 <tbody>
                     <tr onClick={onRowClick}>
-                        <PneTableSwitchCell
-                            aria-label='Enable gate'
-                            checked={false}
-                            onChange={onChange}
-                        />
+                        <PneTableSwitchCell aria-label='Enable gate' checked={false} onChange={onChange} />
                     </tr>
                 </tbody>
             </table>,
@@ -118,11 +116,7 @@ describe('PneTableSwitchCell', () => {
             <table>
                 <tbody>
                     <tr>
-                        <PneTableSwitchCell
-                            aria-label='Async gate'
-                            checked={false}
-                            onChange={onChange}
-                        />
+                        <PneTableSwitchCell aria-label='Async gate' checked={false} onChange={onChange} />
                     </tr>
                 </tbody>
             </table>,
@@ -150,19 +144,21 @@ describe('PneTableSwitchCell', () => {
     })
 
     it('passes a specific disabled hint through switchProps', async () => {
-        render(<table>
-            <tbody>
-                <tr>
-                    <PneTableSwitchCell
-                        aria-label='Shared processor'
-                        checked
-                        disabled
-                        onChange={jest.fn()}
-                        switchProps={{disabledHint: 'Shared with other managers'}}
-                    />
-                </tr>
-            </tbody>
-        </table>)
+        render(
+            <table>
+                <tbody>
+                    <tr>
+                        <PneTableSwitchCell
+                            aria-label='Shared processor'
+                            checked
+                            disabled
+                            onChange={jest.fn()}
+                            switchProps={{disabledHint: 'Shared with other managers'}}
+                        />
+                    </tr>
+                </tbody>
+            </table>,
+        )
 
         const root = screen.getByRole('switch', {name: 'Shared processor'}).closest('.MuiSwitch-root') as HTMLElement
 
@@ -182,11 +178,7 @@ describe('PneTableSwitchCell', () => {
                             disabled
                             onChange={onDisabledChange}
                         />
-                        <PneTableSwitchCell
-                            aria-label='Required by default'
-                            checked={false}
-                            readOnly
-                        />
+                        <PneTableSwitchCell aria-label='Required by default' checked={false} readOnly />
                     </tr>
                 </tbody>
             </table>,
@@ -255,7 +247,6 @@ describe('PneTableSwitchCell', () => {
         expect(input.getAttribute('aria-label')).toBeNull()
         expect(input.getAttribute('aria-labelledby')).toBe('status-label')
         expect(root.contains(input)).toBe(true)
-        expect(input.closest('[data-autotest="legacy-root-locator"]'))
-            .not.toBeNull()
+        expect(input.closest('[data-autotest="legacy-root-locator"]')).not.toBeNull()
     })
 })

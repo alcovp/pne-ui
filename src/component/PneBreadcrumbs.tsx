@@ -45,10 +45,7 @@ export type PneBreadcrumbTextItem = PneBreadcrumbBaseItem & {
     onClick?: never
 }
 
-export type PneBreadcrumbItem =
-    | PneBreadcrumbLinkItem
-    | PneBreadcrumbActionItem
-    | PneBreadcrumbTextItem
+export type PneBreadcrumbItem = PneBreadcrumbLinkItem | PneBreadcrumbActionItem | PneBreadcrumbTextItem
 
 export type PneBreadcrumbsProps = {
     items: readonly PneBreadcrumbItem[]
@@ -96,10 +93,11 @@ const getReactNodeMeasurementKey = (node: React.ReactNode): string => {
 
     if (React.isValidElement<Record<string, unknown>>(node)) {
         const primitiveProps = Object.entries(node.props)
-            .filter(([name, value]) => name !== 'children'
-                && (typeof value === 'string'
-                    || typeof value === 'number'
-                    || typeof value === 'boolean'))
+            .filter(
+                ([name, value]) =>
+                    name !== 'children' &&
+                    (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'),
+            )
             .sort(([left], [right]) => left.localeCompare(right))
             .map(([name, value]) => `${name}=${String(value)}`)
             .join(',')
@@ -127,38 +125,38 @@ const getItemAutoTestId = (item: PneBreadcrumbItem): string | undefined => {
     return undefined
 }
 
-const getItemSx = (
-    item: PneBreadcrumbItem,
-    index: number,
-    total: number,
-): SxProps<Theme> => theme => {
-    const clickable = item.type === 'link' || item.type === 'action'
-    const current = index === total - 1 && !clickable
+const getItemSx =
+    (item: PneBreadcrumbItem, index: number, total: number): SxProps<Theme> =>
+    theme => {
+        const clickable = item.type === 'link' || item.type === 'action'
+        const current = index === total - 1 && !clickable
 
-    return {
-        alignItems: 'center',
-        color: clickable
-            ? theme.palette.primary.dark
-            : current
-                ? theme.palette.text.primary
-                : theme.palette.text.secondary,
-        display: 'flex',
-        fontFamily: 'Arial, sans-serif',
-        fontSize: '14px',
-        fontWeight: current ? 700 : 400,
-        letterSpacing: '0%',
-        lineHeight: '24px',
-        verticalAlign: 'middle',
+        return {
+            alignItems: 'center',
+            color: clickable
+                ? theme.palette.primary.dark
+                : current
+                  ? theme.palette.text.primary
+                  : theme.palette.text.secondary,
+            display: 'flex',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '14px',
+            fontWeight: current ? 700 : 400,
+            letterSpacing: '0%',
+            lineHeight: '24px',
+            verticalAlign: 'middle',
+        }
     }
-}
 
 const getMeasurementKey = (items: readonly PneBreadcrumbItem[]): string => {
-    return items.map(item => {
-        const destination = item.type === 'link' ? item.href : ''
-        const label = getReactNodeMeasurementKey(item.label)
-        const icon = getReactNodeMeasurementKey(item.icon)
-        return `${item.type}:${item.id}:${label}:${icon}:${destination}`
-    }).join('|')
+    return items
+        .map(item => {
+            const destination = item.type === 'link' ? item.href : ''
+            const label = getReactNodeMeasurementKey(item.label)
+            const icon = getReactNodeMeasurementKey(item.icon)
+            return `${item.type}:${item.id}:${label}:${icon}:${destination}`
+        })
+        .join('|')
 }
 
 export const PneBreadcrumbs = ({
@@ -176,10 +174,7 @@ export const PneBreadcrumbs = ({
     const measurementKey = getMeasurementKey(items)
     const isNarrowViewport = useMediaQuery('(max-width:425px)')
 
-    const menuItems = React.useMemo(
-        () => items.length > 2 ? items.slice(1, -1) : [],
-        [items],
-    )
+    const menuItems = React.useMemo(() => (items.length > 2 ? items.slice(1, -1) : []), [items])
 
     React.useEffect(() => {
         expandedWidthRef.current = 0
@@ -217,14 +212,10 @@ export const PneBreadcrumbs = ({
         const viewportWidth = ownerWindow
             ? ownerWindow.innerWidth - Math.max(rootRect.left, 0) - viewportSafetyOffset
             : Number.POSITIVE_INFINITY
-        const availableWidth = containerWidth > 0
-            ? Math.min(containerWidth, viewportWidth)
-            : viewportWidth
-        const shouldCollapse = items.length > 2
-            && expandedWidth > 0
-            && expandedWidth > availableWidth
+        const availableWidth = containerWidth > 0 ? Math.min(containerWidth, viewportWidth) : viewportWidth
+        const shouldCollapse = items.length > 2 && expandedWidth > 0 && expandedWidth > availableWidth
 
-        setCollapsed(current => current === shouldCollapse ? current : shouldCollapse)
+        setCollapsed(current => (current === shouldCollapse ? current : shouldCollapse))
     }, [collapsed, items.length])
 
     React.useEffect(() => {
@@ -235,9 +226,7 @@ export const PneBreadcrumbs = ({
 
         const ownerWindow = root.ownerDocument.defaultView
         const ResizeObserverConstructor = ownerWindow?.ResizeObserver
-        const observer = ResizeObserverConstructor
-            ? new ResizeObserverConstructor(measure)
-            : undefined
+        const observer = ResizeObserverConstructor ? new ResizeObserverConstructor(measure) : undefined
         const list = root.querySelector('ol')
 
         observer?.observe(root)
@@ -260,217 +249,216 @@ export const PneBreadcrumbs = ({
         setAnchorEl(null)
     }
 
-    const renderContent = (
-        item: PneBreadcrumbItem,
-        index: number,
-    ): React.ReactNode => {
+    const renderContent = (item: PneBreadcrumbItem, index: number): React.ReactNode => {
         const isLast = index === items.length - 1
-        const label = isLast && isNarrowViewport
-            ? <Tooltip title={item.tooltip ?? getPrimitiveLabel(item.label)}>
-                <Box
-                    component='span'
-                    sx={{
-                        display: 'inline-block',
-                        maxWidth: item.icon ? '200px' : '120px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        verticalAlign: 'middle',
-                        whiteSpace: 'nowrap',
-                    }}
-                >
-                    {item.label}
-                </Box>
-            </Tooltip>
-            : item.label
+        const label =
+            isLast && isNarrowViewport ? (
+                <Tooltip title={item.tooltip ?? getPrimitiveLabel(item.label)}>
+                    <Box
+                        component='span'
+                        sx={{
+                            display: 'inline-block',
+                            maxWidth: item.icon ? '200px' : '120px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            verticalAlign: 'middle',
+                            whiteSpace: 'nowrap',
+                        }}
+                    >
+                        {item.label}
+                    </Box>
+                </Tooltip>
+            ) : (
+                item.label
+            )
 
         if (!item.icon) {
             return label
         }
 
-        return <Box
-            component='span'
-            sx={{
-                alignItems: 'center',
-                display: 'flex',
-                gap: '4px',
-                minWidth: 0,
-                '& > svg': {
-                    color: 'text.primary',
-                    flexShrink: 0,
-                },
-            }}
-        >
-            {item.icon}
-            {label}
-        </Box>
+        return (
+            <Box
+                component='span'
+                sx={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    gap: '4px',
+                    minWidth: 0,
+                    '& > svg': {
+                        color: 'text.primary',
+                        flexShrink: 0,
+                    },
+                }}
+            >
+                {item.icon}
+                {label}
+            </Box>
+        )
     }
 
-    const renderItem = (
-        item: PneBreadcrumbItem,
-        index: number,
-    ): React.ReactNode => {
+    const renderItem = (item: PneBreadcrumbItem, index: number): React.ReactNode => {
         const sxProperties = getItemSx(item, index, items.length)
         const content = renderContent(item, index)
         const autoTestId = getItemAutoTestId(item)
-        const autoTestAttributes = autoTestId
-            ? createAutoTestAttributes(autoTestId)
-            : {}
+        const autoTestAttributes = autoTestId ? createAutoTestAttributes(autoTestId) : {}
 
         if (item.type === 'text') {
-            return <Box
-                key={item.id}
-                aria-current={index === items.length - 1 ? 'page' : undefined}
-                sx={sxProperties}
-                {...autoTestAttributes}
-            >
-                {content}
-            </Box>
+            return (
+                <Box
+                    key={item.id}
+                    aria-current={index === items.length - 1 ? 'page' : undefined}
+                    sx={sxProperties}
+                    {...autoTestAttributes}
+                >
+                    {content}
+                </Box>
+            )
         }
 
         if (item.type === 'action') {
-            return <Button
-                size='large'
-                key={item.id}
-                variant='text'
-                sx={[
-                    ...(Array.isArray(sxProperties) ? sxProperties : [sxProperties]),
-                    {
-                        justifyContent: 'left',
-                        padding: 0,
-                        // The same for the button laid out as a block (labelCentring.ts).
-                        textAlign: 'left',
-                        '&:hover': {
-                            backgroundColor: 'background.default',
-                            textDecoration: 'none',
+            return (
+                <Button
+                    size='large'
+                    key={item.id}
+                    variant='text'
+                    sx={[
+                        ...(Array.isArray(sxProperties) ? sxProperties : [sxProperties]),
+                        {
+                            justifyContent: 'left',
+                            padding: 0,
+                            // The same for the button laid out as a block (labelCentring.ts).
+                            textAlign: 'left',
+                            '&:hover': {
+                                backgroundColor: 'background.default',
+                                textDecoration: 'none',
+                            },
                         },
-                    },
-                ]}
-                onClick={item.onClick}
+                    ]}
+                    onClick={item.onClick}
+                    {...autoTestAttributes}
+                >
+                    {content}
+                </Button>
+            )
+        }
+
+        return (
+            <MuiLink
+                key={item.id}
+                component={LinkComponent}
+                href={item.href}
+                sx={[...(Array.isArray(sxProperties) ? sxProperties : [sxProperties]), {textDecoration: 'none'}]}
                 {...autoTestAttributes}
             >
                 {content}
-            </Button>
-        }
-
-        return <MuiLink
-            key={item.id}
-            component={LinkComponent}
-            href={item.href}
-            sx={[
-                ...(Array.isArray(sxProperties) ? sxProperties : [sxProperties]),
-                {textDecoration: 'none'},
-            ]}
-            {...autoTestAttributes}
-        >
-            {content}
-        </MuiLink>
+            </MuiLink>
+        )
     }
 
     const renderMenuItem = (item: PneBreadcrumbItem): React.ReactNode => {
         const autoTestId = getItemAutoTestId(item)
-        const autoTestAttributes = autoTestId
-            ? createAutoTestAttributes(autoTestId)
-            : {}
+        const autoTestAttributes = autoTestId ? createAutoTestAttributes(autoTestId) : {}
 
         if (item.type === 'link') {
-            return <MenuItem
-                key={item.id}
-                component={LinkComponent}
-                href={item.href}
-                onClick={handleMenuClose}
-                {...autoTestAttributes}
-            >
-                {item.label}
-            </MenuItem>
+            return (
+                <MenuItem
+                    key={item.id}
+                    component={LinkComponent}
+                    href={item.href}
+                    onClick={handleMenuClose}
+                    {...autoTestAttributes}
+                >
+                    {item.label}
+                </MenuItem>
+            )
         }
 
         if (item.type === 'action') {
-            return <MenuItem
-                key={item.id}
-                onClick={() => {
-                    handleMenuClose()
-                    item.onClick()
-                }}
-                {...autoTestAttributes}
-            >
-                {item.label}
-            </MenuItem>
+            return (
+                <MenuItem
+                    key={item.id}
+                    onClick={() => {
+                        handleMenuClose()
+                        item.onClick()
+                    }}
+                    {...autoTestAttributes}
+                >
+                    {item.label}
+                </MenuItem>
+            )
         }
 
-        return <MenuItem
-            key={item.id}
-            disabled
-            {...autoTestAttributes}
-        >
-            {item.label}
-        </MenuItem>
+        return (
+            <MenuItem key={item.id} disabled {...autoTestAttributes}>
+                {item.label}
+            </MenuItem>
+        )
     }
 
-    const visibleItems = collapsed && items.length > 2
-        ? [
-            renderItem(items[0], 0),
-            <IconButton
-                key='more-button'
-                id={menuButtonId}
-                aria-controls={anchorEl ? `${menuButtonId}-menu` : undefined}
-                aria-expanded={anchorEl ? 'true' : undefined}
-                aria-haspopup='menu'
-                aria-label={moreLabel}
-                color='primary'
-                size='small'
-                onClick={event => setAnchorEl(event.currentTarget)}
-                {...createAutoTestAttributes('link.more')}
-            >
-                <MoreHorizIcon/>
-            </IconButton>,
-            renderItem(items[items.length - 1], items.length - 1),
-        ]
-        : items.map(renderItem)
+    const visibleItems =
+        collapsed && items.length > 2
+            ? [
+                  renderItem(items[0], 0),
+                  <IconButton
+                      key='more-button'
+                      id={menuButtonId}
+                      aria-controls={anchorEl ? `${menuButtonId}-menu` : undefined}
+                      aria-expanded={anchorEl ? 'true' : undefined}
+                      aria-haspopup='menu'
+                      aria-label={moreLabel}
+                      color='primary'
+                      size='small'
+                      onClick={event => setAnchorEl(event.currentTarget)}
+                      {...createAutoTestAttributes('link.more')}
+                  >
+                      <MoreHorizIcon />
+                  </IconButton>,
+                  renderItem(items[items.length - 1], items.length - 1),
+              ]
+            : items.map(renderItem)
 
     if (items.length === 0) {
         return null
     }
 
-    return <>
-        <Menu
-            id={`${menuButtonId}-menu`}
-            anchorEl={anchorEl}
-            open={Boolean(anchorEl)}
-            onClose={handleMenuClose}
-            slotProps={{list: {'aria-labelledby': menuButtonId}}}
-            disableScrollLock
-        >
-            {menuItems.map(renderMenuItem)}
-        </Menu>
-        <Box
-            ref={rootRef}
-            sx={[
-                {
-                    display: 'flex',
-                    maxWidth: '100%',
-                    minWidth: 0,
-                    width: '100%',
-                },
-                ...(sx === undefined
-                    ? []
-                    : Array.isArray(sx)
-                        ? sx
-                        : [sx]),
-            ]}
-        >
-            <Breadcrumbs
-                aria-label={ariaLabel}
-                separator='/'
-                sx={{
-                    maxWidth: '100%',
-                    minWidth: 0,
-                    '& .MuiBreadcrumbs-li': {
-                        minWidth: 0,
-                    },
-                }}
+    return (
+        <>
+            <Menu
+                id={`${menuButtonId}-menu`}
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleMenuClose}
+                slotProps={{list: {'aria-labelledby': menuButtonId}}}
+                disableScrollLock
             >
-                {visibleItems}
-            </Breadcrumbs>
-        </Box>
-    </>
+                {menuItems.map(renderMenuItem)}
+            </Menu>
+            <Box
+                ref={rootRef}
+                sx={[
+                    {
+                        display: 'flex',
+                        maxWidth: '100%',
+                        minWidth: 0,
+                        width: '100%',
+                    },
+                    ...(sx === undefined ? [] : Array.isArray(sx) ? sx : [sx]),
+                ]}
+            >
+                <Breadcrumbs
+                    aria-label={ariaLabel}
+                    separator='/'
+                    sx={{
+                        maxWidth: '100%',
+                        minWidth: 0,
+                        '& .MuiBreadcrumbs-li': {
+                            minWidth: 0,
+                        },
+                    }}
+                >
+                    {visibleItems}
+                </Breadcrumbs>
+            </Box>
+        </>
+    )
 }

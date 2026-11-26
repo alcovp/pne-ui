@@ -1,12 +1,4 @@
-import React, {
-    ReactNode,
-    useCallback,
-    useEffect,
-    useId,
-    useLayoutEffect,
-    useRef,
-    useState,
-} from 'react'
+import React, {ReactNode, useCallback, useEffect, useId, useLayoutEffect, useRef, useState} from 'react'
 import {
     Autocomplete,
     type AutocompleteInputChangeReason,
@@ -29,10 +21,7 @@ import {PNE_FIELD_SIZE, resolvePneFieldSize} from '../fieldSize'
 import PneTextField from '../PneTextField'
 import {PneChevronDownIcon, PneCloseIcon, pneAutocompleteFieldSx} from './dropdownLook'
 import {mergeAriaIds, usePneFieldControlProps} from '../PneFieldContext'
-import type {
-    PneAutocompleteBuiltInProps,
-    PneAutocompleteCustomProps,
-} from './PneAutocomplete'
+import type {PneAutocompleteBuiltInProps, PneAutocompleteCustomProps} from './PneAutocomplete'
 import {
     areAutocompleteOptionsEqualBy,
     hasAutocompleteLabel,
@@ -56,10 +45,7 @@ export interface PneAsyncAutocompleteLoadErrorContext extends PneAsyncAutocomple
     query: string
 }
 
-export type PneLoadOptions<T> = (
-    query: string,
-    context: PneAsyncAutocompleteLoadContext,
-) => Promise<readonly T[]>
+export type PneLoadOptions<T> = (query: string, context: PneAsyncAutocompleteLoadContext) => Promise<readonly T[]>
 
 export type PneAsyncAutocompleteHtmlInputProps = PneAutocompleteHtmlInputProps
 
@@ -90,7 +76,8 @@ export type PneAsyncAutocompleteBuiltInProps<
 > = Omit<
     PneAutocompleteBuiltInProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
     'filterOptions' | 'loading' | 'options'
-> & PneAsyncAutocompleteOwnedProps<T>
+> &
+    PneAsyncAutocompleteOwnedProps<T>
 
 export type PneAsyncAutocompleteCustomProps<
     T extends PneAutocompleteOption,
@@ -101,7 +88,8 @@ export type PneAsyncAutocompleteCustomProps<
 > = Omit<
     PneAutocompleteCustomProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
     'filterOptions' | 'loading' | 'options'
-> & PneAsyncAutocompleteOwnedProps<T>
+> &
+    PneAsyncAutocompleteOwnedProps<T>
 
 export type PneAsyncAutocompleteProps<
     T extends PneAutocompleteOption,
@@ -111,19 +99,13 @@ export type PneAsyncAutocompleteProps<
     ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
 > = [T] extends [PneBuiltInAutocompleteOption]
     ? PneAsyncAutocompleteBuiltInProps<
-        Extract<T, PneBuiltInAutocompleteOption>,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >
-    : PneAsyncAutocompleteCustomProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >
+          Extract<T, PneBuiltInAutocompleteOption>,
+          Multiple,
+          DisableClearable,
+          FreeSolo,
+          ChipComponent
+      >
+    : PneAsyncAutocompleteCustomProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
 
 type MuiAutocompleteProps<
     T extends PneAutocompleteOption,
@@ -140,18 +122,13 @@ type PneAsyncAutocompleteImplementationProps<
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
 > = Omit<
-    PneAsyncAutocompleteCustomProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >,
+    PneAsyncAutocompleteCustomProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
     'getOptionKey' | 'getOptionLabel' | 'isOptionEqualToValue'
-> & Pick<
-    MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
-    'getOptionKey' | 'getOptionLabel' | 'isOptionEqualToValue'
->
+> &
+    Pick<
+        MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+        'getOptionKey' | 'getOptionLabel' | 'isOptionEqualToValue'
+    >
 
 type OptionKeyResolver<
     T extends PneAutocompleteOption,
@@ -159,13 +136,7 @@ type OptionKeyResolver<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = NonNullable<MuiAutocompleteProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['getOptionKey']>
+> = NonNullable<MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['getOptionKey']>
 
 type OptionLabelResolver<
     T extends PneAutocompleteOption,
@@ -173,13 +144,7 @@ type OptionLabelResolver<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = NonNullable<MuiAutocompleteProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['getOptionLabel']>
+> = NonNullable<MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['getOptionLabel']>
 
 type OptionEquality<
     T extends PneAutocompleteOption,
@@ -187,13 +152,7 @@ type OptionEquality<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = NonNullable<MuiAutocompleteProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['isOptionEqualToValue']>
+> = NonNullable<MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['isOptionEqualToValue']>
 
 type LoadState = 'idle' | 'loading' | 'loaded' | 'error' | 'min-query'
 
@@ -211,18 +170,10 @@ type PneAsyncAutocompleteInferredCustomProps<
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
 > = Omit<
-    PneAsyncAutocompleteCustomProps<
-        NoInfer<Result[number]>,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >,
+    PneAsyncAutocompleteCustomProps<NoInfer<Result[number]>, Multiple, DisableClearable, FreeSolo, ChipComponent>,
     'loadOptions'
 > & {
-    loadOptions: (
-        ...args: Parameters<PneLoadOptions<Result[number]>>
-    ) => Promise<Result>
+    loadOptions: (...args: Parameters<PneLoadOptions<Result[number]>>) => Promise<Result>
 }
 
 type PneAsyncAutocompleteComponent = {
@@ -232,39 +183,27 @@ type PneAsyncAutocompleteComponent = {
         DisableClearable extends boolean | undefined = false,
         FreeSolo extends boolean | undefined = false,
         ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-    >(props: PneAsyncAutocompleteInferredCustomProps<
-        Result,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >): React.JSX.Element
+    >(
+        props: PneAsyncAutocompleteInferredCustomProps<Result, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+    ): React.JSX.Element
     <
         T extends PneBuiltInAutocompleteOption,
         Multiple extends boolean | undefined = false,
         DisableClearable extends boolean | undefined = false,
         FreeSolo extends boolean | undefined = false,
         ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-    >(props: PneAsyncAutocompleteBuiltInProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >): React.JSX.Element
+    >(
+        props: PneAsyncAutocompleteBuiltInProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+    ): React.JSX.Element
     <
         T extends PneAutocompleteOption,
         Multiple extends boolean | undefined = false,
         DisableClearable extends boolean | undefined = false,
         FreeSolo extends boolean | undefined = false,
         ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-    >(props: PneAsyncAutocompleteCustomProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >): React.JSX.Element
+    >(
+        props: PneAsyncAutocompleteCustomProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+    ): React.JSX.Element
     displayName?: string
 }
 
@@ -274,13 +213,9 @@ const PneAsyncAutocompleteImplementation = <
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
->(rawProps: PneAsyncAutocompleteImplementationProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->) => {
+>(
+    rawProps: PneAsyncAutocompleteImplementationProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+) => {
     const props = rawProps as typeof rawProps & {as?: unknown; component?: unknown}
     const {
         as: _as,
@@ -348,12 +283,10 @@ const PneAsyncAutocompleteImplementation = <
         name: 'MuiAutocomplete',
         props: {loadingText, noOptionsText},
     })
-    const resolvedLoadingText = localizedTextProps.loadingText === undefined
-        ? 'Loading…'
-        : localizedTextProps.loadingText
-    const resolvedDefaultNoOptionsText = localizedTextProps.noOptionsText === undefined
-        ? 'No options'
-        : localizedTextProps.noOptionsText
+    const resolvedLoadingText =
+        localizedTextProps.loadingText === undefined ? 'Loading…' : localizedTextProps.loadingText
+    const resolvedDefaultNoOptionsText =
+        localizedTextProps.noOptionsText === undefined ? 'No options' : localizedTextProps.noOptionsText
     const loading = loadState === 'loading'
     const controlProps = usePneFieldControlProps({
         disabled,
@@ -379,19 +312,11 @@ const PneAsyncAutocompleteImplementation = <
         FreeSolo,
         ChipComponent
     >
-    const resolvedOptionEquality = (isOptionEqualToValue ?? (getOptionKey
-        ? (option: T, value: unknown) => areAutocompleteOptionsEqualBy(
-            option,
-            value,
-            resolvedOptionKey as (option: T) => PneAutocompleteKey,
-        )
-        : areBuiltInOptionsEqual)) as OptionEquality<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >
+    const resolvedOptionEquality = (isOptionEqualToValue ??
+        (getOptionKey
+            ? (option: T, value: unknown) =>
+                  areAutocompleteOptionsEqualBy(option, value, resolvedOptionKey as (option: T) => PneAutocompleteKey)
+            : areBuiltInOptionsEqual)) as OptionEquality<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
     const listboxName = resolveAutocompleteListboxName({
         controlLabelId: controlProps.labelId,
         hasTextFieldLabel: hasAutocompleteLabel(label),
@@ -400,11 +325,7 @@ const PneAsyncAutocompleteImplementation = <
     })
     const resolvedSlotProps = withAutocompleteListboxName(slotProps, listboxName)
     const resolvedSlots = withoutAutocompleteRootSlot(slots)
-    const innerSx: SxProps = [
-        dropDownSx,
-        pneAutocompleteFieldSx,
-        ...(Array.isArray(sx) ? sx : [sx]),
-    ]
+    const innerSx: SxProps = [dropDownSx, pneAutocompleteFieldSx, ...(Array.isArray(sx) ? sx : [sx])]
 
     const abortCurrentRequest = useCallback(() => {
         requestIdRef.current += 1
@@ -417,12 +338,7 @@ const PneAsyncAutocompleteImplementation = <
         onLoadErrorRef.current = onLoadError
         keepPreviousOptionsRef.current = keepPreviousOptions
         minQueryLengthRef.current = normalizedMinQueryLength
-    }, [
-        keepPreviousOptions,
-        loadOptions,
-        normalizedMinQueryLength,
-        onLoadError,
-    ])
+    }, [keepPreviousOptions, loadOptions, normalizedMinQueryLength, onLoadError])
 
     const committedRequestInputsRef = useRef({
         minQueryLength: normalizedMinQueryLength,
@@ -433,12 +349,12 @@ const PneAsyncAutocompleteImplementation = <
 
     useAsyncLifecycleEffect(() => {
         const previous = committedRequestInputsRef.current
-        const requestInputsChanged = previous.open && (
-            !open
-            || previous.query !== query
-            || !Object.is(previous.reloadKey, reloadKey)
-            || previous.minQueryLength !== normalizedMinQueryLength
-        )
+        const requestInputsChanged =
+            previous.open &&
+            (!open ||
+                previous.query !== query ||
+                !Object.is(previous.reloadKey, reloadKey) ||
+                previous.minQueryLength !== normalizedMinQueryLength)
 
         if (requestInputsChanged) {
             abortCurrentRequest()
@@ -450,21 +366,18 @@ const PneAsyncAutocompleteImplementation = <
             query,
             reloadKey,
         }
-    }, [
-        abortCurrentRequest,
-        normalizedMinQueryLength,
-        open,
-        query,
-        reloadKey,
-    ])
+    }, [abortCurrentRequest, normalizedMinQueryLength, open, query, reloadKey])
 
-    const stopLoading = useCallback((clearOptions: boolean) => {
-        abortCurrentRequest()
-        setLoadState('idle')
-        if (clearOptions) {
-            setOptions([])
-        }
-    }, [abortCurrentRequest])
+    const stopLoading = useCallback(
+        (clearOptions: boolean) => {
+            abortCurrentRequest()
+            setLoadState('idle')
+            if (clearOptions) {
+                setOptions([])
+            }
+        },
+        [abortCurrentRequest],
+    )
 
     const beginLoad = useCallback((nextQuery: string, reason: PneAsyncAutocompleteLoadReason) => {
         controllerRef.current?.abort()
@@ -543,9 +456,10 @@ const PneAsyncAutocompleteImplementation = <
         const pendingInputTransitionIndex = queryChanged
             ? findLastTransitionIndex(pendingInputTransitionsRef.current, query)
             : -1
-        const pendingInputTransition = pendingInputTransitionIndex >= 0
-            ? pendingInputTransitionsRef.current[pendingInputTransitionIndex]
-            : undefined
+        const pendingInputTransition =
+            pendingInputTransitionIndex >= 0
+                ? pendingInputTransitionsRef.current[pendingInputTransitionIndex]
+                : undefined
 
         previousOpenRef.current = open
         previousQueryRef.current = query
@@ -591,41 +505,29 @@ const PneAsyncAutocompleteImplementation = <
 
         // Selection/reset/blur changes update the tracked query but do not start a remote search.
         stopLoading(false)
-    }, [
-        beginLoad,
-        normalizedMinQueryLength,
-        open,
-        query,
-        reloadKey,
-        stopLoading,
-    ])
+    }, [beginLoad, normalizedMinQueryLength, open, query, reloadKey, stopLoading])
 
-    useEffect(() => () => {
-        requestIdRef.current += 1
-        controllerRef.current?.abort()
-        previousOpenRef.current = false
-    }, [])
+    useEffect(
+        () => () => {
+            requestIdRef.current += 1
+            controllerRef.current?.abort()
+            previousOpenRef.current = false
+        },
+        [],
+    )
 
-    const handleOpen: NonNullable<MuiAutocompleteProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >['onOpen']> = event => {
+    const handleOpen: NonNullable<
+        MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['onOpen']
+    > = event => {
         if (!isOpenControlled) {
             setUncontrolledOpen(true)
         }
         onOpen?.(event)
     }
 
-    const handleClose: NonNullable<MuiAutocompleteProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >['onClose']> = (event, reason) => {
+    const handleClose: NonNullable<
+        MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['onClose']
+    > = (event, reason) => {
         if (!isOpenControlled) {
             setUncontrolledOpen(false)
             stopLoading(true)
@@ -633,13 +535,9 @@ const PneAsyncAutocompleteImplementation = <
         onClose?.(event, reason)
     }
 
-    const handleInputChange: NonNullable<MuiAutocompleteProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >['onInputChange']> = (event, value, reason) => {
+    const handleInputChange: NonNullable<
+        MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['onInputChange']
+    > = (event, value, reason) => {
         const isSameQueryClear = reason === 'clear' && value === query
 
         if (isSameQueryClear) {
@@ -670,104 +568,110 @@ const PneAsyncAutocompleteImplementation = <
         query,
         state: loadState,
     })
-    const resolvedNoOptionsText = loadState === 'error'
-        ? loadErrorText
-        : loadState === 'min-query'
-            ? resolveMinQueryLengthText(minQueryLengthText, normalizedMinQueryLength, query)
-            : resolvedDefaultNoOptionsText
+    const resolvedNoOptionsText =
+        loadState === 'error'
+            ? loadErrorText
+            : loadState === 'min-query'
+              ? resolveMinQueryLengthText(minQueryLengthText, normalizedMinQueryLength, query)
+              : resolvedDefaultNoOptionsText
 
-    return <>
-        <Autocomplete<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
-            {...rest as unknown as MuiAutocompleteProps<
-                T,
-                Multiple,
-                DisableClearable,
-                FreeSolo,
-                ChipComponent
-            >}
-            data-pne-multiple={rest.multiple === true ? '' : undefined}
-            data-pne-size={resolvedSize}
-            disabled={controlProps.disabled}
-            filterOptions={remoteOptions => remoteOptions}
-            fullWidth={controlProps.fullWidth}
-            getOptionKey={resolvedOptionKey}
-            getOptionLabel={resolvedOptionLabel}
-            id={id}
-            inputValue={controlledInputValue}
-            isOptionEqualToValue={resolvedOptionEquality}
-            loading={loading}
-            loadingText={resolvedLoadingText}
-            noOptionsText={resolvedNoOptionsText}
-            onClose={handleClose}
-            onInputChange={handleInputChange}
-            onOpen={handleOpen}
-            open={open}
-            options={options}
-            ref={ref}
-            renderInput={params => <PneTextField
-                {...params}
-                data-pne-state={pinnedState}
-                error={controlProps.error ?? false}
-                helperText={helperText}
-                inputRef={inputRef}
-                label={label}
-                placeholder={placeholder}
-                required={controlProps.required}
-                size={resolvedSize}
-                slotProps={{
-                    ...params.slotProps,
-                    input: {
-                        ...params.slotProps.input,
-                        // The list shows the spinner in its loading row; while it keeps the previous
-                        // options on screen instead, the spinner stands in the field.
-                        endAdornment: <>
-                            {loading && options.length > 0
-                                ? <CircularProgress color="inherit" size={PNE_FIELD_SIZE[resolvedSize].icon}/>
-                                : null}
-                            {params.slotProps.input.endAdornment}
-                        </>,
-                    },
-                    htmlInput: (() => {
-                        const mergedInputProps = mergeAutocompleteHtmlInputProps(
-                            params.slotProps.htmlInput,
-                            safeHtmlInputProps,
-                        )
+    return (
+        <>
+            <Autocomplete<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
+                {...(rest as unknown as MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>)}
+                data-pne-multiple={rest.multiple === true ? '' : undefined}
+                data-pne-size={resolvedSize}
+                disabled={controlProps.disabled}
+                filterOptions={remoteOptions => remoteOptions}
+                fullWidth={controlProps.fullWidth}
+                getOptionKey={resolvedOptionKey}
+                getOptionLabel={resolvedOptionLabel}
+                id={id}
+                inputValue={controlledInputValue}
+                isOptionEqualToValue={resolvedOptionEquality}
+                loading={loading}
+                loadingText={resolvedLoadingText}
+                noOptionsText={resolvedNoOptionsText}
+                onClose={handleClose}
+                onInputChange={handleInputChange}
+                onOpen={handleOpen}
+                open={open}
+                options={options}
+                ref={ref}
+                renderInput={params => (
+                    <PneTextField
+                        {...params}
+                        data-pne-state={pinnedState}
+                        error={controlProps.error ?? false}
+                        helperText={helperText}
+                        inputRef={inputRef}
+                        label={label}
+                        placeholder={placeholder}
+                        required={controlProps.required}
+                        size={resolvedSize}
+                        slotProps={{
+                            ...params.slotProps,
+                            input: {
+                                ...params.slotProps.input,
+                                // The list shows the spinner in its loading row; while it keeps the previous
+                                // options on screen instead, the spinner stands in the field.
+                                endAdornment: (
+                                    <>
+                                        {loading && options.length > 0 ? (
+                                            <CircularProgress
+                                                color='inherit'
+                                                size={PNE_FIELD_SIZE[resolvedSize].icon}
+                                            />
+                                        ) : null}
+                                        {params.slotProps.input.endAdornment}
+                                    </>
+                                ),
+                            },
+                            htmlInput: (() => {
+                                const mergedInputProps = mergeAutocompleteHtmlInputProps(
+                                    params.slotProps.htmlInput,
+                                    safeHtmlInputProps,
+                                )
 
-                        return {
-                            ...mergedInputProps as Record<string, unknown>,
-                            'aria-busy': loading,
-                            'aria-describedby': mergeAriaIds(
-                                getString(mergedInputProps['aria-describedby']),
-                                controlProps.ariaDescribedBy,
-                                statusContent === undefined ? undefined : statusId,
-                            ),
-                        }
-                    })(),
-                }}
-                variant={variant}
-            />}
-            clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon'/>}
-            popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon'/>}
-            // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
-            size='small'
-            slotProps={withAutocompleteLook(resolvedSlotProps, {
-                ownRows: rest.renderOption !== undefined,
-                size: resolvedSize,
-                status: loadState,
-            })}
-            slots={resolvedSlots}
-            sx={innerSx}
-        />
-        {statusContent === undefined ? null : <span
-            aria-atomic="true"
-            aria-live={loadState === 'error' ? 'assertive' : 'polite'}
-            id={statusId}
-            role={loadState === 'error' ? 'alert' : 'status'}
-            style={visuallyHiddenStyle}
-        >
-            {statusContent}
-        </span>}
-    </>
+                                return {
+                                    ...(mergedInputProps as Record<string, unknown>),
+                                    'aria-busy': loading,
+                                    'aria-describedby': mergeAriaIds(
+                                        getString(mergedInputProps['aria-describedby']),
+                                        controlProps.ariaDescribedBy,
+                                        statusContent === undefined ? undefined : statusId,
+                                    ),
+                                }
+                            })(),
+                        }}
+                        variant={variant}
+                    />
+                )}
+                clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon' />}
+                popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon' />}
+                // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+                size='small'
+                slotProps={withAutocompleteLook(resolvedSlotProps, {
+                    ownRows: rest.renderOption !== undefined,
+                    size: resolvedSize,
+                    status: loadState,
+                })}
+                slots={resolvedSlots}
+                sx={innerSx}
+            />
+            {statusContent === undefined ? null : (
+                <span
+                    aria-atomic='true'
+                    aria-live={loadState === 'error' ? 'assertive' : 'polite'}
+                    id={statusId}
+                    role={loadState === 'error' ? 'alert' : 'status'}
+                    style={visuallyHiddenStyle}
+                >
+                    {statusContent}
+                </span>
+            )}
+        </>
+    )
 }
 
 interface StatusContentOptions {
@@ -805,9 +709,7 @@ const resolveStatusContent = ({
         case 'min-query':
             return resolveMinQueryLengthText(minQueryLengthText, minQueryLength, query)
         case 'loaded':
-            return optionsCount === 0
-                ? (noOptionsText === undefined ? 'No options' : noOptionsText)
-                : undefined
+            return optionsCount === 0 ? (noOptionsText === undefined ? 'No options' : noOptionsText) : undefined
         case 'idle':
             return undefined
     }
@@ -820,21 +722,15 @@ const resolveMinQueryLengthText = (
     text: ReactNode | ((minimum: number, query: string) => ReactNode),
     minimum: number,
     query: string,
-): ReactNode => typeof text === 'function' ? text(minimum, query) : text
+): ReactNode => (typeof text === 'function' ? text(minimum, query) : text)
 
 const normalizeMinQueryLength = (minimum: number): number =>
     Number.isFinite(minimum) ? Math.max(0, Math.floor(minimum)) : 0
 
 const isAbortError = (error: unknown): boolean =>
-    typeof error === 'object'
-    && error !== null
-    && 'name' in error
-    && error.name === 'AbortError'
+    typeof error === 'object' && error !== null && 'name' in error && error.name === 'AbortError'
 
-const findLastTransitionIndex = (
-    transitions: PendingInputTransition[],
-    query: string,
-): number => {
+const findLastTransitionIndex = (transitions: PendingInputTransition[], query: string): number => {
     for (let index = transitions.length - 1; index >= 0; index -= 1) {
         if (transitions[index].query === query) {
             return index
@@ -844,8 +740,7 @@ const findLastTransitionIndex = (
     return -1
 }
 
-const getString = (value: unknown): string | undefined =>
-    typeof value === 'string' ? value : undefined
+const getString = (value: unknown): string | undefined => (typeof value === 'string' ? value : undefined)
 
 const visuallyHiddenStyle: React.CSSProperties = {
     border: 0,

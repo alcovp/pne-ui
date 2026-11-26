@@ -27,7 +27,10 @@ const expandedSx: SxProps<Theme> = theme => ({
  * A cell with the chevron that opens and closes a row (UI Kit Cell: Expand and Cell: Collapse):
  * an icon action in a control cell; the chevron points right on a closed row and up on an open one.
  */
-const PneTableExpandCell = ({ref, ...props}: React.PropsWithoutRef<PneTableExpandCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
+const PneTableExpandCell = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTableExpandCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {
         'aria-label': ariaLabel,
         autoTestId = 'row-expand',
@@ -39,29 +42,33 @@ const PneTableExpandCell = ({ref, ...props}: React.PropsWithoutRef<PneTableExpan
         ...rest
     } = props
 
-    return <PneTableControlCell
-        data-pne-cell='expand'
-        {...rest}
-        onClick={event => event.stopPropagation()}
-        ref={ref}
-        sx={[
-            {boxSizing: 'border-box', textAlign: 'center', width: '40px'},
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ] as PneTableControlCellProps['sx']}
-    >
-        <IconButton
-            {...createAutoTestAttributes(autoTestId, autoTestValue)}
-            aria-expanded={expanded}
-            aria-label={ariaLabel}
-            disabled={disabled}
-            disableRipple
-            onClick={event => onToggle(!expanded, event)}
-            sx={[pneIconActionSx('small'), ...(expanded ? [expandedSx] : [])] as SxProps<Theme>}
-            type='button'
+    return (
+        <PneTableControlCell
+            data-pne-cell='expand'
+            {...rest}
+            onClick={event => event.stopPropagation()}
+            ref={ref}
+            sx={
+                [
+                    {boxSizing: 'border-box', textAlign: 'center', width: '40px'},
+                    ...(Array.isArray(sx) ? sx : [sx]),
+                ] as PneTableControlCellProps['sx']
+            }
         >
-            <PneChevronDownIcon sx={{transform: expanded ? 'rotate(180deg)' : 'rotate(-90deg)'}}/>
-        </IconButton>
-    </PneTableControlCell>
+            <IconButton
+                {...createAutoTestAttributes(autoTestId, autoTestValue)}
+                aria-expanded={expanded}
+                aria-label={ariaLabel}
+                disabled={disabled}
+                disableRipple
+                onClick={event => onToggle(!expanded, event)}
+                sx={[pneIconActionSx('small'), ...(expanded ? [expandedSx] : [])] as SxProps<Theme>}
+                type='button'
+            >
+                <PneChevronDownIcon sx={{transform: expanded ? 'rotate(180deg)' : 'rotate(-90deg)'}} />
+            </IconButton>
+        </PneTableControlCell>
+    )
 }
 
 PneTableExpandCell.displayName = 'PneTableExpandCell'

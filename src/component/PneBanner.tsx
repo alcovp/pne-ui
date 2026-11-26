@@ -16,7 +16,8 @@ type ActionDataAttributes = {
 export type PneBannerActionProps = Omit<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     'children' | 'onClick' | 'type'
-> & ActionDataAttributes
+> &
+    ActionDataAttributes
 
 export type PneBannerProps = Omit<BoxProps<'div'>, 'children' | 'title'> & {
     /** What the message is about: a note, a success, a warning or an error. `info` by default. */
@@ -39,10 +40,20 @@ export type PneBannerProps = Omit<BoxProps<'div'>, 'children' | 'title'> & {
 
 // UI Kit IcStatusInfo, IcActionApprove, IcStatusWarning and IcStatusBlock.
 const TONE_GLYPH: Record<PneBannerTone, React.ReactNode> = {
-    info: <><circle cx={12} cy={12} r={9}/><path d='M11 11h1v6M12 7.6v.2'/></>,
-    success: <path d='M5 14l3.5 3.5L19 6.5'/>,
-    warning: <path d='M12 4.5 3.5 19h17L12 4.5ZM12 10v4.5M12 17v.2'/>,
-    error: <><circle cx={12} cy={12} r={9}/><path d='M6 6l12 12'/></>,
+    info: (
+        <>
+            <circle cx={12} cy={12} r={9} />
+            <path d='M11 11h1v6M12 7.6v.2' />
+        </>
+    ),
+    success: <path d='M5 14l3.5 3.5L19 6.5' />,
+    warning: <path d='M12 4.5 3.5 19h17L12 4.5ZM12 10v4.5M12 17v.2' />,
+    error: (
+        <>
+            <circle cx={12} cy={12} r={9} />
+            <path d='M6 6l12 12' />
+        </>
+    ),
 }
 
 const bannerSx: SxProps<Theme> = theme => {
@@ -117,7 +128,10 @@ const bannerSx: SxProps<Theme> = theme => {
  * radius 8, the 20px sign of the tone on the left, then a title, the text and an action link, and a
  * small close cross on the right. An error is announced as an alert, the other tones as a status.
  */
-const PneBanner = function PneBanner({ref, ...props}: React.PropsWithoutRef<PneBannerProps> & {ref?: React.Ref<HTMLDivElement>}) {
+const PneBanner = function PneBanner({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneBannerProps> & {ref?: React.Ref<HTMLDivElement>}) {
     const {
         actionLabel,
         actionProps,
@@ -134,46 +148,54 @@ const PneBanner = function PneBanner({ref, ...props}: React.PropsWithoutRef<PneB
     const hasTitle = title !== undefined && title !== null && title !== false && title !== ''
     const hasText = children !== undefined && children !== null && children !== false && children !== ''
 
-    return <Box
-        role={tone === 'error' ? 'alert' : 'status'}
-        {...rest}
-        data-pne-banner='true'
-        data-pne-tone={tone}
-        ref={ref}
-        sx={[bannerSx, ...(Array.isArray(sx) ? sx : [sx])] as SxProps<Theme>}
-    >
-        {icon ? <svg
-            aria-hidden='true'
-            data-pne-banner-sign='true'
-            fill='none'
-            stroke='currentColor'
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            strokeWidth={1.5}
-            viewBox='0 0 24 24'
+    return (
+        <Box
+            role={tone === 'error' ? 'alert' : 'status'}
+            {...rest}
+            data-pne-banner='true'
+            data-pne-tone={tone}
+            ref={ref}
+            sx={[bannerSx, ...(Array.isArray(sx) ? sx : [sx])] as SxProps<Theme>}
         >
-            {TONE_GLYPH[tone]}
-        </svg> : null}
-        <div data-pne-banner-content='true'>
-            {hasTitle ? <div data-pne-banner-title='true'>{title}</div> : null}
-            {/* A block: the text may hold paragraphs or a progress bar of the consumer. */}
-            {hasText ? <div data-pne-banner-text='true'>{children}</div> : null}
-            {actionLabel ? <button {...actionProps} data-pne-banner-action='true' onClick={onAction} type='button'>
-                {actionLabel}
-            </button> : null}
-        </div>
-        {onClose ? <IconButton
-            aria-label={closeLabel}
-            data-pne-banner-close='true'
-            disableRipple
-            onClick={onClose}
-            sx={pneIconActionSx('small', 'var(--pne-banner-text)')}
-            title={closeLabel}
-            type='button'
-        >
-            <PneCloseIcon/>
-        </IconButton> : null}
-    </Box>
+            {icon ? (
+                <svg
+                    aria-hidden='true'
+                    data-pne-banner-sign='true'
+                    fill='none'
+                    stroke='currentColor'
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    strokeWidth={1.5}
+                    viewBox='0 0 24 24'
+                >
+                    {TONE_GLYPH[tone]}
+                </svg>
+            ) : null}
+            <div data-pne-banner-content='true'>
+                {hasTitle ? <div data-pne-banner-title='true'>{title}</div> : null}
+                {/* A block: the text may hold paragraphs or a progress bar of the consumer. */}
+                {hasText ? <div data-pne-banner-text='true'>{children}</div> : null}
+                {actionLabel ? (
+                    <button {...actionProps} data-pne-banner-action='true' onClick={onAction} type='button'>
+                        {actionLabel}
+                    </button>
+                ) : null}
+            </div>
+            {onClose ? (
+                <IconButton
+                    aria-label={closeLabel}
+                    data-pne-banner-close='true'
+                    disableRipple
+                    onClick={onClose}
+                    sx={pneIconActionSx('small', 'var(--pne-banner-text)')}
+                    title={closeLabel}
+                    type='button'
+                >
+                    <PneCloseIcon />
+                </IconButton>
+            ) : null}
+        </Box>
+    )
 }
 
 export default PneBanner

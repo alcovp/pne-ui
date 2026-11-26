@@ -1,5 +1,5 @@
-import { createContext } from 'react'
-import type { PermanentOverlayInstance, PermanentOverlaySlot } from './types'
+import {createContext} from 'react'
+import type {PermanentOverlayInstance, PermanentOverlaySlot} from './types'
 
 export type PermanentOverlayContextValue = {
     register: (overlay: PermanentOverlayInstance) => void

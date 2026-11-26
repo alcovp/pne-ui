@@ -98,14 +98,12 @@ const createCriterion = (entityType: LinkedEntityTypeEnum): MultigetCriterion =>
 
 const neverResolves = <T,>(): Promise<T> => new Promise(() => undefined)
 
-const getOwnedPanel = (
-    scope: string,
-    criterionType: CriterionTypeEnum,
-): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="dialog"][data-autotest="criterion-multiget-panel"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${criterionType}"]`,
-)
+const getOwnedPanel = (scope: string, criterionType: CriterionTypeEnum): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="dialog"][data-autotest="criterion-multiget-panel"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${criterionType}"]`,
+    )
 
 describe('SearchUI multiget criterion matrix', () => {
     beforeEach(() => {
@@ -156,9 +154,11 @@ describe('SearchUI multiget criterion matrix', () => {
         )
 
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                multigetCriteria: initialCriteria,
-            }))
+            expect(onFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: initialCriteria,
+                }),
+            )
         })
 
         const filters = container.querySelector<HTMLElement>(
@@ -166,10 +166,11 @@ describe('SearchUI multiget criterion matrix', () => {
         )
 
         expect(filters).not.toBeNull()
-        expect(Array.from(
-            filters?.querySelectorAll<HTMLElement>('[data-autotest="criterion"]') ?? [],
-            criterion => criterion.getAttribute('data-autotest-value'),
-        ).sort()).toEqual(multigetMatrix.map(({criterionType}) => criterionType).sort())
+        expect(
+            Array.from(filters?.querySelectorAll<HTMLElement>('[data-autotest="criterion"]') ?? [], criterion =>
+                criterion.getAttribute('data-autotest-value'),
+            ).sort(),
+        ).toEqual(multigetMatrix.map(({criterionType}) => criterionType).sort())
 
         for (const entry of multigetMatrix) {
             getMatchLinkedItems.mockClear()
@@ -194,18 +195,16 @@ describe('SearchUI multiget criterion matrix', () => {
 
             const panel = getOwnedPanel(scope, entry.criterionType) as HTMLElement
             const request = getMatchLinkedItems.mock.calls.at(-1)?.[0]
-            const modeButtons = Array.from(panel.querySelectorAll<HTMLButtonElement>(
-                'button[data-autotest="criterion-multiget-mode"]',
-            ))
-            const searchLabels = Array.from(panel.querySelectorAll<HTMLButtonElement>(
-                'button[data-autotest="criterion-multiget-search-label"]',
-            ))
+            const modeButtons = Array.from(
+                panel.querySelectorAll<HTMLButtonElement>('button[data-autotest="criterion-multiget-mode"]'),
+            )
+            const searchLabels = Array.from(
+                panel.querySelectorAll<HTMLButtonElement>('button[data-autotest="criterion-multiget-search-label"]'),
+            )
             const onlyEnabled = panel.querySelectorAll<HTMLInputElement>(
                 'input[data-autotest="criterion-multiget-only-enabled"]',
             )
-            const search = panel.querySelector<HTMLInputElement>(
-                'input[data-autotest="criterion-multiget-search"]',
-            )
+            const search = panel.querySelector<HTMLInputElement>('input[data-autotest="criterion-multiget-search"]')
 
             expect(trigger?.getAttribute('aria-expanded')).toBe('true')
             expect(trigger?.getAttribute('aria-controls')).toBe(panel.id)
@@ -220,10 +219,7 @@ describe('SearchUI multiget criterion matrix', () => {
                 MultichoiceFilterTypeEnum.NONE,
                 MultichoiceFilterTypeEnum.ALL,
             ])
-            expect(modeButtons.map(button => button.getAttribute('aria-pressed'))).toEqual([
-                'true',
-                'false',
-            ])
+            expect(modeButtons.map(button => button.getAttribute('aria-pressed'))).toEqual(['true', 'false'])
             expect(onlyEnabled).toHaveLength(entry.hasOnlyEnabled ? 1 : 0)
             expect(search).not.toBeNull()
             expect(search?.type).toBe('text')
@@ -239,9 +235,7 @@ describe('SearchUI multiget criterion matrix', () => {
                 ])
             }
 
-            const close = panel.querySelector<HTMLButtonElement>(
-                'button[data-autotest="criterion-multiget-close"]',
-            )
+            const close = panel.querySelector<HTMLButtonElement>('button[data-autotest="criterion-multiget-close"]')
 
             expect(close).not.toBeNull()
             fireEvent.click(close as HTMLButtonElement)

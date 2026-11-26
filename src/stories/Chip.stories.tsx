@@ -26,7 +26,7 @@ type Story = StoryObj<typeof Chip>
 const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 const noop = () => undefined
 
-type Row = {label: string, props: ChipProps}
+type Row = {label: string; props: ChipProps}
 
 const KINDS: Row[] = [
     {label: 'read-only', props: {}},
@@ -51,7 +51,9 @@ const Matrix = ({size}: {size: 'small' | 'medium'}) => (
     <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 8px', ml: -2}}>
         <thead>
             <tr>
-                <Box component='th' sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>{size}</Box>
+                <Box component='th' sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>
+                    {size}
+                </Box>
                 {KINDS.map(kind => (
                     <Box component='th' key={kind.label} sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>
                         {kind.label}
@@ -62,10 +64,12 @@ const Matrix = ({size}: {size: 'small' | 'medium'}) => (
         <tbody>
             {LOOKS.map(look => (
                 <tr key={look.label}>
-                    <Box component='td' sx={CAPTION_SX}>{look.label}</Box>
+                    <Box component='td' sx={CAPTION_SX}>
+                        {look.label}
+                    </Box>
                     {KINDS.map(kind => (
                         <td key={kind.label}>
-                            <Chip label='Visa' size={size} {...look.props} {...kind.props}/>
+                            <Chip label='Visa' size={size} {...look.props} {...kind.props} />
                         </td>
                     ))}
                 </tr>
@@ -79,16 +83,18 @@ export const Looks: Story = {
     parameters: {controls: {disable: true}},
     render: () => (
         <Stack spacing={3} sx={{p: 3}}>
-            <Matrix size='medium'/>
-            <Matrix size='small'/>
+            <Matrix size='medium' />
+            <Matrix size='small' />
         </Stack>
     ),
 }
 
-const Case = ({children, title}: {children: React.ReactNode, title: string}) => (
+const Case = ({children, title}: {children: React.ReactNode; title: string}) => (
     <Box>
         <Typography sx={{...CAPTION_SX, mb: 0.5}}>{title}</Typography>
-        <Stack direction='row' spacing={0.5} sx={{alignItems: 'center', flexWrap: 'wrap', rowGap: 0.5}}>{children}</Stack>
+        <Stack direction='row' spacing={0.5} sx={{alignItems: 'center', flexWrap: 'wrap', rowGap: 0.5}}>
+            {children}
+        </Stack>
     </Box>
 )
 
@@ -98,34 +104,34 @@ export const AsPagesUseIt: Story = {
     render: () => (
         <Stack spacing={2} sx={{p: 3, maxWidth: 760}}>
             <Case title='Values of a table cell, the rest behind «+ N»'>
-                <Chip label='ATEndPoint#2CG5R8'/>
-                <Chip label='Test3ds2ProcessorAmManageEndpoint'/>
-                <Chip label='test-endpoint'/>
-                <Chip label='+ 12'/>
+                <Chip label='ATEndPoint#2CG5R8' />
+                <Chip label='Test3ds2ProcessorAmManageEndpoint' />
+                <Chip label='test-endpoint' />
+                <Chip label='+ 12' />
             </Case>
             <Case title='Small tags of a row'>
-                <Chip label='USD' size='small'/>
-                <Chip label='EUR' size='small'/>
+                <Chip label='USD' size='small' />
+                <Chip label='EUR' size='small' />
             </Case>
             <Case title='Picked values that can be removed; keywords are outlined'>
-                <Chip label='self' onDelete={noop} variant='outlined'/>
-                <Chip label='all' onDelete={noop} variant='outlined'/>
-                <Chip label='https://cdn.example.com' onDelete={noop}/>
-                <Chip label='Germany' onDelete={noop}/>
+                <Chip label='self' onDelete={noop} variant='outlined' />
+                <Chip label='all' onDelete={noop} variant='outlined' />
+                <Chip label='https://cdn.example.com' onDelete={noop} />
+                <Chip label='Germany' onDelete={noop} />
             </Case>
             <Case title='Links to another page'>
-                <Chip clickable component='a' href='#' label='Gold'/>
-                <Chip clickable color='error' component='a' href='#' label='Inactive project'/>
-                <Chip clickable component='a' href='#' label='test-endpoint' variant='outlined'/>
+                <Chip clickable component='a' href='#' label='Gold' />
+                <Chip clickable color='error' component='a' href='#' label='Inactive project' />
+                <Chip clickable component='a' href='#' label='test-endpoint' variant='outlined' />
             </Case>
             <Case title='A yes / no mark that opens a list'>
-                <Chip color='success' label='Yes' onClick={noop}/>
-                <Chip label='No'/>
+                <Chip color='success' label='Yes' onClick={noop} />
+                <Chip label='No' />
             </Case>
             <Case title='A toggle: the picked ones are primary'>
-                <Chip clickable color='primary' label='Turnover' onClick={noop}/>
-                <Chip clickable label='Declines' onClick={noop} variant='outlined'/>
-                <Chip clickable label='Chargebacks' onClick={noop} variant='outlined'/>
+                <Chip clickable color='primary' label='Turnover' onClick={noop} />
+                <Chip clickable label='Declines' onClick={noop} variant='outlined' />
+                <Chip clickable label='Chargebacks' onClick={noop} variant='outlined' />
             </Case>
         </Stack>
     ),
@@ -134,7 +140,7 @@ export const AsPagesUseIt: Story = {
 export const Playground: Story = {
     render: args => (
         <Box sx={{p: 3}}>
-            <Chip {...args}/>
+            <Chip {...args} />
         </Box>
     ),
 }

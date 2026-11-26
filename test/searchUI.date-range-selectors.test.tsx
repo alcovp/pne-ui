@@ -1,14 +1,10 @@
 import * as React from 'react'
 import {fireEvent, render, waitFor} from '@testing-library/react'
 
-import {
-    CriterionTypeEnum,
-    DATE_RANGE_SPEC_TYPES,
-    SearchUIFilters,
-} from '../src'
+import {CriterionTypeEnum, DATE_RANGE_SPEC_TYPES, SearchUIFilters} from '../src'
 import {ORDER_DATE_TYPES} from '../src/component/search-ui/filters/types'
 
-type DateRangeSpecType = typeof DATE_RANGE_SPEC_TYPES[number]
+type DateRangeSpecType = (typeof DATE_RANGE_SPEC_TYPES)[number]
 type CalendarDateRangeSpecType = Exclude<
     DateRangeSpecType,
     'EXACTLY' | 'DAYS_BEFORE' | 'HOURS_BEFORE' | 'DATE_INDEPENDENT'
@@ -29,14 +25,10 @@ const createDateRangeSpec = (dateRangeSpecType: CalendarDateRangeSpecType) => ({
     dateRangeSpecType,
 })
 
-const getDateCriterion = (
-    container: HTMLElement,
-    scope: string,
-    criterionType: CriterionTypeEnum,
-): HTMLElement => {
+const getDateCriterion = (container: HTMLElement, scope: string, criterionType: CriterionTypeEnum): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"][data-autotest-value="${criterionType}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"][data-autotest-value="${criterionType}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -55,8 +47,8 @@ describe('SearchUI date-range selector Selenium contract', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="date-range"
-                    settingsContextName="date-range-context"
+                    autoTestId='date-range'
+                    settingsContextName='date-range-context'
                     possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
                     initialSearchConditions={{
@@ -66,8 +58,8 @@ describe('SearchUI date-range selector Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="orders-date-range"
-                    settingsContextName="orders-date-range-context"
+                    autoTestId='orders-date-range'
+                    settingsContextName='orders-date-range-context'
                     possibleCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     initialSearchConditions={{
@@ -84,11 +76,7 @@ describe('SearchUI date-range selector Selenium contract', () => {
             expect(ordersDateRangeOnFiltersUpdate).toHaveBeenCalled()
         })
 
-        const dateRangeCriterion = getDateCriterion(
-            container,
-            'date-range',
-            CriterionTypeEnum.DATE_RANGE,
-        )
+        const dateRangeCriterion = getDateCriterion(container, 'date-range', CriterionTypeEnum.DATE_RANGE)
         const ordersDateRangeCriterion = getDateCriterion(
             container,
             'orders-date-range',
@@ -105,32 +93,19 @@ describe('SearchUI date-range selector Selenium contract', () => {
         expect(dateRangeTrigger?.getAttribute('data-autotest-value')).toBe('TODAY')
         expect(ordersDateRangeTrigger?.getAttribute('aria-label')).toBe('Date range type')
         expect(ordersDateRangeTrigger?.getAttribute('data-autotest-value')).toBe('LAST_MONTH')
-        expect(dateRangeCriterion.querySelector(
-            '[data-autotest="criterion-order-date-type"]',
-        )).toBeNull()
-        expect(dateRangeCriterion.querySelector(
-            '[aria-hidden="true"][tabindex="-1"]',
-        )).not.toBeNull()
-        expect(ordersDateRangeCriterion.querySelector(
-            '[aria-hidden="true"][tabindex="-1"]',
-        )).not.toBeNull()
+        expect(dateRangeCriterion.querySelector('[data-autotest="criterion-order-date-type"]')).toBeNull()
+        expect(dateRangeCriterion.querySelector('[aria-hidden="true"][tabindex="-1"]')).not.toBeNull()
+        expect(ordersDateRangeCriterion.querySelector('[aria-hidden="true"][tabindex="-1"]')).not.toBeNull()
 
         fireEvent.mouseDown(dateRangeTrigger as HTMLElement)
         fireEvent.mouseDown(ordersDateRangeTrigger as HTMLElement)
 
         await waitFor(() => {
-            expect(document.body.querySelectorAll(
-                '[data-autotest="criterion-range-spec-options"]',
-            )).toHaveLength(2)
+            expect(document.body.querySelectorAll('[data-autotest="criterion-range-spec-options"]')).toHaveLength(2)
         })
 
         for (const [scope, criterionType, criterion, trigger] of [
-            [
-                'date-range',
-                CriterionTypeEnum.DATE_RANGE,
-                dateRangeCriterion,
-                dateRangeTrigger,
-            ],
+            ['date-range', CriterionTypeEnum.DATE_RANGE, dateRangeCriterion, dateRangeTrigger],
             [
                 'orders-date-range',
                 CriterionTypeEnum.DATE_RANGE_ORDERS,
@@ -147,29 +122,27 @@ describe('SearchUI date-range selector Selenium contract', () => {
             expect(listbox?.getAttribute('data-autotest-value')).toBe(scope)
             expect(listbox?.getAttribute('data-autotest-criterion')).toBe(criterionType)
             expect(listbox && criterion.contains(listbox)).toBe(false)
-            expect(listbox?.querySelectorAll(
-                '[role="option"][data-autotest="criterion-range-spec-option"]',
-            )).toHaveLength(DATE_RANGE_SPEC_TYPES.length)
+            expect(
+                listbox?.querySelectorAll('[role="option"][data-autotest="criterion-range-spec-option"]'),
+            ).toHaveLength(DATE_RANGE_SPEC_TYPES.length)
 
             for (const rangeSpecType of DATE_RANGE_SPEC_TYPES) {
-                expect(listbox?.querySelector(
-                    `[role="option"][data-autotest="criterion-range-spec-option"]`
-                    + `[data-autotest-value="${rangeSpecType}"]`,
-                )).not.toBeNull()
+                expect(
+                    listbox?.querySelector(
+                        `[role="option"][data-autotest="criterion-range-spec-option"]` +
+                            `[data-autotest-value="${rangeSpecType}"]`,
+                    ),
+                ).not.toBeNull()
             }
         }
 
         const dateRangeListboxId = dateRangeTrigger?.getAttribute('aria-controls')
-        const dateRangeListbox = dateRangeListboxId
-            ? document.getElementById(dateRangeListboxId)
-            : null
+        const dateRangeListbox = dateRangeListboxId ? document.getElementById(dateRangeListboxId) : null
         const todayOption = dateRangeListbox?.querySelector<HTMLElement>(
-            '[role="option"][data-autotest="criterion-range-spec-option"]'
-            + '[data-autotest-value="TODAY"]',
+            '[role="option"][data-autotest="criterion-range-spec-option"]' + '[data-autotest-value="TODAY"]',
         )
         const yesterdayOption = dateRangeListbox?.querySelector<HTMLElement>(
-            '[role="option"][data-autotest="criterion-range-spec-option"]'
-            + '[data-autotest-value="YESTERDAY"]',
+            '[role="option"][data-autotest="criterion-range-spec-option"]' + '[data-autotest-value="YESTERDAY"]',
         )
 
         expect(todayOption?.getAttribute('aria-selected')).toBe('true')
@@ -193,8 +166,8 @@ describe('SearchUI date-range selector Selenium contract', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="orders-date-first"
-                    settingsContextName="orders-date-first-context"
+                    autoTestId='orders-date-first'
+                    settingsContextName='orders-date-first-context'
                     possibleCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     initialSearchConditions={{
@@ -205,8 +178,8 @@ describe('SearchUI date-range selector Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="orders-date-second"
-                    settingsContextName="orders-date-second-context"
+                    autoTestId='orders-date-second'
+                    settingsContextName='orders-date-second-context'
                     possibleCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     predefinedCriteria={[CriterionTypeEnum.DATE_RANGE_ORDERS]}
                     initialSearchConditions={{
@@ -220,24 +193,20 @@ describe('SearchUI date-range selector Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                orderDateType: 'SESSION_STATUS_CHANGED',
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                orderDateType: 'SESSION_CREATED',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    orderDateType: 'SESSION_STATUS_CHANGED',
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    orderDateType: 'SESSION_CREATED',
+                }),
+            )
         })
 
-        const firstCriterion = getDateCriterion(
-            container,
-            'orders-date-first',
-            CriterionTypeEnum.DATE_RANGE_ORDERS,
-        )
-        const secondCriterion = getDateCriterion(
-            container,
-            'orders-date-second',
-            CriterionTypeEnum.DATE_RANGE_ORDERS,
-        )
+        const firstCriterion = getDateCriterion(container, 'orders-date-first', CriterionTypeEnum.DATE_RANGE_ORDERS)
+        const secondCriterion = getDateCriterion(container, 'orders-date-second', CriterionTypeEnum.DATE_RANGE_ORDERS)
         const firstTrigger = firstCriterion.querySelector<HTMLElement>(
             '[role="combobox"][data-autotest="criterion-order-date-type"]',
         )
@@ -249,20 +218,16 @@ describe('SearchUI date-range selector Selenium contract', () => {
         expect(firstTrigger?.getAttribute('data-autotest-value')).toBe('SESSION_STATUS_CHANGED')
         expect(secondTrigger?.getAttribute('aria-label')).toBe('Order date type')
         expect(secondTrigger?.getAttribute('data-autotest-value')).toBe('SESSION_CREATED')
-        expect(firstCriterion.querySelectorAll(
-            '[role="button"][aria-hidden="true"][tabindex="-1"]',
-        )).toHaveLength(2)
-        expect(secondCriterion.querySelectorAll(
-            '[role="button"][aria-hidden="true"][tabindex="-1"]',
-        )).toHaveLength(2)
+        expect(firstCriterion.querySelectorAll('[role="button"][aria-hidden="true"][tabindex="-1"]')).toHaveLength(2)
+        expect(secondCriterion.querySelectorAll('[role="button"][aria-hidden="true"][tabindex="-1"]')).toHaveLength(2)
 
         fireEvent.mouseDown(firstTrigger as HTMLElement)
         fireEvent.mouseDown(secondTrigger as HTMLElement)
 
         await waitFor(() => {
-            expect(document.body.querySelectorAll(
-                '[data-autotest="criterion-order-date-type-options"]',
-            )).toHaveLength(2)
+            expect(document.body.querySelectorAll('[data-autotest="criterion-order-date-type-options"]')).toHaveLength(
+                2,
+            )
         })
 
         for (const [scope, criterion, trigger] of [
@@ -276,31 +241,30 @@ describe('SearchUI date-range selector Selenium contract', () => {
             expect(listbox?.getAttribute('role')).toBe('listbox')
             expect(listbox?.getAttribute('data-autotest')).toBe('criterion-order-date-type-options')
             expect(listbox?.getAttribute('data-autotest-value')).toBe(scope)
-            expect(listbox?.getAttribute('data-autotest-criterion')).toBe(
-                CriterionTypeEnum.DATE_RANGE_ORDERS,
-            )
+            expect(listbox?.getAttribute('data-autotest-criterion')).toBe(CriterionTypeEnum.DATE_RANGE_ORDERS)
             expect(listbox && criterion.contains(listbox)).toBe(false)
-            expect(listbox?.querySelectorAll(
-                '[role="option"][data-autotest="criterion-order-date-type-option"]',
-            )).toHaveLength(ORDER_DATE_TYPES.length)
+            expect(
+                listbox?.querySelectorAll('[role="option"][data-autotest="criterion-order-date-type-option"]'),
+            ).toHaveLength(ORDER_DATE_TYPES.length)
 
             for (const orderDateType of ORDER_DATE_TYPES) {
-                expect(listbox?.querySelector(
-                    `[role="option"][data-autotest="criterion-order-date-type-option"]`
-                    + `[data-autotest-value="${orderDateType}"]`,
-                )).not.toBeNull()
+                expect(
+                    listbox?.querySelector(
+                        `[role="option"][data-autotest="criterion-order-date-type-option"]` +
+                            `[data-autotest-value="${orderDateType}"]`,
+                    ),
+                ).not.toBeNull()
             }
         }
 
         const firstListboxId = firstTrigger?.getAttribute('aria-controls')
         const firstListbox = firstListboxId ? document.getElementById(firstListboxId) : null
         const selectedOption = firstListbox?.querySelector<HTMLElement>(
-            '[role="option"][data-autotest="criterion-order-date-type-option"]'
-            + '[data-autotest-value="SESSION_STATUS_CHANGED"]',
+            '[role="option"][data-autotest="criterion-order-date-type-option"]' +
+                '[data-autotest-value="SESSION_STATUS_CHANGED"]',
         )
         const settledOption = firstListbox?.querySelector<HTMLElement>(
-            '[role="option"][data-autotest="criterion-order-date-type-option"]'
-            + '[data-autotest-value="TX_SETTLED"]',
+            '[role="option"][data-autotest="criterion-order-date-type-option"]' + '[data-autotest-value="TX_SETTLED"]',
         )
 
         expect(selectedOption?.getAttribute('aria-selected')).toBe('true')
@@ -312,9 +276,11 @@ describe('SearchUI date-range selector Selenium contract', () => {
 
         await waitFor(() => {
             expect(firstTrigger?.getAttribute('data-autotest-value')).toBe('TX_SETTLED')
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                orderDateType: 'TX_SETTLED',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    orderDateType: 'TX_SETTLED',
+                }),
+            )
         })
         expect(secondTrigger?.getAttribute('data-autotest-value')).toBe('SESSION_CREATED')
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()

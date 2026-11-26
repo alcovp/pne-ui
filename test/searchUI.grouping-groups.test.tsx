@@ -3,11 +3,7 @@ import {fireEvent, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {CriterionTypeEnum, SearchUIFilters, SearchUIProvider} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -19,26 +15,35 @@ jest.mock('@hello-pangea/dnd', () => {
     const ReactModule = jest.requireActual<typeof import('react')>('react')
 
     return {
-        DragDropContext: ({children}: React.PropsWithChildren) => (
-            ReactModule.createElement(ReactModule.Fragment, null, children)
-        ),
-        Droppable: ({children}: {
-            children: (provided: {innerRef: jest.Mock; placeholder: null}) => React.ReactNode
-        }) => ReactModule.createElement('div', null, children({
-            innerRef: jest.fn(),
-            placeholder: null,
-        })),
-        Draggable: ({children}: {
+        DragDropContext: ({children}: React.PropsWithChildren) =>
+            ReactModule.createElement(ReactModule.Fragment, null, children),
+        Droppable: ({children}: {children: (provided: {innerRef: jest.Mock; placeholder: null}) => React.ReactNode}) =>
+            ReactModule.createElement(
+                'div',
+                null,
+                children({
+                    innerRef: jest.fn(),
+                    placeholder: null,
+                }),
+            ),
+        Draggable: ({
+            children,
+        }: {
             children: (provided: {
                 innerRef: jest.Mock
                 draggableProps: {style: undefined}
                 dragHandleProps: Record<string, never>
             }) => React.ReactNode
-        }) => ReactModule.createElement('div', null, children({
-            innerRef: jest.fn(),
-            draggableProps: {style: undefined},
-            dragHandleProps: {},
-        })),
+        }) =>
+            ReactModule.createElement(
+                'div',
+                null,
+                children({
+                    innerRef: jest.fn(),
+                    draggableProps: {style: undefined},
+                    dragHandleProps: {},
+                }),
+            ),
     }
 })
 
@@ -46,20 +51,23 @@ jest.mock('react-virtuoso', () => {
     const ReactModule = jest.requireActual<typeof import('react')>('react')
 
     return {
-        Virtuoso: ({children, data, itemContent}: {
+        Virtuoso: ({
+            children,
+            data,
+            itemContent,
+        }: {
             children?: React.ReactNode
             data: {id: number}[]
             itemContent: (index: number, item: {id: number}) => React.ReactNode
-        }) => ReactModule.createElement(
-            'div',
-            null,
-            ...data.map((item, index) => ReactModule.createElement(
-                ReactModule.Fragment,
-                {key: item.id},
-                itemContent(index, item),
-            )),
-            children,
-        ),
+        }) =>
+            ReactModule.createElement(
+                'div',
+                null,
+                ...data.map((item, index) =>
+                    ReactModule.createElement(ReactModule.Fragment, {key: item.id}, itemContent(index, item)),
+                ),
+                children,
+            ),
     }
 })
 
@@ -72,8 +80,8 @@ const neverResolves = <T,>(): Promise<T> => new Promise(() => undefined)
 
 const getGroupingCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.GROUPING}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.GROUPING}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -82,35 +90,31 @@ const getGroupingCriterion = (container: HTMLElement, scope: string): HTMLElemen
 }
 
 const getGroupsTrigger = (criterion: HTMLElement): HTMLButtonElement => {
-    const trigger = criterion.querySelector<HTMLButtonElement>(
-        'button[data-autotest="criterion-grouping-groups"]',
-    )
+    const trigger = criterion.querySelector<HTMLButtonElement>('button[data-autotest="criterion-grouping-groups"]')
 
     expect(trigger).not.toBeNull()
 
     return trigger as HTMLButtonElement
 }
 
-const getSelectedGroups = (criterion: HTMLElement): string[] => Array.from(
-    criterion.querySelectorAll<HTMLElement>('[data-autotest="criterion-grouping-value"]'),
-    value => value.getAttribute('data-autotest-value') ?? '',
-)
+const getSelectedGroups = (criterion: HTMLElement): string[] =>
+    Array.from(
+        criterion.querySelectorAll<HTMLElement>('[data-autotest="criterion-grouping-value"]'),
+        value => value.getAttribute('data-autotest-value') ?? '',
+    )
 
-const getOwnedDialog = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="dialog"][data-autotest="criterion-grouping-panel"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.GROUPING}"]`,
-)
+const getOwnedDialog = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="dialog"][data-autotest="criterion-grouping-panel"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.GROUPING}"]`,
+    )
 
-const getGroupOptions = (dialog: HTMLElement): HTMLButtonElement[] => Array.from(
-    dialog.querySelectorAll<HTMLButtonElement>(
-        'button[data-autotest="criterion-grouping-option"]',
-    ),
-)
+const getGroupOptions = (dialog: HTMLElement): HTMLButtonElement[] =>
+    Array.from(dialog.querySelectorAll<HTMLButtonElement>('button[data-autotest="criterion-grouping-option"]'))
 
-const getGroupOptionValues = (dialog: HTMLElement): string[] => getGroupOptions(dialog).map(
-    option => option.getAttribute('data-autotest-value') ?? '',
-)
+const getGroupOptionValues = (dialog: HTMLElement): string[] =>
+    getGroupOptions(dialog).map(option => option.getAttribute('data-autotest-value') ?? '')
 
 describe('SearchUI grouping groups Selenium contract', () => {
     beforeEach(() => {
@@ -123,8 +127,8 @@ describe('SearchUI grouping groups Selenium contract', () => {
         const {container} = render(
             <SearchUIProvider defaults={{getSearchTemplates: neverResolves}}>
                 <SearchUIFilters
-                    autoTestId="grouping-groups-first"
-                    settingsContextName="grouping-groups-first-context"
+                    autoTestId='grouping-groups-first'
+                    settingsContextName='grouping-groups-first-context'
                     possibleCriteria={[CriterionTypeEnum.GROUPING]}
                     predefinedCriteria={[CriterionTypeEnum.GROUPING]}
                     initialSearchConditions={{
@@ -138,8 +142,8 @@ describe('SearchUI grouping groups Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="grouping-groups-second"
-                    settingsContextName="grouping-groups-second-context"
+                    autoTestId='grouping-groups-second'
+                    settingsContextName='grouping-groups-second-context'
                     possibleCriteria={[CriterionTypeEnum.GROUPING]}
                     predefinedCriteria={[CriterionTypeEnum.GROUPING]}
                     initialSearchConditions={{
@@ -156,12 +160,16 @@ describe('SearchUI grouping groups Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                groupTypes: ['MERCHANT', 'PROJECT', 'DAY'],
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                groupTypes: ['MANAGER', 'MONTH'],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    groupTypes: ['MERCHANT', 'PROJECT', 'DAY'],
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    groupTypes: ['MANAGER', 'MONTH'],
+                }),
+            )
         })
 
         const firstCriterion = getGroupingCriterion(container, 'grouping-groups-first')
@@ -196,10 +204,12 @@ describe('SearchUI grouping groups Selenium contract', () => {
         expect(firstDialog.getAttribute('aria-modal')).toBe('true')
         expect(secondDialog.getAttribute('aria-label')).toBeNull()
         expect(secondDialog.getAttribute('aria-modal')).toBe('true')
-        expect(document.getElementById(firstDialog.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('performanceReport.grouping')
-        expect(document.getElementById(secondDialog.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('performanceReport.grouping')
+        expect(document.getElementById(firstDialog.getAttribute('aria-labelledby')!)?.textContent).toBe(
+            'performanceReport.grouping',
+        )
+        expect(document.getElementById(secondDialog.getAttribute('aria-labelledby')!)?.textContent).toBe(
+            'performanceReport.grouping',
+        )
         expect(firstDialog.id).not.toBe(secondDialog.id)
         expect(firstCriterion.contains(firstDialog)).toBe(false)
         expect(secondCriterion.contains(secondDialog)).toBe(false)
@@ -224,18 +234,8 @@ describe('SearchUI grouping groups Selenium contract', () => {
         expect(secondSelected?.getAttribute('aria-label')).toBe('Selected grouping groups')
 
         await waitFor(() => {
-            expect(getGroupOptionValues(firstDialog)).toEqual([
-                'ENDPOINT',
-                'CARD_TYPE',
-                'MERCHANT',
-                'PROJECT',
-                'DATE',
-            ])
-            expect(getGroupOptionValues(secondDialog)).toEqual([
-                'CURRENCY',
-                'MANAGER',
-                'DATE',
-            ])
+            expect(getGroupOptionValues(firstDialog)).toEqual(['ENDPOINT', 'CARD_TYPE', 'MERCHANT', 'PROJECT', 'DATE'])
+            expect(getGroupOptionValues(secondDialog)).toEqual(['CURRENCY', 'MANAGER', 'DATE'])
         })
 
         const firstSearch = firstDialog.querySelector<HTMLInputElement>(
@@ -277,10 +277,7 @@ describe('SearchUI grouping groups Selenium contract', () => {
 
         await waitFor(() => {
             expect(firstSearch?.value).toBe('')
-            expect(getGroupOptionValues(firstAvailable as HTMLElement)).toEqual([
-                'ENDPOINT',
-                'CARD_TYPE',
-            ])
+            expect(getGroupOptionValues(firstAvailable as HTMLElement)).toEqual(['ENDPOINT', 'CARD_TYPE'])
         })
 
         for (const option of [...getGroupOptions(firstDialog), ...getGroupOptions(secondDialog)]) {
@@ -303,17 +300,9 @@ describe('SearchUI grouping groups Selenium contract', () => {
         fireEvent.click(endpointOption as HTMLButtonElement)
 
         await waitFor(() => {
-            expect(getGroupOptionValues(firstDialog)).toEqual([
-                'CARD_TYPE',
-                'MERCHANT',
-                'PROJECT',
-                'DATE',
-                'ENDPOINT',
-            ])
+            expect(getGroupOptionValues(firstDialog)).toEqual(['CARD_TYPE', 'MERCHANT', 'PROJECT', 'DATE', 'ENDPOINT'])
         })
-        expect(getGroupOptions(firstDialog).at(-1)?.getAttribute('aria-label')).toBe(
-            'Remove group: ENDPOINT',
-        )
+        expect(getGroupOptions(firstDialog).at(-1)?.getAttribute('aria-label')).toBe('Remove group: ENDPOINT')
         expect(getGroupOptionValues(secondDialog)).toEqual(['CURRENCY', 'MANAGER', 'DATE'])
 
         fireEvent.click(firstAddAll as HTMLButtonElement)

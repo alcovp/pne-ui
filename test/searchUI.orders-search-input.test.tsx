@@ -1,11 +1,7 @@
 import * as React from 'react'
 import {fireEvent, render, waitFor, within} from '@testing-library/react'
 
-import {
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {CriterionTypeEnum, SearchUIFilters, SearchUIProvider} from '../src'
 import {ORDER_SEARCH_LABELS} from '../src/component/search-ui/filters/types'
 import {OrdersSearchLabelsConfig} from '../src/component/search-ui/filters/state/actions'
 
@@ -15,10 +11,9 @@ jest.mock('react-i18next', () => ({
     }),
 }))
 
-jest.mock(
-    '../src/component/search-ui/filters/component/select/SearchUIOrdersSearchLabelSelect',
-    () => ({SearchUIOrdersSearchLabelSelect: () => null}),
-)
+jest.mock('../src/component/search-ui/filters/component/select/SearchUIOrdersSearchLabelSelect', () => ({
+    SearchUIOrdersSearchLabelSelect: () => null,
+}))
 
 const ordinaryInputCases = [
     {
@@ -96,9 +91,9 @@ describe('SearchUI orders-search native input Selenium contract', () => {
         expect(inputTypeCounts.card6and4).toBe(2)
         expect(inputTypeCounts.country).toBe(4)
         expect(inputTypeCounts.string + inputTypeCounts.integer + inputTypeCounts.ip).toBe(48)
-        expect(ORDER_SEARCH_LABELS.filter(label => (
-            OrdersSearchLabelsConfig[label].type === 'country'
-        ))).toEqual(countryInputLabels)
+        expect(ORDER_SEARCH_LABELS.filter(label => OrdersSearchLabelsConfig[label].type === 'country')).toEqual(
+            countryInputLabels,
+        )
     })
 
     it.each(ordinaryInputCases)(
@@ -122,18 +117,19 @@ describe('SearchUI orders-search native input Selenium contract', () => {
             )
 
             await waitFor(() => {
-                expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                    ordersSearchLabel: label,
-                    ordersSearchValue: initialValue,
-                }))
+                expect(onFiltersUpdate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        ordersSearchLabel: label,
+                        ordersSearchValue: initialValue,
+                    }),
+                )
             })
 
             const filterScope = container.querySelector<HTMLElement>(
                 `[data-autotest="search-filters"][data-autotest-value="${scope}"]`,
             )
             const criterion = filterScope?.querySelector<HTMLElement>(
-                `[data-autotest="criterion"]`
-                + `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
+                `[data-autotest="criterion"]` + `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
             )
 
             expect(criterion).not.toBeNull()
@@ -152,10 +148,12 @@ describe('SearchUI orders-search native input Selenium contract', () => {
 
             await waitFor(() => {
                 expect(input.value).toBe(expectedValue)
-                expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                    ordersSearchLabel: label,
-                    ordersSearchValue: expectedValue,
-                }))
+                expect(onFiltersUpdate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        ordersSearchLabel: label,
+                        ordersSearchValue: expectedValue,
+                    }),
+                )
             })
         },
     )
@@ -181,16 +179,18 @@ describe('SearchUI orders-search native input Selenium contract', () => {
             )
 
             await waitFor(() => {
-                expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                    ordersSearchLabel: label,
-                    ordersSearchValue: '',
-                }))
+                expect(onFiltersUpdate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        ordersSearchLabel: label,
+                        ordersSearchValue: '',
+                    }),
+                )
             })
 
             const criterion = container.querySelector<HTMLElement>(
-                `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-                + `[data-autotest="criterion"]`
-                + `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
+                `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+                    `[data-autotest="criterion"]` +
+                    `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
             )
             const input = within(criterion as HTMLElement).getByRole<HTMLInputElement>('textbox', {
                 name: 'Order search value',
@@ -205,54 +205,53 @@ describe('SearchUI orders-search native input Selenium contract', () => {
 
             await waitFor(() => {
                 expect(input.value).toBe(expectedNativeValue)
-                expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                    ordersSearchLabel: label,
-                    ordersSearchValue: expectedStoreValue,
-                }))
+                expect(onFiltersUpdate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        ordersSearchLabel: label,
+                        ordersSearchValue: expectedStoreValue,
+                    }),
+                )
             })
         },
     )
 
-    it.each(countryInputLabels)(
-        'restores the raw country ID for %s',
-        async label => {
-            const onFiltersUpdate = jest.fn()
-            const {container} = render(
-                <SearchUIProvider
-                    defaults={{
-                        getCountries: jest.fn().mockResolvedValue([
-                            {id: 840, displayName: 'United States', theCode: 'US', theCode3: 'USA'},
-                        ]),
+    it.each(countryInputLabels)('restores the raw country ID for %s', async label => {
+        const onFiltersUpdate = jest.fn()
+        const {container} = render(
+            <SearchUIProvider
+                defaults={{
+                    getCountries: jest
+                        .fn()
+                        .mockResolvedValue([{id: 840, displayName: 'United States', theCode: 'US', theCode3: 'USA'}]),
+                }}
+            >
+                <SearchUIFilters
+                    autoTestId={`country-${label}`}
+                    settingsContextName={`country-${label}-context`}
+                    possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
+                    predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
+                    initialSearchConditions={{
+                        ordersSearchLabel: label,
+                        ordersSearchValue: '840',
                     }}
-                >
-                    <SearchUIFilters
-                        autoTestId={`country-${label}`}
-                        settingsContextName={`country-${label}-context`}
-                        possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
-                        predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
-                        initialSearchConditions={{
-                            ordersSearchLabel: label,
-                            ordersSearchValue: '840',
-                        }}
-                        onFiltersUpdate={onFiltersUpdate}
-                        config={filtersConfig}
-                    />
-                </SearchUIProvider>,
-            )
-            const input = container.querySelector<HTMLElement>(
-                '[role="combobox"][data-autotest="criterion-input"]',
-            )
+                    onFiltersUpdate={onFiltersUpdate}
+                    config={filtersConfig}
+                />
+            </SearchUIProvider>,
+        )
+        const input = container.querySelector<HTMLElement>('[role="combobox"][data-autotest="criterion-input"]')
 
-            await waitFor(() => {
-                expect(input?.getAttribute('data-autotest-value')).toBe('840')
-                expect(input?.textContent).toContain('United States')
-                expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
+        await waitFor(() => {
+            expect(input?.getAttribute('data-autotest-value')).toBe('840')
+            expect(input?.textContent).toContain('United States')
+            expect(onFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
                     ordersSearchLabel: label,
                     ordersSearchValue: '840',
-                }))
-            })
-        },
-    )
+                }),
+            )
+        })
+    })
 
     it('restores and scopes country selection across two asynchronous portals', async () => {
         const countries = [
@@ -269,8 +268,8 @@ describe('SearchUI orders-search native input Selenium contract', () => {
             const {container} = render(
                 <SearchUIProvider defaults={{getCountries}}>
                     <SearchUIFilters
-                        autoTestId="orders-country"
-                        settingsContextName="orders-country-context"
+                        autoTestId='orders-country'
+                        settingsContextName='orders-country-context'
                         possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                         predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                         initialSearchConditions={{
@@ -281,8 +280,8 @@ describe('SearchUI orders-search native input Selenium contract', () => {
                         config={filtersConfig}
                     />
                     <SearchUIFilters
-                        autoTestId="transactions-country"
-                        settingsContextName="transactions-country-context"
+                        autoTestId='transactions-country'
+                        settingsContextName='transactions-country-context'
                         possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                         predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                         initialSearchConditions={{
@@ -295,12 +294,13 @@ describe('SearchUI orders-search native input Selenium contract', () => {
                 </SearchUIProvider>,
             )
 
-            const getCountryInput = (scope: string) => container.querySelector<HTMLElement>(
-                `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-                + `[data-autotest="criterion"]`
-                + `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"] `
-                + `[role="combobox"][data-autotest="criterion-input"]`,
-            )
+            const getCountryInput = (scope: string) =>
+                container.querySelector<HTMLElement>(
+                    `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+                        `[data-autotest="criterion"]` +
+                        `[data-autotest-value="${CriterionTypeEnum.ORDERS_SEARCH}"] ` +
+                        `[role="combobox"][data-autotest="criterion-input"]`,
+                )
             const ordersInput = getCountryInput('orders-country')
             const transactionsInput = getCountryInput('transactions-country')
 
@@ -320,11 +320,12 @@ describe('SearchUI orders-search native input Selenium contract', () => {
             fireEvent.mouseDown(ordersInput as HTMLElement)
             fireEvent.mouseDown(transactionsInput as HTMLElement)
 
-            const getOwnedOptions = (scope: string) => document.body.querySelector<HTMLElement>(
-                `[role="listbox"][data-autotest="criterion-input-options"]`
-                + `[data-autotest-value="${scope}"]`
-                + `[data-autotest-criterion="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
-            )
+            const getOwnedOptions = (scope: string) =>
+                document.body.querySelector<HTMLElement>(
+                    `[role="listbox"][data-autotest="criterion-input-options"]` +
+                        `[data-autotest-value="${scope}"]` +
+                        `[data-autotest-criterion="${CriterionTypeEnum.ORDERS_SEARCH}"]`,
+                )
 
             await waitFor(() => {
                 expect(getOwnedOptions('orders-country')).not.toBeNull()
@@ -351,9 +352,13 @@ describe('SearchUI orders-search native input Selenium contract', () => {
             expect(ordersUnitedStates?.getAttribute('aria-selected')).toBe('true')
             expect(ordersUnitedKingdom?.getAttribute('aria-selected')).toBe('false')
             expect(ordersCanada?.getAttribute('aria-selected')).toBe('false')
-            expect(transactionsOptions.querySelector<HTMLElement>(
-                '[role="option"][data-autotest="criterion-input-option"][data-autotest-value="826"]',
-            )?.getAttribute('aria-selected')).toBe('true')
+            expect(
+                transactionsOptions
+                    .querySelector<HTMLElement>(
+                        '[role="option"][data-autotest="criterion-input-option"][data-autotest-value="826"]',
+                    )
+                    ?.getAttribute('aria-selected'),
+            ).toBe('true')
 
             ordersOnFiltersUpdate.mockClear()
             transactionsOnFiltersUpdate.mockClear()
@@ -361,10 +366,12 @@ describe('SearchUI orders-search native input Selenium contract', () => {
 
             await waitFor(() => {
                 expect(ordersInput?.getAttribute('data-autotest-value')).toBe('124')
-                expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                    ordersSearchLabel: 'customer_ip_country',
-                    ordersSearchValue: '124',
-                }))
+                expect(ordersOnFiltersUpdate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        ordersSearchLabel: 'customer_ip_country',
+                        ordersSearchValue: '124',
+                    }),
+                )
             })
             expect(transactionsInput?.getAttribute('data-autotest-value')).toBe('826')
             expect(transactionsOnFiltersUpdate).not.toHaveBeenCalled()
@@ -378,8 +385,8 @@ describe('SearchUI orders-search native input Selenium contract', () => {
         const {container} = render(
             <SearchUIProvider defaults={{getCountries: jest.fn().mockResolvedValue([])}}>
                 <SearchUIFilters
-                    autoTestId="empty-country"
-                    settingsContextName="empty-country-context"
+                    autoTestId='empty-country'
+                    settingsContextName='empty-country-context'
                     possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                     predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                     initialSearchConditions={{ordersSearchLabel: 'dest_country'}}
@@ -388,9 +395,7 @@ describe('SearchUI orders-search native input Selenium contract', () => {
                 />
             </SearchUIProvider>,
         )
-        const input = container.querySelector<HTMLElement>(
-            '[role="combobox"][data-autotest="criterion-input"]',
-        )
+        const input = container.querySelector<HTMLElement>('[role="combobox"][data-autotest="criterion-input"]')
 
         expect(input?.getAttribute('aria-busy')).toBe('true')
 

@@ -1,12 +1,17 @@
-import React, { useCallback, useMemo, useState } from 'react'
-import { Box, Collapse, Portal, Snackbar, type SnackbarOrigin, useMediaQuery } from '@mui/material'
-import { useBreakpoint } from '../responsive/useBreakpoint'
-import { useOverlayStore } from './overlayStore'
-import type { PaynetViolationMessageResolver, PermanentOverlayInstance, PermanentOverlaySlot, SnackbarOptions } from './types'
-import { PermanentOverlayContext } from './PermanentOverlayContext'
-import { OverlayPortalContainerContext } from './OverlayPortalContainerContext'
-import { PaynetErrorPresentationContext } from './PaynetErrorPresentationContext'
-import { registerOverlayHost } from './overlayRuntime'
+import React, {useCallback, useMemo, useState} from 'react'
+import {Box, Collapse, Portal, Snackbar, type SnackbarOrigin, useMediaQuery} from '@mui/material'
+import {useBreakpoint} from '../responsive/useBreakpoint'
+import {useOverlayStore} from './overlayStore'
+import type {
+    PaynetViolationMessageResolver,
+    PermanentOverlayInstance,
+    PermanentOverlaySlot,
+    SnackbarOptions,
+} from './types'
+import {PermanentOverlayContext} from './PermanentOverlayContext'
+import {OverlayPortalContainerContext} from './OverlayPortalContainerContext'
+import {PaynetErrorPresentationContext} from './PaynetErrorPresentationContext'
+import {registerOverlayHost} from './overlayRuntime'
 import OverlayToast from './OverlayToast'
 import PaynetErrorContent from './PaynetErrorContent'
 
@@ -31,8 +36,8 @@ export type OverlayHostResponsiveOffset = {
 export const PAYNET_LEFT_MENU_OVERLAY_OFFSET = {
     default: 16,
     breakpoints: [
-        { minWidth: 1080, offset: 64 },
-        { minWidth: 1600, offset: 272 },
+        {minWidth: 1080, offset: 64},
+        {minWidth: 1600, offset: 272},
     ],
 } as const satisfies OverlayHostResponsiveOffset
 
@@ -75,7 +80,7 @@ type ManagedSnackbarProps = {
     snack: SnackbarOptions
 }
 
-type KeyedSnackbar = SnackbarOptions & { id: string }
+type KeyedSnackbar = SnackbarOptions & {id: string}
 
 type PresentedSnackbar = {
     collapseExited: boolean
@@ -114,10 +119,11 @@ const useHorizontalCollision = (
         const measure = () => {
             const firstRect = firstElement.getBoundingClientRect()
             const secondRect = secondElement.getBoundingClientRect()
-            const nextCollision = firstRect.width > 0 && secondRect.width > 0
-                ? firstRect.left < secondRect.right && firstRect.right > secondRect.left
-                : null
-            setCollision(current => current === nextCollision ? current : nextCollision)
+            const nextCollision =
+                firstRect.width > 0 && secondRect.width > 0
+                    ? firstRect.left < secondRect.right && firstRect.right > secondRect.left
+                    : null
+            setCollision(current => (current === nextCollision ? current : nextCollision))
         }
 
         // eslint-disable-next-line @eslint-react/set-state-in-effect -- measures two elements of the page
@@ -152,14 +158,7 @@ const NOTIFICATION_WIDTH = 448
 const isPaynetErrorMessage = (message: React.ReactNode): boolean =>
     React.isValidElement(message) && message.type === PaynetErrorContent
 
-const ManagedSnackbar = ({
-    anchor,
-    onExited,
-    open,
-    onRemove,
-    prefersReducedMotion,
-    snack,
-}: ManagedSnackbarProps) => {
+const ManagedSnackbar = ({anchor, onExited, open, onRemove, prefersReducedMotion, snack}: ManagedSnackbarProps) => {
     const autoHideMs = typeof snack.autoHideMs === 'number' && snack.autoHideMs > 0 ? snack.autoHideMs : null
     const [remainingMs, setRemainingMs] = useState<number | null>(autoHideMs)
     const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -191,31 +190,34 @@ const ManagedSnackbar = ({
         setRemainingMs(Math.max(remainingRef.current - elapsed, 0))
     }, [])
 
-    const startTimer = useCallback((duration: number) => {
-        if (!open || autoHideMs == null) {
-            return
-        }
+    const startTimer = useCallback(
+        (duration: number) => {
+            if (!open || autoHideMs == null) {
+                return
+            }
 
-        if (duration <= 0) {
+            if (duration <= 0) {
+                stopTimer()
+                remove()
+                return
+            }
+
             stopTimer()
-            remove()
-            return
-        }
+            remainingRef.current = duration
+            startedAtRef.current = Date.now()
+            setRemainingMs(duration)
 
-        stopTimer()
-        remainingRef.current = duration
-        startedAtRef.current = Date.now()
-        setRemainingMs(duration)
+            timeoutRef.current = setTimeout(() => {
+                stopTimer()
+                remove()
+            }, duration)
 
-        timeoutRef.current = setTimeout(() => {
-            stopTimer()
-            remove()
-        }, duration)
-
-        if (!prefersReducedMotion) {
-            intervalRef.current = setInterval(syncRemaining, 50)
-        }
-    }, [autoHideMs, open, prefersReducedMotion, remove, stopTimer, syncRemaining])
+            if (!prefersReducedMotion) {
+                intervalRef.current = setInterval(syncRemaining, 50)
+            }
+        },
+        [autoHideMs, open, prefersReducedMotion, remove, stopTimer, syncRemaining],
+    )
 
     const pauseTimer = useCallback(() => {
         if (autoHideMs == null || startedAtRef.current == null || remainingRef.current == null) {
@@ -254,9 +256,8 @@ const ManagedSnackbar = ({
         return stopTimer
     }, [autoHideMs, open, startTimer, stopTimer])
 
-    const progressScale = autoHideMs != null && remainingMs != null
-        ? Math.max(Math.min(remainingMs / autoHideMs, 1), 0)
-        : null
+    const progressScale =
+        autoHideMs != null && remainingMs != null ? Math.max(Math.min(remainingMs / autoHideMs, 1), 0) : null
 
     return (
         <Snackbar
@@ -287,7 +288,7 @@ const ManagedSnackbar = ({
                 focusWithinRef.current = false
                 resumeTimerIfIdle()
             }}
-            slotProps={{ transition: { onExited } }}
+            slotProps={{transition: {onExited}}}
             transitionDuration={prefersReducedMotion ? 0 : undefined}
             sx={{
                 position: 'static',
@@ -336,39 +337,35 @@ const MeasuredSnackbarStack = ({
     removeSnackbar,
 }: MeasuredSnackbarStackProps) => {
     const [stackElement, setStackElement] = useState<HTMLDivElement | null>(null)
-    const horizontalCollision = useHorizontalCollision(
-        stackElement,
-        operationCenterElement,
-        leftOffset,
-        breakpoint,
-    )
+    const horizontalCollision = useHorizontalCollision(stackElement, operationCenterElement, leftOffset, breakpoint)
     const fallbackCollision = breakpoint < 800 || anchor.horizontal !== 'left'
-    const sharesOperationBottom = anchor.vertical === 'bottom'
-        && operationCenterHeight > 0
-        && (horizontalCollision ?? fallbackCollision)
-    const horizontalStyles = anchor.horizontal === 'left'
-        ? {
-            ...createResponsiveLeftOffsetStyles(leftOffset),
-            right: 'auto',
-            transform: 'none',
-        }
-        : anchor.horizontal === 'right'
-            ? {right: STACK_OFFSET, left: 'auto', transform: 'none'}
-            : {left: '50%', transform: 'translateX(-50%)'}
-    const verticalStyles = anchor.vertical === 'top'
-        ? {top: STACK_OFFSET, bottom: 'auto', flexDirection: 'column-reverse' as const}
-        : {
-            bottom: sharesOperationBottom
-                ? operationCenterHeight + OPERATION_CENTER_OFFSET
-                : STACK_OFFSET - NOTIFICATION_GAP,
-            top: 'auto',
-            flexDirection: 'column-reverse' as const,
-            '@supports (bottom: env(safe-area-inset-bottom))': {
-                bottom: sharesOperationBottom
-                    ? `calc(${operationCenterHeight + OPERATION_CENTER_OFFSET}px + env(safe-area-inset-bottom, 0px))`
-                    : `calc(${STACK_OFFSET - NOTIFICATION_GAP}px + env(safe-area-inset-bottom, 0px))`,
-            },
-        }
+    const sharesOperationBottom =
+        anchor.vertical === 'bottom' && operationCenterHeight > 0 && (horizontalCollision ?? fallbackCollision)
+    const horizontalStyles =
+        anchor.horizontal === 'left'
+            ? {
+                  ...createResponsiveLeftOffsetStyles(leftOffset),
+                  right: 'auto',
+                  transform: 'none',
+              }
+            : anchor.horizontal === 'right'
+              ? {right: STACK_OFFSET, left: 'auto', transform: 'none'}
+              : {left: '50%', transform: 'translateX(-50%)'}
+    const verticalStyles =
+        anchor.vertical === 'top'
+            ? {top: STACK_OFFSET, bottom: 'auto', flexDirection: 'column-reverse' as const}
+            : {
+                  bottom: sharesOperationBottom
+                      ? operationCenterHeight + OPERATION_CENTER_OFFSET
+                      : STACK_OFFSET - NOTIFICATION_GAP,
+                  top: 'auto',
+                  flexDirection: 'column-reverse' as const,
+                  '@supports (bottom: env(safe-area-inset-bottom))': {
+                      bottom: sharesOperationBottom
+                          ? `calc(${operationCenterHeight + OPERATION_CENTER_OFFSET}px + env(safe-area-inset-bottom, 0px))`
+                          : `calc(${STACK_OFFSET - NOTIFICATION_GAP}px + env(safe-area-inset-bottom, 0px))`,
+                  },
+              }
 
     return (
         <Box
@@ -433,9 +430,8 @@ const MeasuredPermanentOverlay = ({
     const vertical = entry.slot.startsWith('top') ? 'top' : 'bottom'
     const horizontal = entry.slot.endsWith('left') ? 'left' : 'right'
     const fallbackCollision = breakpoint < 800 || horizontal === 'right'
-    const reservesOperationBottom = vertical === 'bottom'
-        && operationCenterHeight > 0
-        && (horizontalCollision ?? fallbackCollision)
+    const reservesOperationBottom =
+        vertical === 'bottom' && operationCenterHeight > 0 && (horizontalCollision ?? fallbackCollision)
     const verticalOffset = reservesOperationBottom
         ? operationCenterHeight + Math.max(offset, OPERATION_CENTER_OFFSET) + STACK_GAP
         : offset
@@ -449,11 +445,13 @@ const MeasuredPermanentOverlay = ({
                 zIndex: entry.zIndex ?? (theme => theme.zIndex.modal),
                 [vertical]: verticalOffset,
                 [horizontal]: offset,
-                ...(reservesOperationBottom ? {
-                    '@supports (bottom: env(safe-area-inset-bottom))': {
-                        bottom: `calc(${verticalOffset}px + env(safe-area-inset-bottom, 0px))`,
-                    },
-                } : {}),
+                ...(reservesOperationBottom
+                    ? {
+                          '@supports (bottom: env(safe-area-inset-bottom))': {
+                              bottom: `calc(${verticalOffset}px + env(safe-area-inset-bottom, 0px))`,
+                          },
+                      }
+                    : {}),
             }}
         >
             {content}
@@ -467,7 +465,7 @@ const MeasuredPermanentOverlay = ({
  * Permanent overlays are registered declaratively via `<PermanentOverlay />` components.
  */
 export function OverlayHost({
-    anchorOrigin = { vertical: 'bottom', horizontal: 'left' },
+    anchorOrigin = {vertical: 'bottom', horizontal: 'left'},
     maxSnack = 10,
     leftOffset = STACK_OFFSET,
     container,
@@ -475,7 +473,7 @@ export function OverlayHost({
     resolveViolationMessage,
     children,
 }: OverlayHostProps) {
-    const presentationContextValue = useMemo(() => ({ resolveViolationMessage }), [resolveViolationMessage])
+    const presentationContextValue = useMemo(() => ({resolveViolationMessage}), [resolveViolationMessage])
     const snackbars = useOverlayStore(state => state.snackbars)
     const removeSnackbar = useOverlayStore(state => state.removeSnackbar)
     const breakpoint = useBreakpoint()
@@ -512,7 +510,7 @@ export function OverlayHost({
     }, [])
 
     const contextValue = useMemo(
-        () => ({ register: registerPermanentOverlay, unregister: unregisterPermanentOverlay }),
+        () => ({register: registerPermanentOverlay, unregister: unregisterPermanentOverlay}),
         [registerPermanentOverlay, unregisterPermanentOverlay],
     )
 
@@ -521,13 +519,11 @@ export function OverlayHost({
             return
         }
 
-        snackbars
-            .slice(0, snackbars.length - maxSnack)
-            .forEach(snackbar => {
-                if (snackbar.id) {
-                    removeSnackbar(snackbar.id)
-                }
-            })
+        snackbars.slice(0, snackbars.length - maxSnack).forEach(snackbar => {
+            if (snackbar.id) {
+                removeSnackbar(snackbar.id)
+            }
+        })
     }, [maxSnack, removeSnackbar, snackbars])
 
     const visibleSnackbars = useMemo(() => {
@@ -552,7 +548,7 @@ export function OverlayHost({
             const next = current.map(presented => {
                 const currentSnack = visibleById.get(presented.snack.id)
                 if (!currentSnack) {
-                    return presented.open ? { ...presented, open: false } : presented
+                    return presented.open ? {...presented, open: false} : presented
                 }
 
                 visibleById.delete(presented.snack.id)
@@ -585,27 +581,29 @@ export function OverlayHost({
     }, [keyedVisibleSnackbars])
 
     const completeSnackbarExitPart = useCallback((presentationKey: number, part: 'collapse' | 'grow') => {
-        setPresentedSnackbars(current => current.flatMap(presented => {
-            if (presented.presentationKey !== presentationKey || presented.open) return [presented]
+        setPresentedSnackbars(current =>
+            current.flatMap(presented => {
+                if (presented.presentationKey !== presentationKey || presented.open) return [presented]
 
-            const next = {
-                ...presented,
-                collapseExited: part === 'collapse' ? true : presented.collapseExited,
-                growExited: part === 'grow' ? true : presented.growExited,
-            }
+                const next = {
+                    ...presented,
+                    collapseExited: part === 'collapse' ? true : presented.collapseExited,
+                    growExited: part === 'grow' ? true : presented.growExited,
+                }
 
-            return next.collapseExited && next.growExited ? [] : [next]
-        }))
+                return next.collapseExited && next.growExited ? [] : [next]
+            }),
+        )
     }, [])
 
     const groupedSnackbars = useMemo(() => {
-        const groups: Array<{ anchor: SnackbarOrigin; items: PresentedSnackbar[] }> = []
-        const map = new Map<string, { anchor: SnackbarOrigin; items: PresentedSnackbar[] }>()
+        const groups: Array<{anchor: SnackbarOrigin; items: PresentedSnackbar[]}> = []
+        const map = new Map<string, {anchor: SnackbarOrigin; items: PresentedSnackbar[]}>()
         presentedSnackbars.forEach(presented => {
             const anchor = presented.snack.anchorOrigin ?? anchorOrigin
             const key = `${anchor.vertical}-${anchor.horizontal}`
             if (!map.has(key)) {
-                const group = { anchor, items: [] as PresentedSnackbar[] }
+                const group = {anchor, items: [] as PresentedSnackbar[]}
                 map.set(key, group)
                 groups.push(group)
             }
@@ -633,7 +631,7 @@ export function OverlayHost({
 
         const measure = () => {
             const nextHeight = Math.ceil(element.getBoundingClientRect().height)
-            setOperationCenterHeight(current => current === nextHeight ? current : nextHeight)
+            setOperationCenterHeight(current => (current === nextHeight ? current : nextHeight))
         }
         measure()
 
@@ -650,7 +648,7 @@ export function OverlayHost({
     const overlayContent = (
         <>
             {groupedSnackbars.map(group => {
-                const { anchor, items } = group
+                const {anchor, items} = group
                 return (
                     <MeasuredSnackbarStack
                         anchor={anchor}
@@ -696,7 +694,8 @@ export function OverlayHost({
                         zIndex: theme => theme.zIndex.modal - 1,
                         '@supports (right: env(safe-area-inset-right))': {
                             bottom: 'calc(16px + env(safe-area-inset-bottom, 0px))',
-                            maxWidth: 'calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))',
+                            maxWidth:
+                                'calc(100vw - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px))',
                             right: 'calc(16px + env(safe-area-inset-right, 0px))',
                             '@media (max-width: 639.95px)': {
                                 left: 'calc(16px + env(safe-area-inset-left, 0px))',
@@ -725,11 +724,7 @@ export function OverlayHost({
             <PaynetErrorPresentationContext value={presentationContextValue}>
                 <PermanentOverlayContext value={contextValue}>
                     {children}
-                    {container === null ? overlayContent : (
-                        <Portal container={container}>
-                            {overlayContent}
-                        </Portal>
-                    )}
+                    {container === null ? overlayContent : <Portal container={container}>{overlayContent}</Portal>}
                 </PermanentOverlayContext>
             </PaynetErrorPresentationContext>
         </OverlayPortalContainerContext>
@@ -742,14 +737,14 @@ export const createResponsiveLeftOffsetStyles = (
     offset: number | OverlayHostResponsiveOffset,
 ): Record<string, unknown> => {
     if (typeof offset === 'number') {
-        return { left: offset }
+        return {left: offset}
     }
 
-    const styles: Record<string, unknown> = { left: offset.default }
+    const styles: Record<string, unknown> = {left: offset.default}
     const breakpoints = [...(offset.breakpoints ?? [])].sort((a, b) => a.minWidth - b.minWidth)
 
     breakpoints.forEach(step => {
-        styles[`@media (min-width: ${step.minWidth}px)`] = { left: step.offset }
+        styles[`@media (min-width: ${step.minWidth}px)`] = {left: step.offset}
     })
 
     return styles

@@ -22,16 +22,12 @@ import {
     TransactionReportScope,
     TransactionSessionGroup,
     TransactionSessionStatus,
-} from '../types';
-import {
-    AbstractEntity,
-    AbstractEntityAllableCollection,
-    AutoCompleteChoice,
-} from '../../../../common/paynet/type';
-import {SearchUIFiltersConfig} from '../SearchUIFilters';
-import {SearchUIDefaults} from '../../SearchUIProvider';
-import type {EntityOptionRestrictionFingerprint} from '../entityOptionRestriction';
-import type {SearchUIValidationResult} from '../validation';
+} from '../types'
+import {AbstractEntity, AbstractEntityAllableCollection, AutoCompleteChoice} from '../../../../common/paynet/type'
+import {SearchUIFiltersConfig} from '../SearchUIFilters'
+import {SearchUIDefaults} from '../../SearchUIProvider'
+import type {EntityOptionRestrictionFingerprint} from '../entityOptionRestriction'
+import type {SearchUIValidationResult} from '../validation'
 
 export type SearchUIFiltersStore = SearchUIFiltersState & SearchUIFiltersActions
 

@@ -1,8 +1,8 @@
-import React, {use, useEffect, useState} from 'react';
-import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
-import {useSearchUIFiltersStore} from '../../state/store';
-import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
-import {AbstractEntity} from '../../../../../common/paynet/type';
+import React, {use, useEffect, useState} from 'react'
+import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
+import {AbstractEntity} from '../../../../../common/paynet/type'
 
 export const CurrenciesCriterion = () => {
     const [availableCurrencies, setAvailableCurrencies] = useState<AbstractEntity[]>([])
@@ -20,9 +20,11 @@ export const CurrenciesCriterion = () => {
             .catch(console.error)
     }, [])
 
-    return <SearchUIAbstractEntitySelect
-        value={currencies}
-        options={availableCurrencies}
-        onChange={setCurrenciesCriterion}
-    />
+    return (
+        <SearchUIAbstractEntitySelect
+            value={currencies}
+            options={availableCurrencies}
+            onChange={setCurrenciesCriterion}
+        />
+    )
 }

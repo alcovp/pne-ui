@@ -7,10 +7,7 @@ import {Country} from '../../../../../common/paynet/type'
 import PneAutocomplete from '../../../../dropdown/PneAutocomplete'
 import {PneCloseIcon} from '../../../../dropdown/dropdownLook'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
 import {CountryAllableCollection} from '../../types'
 
 const ALL_OPTION_ID = -1
@@ -29,32 +26,29 @@ type Props = {
 
 const SearchUICountriesSelect = (props: Props) => {
     const {t} = useTranslation()
-    const {
-        value,
-        onChange,
-        options,
-    } = props
+    const {value, onChange, options} = props
     const autoTestOwner = useSearchUIAutoTestScope()
-    const criterionAriaLabel = autoTestOwner?.criterionType === undefined
-        ? t('react.searchUI.values', {defaultValue: 'Filter values'})
-        : t(`react.CriterionTypeEnum.${autoTestOwner.criterionType}`)
+    const criterionAriaLabel =
+        autoTestOwner?.criterionType === undefined
+            ? t('react.searchUI.values', {defaultValue: 'Filter values'})
+            : t(`react.CriterionTypeEnum.${autoTestOwner.criterionType}`)
     const allOptionLabel = t('react.searchUI.all')
 
-    const allOption = useMemo<Country>(() => ({
-        id: ALL_OPTION_ID,
-        displayName: allOptionLabel,
-        theCode: '',
-        theCode3: '',
-    }), [allOptionLabel])
+    const allOption = useMemo<Country>(
+        () => ({
+            id: ALL_OPTION_ID,
+            displayName: allOptionLabel,
+            theCode: '',
+            theCode3: '',
+        }),
+        [allOptionLabel],
+    )
 
     const optionsWithAll = useMemo<Country[]>(() => [allOption, ...options], [allOption, options])
 
     const selectedEntities = value.entities ?? []
 
-    const onOptionChange = (
-        selectedOptions: readonly Country[],
-        changedOption?: Country,
-    ) => {
+    const onOptionChange = (selectedOptions: readonly Country[], changedOption?: Country) => {
         if (changedOption?.id === ALL_OPTION_ID) {
             if (!value.all) {
                 onChange({
@@ -81,84 +75,71 @@ const SearchUICountriesSelect = (props: Props) => {
         })
     }
 
-    const getAutoTestValue = (option: Country) => (
-        option.id === ALL_OPTION_ID ? ALL_AUTOTEST_VALUE : option.id
-    )
+    const getAutoTestValue = (option: Country) => (option.id === ALL_OPTION_ID ? ALL_AUTOTEST_VALUE : option.id)
 
-    return <PneAutocomplete
-        value={value.all ? [allOption] : selectedEntities}
-        options={optionsWithAll}
-        onChange={(_event, selectedOptions, _reason, details) => onOptionChange(
-            selectedOptions as Country[],
-            details?.option,
-        )}
-        sx={selectSx}
-        multiple
-        htmlInputProps={{
-            ...createAutoTestAttributes(CRITERION_COLLECTION_AUTOTEST_ID),
-            'aria-label': criterionAriaLabel,
-        }}
-        slotProps={{
-            paper: createSearchUIOwnedAutoTestAttributes(
-                CRITERION_COLLECTION_PANEL_AUTOTEST_ID,
-                autoTestOwner,
-            ),
-            listbox: {
-                ...createSearchUIOwnedAutoTestAttributes(
-                    CRITERION_COLLECTION_OPTIONS_AUTOTEST_ID,
-                    autoTestOwner,
-                ),
+    return (
+        <PneAutocomplete
+            value={value.all ? [allOption] : selectedEntities}
+            options={optionsWithAll}
+            onChange={(_event, selectedOptions, _reason, details) =>
+                onOptionChange(selectedOptions as Country[], details?.option)
+            }
+            sx={selectSx}
+            multiple
+            htmlInputProps={{
+                ...createAutoTestAttributes(CRITERION_COLLECTION_AUTOTEST_ID),
                 'aria-label': criterionAriaLabel,
-                'aria-labelledby': undefined,
-            },
-        }}
-        renderOption={(autocompleteProps, option, {selected}) => {
-            const {key, ...optionProps} = autocompleteProps
-            const AllIcon = selected ? CheckBoxIcon : CheckBoxOutlineBlankIcon
+            }}
+            slotProps={{
+                paper: createSearchUIOwnedAutoTestAttributes(CRITERION_COLLECTION_PANEL_AUTOTEST_ID, autoTestOwner),
+                listbox: {
+                    ...createSearchUIOwnedAutoTestAttributes(CRITERION_COLLECTION_OPTIONS_AUTOTEST_ID, autoTestOwner),
+                    'aria-label': criterionAriaLabel,
+                    'aria-labelledby': undefined,
+                },
+            }}
+            renderOption={(autocompleteProps, option, {selected}) => {
+                const {key, ...optionProps} = autocompleteProps
+                const AllIcon = selected ? CheckBoxIcon : CheckBoxOutlineBlankIcon
 
-            return <li
-                {...optionProps}
-                {...createAutoTestAttributes(
-                    CRITERION_COLLECTION_OPTION_AUTOTEST_ID,
-                    getAutoTestValue(option),
-                )}
-                key={key}
-            >
-                {option.id === ALL_OPTION_ID
-                    ? <AllIcon
-                        aria-hidden={true}
-                        fontSize={'small'}
-                        sx={{mr: 1, pointerEvents: 'none'}}
-                    />
-                    : null}
-                {option.displayName}
-            </li>
-        }}
-        renderValue={(tagValue, getItemProps) =>
-            tagValue.map((option, index) => {
-                const {key: _itemKey, onDelete, ...tagProps} = getItemProps({index})
-                const autoTestValue = getAutoTestValue(option)
+                return (
+                    <li
+                        {...optionProps}
+                        {...createAutoTestAttributes(CRITERION_COLLECTION_OPTION_AUTOTEST_ID, getAutoTestValue(option))}
+                        key={key}
+                    >
+                        {option.id === ALL_OPTION_ID ? (
+                            <AllIcon aria-hidden={true} fontSize={'small'} sx={{mr: 1, pointerEvents: 'none'}} />
+                        ) : null}
+                        {option.displayName}
+                    </li>
+                )
+            }}
+            renderValue={(tagValue, getItemProps) =>
+                tagValue.map((option, index) => {
+                    const {key: _itemKey, onDelete, ...tagProps} = getItemProps({index})
+                    const autoTestValue = getAutoTestValue(option)
 
-                return <Chip
-                    {...tagProps}
-                    {...createAutoTestAttributes(
-                        CRITERION_COLLECTION_VALUE_AUTOTEST_ID,
-                        autoTestValue,
-                    )}
-                    key={autoTestValue}
-                    label={option.displayName}
-                    size={'small'}
-                    // The cross of the library's own value badge.
-                    deleteIcon={<PneCloseIcon className='PneAutocomplete-icon'/>}
-                    onDelete={option.id === ALL_OPTION_ID ? undefined : onDelete}
-                />
-            })
-        }
-        disableClearable
-        disableCloseOnSelect
-        // The values are 32px badges, as the other values of the panel: the badges of a large field.
-        size={'large'}
-    />
+                    return (
+                        <Chip
+                            {...tagProps}
+                            {...createAutoTestAttributes(CRITERION_COLLECTION_VALUE_AUTOTEST_ID, autoTestValue)}
+                            key={autoTestValue}
+                            label={option.displayName}
+                            size={'small'}
+                            // The cross of the library's own value badge.
+                            deleteIcon={<PneCloseIcon className='PneAutocomplete-icon' />}
+                            onDelete={option.id === ALL_OPTION_ID ? undefined : onDelete}
+                        />
+                    )
+                })
+            }
+            disableClearable
+            disableCloseOnSelect
+            // The values are 32px badges, as the other values of the panel: the badges of a large field.
+            size={'large'}
+        />
+    )
 }
 
 export default SearchUICountriesSelect

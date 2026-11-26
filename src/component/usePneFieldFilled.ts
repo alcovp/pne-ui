@@ -20,7 +20,9 @@ const isValue = (value: unknown): boolean =>
  * a render; `sync` goes on the root's input events for an uncontrolled one. `initialValue` is the value
  * the field is given, if any: with it the first render is already right and needs no second one.
  */
-export const usePneFieldFilled = <T extends HTMLElement>(initialValue?: unknown): {
+export const usePneFieldFilled = <T extends HTMLElement>(
+    initialValue?: unknown,
+): {
     filled: boolean
     rootRef: RefObject<T | null>
     sync: () => void

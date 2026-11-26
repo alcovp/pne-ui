@@ -2,14 +2,8 @@ import React, {useState} from 'react'
 import {Box, Typography, Button} from '@mui/material'
 import type {Meta, StoryObj} from '@storybook/react-webpack5'
 import {userEvent, within} from 'storybook/test'
-import {
-    CriterionTypeEnum,
-    type SearchUIConditionsInput,
-} from '../component/search-ui/filters/types'
-import {
-    SearchUIFilters,
-    type SearchUIFiltersConfig,
-} from '../component/search-ui/filters/SearchUIFilters'
+import {CriterionTypeEnum, type SearchUIConditionsInput} from '../component/search-ui/filters/types'
+import {SearchUIFilters, type SearchUIFiltersConfig} from '../component/search-ui/filters/SearchUIFilters'
 import type {SearchUIValidationResult} from '../component/search-ui/filters/validation'
 import {SearchUIProvider} from '../component/search-ui/SearchUIProvider'
 import {OverlayHost} from '../index'
@@ -46,9 +40,7 @@ const TransactionReportFilters = ({invalidRange = false, config}: Props) => {
         dateRangeSpec: {
             dateRangeSpecType: 'EXACTLY',
             dateFrom: new Date('2026-01-01T00:00:00.000Z'),
-            dateTo: new Date(invalidRange
-                ? '2026-04-04T00:00:00.000Z'
-                : '2026-01-31T00:00:00.000Z'),
+            dateTo: new Date(invalidRange ? '2026-04-04T00:00:00.000Z' : '2026-01-31T00:00:00.000Z'),
         },
         scope: 'SELECTED_BY_SESS_ID',
         transactionIds: '103421\n103422\n103423',
@@ -58,37 +50,35 @@ const TransactionReportFilters = ({invalidRange = false, config}: Props) => {
         csvCharset: 'UTF-8-SIG',
     }
 
-    return <OverlayHost>
-        <SearchUIProvider defaults={{}}>
-            <Box sx={{width: 'min(1120px, 100%)', mx: 'auto', py: '16px'}}>
-                <SearchUIFilters
-                    settingsContextName={`storybook-transaction-report-${invalidRange ? 'invalid' : 'valid'}-${config ? 'page' : 'manual'}`}
-                    possibleCriteria={REPORT_CRITERIA}
-                    predefinedCriteria={REPORT_CRITERIA}
-                    initialSearchConditions={initialSearchConditions}
-                    onFiltersUpdate={() => undefined}
-                    onValidationChange={setValidationResult}
-                    config={{...FILTERS_CONFIG, ...config}}
-                />
-                <Box sx={{display: 'flex', alignItems: 'center', gap: '12px', px: '16px', pt: '16px'}}>
-                    <Button
-                        size='large'
-                        variant='contained'
-                        disabled={!validationResult?.isValid}
-                    >
-                        {'Generate report'}
-                    </Button>
-                    <Typography
-                        data-testid={'external-validation-status'}
-                        color={validationResult?.isValid ? 'success' : 'error'}
-                        variant={'body2'}
-                    >
-                        {validationResult?.isValid ? 'Ready to generate' : 'Report filters are invalid'}
-                    </Typography>
+    return (
+        <OverlayHost>
+            <SearchUIProvider defaults={{}}>
+                <Box sx={{width: 'min(1120px, 100%)', mx: 'auto', py: '16px'}}>
+                    <SearchUIFilters
+                        settingsContextName={`storybook-transaction-report-${invalidRange ? 'invalid' : 'valid'}-${config ? 'page' : 'manual'}`}
+                        possibleCriteria={REPORT_CRITERIA}
+                        predefinedCriteria={REPORT_CRITERIA}
+                        initialSearchConditions={initialSearchConditions}
+                        onFiltersUpdate={() => undefined}
+                        onValidationChange={setValidationResult}
+                        config={{...FILTERS_CONFIG, ...config}}
+                    />
+                    <Box sx={{display: 'flex', alignItems: 'center', gap: '12px', px: '16px', pt: '16px'}}>
+                        <Button size='large' variant='contained' disabled={!validationResult?.isValid}>
+                            {'Generate report'}
+                        </Button>
+                        <Typography
+                            data-testid={'external-validation-status'}
+                            color={validationResult?.isValid ? 'success' : 'error'}
+                            variant={'body2'}
+                        >
+                            {validationResult?.isValid ? 'Ready to generate' : 'Report filters are invalid'}
+                        </Typography>
+                    </Box>
                 </Box>
-            </Box>
-        </SearchUIProvider>
-    </OverlayHost>
+            </SearchUIProvider>
+        </OverlayHost>
+    )
 }
 
 export default {
@@ -130,10 +120,10 @@ export const ScopeOptions: Story = {
         invalidRange: false,
     },
     play: async ({canvasElement}) => {
-        const scopeLabel = within(canvasElement).getAllByText('Selected by order id')
+        const scopeLabel = within(canvasElement)
+            .getAllByText('Selected by order id')
             .find(element => element.closest('.MuiChip-root'))
-        const scopeMenuButton = scopeLabel?.closest('.MuiChip-root')
-            ?.querySelector('.MuiChip-deleteIcon')
+        const scopeMenuButton = scopeLabel?.closest('.MuiChip-root')?.querySelector('.MuiChip-deleteIcon')
 
         if (!(scopeMenuButton instanceof Element)) {
             throw new Error('Report scope menu button was not found')

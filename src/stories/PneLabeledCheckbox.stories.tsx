@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { Meta, StoryObj } from '@storybook/react-webpack5'
-import { PneLabeledCheckbox } from '../index'
+import {Meta, StoryObj} from '@storybook/react-webpack5'
+import {PneLabeledCheckbox} from '../index'
 
 export default {
     title: 'pne-ui/PneLabeledCheckbox',
@@ -9,7 +9,7 @@ export default {
 
 type Story = StoryObj<typeof PneLabeledCheckbox>
 
-const ControlledLabeledCheckbox: React.FC<React.ComponentProps<typeof PneLabeledCheckbox>> = (args) => {
+const ControlledLabeledCheckbox: React.FC<React.ComponentProps<typeof PneLabeledCheckbox>> = args => {
     const [checked, setChecked] = React.useState(args.checked ?? false)
 
     React.useEffect(() => {
@@ -64,5 +64,5 @@ export const Default: Story = {
             options: ['plain', 'card'],
         },
     },
-    render: (args) => <ControlledLabeledCheckbox {...args}/>,
+    render: args => <ControlledLabeledCheckbox {...args} />,
 }

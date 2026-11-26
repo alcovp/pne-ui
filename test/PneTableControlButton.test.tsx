@@ -6,7 +6,7 @@ import {PneTableControlButton, PneTableViewSelector, PneThemeProvider, Skin} fro
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
         // Interpolates like i18next with the library defaults, so the hints read as in the application.
-        t: (_key: string, options?: {defaultValue?: string, view?: string}) =>
+        t: (_key: string, options?: {defaultValue?: string; view?: string}) =>
             (options?.defaultValue ?? _key).replace('{{view}}', options?.view ?? ''),
     }),
 }))
@@ -20,8 +20,19 @@ describe('PneTableControlButton', () => {
         const button = screen.getByRole('button', {name: 'Select all'})
         expect(button.tagName).toBe('BUTTON')
         expect(button.getAttribute('type')).toBe('button')
-        const {backgroundColor, borderRadius, color, fontSize, fontWeight, height, lineHeight, padding, textTransform} = style('Select all')
-        expect({backgroundColor, borderRadius, color, fontSize, fontWeight, height, lineHeight, padding, textTransform}).toEqual({
+        const {backgroundColor, borderRadius, color, fontSize, fontWeight, height, lineHeight, padding, textTransform} =
+            style('Select all')
+        expect({
+            backgroundColor,
+            borderRadius,
+            color,
+            fontSize,
+            fontWeight,
+            height,
+            lineHeight,
+            padding,
+            textTransform,
+        }).toEqual({
             backgroundColor: 'rgb(240, 244, 248)',
             borderRadius: '4px',
             color: 'rgb(86, 91, 97)',
@@ -38,7 +49,11 @@ describe('PneTableControlButton', () => {
     })
 
     it('draws a menu trigger with a 14px chevron and the colour of a value for the main action', () => {
-        render(<PneTableControlButton aria-haspopup='menu' emphasis='strong' menu>Actions</PneTableControlButton>)
+        render(
+            <PneTableControlButton aria-haspopup='menu' emphasis='strong' menu>
+                Actions
+            </PneTableControlButton>,
+        )
 
         const chevron = screen.getByRole('button', {name: 'Actions'}).querySelector('svg') as SVGElement
         expect(window.getComputedStyle(chevron).fontSize).toBe('14px')
@@ -47,26 +62,43 @@ describe('PneTableControlButton', () => {
     })
 
     it('fades the label of a disabled button whatever its emphasis', () => {
-        render(<PneTableControlButton disabled emphasis='strong' menu>Actions</PneTableControlButton>)
+        render(
+            <PneTableControlButton disabled emphasis='strong' menu>
+                Actions
+            </PneTableControlButton>,
+        )
 
         expect((screen.getByRole('button', {name: 'Actions'}) as HTMLButtonElement).disabled).toBe(true)
         expect(style('Actions').color).toBe('rgb(178, 184, 191)')
     })
 
     it('rests in the neutral colours whatever the skin and matches the views of the band', () => {
-        render(<PneThemeProvider skin={{experimentalColor: '#c62828'} as Skin}>
-            <PneTableControlButton>Clear</PneTableControlButton>
-            <PneTableViewSelector
-                aria-label='Views'
-                onChange={jest.fn()}
-                value='brief'
-                views={[{id: 'brief', label: 'Brief'}, {id: 'full', label: 'Full'}]}
-            />
-        </PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={{experimentalColor: '#c62828'} as Skin}>
+                <PneTableControlButton>Clear</PneTableControlButton>
+                <PneTableViewSelector
+                    aria-label='Views'
+                    onChange={jest.fn()}
+                    value='brief'
+                    views={[
+                        {id: 'brief', label: 'Brief'},
+                        {id: 'full', label: 'Full'},
+                    ]}
+                />
+            </PneThemeProvider>,
+        )
 
         const button = style('Clear')
         const view = style('Full')
-        for (const property of ['color', 'fontWeight', 'height', 'letterSpacing', 'lineHeight', 'padding', 'borderRadius'] as const) {
+        for (const property of [
+            'color',
+            'fontWeight',
+            'height',
+            'letterSpacing',
+            'lineHeight',
+            'padding',
+            'borderRadius',
+        ] as const) {
             expect(button[property]).toBe(view[property])
         }
         expect(button.color).toBe('rgb(86, 91, 97)')
@@ -83,9 +115,11 @@ describe('PneTableControlButton', () => {
     })
 
     it('explains itself when disabled too', async () => {
-        render(<PneTableControlButton disabled menu tooltip='Select rows to run an operation on them'>
-            Actions
-        </PneTableControlButton>)
+        render(
+            <PneTableControlButton disabled menu tooltip='Select rows to run an operation on them'>
+                Actions
+            </PneTableControlButton>,
+        )
 
         // A disabled button ignores the pointer; its wrapper hears it.
         fireEvent.mouseOver(screen.getByRole('button', {name: 'Actions'}).parentElement as HTMLElement)
@@ -95,16 +129,19 @@ describe('PneTableControlButton', () => {
 })
 
 describe('PneTableViewSelector hints', () => {
-    const renderViews = () => render(<PneTableViewSelector
-        aria-label='Views'
-        onChange={jest.fn()}
-        value='brief'
-        views={[
-            {id: 'brief', label: 'Brief'},
-            {id: 'full', label: 'Full'},
-            {id: 'detailed', label: 'Detailed (0)', disabled: true},
-        ]}
-    />)
+    const renderViews = () =>
+        render(
+            <PneTableViewSelector
+                aria-label='Views'
+                onChange={jest.fn()}
+                value='brief'
+                views={[
+                    {id: 'brief', label: 'Brief'},
+                    {id: 'full', label: 'Full'},
+                    {id: 'detailed', label: 'Detailed (0)', disabled: true},
+                ]}
+            />,
+        )
 
     it('offers to switch to another view', async () => {
         renderViews()
@@ -115,15 +152,17 @@ describe('PneTableViewSelector hints', () => {
     })
 
     it('names a view without the count its label carries', async () => {
-        render(<PneTableViewSelector
-            aria-label='Views'
-            onChange={jest.fn()}
-            value='brief'
-            views={[
-                {id: 'brief', label: 'Brief'},
-                {id: 'detailed', label: 'Detailed (2)', name: 'Detailed'},
-            ]}
-        />)
+        render(
+            <PneTableViewSelector
+                aria-label='Views'
+                onChange={jest.fn()}
+                value='brief'
+                views={[
+                    {id: 'brief', label: 'Brief'},
+                    {id: 'detailed', label: 'Detailed (2)', name: 'Detailed'},
+                ]}
+            />,
+        )
 
         fireEvent.mouseOver(screen.getByRole('button', {name: 'Detailed (2)'}))
 

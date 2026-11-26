@@ -24,10 +24,7 @@ const createAnchor = (): HTMLButtonElement => {
 
 describe('PneCoachmark', () => {
     it('keeps its dark title readable against legacy heading styles', () => {
-        const theme = createPneTheme(
-            {experimentalColor: '#0a91bc'} as Skin,
-            {colorMode: 'dark'},
-        )
+        const theme = createPneTheme({experimentalColor: '#0a91bc'} as Skin, {colorMode: 'dark'})
 
         render(
             <ThemeProvider theme={theme}>
@@ -78,13 +75,11 @@ describe('PneCoachmark', () => {
         const dialog = screen.getByRole('dialog', {name: 'Widget help'})
 
         expect(dialog.getAttribute('aria-modal')).toBe('false')
-        expect(dialog.getAttribute('aria-describedby')).toBe(
-            screen.getByText('Optional guidance').id,
+        expect(dialog.getAttribute('aria-describedby')).toBe(screen.getByText('Optional guidance').id)
+        expect(dialog.querySelector('[data-pne-coachmark-body="true"]')?.textContent).toContain(
+            'Arrange and resize widgets.',
         )
-        expect(dialog.querySelector('[data-pne-coachmark-body="true"]')?.textContent)
-            .toContain('Arrange and resize widgets.')
-        expect(dialog.querySelector('[data-pne-coachmark-footer="true"]')?.textContent)
-            .toContain('Start tour')
+        expect(dialog.querySelector('[data-pne-coachmark-footer="true"]')?.textContent).toContain('Start tour')
         expect(document.querySelector('[data-pne-coachmark-popper="true"]')).not.toBeNull()
         expect(document.querySelector('[data-pne-coachmark-fallback="true"]')).toBeNull()
         expect(document.activeElement).toBe(outsideControl)
@@ -135,13 +130,7 @@ describe('PneCoachmark', () => {
     it('reports close-button and Escape requests while allowing an outer shell to own Escape', () => {
         const onClose = jest.fn()
         const {rerender} = render(
-            <PneCoachmark
-                anchorEl={null}
-                closeLabel='Dismiss help'
-                onClose={onClose}
-                open
-                title='Widget help'
-            />,
+            <PneCoachmark anchorEl={null} closeLabel='Dismiss help' onClose={onClose} open title='Widget help' />,
         )
 
         fireEvent.click(screen.getByRole('button', {name: 'Dismiss help'}))
@@ -151,15 +140,7 @@ describe('PneCoachmark', () => {
         expect(onClose).toHaveBeenLastCalledWith(expect.anything(), 'escapeKeyDown')
         expect(onClose).toHaveBeenCalledTimes(2)
 
-        rerender(
-            <PneCoachmark
-                anchorEl={null}
-                disableEscapeKeyDown
-                onClose={onClose}
-                open
-                title='Widget help'
-            />,
-        )
+        rerender(<PneCoachmark anchorEl={null} disableEscapeKeyDown onClose={onClose} open title='Widget help' />)
         fireEvent.keyDown(document, {key: 'Escape'})
         expect(onClose).toHaveBeenCalledTimes(2)
     })
@@ -202,9 +183,7 @@ describe('PneCoachmark', () => {
     })
 
     it('does not mount any surface while closed', () => {
-        render(
-            <PneCoachmark anchorEl={null} onClose={jest.fn()} open={false} title='Hidden'/>,
-        )
+        render(<PneCoachmark anchorEl={null} onClose={jest.fn()} open={false} title='Hidden' />)
 
         expect(screen.queryByRole('dialog', {name: 'Hidden'})).toBeNull()
         expect(document.querySelector('[data-pne-coachmark-fallback]')).toBeNull()

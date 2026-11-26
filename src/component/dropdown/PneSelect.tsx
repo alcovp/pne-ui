@@ -28,10 +28,7 @@ type PneDataAttributes = {
     [attribute: `data-${string}`]: string | number | boolean | undefined
 }
 
-type PneDomEventProp = Extract<
-    keyof React.DOMAttributes<HTMLElement>,
-    `on${string}`
->
+type PneDomEventProp = Extract<keyof React.DOMAttributes<HTMLElement>, `on${string}`>
 
 type PneDomCaptureEventProp = Extract<PneDomEventProp, `${string}Capture`>
 
@@ -73,10 +70,9 @@ type ManagedOptionProp =
     | 'tabIndex'
     | 'value'
 
-export type PneSelectOptionProps = Omit<
-    React.HTMLAttributes<HTMLLIElement>,
-    ManagedOptionProp
-> & PneDataAttributes & Partial<Record<ManagedOptionProp, never>>
+export type PneSelectOptionProps = Omit<React.HTMLAttributes<HTMLLIElement>, ManagedOptionProp> &
+    PneDataAttributes &
+    Partial<Record<ManagedOptionProp, never>>
 
 type ManagedSelectDisplayProp =
     | PneDomEventProp
@@ -95,10 +91,9 @@ type ManagedSelectDisplayProp =
     | 'role'
     | 'tabIndex'
 
-export type PneSelectDisplayProps = Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    ManagedSelectDisplayProp
-> & PneDataAttributes & Partial<Record<ManagedSelectDisplayProp, never>>
+export type PneSelectDisplayProps = Omit<React.HTMLAttributes<HTMLDivElement>, ManagedSelectDisplayProp> &
+    PneDataAttributes &
+    Partial<Record<ManagedSelectDisplayProp, never>>
 
 type ManagedMenuListProp =
     | PneDomEventProp
@@ -124,17 +119,15 @@ type ManagedMenuListProp =
     | 'tabIndex'
     | 'variant'
 
-export type PneSelectMenuListProps = Omit<MenuListProps, ManagedMenuListProp>
-    & PneDataAttributes
-    & Partial<Record<ManagedMenuListProp, never>>
+export type PneSelectMenuListProps = Omit<MenuListProps, ManagedMenuListProp> &
+    PneDataAttributes &
+    Partial<Record<ManagedMenuListProp, never>>
 
-type PneSelectMenuListSlotProps = PneSelectMenuListProps
-    | ((ownerState: MenuOwnerState) => PneSelectMenuListProps)
+type PneSelectMenuListSlotProps = PneSelectMenuListProps | ((ownerState: MenuOwnerState) => PneSelectMenuListProps)
 
-export type PneSelectMenuPaperProps = Omit<
-    PaperProps,
-    ManagedMenuPaperProp
-> & PneDataAttributes & Partial<Record<ManagedMenuPaperProp, never>>
+export type PneSelectMenuPaperProps = Omit<PaperProps, ManagedMenuPaperProp> &
+    PneDataAttributes &
+    Partial<Record<ManagedMenuPaperProp, never>>
 
 type ManagedMenuPaperProp =
     | PneDomEventProp
@@ -151,8 +144,7 @@ type ManagedMenuPaperProp =
     | 'role'
     | 'tabIndex'
 
-type PneSelectMenuPaperSlotProps = PneSelectMenuPaperProps
-    | ((ownerState: MenuOwnerState) => PneSelectMenuPaperProps)
+type PneSelectMenuPaperSlotProps = PneSelectMenuPaperProps | ((ownerState: MenuOwnerState) => PneSelectMenuPaperProps)
 
 type MuiMenuSlotProps = NonNullable<MenuProps['slotProps']>
 
@@ -206,9 +198,8 @@ type ManagedMenuProp =
     | 'TransitionProps'
     | 'variant'
 
-export type PneSelectMenuProps = Omit<Partial<MenuProps>, ManagedMenuProp>
-    & Partial<Record<Exclude<ManagedMenuProp, 'slotProps'>, never>>
-    & {
+export type PneSelectMenuProps = Omit<Partial<MenuProps>, ManagedMenuProp> &
+    Partial<Record<Exclude<ManagedMenuProp, 'slotProps'>, never>> & {
         slotProps?: PneSelectMenuSlotProps
     }
 
@@ -243,9 +234,8 @@ type MuiSelectProps = DistributiveOmit<
     | 'value'
 >
 
-type PneSelectBaseProps<T extends PneSelectOptionValue, K extends PneSelectKey> = MuiSelectProps
-    & Partial<Record<ManagedSelectRootProp, never>>
-    & {
+type PneSelectBaseProps<T extends PneSelectOptionValue, K extends PneSelectKey> = MuiSelectProps &
+    Partial<Record<ManagedSelectRootProp, never>> & {
         /** Controlled domain value. `null` represents no selected option. */
         value: NoInfer<T> | null
         /** Receives the original option, never the internal serialized MUI value. */
@@ -286,10 +276,7 @@ type PneSelectBaseProps<T extends PneSelectOptionValue, K extends PneSelectKey> 
         getOptionLabel: (option: T) => string
     }
 
-export type PneSelectPrimitiveProps<
-    T extends PneSelectKey,
-    K extends PneSelectKey = T,
-> = DistributiveOmit<
+export type PneSelectPrimitiveProps<T extends PneSelectKey, K extends PneSelectKey = T> = DistributiveOmit<
     PneSelectBaseProps<T, K>,
     'getOptionKey' | 'getOptionLabel'
 > & {
@@ -297,19 +284,12 @@ export type PneSelectPrimitiveProps<
     getOptionLabel?: (option: T) => string
 }
 
-export type PneSelectObjectProps<
-    T extends PneSelectOptionValue,
-    K extends PneSelectKey,
-> = PneSelectBaseProps<T, K>
+export type PneSelectObjectProps<T extends PneSelectOptionValue, K extends PneSelectKey> = PneSelectBaseProps<T, K>
 
 export type PneSelectProps<
     T extends PneSelectOptionValue,
-    K extends PneSelectKey = [T] extends [PneSelectKey]
-        ? Extract<T, PneSelectKey>
-        : PneSelectKey,
-> = [T] extends [PneSelectKey]
-    ? PneSelectPrimitiveProps<Extract<T, PneSelectKey>, K>
-    : PneSelectObjectProps<T, K>
+    K extends PneSelectKey = [T] extends [PneSelectKey] ? Extract<T, PneSelectKey> : PneSelectKey,
+> = [T] extends [PneSelectKey] ? PneSelectPrimitiveProps<Extract<T, PneSelectKey>, K> : PneSelectObjectProps<T, K>
 
 type PneSelectImplementationProps<T extends PneSelectOptionValue, K extends PneSelectKey> = DistributiveOmit<
     PneSelectBaseProps<T, K>,
@@ -320,12 +300,8 @@ type PneSelectImplementationProps<T extends PneSelectOptionValue, K extends PneS
 }
 
 type PneSelectComponent = {
-    <T extends PneSelectOptionValue, K extends PneSelectKey>(
-        props: PneSelectObjectProps<T, K>,
-    ): React.JSX.Element
-    <T extends PneSelectKey, K extends PneSelectKey = T>(
-        props: PneSelectPrimitiveProps<T, K>,
-    ): React.JSX.Element
+    <T extends PneSelectOptionValue, K extends PneSelectKey>(props: PneSelectObjectProps<T, K>): React.JSX.Element
+    <T extends PneSelectKey, K extends PneSelectKey = T>(props: PneSelectPrimitiveProps<T, K>): React.JSX.Element
     displayName?: string
 }
 
@@ -408,16 +384,9 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         required,
     })
     const internalLabelId = labelIdProp ?? generatedLabelId
-    const listenerLabelId = hasLabel
-        ? internalLabelId
-        : controlProps.labelId ?? labelIdProp
-    const supplementalLabelId = !hasLabel && controlProps.labelId
-        ? labelIdProp
-        : undefined
-    const mergedAriaDescribedBy = mergeAriaIds(
-        controlProps.ariaDescribedBy,
-        SelectDisplayProps?.['aria-describedby'],
-    )
+    const listenerLabelId = hasLabel ? internalLabelId : (controlProps.labelId ?? labelIdProp)
+    const supplementalLabelId = !hasLabel && controlProps.labelId ? labelIdProp : undefined
+    const mergedAriaDescribedBy = mergeAriaIds(controlProps.ariaDescribedBy, SelectDisplayProps?.['aria-describedby'])
     const {
         'aria-controls': _displayAriaControls,
         'aria-describedby': _displayAriaDescribedBy,
@@ -443,60 +412,49 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         ...selectDisplayProps
     } = SelectDisplayProps ?? {}
     const displayId = controlProps.id ?? displayIdProp
-    const safeSelectDisplayProps = sanitizeManagedProps(
-        selectDisplayProps,
-        managedSelectDisplayProps,
-    )
+    const safeSelectDisplayProps = sanitizeManagedProps(selectDisplayProps, managedSelectDisplayProps)
     const resolvedAriaLabel = SelectDisplayProps?.['aria-label'] ?? ariaLabel
-    const hasExplicitAriaLabel = typeof resolvedAriaLabel === 'string'
-        && resolvedAriaLabel.trim() !== ''
+    const hasExplicitAriaLabel = typeof resolvedAriaLabel === 'string' && resolvedAriaLabel.trim() !== ''
     const mergedAriaLabelledBy = hasExplicitAriaLabel
         ? undefined
         : mergeAriaIds(
-            listenerLabelId,
-            supplementalLabelId,
-            controlProps.ariaLabelledBy,
-            displayId,
-            displayAriaLabelledBy,
-        )
+              listenerLabelId,
+              supplementalLabelId,
+              controlProps.ariaLabelledBy,
+              displayId,
+              displayAriaLabelledBy,
+          )
     const resolvedSelectDisplayProps = {
         ...safeSelectDisplayProps,
         ...(displayId ? {id: displayId} : {}),
         ...(resolvedAriaLabel !== undefined ? {'aria-label': resolvedAriaLabel} : {}),
-        ...(mergedAriaDescribedBy
-            ? {'aria-describedby': mergedAriaDescribedBy}
-            : {}),
+        ...(mergedAriaDescribedBy ? {'aria-describedby': mergedAriaDescribedBy} : {}),
         ...(mergedAriaLabelledBy
             ? {'aria-labelledby': mergedAriaLabelledBy}
             : hasExplicitAriaLabel
-                ? {'aria-labelledby': undefined}
-                : {}),
-        ...(displayAriaDisabled !== undefined
-            || ariaDisabled !== undefined
-            || controlProps.disabled !== undefined
+              ? {'aria-labelledby': undefined}
+              : {}),
+        ...(displayAriaDisabled !== undefined || ariaDisabled !== undefined || controlProps.disabled !== undefined
             ? {
-                'aria-disabled': controlProps.disabled === true
-                    ? true
-                    : displayAriaDisabled ?? ariaDisabled,
-            }
+                  'aria-disabled': controlProps.disabled === true ? true : (displayAriaDisabled ?? ariaDisabled),
+              }
             : {}),
-        ...(displayAriaInvalid !== undefined
-            || controlProps.ariaInvalid !== undefined
-            || controlProps.error !== undefined
+        ...(displayAriaInvalid !== undefined ||
+        controlProps.ariaInvalid !== undefined ||
+        controlProps.error !== undefined
             ? {
-                'aria-invalid': controlProps.error === true
-                    ? true
-                    : displayAriaInvalid ?? controlProps.ariaInvalid,
-            }
+                  'aria-invalid': controlProps.error === true ? true : (displayAriaInvalid ?? controlProps.ariaInvalid),
+              }
             : {}),
-        ...(displayAriaRequired !== undefined
-            || controlProps.required !== undefined
-            || controlProps.ariaRequired !== undefined
+        ...(displayAriaRequired !== undefined ||
+        controlProps.required !== undefined ||
+        controlProps.ariaRequired !== undefined
             ? {
-                'aria-required': controlProps.required === true || controlProps.ariaRequired === true
-                    ? true
-                    : displayAriaRequired ?? controlProps.ariaRequired,
-            }
+                  'aria-required':
+                      controlProps.required === true || controlProps.ariaRequired === true
+                          ? true
+                          : (displayAriaRequired ?? controlProps.ariaRequired),
+              }
             : {}),
     }
     const resolvedSize = resolvePneFieldSize(size)
@@ -514,76 +472,79 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
         onChange(optionsByKey.get(key) as T)
     }
 
-    const shouldRenderValue = renderValue !== undefined || placeholder !== undefined && placeholder !== null
+    const shouldRenderValue = renderValue !== undefined || (placeholder !== undefined && placeholder !== null)
     const renderSelectedValue = (key: string): ReactNode => {
-        const selectedOption = key === '' ? null : optionsByKey.get(key) ?? null
+        const selectedOption = key === '' ? null : (optionsByKey.get(key) ?? null)
 
         if (renderValue) {
             return renderValue(selectedOption)
         }
 
         if (selectedOption === null) {
-            return <Box
-                component='span'
-                sx={placeholderSx}
-            >
-                {placeholder}
-            </Box>
+            return (
+                <Box component='span' sx={placeholderSx}>
+                    {placeholder}
+                </Box>
+            )
         }
 
         return resolveOptionLabel(selectedOption)
     }
 
-    return <FormControl
-        data-pne-filled={filled ? '' : undefined}
-        data-pne-size={resolvedSize}
-        data-pne-state={pinnedState}
-        ref={rootRef}
-        // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
-        size='small'
-        variant={variant}
-        disabled={controlProps.disabled}
-        error={controlProps.error}
-        // The label stands over the box, so a filled box keeps no room for it inside, as PneTextField.
-        hiddenLabel={variant === 'filled' ? true : undefined}
-        required={controlProps.required}
-        sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
-        fullWidth={controlProps.fullWidth ?? true}
-    >
-        {hasLabel ? <InputLabel id={internalLabelId}>{label}</InputLabel> : null}
-        <Select<string>
-            ref={ref}
-            aria-describedby={mergedAriaDescribedBy}
-            displayEmpty={displayEmpty ?? shouldRenderValue}
-            IconComponent={IconComponent ?? PneChevronDownIcon}
-            id={controlProps.id}
-            labelId={listenerLabelId}
-            onChange={handleChange}
+    return (
+        <FormControl
+            data-pne-filled={filled ? '' : undefined}
+            data-pne-size={resolvedSize}
+            data-pne-state={pinnedState}
+            ref={rootRef}
+            // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
             size='small'
             variant={variant}
-            label={hasLabel ? label : undefined}
-            renderValue={shouldRenderValue ? renderSelectedValue : undefined}
-            MenuProps={resolvedMenuProps}
-            SelectDisplayProps={resolvedSelectDisplayProps}
-            value={selectedKey}
-            {...safeRest}
+            disabled={controlProps.disabled}
+            error={controlProps.error}
+            // The label stands over the box, so a filled box keeps no room for it inside, as PneTextField.
+            hiddenLabel={variant === 'filled' ? true : undefined}
+            required={controlProps.required}
+            sx={[pneFieldBoxSx, pneSelectIconSx, ...(Array.isArray(sx) ? sx : [sx])]}
+            fullWidth={controlProps.fullWidth ?? true}
         >
-            {resolvedOptions.map(({key, option}) => {
-                const optionLabel = resolveOptionLabel(option)
-                const optionProps = sanitizeOptionProps(getOptionProps?.(option))
+            {hasLabel ? <InputLabel id={internalLabelId}>{label}</InputLabel> : null}
+            <Select<string>
+                ref={ref}
+                aria-describedby={mergedAriaDescribedBy}
+                displayEmpty={displayEmpty ?? shouldRenderValue}
+                IconComponent={IconComponent ?? PneChevronDownIcon}
+                id={controlProps.id}
+                labelId={listenerLabelId}
+                onChange={handleChange}
+                size='small'
+                variant={variant}
+                label={hasLabel ? label : undefined}
+                renderValue={shouldRenderValue ? renderSelectedValue : undefined}
+                MenuProps={resolvedMenuProps}
+                SelectDisplayProps={resolvedSelectDisplayProps}
+                value={selectedKey}
+                {...safeRest}
+            >
+                {resolvedOptions.map(({key, option}) => {
+                    const optionLabel = resolveOptionLabel(option)
+                    const optionProps = sanitizeOptionProps(getOptionProps?.(option))
 
-                return <PneSelectOption
-                    aria-label={renderOption ? optionLabel : undefined}
-                    {...optionProps}
-                    disabled={getOptionDisabled?.(option) ?? false}
-                    key={key}
-                    value={key}
-                >
-                    {renderOption ? renderOption(option) : optionLabel}
-                </PneSelectOption>
-            })}
-        </Select>
-    </FormControl>
+                    return (
+                        <PneSelectOption
+                            aria-label={renderOption ? optionLabel : undefined}
+                            {...optionProps}
+                            disabled={getOptionDisabled?.(option) ?? false}
+                            key={key}
+                            value={key}
+                        >
+                            {renderOption ? renderOption(option) : optionLabel}
+                        </PneSelectOption>
+                    )
+                })}
+            </Select>
+        </FormControl>
+    )
 }
 
 /**
@@ -595,7 +556,7 @@ const PneSelectImplementation = <T extends PneSelectOptionValue, K extends PneSe
 const PneSelectOption = (props: MenuItemProps) => {
     const {onMouseUp: _chooseOnRelease, ...itemProps} = props
 
-    return <MenuItem {...itemProps}/>
+    return <MenuItem {...itemProps} />
 }
 
 const PneSelect = PneSelectImplementation as PneSelectComponent
@@ -612,18 +573,9 @@ const sanitizeMenuProps = (menuProps: PneSelectMenuProps | undefined): Partial<M
         return undefined
     }
 
-    const {
-        slotProps,
-        ...menuPropsWithoutSlots
-    } = menuProps
+    const {slotProps, ...menuPropsWithoutSlots} = menuProps
     const safeMenuProps = sanitizeManagedProps(menuPropsWithoutSlots, managedMenuProps)
-    const {
-        list,
-        paper,
-        backdrop: _backdrop,
-        root: _root,
-        transition: _transition,
-    } = slotProps ?? {}
+    const {list, paper, backdrop: _backdrop, root: _root, transition: _transition} = slotProps ?? {}
     const safeListProps = sanitizeMenuListSlotProps(list)
     const safePaperProps = sanitizeMenuPaperSlotProps(paper)
 
@@ -631,11 +583,11 @@ const sanitizeMenuProps = (menuProps: PneSelectMenuProps | undefined): Partial<M
         ...safeMenuProps,
         ...(slotProps
             ? {
-                slotProps: {
-                    ...(safeListProps ? {list: safeListProps} : {}),
-                    ...(safePaperProps ? {paper: safePaperProps} : {}),
-                },
-            }
+                  slotProps: {
+                      ...(safeListProps ? {list: safeListProps} : {}),
+                      ...(safePaperProps ? {paper: safePaperProps} : {}),
+                  },
+              }
             : {}),
     }
 }
@@ -668,9 +620,7 @@ const sanitizeMenuPaperProps = (props: PneSelectMenuPaperProps): PneSelectMenuPa
     return sanitizeManagedProps(props, managedMenuPaperProps)
 }
 
-const sanitizeOptionProps = (
-    props: PneSelectOptionProps | undefined,
-): PneSelectOptionProps | undefined => {
+const sanitizeOptionProps = (props: PneSelectOptionProps | undefined): PneSelectOptionProps | undefined => {
     if (!props) {
         return undefined
     }
@@ -678,21 +628,15 @@ const sanitizeOptionProps = (
     return sanitizeManagedProps(props, managedOptionProps)
 }
 
-const sanitizeManagedProps = <T extends object>(
-    props: T,
-    managedProps: ReadonlySet<string>,
-): T => Object.fromEntries(
-    Object.entries(props).filter(([prop]) => (
-        !prop.startsWith('on') && !managedProps.has(prop)
-    )),
-) as T
+const sanitizeManagedProps = <T extends object>(props: T, managedProps: ReadonlySet<string>): T =>
+    Object.fromEntries(Object.entries(props).filter(([prop]) => !prop.startsWith('on') && !managedProps.has(prop))) as T
 
-const sanitizeSelectRootProps = <T extends object>(props: T): T => Object.fromEntries(
-    Object.entries(props).filter(([prop]) => (
-        (!prop.startsWith('on') || !prop.endsWith('Capture'))
-        && !managedSelectRootProps.has(prop)
-    )),
-) as T
+const sanitizeSelectRootProps = <T extends object>(props: T): T =>
+    Object.fromEntries(
+        Object.entries(props).filter(
+            ([prop]) => (!prop.startsWith('on') || !prop.endsWith('Capture')) && !managedSelectRootProps.has(prop),
+        ),
+    ) as T
 
 const managedSelectRootProps = new Set<string>([
     'aria-hidden',
@@ -837,7 +781,7 @@ const getPrimitiveOptionKey = <T, K extends PneSelectKey>(option: T): K => {
     throw new TypeError('Object PneSelect options require getOptionKey')
 }
 
-const getPrimitiveOptionLabel = <T, >(option: T): string => {
+const getPrimitiveOptionLabel = <T,>(option: T): string => {
     if (typeof option === 'string' || typeof option === 'number') {
         return String(option)
     }

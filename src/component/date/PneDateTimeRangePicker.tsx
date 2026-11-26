@@ -5,7 +5,8 @@ import {PNE_DATE_TIME_FORMAT} from './pickerLocale'
 import PnePickerLocalization from './PnePickerLocalization'
 import {usePnePicker, type PnePickerFieldProps} from './usePnePicker'
 
-export type PneDateTimeRangePickerProps = Omit<DateTimeRangePickerProps, keyof PnePickerFieldProps> & PnePickerFieldProps
+export type PneDateTimeRangePickerProps = Omit<DateTimeRangePickerProps, keyof PnePickerFieldProps> &
+    PnePickerFieldProps
 
 const DEFAULTS = {
     format: PNE_DATE_TIME_FORMAT,
@@ -18,12 +19,17 @@ const DEFAULTS = {
  * PneTextField (`size`, `error`, `helperText`, a label over the box), the calendar is the library's.
  * Dates are dayjs dates; every other prop of the MUI X picker passes through.
  */
-const PneDateTimeRangePicker = ({ref, ...props}: React.PropsWithoutRef<PneDateTimeRangePickerProps> & {ref?: React.Ref<HTMLDivElement>}) => {
+const PneDateTimeRangePicker = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneDateTimeRangePickerProps> & {ref?: React.Ref<HTMLDivElement>}) => {
     const picker = usePnePicker<DateTimeRangePickerProps>(props, DEFAULTS)
 
-    return <PnePickerLocalization>
-        <DateTimeRangePicker {...picker} ref={ref}/>
-    </PnePickerLocalization>
+    return (
+        <PnePickerLocalization>
+            <DateTimeRangePicker {...picker} ref={ref} />
+        </PnePickerLocalization>
+    )
 }
 
 PneDateTimeRangePicker.displayName = 'PneDateTimeRangePicker'

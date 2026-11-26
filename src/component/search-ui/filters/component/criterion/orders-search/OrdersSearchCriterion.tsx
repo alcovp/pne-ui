@@ -1,17 +1,24 @@
-import React from 'react';
-import {useTranslation} from 'react-i18next';
-import {Box, SxProps} from '@mui/material';
-import {SearchUIOrdersSearchLabelSelect} from "../../select/SearchUIOrdersSearchLabelSelect";
-import {OrdersSearchInput} from "./OrdersSearchInput";
+import React from 'react'
+import {useTranslation} from 'react-i18next'
+import {Box, SxProps} from '@mui/material'
+import {SearchUIOrdersSearchLabelSelect} from '../../select/SearchUIOrdersSearchLabelSelect'
+import {OrdersSearchInput} from './OrdersSearchInput'
 
 export const OrdersSearchCriterion = () => {
     const {t} = useTranslation()
 
-    return <Box sx={centerSx}>
-        <OrdersSearchInput/>
-        <Box component={'span'} sx={{display: 'inline-block', color: theme => theme.palette.pne?.text.muted ?? '#808080'}}>{t('in')}</Box>
-        <SearchUIOrdersSearchLabelSelect/>
-    </Box>
+    return (
+        <Box sx={centerSx}>
+            <OrdersSearchInput />
+            <Box
+                component={'span'}
+                sx={{display: 'inline-block', color: theme => theme.palette.pne?.text.muted ?? '#808080'}}
+            >
+                {t('in')}
+            </Box>
+            <SearchUIOrdersSearchLabelSelect />
+        </Box>
+    )
 }
 
 const centerSx: SxProps = {

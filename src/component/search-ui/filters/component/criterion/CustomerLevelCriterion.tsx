@@ -1,9 +1,9 @@
-import React, { use, useEffect, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { CustomerLevel } from '../../types'
-import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
-import { getConcreteCustomerLevelMerchantId } from '../../customerLevelDependencies'
-import { useSearchUIFiltersStore } from '../../state/store'
+import React, {use, useEffect, useMemo, useState} from 'react'
+import {useTranslation} from 'react-i18next'
+import {CustomerLevel} from '../../types'
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
+import {getConcreteCustomerLevelMerchantId} from '../../customerLevelDependencies'
+import {useSearchUIFiltersStore} from '../../state/store'
 import SearchUIAbstractEntityChipSelect from '../select/SearchUIAbstractEntityChipSelect'
 
 const CRITERION_CUSTOMER_LEVEL_AUTOTEST_ID = 'criterion-customer-level'
@@ -11,8 +11,8 @@ const CRITERION_CUSTOMER_LEVEL_OPTIONS_AUTOTEST_ID = 'criterion-customer-level-o
 const CRITERION_CUSTOMER_LEVEL_OPTION_AUTOTEST_ID = 'criterion-customer-level-option'
 
 export const CustomerLevelCriterion = () => {
-    const { t } = useTranslation()
-    const { getCustomerLevels } = use(SearchUIDefaultsContext)
+    const {t} = useTranslation()
+    const {getCustomerLevels} = use(SearchUIDefaultsContext)
 
     const multigetCriteria = useSearchUIFiltersStore(state => state.multigetCriteria)
     const currencies = useSearchUIFiltersStore(state => state.currencies)
@@ -20,11 +20,13 @@ export const CustomerLevelCriterion = () => {
     const setCustomerLevel = useSearchUIFiltersStore(state => state.setCustomerLevelCriterion)
 
     const merchantId = getConcreteCustomerLevelMerchantId(multigetCriteria)
-    const currencyIds = useMemo(() => (
-        currencies.all
-            ? []
-            : (currencies.entities ?? []).map(currency => currency.id).sort((left, right) => left - right)
-    ), [currencies])
+    const currencyIds = useMemo(
+        () =>
+            currencies.all
+                ? []
+                : (currencies.entities ?? []).map(currency => currency.id).sort((left, right) => left - right),
+        [currencies],
+    )
     const requestKey = merchantId === null ? null : `${merchantId}:${currencyIds.join(',')}`
 
     const [availableLevels, setAvailableLevels] = useState<CustomerLevel[]>([])
@@ -51,7 +53,7 @@ export const CustomerLevelCriterion = () => {
         setLoading(true)
         /* eslint-enable @eslint-react/set-state-in-effect */
 
-        getCustomerLevels({ merchantId, currencyIds })
+        getCustomerLevels({merchantId, currencyIds})
             .then(levels => {
                 if (!active) {
                     return
@@ -83,9 +85,10 @@ export const CustomerLevelCriterion = () => {
         }
 
         const merchantMissing = requestKey === null
-        const loadedLevelMissing = requestKey !== null
-            && loadedRequestKey === requestKey
-            && !availableLevels.some(level => level.id === customerLevel.id)
+        const loadedLevelMissing =
+            requestKey !== null &&
+            loadedRequestKey === requestKey &&
+            !availableLevels.some(level => level.id === customerLevel.id)
 
         if (merchantMissing || loadedLevelMissing) {
             setCustomerLevel(null)
@@ -94,14 +97,14 @@ export const CustomerLevelCriterion = () => {
 
     const merchantSelected = merchantId !== null
     const loadFailed = requestKey !== null && failedRequestKey === requestKey
-    const requestLoading = merchantSelected
-        && requestKey !== null
-        && (loading || (loadedRequestKey !== requestKey && !loadFailed))
-    const noCustomerLevelsAvailable = merchantSelected
-        && !requestLoading
-        && !loadFailed
-        && loadedRequestKey === requestKey
-        && availableLevels.length === 0
+    const requestLoading =
+        merchantSelected && requestKey !== null && (loading || (loadedRequestKey !== requestKey && !loadFailed))
+    const noCustomerLevelsAvailable =
+        merchantSelected &&
+        !requestLoading &&
+        !loadFailed &&
+        loadedRequestKey === requestKey &&
+        availableLevels.length === 0
     const selectMerchantPlaceholder = t('react.searchUI.customerLevel.selectMerchant', {
         defaultValue: 'Select a merchant first',
     })
@@ -111,23 +114,25 @@ export const CustomerLevelCriterion = () => {
     const placeholder = !merchantSelected
         ? selectMerchantPlaceholder
         : noCustomerLevelsAvailable
-            ? noCustomerLevelsText
-            : t('react.chooseOne')
+          ? noCustomerLevelsText
+          : t('react.chooseOne')
 
-    return <SearchUIAbstractEntityChipSelect
-        value={customerLevel}
-        options={availableLevels}
-        onChange={setCustomerLevel}
-        disabled={!merchantSelected || requestLoading || loadFailed || noCustomerLevelsAvailable}
-        loading={requestLoading}
-        placeholder={placeholder}
-        ariaLabel={t('react.CriterionTypeEnum.CUSTOMER_LEVEL', {
-            defaultValue: 'Customer level',
-        })}
-        autoTest={{
-            controlId: CRITERION_CUSTOMER_LEVEL_AUTOTEST_ID,
-            optionsId: CRITERION_CUSTOMER_LEVEL_OPTIONS_AUTOTEST_ID,
-            optionId: CRITERION_CUSTOMER_LEVEL_OPTION_AUTOTEST_ID,
-        }}
-    />
+    return (
+        <SearchUIAbstractEntityChipSelect
+            value={customerLevel}
+            options={availableLevels}
+            onChange={setCustomerLevel}
+            disabled={!merchantSelected || requestLoading || loadFailed || noCustomerLevelsAvailable}
+            loading={requestLoading}
+            placeholder={placeholder}
+            ariaLabel={t('react.CriterionTypeEnum.CUSTOMER_LEVEL', {
+                defaultValue: 'Customer level',
+            })}
+            autoTest={{
+                controlId: CRITERION_CUSTOMER_LEVEL_AUTOTEST_ID,
+                optionsId: CRITERION_CUSTOMER_LEVEL_OPTIONS_AUTOTEST_ID,
+                optionId: CRITERION_CUSTOMER_LEVEL_OPTION_AUTOTEST_ID,
+            }}
+        />
+    )
 }

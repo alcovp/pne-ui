@@ -49,28 +49,32 @@ export type PneTableViewOption<TViewId extends string = string> = {
 export type PneTableViewSelectorProps<TViewId extends string = string> = Omit<
     BoxProps,
     'aria-label' | 'aria-labelledby' | 'children' | 'component' | 'onChange' | 'ref'
-> & ({
-    /** Accessible name applied to the semantic view group. */
-    'aria-label': string
-    'aria-labelledby'?: never
-} | {
-    /** ID of the element that names the semantic view group. */
-    'aria-label'?: never
-    'aria-labelledby': string
-}) & {
-    /** Stable, non-secret instance identifier used to scope Selenium locators. */
-    autoTestId?: string
-    /** Disables view selection. Consumer-provided actions retain their own disabled state. */
-    disabled?: boolean
-    /** Optional consumer-owned actions, such as table-view settings. */
-    actions?: ReactNode
-    /** Selected stable view ID. */
-    value: TViewId
-    /** Ordered application-defined views. */
-    views: readonly PneTableViewOption<TViewId>[]
-    /** Called only when the user selects a different non-null view ID. */
-    onChange: (value: TViewId) => void
-}
+> &
+    (
+        | {
+              /** Accessible name applied to the semantic view group. */
+              'aria-label': string
+              'aria-labelledby'?: never
+          }
+        | {
+              /** ID of the element that names the semantic view group. */
+              'aria-label'?: never
+              'aria-labelledby': string
+          }
+    ) & {
+        /** Stable, non-secret instance identifier used to scope Selenium locators. */
+        autoTestId?: string
+        /** Disables view selection. Consumer-provided actions retain their own disabled state. */
+        disabled?: boolean
+        /** Optional consumer-owned actions, such as table-view settings. */
+        actions?: ReactNode
+        /** Selected stable view ID. */
+        value: TViewId
+        /** Ordered application-defined views. */
+        views: readonly PneTableViewOption<TViewId>[]
+        /** Called only when the user selects a different non-null view ID. */
+        onChange: (value: TViewId) => void
+    }
 
 const rootSx: SxProps<Theme> = {
     alignItems: 'center',
@@ -109,9 +113,10 @@ const viewButtonSx: SxProps<Theme> = theme => ({
     },
 })
 
-export const PneTableViewSelector = <TViewId extends string = string, >(
-    {ref, ...props}: PneTableViewSelectorProps<TViewId> & {ref?: Ref<HTMLDivElement>},
-) => {
+export const PneTableViewSelector = <TViewId extends string = string>({
+    ref,
+    ...props
+}: PneTableViewSelectorProps<TViewId> & {ref?: Ref<HTMLDivElement>}) => {
     const {
         'aria-label': ariaLabel,
         'aria-labelledby': ariaLabelledBy,
@@ -125,98 +130,104 @@ export const PneTableViewSelector = <TViewId extends string = string, >(
         ...rootProps
     } = props
     const {t} = useTranslation()
-    const hasActions = actions !== undefined
-        && actions !== null
-        && typeof actions !== 'boolean'
+    const hasActions = actions !== undefined && actions !== null && typeof actions !== 'boolean'
 
-    return <Box
-        {...rootProps}
-        {...createAutoTestAttributes(TABLE_VIEWS_AUTOTEST_ID, autoTestId)}
-        ref={ref}
-        sx={[
-            rootSx,
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-    >
-        <ToggleButtonGroup
-            aria-label={ariaLabel}
-            aria-labelledby={ariaLabelledBy}
-            disabled={disabled}
-            exclusive
-            // The size the theme draws as these 24px views, so the theme and the styles here agree.
-            size='small'
-            sx={groupSx}
-            value={value}
+    return (
+        <Box
+            {...rootProps}
+            {...createAutoTestAttributes(TABLE_VIEWS_AUTOTEST_ID, autoTestId)}
+            ref={ref}
+            sx={[rootSx, ...(Array.isArray(sx) ? sx : [sx])]}
         >
-            {views.map(view => {
-                const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-                    // This selector always renders its options as native button-backed ToggleButtons.
-                    const buttonEvent = event as React.MouseEvent<HTMLButtonElement>
-                    view.onClick?.(buttonEvent)
-                    if (!event.defaultPrevented && view.id !== value) {
-                        onChange(view.id)
-                    }
-                }
-
-                const button = <ToggleButton
-                    {...createAutoTestAttributes(TABLE_VIEW_AUTOTEST_ID, view.id)}
-                    disabled={view.disabled}
-                    key={view.id}
-                    onClick={handleClick}
-                    sx={viewButtonSx}
-                    value={view.id}
-                >
-                    {view.label}
-                </ToggleButton>
-                const name = view.name ?? (typeof view.label === 'string' || typeof view.label === 'number'
-                    ? String(view.label)
-                    : undefined)
-
-                // A disabled view gets no hint: there is nothing to switch to.
-                if (name === undefined || view.disabled) {
-                    return button
-                }
-
-                return <Tooltip
-                    describeChild
-                    enterDelay={300}
-                    enterNextDelay={300}
-                    key={view.id}
-                    title={view.id === value
-                        ? t('pneTable.views.current', {
-                            defaultValue: '{{view}} — current view',
-                            interpolation: RAW_VIEW_NAME,
-                            view: name,
-                        })
-                        : t('pneTable.views.switchTo', {
-                            defaultValue: 'Switch to {{view}}',
-                            interpolation: RAW_VIEW_NAME,
-                            view: name,
-                        })}
-                >
-                    {button}
-                </Tooltip>
-            })}
-        </ToggleButtonGroup>
-        {hasActions ? <>
-            <Divider
-                orientation='vertical'
-                sx={{flexShrink: 0, height: '20px', mx: '4px'}}
-            />
-            <Box
-                {...createAutoTestAttributes(TABLE_VIEW_ACTIONS_AUTOTEST_ID)}
-                sx={(theme: Theme) => ({
-                    alignItems: 'center',
-                    display: 'flex',
-                    flexShrink: 0,
-                    gap: `${TABLE_CONTROL_GAP}px`,
-                    height: `${TABLE_CONTROL_BAND_SIZE}px`,
-                    // UI Kit Icon action sm: a 24px box, only the icon takes colour under the pointer.
-                    [`& .${iconButtonClasses.root}`]: (pneIconActionSx('small') as (theme: Theme) => object)(theme),
-                })}
+            <ToggleButtonGroup
+                aria-label={ariaLabel}
+                aria-labelledby={ariaLabelledBy}
+                disabled={disabled}
+                exclusive
+                // The size the theme draws as these 24px views, so the theme and the styles here agree.
+                size='small'
+                sx={groupSx}
+                value={value}
             >
-                {actions}
-            </Box>
-        </> : null}
-    </Box>
+                {views.map(view => {
+                    const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+                        // This selector always renders its options as native button-backed ToggleButtons.
+                        const buttonEvent = event as React.MouseEvent<HTMLButtonElement>
+                        view.onClick?.(buttonEvent)
+                        if (!event.defaultPrevented && view.id !== value) {
+                            onChange(view.id)
+                        }
+                    }
+
+                    const button = (
+                        <ToggleButton
+                            {...createAutoTestAttributes(TABLE_VIEW_AUTOTEST_ID, view.id)}
+                            disabled={view.disabled}
+                            key={view.id}
+                            onClick={handleClick}
+                            sx={viewButtonSx}
+                            value={view.id}
+                        >
+                            {view.label}
+                        </ToggleButton>
+                    )
+                    const name =
+                        view.name ??
+                        (typeof view.label === 'string' || typeof view.label === 'number'
+                            ? String(view.label)
+                            : undefined)
+
+                    // A disabled view gets no hint: there is nothing to switch to.
+                    if (name === undefined || view.disabled) {
+                        return button
+                    }
+
+                    return (
+                        <Tooltip
+                            describeChild
+                            enterDelay={300}
+                            enterNextDelay={300}
+                            key={view.id}
+                            title={
+                                view.id === value
+                                    ? t('pneTable.views.current', {
+                                          defaultValue: '{{view}} — current view',
+                                          interpolation: RAW_VIEW_NAME,
+                                          view: name,
+                                      })
+                                    : t('pneTable.views.switchTo', {
+                                          defaultValue: 'Switch to {{view}}',
+                                          interpolation: RAW_VIEW_NAME,
+                                          view: name,
+                                      })
+                            }
+                        >
+                            {button}
+                        </Tooltip>
+                    )
+                })}
+            </ToggleButtonGroup>
+            {hasActions ? (
+                <>
+                    <Divider orientation='vertical' sx={{flexShrink: 0, height: '20px', mx: '4px'}} />
+                    <Box
+                        {...createAutoTestAttributes(TABLE_VIEW_ACTIONS_AUTOTEST_ID)}
+                        sx={(theme: Theme) => ({
+                            alignItems: 'center',
+                            display: 'flex',
+                            flexShrink: 0,
+                            gap: `${TABLE_CONTROL_GAP}px`,
+                            height: `${TABLE_CONTROL_BAND_SIZE}px`,
+                            // UI Kit Icon action sm: a 24px box, only the icon takes colour under the pointer.
+                            [`& .${iconButtonClasses.root}`]: (pneIconActionSx('small') as (theme: Theme) => object)(
+                                theme,
+                            ),
+                        })}
+                    >
+                        {actions}
+                    </Box>
+                </>
+            ) : null}
+        </Box>
+    )
 }

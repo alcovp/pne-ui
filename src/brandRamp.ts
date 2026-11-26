@@ -3,7 +3,7 @@ import {contrastRatio, hexToOklch, normalizeHexColor, oklchToHex} from './color'
 /** Steps of the brand ramp as in UI Kit (Claude): 0 is white, 600 is the fill, 950 the darkest. */
 export const PNE_BRAND_RAMP_STEPS = [0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] as const
 
-export type PneBrandRampStep = typeof PNE_BRAND_RAMP_STEPS[number]
+export type PneBrandRampStep = (typeof PNE_BRAND_RAMP_STEPS)[number]
 
 export type PneBrandRamp = Readonly<Record<PneBrandRampStep, string>>
 
@@ -74,17 +74,20 @@ export const createPneBrandRamp = (skinColor: string): PneBrandRamp => {
         if (step === FILL_STEP) return [step, fill]
 
         const [lightness, chroma, hue] = hexToOklch(UI_KIT_BRAND_RAMP[step])
-        const stepLightness = step < FILL_STEP
-            ? 1 - (1 - fillLightness) * (1 - lightness) / (1 - UI_KIT_FILL_LIGHTNESS)
-            : Math.max(0, Math.min(
-                fillLightness - (UI_KIT_FILL_LIGHTNESS - lightness),
-                fillLightness * lightness / UI_KIT_FILL_LIGHTNESS,
-            ))
-        return [step, oklchToHex(
-            stepLightness,
-            chroma * fillChroma / UI_KIT_FILL_CHROMA,
-            fillHue + hue - UI_KIT_FILL_HUE,
-        )]
+        const stepLightness =
+            step < FILL_STEP
+                ? 1 - ((1 - fillLightness) * (1 - lightness)) / (1 - UI_KIT_FILL_LIGHTNESS)
+                : Math.max(
+                      0,
+                      Math.min(
+                          fillLightness - (UI_KIT_FILL_LIGHTNESS - lightness),
+                          (fillLightness * lightness) / UI_KIT_FILL_LIGHTNESS,
+                      ),
+                  )
+        return [
+            step,
+            oklchToHex(stepLightness, (chroma * fillChroma) / UI_KIT_FILL_CHROMA, fillHue + hue - UI_KIT_FILL_HUE),
+        ]
     })
     return Object.freeze(Object.fromEntries(entries)) as PneBrandRamp
 }

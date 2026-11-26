@@ -5,40 +5,39 @@ import {CriterionTypeEnum, SearchUIFilters, SearchUIProvider, type SearchUIDefau
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, options?: {defaultValue?: string} & Record<string, unknown>) => (
-            options?.defaultValue?.replace(/{{(\w+)}}/g, (_, name: string) => String(options[name])) ?? key
-        ),
+        t: (key: string, options?: {defaultValue?: string} & Record<string, unknown>) =>
+            options?.defaultValue?.replace(/{{(\w+)}}/g, (_, name: string) => String(options[name])) ?? key,
     }),
 }))
 
-const precedes = (first: Element | null | undefined, second: Element | null | undefined) => Boolean(
-    first && second && (first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING),
-)
+const precedes = (first: Element | null | undefined, second: Element | null | undefined) =>
+    Boolean(first && second && first.compareDocumentPosition(second) & Node.DOCUMENT_POSITION_FOLLOWING)
 
 const renderFilters = (
     scope: string,
-    {allRemovable = false, defaults}: {allRemovable?: boolean, defaults?: Partial<SearchUIDefaults>} = {},
+    {allRemovable = false, defaults}: {allRemovable?: boolean; defaults?: Partial<SearchUIDefaults>} = {},
 ) => {
     const onFiltersUpdate = jest.fn()
-    const filters = <SearchUIFilters
-        autoTestId={scope}
-        settingsContextName={`${scope}-context`}
-        // THREE_D stays available, so the Add filter button has something to offer.
-        possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D]}
-        predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
-        initialSearchConditions={{status: 'ENABLED'}}
-        onFiltersUpdate={onFiltersUpdate}
-        config={{
-            manualSearch: true,
-            removablePredefinedCriteria: allRemovable
-                ? [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]
-                : [CriterionTypeEnum.CURRENCY],
-        }}
-    />
-    const utils = render(defaults ? <SearchUIProvider defaults={defaults}>{filters}</SearchUIProvider> : filters)
-    const root = () => utils.container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"]`,
+    const filters = (
+        <SearchUIFilters
+            autoTestId={scope}
+            settingsContextName={`${scope}-context`}
+            // THREE_D stays available, so the Add filter button has something to offer.
+            possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D]}
+            predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
+            initialSearchConditions={{status: 'ENABLED'}}
+            onFiltersUpdate={onFiltersUpdate}
+            config={{
+                manualSearch: true,
+                removablePredefinedCriteria: allRemovable
+                    ? [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]
+                    : [CriterionTypeEnum.CURRENCY],
+            }}
+        />
     )
+    const utils = render(defaults ? <SearchUIProvider defaults={defaults}>{filters}</SearchUIProvider> : filters)
+    const root = () =>
+        utils.container.querySelector<HTMLElement>(`[data-autotest="search-filters"][data-autotest-value="${scope}"]`)
 
     return {...utils, onFiltersUpdate, root}
 }
@@ -91,9 +90,15 @@ describe('SearchUIFilters layout', () => {
         expect(style(footer).backgroundColor).toBe('rgb(240, 244, 248)')
         expect(style(footer).borderTopWidth).toBe('1px')
         // 24px buttons in the header, 32px in the footer.
-        expect(header.querySelector('[data-autotest="templates"]')?.classList.contains('MuiButton-sizeSmall')).toBe(true)
-        expect(footer.querySelector('[data-autotest="add-filter"]')?.classList.contains('MuiButton-sizeMedium')).toBe(true)
-        expect(footer.querySelector('[data-autotest="run-search"]')?.classList.contains('MuiButton-sizeMedium')).toBe(true)
+        expect(header.querySelector('[data-autotest="templates"]')?.classList.contains('MuiButton-sizeSmall')).toBe(
+            true,
+        )
+        expect(footer.querySelector('[data-autotest="add-filter"]')?.classList.contains('MuiButton-sizeMedium')).toBe(
+            true,
+        )
+        expect(footer.querySelector('[data-autotest="run-search"]')?.classList.contains('MuiButton-sizeMedium')).toBe(
+            true,
+        )
     })
 
     it('collapses the rows through the toggle and moves the actions into the header', async () => {
@@ -112,7 +117,12 @@ describe('SearchUIFilters layout', () => {
         expect(panel?.hidden).toBe(false)
         expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
         // The footer actions come after the rows: the row buttons are reached first.
-        expect(precedes(scope.querySelector('[data-autotest="criterion"]'), scope.querySelector('[data-autotest="run-search"]'))).toBe(true)
+        expect(
+            precedes(
+                scope.querySelector('[data-autotest="criterion"]'),
+                scope.querySelector('[data-autotest="run-search"]'),
+            ),
+        ).toBe(true)
         expect(scope.querySelector('[data-autotest="filters-footer"] [data-autotest="run-search"]')).not.toBeNull()
 
         expect(scope.hasAttribute('data-pne-folding')).toBe(false)
@@ -164,16 +174,24 @@ describe('SearchUIFilters layout', () => {
         expect(scope.querySelector('[data-autotest="criterion"]')).toBeNull()
         const toggle = scope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]') as HTMLButtonElement
         expect(toggle.getAttribute('aria-expanded')).toBe('false')
-        expect(scope.querySelector('[data-autotest="filters-header"] [data-autotest="filters-count"]')?.textContent).toBe('2')
+        expect(
+            scope.querySelector('[data-autotest="filters-header"] [data-autotest="filters-count"]')?.textContent,
+        ).toBe('2')
 
         fireEvent.click(toggle)
-        expect(saveSearchFiltersCollapsed).toHaveBeenCalledWith({contextName: 'layout-folded-context', collapsed: false})
+        expect(saveSearchFiltersCollapsed).toHaveBeenCalledWith({
+            contextName: 'layout-folded-context',
+            collapsed: false,
+        })
         await waitFor(() => {
             expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2)
         })
 
         fireEvent.click(toggle)
-        expect(saveSearchFiltersCollapsed).toHaveBeenLastCalledWith({contextName: 'layout-folded-context', collapsed: true})
+        expect(saveSearchFiltersCollapsed).toHaveBeenLastCalledWith({
+            contextName: 'layout-folded-context',
+            collapsed: true,
+        })
         expect(saveSearchFiltersCollapsed).toHaveBeenCalledTimes(2)
     })
 
@@ -311,9 +329,9 @@ describe('SearchUIFilters layout', () => {
         })
 
         const scope = root() as HTMLElement
-        const nameCell = (type: CriterionTypeEnum) => scope.querySelector<HTMLElement>(
-            `[data-autotest="criterion"][data-autotest-value="${type}"]`,
-        )?.children[1].firstElementChild as HTMLElement
+        const nameCell = (type: CriterionTypeEnum) =>
+            scope.querySelector<HTMLElement>(`[data-autotest="criterion"][data-autotest-value="${type}"]`)?.children[1]
+                .firstElementChild as HTMLElement
         // The first pointer mounts the tooltip of a name (PneTooltip) and draws the name anew: the names are
         // looked up again after it.
         for (const type of [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]) {
@@ -334,9 +352,12 @@ describe('SearchUIFilters layout', () => {
         fireEvent.mouseLeave(currency)
         // The tooltip leaves through a transition on real timers; on a loaded CI runner it outlived
         // waitFor's default second (rc.7 check run), so the wait is generous.
-        await waitFor(() => {
-            expect(screen.queryByRole('tooltip')).toBeNull()
-        }, {timeout: 5000})
+        await waitFor(
+            () => {
+                expect(screen.queryByRole('tooltip')).toBeNull()
+            },
+            {timeout: 5000},
+        )
 
         Object.defineProperty(status, 'scrollWidth', {value: 100, configurable: true})
         Object.defineProperty(status, 'clientWidth', {value: 150, configurable: true})
@@ -355,7 +376,9 @@ describe('SearchUIFilters layout', () => {
 
         const scope = root() as HTMLElement
         expect(scope.querySelector('[data-autotest="toggle-filters"]')).not.toBeNull()
-        for (const remove of Array.from(scope.querySelectorAll<HTMLButtonElement>('[data-autotest="remove-criterion"]'))) {
+        for (const remove of Array.from(
+            scope.querySelectorAll<HTMLButtonElement>('[data-autotest="remove-criterion"]'),
+        )) {
             fireEvent.click(remove)
         }
         await waitFor(() => {
@@ -429,9 +452,11 @@ describe('SearchUIFilters actions row', () => {
         await waitFor(() => {
             expect(document.body.querySelector('[data-autotest="add-filter-options"]')).not.toBeNull()
         })
-        fireEvent.click(document.body.querySelector(
-            '[data-autotest="add-filter-option"][data-autotest-value="THREE_D"]',
-        ) as HTMLElement)
+        fireEvent.click(
+            document.body.querySelector(
+                '[data-autotest="add-filter-option"][data-autotest-value="THREE_D"]',
+            ) as HTMLElement,
+        )
         await waitFor(() => {
             expect(scope.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(3)
         })

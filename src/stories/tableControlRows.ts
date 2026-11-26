@@ -13,8 +13,7 @@ export const sharesRow = (first: HTMLElement, second: HTMLElement): boolean => {
     const firstRect = first.getBoundingClientRect()
     const secondRect = second.getBoundingClientRect()
 
-    return Math.min(firstRect.bottom, secondRect.bottom)
-        - Math.max(firstRect.top, secondRect.top) > 0
+    return Math.min(firstRect.bottom, secondRect.bottom) - Math.max(firstRect.top, secondRect.top) > 0
 }
 
 /**
@@ -22,6 +21,5 @@ export const sharesRow = (first: HTMLElement, second: HTMLElement): boolean => {
  * shrinking by a whole row between frames, so a signature that stays constant
  * across frames is exactly the property the regression stories need.
  */
-export const heightSignature = (...bands: HTMLElement[]): string => bands
-    .map(band => Math.round(band.getBoundingClientRect().height))
-    .join('/')
+export const heightSignature = (...bands: HTMLElement[]): string =>
+    bands.map(band => Math.round(band.getBoundingClientRect().height)).join('/')

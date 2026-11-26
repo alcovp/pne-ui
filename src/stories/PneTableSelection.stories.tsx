@@ -67,102 +67,111 @@ const SelectionTableStory = ({
         selection.clear()
         setLimitVisible(false)
     }
-    const selectionControls = <PneTableSelectionControls
-        actions={<>
-            <PneTableControlButton
-                disabled={selection.selectedCount === 0}
-                onClick={clearSelection}
-            >
-                Clear
-            </PneTableControlButton>
-            <PneTableControlButton onClick={selectAllResults}>
-                Select all results
-            </PneTableControlButton>
-            {showBulkActions ? <PneTableControlButton
-                disabled={selection.selectedCount === 0}
-                emphasis='strong'
-                menu
-            >
-                Actions
-            </PneTableControlButton> : null}
-        </>}
-        summary={`Selected: ${selection.selectedCount}`}
-    />
-    const selectionFeedback = limitVisible
-        ? <Alert severity='warning'>
+    const selectionControls = (
+        <PneTableSelectionControls
+            actions={
+                <>
+                    <PneTableControlButton disabled={selection.selectedCount === 0} onClick={clearSelection}>
+                        Clear
+                    </PneTableControlButton>
+                    <PneTableControlButton onClick={selectAllResults}>Select all results</PneTableControlButton>
+                    {showBulkActions ? (
+                        <PneTableControlButton disabled={selection.selectedCount === 0} emphasis='strong' menu>
+                            Actions
+                        </PneTableControlButton>
+                    ) : null}
+                </>
+            }
+            summary={`Selected: ${selection.selectedCount}`}
+        />
+    )
+    const selectionFeedback = limitVisible ? (
+        <Alert severity='warning'>
             <Typography>Selection is limited to {maxSelected} rows.</Typography>
             <Typography>Narrow the filters and try again before selecting all matching results.</Typography>
         </Alert>
-        : undefined
-    const viewSelector = showViews ? <PneTableViewSelector<StoryView>
-        aria-label='Results view'
-        actions={<Tooltip title='View settings'>
-            <IconButton aria-label='View settings'>
-                <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
-            </IconButton>
-        </Tooltip>}
-        onChange={setView}
-        value={view}
-        views={[
-            {id: 'summary', label: 'Summary'},
-            {id: 'operations', label: 'Operations'},
-            {id: 'risk', label: 'Risk'},
-        ]}
-    /> : undefined
-
-    return <Box
-        data-story-section='pne-table-selection'
-        sx={{backgroundColor: '#fff', boxSizing: 'border-box', p: 2, width: '100%'}}
-    >
-        <PneTable<StoryRow>
-            autoTestId='selection-story'
-            createRow={row => <PneTableRow
-                aria-selected={selection.isRowSelected(row)}
-                data-story-selection-row
-                key={row.id}
-                selected={selection.isRowSelected(row)}
-            >
-                <PneTableSelectionCell
-                    aria-label={`Select ${row.name}`}
-                    checked={selection.isRowSelected(row)}
-                    disabled={selection.interactionDisabled || !selection.isRowSelectable(row)}
-                    onChange={checked => selection.setRowSelected(row, checked)}
-                />
-                <PneTableCell>{row.id}</PneTableCell>
-                <PneTableCell>{row.name}</PneTableCell>
-            </PneTableRow>}
-            createTableHeader={() => <PneTableRow data-story-selection-header-row>
-                <PneTableSelectionHeaderCell
-                    aria-label='Select current page'
-                    disabled={selection.interactionDisabled || selection.pageSelectableCount === 0}
-                    onChange={checked => selection.setPageSelected(checked)}
-                    state={selection.pageState}
-                />
-                <PneHeaderTableCell>ID</PneHeaderTableCell>
-                <PneHeaderTableCell>Name</PneHeaderTableCell>
-            </PneTableRow>}
-            data={storyRows}
-            feedback={selectionFeedback}
-            paginator={{
-                rowsPerPageOptions: [5, 10, 25],
-                rowsPerPage: 5,
-                page: 0,
-                onPageChange: () => undefined,
-                onPageSizeChange: () => undefined,
-                hasNext: true,
-                disableActions: false,
-                displayedRowsLabel: '1 - 5',
-                paginationRef,
-                duplicatePagination: true,
-            }}
-            tableAriaLabel='Selectable gates'
-            toolbar={<PneTableToolbar
-                aria-label='Table controls'
-                contextual={selectionControls}
-                persistent={viewSelector}
-            />}
+    ) : undefined
+    const viewSelector = showViews ? (
+        <PneTableViewSelector<StoryView>
+            aria-label='Results view'
+            actions={
+                <Tooltip title='View settings'>
+                    <IconButton aria-label='View settings'>
+                        <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}} />
+                    </IconButton>
+                </Tooltip>
+            }
+            onChange={setView}
+            value={view}
+            views={[
+                {id: 'summary', label: 'Summary'},
+                {id: 'operations', label: 'Operations'},
+                {id: 'risk', label: 'Risk'},
+            ]}
         />
-    </Box>
+    ) : undefined
+
+    return (
+        <Box
+            data-story-section='pne-table-selection'
+            sx={{backgroundColor: '#fff', boxSizing: 'border-box', p: 2, width: '100%'}}
+        >
+            <PneTable<StoryRow>
+                autoTestId='selection-story'
+                createRow={row => (
+                    <PneTableRow
+                        aria-selected={selection.isRowSelected(row)}
+                        data-story-selection-row
+                        key={row.id}
+                        selected={selection.isRowSelected(row)}
+                    >
+                        <PneTableSelectionCell
+                            aria-label={`Select ${row.name}`}
+                            checked={selection.isRowSelected(row)}
+                            disabled={selection.interactionDisabled || !selection.isRowSelectable(row)}
+                            onChange={checked => selection.setRowSelected(row, checked)}
+                        />
+                        <PneTableCell>{row.id}</PneTableCell>
+                        <PneTableCell>{row.name}</PneTableCell>
+                    </PneTableRow>
+                )}
+                createTableHeader={() => (
+                    <PneTableRow data-story-selection-header-row>
+                        <PneTableSelectionHeaderCell
+                            aria-label='Select current page'
+                            disabled={selection.interactionDisabled || selection.pageSelectableCount === 0}
+                            onChange={checked => selection.setPageSelected(checked)}
+                            state={selection.pageState}
+                        />
+                        <PneHeaderTableCell>ID</PneHeaderTableCell>
+                        <PneHeaderTableCell>Name</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                data={storyRows}
+                feedback={selectionFeedback}
+                paginator={{
+                    rowsPerPageOptions: [5, 10, 25],
+                    rowsPerPage: 5,
+                    page: 0,
+                    onPageChange: () => undefined,
+                    onPageSizeChange: () => undefined,
+                    hasNext: true,
+                    disableActions: false,
+                    displayedRowsLabel: '1 - 5',
+                    paginationRef,
+                    duplicatePagination: true,
+                }}
+                tableAriaLabel='Selectable gates'
+                toolbar={
+                    <PneTableToolbar
+                        aria-label='Table controls'
+                        contextual={selectionControls}
+                        persistent={viewSelector}
+                    />
+                }
+            />
+        </Box>
+    )
 }
 
 const SubpixelSelectionLayoutStory = () => {
@@ -173,90 +182,100 @@ const SubpixelSelectionLayoutStory = () => {
     })
     const contextualWidth = selection.selectedCount === 0 ? 518.375 : 631.84375
 
-    return <Box
-        data-story-section='subpixel-selection-layout'
-        sx={{
-            backgroundColor: '#fff',
-            boxSizing: 'border-box',
-            maxWidth: 'calc(100vw - 32px)',
-            p: 2,
-            width: '1312px',
-        }}
-    >
-        <PneTable<StoryRow>
-            autoTestId='subpixel-selection-layout'
-            createRow={row => <PneTableRow
-                aria-selected={selection.isRowSelected(row)}
-                key={row.id}
-                selected={selection.isRowSelected(row)}
-            >
-                <PneTableSelectionCell
-                    aria-label={`Select ${row.name}`}
-                    checked={selection.isRowSelected(row)}
-                    onChange={checked => selection.setRowSelected(row, checked)}
-                />
-                <PneTableCell>{row.id}</PneTableCell>
-                <PneTableCell>{row.name}</PneTableCell>
-            </PneTableRow>}
-            createTableHeader={() => <PneTableRow data-story-selection-header-row>
-                <PneTableSelectionHeaderCell
-                    aria-label='Select current page for layout regression'
-                    onChange={checked => selection.setPageSelected(checked)}
-                    state={selection.pageState}
-                />
-                <PneHeaderTableCell>ID</PneHeaderTableCell>
-                <PneHeaderTableCell>Name</PneHeaderTableCell>
-            </PneTableRow>}
-            data={storyRows}
-            paginator={{
-                rowsPerPageOptions: [5, 10, 25],
-                rowsPerPage: 5,
-                page: 0,
-                onPageChange: () => undefined,
-                onPageSizeChange: () => undefined,
-                hasNext: false,
-                disableActions: false,
-                displayedRowsLabel: '1 - 5',
-                paginationRef,
-                duplicatePagination: true,
+    return (
+        <Box
+            data-story-section='subpixel-selection-layout'
+            sx={{
+                backgroundColor: '#fff',
+                boxSizing: 'border-box',
+                maxWidth: 'calc(100vw - 32px)',
+                p: 2,
+                width: '1312px',
             }}
-            tableAriaLabel='Subpixel selection layout regression'
-            toolbar={<PneTableToolbar
-                aria-label='Subpixel table controls'
-                contextual={<Box
-                    data-story-dynamic-selection-controls
-                    sx={{
-                        alignItems: 'center',
-                        display: 'flex',
-                        height: '40px',
-                        justifyContent: 'flex-end',
-                        width: `${contextualWidth}px`,
-                    }}
-                >
-                    <Typography>{selection.selectedCount} rows selected</Typography>
-                    {selection.selectedCount > 0 ? <Button
-                        size='large'
-                        onClick={selection.clear}
-                        variant='text'
+        >
+            <PneTable<StoryRow>
+                autoTestId='subpixel-selection-layout'
+                createRow={row => (
+                    <PneTableRow
+                        aria-selected={selection.isRowSelected(row)}
+                        key={row.id}
+                        selected={selection.isRowSelected(row)}
                     >
-                        Unselect
-                    </Button> : null}
-                </Box>}
-                persistent={<Box
-                    data-story-persistent-view
-                    sx={{
-                        alignItems: 'center',
-                        display: 'flex',
-                        height: '40px',
-                        justifyContent: 'flex-end',
-                        width: '159.1875px',
-                    }}
-                >
-                    Detailed view
-                </Box>}
-            />}
-        />
-    </Box>
+                        <PneTableSelectionCell
+                            aria-label={`Select ${row.name}`}
+                            checked={selection.isRowSelected(row)}
+                            onChange={checked => selection.setRowSelected(row, checked)}
+                        />
+                        <PneTableCell>{row.id}</PneTableCell>
+                        <PneTableCell>{row.name}</PneTableCell>
+                    </PneTableRow>
+                )}
+                createTableHeader={() => (
+                    <PneTableRow data-story-selection-header-row>
+                        <PneTableSelectionHeaderCell
+                            aria-label='Select current page for layout regression'
+                            onChange={checked => selection.setPageSelected(checked)}
+                            state={selection.pageState}
+                        />
+                        <PneHeaderTableCell>ID</PneHeaderTableCell>
+                        <PneHeaderTableCell>Name</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                data={storyRows}
+                paginator={{
+                    rowsPerPageOptions: [5, 10, 25],
+                    rowsPerPage: 5,
+                    page: 0,
+                    onPageChange: () => undefined,
+                    onPageSizeChange: () => undefined,
+                    hasNext: false,
+                    disableActions: false,
+                    displayedRowsLabel: '1 - 5',
+                    paginationRef,
+                    duplicatePagination: true,
+                }}
+                tableAriaLabel='Subpixel selection layout regression'
+                toolbar={
+                    <PneTableToolbar
+                        aria-label='Subpixel table controls'
+                        contextual={
+                            <Box
+                                data-story-dynamic-selection-controls
+                                sx={{
+                                    alignItems: 'center',
+                                    display: 'flex',
+                                    height: '40px',
+                                    justifyContent: 'flex-end',
+                                    width: `${contextualWidth}px`,
+                                }}
+                            >
+                                <Typography>{selection.selectedCount} rows selected</Typography>
+                                {selection.selectedCount > 0 ? (
+                                    <Button size='large' onClick={selection.clear} variant='text'>
+                                        Unselect
+                                    </Button>
+                                ) : null}
+                            </Box>
+                        }
+                        persistent={
+                            <Box
+                                data-story-persistent-view
+                                sx={{
+                                    alignItems: 'center',
+                                    display: 'flex',
+                                    height: '40px',
+                                    justifyContent: 'flex-end',
+                                    width: '159.1875px',
+                                }}
+                            >
+                                Detailed view
+                            </Box>
+                        }
+                    />
+                }
+            />
+        </Box>
+    )
 }
 
 /**
@@ -274,104 +293,116 @@ const GatesLikeControlsStory = ({width}: {width?: number}) => {
         defaultSelection: {mode: 'explicit', selectedIds: new Set([1, 3])},
     })
 
-    return <Box
-        data-story-section='gates-like-controls'
-        sx={{
-            backgroundColor: '#fff',
-            boxSizing: 'border-box',
-            maxWidth: '100%',
-            p: 2,
-            width: width === undefined ? '100%' : `${width}px`,
-        }}
-    >
-        <PneTable<StoryRow>
-            autoTestId='gates-like-controls'
-            createRow={row => <PneTableRow key={row.id} selected={selection.isRowSelected(row)}>
-                <PneTableSelectionCell
-                    aria-label={`Select ${row.name}`}
-                    checked={selection.isRowSelected(row)}
-                    onChange={checked => selection.setRowSelected(row, checked)}
-                />
-                <PneTableCell>{row.id}</PneTableCell>
-                <PneTableCell>{row.name}</PneTableCell>
-            </PneTableRow>}
-            createTableHeader={() => <PneTableRow>
-                <PneTableSelectionHeaderCell
-                    aria-label='Select current page'
-                    onChange={checked => selection.setPageSelected(checked)}
-                    state={selection.pageState}
-                />
-                <PneHeaderTableCell>Status</PneHeaderTableCell>
-                <PneHeaderTableCell>Name</PneHeaderTableCell>
-            </PneTableRow>}
-            data={storyRows}
-            paginator={{
-                rowsPerPageOptions: [10, 25, 50, 100],
-                rowsPerPage: 10,
-                page: 0,
-                onPageChange: () => undefined,
-                onPageSizeChange: () => undefined,
-                hasNext: true,
-                disableActions: false,
-                displayedRowsLabel: '1 - 10',
-                paginationRef,
-                duplicatePagination: true,
+    return (
+        <Box
+            data-story-section='gates-like-controls'
+            sx={{
+                backgroundColor: '#fff',
+                boxSizing: 'border-box',
+                maxWidth: '100%',
+                p: 2,
+                width: width === undefined ? '100%' : `${width}px`,
             }}
-            tableAriaLabel='Gates'
-            toolbar={<PneTableToolbar
-                aria-label='Gates table controls'
-                contextual={<PneTableSelectionControls
-                    summary={`Selected gates: ${selection.selectedCount}`}
-                    actions={<>
-                        {selection.selectedCount > 0 ? <PneTableControlButton onClick={selection.clear}>
-                            Unselect
-                        </PneTableControlButton> : null}
-                        <PneTableControlButton onClick={() => selection.selectAllMatching(120)}>
-                            Select all
-                        </PneTableControlButton>
-                        <PneTableControlButton
-                            disabled={selection.selectedCount === 0}
-                            emphasis='strong'
-                            menu
-                            tooltip='Operations with selected gates'
-                        >
-                            Actions
-                        </PneTableControlButton>
-                    </>}
-                />}
-                persistent={<Box sx={{display: 'contents'}}>
-                    <PneTableViewSelector<StoryView>
-                        aria-label='Gates view'
-                        actions={<Tooltip title='View settings'>
-                            <IconButton aria-label='View settings'>
-                                <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
-                            </IconButton>
-                        </Tooltip>}
-                        onChange={setView}
-                        value={view}
-                        views={[
-                            {id: 'summary', label: 'Brief'},
-                            {id: 'operations', label: 'Detailed'},
-                        ]}
+        >
+            <PneTable<StoryRow>
+                autoTestId='gates-like-controls'
+                createRow={row => (
+                    <PneTableRow key={row.id} selected={selection.isRowSelected(row)}>
+                        <PneTableSelectionCell
+                            aria-label={`Select ${row.name}`}
+                            checked={selection.isRowSelected(row)}
+                            onChange={checked => selection.setRowSelected(row, checked)}
+                        />
+                        <PneTableCell>{row.id}</PneTableCell>
+                        <PneTableCell>{row.name}</PneTableCell>
+                    </PneTableRow>
+                )}
+                createTableHeader={() => (
+                    <PneTableRow>
+                        <PneTableSelectionHeaderCell
+                            aria-label='Select current page'
+                            onChange={checked => selection.setPageSelected(checked)}
+                            state={selection.pageState}
+                        />
+                        <PneHeaderTableCell>Status</PneHeaderTableCell>
+                        <PneHeaderTableCell>Name</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                data={storyRows}
+                paginator={{
+                    rowsPerPageOptions: [10, 25, 50, 100],
+                    rowsPerPage: 10,
+                    page: 0,
+                    onPageChange: () => undefined,
+                    onPageSizeChange: () => undefined,
+                    hasNext: true,
+                    disableActions: false,
+                    displayedRowsLabel: '1 - 10',
+                    paginationRef,
+                    duplicatePagination: true,
+                }}
+                tableAriaLabel='Gates'
+                toolbar={
+                    <PneTableToolbar
+                        aria-label='Gates table controls'
+                        contextual={
+                            <PneTableSelectionControls
+                                summary={`Selected gates: ${selection.selectedCount}`}
+                                actions={
+                                    <>
+                                        {selection.selectedCount > 0 ? (
+                                            <PneTableControlButton onClick={selection.clear}>
+                                                Unselect
+                                            </PneTableControlButton>
+                                        ) : null}
+                                        <PneTableControlButton onClick={() => selection.selectAllMatching(120)}>
+                                            Select all
+                                        </PneTableControlButton>
+                                        <PneTableControlButton
+                                            disabled={selection.selectedCount === 0}
+                                            emphasis='strong'
+                                            menu
+                                            tooltip='Operations with selected gates'
+                                        >
+                                            Actions
+                                        </PneTableControlButton>
+                                    </>
+                                }
+                            />
+                        }
+                        persistent={
+                            <Box sx={{display: 'contents'}}>
+                                <PneTableViewSelector<StoryView>
+                                    aria-label='Gates view'
+                                    actions={
+                                        <Tooltip title='View settings'>
+                                            <IconButton aria-label='View settings'>
+                                                <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    }
+                                    onChange={setView}
+                                    value={view}
+                                    views={[
+                                        {id: 'summary', label: 'Brief'},
+                                        {id: 'operations', label: 'Detailed'},
+                                    ]}
+                                />
+                            </Box>
+                        }
                     />
-                </Box>}
-            />}
-        />
-    </Box>
+                }
+            />
+        </Box>
+    )
 }
 
 const nextFrame = () => new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
 
 const requireControlBands = (canvasElement: HTMLElement) => {
-    const topControls = canvasElement.querySelector<HTMLElement>(
-        '[data-autotest="table-top-controls"]',
-    )
-    const actionBand = canvasElement.querySelector<HTMLElement>(
-        '[data-autotest="pagination-actions"]',
-    )
-    const tableControlBar = canvasElement.querySelector<HTMLElement>(
-        '[data-autotest="table-control-bar"]',
-    )
+    const topControls = canvasElement.querySelector<HTMLElement>('[data-autotest="table-top-controls"]')
+    const actionBand = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-actions"]')
+    const tableControlBar = canvasElement.querySelector<HTMLElement>('[data-autotest="table-control-bar"]')
 
     if (!topControls || !actionBand || !tableControlBar) {
         throw new Error('Gates-like control bands are missing from the story')
@@ -385,9 +416,7 @@ const getBandItems = (band: HTMLElement): HTMLElement[] =>
     Array.from(band.children).flatMap(child => {
         const element = child as HTMLElement
 
-        return window.getComputedStyle(element).display === 'contents'
-            ? getBandItems(element)
-            : [element]
+        return window.getComputedStyle(element).display === 'contents' ? getBandItems(element) : [element]
     })
 
 /**
@@ -424,15 +453,14 @@ const requireTightRowPacking = (band: HTMLElement, bandName: string, gap: number
         }
 
         const rects = row.map(item => item.getBoundingClientRect())
-        const packedWidth = Math.max(...rects.map(rect => rect.right))
-            - Math.min(...rects.map(rect => rect.left))
+        const packedWidth = Math.max(...rects.map(rect => rect.right)) - Math.min(...rects.map(rect => rect.left))
         const candidateWidth = nextRow[0].getBoundingClientRect().width
 
         if (packedWidth + gap + candidateWidth <= availableWidth) {
             throw new Error(
-                `${bandName} wrapped too early: row ${index + 1} (${Math.round(packedWidth)}px)`
-                + ` had room for the next ${Math.round(candidateWidth)}px control`
-                + ` within ${Math.round(availableWidth)}px`,
+                `${bandName} wrapped too early: row ${index + 1} (${Math.round(packedWidth)}px)` +
+                    ` had room for the next ${Math.round(candidateWidth)}px control` +
+                    ` within ${Math.round(availableWidth)}px`,
             )
         }
     })
@@ -463,9 +491,7 @@ export const CompactSelectionCells: Story = {
         const selectionInputs = canvasElement.querySelectorAll<HTMLInputElement>(
             'input[data-autotest="row-selection"], input[data-autotest="page-selection"]',
         )
-        const bodyRows = canvasElement.querySelectorAll<HTMLElement>(
-            '[data-story-selection-row]',
-        )
+        const bodyRows = canvasElement.querySelectorAll<HTMLElement>('[data-story-selection-row]')
 
         if (selectionInputs.length !== storyRows.length + 1 || bodyRows.length !== storyRows.length) {
             throw new Error('Compact selection geometry fixture is incomplete')
@@ -524,15 +550,9 @@ export const LimitWarning: Story = {
         showLimitStatus: true,
     },
     play: ({canvasElement}) => {
-        const feedback = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-feedback"]',
-        )
-        const topControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-top-controls"]',
-        )
-        const actionBand = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-actions"]',
-        )
+        const feedback = canvasElement.querySelector<HTMLElement>('[data-autotest="table-feedback"]')
+        const topControls = canvasElement.querySelector<HTMLElement>('[data-autotest="table-top-controls"]')
+        const actionBand = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-actions"]')
 
         if (!feedback || !topControls || !actionBand) {
             throw new Error('Full-width selection feedback fixture is incomplete')
@@ -546,12 +566,8 @@ export const LimitWarning: Story = {
         if (Math.abs(feedback.getBoundingClientRect().width - topControls.getBoundingClientRect().width) > 1) {
             throw new Error('Selection feedback must span the full table-control width')
         }
-        const navigation = actionBand.querySelector<HTMLElement>(
-            '[data-autotest="page-navigation"]',
-        )
-        const pageSizes = actionBand.querySelector<HTMLElement>(
-            '[data-autotest="page-sizes"]',
-        )
+        const navigation = actionBand.querySelector<HTMLElement>('[data-autotest="page-navigation"]')
+        const pageSizes = actionBand.querySelector<HTMLElement>('[data-autotest="page-sizes"]')
 
         if (!navigation || !pageSizes) {
             throw new Error('Pagination controls are missing from the feedback fixture')
@@ -572,21 +588,11 @@ export const SelectionOnlyMobile360: Story = {
         viewport: {defaultViewport: 'mobile360'},
     },
     play: ({canvasElement}) => {
-        const actionBand = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-actions"]',
-        )
-        const selectionControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="selection-controls"]',
-        )
-        const feedback = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-feedback"]',
-        )
-        const topControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-top-controls"]',
-        )
-        const persistent = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-persistent-controls"]',
-        )
+        const actionBand = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-actions"]')
+        const selectionControls = canvasElement.querySelector<HTMLElement>('[data-autotest="selection-controls"]')
+        const feedback = canvasElement.querySelector<HTMLElement>('[data-autotest="table-feedback"]')
+        const topControls = canvasElement.querySelector<HTMLElement>('[data-autotest="table-top-controls"]')
+        const persistent = canvasElement.querySelector<HTMLElement>('[data-autotest="table-persistent-controls"]')
 
         if (!actionBand || !selectionControls || !feedback || !topControls) {
             throw new Error('Selection-only controls are missing from the 360px story')
@@ -594,12 +600,8 @@ export const SelectionOnlyMobile360: Story = {
         if (persistent) {
             throw new Error('Selection-only regression story must not render View controls')
         }
-        const paginationToolbar = actionBand.querySelector<HTMLElement>(
-            '[data-autotest="pagination-toolbar"]',
-        )
-        const paginationNavigation = actionBand.querySelector<HTMLElement>(
-            '[data-autotest="page-navigation"]',
-        )
+        const paginationToolbar = actionBand.querySelector<HTMLElement>('[data-autotest="pagination-toolbar"]')
+        const paginationNavigation = actionBand.querySelector<HTMLElement>('[data-autotest="page-navigation"]')
 
         if (!paginationToolbar || !paginationNavigation) {
             throw new Error('Pagination controls are missing from the 360px story')
@@ -607,8 +609,7 @@ export const SelectionOnlyMobile360: Story = {
         if (sharesRow(paginationToolbar, paginationNavigation)) {
             throw new Error('Selection-only controls must occupy their own row at 360px')
         }
-        if (paginationToolbar.getBoundingClientRect().top
-            >= paginationNavigation.getBoundingClientRect().top) {
+        if (paginationToolbar.getBoundingClientRect().top >= paginationNavigation.getBoundingClientRect().top) {
             throw new Error('Selection-only controls must sit above pagination at 360px')
         }
         if (selectionControls.clientWidth < 240) {
@@ -637,7 +638,7 @@ export const SelectionAndViewsDesktop: Story = {
 }
 
 export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
-    render: () => <SubpixelSelectionLayoutStory/>,
+    render: () => <SubpixelSelectionLayoutStory />,
     parameters: {
         viewport: {defaultViewport: 'desktop'},
     },
@@ -645,15 +646,9 @@ export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
         const checkbox = canvasElement.querySelector<HTMLInputElement>(
             'input[aria-label="Select current page for layout regression"]',
         )
-        const header = canvasElement.querySelector<HTMLElement>(
-            '[data-story-selection-header-row]',
-        )
-        const actionBand = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-actions"]',
-        )
-        const tableControlBar = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-control-bar"]',
-        )
+        const header = canvasElement.querySelector<HTMLElement>('[data-story-selection-header-row]')
+        const actionBand = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-actions"]')
+        const tableControlBar = canvasElement.querySelector<HTMLElement>('[data-autotest="table-control-bar"]')
         const persistentControls = canvasElement.querySelector<HTMLElement>(
             '[data-autotest="table-persistent-controls"]',
         )
@@ -682,8 +677,10 @@ export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
         if (Math.max(...observedHeaderTops) - Math.min(...observedHeaderTops) >= 1) {
             throw new Error('Table header moved after selecting the current page')
         }
-        if (Math.max(...observedToolbarLefts) - Math.min(...observedToolbarLefts) >= 1
-            || Math.max(...observedPersistentLefts) - Math.min(...observedPersistentLefts) >= 1) {
+        if (
+            Math.max(...observedToolbarLefts) - Math.min(...observedToolbarLefts) >= 1 ||
+            Math.max(...observedPersistentLefts) - Math.min(...observedPersistentLefts) >= 1
+        ) {
             throw new Error('Table controls moved after selecting the current page')
         }
 
@@ -697,7 +694,7 @@ export const SelectPageKeepsHeaderStableAtSubpixelBoundary: Story = {
  * an assertion loop for animation frames.
  */
 export const GatesControlsPlayground: Story = {
-    render: () => <GatesLikeControlsStory/>,
+    render: () => <GatesLikeControlsStory />,
     parameters: {
         viewport: {defaultViewport: 'desktop'},
     },
@@ -711,29 +708,21 @@ export const GatesControlsPlayground: Story = {
  * and the pagination is never broken apart by the toolbar on the way.
  */
 export const GatesControlsStayStableAtFractionalZoom: Story = {
-    render: () => <GatesLikeControlsStory/>,
+    render: () => <GatesLikeControlsStory />,
     parameters: {
         viewport: {defaultViewport: 'desktop'},
     },
     play: async ({canvasElement}) => {
-        const section = canvasElement.querySelector<HTMLElement>(
-            '[data-story-section="gates-like-controls"]',
-        )
+        const section = canvasElement.querySelector<HTMLElement>('[data-story-section="gates-like-controls"]')
 
         if (!section) {
             throw new Error('Gates-like fixture is missing')
         }
 
         const {actionBand, tableControlBar} = requireControlBands(canvasElement)
-        const navigation = actionBand.querySelector<HTMLElement>(
-            '[data-autotest="page-navigation"]',
-        )
-        const pageSizes = actionBand.querySelector<HTMLElement>(
-            '[data-autotest="page-sizes"]',
-        )
-        const paginationToolbar = actionBand.querySelector<HTMLElement>(
-            '[data-autotest="pagination-toolbar"]',
-        )
+        const navigation = actionBand.querySelector<HTMLElement>('[data-autotest="page-navigation"]')
+        const pageSizes = actionBand.querySelector<HTMLElement>('[data-autotest="page-sizes"]')
+        const paginationToolbar = actionBand.querySelector<HTMLElement>('[data-autotest="pagination-toolbar"]')
 
         if (!navigation || !pageSizes || !paginationToolbar) {
             throw new Error('Pagination controls are missing from the gates-like fixture')
@@ -754,15 +743,10 @@ export const GatesControlsStayStableAtFractionalZoom: Story = {
             }
 
             if (observedLayouts.size !== 1) {
-                throw new Error(
-                    `Table controls keep flipping at zoom ${zoom}: ${[...observedLayouts].join(', ')}`,
-                )
+                throw new Error(`Table controls keep flipping at zoom ${zoom}: ${[...observedLayouts].join(', ')}`)
             }
-            if (!sharesRow(navigation, pageSizes)
-                && sharesRow(paginationToolbar, navigation)) {
-                throw new Error(
-                    `The toolbar came between the two pagination halves at zoom ${zoom}`,
-                )
+            if (!sharesRow(navigation, pageSizes) && sharesRow(paginationToolbar, navigation)) {
+                throw new Error(`The toolbar came between the two pagination halves at zoom ${zoom}`)
             }
             if (actionBand.scrollWidth > actionBand.clientWidth + 1) {
                 throw new Error(`Pagination actions overflow at zoom ${zoom}`)
@@ -775,7 +759,7 @@ export const GatesControlsStayStableAtFractionalZoom: Story = {
 }
 
 export const GatesControlsRowBudgetMobile360: Story = {
-    render: () => <GatesLikeControlsStory width={360}/>,
+    render: () => <GatesLikeControlsStory width={360} />,
     parameters: {
         viewport: {defaultViewport: 'mobile360'},
     },
@@ -796,15 +780,9 @@ export const GatesControlsRowBudgetMobile360: Story = {
             }
         }
 
-        const selectionControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="selection-controls"]',
-        )
-        const summary = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="selection-summary"]',
-        )
-        const selectAll = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="selection-actions"] button',
-        )
+        const selectionControls = canvasElement.querySelector<HTMLElement>('[data-autotest="selection-controls"]')
+        const summary = canvasElement.querySelector<HTMLElement>('[data-autotest="selection-summary"]')
+        const selectAll = canvasElement.querySelector<HTMLElement>('[data-autotest="selection-actions"] button')
 
         if (!selectionControls || !summary || !selectAll) {
             throw new Error('Selection summary and actions are missing from the 360px story')
@@ -827,43 +805,27 @@ export const SelectionAndViewsMobile360: Story = {
         viewport: {defaultViewport: 'mobile360'},
     },
     play: ({canvasElement}) => {
-        const topControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-top-controls"]',
-        )
-        const actionBand = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-actions"]',
-        )
-        const paginationToolbar = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-toolbar"]',
-        )
-        const tableControlBar = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-control-bar"]',
-        )
-        const contextual = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-contextual-controls"]',
-        )
-        const persistent = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-persistent-controls"]',
-        )
-        const navigation = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="page-navigation"]',
-        )
-        const pageSizes = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="page-sizes"]',
-        )
-        const settingsAction = canvasElement.querySelector<HTMLElement>(
-            'button[aria-label="View settings"]',
-        )
+        const topControls = canvasElement.querySelector<HTMLElement>('[data-autotest="table-top-controls"]')
+        const actionBand = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-actions"]')
+        const paginationToolbar = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-toolbar"]')
+        const tableControlBar = canvasElement.querySelector<HTMLElement>('[data-autotest="table-control-bar"]')
+        const contextual = canvasElement.querySelector<HTMLElement>('[data-autotest="table-contextual-controls"]')
+        const persistent = canvasElement.querySelector<HTMLElement>('[data-autotest="table-persistent-controls"]')
+        const navigation = canvasElement.querySelector<HTMLElement>('[data-autotest="page-navigation"]')
+        const pageSizes = canvasElement.querySelector<HTMLElement>('[data-autotest="page-sizes"]')
+        const settingsAction = canvasElement.querySelector<HTMLElement>('button[aria-label="View settings"]')
 
-        if (!topControls
-            || !actionBand
-            || !paginationToolbar
-            || !tableControlBar
-            || !contextual
-            || !persistent
-            || !navigation
-            || !pageSizes
-            || !settingsAction) {
+        if (
+            !topControls ||
+            !actionBand ||
+            !paginationToolbar ||
+            !tableControlBar ||
+            !contextual ||
+            !persistent ||
+            !navigation ||
+            !pageSizes ||
+            !settingsAction
+        ) {
             throw new Error('Selection and View controls are missing from the 360px story')
         }
 
@@ -882,24 +844,20 @@ export const SelectionAndViewsMobile360: Story = {
         if (sharesRow(paginationToolbar, navigation)) {
             throw new Error('Combined table controls must occupy their own row at 360px')
         }
-        if (paginationToolbar.getBoundingClientRect().top
-            >= navigation.getBoundingClientRect().top) {
+        if (paginationToolbar.getBoundingClientRect().top >= navigation.getBoundingClientRect().top) {
             throw new Error('Combined table controls must sit above pagination at 360px')
         }
         if (sharesRow(contextual, persistent)) {
             throw new Error('Selection and View controls must use separate rows at 360px')
         }
         if (
-            actionBand.children[0] !== paginationToolbar
-            || navigation.parentElement !== pageSizes.parentElement
-            || actionBand.children[1] !== navigation.parentElement
+            actionBand.children[0] !== paginationToolbar ||
+            navigation.parentElement !== pageSizes.parentElement ||
+            actionBand.children[1] !== navigation.parentElement
         ) {
             throw new Error('Pagination halves must stay one group that follows the toolbar')
         }
-        if (
-            tableControlBar.children[0] !== contextual
-            || tableControlBar.children[1] !== persistent
-        ) {
+        if (tableControlBar.children[0] !== contextual || tableControlBar.children[1] !== persistent) {
             throw new Error('Selection must precede View in visual and keyboard order')
         }
 

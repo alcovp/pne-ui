@@ -5,23 +5,21 @@ import {TABLE_CONTROL_GAP} from './tableControlMetrics'
 
 type PneTableToolbarAccessibleName =
     | {
-        'aria-label': string
-        'aria-labelledby'?: never
-    }
+          'aria-label': string
+          'aria-labelledby'?: never
+      }
     | {
-        'aria-label'?: never
-        'aria-labelledby': string
-    }
+          'aria-label'?: never
+          'aria-labelledby': string
+      }
 
-export type PneTableToolbarProps = Omit<
-    BoxProps,
-    'aria-label' | 'aria-labelledby' | 'children' | 'component' | 'ref'
-> & PneTableToolbarAccessibleName & {
-    /** Contextual controls such as current selection and bulk actions. */
-    contextual?: React.ReactNode
-    /** Persistent controls such as a table View selector. */
-    persistent?: React.ReactNode
-}
+export type PneTableToolbarProps = Omit<BoxProps, 'aria-label' | 'aria-labelledby' | 'children' | 'component' | 'ref'> &
+    PneTableToolbarAccessibleName & {
+        /** Contextual controls such as current selection and bulk actions. */
+        contextual?: React.ReactNode
+        /** Persistent controls such as a table View selector. */
+        persistent?: React.ReactNode
+    }
 
 /** Gap between the control groups in one row; the rows they wrap onto stand closer. */
 const CONTROL_GROUP_GAP = 8
@@ -50,55 +48,42 @@ const groupSx: SxProps<Theme> = {
 }
 
 const PneTableToolbar = (props: PneTableToolbarProps) => {
-    const {
-        'aria-label': ariaLabel,
-        'aria-labelledby': ariaLabelledBy,
-        contextual,
-        persistent,
-        sx,
-        ...rootProps
-    } = props
-    const hasContextual = contextual !== undefined
-        && contextual !== null
-        && typeof contextual !== 'boolean'
-    const hasPersistent = persistent !== undefined
-        && persistent !== null
-        && typeof persistent !== 'boolean'
+    const {'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, contextual, persistent, sx, ...rootProps} = props
+    const hasContextual = contextual !== undefined && contextual !== null && typeof contextual !== 'boolean'
+    const hasPersistent = persistent !== undefined && persistent !== null && typeof persistent !== 'boolean'
 
-    return <Box
-        {...rootProps}
-        {...createAutoTestAttributes('table-control-bar')}
-        aria-label={ariaLabel}
-        aria-labelledby={ariaLabelledBy}
-        role='group'
-        sx={[
-            {
-                alignItems: 'center',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: `${TABLE_CONTROL_GAP}px ${CONTROL_GROUP_GAP}px`,
-                justifyContent: 'flex-end',
-                minWidth: 0,
-                width: '100%',
-            },
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-    >
-        {hasContextual ? <Box
-            {...createAutoTestAttributes('table-contextual-controls')}
-            key='contextual'
-            sx={groupSx}
+    return (
+        <Box
+            {...rootProps}
+            {...createAutoTestAttributes('table-control-bar')}
+            aria-label={ariaLabel}
+            aria-labelledby={ariaLabelledBy}
+            role='group'
+            sx={[
+                {
+                    alignItems: 'center',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: `${TABLE_CONTROL_GAP}px ${CONTROL_GROUP_GAP}px`,
+                    justifyContent: 'flex-end',
+                    minWidth: 0,
+                    width: '100%',
+                },
+                ...(Array.isArray(sx) ? sx : [sx]),
+            ]}
         >
-            {contextual}
-        </Box> : null}
-        {hasPersistent ? <Box
-            {...createAutoTestAttributes('table-persistent-controls')}
-            key='persistent'
-            sx={groupSx}
-        >
-            {persistent}
-        </Box> : null}
-    </Box>
+            {hasContextual ? (
+                <Box {...createAutoTestAttributes('table-contextual-controls')} key='contextual' sx={groupSx}>
+                    {contextual}
+                </Box>
+            ) : null}
+            {hasPersistent ? (
+                <Box {...createAutoTestAttributes('table-persistent-controls')} key='persistent' sx={groupSx}>
+                    {persistent}
+                </Box>
+            ) : null}
+        </Box>
+    )
 }
 
 export default PneTableToolbar

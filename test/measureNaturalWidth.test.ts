@@ -56,7 +56,10 @@ describe('measureNaturalWidth', () => {
         document.body.append(first, second)
         const outOfFlowWhileRead: string[] = []
 
-        for (const [element, width] of [[first, 40], [second, 60]] as const) {
+        for (const [element, width] of [
+            [first, 40],
+            [second, 60],
+        ] as const) {
             Object.defineProperty(element, 'getBoundingClientRect', {
                 configurable: true,
                 value: () => {

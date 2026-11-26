@@ -46,8 +46,9 @@ export const filtersInputSx: SxProps = {
         lineHeight: SEARCH_UI_VALUE_HEIGHT,
         padding: '0 0 0 8px',
     },
-    '&&& .MuiPickersFilledInput-root .MuiPickersSectionList-section, &&& .MuiPickersFilledInput-root .MuiPickersSectionList-sectionContent': {
-        lineHeight: SEARCH_UI_VALUE_HEIGHT,
-    },
+    '&&& .MuiPickersFilledInput-root .MuiPickersSectionList-section, &&& .MuiPickersFilledInput-root .MuiPickersSectionList-sectionContent':
+        {
+            lineHeight: SEARCH_UI_VALUE_HEIGHT,
+        },
     ...pickerToggleSx,
 }

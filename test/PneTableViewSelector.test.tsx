@@ -1,10 +1,7 @@
 import React, {ReactNode, RefObject, useState} from 'react'
 import {fireEvent, render, screen, within} from '@testing-library/react'
 import {IconButton} from '@mui/material'
-import {
-    PneTableViewOption,
-    PneTableViewSelector,
-} from '../src'
+import {PneTableViewOption, PneTableViewSelector} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key}),
@@ -28,19 +25,21 @@ const ControlledSelector = (props: {
 }) => {
     const [value, setValue] = useState<ViewId>('brief')
 
-    return <PneTableViewSelector
-        aria-label={props.ariaLabel}
-        actions={props.actions}
-        autoTestId={props.autoTestId}
-        disabled={props.disabled}
-        onChange={nextValue => {
-            props.onChange?.(nextValue)
-            setValue(nextValue)
-        }}
-        value={value}
-        views={views}
-        ref={props.rootRef}
-    />
+    return (
+        <PneTableViewSelector
+            aria-label={props.ariaLabel}
+            actions={props.actions}
+            autoTestId={props.autoTestId}
+            disabled={props.disabled}
+            onChange={nextValue => {
+                props.onChange?.(nextValue)
+                setValue(nextValue)
+            }}
+            value={value}
+            views={views}
+            ref={props.rootRef}
+        />
+    )
 }
 
 describe('PneTableViewSelector', () => {
@@ -49,34 +48,33 @@ describe('PneTableViewSelector', () => {
         const onAction = jest.fn()
         const rootRef = React.createRef<HTMLDivElement>()
 
-        render(<ControlledSelector
-            ariaLabel='Order table view'
-            actions={<button onClick={onAction} type='button'>Settings</button>}
-            autoTestId='orders'
-            onChange={onChange}
-            rootRef={rootRef}
-        />)
+        render(
+            <ControlledSelector
+                ariaLabel='Order table view'
+                actions={
+                    <button onClick={onAction} type='button'>
+                        Settings
+                    </button>
+                }
+                autoTestId='orders'
+                onChange={onChange}
+                rootRef={rootRef}
+            />,
+        )
 
         const group = screen.getByRole('group', {name: 'Order table view'})
         const buttons = within(group).getAllByRole('button')
 
         expect(buttons.map(button => button.textContent)).toEqual(['Brief', 'Full', 'Risk'])
-        expect(buttons.map(button => button.getAttribute('aria-pressed'))).toEqual([
-            'true',
-            'false',
-            'false',
-        ])
-        const root = document.querySelector(
-            '[data-autotest="table-views"][data-autotest-value="orders"]',
-        )
+        expect(buttons.map(button => button.getAttribute('aria-pressed'))).toEqual(['true', 'false', 'false'])
+        const root = document.querySelector('[data-autotest="table-views"][data-autotest-value="orders"]')
         expect(root).not.toBeNull()
         expect(rootRef.current).toBe(root)
-        expect(Array.from(document.querySelectorAll('[data-autotest="table-view"]'))
-            .map(option => option.getAttribute('data-autotest-value'))).toEqual([
-            'brief',
-            'full',
-            'risk',
-        ])
+        expect(
+            Array.from(document.querySelectorAll('[data-autotest="table-view"]')).map(option =>
+                option.getAttribute('data-autotest-value'),
+            ),
+        ).toEqual(['brief', 'full', 'risk'])
 
         fireEvent.click(within(group).getByRole('button', {name: 'Full'}))
 
@@ -94,11 +92,9 @@ describe('PneTableViewSelector', () => {
 
     it('supports per-view and selector disabled states', () => {
         const onChange = jest.fn()
-        const {rerender} = render(<ControlledSelector
-            ariaLabel='Merchant table view'
-            autoTestId='merchants'
-            onChange={onChange}
-        />)
+        const {rerender} = render(
+            <ControlledSelector ariaLabel='Merchant table view' autoTestId='merchants' onChange={onChange} />,
+        )
 
         const group = screen.getByRole('group', {name: 'Merchant table view'})
         const risk = within(group).getByRole('button', {name: 'Risk'}) as HTMLButtonElement
@@ -107,13 +103,15 @@ describe('PneTableViewSelector', () => {
         fireEvent.click(risk)
         expect(onChange).not.toHaveBeenCalled()
 
-        rerender(<ControlledSelector
-            ariaLabel='Merchant table view'
-            actions={<button type='button'>Settings</button>}
-            autoTestId='merchants'
-            disabled
-            onChange={onChange}
-        />)
+        rerender(
+            <ControlledSelector
+                ariaLabel='Merchant table view'
+                actions={<button type='button'>Settings</button>}
+                autoTestId='merchants'
+                disabled
+                onChange={onChange}
+            />,
+        )
 
         for (const button of within(group).getAllByRole('button') as HTMLButtonElement[]) {
             expect(button.disabled).toBe(true)
@@ -138,12 +136,14 @@ describe('PneTableViewSelector', () => {
             },
             views[2],
         ]
-        const {rerender} = render(<PneTableViewSelector
-            aria-label='Configurable table view'
-            onChange={onChange}
-            value='brief'
-            views={hookedViews}
-        />)
+        const {rerender} = render(
+            <PneTableViewSelector
+                aria-label='Configurable table view'
+                onChange={onChange}
+                value='brief'
+                views={hookedViews}
+            />,
+        )
 
         fireEvent.click(screen.getByRole('button', {name: 'Full'}))
 
@@ -153,12 +153,14 @@ describe('PneTableViewSelector', () => {
         expect(onChange).not.toHaveBeenCalled()
         expect(screen.getByRole('button', {name: 'Brief'}).getAttribute('aria-pressed')).toBe('true')
 
-        rerender(<PneTableViewSelector
-            aria-label='Configurable table view'
-            onChange={onChange}
-            value='full'
-            views={hookedViews}
-        />)
+        rerender(
+            <PneTableViewSelector
+                aria-label='Configurable table view'
+                onChange={onChange}
+                value='full'
+                views={hookedViews}
+            />,
+        )
         fireEvent.click(screen.getByRole('button', {name: 'Full'}))
 
         expect(onDetailedClick).toHaveBeenCalledTimes(2)
@@ -167,19 +169,19 @@ describe('PneTableViewSelector', () => {
     })
 
     it('sizes views from their content while allowing safe label truncation', () => {
-        render(<PneTableViewSelector
-            aria-label='Detailed table view'
-            onChange={() => undefined}
-            value='brief'
-            views={[
-                {id: 'brief', label: 'Brief'},
-                {id: 'full', label: 'Detailed (5)'},
-            ]}
-        />)
-
-        const detailedButtonStyle = window.getComputedStyle(
-            screen.getByRole('button', {name: 'Detailed (5)'}),
+        render(
+            <PneTableViewSelector
+                aria-label='Detailed table view'
+                onChange={() => undefined}
+                value='brief'
+                views={[
+                    {id: 'brief', label: 'Brief'},
+                    {id: 'full', label: 'Detailed (5)'},
+                ]}
+            />,
         )
+
+        const detailedButtonStyle = window.getComputedStyle(screen.getByRole('button', {name: 'Detailed (5)'}))
 
         expect(detailedButtonStyle.flexBasis).toBe('auto')
         expect(detailedButtonStyle.flexGrow).toBe('1')
@@ -191,17 +193,22 @@ describe('PneTableViewSelector', () => {
     })
 
     it('keeps simultaneous selectors isolated and stands the 24px views on a 32px tabs shell', () => {
-        render(<>
-            <ControlledSelector
-                actions={<span><IconButton
-                    aria-label='First settings'
-                    sx={{borderRadius: '4px'}}
-                >S</IconButton></span>}
-                ariaLabel='First table view'
-                autoTestId='first'
-            />
-            <ControlledSelector ariaLabel='Second table view' autoTestId='second'/>
-        </>)
+        render(
+            <>
+                <ControlledSelector
+                    actions={
+                        <span>
+                            <IconButton aria-label='First settings' sx={{borderRadius: '4px'}}>
+                                S
+                            </IconButton>
+                        </span>
+                    }
+                    ariaLabel='First table view'
+                    autoTestId='first'
+                />
+                <ControlledSelector ariaLabel='Second table view' autoTestId='second' />
+            </>,
+        )
 
         const first = screen.getByRole('group', {name: 'First table view'})
         const second = screen.getByRole('group', {name: 'Second table view'})
@@ -218,16 +225,12 @@ describe('PneTableViewSelector', () => {
         const rootStyle = window.getComputedStyle(firstRoot)
         const groupStyle = window.getComputedStyle(first)
         const buttonStyle = window.getComputedStyle(firstButton)
-        const selectedButtonStyle = window.getComputedStyle(
-            within(first).getByRole('button', {name: 'Full'}),
-        )
+        const selectedButtonStyle = window.getComputedStyle(within(first).getByRole('button', {name: 'Full'}))
         const dividerStyle = window.getComputedStyle(screen.getByRole('separator'))
-        const settingsButtonStyle = window.getComputedStyle(
-            screen.getByRole('button', {name: 'First settings'}),
+        const settingsButtonStyle = window.getComputedStyle(screen.getByRole('button', {name: 'First settings'}))
+        const actionsStyle = window.getComputedStyle(
+            firstRoot.querySelector('[data-autotest="table-view-actions"]') as HTMLElement,
         )
-        const actionsStyle = window.getComputedStyle(firstRoot.querySelector(
-            '[data-autotest="table-view-actions"]',
-        ) as HTMLElement)
 
         expect(rootStyle.height).toBe('32px')
         expect(rootStyle.maxWidth).toBe('100%')
@@ -265,22 +268,22 @@ describe('PneTableViewSelector', () => {
             height: '24px',
             width: '24px',
         })
-        expect(window.getComputedStyle(
-            within(first).getByRole('button', {name: 'Full'}),
-        ).borderLeftWidth).toBe('0px')
+        expect(window.getComputedStyle(within(first).getByRole('button', {name: 'Full'})).borderLeftWidth).toBe('0px')
     })
 
     it('supports labelled-by naming and omits false action placeholders', () => {
-        render(<>
-            <span id='reseller-view-label'>Reseller table view</span>
-            <PneTableViewSelector
-                aria-labelledby='reseller-view-label'
-                actions={false}
-                onChange={() => undefined}
-                value='brief'
-                views={views}
-            />
-        </>)
+        render(
+            <>
+                <span id='reseller-view-label'>Reseller table view</span>
+                <PneTableViewSelector
+                    aria-labelledby='reseller-view-label'
+                    actions={false}
+                    onChange={() => undefined}
+                    value='brief'
+                    views={views}
+                />
+            </>,
+        )
 
         expect(screen.getByRole('group', {name: 'Reseller table view'})).toBeTruthy()
         expect(document.querySelector('[data-autotest="table-view-actions"]')).toBeNull()

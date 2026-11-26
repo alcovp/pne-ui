@@ -50,7 +50,5 @@ export const createTableControlActiveStyle = (theme: Theme): SystemStyleObject<T
  * pagination, the page sizes: actions on the rows); `tabs` is the grey one of the UI Kit Tabs (the
  * views: one of them is picked).
  */
-export const createTableControlShellStyle = (
-    theme: Theme,
-    kind: 'actions' | 'tabs',
-): SystemStyleObject<Theme> => tableControlShellLook(resolvePneSemanticPalette(theme), kind)
+export const createTableControlShellStyle = (theme: Theme, kind: 'actions' | 'tabs'): SystemStyleObject<Theme> =>
+    tableControlShellLook(resolvePneSemanticPalette(theme), kind)

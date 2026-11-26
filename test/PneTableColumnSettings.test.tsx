@@ -25,28 +25,26 @@ const columns: readonly PneTableColumnOption[] = [
 ]
 
 const dialog = () => screen.getByRole('dialog')
-const button = (autoTestId: string) => dialog()
-    .querySelector(`[data-autotest="${autoTestId}"]`) as HTMLButtonElement
+const button = (autoTestId: string) => dialog().querySelector(`[data-autotest="${autoTestId}"]`) as HTMLButtonElement
 
-const renderDialog = (
-    overrides: Partial<React.ComponentProps<typeof PneTableColumnSettingsDialog>> = {},
-) => {
+const renderDialog = (overrides: Partial<React.ComponentProps<typeof PneTableColumnSettingsDialog>> = {}) => {
     const onClose = jest.fn()
     const onSave = jest.fn<Promise<void>, [PneTableColumnSettingsValue]>().mockResolvedValue(undefined)
-    const utils = render(<PneTableColumnSettingsDialog
-        autoTestId='items'
-        columns={columns}
-        onClose={onClose}
-        onSave={onSave}
-        open
-        {...overrides}
-    />)
+    const utils = render(
+        <PneTableColumnSettingsDialog
+            autoTestId='items'
+            columns={columns}
+            onClose={onClose}
+            onSave={onSave}
+            open
+            {...overrides}
+        />,
+    )
     return {...utils, onClose, onSave}
 }
 
-const optionInputs = () => Array.from(
-    dialog().querySelectorAll<HTMLInputElement>('input[data-autotest="column-settings-option"]'),
-)
+const optionInputs = () =>
+    Array.from(dialog().querySelectorAll<HTMLInputElement>('input[data-autotest="column-settings-option"]'))
 
 const optionById = (id: string): HTMLInputElement => {
     const input = optionInputs().find(candidate => candidate.dataset.autotestValue === id)
@@ -158,20 +156,24 @@ describe('PneTableColumnSettingsDialog', () => {
         expect(onClose).toHaveBeenCalledTimes(1)
         expect(onSave).not.toHaveBeenCalled()
 
-        rerender(<PneTableColumnSettingsDialog
-            autoTestId='items'
-            columns={columns}
-            onClose={onClose}
-            onSave={onSave}
-            open={false}
-        />)
-        rerender(<PneTableColumnSettingsDialog
-            autoTestId='items'
-            columns={columns}
-            onClose={onClose}
-            onSave={onSave}
-            open
-        />)
+        rerender(
+            <PneTableColumnSettingsDialog
+                autoTestId='items'
+                columns={columns}
+                onClose={onClose}
+                onSave={onSave}
+                open={false}
+            />,
+        )
+        rerender(
+            <PneTableColumnSettingsDialog
+                autoTestId='items'
+                columns={columns}
+                onClose={onClose}
+                onSave={onSave}
+                open
+            />,
+        )
 
         expect(optionById('name').checked).toBe(true)
     })
@@ -213,13 +215,24 @@ describe('PneTableColumnSettingsDialog', () => {
 
     it('re-enables the controls after a failed save when StrictMode replays effects', async () => {
         let rejectSave: (reason: Error) => void = () => undefined
-        const onSave = jest.fn(() => new Promise<void>((_resolve, reject) => {
-            rejectSave = reject
-        }))
+        const onSave = jest.fn(
+            () =>
+                new Promise<void>((_resolve, reject) => {
+                    rejectSave = reject
+                }),
+        )
         const onClose = jest.fn()
-        render(<React.StrictMode>
-            <PneTableColumnSettingsDialog autoTestId='items' columns={columns} onClose={onClose} onSave={onSave} open/>
-        </React.StrictMode>)
+        render(
+            <React.StrictMode>
+                <PneTableColumnSettingsDialog
+                    autoTestId='items'
+                    columns={columns}
+                    onClose={onClose}
+                    onSave={onSave}
+                    open
+                />
+            </React.StrictMode>,
+        )
 
         fireEvent.click(optionById('name'))
         fireEvent.click(button('column-settings-save'))
@@ -237,9 +250,12 @@ describe('PneTableColumnSettingsDialog', () => {
 
     it('stays open with the draft intact when saving fails', async () => {
         let rejectSave: (reason: Error) => void = () => undefined
-        const onSave = jest.fn(() => new Promise<void>((_resolve, reject) => {
-            rejectSave = reject
-        }))
+        const onSave = jest.fn(
+            () =>
+                new Promise<void>((_resolve, reject) => {
+                    rejectSave = reject
+                }),
+        )
         const {onClose} = renderDialog({onSave})
 
         fireEvent.click(optionById('name'))
@@ -315,7 +331,7 @@ describe('PneTableColumnSettingsDialog look', () => {
 describe('PneTableColumnSettingsAction', () => {
     it('renders an icon button with an accessible name and scoped locator by default', () => {
         const onClick = jest.fn()
-        render(<PneTableColumnSettingsAction autoTestId='items' onClick={onClick}/>)
+        render(<PneTableColumnSettingsAction autoTestId='items' onClick={onClick} />)
 
         const action = screen.getByRole('button', {name: 'Table settings'})
         expect(action.getAttribute('data-autotest')).toBe('column-settings')
@@ -327,7 +343,7 @@ describe('PneTableColumnSettingsAction', () => {
     })
 
     it('renders a labelled outlined button for wide layouts', () => {
-        render(<PneTableColumnSettingsAction label='Columns' onClick={jest.fn()} variant='button'/>)
+        render(<PneTableColumnSettingsAction label='Columns' onClick={jest.fn()} variant='button' />)
 
         const action = screen.getByRole('button', {name: 'Columns'})
         expect(action.getAttribute('data-autotest')).toBe('column-settings')
@@ -342,18 +358,20 @@ describe('usePneTableColumnSettings', () => {
     }) => {
         const settings = usePneTableColumnSettings({columns, onSave: props.onSave, value: props.value})
 
-        return <div>
-            <PneTableColumnSettingsAction onClick={settings.openDialog}/>
-            <PneTableColumnSettingsDialog {...settings.dialogProps}/>
-            <output data-testid='visible'>{settings.visibleColumns.map(column => column.id).join(',')}</output>
-            <output data-testid='email-visible'>{String(settings.isVisible('email'))}</output>
-            <output data-testid='default'>{String(settings.isDefault)}</output>
-        </div>
+        return (
+            <div>
+                <PneTableColumnSettingsAction onClick={settings.openDialog} />
+                <PneTableColumnSettingsDialog {...settings.dialogProps} />
+                <output data-testid='visible'>{settings.visibleColumns.map(column => column.id).join(',')}</output>
+                <output data-testid='email-visible'>{String(settings.isVisible('email'))}</output>
+                <output data-testid='default'>{String(settings.isDefault)}</output>
+            </div>
+        )
     }
 
     it('resolves visible columns from the stored value and drives the dialog', async () => {
         const onSave = jest.fn<Promise<void>, [PneTableColumnSettingsValue]>().mockResolvedValue(undefined)
-        const {rerender} = render(<Harness onSave={onSave}/>)
+        const {rerender} = render(<Harness onSave={onSave} />)
 
         expect(screen.getByTestId('visible').textContent).toBe('id,name,created')
         expect(screen.getByTestId('email-visible').textContent).toBe('false')
@@ -370,7 +388,7 @@ describe('usePneTableColumnSettings', () => {
         const saved = onSave.mock.calls[0][0]
         expect(saved).toEqual({visibleColumnIds: ['id', 'name', 'created', 'email'], hiddenColumnIds: []})
 
-        rerender(<Harness onSave={onSave} value={saved}/>)
+        rerender(<Harness onSave={onSave} value={saved} />)
 
         expect(screen.getByTestId('visible').textContent).toBe('id,name,created,email')
         expect(screen.getByTestId('email-visible').textContent).toBe('true')
@@ -380,17 +398,24 @@ describe('usePneTableColumnSettings', () => {
 
 describe('PneTableColumnSettingsDialog reordering', () => {
     const rect = (left: number, top: number, width: number, height: number): DOMRect => ({
-        x: left, y: top, left, top, width, height,
-        right: left + width, bottom: top + height,
+        x: left,
+        y: top,
+        left,
+        top,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
         toJSON: () => ({}),
     })
-    const grips = () => Array.from(
-        dialog().querySelectorAll<HTMLButtonElement>('[data-autotest="column-settings-reorder"]'),
-    )
+    const grips = () =>
+        Array.from(dialog().querySelectorAll<HTMLButtonElement>('[data-autotest="column-settings-reorder"]'))
     const gripFor = (id: string) => grips().find(grip => grip.dataset.autotestValue === id)
     /** The row lifted by a drag: rendered as a clone outside the dialog with fixed positioning. */
-    const liftedRow = (id: string) => Array.from(document.querySelectorAll<HTMLElement>(`[data-rfd-draggable-id="${id}"]`))
-        .find(row => row.getAttribute('style')?.includes('position: fixed'))
+    const liftedRow = (id: string) =>
+        Array.from(document.querySelectorAll<HTMLElement>(`[data-rfd-draggable-id="${id}"]`)).find(row =>
+            row.getAttribute('style')?.includes('position: fixed'),
+        )
 
     beforeEach(() => {
         jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
@@ -425,14 +450,16 @@ describe('PneTableColumnSettingsDialog reordering', () => {
         fireEvent.change(search, {target: {value: ''}})
         expect(grips()).toHaveLength(3)
 
-        rerender(<PneTableColumnSettingsDialog
-            autoTestId='items'
-            columns={columns}
-            onClose={onClose}
-            onSave={onSave}
-            open
-            reorderable={false}
-        />)
+        rerender(
+            <PneTableColumnSettingsDialog
+                autoTestId='items'
+                columns={columns}
+                onClose={onClose}
+                onSave={onSave}
+                open
+                reorderable={false}
+            />,
+        )
         expect(grips()).toHaveLength(0)
     })
 
@@ -449,14 +476,23 @@ describe('PneTableColumnSettingsDialog reordering', () => {
         fireEvent.keyDown(window, {key: 'ArrowDown', code: 'ArrowDown', keyCode: 40})
         fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})
 
-        await waitFor(() => expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual(['name', 'id', 'created', 'email']))
+        await waitFor(() =>
+            expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual([
+                'name',
+                'id',
+                'created',
+                'email',
+            ]),
+        )
 
         fireEvent.click(button('column-settings-save'))
 
-        await waitFor(() => expect(onSave).toHaveBeenCalledWith({
-            visibleColumnIds: ['name', 'id', 'created'],
-            hiddenColumnIds: ['email'],
-        }))
+        await waitFor(() =>
+            expect(onSave).toHaveBeenCalledWith({
+                visibleColumnIds: ['name', 'id', 'created'],
+                hiddenColumnIds: ['email'],
+            }),
+        )
     })
 
     it('keeps the single visible column without a grip', () => {
@@ -485,13 +521,22 @@ describe('PneTableColumnSettingsDialog reordering', () => {
         fireEvent.keyDown(window, {key: 'ArrowUp', code: 'ArrowUp', keyCode: 38})
         fireEvent.keyDown(window, {key: ' ', code: 'Space', keyCode: 32})
 
-        await waitFor(() => expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual(['name', 'id', 'created', 'email']))
+        await waitFor(() =>
+            expect(optionInputs().map(input => input.dataset.autotestValue)).toEqual([
+                'name',
+                'id',
+                'created',
+                'email',
+            ]),
+        )
 
         fireEvent.click(button('column-settings-save'))
 
-        await waitFor(() => expect(onSave).toHaveBeenCalledWith({
-            visibleColumnIds: ['name', 'id', 'created'],
-            hiddenColumnIds: ['email'],
-        }))
+        await waitFor(() =>
+            expect(onSave).toHaveBeenCalledWith({
+                visibleColumnIds: ['name', 'id', 'created'],
+                hiddenColumnIds: ['email'],
+            }),
+        )
     })
 })

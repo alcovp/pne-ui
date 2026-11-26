@@ -34,10 +34,7 @@ export type PneCoachmarkModifiers = PopperProps['modifiers']
 
 export type PneCoachmarkCloseReason = 'closeButtonClick' | 'escapeKeyDown'
 export type PneCoachmarkCloseEvent = React.SyntheticEvent | Event
-export type PneCoachmarkCloseHandler = (
-    event: PneCoachmarkCloseEvent,
-    reason: PneCoachmarkCloseReason,
-) => void
+export type PneCoachmarkCloseHandler = (event: PneCoachmarkCloseEvent, reason: PneCoachmarkCloseReason) => void
 
 export type PneCoachmarkContainerProps = PneModalContainerProps
 export type PneCoachmarkContainerSlotProps = PneModalContainerSlotProps
@@ -46,13 +43,13 @@ export type PneCoachmarkCloseButtonProps = PneModalCloseButtonProps
 export type PneCoachmarkTitleSlotProps = PneModalTitleSlotProps
 export type PneCoachmarkSubtitleSlotProps = PneModalSubtitleSlotProps
 
-export type PneCoachmarkPopperSlotProps = Pick<PopperProps, 'className' | 'sx'>
-    & PneCoachmarkDataAttributes
+export type PneCoachmarkPopperSlotProps = Pick<PopperProps, 'className' | 'sx'> & PneCoachmarkDataAttributes
 
 export type PneCoachmarkFallbackSlotProps = Omit<
     BoxProps<'div'>,
     'children' | 'component' | 'dangerouslySetInnerHTML'
-> & PneCoachmarkDataAttributes
+> &
+    PneCoachmarkDataAttributes
 
 export interface PneCoachmarkSlotProps {
     body?: PneCoachmarkBoxSlotProps
@@ -70,14 +67,14 @@ export type PneCoachmarkTitle = React.ReactNode
 
 type PneCoachmarkAccessibleName =
     | {
-        /** Fallback used when the title value is null or empty. Components that render null must be omitted explicitly. */
-        ariaLabel?: string
-        title: PneCoachmarkTitle
-    }
+          /** Fallback used when the title value is null or empty. Components that render null must be omitted explicitly. */
+          ariaLabel?: string
+          title: PneCoachmarkTitle
+      }
     | {
-        ariaLabel: string
-        title?: null
-    }
+          ariaLabel: string
+          title?: null
+      }
 
 type PneCoachmarkOwnProps = {
     actions?: React.ReactNode
@@ -100,9 +97,7 @@ type PneCoachmarkOwnProps = {
     subtitle?: React.ReactNode
 }
 
-export type PneCoachmarkProps = PneCoachmarkOwnProps
-    & PneCoachmarkAccessibleName
-    & PneCoachmarkDataAttributes
+export type PneCoachmarkProps = PneCoachmarkOwnProps & PneCoachmarkAccessibleName & PneCoachmarkDataAttributes
 
 const defaultModifiers: NonNullable<PneCoachmarkModifiers> = [
     {name: 'offset', options: {offset: [0, 8]}},
@@ -110,7 +105,10 @@ const defaultModifiers: NonNullable<PneCoachmarkModifiers> = [
     {name: 'flip', options: {padding: 16}},
 ]
 
-const PneCoachmark = function PneCoachmark({ref, ...props}: React.PropsWithoutRef<PneCoachmarkProps> & {ref?: React.Ref<HTMLDivElement>}) {
+const PneCoachmark = function PneCoachmark({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneCoachmarkProps> & {ref?: React.Ref<HTMLDivElement>}) {
     const {
         actions,
         anchorEl,
@@ -164,144 +162,132 @@ const PneCoachmark = function PneCoachmark({ref, ...props}: React.PropsWithoutRe
         ...slotProps?.container,
         ...pickDataAttributes(directContainerDataAttributes),
     })
-    const {
-        sx: containerSlotSx,
-        ...forwardedContainerProps
-    } = resolvedContainerProps
+    const {sx: containerSlotSx, ...forwardedContainerProps} = resolvedContainerProps
     const resolvedCloseButtonProps = sanitizeCloseButtonProps(slotProps?.closeButton ?? {})
-    const {
-        'aria-label': closeButtonAriaLabel,
-        ...forwardedCloseButtonProps
-    } = resolvedCloseButtonProps
+    const {'aria-label': closeButtonAriaLabel, ...forwardedCloseButtonProps} = resolvedCloseButtonProps
     const forwardedHeaderProps = sanitizeFixedElementProps(slotProps?.header)
     const forwardedBodyProps = sanitizeFixedElementProps(slotProps?.body)
     const forwardedFooterProps = sanitizeFixedElementProps(slotProps?.footer)
-    const {
-        sx: popperSx,
-        ...forwardedPopperProps
-    } = sanitizeFixedElementProps(slotProps?.popper)
-    const {
-        sx: fallbackSx,
-        ...forwardedFallbackProps
-    } = sanitizeFixedElementProps(slotProps?.fallback)
-    const {
-        component: titleComponent,
-        sx: titleSx,
-        ...forwardedTitleProps
-    } = sanitizeTitleSlotProps(slotProps?.title)
+    const {sx: popperSx, ...forwardedPopperProps} = sanitizeFixedElementProps(slotProps?.popper)
+    const {sx: fallbackSx, ...forwardedFallbackProps} = sanitizeFixedElementProps(slotProps?.fallback)
+    const {component: titleComponent, sx: titleSx, ...forwardedTitleProps} = sanitizeTitleSlotProps(slotProps?.title)
     const {
         component: subtitleComponent,
         sx: subtitleSx,
         ...forwardedSubtitleProps
     } = sanitizeSubtitleSlotProps(slotProps?.subtitle)
-    const resolvedCloseLabel = normalizeLabel(closeButtonAriaLabel)
-            ?? normalizeLabel(closeLabel)
-            ?? 'Close'
+    const resolvedCloseLabel = normalizeLabel(closeButtonAriaLabel) ?? normalizeLabel(closeLabel) ?? 'Close'
 
     const handleCloseButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         onClose(event, 'closeButtonClick')
     }
 
-    const surface = <CoachmarkSurface
-        {...forwardedContainerProps}
-        aria-describedby={mergeIds(subtitleId, ariaDescribedBy)}
-        aria-label={hasTitle ? undefined : resolvedAriaLabel}
-        aria-labelledby={titleId}
-        aria-modal='false'
-        className={className}
-        data-pne-coachmark-container='true'
-        ref={ref}
-        role='dialog'
-        sx={[
-            ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
-            ...(Array.isArray(containerSlotSx) ? containerSlotSx : [containerSlotSx]),
-        ]}
-    >
-        {(hasTitle || hasSubtitle || !hideCloseButton) && <PneSurfaceHeader
-            {...forwardedHeaderProps}
-            data-pne-coachmark-header='true'
+    const surface = (
+        <CoachmarkSurface
+            {...forwardedContainerProps}
+            aria-describedby={mergeIds(subtitleId, ariaDescribedBy)}
+            aria-label={hasTitle ? undefined : resolvedAriaLabel}
+            aria-labelledby={titleId}
+            aria-modal='false'
+            className={className}
+            data-pne-coachmark-container='true'
+            ref={ref}
+            role='dialog'
+            sx={[
+                ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
+                ...(Array.isArray(containerSlotSx) ? containerSlotSx : [containerSlotSx]),
+            ]}
         >
-            <div>
-                {hasTitle && <Typography
-                    {...forwardedTitleProps}
-                    component={titleComponent ?? 'h3'}
-                    id={titleId}
-                    sx={[
-                        getPneSurfaceTitleSx(forwardedTitleProps.color !== undefined),
-                        ...(Array.isArray(titleSx) ? titleSx : [titleSx]),
-                    ]}
-                >
-                    {title}
-                </Typography>}
-                {hasSubtitle && <Typography
-                    {...forwardedSubtitleProps}
-                    component={subtitleComponent ?? 'span'}
-                    id={subtitleId}
-                    sx={[
-                        pneSurfaceSubtitleSx,
-                        ...(Array.isArray(subtitleSx) ? subtitleSx : [subtitleSx]),
-                    ]}
-                >
-                    {subtitle}
-                </Typography>}
-            </div>
-            {!hideCloseButton && <IconButton
-                {...forwardedCloseButtonProps}
-                aria-label={resolvedCloseLabel}
-                onClick={handleCloseButtonClick}
-                sx={pneSurfaceCloseButtonSx}
-                type='button'
-            >
-                <CloseIcon sx={{fontSize: 20}}/>
-            </IconButton>}
-        </PneSurfaceHeader>}
-        {children != null && <PneSurfaceBody
-            {...forwardedBodyProps}
-            data-pne-coachmark-body='true'
-        >
-            {children}
-        </PneSurfaceBody>}
-        {actions != null && <PneSurfaceFooter
-            {...forwardedFooterProps}
-            data-pne-coachmark-footer='true'
-        >
-            {actions}
-        </PneSurfaceFooter>}
-    </CoachmarkSurface>
+            {(hasTitle || hasSubtitle || !hideCloseButton) && (
+                <PneSurfaceHeader {...forwardedHeaderProps} data-pne-coachmark-header='true'>
+                    <div>
+                        {hasTitle && (
+                            <Typography
+                                {...forwardedTitleProps}
+                                component={titleComponent ?? 'h3'}
+                                id={titleId}
+                                sx={[
+                                    getPneSurfaceTitleSx(forwardedTitleProps.color !== undefined),
+                                    ...(Array.isArray(titleSx) ? titleSx : [titleSx]),
+                                ]}
+                            >
+                                {title}
+                            </Typography>
+                        )}
+                        {hasSubtitle && (
+                            <Typography
+                                {...forwardedSubtitleProps}
+                                component={subtitleComponent ?? 'span'}
+                                id={subtitleId}
+                                sx={[pneSurfaceSubtitleSx, ...(Array.isArray(subtitleSx) ? subtitleSx : [subtitleSx])]}
+                            >
+                                {subtitle}
+                            </Typography>
+                        )}
+                    </div>
+                    {!hideCloseButton && (
+                        <IconButton
+                            {...forwardedCloseButtonProps}
+                            aria-label={resolvedCloseLabel}
+                            onClick={handleCloseButtonClick}
+                            sx={pneSurfaceCloseButtonSx}
+                            type='button'
+                        >
+                            <CloseIcon sx={{fontSize: 20}} />
+                        </IconButton>
+                    )}
+                </PneSurfaceHeader>
+            )}
+            {children != null && (
+                <PneSurfaceBody {...forwardedBodyProps} data-pne-coachmark-body='true'>
+                    {children}
+                </PneSurfaceBody>
+            )}
+            {actions != null && (
+                <PneSurfaceFooter {...forwardedFooterProps} data-pne-coachmark-footer='true'>
+                    {actions}
+                </PneSurfaceFooter>
+            )}
+        </CoachmarkSurface>
+    )
 
     if (resolvedAnchor) {
-        return <Popper
-            {...forwardedPopperProps}
-            anchorEl={anchorEl}
-            container={container}
-            data-pne-coachmark-popper='true'
-            disablePortal={disablePortal}
-            modifiers={modifiers}
-            open
-            placement={placement}
-            sx={[
-                {zIndex: (theme: Theme) => theme.zIndex.tooltip},
-                ...(Array.isArray(popperSx) ? popperSx : [popperSx]),
-            ]}
-        >
-            {surface}
-        </Popper>
+        return (
+            <Popper
+                {...forwardedPopperProps}
+                anchorEl={anchorEl}
+                container={container}
+                data-pne-coachmark-popper='true'
+                disablePortal={disablePortal}
+                modifiers={modifiers}
+                open
+                placement={placement}
+                sx={[
+                    {zIndex: (theme: Theme) => theme.zIndex.tooltip},
+                    ...(Array.isArray(popperSx) ? popperSx : [popperSx]),
+                ]}
+            >
+                {surface}
+            </Popper>
+        )
     }
 
-    return <Portal container={container} disablePortal={disablePortal}>
-        <Fallback
-            {...forwardedFallbackProps}
-            data-pne-coachmark-fallback='true'
-            sx={[
-                {
-                    zIndex: (theme: Theme) => theme.zIndex.tooltip,
-                },
-                ...(Array.isArray(fallbackSx) ? fallbackSx : [fallbackSx]),
-            ]}
-        >
-            {surface}
-        </Fallback>
-    </Portal>
+    return (
+        <Portal container={container} disablePortal={disablePortal}>
+            <Fallback
+                {...forwardedFallbackProps}
+                data-pne-coachmark-fallback='true'
+                sx={[
+                    {
+                        zIndex: (theme: Theme) => theme.zIndex.tooltip,
+                    },
+                    ...(Array.isArray(fallbackSx) ? fallbackSx : [fallbackSx]),
+                ]}
+            >
+                {surface}
+            </Fallback>
+        </Portal>
+    )
 }
 
 export default PneCoachmark
@@ -350,9 +336,7 @@ const sanitizeContainerProps = (
     return safeProps as PneCoachmarkContainerProps & {sx?: SxProps<Theme>}
 }
 
-const sanitizeCloseButtonProps = (
-    props: PneCoachmarkCloseButtonProps,
-): PneCoachmarkCloseButtonProps => {
+const sanitizeCloseButtonProps = (props: PneCoachmarkCloseButtonProps): PneCoachmarkCloseButtonProps => {
     const safeProps: Record<string, unknown> = sanitizeFixedElementProps(props)
     delete safeProps.href
     delete safeProps.LinkComponent
@@ -363,21 +347,18 @@ const sanitizeCloseButtonProps = (
 
 const headingComponents = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
 
-const sanitizeTitleSlotProps = (
-    props?: PneCoachmarkTitleSlotProps,
-): PneCoachmarkTitleSlotProps => {
+const sanitizeTitleSlotProps = (props?: PneCoachmarkTitleSlotProps): PneCoachmarkTitleSlotProps => {
     const component = (props as {component?: unknown} | undefined)?.component
     const safeProps = sanitizeFixedElementProps(props ?? {}) as PneCoachmarkTitleSlotProps
-    safeProps.component = typeof component === 'string' && headingComponents.has(component)
-        ? component as NonNullable<PneCoachmarkTitleSlotProps['component']>
-        : 'h3'
+    safeProps.component =
+        typeof component === 'string' && headingComponents.has(component)
+            ? (component as NonNullable<PneCoachmarkTitleSlotProps['component']>)
+            : 'h3'
     delete (safeProps as Record<string, unknown>).id
     return safeProps
 }
 
-const sanitizeSubtitleSlotProps = (
-    props?: PneCoachmarkSubtitleSlotProps,
-): PneCoachmarkSubtitleSlotProps => {
+const sanitizeSubtitleSlotProps = (props?: PneCoachmarkSubtitleSlotProps): PneCoachmarkSubtitleSlotProps => {
     const component = (props as {component?: unknown} | undefined)?.component
     const safeProps = sanitizeFixedElementProps(props ?? {}) as PneCoachmarkSubtitleSlotProps
     safeProps.component = component === 'p' || component === 'span' ? component : 'span'
@@ -391,26 +372,18 @@ const normalizeLabel = (value: unknown): string | undefined => {
     return normalizedValue.length > 0 ? normalizedValue : undefined
 }
 
-const pickDataAttributes = (props: object): PneCoachmarkDataAttributes => Object.fromEntries(
-    Object.entries(props).filter(([attribute]) => attribute.startsWith('data-')),
-) as PneCoachmarkDataAttributes
+const pickDataAttributes = (props: object): PneCoachmarkDataAttributes =>
+    Object.fromEntries(
+        Object.entries(props).filter(([attribute]) => attribute.startsWith('data-')),
+    ) as PneCoachmarkDataAttributes
 
 const mergeIds = (...values: Array<string | undefined>): string | undefined => {
     const ids = values.flatMap(value => value?.trim().split(/\s+/) ?? []).filter(Boolean)
     return ids.length > 0 ? Array.from(new Set(ids)).join(' ') : undefined
 }
 
-const warnAboutMissingAccessibleName = (
-    open: boolean,
-    hasTitle: boolean,
-    ariaLabel: string | undefined,
-) => {
-    if (
-        process.env.NODE_ENV !== 'production'
-        && open
-        && !hasTitle
-        && !ariaLabel?.trim()
-    ) {
+const warnAboutMissingAccessibleName = (open: boolean, hasTitle: boolean, ariaLabel: string | undefined) => {
+    if (process.env.NODE_ENV !== 'production' && open && !hasTitle && !ariaLabel?.trim()) {
         console.warn('PneCoachmark requires a non-empty title or ariaLabel for its accessible name.')
     }
 }

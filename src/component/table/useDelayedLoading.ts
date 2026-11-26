@@ -1,7 +1,7 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useState} from 'react'
 
-const DELAY_BEFORE_SHOWING = 300;
-const MIN_DISPLAY_DURATION = 500;
+const DELAY_BEFORE_SHOWING = 300
+const MIN_DISPLAY_DURATION = 500
 
 type DelayedLoadingState = {
     resetKey?: string | number
@@ -10,10 +10,7 @@ type DelayedLoadingState = {
     waitForStructuralLoading: boolean
 }
 
-const createLoadingState = (
-    loading: boolean,
-    resetKey?: string | number,
-): DelayedLoadingState => ({
+const createLoadingState = (loading: boolean, resetKey?: string | number): DelayedLoadingState => ({
     resetKey,
     showSkeleton: loading,
     skeletonShownAt: loading ? Date.now() : null,
@@ -28,12 +25,12 @@ const createLoadingState = (
  * при быстрых refetch.
  */
 const useDelayedLoading = (loading: boolean, resetKey?: string | number): boolean => {
-    const [state, setState] = useState<DelayedLoadingState>(() => createLoadingState(loading, resetKey));
-    let renderState = state;
+    const [state, setState] = useState<DelayedLoadingState>(() => createLoadingState(loading, resetKey))
+    let renderState = state
 
     if (!Object.is(state.resetKey, resetKey)) {
-        renderState = createLoadingState(loading, resetKey);
-        setState(renderState);
+        renderState = createLoadingState(loading, resetKey)
+        setState(renderState)
     } else if (loading && state.waitForStructuralLoading) {
         renderState = {
             ...state,
@@ -42,42 +39,46 @@ const useDelayedLoading = (loading: boolean, resetKey?: string | number): boolea
             // eslint-disable-next-line @eslint-react/purity
             skeletonShownAt: Date.now(),
             waitForStructuralLoading: false,
-        };
-        setState(renderState);
+        }
+        setState(renderState)
     }
 
     useEffect(() => {
         if (loading) {
             if (renderState.showSkeleton) {
-                return undefined;
+                return undefined
             }
 
             const timer = setTimeout(() => {
-                setState(current => Object.is(current.resetKey, resetKey)
-                    ? {
-                        ...current,
-                        showSkeleton: true,
-                        skeletonShownAt: Date.now(),
-                    }
-                    : current);
-            }, DELAY_BEFORE_SHOWING);
+                setState(current =>
+                    Object.is(current.resetKey, resetKey)
+                        ? {
+                              ...current,
+                              showSkeleton: true,
+                              skeletonShownAt: Date.now(),
+                          }
+                        : current,
+                )
+            }, DELAY_BEFORE_SHOWING)
 
-            return () => clearTimeout(timer);
+            return () => clearTimeout(timer)
         }
 
         if (renderState.skeletonShownAt) {
-            const elapsed = Date.now() - renderState.skeletonShownAt;
+            const elapsed = Date.now() - renderState.skeletonShownAt
             if (elapsed < MIN_DISPLAY_DURATION) {
                 const timer = setTimeout(() => {
-                    setState(current => Object.is(current.resetKey, resetKey)
-                        ? {
-                            ...current,
-                            showSkeleton: false,
-                            skeletonShownAt: null,
-                        }
-                        : current);
-                }, MIN_DISPLAY_DURATION - elapsed);
-                return () => clearTimeout(timer);
+                    setState(current =>
+                        Object.is(current.resetKey, resetKey)
+                            ? {
+                                  ...current,
+                                  showSkeleton: false,
+                                  skeletonShownAt: null,
+                              }
+                            : current,
+                    )
+                }, MIN_DISPLAY_DURATION - elapsed)
+                return () => clearTimeout(timer)
             }
         }
 
@@ -87,12 +88,12 @@ const useDelayedLoading = (loading: boolean, resetKey?: string | number): boolea
                 ...current,
                 showSkeleton: false,
                 skeletonShownAt: null,
-            }));
+            }))
         }
-        return undefined;
-    }, [loading, renderState.showSkeleton, renderState.skeletonShownAt, resetKey]);
+        return undefined
+    }, [loading, renderState.showSkeleton, renderState.skeletonShownAt, resetKey])
 
-    return renderState.showSkeleton;
-};
+    return renderState.showSkeleton
+}
 
-export default useDelayedLoading;
+export default useDelayedLoading

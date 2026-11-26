@@ -3,12 +3,7 @@ import {act, fireEvent, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    AbstractEntity,
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {AbstractEntity, CriterionTypeEnum, SearchUIFilters, SearchUIProvider} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -38,14 +33,11 @@ const createDeferredOptions = () => {
     return {promise, resolve}
 }
 
-const getProcessorLogCriterion = (
-    container: HTMLElement,
-    scope: string,
-): HTMLElement => {
+const getProcessorLogCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"]`
-        + `[data-autotest-value="${CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"]` +
+            `[data-autotest-value="${CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -63,16 +55,17 @@ const getProcessorLogControl = (criterion: HTMLElement): HTMLElement => {
     return control as HTMLElement
 }
 
-const getOwnedOptions = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="listbox"][data-autotest="criterion-processor-log-entry-type-options"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE}"]`,
-)
+const getOwnedOptions = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="listbox"][data-autotest="criterion-processor-log-entry-type-options"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE}"]`,
+    )
 
-const getOption = (listbox: HTMLElement, id: number): HTMLElement | null => listbox.querySelector<HTMLElement>(
-    '[role="option"][data-autotest="criterion-processor-log-entry-type-option"]'
-    + `[data-autotest-value="${id}"]`,
-)
+const getOption = (listbox: HTMLElement, id: number): HTMLElement | null =>
+    listbox.querySelector<HTMLElement>(
+        '[role="option"][data-autotest="criterion-processor-log-entry-type-option"]' + `[data-autotest-value="${id}"]`,
+    )
 
 describe('SearchUI processor-log-entry-type Selenium contract', () => {
     beforeEach(() => {
@@ -97,8 +90,8 @@ describe('SearchUI processor-log-entry-type Selenium contract', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="processor-log-first"
-                    settingsContextName="processor-log-first-context"
+                    autoTestId='processor-log-first'
+                    settingsContextName='processor-log-first-context'
                     possibleCriteria={[CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE]}
                     predefinedCriteria={[CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE]}
                     initialSearchConditions={{
@@ -108,8 +101,8 @@ describe('SearchUI processor-log-entry-type Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="processor-log-second"
-                    settingsContextName="processor-log-second-context"
+                    autoTestId='processor-log-second'
+                    settingsContextName='processor-log-second-context'
                     possibleCriteria={[CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE]}
                     predefinedCriteria={[CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE]}
                     initialSearchConditions={{
@@ -123,12 +116,16 @@ describe('SearchUI processor-log-entry-type Selenium contract', () => {
 
         await waitFor(() => {
             expect(getProcessorLogEntryTypes).toHaveBeenCalledTimes(2)
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                processorLogEntryType: 'One',
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                processorLogEntryType: 'Second',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    processorLogEntryType: 'One',
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    processorLogEntryType: 'Second',
+                }),
+            )
         })
 
         const firstCriterion = getProcessorLogCriterion(container, 'processor-log-first')
@@ -136,22 +133,14 @@ describe('SearchUI processor-log-entry-type Selenium contract', () => {
         const firstControl = getProcessorLogControl(firstCriterion)
         const secondControl = getProcessorLogControl(secondCriterion)
 
-        expect(firstControl.getAttribute('aria-label')).toBe(
-            'Processor log entry type',
-        )
+        expect(firstControl.getAttribute('aria-label')).toBe('Processor log entry type')
         expect(firstControl.getAttribute('data-autotest-value')).toBe('1')
         expect(secondControl.getAttribute('data-autotest-value')).toBe('2')
 
         for (const criterion of [firstCriterion, secondCriterion]) {
-            expect(criterion.querySelectorAll(
-                '[data-autotest="criterion-processor-log-entry-type"]',
-            )).toHaveLength(1)
-            expect(criterion.querySelector(
-                'input[data-autotest="criterion-processor-log-entry-type"]',
-            )).toBeNull()
-            expect(criterion.querySelector(
-                '[role="button"][aria-hidden="true"][tabindex="-1"]',
-            )).not.toBeNull()
+            expect(criterion.querySelectorAll('[data-autotest="criterion-processor-log-entry-type"]')).toHaveLength(1)
+            expect(criterion.querySelector('input[data-autotest="criterion-processor-log-entry-type"]')).toBeNull()
+            expect(criterion.querySelector('[role="button"][aria-hidden="true"][tabindex="-1"]')).not.toBeNull()
         }
 
         await act(async () => {
@@ -159,9 +148,7 @@ describe('SearchUI processor-log-entry-type Selenium contract', () => {
             await options.promise
         })
 
-        expect(consoleWarn).not.toHaveBeenCalledWith(
-            expect.stringContaining('out-of-range value'),
-        )
+        expect(consoleWarn).not.toHaveBeenCalledWith(expect.stringContaining('out-of-range value'))
 
         fireEvent.mouseDown(firstControl)
         fireEvent.mouseDown(secondControl)
@@ -181,9 +168,9 @@ describe('SearchUI processor-log-entry-type Selenium contract', () => {
             expect(control.getAttribute('aria-expanded')).toBe('true')
             expect(control.getAttribute('aria-controls')).toBe(listbox.id)
             expect(criterion.contains(listbox)).toBe(false)
-            expect(listbox.querySelectorAll(
-                '[role="option"][data-autotest="criterion-processor-log-entry-type-option"]',
-            )).toHaveLength(processorLogEntryTypes.length)
+            expect(
+                listbox.querySelectorAll('[role="option"][data-autotest="criterion-processor-log-entry-type-option"]'),
+            ).toHaveLength(processorLogEntryTypes.length)
 
             for (const option of processorLogEntryTypes) {
                 expect(getOption(listbox, option.id)?.getAttribute('aria-selected')).toBe(
@@ -198,14 +185,14 @@ describe('SearchUI processor-log-entry-type Selenium contract', () => {
 
         await waitFor(() => {
             expect(firstControl.getAttribute('data-autotest-value')).toBe('99')
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                processorLogEntryType: '33333',
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    processorLogEntryType: '33333',
+                }),
+            )
         })
         expect(secondControl.getAttribute('data-autotest-value')).toBe('2')
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()
-        expect(consoleWarn).not.toHaveBeenCalledWith(
-            expect.stringContaining('out-of-range value'),
-        )
+        expect(consoleWarn).not.toHaveBeenCalledWith(expect.stringContaining('out-of-range value'))
     })
 })

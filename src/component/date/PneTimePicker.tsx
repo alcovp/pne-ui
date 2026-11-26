@@ -18,12 +18,17 @@ const DEFAULTS = {
  * PneTextField (`size`, `error`, `helperText`, a label over the box), the calendar is the library's.
  * Dates are dayjs dates; every other prop of the MUI X picker passes through.
  */
-const PneTimePicker = ({ref, ...props}: React.PropsWithoutRef<PneTimePickerProps> & {ref?: React.Ref<HTMLDivElement>}) => {
+const PneTimePicker = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTimePickerProps> & {ref?: React.Ref<HTMLDivElement>}) => {
     const picker = usePnePicker<TimePickerProps>(props, DEFAULTS)
 
-    return <PnePickerLocalization>
-        <TimePicker {...picker} ref={ref}/>
-    </PnePickerLocalization>
+    return (
+        <PnePickerLocalization>
+            <TimePicker {...picker} ref={ref} />
+        </PnePickerLocalization>
+    )
 }
 
 PneTimePicker.displayName = 'PneTimePicker'

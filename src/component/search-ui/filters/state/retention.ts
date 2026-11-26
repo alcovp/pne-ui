@@ -1,10 +1,7 @@
 import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
-import type {
-    SearchUIFiltersState,
-    SearchUIRetentionSnapshot,
-} from './type'
-import { createEntityOptionRestrictionFingerprint } from '../entityOptionRestriction'
+import type {SearchUIFiltersState, SearchUIRetentionSnapshot} from './type'
+import {createEntityOptionRestrictionFingerprint} from '../entityOptionRestriction'
 
 const MAX_RETAINED_SEARCH_UI_STATES = 100
 
@@ -19,14 +16,16 @@ export const isSearchUIRetentionSnapshotCompatible = (
         'possibleCriteria' | 'predefinedCriteria' | 'exactSearchLabels' | 'config' | 'prefetchedData'
     >,
 ): boolean => {
-    return isEqual(snapshot.possibleCriteria, state.possibleCriteria)
-        && isEqual(snapshot.predefinedCriteria, state.predefinedCriteria)
-        && isEqual(snapshot.exactSearchLabels, state.exactSearchLabels)
-        && snapshot.manualSearch === !!state.config?.manualSearch
-        && isEqual(
+    return (
+        isEqual(snapshot.possibleCriteria, state.possibleCriteria) &&
+        isEqual(snapshot.predefinedCriteria, state.predefinedCriteria) &&
+        isEqual(snapshot.exactSearchLabels, state.exactSearchLabels) &&
+        snapshot.manualSearch === !!state.config?.manualSearch &&
+        isEqual(
             snapshot.transactionTypesRestriction,
             createEntityOptionRestrictionFingerprint(state.prefetchedData.allowedTransactionTypes),
         )
+    )
 }
 
 export const getRetainedSearchUIState = (
@@ -48,10 +47,7 @@ export const getRetainedSearchUIState = (
     return cloneDeep(snapshot)
 }
 
-export const retainSearchUIState = (
-    settingsContextName: string,
-    state: SearchUIFiltersState,
-): void => {
+export const retainSearchUIState = (settingsContextName: string, state: SearchUIFiltersState): void => {
     if (!state.initialized || !canRetainSearchUIState(settingsContextName)) {
         return
     }
@@ -73,15 +69,11 @@ export const registerSearchUIInstance = (settingsContextName: string, instanceId
     instances.add(instanceId)
     activeInstances.set(settingsContextName, instances)
 
-    if (
-        process.env.NODE_ENV !== 'production'
-        && instances.size > 1
-        && !warnedDuplicateKeys.has(settingsContextName)
-    ) {
+    if (process.env.NODE_ENV !== 'production' && instances.size > 1 && !warnedDuplicateKeys.has(settingsContextName)) {
         warnedDuplicateKeys.add(settingsContextName)
         console.warn(
             `[pne-ui] Multiple SearchUI instances use settingsContextName "${settingsContextName}". ` +
-            'Their live stores remain isolated, but automatic state retention is paused until only one remains.',
+                'Their live stores remain isolated, but automatic state retention is paused until only one remains.',
         )
     }
 
@@ -106,51 +98,53 @@ const canRetainSearchUIState = (settingsContextName: string): boolean => {
     return (activeInstances.get(settingsContextName)?.size ?? 0) <= 1
 }
 
-const createSearchUIRetentionSnapshot = (state: SearchUIFiltersState): SearchUIRetentionSnapshot => cloneDeep({
-    searchConditions: {
-        criteria: state.criteria,
-        multigetCriteria: state.multigetCriteria,
-        exactSearchLabel: state.exactSearchLabel,
-        exactSearchValue: state.exactSearchValue,
-        ordersSearchLabel: state.ordersSearchLabel,
-        ordersSearchValue: state.ordersSearchValue,
-        customerLevel: state.customerLevel,
-        status: state.status,
-        otpStatus: state.otpStatus,
-        currencies: state.currencies,
-        countries: state.countries,
-        threeD: state.threeD,
-        orderDateType: state.orderDateType,
-        dateRangeSpec: state.dateRangeSpec,
-        projectCurrency: state.projectCurrency,
-        cardTypes: state.cardTypes,
-        transactionTypes: state.transactionTypes,
-        transactionStatuses: state.transactionStatuses,
-        transactionSessionStatusGroup: state.transactionSessionStatusGroup,
-        transactionSessionStatuses: state.transactionSessionStatuses,
-        grouping: state.grouping,
-        recurrenceTypes: state.recurrenceTypes,
-        recurrenceStatuses: state.recurrenceStatuses,
-        mfoConfigurationTypes: state.mfoConfigurationTypes,
-        markerTypes: state.markerTypes,
-        markerStatus: state.markerStatus,
-        processorLogEntryType: state.processorLogEntryType,
-        errorCode: state.errorCode,
-        scope: state.scope,
-        transactionIds: state.transactionIds,
-        datesType: state.datesType,
-        recurrentFilter: state.recurrentFilter,
-        timeZoneOffsetHours: state.timeZoneOffsetHours,
-        csvCharset: state.csvCharset,
-    },
-    appliedSearchCriteria: state.appliedSearchCriteria,
-    activeTemplateName: state.activeTemplateName,
-    templateBaseline: state.templateBaseline,
-    hasUnappliedFilters: state.hasUnappliedFilters,
-    possibleCriteria: state.possibleCriteria,
-    predefinedCriteria: state.predefinedCriteria,
-    exactSearchLabels: state.exactSearchLabels,
-    manualSearch: !!state.config?.manualSearch,
-    transactionTypesRestriction:
-        createEntityOptionRestrictionFingerprint(state.prefetchedData.allowedTransactionTypes),
-})
+const createSearchUIRetentionSnapshot = (state: SearchUIFiltersState): SearchUIRetentionSnapshot =>
+    cloneDeep({
+        searchConditions: {
+            criteria: state.criteria,
+            multigetCriteria: state.multigetCriteria,
+            exactSearchLabel: state.exactSearchLabel,
+            exactSearchValue: state.exactSearchValue,
+            ordersSearchLabel: state.ordersSearchLabel,
+            ordersSearchValue: state.ordersSearchValue,
+            customerLevel: state.customerLevel,
+            status: state.status,
+            otpStatus: state.otpStatus,
+            currencies: state.currencies,
+            countries: state.countries,
+            threeD: state.threeD,
+            orderDateType: state.orderDateType,
+            dateRangeSpec: state.dateRangeSpec,
+            projectCurrency: state.projectCurrency,
+            cardTypes: state.cardTypes,
+            transactionTypes: state.transactionTypes,
+            transactionStatuses: state.transactionStatuses,
+            transactionSessionStatusGroup: state.transactionSessionStatusGroup,
+            transactionSessionStatuses: state.transactionSessionStatuses,
+            grouping: state.grouping,
+            recurrenceTypes: state.recurrenceTypes,
+            recurrenceStatuses: state.recurrenceStatuses,
+            mfoConfigurationTypes: state.mfoConfigurationTypes,
+            markerTypes: state.markerTypes,
+            markerStatus: state.markerStatus,
+            processorLogEntryType: state.processorLogEntryType,
+            errorCode: state.errorCode,
+            scope: state.scope,
+            transactionIds: state.transactionIds,
+            datesType: state.datesType,
+            recurrentFilter: state.recurrentFilter,
+            timeZoneOffsetHours: state.timeZoneOffsetHours,
+            csvCharset: state.csvCharset,
+        },
+        appliedSearchCriteria: state.appliedSearchCriteria,
+        activeTemplateName: state.activeTemplateName,
+        templateBaseline: state.templateBaseline,
+        hasUnappliedFilters: state.hasUnappliedFilters,
+        possibleCriteria: state.possibleCriteria,
+        predefinedCriteria: state.predefinedCriteria,
+        exactSearchLabels: state.exactSearchLabels,
+        manualSearch: !!state.config?.manualSearch,
+        transactionTypesRestriction: createEntityOptionRestrictionFingerprint(
+            state.prefetchedData.allowedTransactionTypes,
+        ),
+    })

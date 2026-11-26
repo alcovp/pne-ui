@@ -7,17 +7,15 @@ type PneModalActionsDataAttributes = {
     [attribute: `data-${string}`]: string | number | boolean | undefined
 }
 
-export type PneModalActionsProps = Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    'children' | 'dangerouslySetInnerHTML'
-> & PneModalActionsDataAttributes & {
-    /** Keep the leading action in the same button group instead of separating it to the opposite edge. */
-    groupLeading?: boolean
-    primary: ReactNode
-    secondary?: ReactNode
-    leading?: ReactNode
-    sx?: SxProps<Theme>
-}
+export type PneModalActionsProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'dangerouslySetInnerHTML'> &
+    PneModalActionsDataAttributes & {
+        /** Keep the leading action in the same button group instead of separating it to the opposite edge. */
+        groupLeading?: boolean
+        primary: ReactNode
+        secondary?: ReactNode
+        leading?: ReactNode
+        sx?: SxProps<Theme>
+    }
 
 const PneModalActions = function PneModalActions({
     primary,
@@ -29,42 +27,52 @@ const PneModalActions = function PneModalActions({
 }: React.PropsWithoutRef<PneModalActionsProps> & {ref?: React.Ref<HTMLDivElement>}) {
     const safeRootProps = sanitizeRootProps(rootProps)
     const isNarrow = useMediaQuery('(max-width:480px)')
-    const leadingAction = leading != null
-        ? <LeadingActionSlot
-            $groupLeading={groupLeading}
-            key='leading'
-            data-pne-modal-action='leading'
-        >
-            {leading}
-        </LeadingActionSlot>
-        : null
-    const secondaryAction = secondary != null
-        ? <ActionSlot key='secondary' data-pne-modal-action='secondary'>
-            {secondary}
+    const leadingAction =
+        leading != null ? (
+            <LeadingActionSlot $groupLeading={groupLeading} key='leading' data-pne-modal-action='leading'>
+                {leading}
+            </LeadingActionSlot>
+        ) : null
+    const secondaryAction =
+        secondary != null ? (
+            <ActionSlot key='secondary' data-pne-modal-action='secondary'>
+                {secondary}
+            </ActionSlot>
+        ) : null
+    const primaryAction = (
+        <ActionSlot key='primary' data-pne-modal-action='primary'>
+            {primary}
         </ActionSlot>
-        : null
-    const primaryAction = <ActionSlot key='primary' data-pne-modal-action='primary'>
-        {primary}
-    </ActionSlot>
-    const trailingActions = <TrailingActions
-        key='trailing'
-        data-pne-modal-actions-group='trailing'
-    >
-        {isNarrow
-            ? <>{primaryAction}{secondaryAction}</>
-            : <>{secondaryAction}{primaryAction}</>}
-    </TrailingActions>
+    )
+    const trailingActions = (
+        <TrailingActions key='trailing' data-pne-modal-actions-group='trailing'>
+            {isNarrow ? (
+                <>
+                    {primaryAction}
+                    {secondaryAction}
+                </>
+            ) : (
+                <>
+                    {secondaryAction}
+                    {primaryAction}
+                </>
+            )}
+        </TrailingActions>
+    )
 
     return (
-        <ActionsRoot
-            {...safeRootProps}
-            $groupLeading={groupLeading}
-            ref={ref}
-            data-pne-modal-actions='true'
-        >
-            {isNarrow
-                ? <>{trailingActions}{leadingAction}</>
-                : <>{leadingAction}{trailingActions}</>}
+        <ActionsRoot {...safeRootProps} $groupLeading={groupLeading} ref={ref} data-pne-modal-actions='true'>
+            {isNarrow ? (
+                <>
+                    {trailingActions}
+                    {leadingAction}
+                </>
+            ) : (
+                <>
+                    {leadingAction}
+                    {trailingActions}
+                </>
+            )}
         </ActionsRoot>
     )
 }
@@ -84,11 +92,11 @@ const sanitizeRootProps = (
 
 const ActionsRoot = styled('div', {
     shouldForwardProp: prop => prop !== '$groupLeading',
-})<{ $groupLeading: boolean }>`
+})<{$groupLeading: boolean}>`
     display: flex;
     width: 100%;
     box-sizing: border-box;
-    gap: ${({$groupLeading}) => $groupLeading ? pneActionSpacing.buttons : pneActionSpacing.groups};
+    gap: ${({$groupLeading}) => ($groupLeading ? pneActionSpacing.buttons : pneActionSpacing.groups)};
     align-items: center;
     justify-content: flex-end;
     flex-wrap: nowrap;
@@ -134,8 +142,8 @@ const ActionSlot = styled('div')`
 
 const LeadingActionSlot = styled(ActionSlot, {
     shouldForwardProp: prop => prop !== '$groupLeading',
-})<{ $groupLeading: boolean }>`
-    margin-inline-end: ${({$groupLeading}) => $groupLeading ? '0px' : 'auto'};
+})<{$groupLeading: boolean}>`
+    margin-inline-end: ${({$groupLeading}) => ($groupLeading ? '0px' : 'auto')};
 
     @media (max-width: 480px) {
         margin-inline-end: 0;

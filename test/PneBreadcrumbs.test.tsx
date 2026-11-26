@@ -2,34 +2,34 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react'
 import {Link, type LinkProps} from '@mui/material'
 import * as React from 'react'
 
-import {
-    PneBreadcrumbs,
-    PneOrdersIcon,
-    type PneBreadcrumbItem,
-} from '../src'
+import {PneBreadcrumbs, PneOrdersIcon, type PneBreadcrumbItem} from '../src'
 
-const createMatchMedia = (matches: boolean) => (query: string): MediaQueryList => ({
-    addEventListener: jest.fn(),
-    addListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-    matches,
-    media: query,
-    onchange: null,
-    removeEventListener: jest.fn(),
-    removeListener: jest.fn(),
-})
+const createMatchMedia =
+    (matches: boolean) =>
+    (query: string): MediaQueryList => ({
+        addEventListener: jest.fn(),
+        addListener: jest.fn(),
+        dispatchEvent: jest.fn(),
+        matches,
+        media: query,
+        onchange: null,
+        removeEventListener: jest.fn(),
+        removeListener: jest.fn(),
+    })
 
 type BridgeLinkProps = LinkProps & {
     href: string
 }
 
-const BridgeLink = ({ref, ...props}: BridgeLinkProps & {ref?: React.Ref<HTMLAnchorElement>}) => <Link data-bridge-link='true' ref={ref} {...props}/>
+const BridgeLink = ({ref, ...props}: BridgeLinkProps & {ref?: React.Ref<HTMLAnchorElement>}) => (
+    <Link data-bridge-link='true' ref={ref} {...props} />
+)
 
 const baseItems: readonly PneBreadcrumbItem[] = [
     {
         id: 'orders',
         label: 'Orders',
-        icon: <PneOrdersIcon/>,
+        icon: <PneOrdersIcon />,
         type: 'text',
     },
     {
@@ -86,12 +86,7 @@ describe('PneBreadcrumbs', () => {
         ]
 
         render(
-            <PneBreadcrumbs
-                ariaLabel='Order path'
-                items={items}
-                linkComponent={BridgeLink}
-                moreLabel='More pages'
-            />,
+            <PneBreadcrumbs ariaLabel='Order path' items={items} linkComponent={BridgeLink} moreLabel='More pages' />,
         )
 
         const navigation = screen.getByRole('navigation', {name: 'Order path'})
@@ -113,7 +108,7 @@ describe('PneBreadcrumbs', () => {
     })
 
     it('keeps the legacy typography and state colors', () => {
-        render(<PneBreadcrumbs items={baseItems} moreLabel='More pages'/>)
+        render(<PneBreadcrumbs items={baseItems} moreLabel='More pages' />)
 
         const link = screen.getByRole('link', {name: 'Orders search'})
         const current = screen.getByText('Order 8861110')
@@ -201,8 +196,9 @@ describe('PneBreadcrumbs', () => {
 
         fireEvent.click(moreButton)
         const menu = await screen.findByRole('menu')
-        expect(within(menu).getByRole('menuitem', {name: 'Orders search'}).getAttribute('href'))
-            .toBe('/paynet-ui/react-orders')
+        expect(within(menu).getByRole('menuitem', {name: 'Orders search'}).getAttribute('href')).toBe(
+            '/paynet-ui/react-orders',
+        )
         expect(within(menu).getByRole('menuitem', {name: 'Saved search'})).not.toBeNull()
 
         fireEvent.keyDown(menu, {key: 'Escape'})
@@ -273,13 +269,7 @@ describe('PneBreadcrumbs', () => {
     })
 
     it('never collapses a two-item trail', () => {
-        render(
-            <PneBreadcrumbs
-                ariaLabel='Short path'
-                items={baseItems.slice(1)}
-                moreLabel='More pages'
-            />,
-        )
+        render(<PneBreadcrumbs ariaLabel='Short path' items={baseItems.slice(1)} moreLabel='More pages' />)
 
         const navigation = screen.getByRole('navigation', {name: 'Short path'})
         const root = navigation.parentElement as HTMLElement
@@ -310,11 +300,13 @@ describe('PneBreadcrumbs', () => {
 
         const {rerender} = render(
             <PneBreadcrumbs
-                items={[{
-                    id: 'long-order',
-                    label: 'A very long order title',
-                    type: 'text',
-                }]}
+                items={[
+                    {
+                        id: 'long-order',
+                        label: 'A very long order title',
+                        type: 'text',
+                    },
+                ]}
                 moreLabel='More pages'
             />,
         )
@@ -326,22 +318,23 @@ describe('PneBreadcrumbs', () => {
 
         rerender(
             <PneBreadcrumbs
-                items={[{
-                    icon: <PneOrdersIcon/>,
-                    id: 'long-order',
-                    label: 'A very long order title',
-                    type: 'text',
-                }]}
+                items={[
+                    {
+                        icon: <PneOrdersIcon />,
+                        id: 'long-order',
+                        label: 'A very long order title',
+                        type: 'text',
+                    },
+                ]}
                 moreLabel='More pages'
             />,
         )
 
-        expect(window.getComputedStyle(screen.getByText('A very long order title')).maxWidth)
-            .toBe('200px')
+        expect(window.getComputedStyle(screen.getByText('A very long order title')).maxWidth).toBe('200px')
     })
 
     it('exports the existing 16px Orders glyph without changing its paths', () => {
-        const {container} = render(<PneOrdersIcon data-testid='orders-icon'/>)
+        const {container} = render(<PneOrdersIcon data-testid='orders-icon' />)
         const icon = screen.getByTestId('orders-icon')
         const paths = container.querySelectorAll('path')
 
@@ -354,7 +347,7 @@ describe('PneBreadcrumbs', () => {
     })
 
     it('does not render an empty navigation landmark', () => {
-        const {container} = render(<PneBreadcrumbs items={[]}/>)
+        const {container} = render(<PneBreadcrumbs items={[]} />)
 
         expect(container.firstChild).toBeNull()
         expect(screen.queryByRole('navigation')).toBeNull()

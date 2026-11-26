@@ -1,13 +1,13 @@
-import {AbstractEntity, PneAsyncAutocomplete, PneCheckbox, PneSwitch, PneTable, PneTableViewSelector} from "../index";
-import {Meta, StoryObj} from "@storybook/react-webpack5";
-import {within} from "storybook/test";
-import PneTableRow from "../component/table/PneTableRow";
-import PneTableCell from "../component/table/PneTableCell";
-import PneTableControlCell from "../component/table/PneTableControlCell";
-import React, {useState} from "react";
-import PneHeaderTableCell from "../component/table/PneHeaderTableCell";
-import useTable from "../component/table/useTable";
-import {Box, Button} from "@mui/material";
+import {AbstractEntity, PneAsyncAutocomplete, PneCheckbox, PneSwitch, PneTable, PneTableViewSelector} from '../index'
+import {Meta, StoryObj} from '@storybook/react-webpack5'
+import {within} from 'storybook/test'
+import PneTableRow from '../component/table/PneTableRow'
+import PneTableCell from '../component/table/PneTableCell'
+import PneTableControlCell from '../component/table/PneTableControlCell'
+import React, {useState} from 'react'
+import PneHeaderTableCell from '../component/table/PneHeaderTableCell'
+import useTable from '../component/table/useTable'
+import {Box, Button} from '@mui/material'
 
 type DataType = AbstractEntity
 
@@ -27,13 +27,7 @@ const HookWrap = () => {
     const [checkedById, setCheckedById] = useState<Record<number, boolean>>({})
     const [onById, setOnById] = useState<Record<number, boolean>>({})
 
-    const {
-        loading,
-        paginator,
-        data,
-        page,
-        pageSize,
-    } = useTable<DataType>({
+    const {loading, paginator, data, page, pageSize} = useTable<DataType>({
         settingsContextName: 'context_1',
         dataUseState: [customData, setCustomData],
         duplicatePagination: true,
@@ -49,90 +43,103 @@ const HookWrap = () => {
     //     setHasNext(list.length === pageSize + 1);
     // }, [page, pageSize])
 
-    return <Box sx={{background: '#FFFFFF'}}>
-        <PneAsyncAutocomplete
-            size='large'
-            loadOptions={() => {
-                return getList(1, 10, 10)
-            }}
-        />
-        <Button variant="contained" size='large' onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}>
-            Create
-        </Button>
-        <Button
-            variant="contained"
-            size='large'
-            onClick={async () => {
-                const list = await getList(page, pageSize, 6)
-                setCustomData(list)
-            }}
-        >
-            Reduce array
-        </Button>
-        <PneTable
-            data={data}
-            createRow={(rowData: DataType, index: number) =>
-                <PneTableRow onClick={() => alert('Row clicked: ' + index)} key={rowData.id}>
-                    <PneTableCell
-                        onClick={(event) => {
-                            event.stopPropagation()
-                            alert('ID clicked: ' + rowData.id)
-                        }}
-                    >
-                        {rowData.id}
-                    </PneTableCell>
-                    <PneTableControlCell onClick={(event) => event.stopPropagation()}>
-                        <PneCheckbox
-                            checked={checkedById[rowData.id] ?? false}
-                            onClick={(event) => event.stopPropagation()}
-                            onChange={(event) => setCheckedById((prevState) => ({
-                                ...prevState,
-                                [rowData.id]: event.target.checked,
-                            }))}
-                        />
-                    </PneTableControlCell>
-                    <PneTableControlCell onClick={(event) => event.stopPropagation()}>
-                        <Button
-                            variant="contained"
-                            size="small"
-                            onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+    return (
+        <Box sx={{background: '#FFFFFF'}}>
+            <PneAsyncAutocomplete
+                size='large'
+                loadOptions={() => {
+                    return getList(1, 10, 10)
+                }}
+            />
+            <Button
+                variant='contained'
+                size='large'
+                onClick={() => setCustomData([...customData, {id: 999, displayName: 'NEW'}])}
+            >
+                Create
+            </Button>
+            <Button
+                variant='contained'
+                size='large'
+                onClick={async () => {
+                    const list = await getList(page, pageSize, 6)
+                    setCustomData(list)
+                }}
+            >
+                Reduce array
+            </Button>
+            <PneTable
+                data={data}
+                createRow={(rowData: DataType, index: number) => (
+                    <PneTableRow onClick={() => alert('Row clicked: ' + index)} key={rowData.id}>
+                        <PneTableCell
+                            onClick={event => {
                                 event.stopPropagation()
-                                alert('Control clicked: ' + rowData.id)
+                                alert('ID clicked: ' + rowData.id)
                             }}
                         >
-                            {'Control'}
-                        </Button>
-                    </PneTableControlCell>
-                    <PneTableControlCell onClick={(event) => event.stopPropagation()}>
-                        <PneSwitch
-                            checked={onById[rowData.id] ?? false}
-                            onClick={(event) => event.stopPropagation()}
-                            onChange={(event) => setOnById((prevState) => ({
-                                ...prevState,
-                                [rowData.id]: event.target.checked,
-                            }))}
-                        />
-                    </PneTableControlCell>
-                    <PneTableCell
-                        onClick={(event) => {
-                            event.stopPropagation()
-                            alert('Name clicked: ' + rowData.displayName)
-                        }}
-                    >
-                        {rowData.displayName}
-                    </PneTableCell>
-                </PneTableRow>}
-            createTableHeader={() => <PneTableRow>
-                <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Check'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Control'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'On/Off'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
-            </PneTableRow>}
-            paginator={paginator}
-            loading={loading}
-        />
-    </Box>
+                            {rowData.id}
+                        </PneTableCell>
+                        <PneTableControlCell onClick={event => event.stopPropagation()}>
+                            <PneCheckbox
+                                checked={checkedById[rowData.id] ?? false}
+                                onClick={event => event.stopPropagation()}
+                                onChange={event =>
+                                    setCheckedById(prevState => ({
+                                        ...prevState,
+                                        [rowData.id]: event.target.checked,
+                                    }))
+                                }
+                            />
+                        </PneTableControlCell>
+                        <PneTableControlCell onClick={event => event.stopPropagation()}>
+                            <Button
+                                variant='contained'
+                                size='small'
+                                onClick={(event: React.MouseEvent<HTMLButtonElement>) => {
+                                    event.stopPropagation()
+                                    alert('Control clicked: ' + rowData.id)
+                                }}
+                            >
+                                {'Control'}
+                            </Button>
+                        </PneTableControlCell>
+                        <PneTableControlCell onClick={event => event.stopPropagation()}>
+                            <PneSwitch
+                                checked={onById[rowData.id] ?? false}
+                                onClick={event => event.stopPropagation()}
+                                onChange={event =>
+                                    setOnById(prevState => ({
+                                        ...prevState,
+                                        [rowData.id]: event.target.checked,
+                                    }))
+                                }
+                            />
+                        </PneTableControlCell>
+                        <PneTableCell
+                            onClick={event => {
+                                event.stopPropagation()
+                                alert('Name clicked: ' + rowData.displayName)
+                            }}
+                        >
+                            {rowData.displayName}
+                        </PneTableCell>
+                    </PneTableRow>
+                )}
+                createTableHeader={() => (
+                    <PneTableRow>
+                        <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Check'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Control'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'On/Off'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                paginator={paginator}
+                loading={loading}
+            />
+        </Box>
+    )
 }
 
 const getListSlow = async (page: number, pageSize: number, limit: number): Promise<DataType[]> => {
@@ -149,116 +156,128 @@ const getListSlow = async (page: number, pageSize: number, limit: number): Promi
 const SlowLoadingWrap = () => {
     const [customData, setCustomData] = useState<DataType[]>([])
 
-    const {
-        loading,
-        paginator,
-        data,
-    } = useTable<DataType>({
+    const {loading, paginator, data} = useTable<DataType>({
         settingsContextName: 'context_slow',
         dataUseState: [customData, setCustomData],
         duplicatePagination: true,
         fetchData: ({page, pageSize}) => getListSlow(page, pageSize, 51),
     })
 
-    return <Box sx={{background: '#FFFFFF'}}>
-        <PneTable
-            data={data}
-            createRow={(rowData: DataType) =>
-                <PneTableRow key={rowData.id}>
-                    <PneTableCell>{rowData.id}</PneTableCell>
-                    <PneTableCell>{rowData.displayName}</PneTableCell>
-                </PneTableRow>}
-            createTableHeader={() => <PneTableRow>
-                <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
-            </PneTableRow>}
-            paginator={paginator}
-            loading={loading}
-        />
-    </Box>
+    return (
+        <Box sx={{background: '#FFFFFF'}}>
+            <PneTable
+                data={data}
+                createRow={(rowData: DataType) => (
+                    <PneTableRow key={rowData.id}>
+                        <PneTableCell>{rowData.id}</PneTableCell>
+                        <PneTableCell>{rowData.displayName}</PneTableCell>
+                    </PneTableRow>
+                )}
+                createTableHeader={() => (
+                    <PneTableRow>
+                        <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                paginator={paginator}
+                loading={loading}
+            />
+        </Box>
+    )
 }
 
 /**
  * A slow story is finished once its rows are in. Until then it shows the skeleton, and a picture
  * taken in between would show now one, now the other.
  */
-const waitForCell = (text: string) => async ({canvasElement}: {canvasElement: HTMLElement}) => {
-    await within(canvasElement).findByText(text, undefined, {timeout: 10000})
-}
+const waitForCell =
+    (text: string) =>
+    async ({canvasElement}: {canvasElement: HTMLElement}) => {
+        await within(canvasElement).findByText(text, undefined, {timeout: 10000})
+    }
 
 export default {
-    title: "pne-ui/PneTable",
+    title: 'pne-ui/PneTable',
     component: HookWrap,
-} as Meta<typeof HookWrap>;
+} as Meta<typeof HookWrap>
 
-type Story = StoryObj<typeof HookWrap>;
+type Story = StoryObj<typeof HookWrap>
 
 export const Default: Story = {
-    args: {}
-};
+    args: {},
+}
 
 export const SlowLoading: StoryObj<typeof SlowLoadingWrap> = {
     render: () => <SlowLoadingWrap />,
     play: waitForCell('John 1'),
-};
+}
 
 const SlowLoadingWithControlsWrap = () => {
     const [customData, setCustomData] = useState<DataType[]>([])
     const [checkedById, setCheckedById] = useState<Record<number, boolean>>({})
 
-    const {
-        loading,
-        paginator,
-        data,
-    } = useTable<DataType>({
+    const {loading, paginator, data} = useTable<DataType>({
         settingsContextName: 'context_slow_controls',
         dataUseState: [customData, setCustomData],
         duplicatePagination: true,
         fetchData: ({page, pageSize}) => getListSlow(page, pageSize, 51),
     })
 
-    return <Box sx={{background: '#FFFFFF'}}>
-        <PneTable
-            data={data}
-            createRow={(rowData: DataType) =>
-                <PneTableRow key={rowData.id}>
-                    <PneTableCell>{rowData.id}</PneTableCell>
-                    <PneTableControlCell>
-                        <PneCheckbox
-                            checked={checkedById[rowData.id] ?? false}
-                            onChange={(event) => setCheckedById((prevState) => ({
-                                ...prevState,
-                                [rowData.id]: event.target.checked,
-                            }))}
-                        />
-                    </PneTableControlCell>
-                    <PneTableControlCell>
-                        <Box sx={{display: 'flex', flexDirection: 'column', gap: '4px', py: '4px'}}>
-                            <Button variant="contained" size="small">{'Edit'}</Button>
-                            <Button size="small" variant="contained" color="error">{'Delete'}</Button>
-                        </Box>
-                    </PneTableControlCell>
-                    <PneTableCell>
-                        <div>{rowData.displayName}</div>
-                        <div style={{fontSize: '11px', color: '#8A94A6'}}>{'user-' + rowData.id + '@example.com'}</div>
-                    </PneTableCell>
-                </PneTableRow>}
-            createTableHeader={() => <PneTableRow>
-                <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Check'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Actions'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
-            </PneTableRow>}
-            paginator={paginator}
-            loading={loading}
-        />
-    </Box>
+    return (
+        <Box sx={{background: '#FFFFFF'}}>
+            <PneTable
+                data={data}
+                createRow={(rowData: DataType) => (
+                    <PneTableRow key={rowData.id}>
+                        <PneTableCell>{rowData.id}</PneTableCell>
+                        <PneTableControlCell>
+                            <PneCheckbox
+                                checked={checkedById[rowData.id] ?? false}
+                                onChange={event =>
+                                    setCheckedById(prevState => ({
+                                        ...prevState,
+                                        [rowData.id]: event.target.checked,
+                                    }))
+                                }
+                            />
+                        </PneTableControlCell>
+                        <PneTableControlCell>
+                            <Box sx={{display: 'flex', flexDirection: 'column', gap: '4px', py: '4px'}}>
+                                <Button variant='contained' size='small'>
+                                    {'Edit'}
+                                </Button>
+                                <Button size='small' variant='contained' color='error'>
+                                    {'Delete'}
+                                </Button>
+                            </Box>
+                        </PneTableControlCell>
+                        <PneTableCell>
+                            <div>{rowData.displayName}</div>
+                            <div style={{fontSize: '11px', color: '#8A94A6'}}>
+                                {'user-' + rowData.id + '@example.com'}
+                            </div>
+                        </PneTableCell>
+                    </PneTableRow>
+                )}
+                createTableHeader={() => (
+                    <PneTableRow>
+                        <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Check'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Actions'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                paginator={paginator}
+                loading={loading}
+            />
+        </Box>
+    )
 }
 
 export const SlowLoadingWithControls: StoryObj<typeof SlowLoadingWithControlsWrap> = {
     render: () => <SlowLoadingWithControlsWrap />,
     play: waitForCell('John 1'),
-};
+}
 
 const getListFast = async (page: number, pageSize: number, limit: number): Promise<DataType[]> => {
     const data: DataType[] = []
@@ -274,38 +293,39 @@ const getListFast = async (page: number, pageSize: number, limit: number): Promi
 const FastLoadingWrap = () => {
     const [customData, setCustomData] = useState<DataType[]>([])
 
-    const {
-        loading,
-        paginator,
-        data,
-    } = useTable<DataType>({
+    const {loading, paginator, data} = useTable<DataType>({
         settingsContextName: 'context_fast',
         dataUseState: [customData, setCustomData],
         duplicatePagination: true,
         fetchData: ({page, pageSize}) => getListFast(page, pageSize, 51),
     })
 
-    return <Box sx={{background: '#FFFFFF'}}>
-        <PneTable
-            data={data}
-            createRow={(rowData: DataType) =>
-                <PneTableRow key={rowData.id}>
-                    <PneTableCell>{rowData.id}</PneTableCell>
-                    <PneTableCell>{rowData.displayName}</PneTableCell>
-                </PneTableRow>}
-            createTableHeader={() => <PneTableRow>
-                <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
-                <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
-            </PneTableRow>}
-            paginator={paginator}
-            loading={loading}
-        />
-    </Box>
+    return (
+        <Box sx={{background: '#FFFFFF'}}>
+            <PneTable
+                data={data}
+                createRow={(rowData: DataType) => (
+                    <PneTableRow key={rowData.id}>
+                        <PneTableCell>{rowData.id}</PneTableCell>
+                        <PneTableCell>{rowData.displayName}</PneTableCell>
+                    </PneTableRow>
+                )}
+                createTableHeader={() => (
+                    <PneTableRow>
+                        <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'Name'}</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                paginator={paginator}
+                loading={loading}
+            />
+        </Box>
+    )
 }
 
 export const FastLoading: StoryObj<typeof FastLoadingWrap> = {
     render: () => <FastLoadingWrap />,
-};
+}
 
 type OrderStoryView = 'brief' | 'detailed'
 
@@ -360,87 +380,95 @@ const centered = (label: string) => <div style={{display: 'flex', justifyContent
 const ViewSwitchSkeletonWrap = ({getOrders = getOrdersSlow}: {getOrders?: typeof getOrdersSlow}) => {
     const [view, setView] = useState<OrderStoryView>('brief')
 
-    const {
-        loading,
-        paginator,
-        data,
-    } = useTable<OrderStoryRow>({
+    const {loading, paginator, data} = useTable<OrderStoryRow>({
         settingsContextName: 'context_view_switch',
         duplicatePagination: true,
         resetKey: view,
         fetchData: ({page, pageSize}) => getOrders(page, pageSize),
     })
 
-    const briefHeader = () => <PneTableRow>
-        <PneHeaderTableCell>{'Date'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Merchant'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{rightAligned('Amount')}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Status'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Type'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Message'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Proc'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{centered('Card')}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Details'}</PneHeaderTableCell>
-    </PneTableRow>
+    const briefHeader = () => (
+        <PneTableRow>
+            <PneHeaderTableCell>{'Date'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'ID'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Merchant'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{rightAligned('Amount')}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Status'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Type'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Message'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Proc'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{centered('Card')}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Details'}</PneHeaderTableCell>
+        </PneTableRow>
+    )
 
-    const briefRow = (row: OrderStoryRow) => <PneTableRow key={row.id}>
-        <PneTableCell>{row.date}</PneTableCell>
-        <PneTableCell>{row.id}</PneTableCell>
-        <PneTableCell>{row.merchant}</PneTableCell>
-        <PneTableCell>{rightAligned(row.amount)}</PneTableCell>
-        <PneTableCell>{row.status}</PneTableCell>
-        <PneTableCell>{row.type}</PneTableCell>
-        <PneTableCell>{row.message}</PneTableCell>
-        <PneTableCell>{row.processor}</PneTableCell>
-        <PneTableCell>{centered(row.card)}</PneTableCell>
-        <PneTableCell>{row.details}</PneTableCell>
-    </PneTableRow>
+    const briefRow = (row: OrderStoryRow) => (
+        <PneTableRow key={row.id}>
+            <PneTableCell>{row.date}</PneTableCell>
+            <PneTableCell>{row.id}</PneTableCell>
+            <PneTableCell>{row.merchant}</PneTableCell>
+            <PneTableCell>{rightAligned(row.amount)}</PneTableCell>
+            <PneTableCell>{row.status}</PneTableCell>
+            <PneTableCell>{row.type}</PneTableCell>
+            <PneTableCell>{row.message}</PneTableCell>
+            <PneTableCell>{row.processor}</PneTableCell>
+            <PneTableCell>{centered(row.card)}</PneTableCell>
+            <PneTableCell>{row.details}</PneTableCell>
+        </PneTableRow>
+    )
 
-    const detailedHeader = () => <PneTableRow>
-        <PneHeaderTableCell>{'Date'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{rightAligned('Amount')}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Status'}</PneHeaderTableCell>
-        <PneHeaderTableCell>{'Details'}</PneHeaderTableCell>
-    </PneTableRow>
+    const detailedHeader = () => (
+        <PneTableRow>
+            <PneHeaderTableCell>{'Date'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{rightAligned('Amount')}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Status'}</PneHeaderTableCell>
+            <PneHeaderTableCell>{'Details'}</PneHeaderTableCell>
+        </PneTableRow>
+    )
 
-    const detailedRow = (row: OrderStoryRow) => <PneTableRow key={row.id}>
-        <PneTableCell sx={{verticalAlign: 'top', width: '120px'}}>{row.date}</PneTableCell>
-        <PneTableCell sx={{verticalAlign: 'top'}}>{rightAligned(row.amount)}</PneTableCell>
-        <PneTableCell sx={{verticalAlign: 'top'}}>
-            <div>{row.status}</div>
-            <div>{row.type}</div>
-        </PneTableCell>
-        <PneTableCell sx={{verticalAlign: 'top', width: '60%'}}>
-            <div>{row.merchant}</div>
-            <div>{row.details}</div>
-            <div>{row.message}</div>
-        </PneTableCell>
-    </PneTableRow>
+    const detailedRow = (row: OrderStoryRow) => (
+        <PneTableRow key={row.id}>
+            <PneTableCell sx={{verticalAlign: 'top', width: '120px'}}>{row.date}</PneTableCell>
+            <PneTableCell sx={{verticalAlign: 'top'}}>{rightAligned(row.amount)}</PneTableCell>
+            <PneTableCell sx={{verticalAlign: 'top'}}>
+                <div>{row.status}</div>
+                <div>{row.type}</div>
+            </PneTableCell>
+            <PneTableCell sx={{verticalAlign: 'top', width: '60%'}}>
+                <div>{row.merchant}</div>
+                <div>{row.details}</div>
+                <div>{row.message}</div>
+            </PneTableCell>
+        </PneTableRow>
+    )
 
-    return <Box sx={{background: '#FFFFFF'}}>
-        <PneTable
-            data={data}
-            createRow={view === 'brief' ? briefRow : detailedRow}
-            createTableHeader={view === 'brief' ? briefHeader : detailedHeader}
-            paginator={paginator}
-            loading={loading}
-            loadingKey={view}
-            skeletonRowHeight={view === 'detailed' ? 77 : undefined}
-            toolbar={<PneTableViewSelector
-                aria-label={'Orders view'}
-                value={view}
-                views={orderStoryViews}
-                onChange={setView}
-            />}
-        />
-    </Box>
+    return (
+        <Box sx={{background: '#FFFFFF'}}>
+            <PneTable
+                data={data}
+                createRow={view === 'brief' ? briefRow : detailedRow}
+                createTableHeader={view === 'brief' ? briefHeader : detailedHeader}
+                paginator={paginator}
+                loading={loading}
+                loadingKey={view}
+                skeletonRowHeight={view === 'detailed' ? 77 : undefined}
+                toolbar={
+                    <PneTableViewSelector
+                        aria-label={'Orders view'}
+                        value={view}
+                        views={orderStoryViews}
+                        onChange={setView}
+                    />
+                }
+            />
+        </Box>
+    )
 }
 
 export const ViewSwitchSkeleton: StoryObj<typeof ViewSwitchSkeletonWrap> = {
     render: () => <ViewSwitchSkeletonWrap />,
     play: waitForCell('900100'),
-};
+}
 
 /**
  * The orders never arrive, so the table stays on the skeleton of the chosen view:
@@ -448,4 +476,4 @@ export const ViewSwitchSkeleton: StoryObj<typeof ViewSwitchSkeletonWrap> = {
  */
 export const Skeleton: StoryObj<typeof ViewSwitchSkeletonWrap> = {
     render: () => <ViewSwitchSkeletonWrap getOrders={getOrdersNever} />,
-};
+}

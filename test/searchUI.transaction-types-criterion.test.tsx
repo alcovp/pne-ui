@@ -1,20 +1,17 @@
 import * as React from 'react'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import { SearchUIFilters } from '../src/component/search-ui/filters/SearchUIFilters'
-import { resetSearchUIRetentionForTests } from '../src/component/search-ui/filters/state/retention'
-import { CriterionTypeEnum, SearchCriteria } from '../src/component/search-ui/filters/types'
-import {
-    initialSearchUIDefaults,
-    SearchUIDefaultsContext,
-} from '../src/component/search-ui/SearchUIProvider'
-import type { AbstractEntity } from '../src/common/paynet/type'
+import {SearchUIFilters} from '../src/component/search-ui/filters/SearchUIFilters'
+import {resetSearchUIRetentionForTests} from '../src/component/search-ui/filters/state/retention'
+import {CriterionTypeEnum, SearchCriteria} from '../src/component/search-ui/filters/types'
+import {initialSearchUIDefaults, SearchUIDefaultsContext} from '../src/component/search-ui/SearchUIProvider'
+import type {AbstractEntity} from '../src/common/paynet/type'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
+        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
     }),
 }))
 
@@ -54,30 +51,33 @@ const renderFilters = ({
     restricted = true,
     initialSearchConditions,
     searchConditions,
-}: RenderFiltersOptions = {}) => render(
-    <SearchUIDefaultsContext
-        value={{
-            ...initialSearchUIDefaults,
-            getTransactionTypes,
-        }}
-    >
-        <SearchUIFilters
-            settingsContextName={'transaction-types-criterion-test'}
-            possibleCriteria={[CriterionTypeEnum.TRANSACTION_TYPES]}
-            predefinedCriteria={[CriterionTypeEnum.TRANSACTION_TYPES]}
-            initialSearchConditions={initialSearchConditions}
-            searchConditions={searchConditions}
-            onFiltersUpdate={onFiltersUpdate}
-            config={{
-                hideShowFiltersButton: true,
-                hideTemplatesSelect: true,
-                ...(restricted ? {
-                    transactionTypes: {allowedNames},
-                } : {}),
+}: RenderFiltersOptions = {}) =>
+    render(
+        <SearchUIDefaultsContext
+            value={{
+                ...initialSearchUIDefaults,
+                getTransactionTypes,
             }}
-        />
-    </SearchUIDefaultsContext>,
-)
+        >
+            <SearchUIFilters
+                settingsContextName={'transaction-types-criterion-test'}
+                possibleCriteria={[CriterionTypeEnum.TRANSACTION_TYPES]}
+                predefinedCriteria={[CriterionTypeEnum.TRANSACTION_TYPES]}
+                initialSearchConditions={initialSearchConditions}
+                searchConditions={searchConditions}
+                onFiltersUpdate={onFiltersUpdate}
+                config={{
+                    hideShowFiltersButton: true,
+                    hideTemplatesSelect: true,
+                    ...(restricted
+                        ? {
+                              transactionTypes: {allowedNames},
+                          }
+                        : {}),
+                }}
+            />
+        </SearchUIDefaultsContext>,
+    )
 
 describe('SearchUIFilters restricted transaction types', () => {
     beforeEach(() => {
@@ -93,9 +93,11 @@ describe('SearchUIFilters restricted transaction types', () => {
         renderFilters({onFiltersUpdate, restricted: false})
 
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionTypes: [],
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionTypes: [],
+                }),
+            )
         })
 
         const select = await screen.findByRole('combobox')
@@ -107,9 +109,11 @@ describe('SearchUIFilters restricted transaction types', () => {
 
         fireEvent.click(screen.getByRole('option', {name: 'sale'}))
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionTypes: [833],
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionTypes: [833],
+                }),
+            )
         })
     })
 
@@ -129,9 +133,11 @@ describe('SearchUIFilters restricted transaction types', () => {
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalledTimes(1)
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionTypes: [611, 722],
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionTypes: [611, 722],
+                }),
+            )
         })
         expect(getTransactionTypes).toHaveBeenCalledTimes(1)
     })
@@ -149,16 +155,20 @@ describe('SearchUIFilters restricted transaction types', () => {
 
         fireEvent.click(screen.getByRole('option', {name: 'chargeback'}))
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionTypes: [611],
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionTypes: [611],
+                }),
+            )
         })
 
         fireEvent.click(screen.getByRole('option', {name: 'react.searchUI.all'}))
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionTypes: [611, 722],
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionTypes: [611, 722],
+                }),
+            )
         })
     })
 
@@ -176,9 +186,11 @@ describe('SearchUIFilters restricted transaction types', () => {
         const view = renderFilters({onFiltersUpdate, initialSearchConditions})
 
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionTypes: [611],
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionTypes: [611],
+                }),
+            )
         })
 
         view.rerender(
@@ -213,9 +225,11 @@ describe('SearchUIFilters restricted transaction types', () => {
         )
 
         await waitFor(() => {
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                transactionTypes: [722],
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    transactionTypes: [722],
+                }),
+            )
         })
     })
 })

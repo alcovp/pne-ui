@@ -3,12 +3,7 @@ import {act, fireEvent, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    AbstractEntity,
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {AbstractEntity, CriterionTypeEnum, SearchUIFilters, SearchUIProvider} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -43,14 +38,11 @@ const transactionStatus: AbstractEntity = {
     displayName: 'Authorized',
 }
 
-const getTransactionStatusCriterion = (
-    container: HTMLElement,
-    scope: string,
-): HTMLElement => {
+const getTransactionStatusCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"]`
-        + `[data-autotest-value="${CriterionTypeEnum.TRANSACTION_STATUS}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"]` +
+            `[data-autotest-value="${CriterionTypeEnum.TRANSACTION_STATUS}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -68,36 +60,29 @@ const getCollectionInput = (criterion: HTMLElement): HTMLInputElement => {
     return input as HTMLInputElement
 }
 
-const getSelectedValue = (
-    criterion: HTMLElement,
-    value: string | number,
-): HTMLElement | null => criterion.querySelector<HTMLElement>(
-    '[data-autotest="criterion-collection-value"]'
-    + `[data-autotest-value="${value}"]`,
-)
-
-const getOwnedOptions = (scope: string): HTMLElement | null => (
-    document.body.querySelector<HTMLElement>(
-        '[role="listbox"][data-autotest="criterion-collection-options"]'
-        + `[data-autotest-value="${scope}"]`
-        + `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_STATUS}"]`,
+const getSelectedValue = (criterion: HTMLElement, value: string | number): HTMLElement | null =>
+    criterion.querySelector<HTMLElement>(
+        '[data-autotest="criterion-collection-value"]' + `[data-autotest-value="${value}"]`,
     )
-)
 
-const getOwnedPanel = (scope: string): HTMLElement | null => (
+const getOwnedOptions = (scope: string): HTMLElement | null =>
     document.body.querySelector<HTMLElement>(
-        '[data-autotest="criterion-collection-panel"]'
-        + `[data-autotest-value="${scope}"]`
-        + `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_STATUS}"]`,
+        '[role="listbox"][data-autotest="criterion-collection-options"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_STATUS}"]`,
     )
-)
 
-const getOption = (listbox: HTMLElement, value: string | number): HTMLElement | null => (
+const getOwnedPanel = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[data-autotest="criterion-collection-panel"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.TRANSACTION_STATUS}"]`,
+    )
+
+const getOption = (listbox: HTMLElement, value: string | number): HTMLElement | null =>
     listbox.querySelector<HTMLElement>(
-        '[role="option"][data-autotest="criterion-collection-option"]'
-        + `[data-autotest-value="${value}"]`,
+        '[role="option"][data-autotest="criterion-collection-option"]' + `[data-autotest-value="${value}"]`,
     )
-)
 
 const openCollection = (input: HTMLInputElement) => {
     fireEvent.focus(input)
@@ -145,8 +130,8 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="collection-inventory"
-                    settingsContextName="collection-inventory-context"
+                    autoTestId='collection-inventory'
+                    settingsContextName='collection-inventory-context'
                     possibleCriteria={consumers.map(consumer => consumer.criterionType)}
                     predefinedCriteria={consumers.map(consumer => consumer.criterionType)}
                     initialSearchConditions={{
@@ -169,16 +154,18 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
             for (const {source} of consumers) {
                 expect(source.getOptions).toHaveBeenCalledTimes(1)
             }
-            expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                currencies: [currencies.entity.id],
-                cardTypes: [cardTypes.entity.id],
-                transactionTypes: [transactionTypes.entity.id],
-                transactionStatuses: [transactionStatuses.entity.id],
-                recurrenceTypes: [recurrenceTypes.entity.id],
-                recurrenceStatuses: [recurrenceStatuses.entity.id],
-                mfoConfigurationTypes: [mfoConfigurationTypes.entity.id],
-                markerTypes: [markerTypes.entity.id],
-            }))
+            expect(onFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currencies: [currencies.entity.id],
+                    cardTypes: [cardTypes.entity.id],
+                    transactionTypes: [transactionTypes.entity.id],
+                    transactionStatuses: [transactionStatuses.entity.id],
+                    recurrenceTypes: [recurrenceTypes.entity.id],
+                    recurrenceStatuses: [recurrenceStatuses.entity.id],
+                    mfoConfigurationTypes: [mfoConfigurationTypes.entity.id],
+                    markerTypes: [markerTypes.entity.id],
+                }),
+            )
         })
 
         await act(async () => {
@@ -209,9 +196,11 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
             expect(input?.hasAttribute('data-autotest-value')).toBe(false)
             expect(getSelectedValue(criterion as HTMLElement, source.entity.id)).not.toBeNull()
             // The cross of the library's value badge, not MUI's filled circle.
-            expect(getSelectedValue(criterion as HTMLElement, source.entity.id)?.querySelector(
-                '.MuiChip-deleteIcon.PneAutocomplete-icon[data-testid="PneCloseIcon"]',
-            )).not.toBeNull()
+            expect(
+                getSelectedValue(criterion as HTMLElement, source.entity.id)?.querySelector(
+                    '.MuiChip-deleteIcon.PneAutocomplete-icon[data-testid="PneCloseIcon"]',
+                ),
+            ).not.toBeNull()
             expect(getSelectedValue(criterion as HTMLElement, 'all')).toBeNull()
         }
     })
@@ -228,8 +217,8 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="transaction-status-all"
-                    settingsContextName="transaction-status-all-context"
+                    autoTestId='transaction-status-all'
+                    settingsContextName='transaction-status-all-context'
                     possibleCriteria={[CriterionTypeEnum.TRANSACTION_STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.TRANSACTION_STATUS]}
                     initialSearchConditions={{
@@ -242,8 +231,8 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="transaction-status-entity"
-                    settingsContextName="transaction-status-entity-context"
+                    autoTestId='transaction-status-entity'
+                    settingsContextName='transaction-status-entity-context'
                     possibleCriteria={[CriterionTypeEnum.TRANSACTION_STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.TRANSACTION_STATUS]}
                     initialSearchConditions={{
@@ -260,12 +249,16 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
 
         await waitFor(() => {
             expect(getTransactionStatuses).toHaveBeenCalledTimes(2)
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                transactionStatuses: [],
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                transactionStatuses: [transactionStatus.id],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionStatuses: [],
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionStatuses: [transactionStatus.id],
+                }),
+            )
         })
 
         const firstCriterion = getTransactionStatusCriterion(container, 'transaction-status-all')
@@ -307,18 +300,14 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
             expect(input.getAttribute('aria-expanded')).toBe('true')
             expect(input.getAttribute('aria-controls')).toBe(listbox.id)
             expect(criterion.contains(listbox)).toBe(false)
-            expect(listbox.getAttribute('aria-label')).toBe(
-                'react.CriterionTypeEnum.TRANSACTION_STATUS',
-            )
+            expect(listbox.getAttribute('aria-label')).toBe('react.CriterionTypeEnum.TRANSACTION_STATUS')
             expect(listbox.hasAttribute('aria-labelledby')).toBe(false)
-            expect(listbox.querySelectorAll(
-                '[role="option"][data-autotest="criterion-collection-option"]',
-            )).toHaveLength(2)
+            expect(
+                listbox.querySelectorAll('[role="option"][data-autotest="criterion-collection-option"]'),
+            ).toHaveLength(2)
             expect(getOption(listbox, 'all')).not.toBeNull()
             expect(getOption(listbox, transactionStatus.id)).not.toBeNull()
-            expect(getOption(listbox, 'all')?.querySelector(
-                'input[type="checkbox"], [role="checkbox"]',
-            )).toBeNull()
+            expect(getOption(listbox, 'all')?.querySelector('input[type="checkbox"], [role="checkbox"]')).toBeNull()
         }
 
         expect(getOption(firstOptions, 'all')?.getAttribute('aria-selected')).toBe('true')
@@ -337,9 +326,11 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
         await waitFor(() => {
             expect(getSelectedValue(firstCriterion, transactionStatus.id)).not.toBeNull()
             expect(getSelectedValue(firstCriterion, 'all')).toBeNull()
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                transactionStatuses: [transactionStatus.id],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionStatuses: [transactionStatus.id],
+                }),
+            )
         })
         expect(getSelectedValue(secondCriterion, transactionStatus.id)).not.toBeNull()
         expect(getSelectedValue(secondCriterion, 'all')).toBeNull()
@@ -358,9 +349,11 @@ describe('SearchUI abstract-entity collection Selenium contract', () => {
         await waitFor(() => {
             expect(getSelectedValue(firstCriterion, 'all')).not.toBeNull()
             expect(getSelectedValue(firstCriterion, transactionStatus.id)).toBeNull()
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                transactionStatuses: [],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionStatuses: [],
+                }),
+            )
         })
         expect(getSelectedValue(secondCriterion, transactionStatus.id)).not.toBeNull()
         expect(getSelectedValue(secondCriterion, 'all')).toBeNull()

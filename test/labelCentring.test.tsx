@@ -30,51 +30,70 @@ describe('label centring', () => {
         expect(pneIconOnCapitals('1em')).toBe('calc((1cap - 1em) / 2)')
     })
 
-    it.each(['small', 'medium', 'large'] as const)('makes a %s button with nothing but its label a centred, trimmed block', size => {
-        const config = PNE_BUTTON_SIZE[size]
-        const supported = buttonStyle(size)[PNE_LABEL_TRIM_SUPPORT] as CSSObject
-        // Only a button that holds its label and MUI's own slots: any other child keeps the flex layout.
-        // `:where` keeps the rule as light as one class.
-        const labelOnly = only(supported, '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))')
+    it.each(['small', 'medium', 'large'] as const)(
+        'makes a %s button with nothing but its label a centred, trimmed block',
+        size => {
+            const config = PNE_BUTTON_SIZE[size]
+            const supported = buttonStyle(size)[PNE_LABEL_TRIM_SUPPORT] as CSSObject
+            // Only a button that holds its label and MUI's own slots: any other child keeps the flex layout.
+            // `:where` keeps the rule as light as one class.
+            const labelOnly = only(
+                supported,
+                '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))',
+            )
 
-        expect(labelOnly).toMatchObject({alignContent: 'center', '--pne-button-display': 'inline-block', textBox: TRIM})
-        // The rule sets only the property: `display` stays a plain declaration of the button, which the `sx` of a
-        // page replaces (a button hidden with `display: 'none'` stays hidden).
-        expect(labelOnly.display).toBeUndefined()
-        expect(buttonStyle(size).display).toBe('var(--pne-button-display, inline-flex)')
-        // The padding takes over the room the trim removed, so a label of two lines keeps its air.
-        expect(labelOnly['--pne-button-padding-block']).toBe(`calc((${config.height}px - 1cap) / 2 - 1px)`)
-        // The padding itself is a plain declaration of the button, so a padding from the `sx` of a page wins.
-        expect(buttonStyle(size).paddingTop).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
-        expect(buttonStyle(size).paddingBottom).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
-        expect(labelOnly['&.MuiButton-fullWidth']).toEqual({'--pne-button-display': 'block'})
-        // The gap of the flex layout and the pull of the icon become one margin of the same size.
-        expect(only(labelOnly, '.MuiButton-startIcon, &&& .MuiButton-endIcon')).toMatchObject({
-            display: 'inline',
-            verticalAlign: `calc((1cap - ${config.icon}px) / 2)`,
-            whiteSpace: 'nowrap',
-        })
-        // A block in an inline slot would break the line of the button: the icon is an inline block.
-        expect(labelOnly['&&& .MuiButton-startIcon > *, &&& .MuiButton-endIcon > *']).toEqual({display: 'inline-block'})
-        // A word joiner inside the slot glues the icon to the label: no icon on a line of its own.
-        expect(labelOnly['&&& .MuiButton-startIcon::after, &&& .MuiButton-endIcon::before']).toEqual({content: '"\\2060"'})
-        expect(labelOnly['&&& .MuiButton-startIcon']).toEqual({marginRight: `${config.gap - config.iconPull}px`})
-        expect(labelOnly['&&& .MuiButton-endIcon']).toEqual({marginLeft: `${config.gap - config.iconPull}px`})
-        // MUI's zero-width strut is a flex item and took a whole gap before a start icon.
-        expect(labelOnly['&::before']).toEqual({content: 'none'})
-    })
+            expect(labelOnly).toMatchObject({
+                alignContent: 'center',
+                '--pne-button-display': 'inline-block',
+                textBox: TRIM,
+            })
+            // The rule sets only the property: `display` stays a plain declaration of the button, which the `sx` of a
+            // page replaces (a button hidden with `display: 'none'` stays hidden).
+            expect(labelOnly.display).toBeUndefined()
+            expect(buttonStyle(size).display).toBe('var(--pne-button-display, inline-flex)')
+            // The padding takes over the room the trim removed, so a label of two lines keeps its air.
+            expect(labelOnly['--pne-button-padding-block']).toBe(`calc((${config.height}px - 1cap) / 2 - 1px)`)
+            // The padding itself is a plain declaration of the button, so a padding from the `sx` of a page wins.
+            expect(buttonStyle(size).paddingTop).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
+            expect(buttonStyle(size).paddingBottom).toBe(`var(--pne-button-padding-block, ${config.paddingBlock}px)`)
+            expect(labelOnly['&.MuiButton-fullWidth']).toEqual({'--pne-button-display': 'block'})
+            // The gap of the flex layout and the pull of the icon become one margin of the same size.
+            expect(only(labelOnly, '.MuiButton-startIcon, &&& .MuiButton-endIcon')).toMatchObject({
+                display: 'inline',
+                verticalAlign: `calc((1cap - ${config.icon}px) / 2)`,
+                whiteSpace: 'nowrap',
+            })
+            // A block in an inline slot would break the line of the button: the icon is an inline block.
+            expect(labelOnly['&&& .MuiButton-startIcon > *, &&& .MuiButton-endIcon > *']).toEqual({
+                display: 'inline-block',
+            })
+            // A word joiner inside the slot glues the icon to the label: no icon on a line of its own.
+            expect(labelOnly['&&& .MuiButton-startIcon::after, &&& .MuiButton-endIcon::before']).toEqual({
+                content: '"\\2060"',
+            })
+            expect(labelOnly['&&& .MuiButton-startIcon']).toEqual({marginRight: `${config.gap - config.iconPull}px`})
+            expect(labelOnly['&&& .MuiButton-endIcon']).toEqual({marginLeft: `${config.gap - config.iconPull}px`})
+            // MUI's zero-width strut is a flex item and took a whole gap before a start icon.
+            expect(labelOnly['&::before']).toEqual({content: 'none'})
+        },
+    )
 
     it('trims the label of a chip and clips it along the line only', () => {
         const root = createPneChipOverrides(resolvePneSemanticPalette).styleOverrides?.root
         if (typeof root !== 'function') throw new Error('the chip look is a function of the owner state')
-        const style = root({ownerState: {size: 'medium', variant: 'filled', color: 'default'}, theme} as never) as CSSObject
+        const style = root({
+            ownerState: {size: 'medium', variant: 'filled', color: 'default'},
+            theme,
+        } as never) as CSSObject
         const label = style['& .MuiChip-label'] as CSSObject
 
         expect(label[PNE_LABEL_TRIM_SUPPORT]).toEqual({textBox: TRIM, overflowX: 'clip', overflowY: 'visible'})
     })
 
     it('trims the label of a text button of a table band', () => {
-        const supported = tableControlTextButtonLook(theme, resolvePneSemanticPalette(theme), 'medium')[PNE_LABEL_TRIM_SUPPORT] as CSSObject
+        const supported = tableControlTextButtonLook(theme, resolvePneSemanticPalette(theme), 'medium')[
+            PNE_LABEL_TRIM_SUPPORT
+        ] as CSSObject
 
         expect(supported['&:where(:not(:has(> :not(.MuiTouchRipple-root))))']).toEqual({
             alignContent: 'center',

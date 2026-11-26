@@ -12,10 +12,7 @@ export interface PneFieldControlDomProps {
     id?: string
 }
 
-export interface ResolvedPneFieldControlDomProps extends Omit<
-    PneFieldControlDomProps,
-    'disabled' | 'id'
-> {
+export interface ResolvedPneFieldControlDomProps extends Omit<PneFieldControlDomProps, 'disabled' | 'id'> {
     disabled: boolean
     id: string
 }
@@ -54,15 +51,10 @@ export const PneFieldContext = createContext<PneFieldControlAdapter | undefined>
 
 export const usePneFieldControl = (): PneFieldControlAdapter | undefined => use(PneFieldContext)
 
-export const usePneFieldControlProps = (
-    props: PneFieldControlProps = {},
-): ResolvedPneFieldControlProps => {
+export const usePneFieldControlProps = (props: PneFieldControlProps = {}): ResolvedPneFieldControlProps => {
     const field = usePneFieldControl()
-    const ariaInvalid = props.error === undefined
-        ? props.ariaInvalid
-        : props.error
-            ? true
-            : props.ariaInvalid ?? false
+    const ariaInvalid =
+        props.error === undefined ? props.ariaInvalid : props.error ? true : (props.ariaInvalid ?? false)
     const controlProps = field?.getControlProps({
         'aria-describedby': props.ariaDescribedBy,
         'aria-invalid': ariaInvalid,
@@ -76,13 +68,9 @@ export const usePneFieldControlProps = (
         ariaDescribedBy: controlProps?.['aria-describedby'] ?? props.ariaDescribedBy,
         ariaInvalid: controlProps?.['aria-invalid'] ?? ariaInvalid,
         ariaLabelledBy: controlProps?.['aria-labelledby'] ?? props.ariaLabelledBy,
-        ariaRequired: isAriaTrue(controlProps?.['aria-required']) || isAriaTrue(props.ariaRequired)
-            ? true
-            : undefined,
+        ariaRequired: isAriaTrue(controlProps?.['aria-required']) || isAriaTrue(props.ariaRequired) ? true : undefined,
         disabled: controlProps?.disabled ?? props.disabled,
-        error: field?.error === true || props.error === true
-            ? true
-            : props.error ?? field?.error,
+        error: field?.error === true || props.error === true ? true : (props.error ?? field?.error),
         fullWidth: props.fullWidth ?? field?.fullWidth,
         id: controlProps?.id ?? props.id,
         labelId: field?.labelId,
@@ -90,9 +78,7 @@ export const usePneFieldControlProps = (
     }
 }
 
-export const mergeAriaIds = (
-    ...ids: Array<string | undefined>
-): string | undefined => {
+export const mergeAriaIds = (...ids: Array<string | undefined>): string | undefined => {
     const mergedIds = ids
         .flatMap(id => id?.split(/\s+/) ?? [])
         .filter((id, index, allIds) => id !== '' && allIds.indexOf(id) === index)
@@ -100,5 +86,4 @@ export const mergeAriaIds = (
     return mergedIds.length > 0 ? mergedIds.join(' ') : undefined
 }
 
-const isAriaTrue = (value: AriaAttributes['aria-required']): boolean =>
-    value === true || value === 'true'
+const isAriaTrue = (value: AriaAttributes['aria-required']): boolean => value === true || value === 'true'

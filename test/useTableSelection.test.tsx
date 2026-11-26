@@ -15,10 +15,12 @@ const rows: Row[] = [
 
 describe('useTableSelection', () => {
     it('manages uncontrolled row and current-page selection', () => {
-        const {result} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-        }))
+        const {result} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+            }),
+        )
 
         act(() => {
             result.current.setRowSelected(rows[0], true)
@@ -43,11 +45,13 @@ describe('useTableSelection', () => {
     })
 
     it('excludes ineligible rows from row, page, and all-matching UI selection', () => {
-        const {result} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            isRowSelectable: row => row.enabled === true,
-        }))
+        const {result} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                isRowSelectable: row => row.enabled === true,
+            }),
+        )
 
         expect(result.current.pageSelectableCount).toBe(2)
 
@@ -72,12 +76,14 @@ describe('useTableSelection', () => {
     it('supports controlled state without changing it before the consumer rerenders', () => {
         const onSelectionChange = jest.fn()
         let selection = createEmptyTableSelection<number>()
-        const {result, rerender} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            selection,
-            onSelectionChange,
-        }))
+        const {result, rerender} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                selection,
+                onSelectionChange,
+            }),
+        )
 
         const update = result.current.setRowSelected(rows[0], true)
 
@@ -96,12 +102,14 @@ describe('useTableSelection', () => {
 
     it('reports an atomic limit rejection without notifying the consumer', () => {
         const onSelectionChange = jest.fn()
-        const {result} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            maxSelected: 2,
-            onSelectionChange,
-        }))
+        const {result} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                maxSelected: 2,
+                onSelectionChange,
+            }),
+        )
 
         const update = result.current.setPageSelected(true)
 
@@ -115,11 +123,13 @@ describe('useTableSelection', () => {
     })
 
     it('keeps all-matching mode when current-page rows are deselected', () => {
-        const {result} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            maxSelected: 10,
-        }))
+        const {result} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                maxSelected: 10,
+            }),
+        )
 
         act(() => {
             result.current.selectAllMatching(5)
@@ -139,16 +149,18 @@ describe('useTableSelection', () => {
     it('clears immediately when its stable result scope changes', () => {
         const onSelectionChange = jest.fn()
         let scopeKey = 'status=enabled'
-        const {result, rerender} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            defaultSelection: {
-                mode: 'explicit',
-                selectedIds: new Set([1]),
-            },
-            scopeKey,
-            onSelectionChange,
-        }))
+        const {result, rerender} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                defaultSelection: {
+                    mode: 'explicit',
+                    selectedIds: new Set([1]),
+                },
+                scopeKey,
+                onSelectionChange,
+            }),
+        )
 
         expect(result.current.selectedCount).toBe(1)
 
@@ -156,10 +168,7 @@ describe('useTableSelection', () => {
         rerender()
 
         expect(result.current.selectedCount).toBe(0)
-        expect(onSelectionChange).toHaveBeenLastCalledWith(
-            createEmptyTableSelection<number>(),
-            {reason: 'scope'},
-        )
+        expect(onSelectionChange).toHaveBeenLastCalledWith(createEmptyTableSelection<number>(), {reason: 'scope'})
 
         rerender()
         expect(onSelectionChange).toHaveBeenCalledTimes(1)
@@ -167,11 +176,13 @@ describe('useTableSelection', () => {
 
     it('does not reset on page-row changes inside the same scope', () => {
         let currentRows = rows.slice(0, 2)
-        const {result, rerender} = renderHook(() => useTableSelection({
-            rows: currentRows,
-            getRowId: row => row.id,
-            scopeKey: 'same-applied-filter',
-        }))
+        const {result, rerender} = renderHook(() =>
+            useTableSelection({
+                rows: currentRows,
+                getRowId: row => row.id,
+                scopeKey: 'same-applied-filter',
+            }),
+        )
 
         act(() => {
             result.current.setRowSelected(currentRows[0], true)
@@ -187,12 +198,14 @@ describe('useTableSelection', () => {
     it('rejects callbacks captured by an obsolete result scope', () => {
         const onSelectionChange = jest.fn()
         let scopeKey = 'scope-a'
-        const {result, rerender} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            scopeKey,
-            onSelectionChange,
-        }))
+        const {result, rerender} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                scopeKey,
+                onSelectionChange,
+            }),
+        )
         const selectAllFromScopeA = result.current.selectAllMatching
 
         scopeKey = 'scope-b'
@@ -213,12 +226,14 @@ describe('useTableSelection', () => {
     it('rejects a callback from an earlier occurrence of the same scope key', () => {
         const onSelectionChange = jest.fn()
         let scopeKey = 'scope-a'
-        const {result, rerender} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            scopeKey,
-            onSelectionChange,
-        }))
+        const {result, rerender} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                scopeKey,
+                onSelectionChange,
+            }),
+        )
         const selectAllFromFirstScopeA = result.current.selectAllMatching
 
         scopeKey = 'scope-b'
@@ -245,13 +260,15 @@ describe('useTableSelection', () => {
             mode: 'explicit',
             selectedIds: new Set([1]),
         }
-        const {result, rerender} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            scopeKey,
-            selection: staleSelection,
-            onSelectionChange,
-        }))
+        const {result, rerender} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                scopeKey,
+                selection: staleSelection,
+                onSelectionChange,
+            }),
+        )
 
         scopeKey = 'scope-b'
         rerender()
@@ -259,10 +276,7 @@ describe('useTableSelection', () => {
 
         expect(result.current.selectedCount).toBe(0)
         expect(onSelectionChange).toHaveBeenCalledTimes(1)
-        expect(onSelectionChange).toHaveBeenCalledWith(
-            createEmptyTableSelection<number>(),
-            {reason: 'scope'},
-        )
+        expect(onSelectionChange).toHaveBeenCalledWith(createEmptyTableSelection<number>(), {reason: 'scope'})
         expect(result.current.interactionDisabled).toBe(true)
         expect(result.current.setRowSelected(rows[0], true).changed).toBe(false)
     })
@@ -275,13 +289,15 @@ describe('useTableSelection', () => {
             matchingCount: 1,
             excludedIds: new Set([1]),
         }
-        const {result, rerender} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            scopeKey,
-            selection: staleSelection,
-            onSelectionChange,
-        }))
+        const {result, rerender} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                scopeKey,
+                selection: staleSelection,
+                onSelectionChange,
+            }),
+        )
 
         scopeKey = 'scope-b'
         rerender()
@@ -292,10 +308,12 @@ describe('useTableSelection', () => {
     })
 
     it('composes sequential uncontrolled transitions from the latest selection', () => {
-        const {result} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-        }))
+        const {result} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+            }),
+        )
 
         act(() => {
             result.current.setRowSelected(rows[0], true)
@@ -309,19 +327,25 @@ describe('useTableSelection', () => {
     })
 
     it('blocks transitions while disabled and validates maxSelected eagerly', () => {
-        const {result} = renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            disabled: true,
-        }))
+        const {result} = renderHook(() =>
+            useTableSelection({
+                rows,
+                getRowId: row => row.id,
+                disabled: true,
+            }),
+        )
 
         expect(result.current.setRowSelected(rows[0], true).changed).toBe(false)
         expect(result.current.selectAllMatching(3).changed).toBe(false)
         expect(result.current.interactionDisabled).toBe(true)
-        expect(() => renderHook(() => useTableSelection({
-            rows,
-            getRowId: row => row.id,
-            maxSelected: -1,
-        }))).toThrow(RangeError)
+        expect(() =>
+            renderHook(() =>
+                useTableSelection({
+                    rows,
+                    getRowId: row => row.id,
+                    maxSelected: -1,
+                }),
+            ),
+        ).toThrow(RangeError)
     })
 })

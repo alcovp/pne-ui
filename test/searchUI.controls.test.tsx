@@ -21,8 +21,8 @@ const renderControls = () => {
     const utils = render(
         <>
             <SearchUIFilters
-                autoTestId="controls-orders"
-                settingsContextName="controls-orders-context"
+                autoTestId='controls-orders'
+                settingsContextName='controls-orders-context'
                 possibleCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                 predefinedCriteria={[CriterionTypeEnum.ORDERS_SEARCH]}
                 initialSearchConditions={{
@@ -33,8 +33,8 @@ const renderControls = () => {
                 config={filtersConfig}
             />
             <SearchUIFilters
-                autoTestId="controls-exact"
-                settingsContextName="controls-exact-context"
+                autoTestId='controls-exact'
+                settingsContextName='controls-exact-context'
                 possibleCriteria={[CriterionTypeEnum.EXACT]}
                 predefinedCriteria={[CriterionTypeEnum.EXACT]}
                 exactSearchLabels={Object.values(ExactCriterionSearchLabelEnum)}
@@ -47,9 +47,10 @@ const renderControls = () => {
             />
         </>,
     )
-    const criterion = (type: CriterionTypeEnum) => utils.container.querySelector<HTMLElement>(
-        `[data-autotest="criterion"][data-autotest-value="${type}"]`,
-    ) as HTMLElement
+    const criterion = (type: CriterionTypeEnum) =>
+        utils.container.querySelector<HTMLElement>(
+            `[data-autotest="criterion"][data-autotest-value="${type}"]`,
+        ) as HTMLElement
 
     return {...utils, onFiltersUpdate, criterion}
 }

@@ -30,25 +30,22 @@ export const PneThemeProvider = ({
 }: PneThemeProviderProps) => {
     const [uncontrolledMode, setUncontrolledMode] = useState<PneColorMode>(defaultMode)
     const mode = controlledMode ?? uncontrolledMode
-    const setMode = useCallback((nextMode: PneColorMode) => {
-        if (controlledMode === undefined) {
-            setUncontrolledMode(nextMode)
-        }
-        onModeChange?.(nextMode)
-    }, [controlledMode, onModeChange])
-    const contextValue = useMemo<PneColorModeContextValue>(
-        () => ({mode, setMode}),
-        [mode, setMode],
+    const setMode = useCallback(
+        (nextMode: PneColorMode) => {
+            if (controlledMode === undefined) {
+                setUncontrolledMode(nextMode)
+            }
+            onModeChange?.(nextMode)
+        },
+        [controlledMode, onModeChange],
     )
-    const theme = useMemo(
-        () => createPneTheme(skin, {colorMode: mode}),
-        [mode, skin],
-    )
+    const contextValue = useMemo<PneColorModeContextValue>(() => ({mode, setMode}), [mode, setMode])
+    const theme = useMemo(() => createPneTheme(skin, {colorMode: mode}), [mode, skin])
 
     return (
         <PneColorModeContext value={contextValue}>
             <ThemeProvider theme={theme}>
-                <PneActionSpacingStyles/>
+                <PneActionSpacingStyles />
                 {children}
             </ThemeProvider>
         </PneColorModeContext>

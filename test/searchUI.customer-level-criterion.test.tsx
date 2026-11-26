@@ -36,7 +36,10 @@ const createMerchantCriterion = (selectedItems: string): MultigetCriterion => ({
     filterType: MultichoiceFilterTypeEnum.NONE,
     searchString: '',
     selectedItems,
-    selectedItemNames: selectedItems.split(',').map(id => `Merchant ${id}`).join(','),
+    selectedItemNames: selectedItems
+        .split(',')
+        .map(id => `Merchant ${id}`)
+        .join(','),
     deselectedItems: '',
     deselectedItemNames: '',
 })
@@ -50,14 +53,11 @@ const createDeferredLevels = () => {
     return {promise, resolve}
 }
 
-const getCustomerLevelCriterion = (
-    container: HTMLElement,
-    scope: string,
-): HTMLElement => {
+const getCustomerLevelCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"]`
-        + `[data-autotest-value="${CriterionTypeEnum.CUSTOMER_LEVEL}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"]` +
+            `[data-autotest-value="${CriterionTypeEnum.CUSTOMER_LEVEL}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -66,9 +66,7 @@ const getCustomerLevelCriterion = (
 }
 
 const getCustomerLevelControl = (criterion: HTMLElement): HTMLElement => {
-    const control = criterion.querySelector<HTMLElement>(
-        '[role="combobox"][data-autotest="criterion-customer-level"]',
-    )
+    const control = criterion.querySelector<HTMLElement>('[role="combobox"][data-autotest="criterion-customer-level"]')
 
     expect(control).not.toBeNull()
 
@@ -99,8 +97,8 @@ describe('SearchUI Customer Level Selenium contract', () => {
             <SearchUIProvider defaults={{...quietAsyncDefaults, getCustomerLevels}}>
                 <>
                     <SearchUIFilters
-                        autoTestId="customer-level-first"
-                        settingsContextName="customer-level-first-context"
+                        autoTestId='customer-level-first'
+                        settingsContextName='customer-level-first-context'
                         possibleCriteria={[
                             CriterionTypeEnum.MERCHANT,
                             CriterionTypeEnum.CURRENCY,
@@ -126,8 +124,8 @@ describe('SearchUI Customer Level Selenium contract', () => {
                         config={filtersConfig}
                     />
                     <SearchUIFilters
-                        autoTestId="customer-level-second"
-                        settingsContextName="customer-level-second-context"
+                        autoTestId='customer-level-second'
+                        settingsContextName='customer-level-second-context'
                         possibleCriteria={[
                             CriterionTypeEnum.MERCHANT,
                             CriterionTypeEnum.CURRENCY,
@@ -162,12 +160,16 @@ describe('SearchUI Customer Level Selenium contract', () => {
                 merchantId: 43,
                 currencyIds: [],
             })
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                customerLevelId: 7,
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                customerLevelId: 8,
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    customerLevelId: 7,
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    customerLevelId: 8,
+                }),
+            )
         })
 
         const firstCriterion = getCustomerLevelCriterion(container, 'customer-level-first')
@@ -182,15 +184,9 @@ describe('SearchUI Customer Level Selenium contract', () => {
         expect(secondControl.getAttribute('data-autotest-value')).toBe('8')
         expect(secondControl.getAttribute('aria-busy')).toBe('true')
         expect(secondControl.getAttribute('aria-disabled')).toBe('true')
-        expect(firstCriterion.querySelector(
-            '[role="button"][aria-hidden="true"][tabindex="-1"]',
-        )).not.toBeNull()
-        expect(secondCriterion.querySelector(
-            '[role="button"][aria-hidden="true"][tabindex="-1"]',
-        )).not.toBeNull()
-        expect(firstCriterion.querySelector(
-            'input[data-autotest="criterion-customer-level"]',
-        )).toBeNull()
+        expect(firstCriterion.querySelector('[role="button"][aria-hidden="true"][tabindex="-1"]')).not.toBeNull()
+        expect(secondCriterion.querySelector('[role="button"][aria-hidden="true"][tabindex="-1"]')).not.toBeNull()
+        expect(firstCriterion.querySelector('input[data-autotest="criterion-customer-level"]')).toBeNull()
 
         const firstOptions: CustomerLevel[] = [
             {id: 7, displayName: 'VIP'},
@@ -213,17 +209,13 @@ describe('SearchUI Customer Level Selenium contract', () => {
             expect(secondControl.getAttribute('aria-busy')).toBe('false')
             expect(secondControl.hasAttribute('aria-disabled')).toBe(false)
         })
-        expect(consoleWarn).not.toHaveBeenCalledWith(
-            expect.stringContaining('out-of-range value'),
-        )
+        expect(consoleWarn).not.toHaveBeenCalledWith(expect.stringContaining('out-of-range value'))
 
         fireEvent.mouseDown(firstControl)
         fireEvent.mouseDown(secondControl)
 
         await waitFor(() => {
-            expect(document.body.querySelectorAll(
-                '[data-autotest="criterion-customer-level-options"]',
-            )).toHaveLength(2)
+            expect(document.body.querySelectorAll('[data-autotest="criterion-customer-level-options"]')).toHaveLength(2)
         })
 
         for (const [scope, selectedId, options, criterion, control] of [
@@ -236,32 +228,27 @@ describe('SearchUI Customer Level Selenium contract', () => {
             expect(control.getAttribute('aria-expanded')).toBe('true')
             expect(listbox?.getAttribute('role')).toBe('listbox')
             expect(listbox?.getAttribute('data-autotest-value')).toBe(scope)
-            expect(listbox?.getAttribute('data-autotest-criterion')).toBe(
-                CriterionTypeEnum.CUSTOMER_LEVEL,
-            )
+            expect(listbox?.getAttribute('data-autotest-criterion')).toBe(CriterionTypeEnum.CUSTOMER_LEVEL)
             expect(listbox && criterion.contains(listbox)).toBe(false)
-            expect(listbox?.querySelectorAll(
-                '[role="option"][data-autotest="criterion-customer-level-option"]',
-            )).toHaveLength(options.length)
+            expect(
+                listbox?.querySelectorAll('[role="option"][data-autotest="criterion-customer-level-option"]'),
+            ).toHaveLength(options.length)
 
             for (const option of options) {
                 const optionElement = listbox?.querySelector<HTMLElement>(
-                    '[role="option"][data-autotest="criterion-customer-level-option"]'
-                    + `[data-autotest-value="${option.id}"]`,
+                    '[role="option"][data-autotest="criterion-customer-level-option"]' +
+                        `[data-autotest-value="${option.id}"]`,
                 )
 
                 expect(optionElement).not.toBeNull()
-                expect(optionElement?.getAttribute('aria-selected')).toBe(
-                    String(option.id === selectedId),
-                )
+                expect(optionElement?.getAttribute('aria-selected')).toBe(String(option.id === selectedId))
             }
         }
 
         const firstListboxId = firstControl.getAttribute('aria-controls')
         const firstListbox = firstListboxId ? document.getElementById(firstListboxId) : null
         const goldOption = firstListbox?.querySelector<HTMLElement>(
-            '[role="option"][data-autotest="criterion-customer-level-option"]'
-            + '[data-autotest-value="9"]',
+            '[role="option"][data-autotest="criterion-customer-level-option"]' + '[data-autotest-value="9"]',
         )
 
         firstOnFiltersUpdate.mockClear()
@@ -270,15 +257,15 @@ describe('SearchUI Customer Level Selenium contract', () => {
 
         await waitFor(() => {
             expect(firstControl.getAttribute('data-autotest-value')).toBe('9')
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                customerLevelId: 9,
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    customerLevelId: 9,
+                }),
+            )
         })
         expect(secondControl.getAttribute('data-autotest-value')).toBe('8')
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()
-        expect(consoleWarn).not.toHaveBeenCalledWith(
-            expect.stringContaining('out-of-range value'),
-        )
+        expect(consoleWarn).not.toHaveBeenCalledWith(expect.stringContaining('out-of-range value'))
     })
 
     it('stays idle and disabled without exactly one concrete merchant', async () => {
@@ -286,8 +273,8 @@ describe('SearchUI Customer Level Selenium contract', () => {
         const {container} = render(
             <SearchUIProvider defaults={{...quietAsyncDefaults, getCustomerLevels}}>
                 <SearchUIFilters
-                    autoTestId="customer-level-multiple-merchants"
-                    settingsContextName="customer-level-multiple-merchants-context"
+                    autoTestId='customer-level-multiple-merchants'
+                    settingsContextName='customer-level-multiple-merchants-context'
                     possibleCriteria={[
                         CriterionTypeEnum.MERCHANT,
                         CriterionTypeEnum.CURRENCY,
@@ -317,9 +304,7 @@ describe('SearchUI Customer Level Selenium contract', () => {
         expect(getCustomerLevels).not.toHaveBeenCalled()
 
         fireEvent.mouseDown(control)
-        expect(document.body.querySelector(
-            '[data-autotest="criterion-customer-level-options"]',
-        )).toBeNull()
+        expect(document.body.querySelector('[data-autotest="criterion-customer-level-options"]')).toBeNull()
     })
 
     it('distinguishes pending and successfully empty options', async () => {
@@ -328,8 +313,8 @@ describe('SearchUI Customer Level Selenium contract', () => {
         const {container} = render(
             <SearchUIProvider defaults={{...quietAsyncDefaults, getCustomerLevels}}>
                 <SearchUIFilters
-                    autoTestId="customer-level-empty"
-                    settingsContextName="customer-level-empty-context"
+                    autoTestId='customer-level-empty'
+                    settingsContextName='customer-level-empty-context'
                     possibleCriteria={[
                         CriterionTypeEnum.MERCHANT,
                         CriterionTypeEnum.CURRENCY,
@@ -374,9 +359,7 @@ describe('SearchUI Customer Level Selenium contract', () => {
         expect(control.getAttribute('aria-disabled')).toBe('true')
 
         fireEvent.mouseDown(control)
-        expect(document.body.querySelector(
-            '[data-autotest="criterion-customer-level-options"]',
-        )).toBeNull()
+        expect(document.body.querySelector('[data-autotest="criterion-customer-level-options"]')).toBeNull()
     })
 
     it('keeps a restored level disabled but intact after a rejected request', async () => {
@@ -387,8 +370,8 @@ describe('SearchUI Customer Level Selenium contract', () => {
         const {container} = render(
             <SearchUIProvider defaults={{...quietAsyncDefaults, getCustomerLevels}}>
                 <SearchUIFilters
-                    autoTestId="customer-level-error"
-                    settingsContextName="customer-level-error-context"
+                    autoTestId='customer-level-error'
+                    settingsContextName='customer-level-error-context'
                     possibleCriteria={[
                         CriterionTypeEnum.MERCHANT,
                         CriterionTypeEnum.CURRENCY,
@@ -421,8 +404,10 @@ describe('SearchUI Customer Level Selenium contract', () => {
         expect(control.getAttribute('data-autotest-value')).toBe('7')
         expect(criterion.textContent).toContain('VIP')
         expect(criterion.textContent).not.toContain('No customer levels available')
-        expect(onFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-            customerLevelId: 7,
-        }))
+        expect(onFiltersUpdate).toHaveBeenCalledWith(
+            expect.objectContaining({
+                customerLevelId: 7,
+            }),
+        )
     })
 })

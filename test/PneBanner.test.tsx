@@ -21,12 +21,17 @@ const ruleValue = (element: Element, selector: string, property: string): string
     return values[values.length - 1]
 }
 
-const renderBanner = (banner: React.ReactElement) => render(<PneThemeProvider skin={UI_KIT_SKIN}>{banner}</PneThemeProvider>)
+const renderBanner = (banner: React.ReactElement) =>
+    render(<PneThemeProvider skin={UI_KIT_SKIN}>{banner}</PneThemeProvider>)
 
 // UI Kit Banner.
 describe('PneBanner', () => {
     it('draws the pale fill of its tone in a ring of the tone, with the sign, the title and the text', () => {
-        renderBanner(<PneBanner title='Traffic is paused' tone='warning'>The daily limit is reached.</PneBanner>)
+        renderBanner(
+            <PneBanner title='Traffic is paused' tone='warning'>
+                The daily limit is reached.
+            </PneBanner>,
+        )
         const banner = screen.getByRole('status')
 
         expect(banner.getAttribute('data-pne-tone')).toBe('warning')
@@ -44,10 +49,12 @@ describe('PneBanner', () => {
     })
 
     it('announces an error as an alert and the other tones as a status', () => {
-        renderBanner(<>
-            <PneBanner tone='error'>Failed</PneBanner>
-            <PneBanner>Note</PneBanner>
-        </>)
+        renderBanner(
+            <>
+                <PneBanner tone='error'>Failed</PneBanner>
+                <PneBanner>Note</PneBanner>
+            </>,
+        )
 
         expect(screen.getByRole('alert').textContent).toBe('Failed')
         expect(screen.getByRole('status').getAttribute('data-pne-tone')).toBe('info')
@@ -56,9 +63,11 @@ describe('PneBanner', () => {
     it('offers an action link and a close cross when asked', () => {
         const onAction = jest.fn()
         const onClose = jest.fn()
-        renderBanner(<PneBanner actionLabel='Retry' closeLabel='Dismiss' onAction={onAction} onClose={onClose} tone='error'>
-            The policy did not load.
-        </PneBanner>)
+        renderBanner(
+            <PneBanner actionLabel='Retry' closeLabel='Dismiss' onAction={onAction} onClose={onClose} tone='error'>
+                The policy did not load.
+            </PneBanner>,
+        )
 
         fireEvent.click(screen.getByRole('button', {name: 'Retry'}))
         fireEvent.click(screen.getByRole('button', {name: 'Dismiss'}))
@@ -70,14 +79,16 @@ describe('PneBanner', () => {
 
     it('passes the props of the action to its button', () => {
         const onAction = jest.fn()
-        renderBanner(<PneBanner
-            actionLabel='Refresh'
-            actionProps={{'data-autotest': 'retry', disabled: true}}
-            onAction={onAction}
-            tone='warning'
-        >
-            Some sections did not load.
-        </PneBanner>)
+        renderBanner(
+            <PneBanner
+                actionLabel='Refresh'
+                actionProps={{'data-autotest': 'retry', disabled: true}}
+                onAction={onAction}
+                tone='warning'
+            >
+                Some sections did not load.
+            </PneBanner>,
+        )
         const action = screen.getByRole('button', {name: 'Refresh'}) as HTMLButtonElement
 
         expect(action.getAttribute('data-autotest')).toBe('retry')
@@ -89,9 +100,11 @@ describe('PneBanner', () => {
     })
 
     it('hides the sign on request and keeps the consumer content as it is', () => {
-        renderBanner(<PneBanner data-autotest='batch-progress' icon={false} tone='success'>
-            <progress max={10} value={4}/>
-        </PneBanner>)
+        renderBanner(
+            <PneBanner data-autotest='batch-progress' icon={false} tone='success'>
+                <progress max={10} value={4} />
+            </PneBanner>,
+        )
         const banner = screen.getByRole('status')
 
         expect(banner.getAttribute('data-autotest')).toBe('batch-progress')

@@ -20,9 +20,5 @@ export const CountriesCriterion = () => {
             .catch(console.error)
     }, [getCountries])
 
-    return <SearchUICountriesSelect
-        value={countries}
-        options={availableCountries}
-        onChange={setCountriesCriterion}
-    />
+    return <SearchUICountriesSelect value={countries} options={availableCountries} onChange={setCountriesCriterion} />
 }

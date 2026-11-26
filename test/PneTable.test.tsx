@@ -33,11 +33,7 @@ type TableOptions = {
     toolbar?: React.ReactNode
 }
 
-const createTable = (
-    autoTestId: string | undefined,
-    row: Row | null,
-    options: TableOptions = {},
-) => (
+const createTable = (autoTestId: string | undefined, row: Row | null, options: TableOptions = {}) => (
     <PneTable<Row>
         autoTestId={autoTestId}
         data={row ? [row] : []}
@@ -50,11 +46,14 @@ const createTable = (
         tableAriaLabel={options.tableAriaLabel}
         tableAriaLabelledBy={options.tableAriaLabelledBy}
         toolbar={options.toolbar}
-        createTableHeader={options.createTableHeader ?? (() => (
-            <tr>
-                <th>Name</th>
-            </tr>
-        ))}
+        createTableHeader={
+            options.createTableHeader ??
+            (() => (
+                <tr>
+                    <th>Name</th>
+                </tr>
+            ))
+        }
         createRow={item => (
             <tr key={item.id}>
                 <td>{item.label}</td>
@@ -78,34 +77,27 @@ const createPaginator = (duplicatePagination: boolean): PaginatorProps => ({
 
 describe('responsive pagination action layout', () => {
     const renderActionBand = () => {
-        const {container} = render(createTable(
-            'orders',
-            {id: 'order-1', label: 'Order'},
-            {
-                paginator: createPaginator(true),
-                toolbar: <button type='button'>Orders view</button>,
-            },
-        ))
-        const actionBand = container.querySelector(
-            '[data-autotest="pagination-actions"]',
-        ) as HTMLElement
+        const {container} = render(
+            createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    paginator: createPaginator(true),
+                    toolbar: <button type='button'>Orders view</button>,
+                },
+            ),
+        )
+        const actionBand = container.querySelector('[data-autotest="pagination-actions"]') as HTMLElement
 
         return {
             actionBand,
-            navigation: actionBand.querySelector(
-                '[data-autotest="page-navigation"]',
-            ) as HTMLElement,
-            pageSizes: actionBand.querySelector(
-                '[data-autotest="page-sizes"]',
-            ) as HTMLElement,
-            toolbar: actionBand.querySelector(
-                '[data-autotest="pagination-toolbar"]',
-            ) as HTMLElement,
+            navigation: actionBand.querySelector('[data-autotest="page-navigation"]') as HTMLElement,
+            pageSizes: actionBand.querySelector('[data-autotest="page-sizes"]') as HTMLElement,
+            toolbar: actionBand.querySelector('[data-autotest="pagination-toolbar"]') as HTMLElement,
         }
     }
 
-    const paginationGroupOf = (actionBand: HTMLElement) =>
-        actionBand.children[1] as HTMLElement
+    const paginationGroupOf = (actionBand: HTMLElement) => actionBand.children[1] as HTMLElement
 
     it('keeps one DOM order and never observes the layout it produced', () => {
         const descriptor = Object.getOwnPropertyDescriptor(window, 'ResizeObserver')
@@ -173,8 +165,7 @@ describe('responsive pagination action layout', () => {
          * not know `container-type`, so the story checks that property in Chrome;
          * here we can only pin the wrapper down.
          */
-        expect(window.getComputedStyle(actionBand.parentElement as HTMLElement).width)
-            .toBe('100%')
+        expect(window.getComputedStyle(actionBand.parentElement as HTMLElement).width).toBe('100%')
     })
 })
 
@@ -187,15 +178,10 @@ describe('PneTable autotest scope', () => {
             </>,
         )
 
-        const tableScopes = Array.from(
-            container.querySelectorAll('[data-autotest="table"]'),
-        )
+        const tableScopes = Array.from(container.querySelectorAll('[data-autotest="table"]'))
 
         expect(tableScopes).toHaveLength(2)
-        expect(tableScopes.map(scope => scope.getAttribute('data-autotest-value'))).toEqual([
-            'orders',
-            'transactions',
-        ])
+        expect(tableScopes.map(scope => scope.getAttribute('data-autotest-value'))).toEqual(['orders', 'transactions'])
         expect(tableScopes.every(scope => scope.querySelector('table') !== null)).toBe(true)
 
         const [ordersScope, transactionsScope] = tableScopes as HTMLElement[]
@@ -206,9 +192,7 @@ describe('PneTable autotest scope', () => {
     })
 
     it('keeps a generic table root when an instance identifier is omitted', () => {
-        const {container} = render(
-            createTable(undefined, {id: 'order-1', label: 'Order'}),
-        )
+        const {container} = render(createTable(undefined, {id: 'order-1', label: 'Order'}))
 
         const tableScope = container.querySelector('[data-autotest="table"]')
 
@@ -217,19 +201,21 @@ describe('PneTable autotest scope', () => {
     })
 
     it('renders caller controls at the right edge when top pagination is absent', () => {
-        const {container} = render(<>
-            {createTable('orders', {id: 'order-1', label: 'Order'}, {
-                toolbar: <button type='button'>Orders view</button>,
-            })}
-            {createTable('transactions', {id: 'transaction-1', label: 'Transaction'})}
-        </>)
+        const {container} = render(
+            <>
+                {createTable(
+                    'orders',
+                    {id: 'order-1', label: 'Order'},
+                    {
+                        toolbar: <button type='button'>Orders view</button>,
+                    },
+                )}
+                {createTable('transactions', {id: 'transaction-1', label: 'Transaction'})}
+            </>,
+        )
 
-        const ordersScope = container.querySelector(
-            '[data-autotest="table"][data-autotest-value="orders"]',
-        )
-        const transactionsScope = container.querySelector(
-            '[data-autotest="table"][data-autotest-value="transactions"]',
-        )
+        const ordersScope = container.querySelector('[data-autotest="table"][data-autotest-value="orders"]')
+        const transactionsScope = container.querySelector('[data-autotest="table"][data-autotest-value="transactions"]')
         const toolbar = ordersScope?.querySelector('[data-autotest="table-toolbar"]')
         const topControls = toolbar?.parentElement
 
@@ -237,22 +223,22 @@ describe('PneTable autotest scope', () => {
         expect(within(toolbar as HTMLElement).getByRole('button', {name: 'Orders view'})).toBeTruthy()
         expect(topControls?.getAttribute('data-autotest')).toBe('table-top-controls')
         expect(topControls?.nextElementSibling?.tagName).toBe('DIV')
-        expect(ordersScope?.querySelector(
-            '[data-autotest="pagination"][data-autotest-value="top"]',
-        )).toBeNull()
+        expect(ordersScope?.querySelector('[data-autotest="pagination"][data-autotest-value="top"]')).toBeNull()
         expect(window.getComputedStyle(toolbar as HTMLElement).justifyContent).toBe('flex-end')
         expect(transactionsScope?.querySelector('[data-autotest="table-toolbar"]')).toBeNull()
     })
 
     it('merges caller controls into the responsive top pagination action band', () => {
-        const {container} = render(createTable(
-            'orders',
-            {id: 'order-1', label: 'Order'},
-            {
-                paginator: createPaginator(true),
-                toolbar: <button type='button'>Orders view</button>,
-            },
-        ))
+        const {container} = render(
+            createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    paginator: createPaginator(true),
+                    toolbar: <button type='button'>Orders view</button>,
+                },
+            ),
+        )
 
         const tableScope = container.querySelector(
             '[data-autotest="table"][data-autotest-value="orders"]',
@@ -264,21 +250,11 @@ describe('PneTable autotest scope', () => {
         const bottomPagination = tableScope.querySelector(
             '[data-autotest="pagination"][data-autotest-value="bottom"]',
         ) as HTMLElement
-        const toolbar = topPagination.querySelector(
-            '[data-autotest="table-toolbar"]',
-        ) as HTMLElement
-        const pageSizes = topPagination.querySelector(
-            '[data-autotest="page-sizes"]',
-        ) as HTMLElement
-        const navigation = topPagination.querySelector(
-            '[data-autotest="page-navigation"]',
-        ) as HTMLElement
-        const paginationToolbar = topPagination.querySelector(
-            '[data-autotest="pagination-toolbar"]',
-        ) as HTMLElement
-        const actionBand = topPagination.querySelector(
-            '[data-autotest="pagination-actions"]',
-        ) as HTMLElement
+        const toolbar = topPagination.querySelector('[data-autotest="table-toolbar"]') as HTMLElement
+        const pageSizes = topPagination.querySelector('[data-autotest="page-sizes"]') as HTMLElement
+        const navigation = topPagination.querySelector('[data-autotest="page-navigation"]') as HTMLElement
+        const paginationToolbar = topPagination.querySelector('[data-autotest="pagination-toolbar"]') as HTMLElement
+        const actionBand = topPagination.querySelector('[data-autotest="pagination-actions"]') as HTMLElement
         const paginationGroup = navigation.parentElement as HTMLElement
 
         expect(toolbar).not.toBeNull()
@@ -296,34 +272,30 @@ describe('PneTable autotest scope', () => {
     })
 
     it('renders full-width feedback above and independently from top controls and pagination', () => {
-        const {container} = render(createTable(
-            'orders',
-            {id: 'order-1', label: 'Order'},
-            {
-                feedback: <div role='alert'>A deliberately long table feedback message</div>,
-                paginator: createPaginator(true),
-                toolbar: <button type='button'>Orders view</button>,
-            },
-        ))
+        const {container} = render(
+            createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    feedback: <div role='alert'>A deliberately long table feedback message</div>,
+                    paginator: createPaginator(true),
+                    toolbar: <button type='button'>Orders view</button>,
+                },
+            ),
+        )
 
         const tableScope = container.querySelector(
             '[data-autotest="table"][data-autotest-value="orders"]',
         ) as HTMLElement
-        const feedback = tableScope.querySelector(
-            ':scope > [data-autotest="table-feedback"]',
-        ) as HTMLElement
-        const topControls = tableScope.querySelector(
-            ':scope > [data-autotest="table-top-controls"]',
-        ) as HTMLElement
+        const feedback = tableScope.querySelector(':scope > [data-autotest="table-feedback"]') as HTMLElement
+        const topControls = tableScope.querySelector(':scope > [data-autotest="table-top-controls"]') as HTMLElement
         const topPagination = topControls.querySelector(
             '[data-autotest="pagination"][data-autotest-value="top"]',
         ) as HTMLElement
         const bottomPagination = tableScope.querySelector(
             '[data-autotest="pagination"][data-autotest-value="bottom"]',
         ) as HTMLElement
-        const actionBand = topPagination.querySelector(
-            '[data-autotest="pagination-actions"]',
-        ) as HTMLElement
+        const actionBand = topPagination.querySelector('[data-autotest="pagination-actions"]') as HTMLElement
 
         expect(feedback).not.toBeNull()
         expect(feedback.nextElementSibling).toBe(topControls)
@@ -332,26 +304,24 @@ describe('PneTable autotest scope', () => {
         expect(bottomPagination.contains(feedback)).toBe(false)
         expect(window.getComputedStyle(feedback).width).toBe('100%')
         expect(actionBand).not.toBeNull()
-        expect(within(feedback).getByRole('alert').textContent).toBe(
-            'A deliberately long table feedback message',
-        )
+        expect(within(feedback).getByRole('alert').textContent).toBe('A deliberately long table feedback message')
     })
 
     it('keeps feedback above the table when only bottom pagination exists', () => {
-        const {container} = render(createTable(
-            'orders',
-            {id: 'order-1', label: 'Order'},
-            {
-                feedback: 'Orders feedback',
-                paginator: createPaginator(false),
-            },
-        ))
+        const {container} = render(
+            createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    feedback: 'Orders feedback',
+                    paginator: createPaginator(false),
+                },
+            ),
+        )
         const tableScope = container.querySelector(
             '[data-autotest="table"][data-autotest-value="orders"]',
         ) as HTMLElement
-        const feedback = tableScope.querySelector(
-            ':scope > [data-autotest="table-feedback"]',
-        ) as HTMLElement
+        const feedback = tableScope.querySelector(':scope > [data-autotest="table-feedback"]') as HTMLElement
         const tableContainer = feedback.nextElementSibling as HTMLElement
         const paginations = tableScope.querySelectorAll('[data-autotest="pagination"]')
 
@@ -362,17 +332,17 @@ describe('PneTable autotest scope', () => {
     })
 
     it('wraps primitive toolbar content in an element that can be measured', () => {
-        const {container} = render(createTable(
-            'orders',
-            {id: 'order-1', label: 'Order'},
-            {
-                paginator: createPaginator(true),
-                toolbar: 'Orders controls',
-            },
-        ))
-        const toolbar = container.querySelector(
-            '[data-autotest="table-toolbar"]',
-        ) as HTMLElement
+        const {container} = render(
+            createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    paginator: createPaginator(true),
+                    toolbar: 'Orders controls',
+                },
+            ),
+        )
+        const toolbar = container.querySelector('[data-autotest="table-toolbar"]') as HTMLElement
 
         expect(toolbar.firstElementChild).not.toBeNull()
         expect(toolbar.firstElementChild?.textContent).toBe('Orders controls')
@@ -380,52 +350,34 @@ describe('PneTable autotest scope', () => {
 
     it('separates top and bottom pagination within one table scope', () => {
         const {container} = render(
-            createTable(
-                'orders',
-                {id: 'order-1', label: 'Order'},
-                {paginator: createPaginator(true)},
-            ),
+            createTable('orders', {id: 'order-1', label: 'Order'}, {paginator: createPaginator(true)}),
         )
 
-        const tableScope = container.querySelector(
-            '[data-autotest="table"][data-autotest-value="orders"]',
-        )
-        const paginationScopes = Array.from(
-            tableScope?.querySelectorAll('[data-autotest="pagination"]') ?? [],
-        )
+        const tableScope = container.querySelector('[data-autotest="table"][data-autotest-value="orders"]')
+        const paginationScopes = Array.from(tableScope?.querySelectorAll('[data-autotest="pagination"]') ?? [])
 
-        expect(paginationScopes.map(scope => scope.getAttribute('data-autotest-value'))).toEqual([
-            'top',
-            'bottom',
-        ])
-        expect(paginationScopes.every(
-            scope => scope.querySelectorAll('[data-autotest="next-page"]').length === 1,
-        )).toBe(true)
+        expect(paginationScopes.map(scope => scope.getAttribute('data-autotest-value'))).toEqual(['top', 'bottom'])
+        expect(
+            paginationScopes.every(scope => scope.querySelectorAll('[data-autotest="next-page"]').length === 1),
+        ).toBe(true)
 
         const topPagination = paginationScopes[0] as HTMLElement
-        expect(
-            (within(topPagination).getByRole('button', {name: 'first page'}) as HTMLButtonElement)
-                .disabled,
-        ).toBe(true)
-        expect(
-            (within(topPagination).getByRole('button', {name: 'previous page'}) as HTMLButtonElement)
-                .disabled,
-        ).toBe(true)
-        expect(
-            (within(topPagination).getByRole('button', {name: 'next page'}) as HTMLButtonElement)
-                .disabled,
-        ).toBe(false)
+        expect((within(topPagination).getByRole('button', {name: 'first page'}) as HTMLButtonElement).disabled).toBe(
+            true,
+        )
+        expect((within(topPagination).getByRole('button', {name: 'previous page'}) as HTMLButtonElement).disabled).toBe(
+            true,
+        )
+        expect((within(topPagination).getByRole('button', {name: 'next page'}) as HTMLButtonElement).disabled).toBe(
+            false,
+        )
     })
 
     it('forwards accessible names to the semantic tables', () => {
         render(
             <>
-                <h2 id="transactions-heading">Transactions</h2>
-                {createTable(
-                    'orders',
-                    {id: 'order-1', label: 'Order'},
-                    {tableAriaLabel: 'Orders'},
-                )}
+                <h2 id='transactions-heading'>Transactions</h2>
+                {createTable('orders', {id: 'order-1', label: 'Order'}, {tableAriaLabel: 'Orders'})}
                 {createTable(
                     'transactions',
                     {id: 'transaction-1', label: 'Transaction'},
@@ -435,12 +387,14 @@ describe('PneTable autotest scope', () => {
         )
 
         expect(
-            screen.getByRole('table', {name: 'Orders'})
+            screen
+                .getByRole('table', {name: 'Orders'})
                 .closest('[data-autotest="table"]')
                 ?.getAttribute('data-autotest-value'),
         ).toBe('orders')
         expect(
-            screen.getByRole('table', {name: 'Transactions'})
+            screen
+                .getByRole('table', {name: 'Transactions'})
                 .closest('[data-autotest="table"]')
                 ?.getAttribute('data-autotest-value'),
         ).toBe('transactions')
@@ -449,11 +403,7 @@ describe('PneTable autotest scope', () => {
     it('exposes loading through aria-busy on the semantic table', () => {
         render(
             <>
-                {createTable(
-                    'orders',
-                    {id: 'order-1', label: 'Order'},
-                    {loading: true, tableAriaLabel: 'Orders'},
-                )}
+                {createTable('orders', {id: 'order-1', label: 'Order'}, {loading: true, tableAriaLabel: 'Orders'})}
                 {createTable(
                     'transactions',
                     {id: 'transaction-1', label: 'Transaction'},
@@ -463,32 +413,36 @@ describe('PneTable autotest scope', () => {
         )
 
         expect(screen.getByRole('table', {name: 'Orders'}).getAttribute('aria-busy')).toBe('true')
-        expect(
-            screen.getByRole('table', {name: 'Transactions'}).getAttribute('aria-busy'),
-        ).toBe('false')
+        expect(screen.getByRole('table', {name: 'Transactions'}).getAttribute('aria-busy')).toBe('false')
     })
 
     it('shows structural loading immediately when the loading identity changes', () => {
-        const view = render(createTable('orders', null, {
-            loading: false,
-            loadingKey: 'summary',
-            tableAriaLabel: 'Orders',
-        }))
+        const view = render(
+            createTable('orders', null, {
+                loading: false,
+                loadingKey: 'summary',
+                tableAriaLabel: 'Orders',
+            }),
+        )
 
         expect(view.container.querySelector('[data-autotest="empty-state"]')).not.toBeNull()
 
-        view.rerender(createTable('orders', null, {
-            loading: false,
-            loadingKey: 'operations',
-            tableAriaLabel: 'Orders',
-        }))
+        view.rerender(
+            createTable('orders', null, {
+                loading: false,
+                loadingKey: 'operations',
+                tableAriaLabel: 'Orders',
+            }),
+        )
         expect(view.container.querySelector('[data-autotest="empty-state"]')).not.toBeNull()
 
-        view.rerender(createTable('orders', null, {
-            loading: true,
-            loadingKey: 'operations',
-            tableAriaLabel: 'Orders',
-        }))
+        view.rerender(
+            createTable('orders', null, {
+                loading: true,
+                loadingKey: 'operations',
+                tableAriaLabel: 'Orders',
+            }),
+        )
 
         expect(screen.getByRole('table', {name: 'Orders'}).getAttribute('aria-busy')).toBe('true')
         expect(view.container.querySelector('[data-autotest="empty-state"]')).toBeNull()
@@ -498,17 +452,28 @@ describe('PneTable autotest scope', () => {
         const rendered: string[] = []
         const RowView = ({row}: {row: Row}) => {
             rendered.push(row.id)
-            return <tr><td>{row.label}</td></tr>
+            return (
+                <tr>
+                    <td>{row.label}</td>
+                </tr>
+            )
         }
-        const data = [{id: 'order-1', label: 'One'}, {id: 'order-2', label: 'Two'}]
-        const createRow = (item: Row) => <RowView key={item.id} row={item}/>
+        const data = [
+            {id: 'order-1', label: 'One'},
+            {id: 'order-2', label: 'Two'},
+        ]
+        const createRow = (item: Row) => <RowView key={item.id} row={item} />
         const table = (loading: boolean, rows: Row[], factory: (item: Row) => React.ReactElement) => (
             <PneTable<Row>
                 autoTestId='orders'
                 data={rows}
                 loading={loading}
                 paginator={createPaginator(false)}
-                createTableHeader={() => <tr><th>Name</th></tr>}
+                createTableHeader={() => (
+                    <tr>
+                        <th>Name</th>
+                    </tr>
+                )}
                 createRow={factory}
             />
         )
@@ -523,89 +488,65 @@ describe('PneTable autotest scope', () => {
         const next = [{id: 'order-3', label: 'Three'}]
         view.rerender(table(false, next, createRow))
         expect(rendered).toEqual(['order-1', 'order-2', 'order-3'])
-        view.rerender(table(false, next, item => <RowView key={item.id} row={item}/>))
+        view.rerender(table(false, next, item => <RowView key={item.id} row={item} />))
         expect(rendered).toEqual(['order-1', 'order-2', 'order-3', 'order-3'])
     })
 
     it('marks the existing empty-result row within its table scope', () => {
-        const {container} = render(
-            createTable(
-                'orders',
-                null,
-                {noRowsMessage: 'No orders', tableAriaLabel: 'Orders'},
-            ),
-        )
+        const {container} = render(createTable('orders', null, {noRowsMessage: 'No orders', tableAriaLabel: 'Orders'}))
 
         const emptyState = container.querySelector(
-            '[data-autotest="table"][data-autotest-value="orders"] '
-            + '[data-autotest="empty-state"]',
+            '[data-autotest="table"][data-autotest-value="orders"] ' + '[data-autotest="empty-state"]',
         )
 
         expect(emptyState?.tagName).toBe('TR')
         expect(emptyState?.textContent).toBe('No orders')
     })
 
-    it.each(['asc', 'desc'] as const)(
-        'exposes only the active header as %s sorted',
-        order => {
-            const sortOptions: TableSortOptions = {
-                order,
-                sortIndex: 2,
-                setOrder: jest.fn(),
-                setSortIndex: jest.fn(),
-                onSortChange: jest.fn(),
-            }
+    it.each(['asc', 'desc'] as const)('exposes only the active header as %s sorted', order => {
+        const sortOptions: TableSortOptions = {
+            order,
+            sortIndex: 2,
+            setOrder: jest.fn(),
+            setSortIndex: jest.fn(),
+            onSortChange: jest.fn(),
+        }
 
-            render(
-                createTable(
-                    'orders',
-                    {id: 'order-1', label: 'Order'},
-                    {
-                        sortOptions,
-                        tableAriaLabel: 'Orders',
-                        createTableHeader: headerParams => (
-                            <PneTableRow>
-                                <PneHeaderTableCell>Static</PneHeaderTableCell>
-                                <PneHeaderTableCell
-                                    sortIndex={1}
-                                    sortOptions={headerParams.sortOptions}
-                                >
-                                    <PneTableSortLabel
-                                        sortIndex={1}
-                                        sortOptions={headerParams.sortOptions}
-                                    >
-                                        ID
-                                    </PneTableSortLabel>
-                                </PneHeaderTableCell>
-                                <PneHeaderTableCell
-                                    sortIndex={2}
-                                    sortOptions={headerParams.sortOptions}
-                                >
-                                    <PneTableSortLabel
-                                        sortIndex={2}
-                                        sortOptions={headerParams.sortOptions}
-                                    >
-                                        Name
-                                    </PneTableSortLabel>
-                                </PneHeaderTableCell>
-                            </PneTableRow>
-                        ),
-                    },
-                ),
-            )
+        render(
+            createTable(
+                'orders',
+                {id: 'order-1', label: 'Order'},
+                {
+                    sortOptions,
+                    tableAriaLabel: 'Orders',
+                    createTableHeader: headerParams => (
+                        <PneTableRow>
+                            <PneHeaderTableCell>Static</PneHeaderTableCell>
+                            <PneHeaderTableCell sortIndex={1} sortOptions={headerParams.sortOptions}>
+                                <PneTableSortLabel sortIndex={1} sortOptions={headerParams.sortOptions}>
+                                    ID
+                                </PneTableSortLabel>
+                            </PneHeaderTableCell>
+                            <PneHeaderTableCell sortIndex={2} sortOptions={headerParams.sortOptions}>
+                                <PneTableSortLabel sortIndex={2} sortOptions={headerParams.sortOptions}>
+                                    Name
+                                </PneTableSortLabel>
+                            </PneHeaderTableCell>
+                        </PneTableRow>
+                    ),
+                },
+            ),
+        )
 
-            const table = screen.getByRole('table', {name: 'Orders'})
-            const headers = within(table).getAllByRole('columnheader')
-            const sortedElements = table.querySelectorAll('[aria-sort]')
+        const table = screen.getByRole('table', {name: 'Orders'})
+        const headers = within(table).getAllByRole('columnheader')
+        const sortedElements = table.querySelectorAll('[aria-sort]')
 
-            expect(headers).toHaveLength(3)
-            expect(headers[0].hasAttribute('aria-sort')).toBe(false)
-            expect(headers[1].hasAttribute('aria-sort')).toBe(false)
-            expect(headers[2].getAttribute('aria-sort')).toBe(
-                order === 'asc' ? 'ascending' : 'descending',
-            )
-            expect(sortedElements).toHaveLength(1)
-            expect(sortedElements[0].tagName).toBe('TH')
-        },
-    )
+        expect(headers).toHaveLength(3)
+        expect(headers[0].hasAttribute('aria-sort')).toBe(false)
+        expect(headers[1].hasAttribute('aria-sort')).toBe(false)
+        expect(headers[2].getAttribute('aria-sort')).toBe(order === 'asc' ? 'ascending' : 'descending')
+        expect(sortedElements).toHaveLength(1)
+        expect(sortedElements[0].tagName).toBe('TH')
+    })
 })

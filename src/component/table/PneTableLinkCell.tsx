@@ -11,7 +11,8 @@ type ActionDataAttributes = {
 export type PneTableLinkActionProps = Omit<
     React.ButtonHTMLAttributes<HTMLButtonElement>,
     'children' | 'onClick' | 'type'
-> & ActionDataAttributes
+> &
+    ActionDataAttributes
 
 export type PneTableLinkCellProps = PneTableCellProps & {
     /**
@@ -76,35 +77,42 @@ const pseudoLinkSx: SxProps<Theme> = theme => {
  * record: put the link of your router inside, the cell gives it the look. A pseudo link acts in
  * place: pass `onAction` and the content becomes an underlined button.
  */
-const PneTableLinkCell = ({ref, ...props}: React.PropsWithoutRef<PneTableLinkCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
+const PneTableLinkCell = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTableLinkCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {actionProps, children, onAction, sx, ...rest} = props
 
     if (onAction) {
-        return <PneTableCell data-pne-cell='pseudo-link' {...rest} ref={ref} sx={sx}>
-            <Box
-                {...actionProps}
-                component='button'
-                onClick={(event: MouseEvent<HTMLButtonElement>) => {
-                    // The row may be clickable itself; the action belongs to the cell.
-                    event.stopPropagation()
-                    onAction(event)
-                }}
-                sx={pseudoLinkSx}
-                type='button'
-            >
-                {children}
-            </Box>
-        </PneTableCell>
+        return (
+            <PneTableCell data-pne-cell='pseudo-link' {...rest} ref={ref} sx={sx}>
+                <Box
+                    {...actionProps}
+                    component='button'
+                    onClick={(event: MouseEvent<HTMLButtonElement>) => {
+                        // The row may be clickable itself; the action belongs to the cell.
+                        event.stopPropagation()
+                        onAction(event)
+                    }}
+                    sx={pseudoLinkSx}
+                    type='button'
+                >
+                    {children}
+                </Box>
+            </PneTableCell>
+        )
     }
 
-    return <PneTableCell
-        data-pne-cell='link'
-        {...rest}
-        ref={ref}
-        sx={[linkCellSx, ...(Array.isArray(sx) ? sx : [sx])] as PneTableCellProps['sx']}
-    >
-        {children}
-    </PneTableCell>
+    return (
+        <PneTableCell
+            data-pne-cell='link'
+            {...rest}
+            ref={ref}
+            sx={[linkCellSx, ...(Array.isArray(sx) ? sx : [sx])] as PneTableCellProps['sx']}
+        >
+            {children}
+        </PneTableCell>
+    )
 }
 
 PneTableLinkCell.displayName = 'PneTableLinkCell'

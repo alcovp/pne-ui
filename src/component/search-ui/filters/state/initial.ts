@@ -6,12 +6,12 @@ import {
     SearchUIConditions,
     ThreeDCriterionEnum,
 } from '../types'
-import {SearchUIFiltersState} from './type';
-import {AbstractEntityAllableCollection} from '../../../../common/paynet/type';
-import type {Dayjs} from 'dayjs';
-import {dayjs} from '../dayjsSetup';
-import {initialSearchUIDefaults, SearchUIDefaults} from "../../SearchUIProvider";
-import { SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE } from '../dateRangeTimeZone';
+import {SearchUIFiltersState} from './type'
+import {AbstractEntityAllableCollection} from '../../../../common/paynet/type'
+import type {Dayjs} from 'dayjs'
+import {dayjs} from '../dayjsSetup'
+import {initialSearchUIDefaults, SearchUIDefaults} from '../../SearchUIProvider'
+import {SEARCH_UI_NON_EXACT_DEFAULT_TIME_ZONE} from '../dateRangeTimeZone'
 
 export const getSearchUIInitialProjectCurrency = (defaults: SearchUIDefaults): Readonly<ProjectCurrency> => {
     return Object.freeze<ProjectCurrency>({
@@ -21,11 +21,7 @@ export const getSearchUIInitialProjectCurrency = (defaults: SearchUIDefaults): R
 }
 
 const getAvailableGroupingTypes = (defaults: SearchUIDefaults): GroupingType[] => {
-    const types: GroupingType[] = [
-        'CURRENCY',
-        'ENDPOINT',
-        'CARD_TYPE',
-    ]
+    const types: GroupingType[] = ['CURRENCY', 'ENDPOINT', 'CARD_TYPE']
 
     if (defaults.showProjectCodeGrouping()) {
         types.push('PROJECT_CODE')
@@ -48,15 +44,12 @@ const getAvailableGroupingTypes = (defaults: SearchUIDefaults): GroupingType[] =
     return types
 }
 
-export const getSearchUIInitialGrouping = (defaults: SearchUIDefaults): Grouping => Object.freeze<Grouping>({
-    dateType: 'DAY',
-    availableGroupingTypes: getAvailableGroupingTypes(defaults),
-    selectedGroupingTypes: [
-        'MERCHANT',
-        'PROJECT',
-        'DATE',
-    ],
-})
+export const getSearchUIInitialGrouping = (defaults: SearchUIDefaults): Grouping =>
+    Object.freeze<Grouping>({
+        dateType: 'DAY',
+        availableGroupingTypes: getAvailableGroupingTypes(defaults),
+        selectedGroupingTypes: ['MERCHANT', 'PROJECT', 'DATE'],
+    })
 
 /** Midnight of the browser's current day, taken at each call: a module-level value would freeze "today" at load time. */
 export const getSearchUIInitialDateFrom = (): Dayjs => dayjs().startOf('day')

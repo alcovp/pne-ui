@@ -28,37 +28,46 @@ const dangerSx: SxProps<Theme> = theme => {
  * 14px icon and no background; the pointer colours only the icon. The icon is the child, as with
  * an icon button.
  */
-const PneTableAction = ({ref, ...props}: React.PropsWithoutRef<PneTableActionProps> & {ref?: React.Ref<HTMLButtonElement>}) => {
+const PneTableAction = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTableActionProps> & {ref?: React.Ref<HTMLButtonElement>}) => {
     const {children, onClick, sx, tone = 'neutral', tooltip, ...rest} = props
 
-    const button = <IconButton
-        data-pne-tone={tone}
-        disableRipple
-        {...rest}
-        onClick={event => {
-            // The row may be clickable itself; the action belongs to the button.
-            event.stopPropagation()
-            onClick?.(event)
-        }}
-        ref={ref}
-        sx={[
-            pneIconActionSx('small'),
-            ...(tone === 'danger' ? [dangerSx] : []),
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ] as SxProps<Theme>}
-        type='button'
-    >
-        {children}
-    </IconButton>
+    const button = (
+        <IconButton
+            data-pne-tone={tone}
+            disableRipple
+            {...rest}
+            onClick={event => {
+                // The row may be clickable itself; the action belongs to the button.
+                event.stopPropagation()
+                onClick?.(event)
+            }}
+            ref={ref}
+            sx={
+                [
+                    pneIconActionSx('small'),
+                    ...(tone === 'danger' ? [dangerSx] : []),
+                    ...(Array.isArray(sx) ? sx : [sx]),
+                ] as SxProps<Theme>
+            }
+            type='button'
+        >
+            {children}
+        </IconButton>
+    )
 
     if (tooltip === undefined || tooltip === null || typeof tooltip === 'boolean' || tooltip === '') {
         return button
     }
 
-    return <PneTooltip enterDelay={300} enterNextDelay={300} title={tooltip}>
-        {/* A disabled button takes no pointer events: the wrapper hears the pointer for it. */}
-        <span style={{display: 'inline-flex', flexShrink: 0}}>{button}</span>
-    </PneTooltip>
+    return (
+        <PneTooltip enterDelay={300} enterNextDelay={300} title={tooltip}>
+            {/* A disabled button takes no pointer events: the wrapper hears the pointer for it. */}
+            <span style={{display: 'inline-flex', flexShrink: 0}}>{button}</span>
+        </PneTooltip>
+    )
 }
 
 PneTableAction.displayName = 'PneTableAction'

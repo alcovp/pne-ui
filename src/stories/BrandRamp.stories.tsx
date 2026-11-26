@@ -37,13 +37,9 @@ const labelOn = (fill: string): string =>
     getContrastRatio(fill, '#FFFFFF') >= getContrastRatio(fill, '#000000') ? '#FFFFFF' : 'rgba(0, 0, 0, 0.87)'
 
 // A dark label is drawn at 87%; the contrast is counted for black.
-const opaque = (color: string): string => color.startsWith('rgba') ? '#000000' : color
+const opaque = (color: string): string => (color.startsWith('rgba') ? '#000000' : color)
 
-const Contrast = ({foreground, background, minimum}: {
-    foreground: string
-    background: string
-    minimum: number
-}) => {
+const Contrast = ({foreground, background, minimum}: {foreground: string; background: string; minimum: number}) => {
     const ratio = getContrastRatio(foreground, background)
     const passes = ratio >= minimum
     return (
@@ -51,20 +47,29 @@ const Contrast = ({foreground, background, minimum}: {
             component='span'
             sx={{fontSize: 11, fontWeight: passes ? 400 : 700, color: passes ? 'text.secondary' : 'error.main'}}
         >
-            {ratio.toFixed(1)}{passes ? '' : ` < ${minimum}`}
+            {ratio.toFixed(1)}
+            {passes ? '' : ` < ${minimum}`}
         </Typography>
     )
 }
 
-const Sample = ({title, children, note}: {title: string, children: React.ReactNode, note?: React.ReactNode}) => (
+const Sample = ({title, children, note}: {title: string; children: React.ReactNode; note?: React.ReactNode}) => (
     <Stack spacing={0.5} sx={{minWidth: 0}}>
         <Typography sx={{fontSize: 11, color: 'text.secondary'}}>{title}</Typography>
-        <Stack direction='row' spacing={0.5} sx={{alignItems: 'center'}}>{children}</Stack>
+        <Stack direction='row' spacing={0.5} sx={{alignItems: 'center'}}>
+            {children}
+        </Stack>
         {note}
     </Stack>
 )
 
-const Chip = ({background, color, border, ring, children}: {
+const Chip = ({
+    background,
+    color,
+    border,
+    ring,
+    children,
+}: {
     background: string
     color: string
     border?: string
@@ -84,10 +89,10 @@ const Chip = ({background, color, border, ring, children}: {
             fontSize: 13,
             fontWeight: 500,
             whiteSpace: 'nowrap',
-            boxShadow: [
-                border ? `inset 0 0 0 1px ${border}` : '',
-                ring ? `0 0 0 2px ${PAGE}, 0 0 0 4px ${ring}` : '',
-            ].filter(Boolean).join(', ') || 'none',
+            boxShadow:
+                [border ? `inset 0 0 0 1px ${border}` : '', ring ? `0 0 0 2px ${PAGE}, 0 0 0 4px ${ring}` : '']
+                    .filter(Boolean)
+                    .join(', ') || 'none',
         }}
     >
         {children}
@@ -115,9 +120,12 @@ const RampRow = ({ramp}: {ramp: PneBrandRamp}) => (
                     bgcolor: ramp[step],
                     color: labelOn(ramp[step]),
                     fontSize: 10,
-                    boxShadow: step === 600
-                        ? `inset 0 0 0 2px ${labelOn(ramp[step])}`
-                        : step === 0 ? 'inset 0 0 0 1px #E1E7EF' : 'none',
+                    boxShadow:
+                        step === 600
+                            ? `inset 0 0 0 2px ${labelOn(ramp[step])}`
+                            : step === 0
+                              ? 'inset 0 0 0 1px #E1E7EF'
+                              : 'none',
                 }}
             >
                 <span>{step}</span>
@@ -146,42 +154,67 @@ const UsageRow = ({pne}: {pne: PneSemanticPalette}) => {
         <Stack direction='row' spacing={3} useFlexGap sx={{flexWrap: 'wrap', alignItems: 'flex-start'}}>
             <Sample
                 title='Primary · rest / hover / pressed'
-                note={<Contrast foreground={opaque(primary.default.text)} background={primary.default.fill} minimum={TEXT_MIN_CONTRAST}/>}
+                note={
+                    <Contrast
+                        foreground={opaque(primary.default.text)}
+                        background={primary.default.fill}
+                        minimum={TEXT_MIN_CONTRAST}
+                    />
+                }
             >
-                <ButtonChip colors={primary.default}/>
-                <ButtonChip colors={primary.hover}/>
-                <ButtonChip colors={primary.pressed}/>
+                <ButtonChip colors={primary.default} />
+                <ButtonChip colors={primary.hover} />
+                <ButtonChip colors={primary.pressed} />
             </Sample>
             <Sample
                 title='Outlined · rest / hover / pressed'
-                note={<Contrast foreground={outline.default.text} background={PAGE} minimum={TEXT_MIN_CONTRAST}/>}
+                note={<Contrast foreground={outline.default.text} background={PAGE} minimum={TEXT_MIN_CONTRAST} />}
             >
-                <ButtonChip colors={outline.default}/>
-                <ButtonChip colors={outline.hover}/>
-                <ButtonChip colors={outline.pressed}/>
+                <ButtonChip colors={outline.default} />
+                <ButtonChip colors={outline.hover} />
+                <ButtonChip colors={outline.pressed} />
             </Sample>
             <Sample
                 title='Soft · rest / hover / pressed'
-                note={<Contrast foreground={soft.pressed.text} background={soft.pressed.fill} minimum={TEXT_MIN_CONTRAST}/>}
+                note={
+                    <Contrast
+                        foreground={soft.pressed.text}
+                        background={soft.pressed.fill}
+                        minimum={TEXT_MIN_CONTRAST}
+                    />
+                }
             >
-                <ButtonChip colors={soft.default}/>
-                <ButtonChip colors={soft.hover}/>
-                <ButtonChip colors={soft.pressed}/>
+                <ButtonChip colors={soft.default} />
+                <ButtonChip colors={soft.hover} />
+                <ButtonChip colors={soft.pressed} />
             </Sample>
             <Sample
                 title='Link'
-                note={<Contrast foreground={pne.link} background={PAGE} minimum={TEXT_MIN_CONTRAST}/>}
+                note={<Contrast foreground={pne.link} background={PAGE} minimum={TEXT_MIN_CONTRAST} />}
             >
                 <Typography sx={{fontSize: 14, color: pne.link, textDecoration: 'underline'}}>Order 172883</Typography>
             </Sample>
             <Sample
                 title='Focus ring'
-                note={<Contrast foreground={pne.focusRing} background={PAGE} minimum={UI_MIN_CONTRAST}/>}
+                note={<Contrast foreground={pne.focusRing} background={PAGE} minimum={UI_MIN_CONTRAST} />}
             >
-                <Chip background={PAGE} color={TEXT} border='#B2B8BF' ring={pne.focusRing}>Button</Chip>
+                <Chip background={PAGE} color={TEXT} border='#B2B8BF' ring={pne.focusRing}>
+                    Button
+                </Chip>
             </Sample>
             <Sample title='Selected row'>
-                <Box sx={{width: 160, height: 32, px: 1, display: 'flex', alignItems: 'center', bgcolor: pne.dropdown.option.selected, color: TEXT, fontSize: 14}}>
+                <Box
+                    sx={{
+                        width: 160,
+                        height: 32,
+                        px: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        bgcolor: pne.dropdown.option.selected,
+                        color: TEXT,
+                        fontSize: 14,
+                    }}
+                >
                     Row
                 </Box>
             </Sample>
@@ -189,17 +222,18 @@ const UsageRow = ({pne}: {pne: PneSemanticPalette}) => {
     )
 }
 
-const SkinBlock = ({name, skinColor}: {name: string, skinColor: string}) => {
+const SkinBlock = ({name, skinColor}: {name: string; skinColor: string}) => {
     const ramp = createPneBrandRamp(skinColor)
     const {pne} = createPneTheme({experimentalColor: skinColor} as Skin).palette
     const kept = ramp[600] === skinColor.toUpperCase()
     return (
         <Stack spacing={1.5} sx={{py: 2, borderTop: '1px solid #E2E9F0'}}>
             <Typography sx={{fontSize: 14, fontWeight: 600, color: TEXT}}>
-                {name} · {skinColor.toUpperCase()}{kept ? ' is the fill' : ` → fill ${ramp[600]}`}
+                {name} · {skinColor.toUpperCase()}
+                {kept ? ' is the fill' : ` → fill ${ramp[600]}`}
             </Typography>
-            <RampRow ramp={ramp}/>
-            <UsageRow pne={pne}/>
+            <RampRow ramp={ramp} />
+            <UsageRow pne={pne} />
         </Stack>
     )
 }
@@ -208,13 +242,15 @@ export const Skins: Story = {
     render: () => (
         <Box sx={{bgcolor: PAGE, p: 2}}>
             <Typography sx={{mb: 1, fontSize: 13, color: 'text.secondary', maxWidth: 900}}>
-                A skin has one colour. Step 600 is its fill: the skin colour itself when a white label reads
-                on it at 4.5:1, and also when the colour is light and takes a dark label; a mid-tone in
-                between is made darker until white reads. The other steps are the UI Kit brand ramp moved
-                to that fill, so for #026FD7 this is exactly the UI Kit ramp. The samples take their colours
-                from the theme. Red numbers are contrast below the minimum.
+                A skin has one colour. Step 600 is its fill: the skin colour itself when a white label reads on it at
+                4.5:1, and also when the colour is light and takes a dark label; a mid-tone in between is made darker
+                until white reads. The other steps are the UI Kit brand ramp moved to that fill, so for #026FD7 this is
+                exactly the UI Kit ramp. The samples take their colours from the theme. Red numbers are contrast below
+                the minimum.
             </Typography>
-            {SKINS.map(skin => <SkinBlock key={skin.name} {...skin}/>)}
+            {SKINS.map(skin => (
+                <SkinBlock key={skin.name} {...skin} />
+            ))}
         </Box>
     ),
 }
@@ -222,7 +258,7 @@ export const Skins: Story = {
 export const Playground: Story = {
     render: ({skinColor}) => (
         <Box sx={{bgcolor: PAGE, p: 2}}>
-            <SkinBlock name='Skin colour' skinColor={skinColor}/>
+            <SkinBlock name='Skin colour' skinColor={skinColor} />
         </Box>
     ),
 }

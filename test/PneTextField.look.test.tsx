@@ -37,43 +37,59 @@ const renderField = (ui: React.ReactElement) => {
 
 describe('PneTextField (UI Kit look)', () => {
     it('rings the outlined box by state', () => {
-        const {root} = renderField(<PneTextField label='Name'/>)
+        const {root} = renderField(<PneTextField label='Name' />)
 
         expect(ruleValue(root, OUTLINED, '--pne-field-ring')).toBe('#E2E9F0')
         expect(ruleValue(root, OUTLINED, '--pne-field-fill')).toBe('#FFFFFF')
-        expect(ruleValue(root, `${OUTLINED}${HOVER}, &[data-pne-state="hover"] ${OUTLINED_BOX}`, '--pne-field-ring')).toBe('#8D9399')
-        expect(ruleValue(root, `${OUTLINED}.Mui-focused, &[data-pne-state="focus"] ${OUTLINED_BOX}`, '--pne-field-ring')).toBe('#026FD7')
+        expect(
+            ruleValue(root, `${OUTLINED}${HOVER}, &[data-pne-state="hover"] ${OUTLINED_BOX}`, '--pne-field-ring'),
+        ).toBe('#8D9399')
+        expect(
+            ruleValue(root, `${OUTLINED}.Mui-focused, &[data-pne-state="focus"] ${OUTLINED_BOX}`, '--pne-field-ring'),
+        ).toBe('#026FD7')
         expect(ruleValue(root, `${OUTLINED}.Mui-error`, '--pne-field-ring')).toBe('#CC2538')
         expect(ruleValue(root, `${OUTLINED}.Mui-disabled`, '--pne-field-ring')).toBe('#F0F4F8')
         expect(ruleValue(root, `&[data-pne-filled] ${OUTLINED_BOX}`, '--pne-field-ring')).toBe('#8D9399')
-        expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline`, 'border-color')).toBe('var(--pne-field-ring)')
+        expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline`, 'border-color')).toBe(
+            'var(--pne-field-ring)',
+        )
         expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline`, 'border-width')).toBe('1px')
         expect(root.querySelector('label')?.textContent).toBe('Name')
     })
 
     it('draws the Fill variant as a grey box with an inset ring and no underline', () => {
-        const {root} = renderField(<PneTextField label='Name' variant='filled'/>)
+        const {root} = renderField(<PneTextField label='Name' variant='filled' />)
 
         expect(ruleValue(root, FILLED, '--pne-field-fill')).toBe('#F0F4F8')
         expect(ruleValue(root, FILLED, '--pne-field-ring')).toBe('#F0F4F8')
-        expect(ruleValue(root, `${FILLED}${HOVER}, &[data-pne-state="hover"] ${FILLED_BOX}`, '--pne-field-fill')).toBe('#F7FBFF')
-        expect(ruleValue(root, `${FILLED}${HOVER}, &[data-pne-state="hover"] ${FILLED_BOX}`, '--pne-field-ring')).toBe('#E2E9F0')
+        expect(ruleValue(root, `${FILLED}${HOVER}, &[data-pne-state="hover"] ${FILLED_BOX}`, '--pne-field-fill')).toBe(
+            '#F7FBFF',
+        )
+        expect(ruleValue(root, `${FILLED}${HOVER}, &[data-pne-state="hover"] ${FILLED_BOX}`, '--pne-field-ring')).toBe(
+            '#E2E9F0',
+        )
         expect(ruleValue(root, FILLED, 'box-shadow')).toBe('inset 0 0 0 1px var(--pne-field-ring)')
         expect(ruleValue(root, FILLED, 'border-radius')).toBe('4px')
         expect(ruleValue(root, `${FILLED}::before, ${FILLED}::after`, 'display')).toBe('none')
-        expect(ruleValue(root, `${FILLED}.Mui-focused, &[data-pne-state="focus"] ${FILLED_BOX}`, '--pne-field-fill')).toBe('#F0F4F8')
+        expect(
+            ruleValue(root, `${FILLED}.Mui-focused, &[data-pne-state="focus"] ${FILLED_BOX}`, '--pne-field-fill'),
+        ).toBe('#F0F4F8')
         // UI Kit Active: a box that holds a value keeps the grey fill and a darker ring out of focus.
         expect(ruleValue(root, `&[data-pne-filled] ${FILLED_BOX}`, '--pne-field-ring')).toBe('#8D9399')
         expect(ruleValue(root, `&[data-pne-filled] ${FILLED_BOX}`, '--pne-field-fill')).toBeUndefined()
     })
 
     it('keeps no room for a label inside a filled box, with a label of its own or without one', () => {
-        const bare = renderField(<PneTextField aria-label='Bare' variant='filled'/>)
-        expect(bare.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(true)
+        const bare = renderField(<PneTextField aria-label='Bare' variant='filled' />)
+        expect(bare.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(
+            true,
+        )
         bare.unmount()
 
-        const labelled = renderField(<PneTextField label='Name' variant='filled'/>)
-        expect(labelled.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(true)
+        const labelled = renderField(<PneTextField label='Name' variant='filled' />)
+        expect(
+            labelled.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel'),
+        ).toBe(true)
     })
 
     it.each([
@@ -81,7 +97,7 @@ describe('PneTextField (UI Kit look)', () => {
         ['medium', '32px', '14px', '20px', '6px 8px'],
         ['large', '40px', '14px', '20px', '10px 12px'],
     ] as const)('makes the %s box %s high with the text of its size', (size, height, fontSize, lineHeight, padding) => {
-        const {root} = renderField(<PneTextField aria-label='Name' size={size}/>)
+        const {root} = renderField(<PneTextField aria-label='Name' size={size} />)
         const sized = `&[data-pne-size="${size}"]`
 
         expect(root.getAttribute('data-pne-size')).toBe(size)
@@ -102,13 +118,13 @@ describe('PneTextField (UI Kit look)', () => {
     })
 
     it('is medium unless a size is given', () => {
-        const {root} = renderField(<PneTextField aria-label='Name'/>)
+        const {root} = renderField(<PneTextField aria-label='Name' />)
 
         expect(root.getAttribute('data-pne-size')).toBe('medium')
     })
 
     it('sets its own label over the box, 12/16 Medium, and never floats it', () => {
-        const {root} = renderField(<PneTextField label='Name' placeholder='Type a name'/>)
+        const {root} = renderField(<PneTextField label='Name' placeholder='Type a name' />)
         const label = '& > .MuiInputLabel-root'
 
         expect(ruleValue(root, label, 'position')).toBe('static')
@@ -122,24 +138,32 @@ describe('PneTextField (UI Kit look)', () => {
         // The ring is whole: no notch for the label; the placeholder shows under a label that stands above.
         expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline legend`, 'display')).toBe('none')
         expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline`, 'top')).toBe('0')
-        expect(ruleValue(root, `${OUTLINED} .MuiInputBase-input::placeholder, ${FILLED} .MuiInputBase-input::placeholder`, 'opacity')).toBe('1')
+        expect(
+            ruleValue(
+                root,
+                `${OUTLINED} .MuiInputBase-input::placeholder, ${FILLED} .MuiInputBase-input::placeholder`,
+                'opacity',
+            ),
+        ).toBe('1')
     })
 
     it('marks a box that holds a value: a controlled one, a default one and one typed in', () => {
-        const controlled = renderField(<PneTextField aria-label='Name' onChange={() => undefined} value='Anna'/>)
+        const controlled = renderField(<PneTextField aria-label='Name' onChange={() => undefined} value='Anna' />)
         expect(controlled.root.hasAttribute('data-pne-filled')).toBe(true)
-        controlled.rerender(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <PneTextField aria-label='Name' onChange={() => undefined} value=''/>
-        </PneThemeProvider>)
+        controlled.rerender(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneTextField aria-label='Name' onChange={() => undefined} value='' />
+            </PneThemeProvider>,
+        )
         expect(controlled.root.hasAttribute('data-pne-filled')).toBe(false)
         controlled.unmount()
 
-        const withDefault = renderField(<PneTextField aria-label='Name' defaultValue='Anna'/>)
+        const withDefault = renderField(<PneTextField aria-label='Name' defaultValue='Anna' />)
         expect(withDefault.root.hasAttribute('data-pne-filled')).toBe(true)
         withDefault.unmount()
 
         const onInput = jest.fn()
-        const typed = renderField(<PneTextField aria-label='Name' onInput={onInput}/>)
+        const typed = renderField(<PneTextField aria-label='Name' onInput={onInput} />)
         expect(typed.root.hasAttribute('data-pne-filled')).toBe(false)
         fireEvent.input(screen.getByRole('textbox'), {target: {value: 'A'}})
         expect(typed.root.hasAttribute('data-pne-filled')).toBe(true)
@@ -149,7 +173,7 @@ describe('PneTextField (UI Kit look)', () => {
     })
 
     it('makes a multiline field of no set rows the 88px UI Kit box with a corner to drag', () => {
-        const {root} = renderField(<PneTextField aria-label='Comment' multiline size='medium'/>)
+        const {root} = renderField(<PneTextField aria-label='Comment' multiline size='medium' />)
         const sized = '&[data-pne-size="medium"]'
         const textarea = `${sized}[data-pne-resize="default"] .MuiInputBase-multiline .MuiInputBase-input`
 
@@ -158,41 +182,56 @@ describe('PneTextField (UI Kit look)', () => {
         expect(root.querySelectorAll('textarea')).toHaveLength(1)
         expect(ruleValue(root, `${sized} .MuiInputBase-multiline`, 'padding')).toBe('6px 4px 4px 8px')
         expect(ruleValue(root, textarea, 'height')).toBe('78px')
-        expect(ruleValue(root, `${sized}[data-pne-resize] .MuiInputBase-multiline .MuiInputBase-input`, 'resize')).toBe('vertical')
+        expect(ruleValue(root, `${sized}[data-pne-resize] .MuiInputBase-multiline .MuiInputBase-input`, 'resize')).toBe(
+            'vertical',
+        )
     })
 
     it('keeps the rows a consumer sets, and lets a box with minRows or maxRows grow with its text', () => {
-        const fixed = renderField(<PneTextField aria-label='Comment' multiline rows={5}/>)
+        const fixed = renderField(<PneTextField aria-label='Comment' multiline rows={5} />)
         expect(fixed.root.getAttribute('data-pne-resize')).toBe('rows')
         expect(fixed.root.querySelectorAll('textarea')).toHaveLength(1)
         expect(fixed.root.querySelector('textarea')?.getAttribute('rows')).toBe('5')
         fixed.unmount()
 
-        const growing = renderField(<PneTextField aria-label='Comment' minRows={2} multiline/>)
+        const growing = renderField(<PneTextField aria-label='Comment' minRows={2} multiline />)
         expect(growing.root.hasAttribute('data-pne-resize')).toBe(false)
         // MUI's own textarea keeps a hidden twin to measure the text.
         expect(growing.root.querySelectorAll('textarea')).toHaveLength(2)
     })
 
     it('keeps an input component of the consumer in a multiline field of fixed rows', () => {
-        const Editor = ({ref, ...props}: React.TextareaHTMLAttributes<HTMLTextAreaElement> & {ref?: React.Ref<HTMLTextAreaElement>}) => <textarea {...props} data-testid='ConsumerEditor' ref={ref}/>
+        const Editor = ({
+            ref,
+            ...props
+        }: React.TextareaHTMLAttributes<HTMLTextAreaElement> & {ref?: React.Ref<HTMLTextAreaElement>}) => (
+            <textarea {...props} data-testid='ConsumerEditor' ref={ref} />
+        )
         Editor.displayName = 'Editor'
-        renderField(<PneTextField aria-label='Comment' multiline slotProps={{input: {inputComponent: Editor}}}/>)
+        renderField(<PneTextField aria-label='Comment' multiline slotProps={{input: {inputComponent: Editor}}} />)
 
         expect(screen.getByTestId('ConsumerEditor')).not.toBeNull()
     })
 
     it('colours the value, placeholder and helper text by UI Kit role', () => {
-        const {root} = renderField(<PneTextField helperText='Format hint' label='Name'/>)
+        const {root} = renderField(<PneTextField helperText='Format hint' label='Name' />)
 
-        expect(ruleValue(root, `${OUTLINED} .MuiInputBase-input, ${FILLED} .MuiInputBase-input`, 'color')).toBe('#2C3136')
-        expect(ruleValue(root, `${OUTLINED} .MuiInputBase-input::placeholder, ${FILLED} .MuiInputBase-input::placeholder`, 'color')).toBe('#8D9399')
+        expect(ruleValue(root, `${OUTLINED} .MuiInputBase-input, ${FILLED} .MuiInputBase-input`, 'color')).toBe(
+            '#2C3136',
+        )
+        expect(
+            ruleValue(
+                root,
+                `${OUTLINED} .MuiInputBase-input::placeholder, ${FILLED} .MuiInputBase-input::placeholder`,
+                'color',
+            ),
+        ).toBe('#8D9399')
         expect(ruleValue(root, '& .MuiFormHelperText-root', 'color')).toBe('#565B61')
         expect(ruleValue(root, '& .MuiFormHelperText-root.Mui-error', 'color')).toBe('#B1182C')
     })
 
     it('sets the helper text 12/16 under the box with no indent, behind a warning sign in error', () => {
-        const {root} = renderField(<PneTextField error helperText='Fix it' label='Name'/>)
+        const {root} = renderField(<PneTextField error helperText='Fix it' label='Name' />)
         const helper = '& .MuiFormHelperText-root'
 
         expect(ruleValue(root, helper, 'font-size')).toBe('12px')
@@ -208,9 +247,11 @@ describe('PneTextField (UI Kit look)', () => {
     })
 
     it('draws the PneSelect chevron and list in select mode', () => {
-        const {root} = renderField(<PneTextField label='Server' onChange={() => undefined} select value='a'>
-            <MenuItem value='a'>Email</MenuItem>
-        </PneTextField>)
+        const {root} = renderField(
+            <PneTextField label='Server' onChange={() => undefined} select value='a'>
+                <MenuItem value='a'>Email</MenuItem>
+            </PneTextField>,
+        )
 
         expect(root.querySelector('.MuiSelect-icon')?.getAttribute('data-testid')).toBe('PneChevronDownIcon')
         fireEvent.mouseDown(screen.getByRole('combobox'), {button: 0})
@@ -221,21 +262,23 @@ describe('PneTextField (UI Kit look)', () => {
     })
 
     it('keeps the browser list of a native select', () => {
-        const {root} = renderField(<PneTextField
-            label='Server'
-            onChange={() => undefined}
-            select
-            slotProps={{select: {native: true}}}
-            value='a'
-        >
-            <option value='a'>Email</option>
-        </PneTextField>)
+        const {root} = renderField(
+            <PneTextField
+                label='Server'
+                onChange={() => undefined}
+                select
+                slotProps={{select: {native: true}}}
+                value='a'
+            >
+                <option value='a'>Email</option>
+            </PneTextField>,
+        )
 
         expect(root.querySelector('[data-testid="PneChevronDownIcon"]')).toBeNull()
     })
 
     it('marks a pinned specimen state on the root', () => {
-        const {root} = renderField(<PneTextField data-pne-state='focus' label='Pinned'/>)
+        const {root} = renderField(<PneTextField data-pne-state='focus' label='Pinned' />)
 
         expect(root.getAttribute('data-pne-state')).toBe('focus')
     })
@@ -243,11 +286,13 @@ describe('PneTextField (UI Kit look)', () => {
 
 describe('PneField (UI Kit look)', () => {
     it('keeps the label colour in error and turns the helper text red', () => {
-        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <PneField error helperText='Fix it' label='Email'>
-                <PneTextField/>
-            </PneField>
-        </PneThemeProvider>)
+        const {container} = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneField error helperText='Fix it' label='Email'>
+                    <PneTextField />
+                </PneField>
+            </PneThemeProvider>,
+        )
         const label = container.querySelector('.MuiFormLabel-root')!
         const helper = container.querySelector('.MuiFormControl-root > .MuiFormHelperText-root')!
 
@@ -261,11 +306,13 @@ describe('PneField (UI Kit look)', () => {
     })
 
     it('sets the label over the control 12/16 Medium', () => {
-        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <PneField label='Email'>
-                <PneTextField/>
-            </PneField>
-        </PneThemeProvider>)
+        const {container} = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneField label='Email'>
+                    <PneTextField />
+                </PneField>
+            </PneThemeProvider>,
+        )
         const root = container.querySelector<HTMLElement>('.MuiFormControl-root')!
         const label = container.querySelector('.MuiFormLabel-root')!
 
@@ -277,11 +324,13 @@ describe('PneField (UI Kit look)', () => {
     })
 
     it('puts the label into a 160px column on the left, as the value reads, with the helper text under the control', () => {
-        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <PneField helperText='Format hint' label='Email' labelPosition='left'>
-                <PneTextField/>
-            </PneField>
-        </PneThemeProvider>)
+        const {container} = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneField helperText='Format hint' label='Email' labelPosition='left'>
+                    <PneTextField />
+                </PneField>
+            </PneThemeProvider>,
+        )
         const root = container.querySelector<HTMLElement>('.MuiFormControl-root')!
         const label = container.querySelector('.MuiFormLabel-root')!
 
@@ -297,11 +346,15 @@ describe('PneField (UI Kit look)', () => {
     })
 
     it('reads a label inside the box as the value', () => {
-        const {root} = renderField(<PneTextField
-            aria-label='Mark in'
-            slotProps={{input: {startAdornment: <InputAdornment position='start'>Mark in</InputAdornment>}}}
-        />)
+        const {root} = renderField(
+            <PneTextField
+                aria-label='Mark in'
+                slotProps={{input: {startAdornment: <InputAdornment position='start'>Mark in</InputAdornment>}}}
+            />,
+        )
 
-        expect(ruleValue(root, '& .MuiInputAdornment-root, & .MuiInputAdornment-root .MuiTypography-root', 'color')).toBe('#2C3136')
+        expect(
+            ruleValue(root, '& .MuiInputAdornment-root, & .MuiInputAdornment-root .MuiTypography-root', 'color'),
+        ).toBe('#2C3136')
     })
 })

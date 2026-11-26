@@ -18,7 +18,7 @@ export type PneFieldSizeConfig = {
     /** The button of the chevron and of the clear cross. */
     iconButton: number
     /** A picked value inside the box (UI Kit Badge): the field less 8px. */
-    chip: {height: number, paddingInline: number, gap: number, remove: number, cross: number}
+    chip: {height: number; paddingInline: number; gap: number; remove: number; cross: number}
     /** The box of PneCheckbox in a row of a multiple list. */
     checkbox: number
     /** The caption of a group in the list. */
@@ -27,16 +27,43 @@ export type PneFieldSizeConfig = {
 
 export const PNE_FIELD_SIZE: Record<PneFieldSize, PneFieldSizeConfig> = {
     small: {
-        height: 24, fontSize: 12, lineHeight: 16, paddingInline: 8, paddingEnd: 4, gap: 4, icon: 14, iconButton: 16,
-        chip: {height: 16, paddingInline: 4, gap: 4, remove: 12, cross: 12}, checkbox: 14, groupHeight: 20,
+        height: 24,
+        fontSize: 12,
+        lineHeight: 16,
+        paddingInline: 8,
+        paddingEnd: 4,
+        gap: 4,
+        icon: 14,
+        iconButton: 16,
+        chip: {height: 16, paddingInline: 4, gap: 4, remove: 12, cross: 12},
+        checkbox: 14,
+        groupHeight: 20,
     },
     medium: {
-        height: 32, fontSize: 14, lineHeight: 20, paddingInline: 8, paddingEnd: 6, gap: 8, icon: 16, iconButton: 20,
-        chip: {height: 24, paddingInline: 8, gap: 4, remove: 16, cross: 14}, checkbox: 16, groupHeight: 24,
+        height: 32,
+        fontSize: 14,
+        lineHeight: 20,
+        paddingInline: 8,
+        paddingEnd: 6,
+        gap: 8,
+        icon: 16,
+        iconButton: 20,
+        chip: {height: 24, paddingInline: 8, gap: 4, remove: 16, cross: 14},
+        checkbox: 16,
+        groupHeight: 24,
     },
     large: {
-        height: 40, fontSize: 14, lineHeight: 20, paddingInline: 12, paddingEnd: 10, gap: 8, icon: 18, iconButton: 20,
-        chip: {height: 32, paddingInline: 10, gap: 6, remove: 18, cross: 16}, checkbox: 20, groupHeight: 28,
+        height: 40,
+        fontSize: 14,
+        lineHeight: 20,
+        paddingInline: 12,
+        paddingEnd: 10,
+        gap: 8,
+        icon: 18,
+        iconButton: 20,
+        chip: {height: 32, paddingInline: 10, gap: 6, remove: 18, cross: 16},
+        checkbox: 20,
+        groupHeight: 28,
     },
 }
 

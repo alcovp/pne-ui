@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, {useEffect, useState} from 'react'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
 import EditIcon from '@mui/icons-material/Edit'
-import { Box, Divider, Fab, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Tooltip } from '@mui/material'
-import { useTranslation } from 'react-i18next'
-import { DEFAULT_BREAKPOINTS } from '../../common/responsive/breakpoints'
-import { useBreakpoint } from '../responsive/useBreakpoint'
+import {Box, Divider, Fab, ListItemIcon, ListItemText, Menu, MenuItem, Stack, Tooltip} from '@mui/material'
+import {useTranslation} from 'react-i18next'
+import {DEFAULT_BREAKPOINTS} from '../../common/responsive/breakpoints'
+import {useBreakpoint} from '../responsive/useBreakpoint'
 
 export type PneFabAction = {
     id: string
@@ -38,7 +38,7 @@ export type PneFloatingActionButtonsProps = {
     actions: PneFabItem[]
     breakpoints?: readonly number[]
     mobileBreakpoint?: number
-    position?: { bottom?: number; right?: number }
+    position?: {bottom?: number; right?: number}
     fabLabel?: React.ReactNode
     fabIcon?: React.ReactNode
     className?: string
@@ -61,12 +61,12 @@ export function PneFloatingActionButtons({
     className,
     bannerText,
 }: PneFloatingActionButtonsProps) {
-    const { t } = useTranslation()
-    const breakpoint = useBreakpoint({ breakpoints })
+    const {t} = useTranslation()
+    const breakpoint = useBreakpoint({breakpoints})
     const isMobile = breakpoint < mobileBreakpoint
-    const resolvedFabLabel = fabLabel ?? t('pne.fab.actions', { defaultValue: 'Actions' })
-    const resolvedFabActionLabel = t('pne.fab.action', { defaultValue: 'Action' })
-    const scrollTopLabel = t('pne.fab.scrollToTop', { defaultValue: 'Scroll to top' })
+    const resolvedFabLabel = fabLabel ?? t('pne.fab.actions', {defaultValue: 'Actions'})
+    const resolvedFabActionLabel = t('pne.fab.action', {defaultValue: 'Action'})
+    const scrollTopLabel = t('pne.fab.scrollToTop', {defaultValue: 'Scroll to top'})
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
     const [showScrollTop, setShowScrollTop] = useState(false)
     const handleOpen = (event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget)
@@ -79,29 +79,27 @@ export function PneFloatingActionButtons({
 
     const handleScrollTop = () => {
         if (typeof window === 'undefined') return
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        window.scrollTo({top: 0, behavior: 'smooth'})
     }
 
     const renderMenuItems = (items: PneFabItem[]) =>
         items.map(item =>
             isContentItem(item) ? (
-                <Box key={item.id}>
-                    {item.node}
-                </Box>
+                <Box key={item.id}>{item.node}</Box>
             ) : isDividerItem(item) ? (
-                <Divider key={item.id} component='li' role='presentation' sx={{ my: 2 }} />
+                <Divider key={item.id} component='li' role='presentation' sx={{my: 2}} />
             ) : isActionItem(item) ? (
                 <MenuItem
                     key={item.id}
                     disabled={item.disabled}
                     onClick={() => handleAction(item)}
-                    sx={{ fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 1 }}
+                    sx={{fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 1}}
                 >
-                    <ListItemText slotProps={{ primary: { sx: { fontSize: '0.875rem' } } }} sx={{ flex: 1 }}>
+                    <ListItemText slotProps={{primary: {sx: {fontSize: '0.875rem'}}}} sx={{flex: 1}}>
                         {item.label}
                     </ListItemText>
                     {item.icon ? (
-                        <Box component='span' sx={{ display: 'inline-flex', color: 'inherit', lineHeight: 0 }}>
+                        <Box component='span' sx={{display: 'inline-flex', color: 'inherit', lineHeight: 0}}>
                             {item.icon}
                         </Box>
                     ) : null}
@@ -112,8 +110,8 @@ export function PneFloatingActionButtons({
     // Desktop: actions can be shown independently in menu and floating stack.
     const menuItems = actions.filter(item => !isActionItem(item) || item.showInMenu !== false)
     const actionItems = isMobile ? [] : actions.filter(isActionItem).filter(item => item.showInFabStack !== false)
-    const fabSx = isMobile ? { opacity: 0.85 } : { opacity: 0.3 }
-    const stackSx = isMobile ? undefined : { '&:hover .pne-fab': { opacity: 0.85 } }
+    const fabSx = isMobile ? {opacity: 0.85} : {opacity: 0.3}
+    const stackSx = isMobile ? undefined : {'&:hover .pne-fab': {opacity: 0.85}}
     const baseOffset = isMobile ? 16 : 24
     const bottomOffset = position?.bottom ?? baseOffset
     const rightOffset = position?.right ?? baseOffset
@@ -136,7 +134,7 @@ export function PneFloatingActionButtons({
             if (frameId !== null) return
             frameId = window.requestAnimationFrame(update)
         }
-        window.addEventListener('scroll', handleScroll, { passive: true })
+        window.addEventListener('scroll', handleScroll, {passive: true})
         return () => {
             window.removeEventListener('scroll', handleScroll)
             if (frameId !== null) {
@@ -179,26 +177,31 @@ export function PneFloatingActionButtons({
                 ) : null}
                 {!isMobile
                     ? actionItems.map(item => {
-                        const title =
-                            item.tooltip ??
-                            (typeof item.label === 'string' ? item.label : typeof resolvedFabLabel === 'string' ? resolvedFabLabel : resolvedFabActionLabel)
-                        return (
-                            <Tooltip key={item.id} title={title} placement='left' disableInteractive>
-                                <span>
-                                    <Fab
-                                        className='pne-fab'
-                                        color='primary'
-                                        size='small'
-                                        onClick={() => handleAction(item)}
-                                        aria-label={typeof title === 'string' ? title : resolvedFabActionLabel}
-                                        sx={fabSx}
-                                    >
-                                        {item.icon ?? (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
-                                    </Fab>
-                                </span>
-                            </Tooltip>
-                        )
-                    })
+                          const title =
+                              item.tooltip ??
+                              (typeof item.label === 'string'
+                                  ? item.label
+                                  : typeof resolvedFabLabel === 'string'
+                                    ? resolvedFabLabel
+                                    : resolvedFabActionLabel)
+                          return (
+                              <Tooltip key={item.id} title={title} placement='left' disableInteractive>
+                                  <span>
+                                      <Fab
+                                          className='pne-fab'
+                                          color='primary'
+                                          size='small'
+                                          onClick={() => handleAction(item)}
+                                          aria-label={typeof title === 'string' ? title : resolvedFabActionLabel}
+                                          sx={fabSx}
+                                      >
+                                          {item.icon ??
+                                              (typeof item.label === 'string' ? item.label.charAt(0) : fabIcon)}
+                                      </Fab>
+                                  </span>
+                              </Tooltip>
+                          )
+                      })
                     : null}
                 <Tooltip title={isMobile ? '' : resolvedFabLabel} disableInteractive>
                     <Fab
@@ -206,7 +209,11 @@ export function PneFloatingActionButtons({
                         color='primary'
                         size='small'
                         onClick={handleOpen}
-                        aria-label={typeof resolvedFabLabel === 'string' ? resolvedFabLabel : t('pne.fab.actions', { defaultValue: 'Actions' })}
+                        aria-label={
+                            typeof resolvedFabLabel === 'string'
+                                ? resolvedFabLabel
+                                : t('pne.fab.actions', {defaultValue: 'Actions'})
+                        }
                         sx={fabSx}
                     >
                         {fabIcon}
@@ -217,8 +224,8 @@ export function PneFloatingActionButtons({
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
-                anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-                slotProps={{ list: { sx: { py: 0 } } }}
+                anchorOrigin={{vertical: 'top', horizontal: 'left'}}
+                slotProps={{list: {sx: {py: 0}}}}
             >
                 {renderMenuItems(menuItems)}
                 {bannerText ? (
@@ -228,11 +235,11 @@ export function PneFloatingActionButtons({
                             pointerEvents: 'none',
                             bgcolor: theme => theme.palette.primary.main,
                             color: theme => theme.palette.primary.contrastText,
-                            '&.Mui-disabled': { opacity: 1 },
+                            '&.Mui-disabled': {opacity: 1},
                             minHeight: 60,
                         }}
                     >
-                        <ListItemIcon sx={{ minWidth: 36, color: 'inherit' }}>{fabIcon}</ListItemIcon>
+                        <ListItemIcon sx={{minWidth: 36, color: 'inherit'}}>{fabIcon}</ListItemIcon>
                         <ListItemText
                             slotProps={{
                                 primary: {

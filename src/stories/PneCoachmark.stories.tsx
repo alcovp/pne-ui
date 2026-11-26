@@ -28,54 +28,86 @@ const CoachmarkHarness = ({
     const [open, setOpen] = React.useState(true)
     const close = React.useCallback(() => setOpen(false), [])
 
-    return <Box
-        sx={{
-            minHeight: 520,
-            p: 4,
-        }}
-    >
-        {anchored ? <Box
-            component='span'
-            data-story-coachmark-anchor='true'
-            ref={setAnchorEl}
-            sx={{display: 'inline-flex'}}
+    return (
+        <Box
+            sx={{
+                minHeight: 520,
+                p: 4,
+            }}
         >
-            <Button size='large' variant='soft'>{anchorLabel}</Button>
-        </Box> : null}
-        <PneCoachmark
-            actions={actions(close)}
-            anchorEl={anchored ? anchorEl : null}
-            closeLabel='Close coachmark'
-            containerSx={{width: COACHMARK_WIDTH}}
-            modifiers={[
-                {name: 'offset', options: {offset: [0, 12]}},
-                {name: 'preventOverflow', options: {padding: 16}},
-                {name: 'flip', options: {padding: 16}},
-            ]}
-            onClose={close}
-            open={open}
-            placement='bottom-start'
-            subtitle={subtitle}
-            title={title}
-        >
-            <Typography sx={{color: 'text.secondary', fontSize: 14, lineHeight: '20px'}}>
-                {body}
-            </Typography>
-        </PneCoachmark>
-    </Box>
+            {anchored ? (
+                <Box
+                    component='span'
+                    data-story-coachmark-anchor='true'
+                    ref={setAnchorEl}
+                    sx={{display: 'inline-flex'}}
+                >
+                    <Button size='large' variant='soft'>
+                        {anchorLabel}
+                    </Button>
+                </Box>
+            ) : null}
+            <PneCoachmark
+                actions={actions(close)}
+                anchorEl={anchored ? anchorEl : null}
+                closeLabel='Close coachmark'
+                containerSx={{width: COACHMARK_WIDTH}}
+                modifiers={[
+                    {name: 'offset', options: {offset: [0, 12]}},
+                    {name: 'preventOverflow', options: {padding: 16}},
+                    {name: 'flip', options: {padding: 16}},
+                ]}
+                onClose={close}
+                open={open}
+                placement='bottom-start'
+                subtitle={subtitle}
+                title={title}
+            >
+                <Typography sx={{color: 'text.secondary', fontSize: 14, lineHeight: '20px'}}>{body}</Typography>
+            </PneCoachmark>
+        </Box>
+    )
 }
 
-const InvitationActions = ({close}: {close: () => void}) => <PneModalActions
-    leading={<Button size='large' variant='text' onClick={close}>Do not offer again</Button>}
-    secondary={<Button size='large' variant='outlined' onClick={close}>Not now</Button>}
-    primary={<Button size='large' variant='contained'>Show me</Button>}
-/>
+const InvitationActions = ({close}: {close: () => void}) => (
+    <PneModalActions
+        leading={
+            <Button size='large' variant='text' onClick={close}>
+                Do not offer again
+            </Button>
+        }
+        secondary={
+            <Button size='large' variant='outlined' onClick={close}>
+                Not now
+            </Button>
+        }
+        primary={
+            <Button size='large' variant='contained'>
+                Show me
+            </Button>
+        }
+    />
+)
 
-const WizardActions = ({close}: {close: () => void}) => <PneModalActions
-    leading={<Button size='large' variant='text' onClick={close}>Continue later</Button>}
-    secondary={<Button size='large' variant='outlined'>Back</Button>}
-    primary={<Button size='large' variant='contained'>Next</Button>}
-/>
+const WizardActions = ({close}: {close: () => void}) => (
+    <PneModalActions
+        leading={
+            <Button size='large' variant='text' onClick={close}>
+                Continue later
+            </Button>
+        }
+        secondary={
+            <Button size='large' variant='outlined'>
+                Back
+            </Button>
+        }
+        primary={
+            <Button size='large' variant='contained'>
+                Next
+            </Button>
+        }
+    />
+)
 
 const getRenderedCoachmark = async (canvasElement: HTMLElement, name: string) => {
     const iframeDocument = canvasElement.ownerDocument
@@ -102,7 +134,8 @@ const meta = {
         layout: 'fullscreen',
         docs: {
             description: {
-                component: 'A non-modal instructional surface that follows an anchor when available and centers safely when the anchor is missing. Compose actions with PneModalActions so hierarchy, spacing, and responsive order stay consistent.',
+                component:
+                    'A non-modal instructional surface that follows an anchor when available and centers safely when the anchor is missing. Compose actions with PneModalActions so hierarchy, spacing, and responsive order stay consistent.',
             },
         },
     },
@@ -132,19 +165,15 @@ export const AnchoredInvitation: Story = {
             'New: customize your widgets',
         )
         const anchor = within(canvasElement).getByRole('button', {name: 'Widget help'})
-        const popper = iframeDocument.body.querySelector<HTMLElement>(
-            '[data-pne-coachmark-popper="true"]',
-        )
+        const popper = iframeDocument.body.querySelector<HTMLElement>('[data-pne-coachmark-popper="true"]')
 
         expect(popper).toBeVisible()
-        expect(iframeDocument.body.querySelector('[data-pne-coachmark-fallback="true"]'))
-            .toBeNull()
+        expect(iframeDocument.body.querySelector('[data-pne-coachmark-fallback="true"]')).toBeNull()
         expect(within(dialog).getByRole('button', {name: 'Close coachmark'})).toBeVisible()
         const actions = dialog.querySelector<HTMLElement>('[data-pne-modal-actions="true"]')!
         const actionButtons = within(actions).getAllByRole('button')
         expect(iframeDocument.defaultView?.innerWidth).toBe(600)
-        expect(actionButtons.map(button => button.textContent))
-            .toEqual(['Do not offer again', 'Not now', 'Show me'])
+        expect(actionButtons.map(button => button.textContent)).toEqual(['Do not offer again', 'Not now', 'Show me'])
 
         await waitFor(() => {
             const anchorRect = anchor.getBoundingClientRect()
@@ -154,13 +183,16 @@ export const AnchoredInvitation: Story = {
 
             expect(surfaceRect.top).toBeGreaterThanOrEqual(anchorRect.bottom)
             // The surface starts at the trigger's left edge until the 16px viewport margin pushes it back.
-            expect(Math.abs(surfaceRect.left - Math.min(
-                anchorRect.left,
-                iframeDocument.documentElement.clientWidth - 16 - surfaceRect.width,
-            ))).toBeLessThanOrEqual(1)
+            expect(
+                Math.abs(
+                    surfaceRect.left -
+                        Math.min(anchorRect.left, iframeDocument.documentElement.clientWidth - 16 - surfaceRect.width),
+                ),
+            ).toBeLessThanOrEqual(1)
             expect(actionsRect.height).toBe(40)
-            expect(Math.max(...buttonRects.map(rect => rect.top))
-                - Math.min(...buttonRects.map(rect => rect.top))).toBeLessThanOrEqual(1)
+            expect(
+                Math.max(...buttonRects.map(rect => rect.top)) - Math.min(...buttonRects.map(rect => rect.top)),
+            ).toBeLessThanOrEqual(1)
             actionButtons.forEach((button, index) => {
                 expect(buttonRects[index].height).toBe(40)
                 expect(button.scrollWidth).toBeLessThanOrEqual(button.clientWidth + 1)
@@ -169,11 +201,13 @@ export const AnchoredInvitation: Story = {
             })
         })
     },
-    render: () => <CoachmarkHarness
-        actions={close => <InvitationActions close={close}/>}
-        body='Change widget order, width, and visibility in a quick guided tour.'
-        title='New: customize your widgets'
-    />,
+    render: () => (
+        <CoachmarkHarness
+            actions={close => <InvitationActions close={close} />}
+            body='Change widget order, width, and visibility in a quick guided tour.'
+            title='New: customize your widgets'
+        />
+    ),
 }
 
 export const AnchoredWizardStep: Story = {
@@ -189,17 +223,22 @@ export const AnchoredWizardStep: Story = {
         const {dialog} = await getRenderedCoachmark(canvasElement, 'Move and resize widgets')
         const actions = dialog.querySelector<HTMLElement>('[data-pne-modal-actions="true"]')!
 
-        expect(within(actions).getAllByRole('button').map(button => button.textContent))
-            .toEqual(['Continue later', 'Back', 'Next'])
+        expect(
+            within(actions)
+                .getAllByRole('button')
+                .map(button => button.textContent),
+        ).toEqual(['Continue later', 'Back', 'Next'])
         expect(getComputedStyle(actions).gap).toBe('8px')
     },
-    render: () => <CoachmarkHarness
-        actions={close => <WizardActions close={close}/>}
-        anchorLabel='Highlighted widget'
-        body='Drag a widget by its header. Use the side rails to change only its width.'
-        subtitle='Step 2 of 5'
-        title='Move and resize widgets'
-    />,
+    render: () => (
+        <CoachmarkHarness
+            actions={close => <WizardActions close={close} />}
+            anchorLabel='Highlighted widget'
+            body='Drag a widget by its header. Use the side rails to change only its width.'
+            subtitle='Step 2 of 5'
+            title='Move and resize widgets'
+        />
+    ),
 }
 
 export const CenteredFallback: Story = {
@@ -212,31 +251,32 @@ export const CenteredFallback: Story = {
         },
     },
     play: async ({canvasElement}) => {
-        const {iframeDocument, surface} = await getRenderedCoachmark(
-            canvasElement,
-            'Widget help is still available',
-        )
+        const {iframeDocument, surface} = await getRenderedCoachmark(canvasElement, 'Widget help is still available')
         const iframeWindow = iframeDocument.defaultView!
-        const fallback = iframeDocument.body.querySelector<HTMLElement>(
-            '[data-pne-coachmark-fallback="true"]',
-        )
+        const fallback = iframeDocument.body.querySelector<HTMLElement>('[data-pne-coachmark-fallback="true"]')
         const surfaceRect = surface.getBoundingClientRect()
 
         expect(fallback).toBeVisible()
         expect(iframeDocument.body.querySelector('[data-pne-coachmark-popper="true"]')).toBeNull()
-        expect(Math.abs(surfaceRect.left + surfaceRect.width / 2 - iframeWindow.innerWidth / 2))
-            .toBeLessThanOrEqual(1)
-        expect(Math.abs(surfaceRect.top + surfaceRect.height / 2 - iframeWindow.innerHeight / 2))
-            .toBeLessThanOrEqual(1)
+        expect(Math.abs(surfaceRect.left + surfaceRect.width / 2 - iframeWindow.innerWidth / 2)).toBeLessThanOrEqual(1)
+        expect(Math.abs(surfaceRect.top + surfaceRect.height / 2 - iframeWindow.innerHeight / 2)).toBeLessThanOrEqual(1)
     },
-    render: () => <CoachmarkHarness
-        actions={close => <PneModalActions
-            primary={<Button size='large' variant='contained' onClick={close}>Close</Button>}
-        />}
-        anchored={false}
-        body='The requested target is not mounted at this board size, so this coachmark is centered instead.'
-        title='Widget help is still available'
-    />,
+    render: () => (
+        <CoachmarkHarness
+            actions={close => (
+                <PneModalActions
+                    primary={
+                        <Button size='large' variant='contained' onClick={close}>
+                            Close
+                        </Button>
+                    }
+                />
+            )}
+            anchored={false}
+            body='The requested target is not mounted at this board size, so this coachmark is centered instead.'
+            title='Widget help is still available'
+        />
+    ),
 }
 
 export const ResponsiveActions: Story = {
@@ -255,38 +295,33 @@ export const ResponsiveActions: Story = {
         },
     },
     play: async ({canvasElement}) => {
-        const {dialog, iframeDocument, surface} = await getRenderedCoachmark(
-            canvasElement,
-            'Move and resize widgets',
-        )
+        const {dialog, iframeDocument, surface} = await getRenderedCoachmark(canvasElement, 'Move and resize widgets')
         const iframeWindow = iframeDocument.defaultView!
         const actions = dialog.querySelector<HTMLElement>('[data-pne-modal-actions="true"]')!
         const buttons = within(actions).getAllByRole('button')
         const surfaceRect = surface.getBoundingClientRect()
 
         expect(iframeWindow.innerWidth).toBe(360)
-        expect(buttons.map(button => button.textContent))
-            .toEqual(['Next', 'Back', 'Continue later'])
+        expect(buttons.map(button => button.textContent)).toEqual(['Next', 'Back', 'Continue later'])
         expect(actions.scrollWidth).toBeLessThanOrEqual(actions.clientWidth + 1)
         expect(surfaceRect.left).toBeGreaterThanOrEqual(16)
         expect(surfaceRect.right).toBeLessThanOrEqual(iframeWindow.innerWidth - 16)
         const buttonRects = buttons.map(button => button.getBoundingClientRect())
         buttons.forEach((_button, index) => {
-            expect(Math.abs(buttonRects[index].width - actions.clientWidth))
-                .toBeLessThanOrEqual(1)
+            expect(Math.abs(buttonRects[index].width - actions.clientWidth)).toBeLessThanOrEqual(1)
             expect(buttonRects[index].height).toBe(40)
             if (index > 0) {
-                expect(buttonRects[index].top).toBeGreaterThanOrEqual(
-                    buttonRects[index - 1].bottom + 7,
-                )
+                expect(buttonRects[index].top).toBeGreaterThanOrEqual(buttonRects[index - 1].bottom + 7)
             }
         })
     },
-    render: () => <CoachmarkHarness
-        actions={close => <WizardActions close={close}/>}
-        anchorLabel='Highlighted widget'
-        body='Long localized actions remain fully readable without clipping or horizontal overflow.'
-        subtitle='Step 2 of 5'
-        title='Move and resize widgets'
-    />,
+    render: () => (
+        <CoachmarkHarness
+            actions={close => <WizardActions close={close} />}
+            anchorLabel='Highlighted widget'
+            body='Long localized actions remain fully readable without clipping or horizontal overflow.'
+            subtitle='Step 2 of 5'
+            title='Move and resize widgets'
+        />
+    ),
 }

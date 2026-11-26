@@ -17,39 +17,34 @@ export const createSearchUIOwnedAutoTestAttributes = (
     owner: SearchUIAutoTestScope | undefined,
 ): SearchUIOwnedAutoTestAttributes => ({
     ...createAutoTestAttributes(id, owner?.scope),
-    ...(owner?.criterionType === undefined
-        ? {}
-        : {'data-autotest-criterion': owner.criterionType}),
+    ...(owner?.criterionType === undefined ? {} : {'data-autotest-criterion': owner.criterionType}),
 })
 
 const SearchUIAutoTestScopeContext = createContext<SearchUIAutoTestScope | undefined>(undefined)
 
-export const SearchUIAutoTestScopeProvider = ({children, scope}: {
-    children: React.ReactNode
-    scope: string
-}) => {
+export const SearchUIAutoTestScopeProvider = ({children, scope}: {children: React.ReactNode; scope: string}) => {
     const value = useMemo(() => ({scope}), [scope])
 
-    return <SearchUIAutoTestScopeContext value={value}>
-        {children}
-    </SearchUIAutoTestScopeContext>
+    return <SearchUIAutoTestScopeContext value={value}>{children}</SearchUIAutoTestScopeContext>
 }
 
-export const SearchUICriterionAutoTestScopeProvider = ({children, criterionType}: {
+export const SearchUICriterionAutoTestScopeProvider = ({
+    children,
+    criterionType,
+}: {
     children: React.ReactNode
     criterionType: CriterionTypeEnum
 }) => {
     const parentScope = use(SearchUIAutoTestScopeContext)
-    const value = useMemo(() => ({
-        ...parentScope,
-        criterionType,
-    }), [criterionType, parentScope])
+    const value = useMemo(
+        () => ({
+            ...parentScope,
+            criterionType,
+        }),
+        [criterionType, parentScope],
+    )
 
-    return <SearchUIAutoTestScopeContext value={value}>
-        {children}
-    </SearchUIAutoTestScopeContext>
+    return <SearchUIAutoTestScopeContext value={value}>{children}</SearchUIAutoTestScopeContext>
 }
 
-export const useSearchUIAutoTestScope = (): SearchUIAutoTestScope | undefined => (
-    use(SearchUIAutoTestScopeContext)
-)
+export const useSearchUIAutoTestScope = (): SearchUIAutoTestScope | undefined => use(SearchUIAutoTestScopeContext)

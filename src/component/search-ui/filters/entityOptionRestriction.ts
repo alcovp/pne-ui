@@ -1,16 +1,11 @@
-import type {
-    AbstractEntity,
-    AbstractEntityAllableCollection,
-} from '../../../common/paynet/type'
+import type {AbstractEntity, AbstractEntityAllableCollection} from '../../../common/paynet/type'
 
 export type EntityOptionRestrictionFingerprint = Array<{
     displayName: string
     id: number
 }>
 
-export const normalizeAllowedEntityNames = (
-    allowedNames: ReadonlyArray<string> | undefined,
-): string[] | undefined => {
+export const normalizeAllowedEntityNames = (allowedNames: ReadonlyArray<string> | undefined): string[] | undefined => {
     if (allowedNames === undefined) {
         return undefined
     }
@@ -41,21 +36,19 @@ export const resolveAllowedEntityOptions = (
         return true
     })
     const missingNames = normalizedNames.filter(name => !resolvedNames.has(name))
-    const ambiguousNames = normalizedNames.filter(name => (
-        options.filter(option => option.displayName === name).length > 1
-    ))
+    const ambiguousNames = normalizedNames.filter(
+        name => options.filter(option => option.displayName === name).length > 1,
+    )
 
     if (missingNames.length > 0) {
         throw new Error(
-            `[pne-ui] ${configPath} contains names missing from the available options: `
-            + missingNames.join(', '),
+            `[pne-ui] ${configPath} contains names missing from the available options: ` + missingNames.join(', '),
         )
     }
 
     if (ambiguousNames.length > 0) {
         throw new Error(
-            `[pne-ui] ${configPath} contains names matching multiple available options: `
-            + ambiguousNames.join(', '),
+            `[pne-ui] ${configPath} contains names matching multiple available options: ` + ambiguousNames.join(', '),
         )
     }
 
@@ -71,11 +64,9 @@ export const createEntityOptionRestrictionFingerprint = (
 
     return options
         .map(({displayName, id}) => ({displayName, id}))
-        .sort((left, right) => (
-            left.displayName === right.displayName
-                ? left.id - right.id
-                : left.displayName < right.displayName ? -1 : 1
-        ))
+        .sort((left, right) =>
+            left.displayName === right.displayName ? left.id - right.id : left.displayName < right.displayName ? -1 : 1,
+        )
 }
 
 export const normalizeRestrictedEntityCollection = (

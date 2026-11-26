@@ -32,7 +32,7 @@ const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', w
 type MatrixColumn = {
     label: string
     value?: string
-    field?: {error?: boolean, disabled?: boolean}
+    field?: {error?: boolean; disabled?: boolean}
     control?: Partial<React.ComponentProps<typeof PneTextField>>
 }
 
@@ -66,9 +66,13 @@ const MATRIX_ROWS: MatrixRow[] = [
     {title: 'large · outlined', size: 'large', variant: 'outlined'},
 ]
 
-const MatrixCell = ({row, column}: {row: MatrixRow, column: MatrixColumn}) => {
+const MatrixCell = ({row, column}: {row: MatrixRow; column: MatrixColumn}) => {
     const error = column.field?.error === true
-    const helperText = row.helper ? (error ? 'Опишите, как исправить ошибку' : 'Подсказка о формате значения') : undefined
+    const helperText = row.helper
+        ? error
+            ? 'Опишите, как исправить ошибку'
+            : 'Подсказка о формате значения'
+        : undefined
     if (row.ownLabel) {
         return (
             <PneTextField
@@ -110,16 +114,20 @@ export const Matrix: Story = {
     render: () => (
         <Box sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 2, maxWidth: 900}}>
-                Rows are size × variant plus required and helper, columns the states as in the Figma matrix. The
-                label above the box is PneField. Hover and Focus are pinned with <code>data-pne-state</code>;
-                product code never sets it.
+                Rows are size × variant plus required and helper, columns the states as in the Figma matrix. The label
+                above the box is PneField. Hover and Focus are pinned with <code>data-pne-state</code>; product code
+                never sets it.
             </Typography>
             <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 12px', ml: -2}}>
                 <thead>
                     <tr>
-                        <th/>
+                        <th />
                         {MATRIX_COLUMNS.map(column => (
-                            <Box component='th' key={column.label} sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>
+                            <Box
+                                component='th'
+                                key={column.label}
+                                sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}
+                            >
                                 {column.label}
                             </Box>
                         ))}
@@ -128,12 +136,15 @@ export const Matrix: Story = {
                 <tbody>
                     {MATRIX_ROWS.map(row => (
                         <tr key={row.title}>
-                            <Box component='th' sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}>
+                            <Box
+                                component='th'
+                                sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}
+                            >
                                 {row.title}
                             </Box>
                             {MATRIX_COLUMNS.map(column => (
                                 <Box component='td' key={column.label} sx={{verticalAlign: 'top'}}>
-                                    <MatrixCell column={column} row={row}/>
+                                    <MatrixCell column={column} row={row} />
                                 </Box>
                             ))}
                         </tr>
@@ -148,8 +159,12 @@ export const Matrix: Story = {
 // its left (`labelPosition="left"`) or inside the box, as a start adornment.
 const POSITIONS = ['Top', 'Left', 'Inside'] as const
 
-const PositionCell = ({position, column, multiline}: {
-    position: typeof POSITIONS[number]
+const PositionCell = ({
+    position,
+    column,
+    multiline,
+}: {
+    position: (typeof POSITIONS)[number]
     column: MatrixColumn
     multiline?: boolean
 }) => {
@@ -171,7 +186,11 @@ const PositionCell = ({position, column, multiline}: {
                 defaultValue={column.value}
                 multiline={multiline}
                 placeholder={multiline ? 'Комментарий к платежу' : 'Placeholder'}
-                slotProps={inside ? {input: {startAdornment: <InputAdornment position='start'>Mark in</InputAdornment>}} : undefined}
+                slotProps={
+                    inside
+                        ? {input: {startAdornment: <InputAdornment position='start'>Mark in</InputAdornment>}}
+                        : undefined
+                }
                 variant='filled'
                 {...column.control}
             />
@@ -179,11 +198,17 @@ const PositionCell = ({position, column, multiline}: {
     )
 }
 
-const PositionsTable = ({positions, multiline}: {positions: ReadonlyArray<typeof POSITIONS[number]>, multiline?: boolean}) => (
+const PositionsTable = ({
+    positions,
+    multiline,
+}: {
+    positions: ReadonlyArray<(typeof POSITIONS)[number]>
+    multiline?: boolean
+}) => (
     <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 12px', ml: -2}}>
         <thead>
             <tr>
-                <th/>
+                <th />
                 {MATRIX_COLUMNS.map(column => (
                     <Box component='th' key={column.label} sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>
                         {column.label}
@@ -194,12 +219,15 @@ const PositionsTable = ({positions, multiline}: {positions: ReadonlyArray<typeof
         <tbody>
             {positions.map(position => (
                 <tr key={position}>
-                    <Box component='th' sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}>
+                    <Box
+                        component='th'
+                        sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}
+                    >
                         {position}
                     </Box>
                     {MATRIX_COLUMNS.map(column => (
                         <Box component='td' key={column.label} sx={{verticalAlign: 'top'}}>
-                            <PositionCell column={column} multiline={multiline} position={position}/>
+                            <PositionCell column={column} multiline={multiline} position={position} />
                         </Box>
                     ))}
                 </tr>
@@ -213,18 +241,18 @@ export const LabelPositions: Story = {
     render: () => (
         <Stack spacing={3} sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
-                The label stands over the control, on its left (<code>PneField labelPosition=&quot;left&quot;</code>:
-                a 160px column, the helper text under the control) or inside the box as a start adornment.
-                A multiline field takes the same label positions; with no rows set it is the 88px box of
-                the UI Kit, and the user drags its corner.
+                The label stands over the control, on its left (<code>PneField labelPosition=&quot;left&quot;</code>: a
+                160px column, the helper text under the control) or inside the box as a start adornment. A multiline
+                field takes the same label positions; with no rows set it is the 88px box of the UI Kit, and the user
+                drags its corner.
             </Typography>
-            <PositionsTable positions={POSITIONS}/>
-            <PositionsTable multiline positions={['Top', 'Left']}/>
+            <PositionsTable positions={POSITIONS} />
+            <PositionsTable multiline positions={['Top', 'Left']} />
         </Stack>
     ),
 }
 
-type LogEntry = {at: string, text: string}
+type LogEntry = {at: string; text: string}
 
 const timestamp = () => new Date().toLocaleTimeString('ru-RU', {hour12: false})
 
@@ -263,8 +291,8 @@ const DynamicsDemo = () => {
     return (
         <Stack spacing={3} sx={{p: 3, maxWidth: 560}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary'}}>
-                Валидация на blur: ошибка появляется после выхода из поля и снимается при вводе. Отправка формы с
-                пустым обязательным полем показывает «Обязательное поле».
+                Валидация на blur: ошибка появляется после выхода из поля и снимается при вводе. Отправка формы с пустым
+                обязательным полем показывает «Обязательное поле».
             </Typography>
             <Stack spacing={2} sx={{alignItems: 'flex-start'}}>
                 <PneField
@@ -281,12 +309,18 @@ const DynamicsDemo = () => {
                         value={value}
                     />
                 </PneField>
-                <Button onClick={submit} variant='contained' size='medium'>Сохранить</Button>
+                <Button onClick={submit} variant='contained' size='medium'>
+                    Сохранить
+                </Button>
             </Stack>
             <Box>
                 <Typography sx={{...CAPTION_SX, mb: 0.5}}>Лог</Typography>
                 <Box component='ul' sx={{m: 0, pl: 2, fontSize: 12, lineHeight: '18px', color: 'text.secondary'}}>
-                    {entries.map((entry, index) => <li key={index}>{entry.at} — {entry.text}</li>)}
+                    {entries.map((entry, index) => (
+                        <li key={index}>
+                            {entry.at} — {entry.text}
+                        </li>
+                    ))}
                 </Box>
             </Box>
         </Stack>
@@ -295,13 +329,13 @@ const DynamicsDemo = () => {
 
 export const Dynamics: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <DynamicsDemo/>,
+    render: () => <DynamicsDemo />,
 }
 
 export const Playground: Story = {
     render: args => (
         <Box sx={{p: 3, width: 320}}>
-            <PneTextField fullWidth {...args}/>
+            <PneTextField fullWidth {...args} />
         </Box>
     ),
 }

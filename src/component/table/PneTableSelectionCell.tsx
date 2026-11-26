@@ -6,25 +6,26 @@ import PneTableControlCell from './PneTableControlCell'
 
 export type SelectionCheckboxAccessibleName =
     | {
-        'aria-label': string
-        'aria-labelledby'?: never
-    }
+          'aria-label': string
+          'aria-labelledby'?: never
+      }
     | {
-        'aria-label'?: never
-        'aria-labelledby': string
-    }
+          'aria-label'?: never
+          'aria-labelledby': string
+      }
 
 export type PneTableSelectionCellProps = Omit<
     TableCellProps,
     'aria-label' | 'aria-labelledby' | 'children' | 'onChange' | 'onClick' | 'ref'
-> & SelectionCheckboxAccessibleName & {
-    checked: boolean
-    disabled?: boolean
-    checkboxSx?: SxProps<Theme>
-    autoTestId?: string
-    autoTestValue?: AutoTestValue
-    onChange: (checked: boolean, event: ChangeEvent<HTMLInputElement>) => void
-}
+> &
+    SelectionCheckboxAccessibleName & {
+        checked: boolean
+        disabled?: boolean
+        checkboxSx?: SxProps<Theme>
+        autoTestId?: string
+        autoTestValue?: AutoTestValue
+        onChange: (checked: boolean, event: ChangeEvent<HTMLInputElement>) => void
+    }
 
 /** UI Kit Cell: Checkbox - the 20px box with 8px at its sides. */
 export const SELECTION_CELL_WIDTH = 36
@@ -62,36 +63,32 @@ const PneTableSelectionCell = (props: PneTableSelectionCellProps) => {
         event.stopPropagation()
     }
 
-    return <PneTableControlCell
-        {...cellProps}
-        onClick={handleCellClick}
-        sx={[
-            selectionCellSx,
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-    >
-        <PneCheckbox
-            checked={checked}
-            disabled={disabled}
-            size='medium'
-            onChange={(event, nextChecked) => {
-                if (!disabled) {
-                    onChange(nextChecked, event)
-                }
-            }}
-            slotProps={{
-                input: {
-                    ...createAutoTestAttributes(autoTestId, autoTestValue),
-                    'aria-label': ariaLabel,
-                    'aria-labelledby': ariaLabelledBy,
-                },
-            }}
-            sx={[
-                selectionCheckboxSx,
-                ...(Array.isArray(checkboxSx) ? checkboxSx : [checkboxSx]),
-            ]}
-        />
-    </PneTableControlCell>
+    return (
+        <PneTableControlCell
+            {...cellProps}
+            onClick={handleCellClick}
+            sx={[selectionCellSx, ...(Array.isArray(sx) ? sx : [sx])]}
+        >
+            <PneCheckbox
+                checked={checked}
+                disabled={disabled}
+                size='medium'
+                onChange={(event, nextChecked) => {
+                    if (!disabled) {
+                        onChange(nextChecked, event)
+                    }
+                }}
+                slotProps={{
+                    input: {
+                        ...createAutoTestAttributes(autoTestId, autoTestValue),
+                        'aria-label': ariaLabel,
+                        'aria-labelledby': ariaLabelledBy,
+                    },
+                }}
+                sx={[selectionCheckboxSx, ...(Array.isArray(checkboxSx) ? checkboxSx : [checkboxSx])]}
+            />
+        </PneTableControlCell>
+    )
 }
 
 export default PneTableSelectionCell

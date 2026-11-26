@@ -8,8 +8,12 @@ type Point = {x: number; y: number}
 const pointer = (target: Element | Window, type: string, options: Partial<PointerEvent> = {}) => {
     const event = new Event(type, {bubbles: true, cancelable: true})
     Object.assign(event, {
-        pointerId: 1, pointerType: 'touch', isPrimary: true,
-        button: 0, clientX: 100, clientY: 100,
+        pointerId: 1,
+        pointerType: 'touch',
+        isPrimary: true,
+        button: 0,
+        clientX: 100,
+        clientY: 100,
         ...options,
     })
     fireEvent(target, event)
@@ -57,9 +61,13 @@ const setup = () => {
             stop = forceStop
             return pre
         }),
-        findClosestDraggableId: jest.fn(event => event.target instanceof Element
-            ? event.target.closest('[data-rfd-drag-handle-draggable-id]')?.getAttribute('data-rfd-drag-handle-draggable-id') ?? null
-            : null),
+        findClosestDraggableId: jest.fn(event =>
+            event.target instanceof Element
+                ? (event.target
+                      .closest('[data-rfd-drag-handle-draggable-id]')
+                      ?.getAttribute('data-rfd-drag-handle-draggable-id') ?? null)
+                : null,
+        ),
         canGetLock: () => phase === 'idle',
         isLockClaimed: () => phase !== 'idle',
         tryReleaseLock: jest.fn(),
@@ -68,10 +76,14 @@ const setup = () => {
     const onClick = jest.fn()
     const Harness = () => {
         useImmediateTouchSensor(api)
-        return <>
-            <button data-rfd-drag-handle-draggable-id='row-1' onClick={onClick}>Grip</button>
-            <button>Outside</button>
-        </>
+        return (
+            <>
+                <button data-rfd-drag-handle-draggable-id='row-1' onClick={onClick}>
+                    Grip
+                </button>
+                <button>Outside</button>
+            </>
+        )
     }
     const view = render(<Harness />)
     const handle = screen.getByRole('button', {name: 'Grip'})
@@ -84,7 +96,15 @@ const setup = () => {
         releasePointerCapture: {value: releaseCapture},
     })
     return {
-        ...view, api, pre, drag, handle, onClick, setCapture, releaseCapture, pointsAtDrop,
+        ...view,
+        api,
+        pre,
+        drag,
+        handle,
+        onClick,
+        setCapture,
+        releaseCapture,
+        pointsAtDrop,
         abandon: () => {
             phase = 'idle'
             stop?.()
@@ -163,7 +183,15 @@ describe('useImmediateTouchSensor', () => {
         expect(pre.fluidLift).toHaveBeenCalledTimes(1)
     })
 
-    it.each(['pointercancel', 'lostpointercapture', 'blur', 'resize', 'orientationchange', 'visibilitychange', 'Escape'])('cancels an active drag on %s', eventType => {
+    it.each([
+        'pointercancel',
+        'lostpointercapture',
+        'blur',
+        'resize',
+        'orientationchange',
+        'visibilitychange',
+        'Escape',
+    ])('cancels an active drag on %s', eventType => {
         const {drag, handle} = setup()
         pointer(handle, 'pointerdown')
         pointer(handle, 'pointermove', {clientY: 150})

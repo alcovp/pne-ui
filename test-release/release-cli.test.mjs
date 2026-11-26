@@ -4,36 +4,64 @@ import {mkdtemp, readFile, writeFile, chmod, rm} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
 import path from 'node:path'
 import {main, bumpVersion} from '../scripts/release.mjs'
-import {parseVersion, compareVersions, channelForVersion, tagForVersion, versionFromTag, readReleaseTag, run} from '../scripts/release-common.mjs'
+import {
+    parseVersion,
+    compareVersions,
+    channelForVersion,
+    tagForVersion,
+    versionFromTag,
+    readReleaseTag,
+    run,
+} from '../scripts/release-common.mjs'
 
-const registry = (versions = ['1.2.2'], distTags = {latest: '1.2.2'}) => async () => ({
-    ok: true, json: async () => ({name: 'pne-ui', versions: Object.fromEntries(versions.map(version => [version, {}])), 'dist-tags': distTags}),
-})
+const registry =
+    (versions = ['1.2.2'], distTags = {latest: '1.2.2'}) =>
+    async () => ({
+        ok: true,
+        json: async () => ({
+            name: 'pne-ui',
+            versions: Object.fromEntries(versions.map(version => [version, {}])),
+            'dist-tags': distTags,
+        }),
+    })
 
 async function fixture(t, version = '1.2.3-rc.0') {
     const root = await mkdtemp(path.join(tmpdir(), 'pne-release-test-'))
     t.after(() => rm(root, {recursive: true, force: true}))
-    const cwd = path.join(root, 'repo'), remote = path.join(root, 'remote.git')
+    const cwd = path.join(root, 'repo'),
+        remote = path.join(root, 'remote.git')
     await run('git', ['init', '-b', 'master', cwd])
     const git = args => run('git', args, {cwd})
     await git(['config', 'user.email', 'test@example.invalid'])
     await git(['config', 'user.name', 'Release test'])
     await git(['config', 'commit.gpgSign', 'false'])
     await git(['config', 'tag.gpgSign', 'false'])
-    await writeFile(path.join(cwd, 'package.json'), JSON.stringify({name: 'pne-ui', version, scripts: {prepare: 'exit 99'}}, null, 2) + '\n')
+    await writeFile(
+        path.join(cwd, 'package.json'),
+        JSON.stringify({name: 'pne-ui', version, scripts: {prepare: 'exit 99'}}, null, 2) + '\n',
+    )
     await git(['add', 'package.json'])
     await git(['commit', '-m', 'Initial'])
     await run('git', ['init', '--bare', remote])
     await git(['remote', 'add', 'origin', remote])
     await git(['push', 'origin', 'refs/heads/master:refs/heads/master'])
-    const invoke = (args, extras = {}) => main(args, {cwd, fixtureRemote: remote, fetchImpl: registry(), print: () => {}, ...extras})
+    const invoke = (args, extras = {}) =>
+        main(args, {cwd, fixtureRemote: remote, fetchImpl: registry(), print: () => {}, ...extras})
     const refs = () => run('git', ['show-ref'], {cwd: remote})
     return {cwd, remote, git, invoke, refs}
 }
 
 test('strict release versions and npm-style bump/channel boundaries', () => {
     assert.deepEqual(parseVersion('1.2.3-rc.4'), {major: 1, minor: 2, patch: 3, rc: 4})
-    for (const invalid of ['v1.2.3', '01.2.3', '1.2', '1.2.3-beta.1', '1.2.3+build', '1.2.3-rc.01', '9007199254740992.0.0']) {
+    for (const invalid of [
+        'v1.2.3',
+        '01.2.3',
+        '1.2',
+        '1.2.3-beta.1',
+        '1.2.3+build',
+        '1.2.3-rc.01',
+        '9007199254740992.0.0',
+    ]) {
         assert.throws(() => parseVersion(invalid))
     }
     assert.equal(compareVersions('1.2.3', '1.2.3-rc.100'), 1)
@@ -42,34 +70,52 @@ test('strict release versions and npm-style bump/channel boundaries', () => {
     assert.equal(versionFromTag(tagForVersion('1.2.3-rc.0')), '1.2.3-rc.0')
     assert.throws(() => versionFromTag('v1.2.3'))
     for (const [version, channel, bump, expected] of [
-        ['1.2.3-rc.4', 'next', 'prerelease', '1.2.3-rc.5'], ['1.2.3', 'next', 'prerelease', '1.2.4-rc.0'],
-        ['1.2.3-rc.4', 'next', 'patch', '1.2.4-rc.0'], ['1.2.3', 'next', 'minor', '1.3.0-rc.0'],
-        ['1.2.3', 'next', 'major', '2.0.0-rc.0'], ['1.2.3-rc.4', 'latest', 'patch', '1.2.3'],
-        ['1.2.0-rc.4', 'latest', 'minor', '1.2.0'], ['2.0.0-rc.4', 'latest', 'major', '2.0.0'],
+        ['1.2.3-rc.4', 'next', 'prerelease', '1.2.3-rc.5'],
+        ['1.2.3', 'next', 'prerelease', '1.2.4-rc.0'],
+        ['1.2.3-rc.4', 'next', 'patch', '1.2.4-rc.0'],
+        ['1.2.3', 'next', 'minor', '1.3.0-rc.0'],
+        ['1.2.3', 'next', 'major', '2.0.0-rc.0'],
+        ['1.2.3-rc.4', 'latest', 'patch', '1.2.3'],
+        ['1.2.0-rc.4', 'latest', 'minor', '1.2.0'],
+        ['2.0.0-rc.4', 'latest', 'major', '2.0.0'],
         ['1.2.3', 'latest', 'patch', '1.2.4'],
-    ]) assert.equal(bumpVersion(version, channel, bump), expected)
+    ])
+        assert.equal(bumpVersion(version, channel, bump), expected)
     assert.throws(() => bumpVersion('1.2.3', 'latest', 'prerelease'))
 })
 
 test('prepare commits only the version and annotates locally, without registry or remote writes', async t => {
-    const f = await fixture(t), before = await f.refs()
-    const result = await f.invoke(['prepare', '--channel', 'next', '--bump', 'prerelease'], {fetchImpl: () => { throw new Error('Unexpected network') }})
+    const f = await fixture(t),
+        before = await f.refs()
+    const result = await f.invoke(['prepare', '--channel', 'next', '--bump', 'prerelease'], {
+        fetchImpl: () => {
+            throw new Error('Unexpected network')
+        },
+    })
     assert.equal(result.version, '1.2.3-rc.1')
     assert.equal(await f.git(['diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD']), 'package.json')
     assert.equal(await f.git(['status', '--porcelain']), '')
-    assert.deepEqual(await readReleaseTag(result.tag, {cwd: f.cwd}), {version: result.version, channel: 'next', branch: 'master', commit: result.commit})
+    assert.deepEqual(await readReleaseTag(result.tag, {cwd: f.cwd}), {
+        version: result.version,
+        channel: 'next',
+        branch: 'master',
+        commit: result.commit,
+    })
     assert.equal(await f.refs(), before)
 })
 
 test('current version tags HEAD without an empty commit; duplicate tag is rejected', async t => {
-    const f = await fixture(t), head = await f.git(['rev-parse', 'HEAD'])
+    const f = await fixture(t),
+        head = await f.git(['rev-parse', 'HEAD'])
     await f.invoke(['prepare', '--channel', 'next', '--version', 'current'])
     assert.equal(await f.git(['rev-parse', 'HEAD']), head)
     await assert.rejects(f.invoke(['prepare', '--channel', 'next', '--version', 'current']), /Tag already exists/)
 })
 
 test('prepare dry run leaves every local and remote ref and package unchanged', async t => {
-    const f = await fixture(t), refs = await f.git(['show-ref']), remote = await f.refs()
+    const f = await fixture(t),
+        refs = await f.git(['show-ref']),
+        remote = await f.refs()
     const before = await readFile(path.join(f.cwd, 'package.json'), 'utf8')
     await f.invoke(['prepare', '--channel', 'next', '--bump', 'minor', '--dry-run'])
     assert.equal(await f.git(['show-ref']), refs)
@@ -78,13 +124,21 @@ test('prepare dry run leaves every local and remote ref and package unchanged', 
 })
 
 test('invalid flags, channels, old versions, dirty trees and detached HEAD fail before mutation', async t => {
-    const f = await fixture(t), refs = await f.git(['show-ref'])
+    const f = await fixture(t),
+        refs = await f.git(['show-ref'])
     for (const args of [
-        ['prepare', '--channel', 'next'], ['prepare', '--channel', 'next', '--bump', 'patch', '--version', 'current'],
-        ['prepare', '--channel', 'next', '--version', '1.2.2-rc.1'], ['prepare', '--channel', 'next', '--version', '1.2.4'],
-        ['prepare', '--channel', 'next', '--bump', 'banana'], ['prepare', '--channel', 'next', '--channel', 'next'],
-        ['prepare', '--channel'], ['send', '--all'], ['send', '--tag'], ['status', '--dry-run'],
-    ]) await assert.rejects(f.invoke(args))
+        ['prepare', '--channel', 'next'],
+        ['prepare', '--channel', 'next', '--bump', 'patch', '--version', 'current'],
+        ['prepare', '--channel', 'next', '--version', '1.2.2-rc.1'],
+        ['prepare', '--channel', 'next', '--version', '1.2.4'],
+        ['prepare', '--channel', 'next', '--bump', 'banana'],
+        ['prepare', '--channel', 'next', '--channel', 'next'],
+        ['prepare', '--channel'],
+        ['send', '--all'],
+        ['send', '--tag'],
+        ['status', '--dry-run'],
+    ])
+        await assert.rejects(f.invoke(args))
     await writeFile(path.join(f.cwd, 'untracked.txt'), 'user data')
     await assert.rejects(f.invoke(['prepare', '--channel', 'next', '--version', 'current']), /clean/)
     await rm(path.join(f.cwd, 'untracked.txt'))
@@ -107,7 +161,8 @@ test('stable channel is master-only and stable alias promotes an RC', async t =>
 })
 
 test('failed commit restores only package and keeps pre-commit controls active', async t => {
-    const f = await fixture(t), head = await f.git(['rev-parse', 'HEAD'])
+    const f = await fixture(t),
+        head = await f.git(['rev-parse', 'HEAD'])
     const hook = path.join(f.cwd, '.git/hooks/pre-commit')
     await writeFile(hook, '#!/bin/sh\nprintf preserved > hook-note.txt\nexit 1\n')
     await chmod(hook, 0o755)
@@ -119,7 +174,8 @@ test('failed commit restores only package and keeps pre-commit controls active',
 })
 
 test('post-commit mutations are preserved for inspection and never tagged', async t => {
-    const f = await fixture(t), head = await f.git(['rev-parse', 'HEAD'])
+    const f = await fixture(t),
+        head = await f.git(['rev-parse', 'HEAD'])
     const hook = path.join(f.cwd, '.git/hooks/post-commit')
     await writeFile(hook, '#!/bin/sh\nprintf preserved > hook-note.txt\n')
     await chmod(hook, 0o755)
@@ -156,11 +212,18 @@ test('send fails closed on published/stale versions and unavailable or malformed
     await f.invoke(['prepare', '--channel', 'next', '--bump', 'prerelease'])
     const before = await f.refs()
     for (const fetchImpl of [
-        registry(['1.2.2', '1.2.3-rc.1']), registry(['1.2.2', '1.2.3-rc.2']), registry(['1.2.4'], {latest: '1.2.4'}),
-        async () => { throw new Error('offline') }, async () => ({ok: false, status: 503}),
+        registry(['1.2.2', '1.2.3-rc.1']),
+        registry(['1.2.2', '1.2.3-rc.2']),
+        registry(['1.2.4'], {latest: '1.2.4'}),
+        async () => {
+            throw new Error('offline')
+        },
+        async () => ({ok: false, status: 503}),
         async () => ({ok: true, json: async () => ({})}),
-        registry([], {}), registry(['1.2.2'], {latest: '9.9.9'}),
-    ]) await assert.rejects(f.invoke(['send'], {fetchImpl}))
+        registry([], {}),
+        registry(['1.2.2'], {latest: '9.9.9'}),
+    ])
+        await assert.rejects(f.invoke(['send'], {fetchImpl}))
     assert.equal(await f.refs(), before)
 })
 
@@ -179,16 +242,33 @@ test('tag metadata mismatch and changes during registry checks fail before remot
     const f = await fixture(t)
     const release = await f.invoke(['prepare', '--channel', 'next', '--bump', 'prerelease'])
     const before = await f.refs()
-    const metadata = {version: release.version, channel: release.channel, branch: release.branch, commit: release.commit}
+    const metadata = {
+        version: release.version,
+        channel: release.channel,
+        branch: release.branch,
+        commit: release.commit,
+    }
     await f.git(['tag', '-d', release.tag])
     await f.git(['tag', '-a', release.tag, '-m', JSON.stringify({...metadata, version: '1.2.3-rc.2'})])
     await assert.rejects(f.invoke(['send']), /metadata does not match/)
     await f.git(['tag', '-d', release.tag])
     await f.git(['tag', '-a', release.tag, '-m', JSON.stringify(metadata)])
-    await assert.rejects(f.invoke(['send'], {fetchImpl: async (...args) => {
-        await f.git(['tag', '-f', '-a', release.tag, '-m', JSON.stringify({...metadata, branch: 'other-branch'})])
-        return registry()(...args)
-    }}), /tag changed/)
+    await assert.rejects(
+        f.invoke(['send'], {
+            fetchImpl: async (...args) => {
+                await f.git([
+                    'tag',
+                    '-f',
+                    '-a',
+                    release.tag,
+                    '-m',
+                    JSON.stringify({...metadata, branch: 'other-branch'}),
+                ])
+                return registry()(...args)
+            },
+        }),
+        /tag changed/,
+    )
     assert.equal(await f.refs(), before)
 })
 
@@ -213,8 +293,13 @@ test('send rejects stale HEAD, lightweight/mismatched tags, alternate push URL a
 })
 
 test('status is read-only and reports registry failure without requiring gh', async t => {
-    const f = await fixture(t), before = await f.git(['show-ref'])
-    const result = await f.invoke(['status'], {fetchImpl: async () => { throw new Error('offline') }})
+    const f = await fixture(t),
+        before = await f.git(['show-ref'])
+    const result = await f.invoke(['status'], {
+        fetchImpl: async () => {
+            throw new Error('offline')
+        },
+    })
     assert.equal(result.registry.unavailable, 'offline')
     assert.match(result.actionsUrl, /alcovp\/pne-ui\/actions\/workflows\/publish.yml/)
     assert.equal(await f.git(['show-ref']), before)

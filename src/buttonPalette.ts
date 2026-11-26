@@ -1,10 +1,5 @@
 import {alpha} from '@mui/material/styles'
-import {
-    PNE_BRAND_RAMP_STEPS,
-    PNE_LABEL_CONTRAST,
-    type PneBrandRamp,
-    type PneBrandRampStep,
-} from './brandRamp'
+import {PNE_BRAND_RAMP_STEPS, PNE_LABEL_CONTRAST, type PneBrandRamp, type PneBrandRampStep} from './brandRamp'
 import {contrastRatio} from './color'
 import {
     PNE_DARK_COLORS,
@@ -90,7 +85,9 @@ export const readableBrandStep = (
     const order = mode === 'dark' ? [...PNE_BRAND_RAMP_STEPS].reverse() : [...PNE_BRAND_RAMP_STEPS]
     const surfaces = mode === 'dark' ? DARK_SURFACES : LIGHT_SURFACES
     const candidates = order.slice(Math.max(order.indexOf(step), 0))
-    return candidates.find(candidate => readsOn(ramp[candidate], surfaces, minimum)) ?? candidates[candidates.length - 1]
+    return (
+        candidates.find(candidate => readsOn(ramp[candidate], surfaces, minimum)) ?? candidates[candidates.length - 1]
+    )
 }
 
 /** The step at least as far from the page as `floor`: the darker one in light, the lighter in dark. */
@@ -110,14 +107,16 @@ export const labelOnFill = (fill: string, mode: PneColorMode): string => {
  * The knob of a switch or another solid mark on a fill: white, as in the UI Kit, while it reads
  * at 3:1, dark on a light fill.
  */
-export const markOnFill = (fill: string): string =>
-    contrastRatio(fill, WHITE) >= MIN_UI_CONTRAST ? WHITE : DARK_LABEL
+export const markOnFill = (fill: string): string => (contrastRatio(fill, WHITE) >= MIN_UI_CONTRAST ? WHITE : DARK_LABEL)
 
 /** The step a brand fill takes: 600 in the light theme, the lighter 500 on the dark surfaces. */
-export const brandFillStep = (mode: PneColorMode): PneBrandRampStep => mode === 'dark' ? 500 : 600
+export const brandFillStep = (mode: PneColorMode): PneBrandRampStep => (mode === 'dark' ? 500 : 600)
 
 /** Rule 2: hover and pressed steps of a brand fill. */
-export const brandFillSteps = (ramp: PneBrandRamp, mode: PneColorMode): {hover: PneBrandRampStep, pressed: PneBrandRampStep} => {
+export const brandFillSteps = (
+    ramp: PneBrandRamp,
+    mode: PneColorMode,
+): {hover: PneBrandRampStep; pressed: PneBrandRampStep} => {
     if (mode === 'dark') {
         const darkerIsVisible = contrastRatio(ramp[500], ramp[600]) >= DISTINCT_STEP_CONTRAST
         return {hover: 400, pressed: darkerIsVisible ? 600 : 300}
@@ -127,13 +126,13 @@ export const brandFillSteps = (ramp: PneBrandRamp, mode: PneColorMode): {hover: 
 }
 
 /** The brand text of the light theme: UI Kit step 700, pressed 800, moved by rule 1. */
-const lightBrandText = (ramp: PneBrandRamp): {text: string, pressed: string} => {
+const lightBrandText = (ramp: PneBrandRamp): {text: string; pressed: string} => {
     const step = readableBrandStep(ramp, 700, 'light', PNE_LABEL_CONTRAST)
     return {text: ramp[step], pressed: ramp[deeperStep(800, step, 'light')]}
 }
 
 /** The brand text of the dark theme: step 300, pressed 200, moved by rule 1. */
-const darkBrandText = (ramp: PneBrandRamp): {text: string, pressed: string} => {
+const darkBrandText = (ramp: PneBrandRamp): {text: string; pressed: string} => {
     const step = readableBrandStep(ramp, 300, 'dark', PNE_LABEL_CONTRAST)
     return {text: ramp[step], pressed: ramp[deeperStep(200, step, 'dark')]}
 }
@@ -148,17 +147,21 @@ const createPrimary = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariant
     const fill = ramp[brandFillStep(mode)]
     const steps = brandFillSteps(ramp, mode)
     // In the dark theme a fill that does not read on the surfaces gets a ring that does.
-    const ring = mode === 'dark' && !readsOn(fill, DARK_SURFACES)
-        ? ramp[readableBrandStep(ramp, 500, mode)]
-        : TRANSPARENT
+    const ring =
+        mode === 'dark' && !readsOn(fill, DARK_SURFACES) ? ramp[readableBrandStep(ramp, 500, mode)] : TRANSPARENT
     return {
         default: filled(fill, mode, ring),
         hover: filled(ramp[steps.hover], mode, ring),
         pressed: filled(ramp[steps.pressed], mode, ring),
         focus: filled(fill, mode, ring),
-        disabled: mode === 'dark'
-            ? {fill: PNE_DARK_COLORS.actionDisabledBackground, border: TRANSPARENT, text: PNE_DARK_COLORS.textDisabled}
-            : {fill: PNE_NEUTRAL_RAMP[400], border: TRANSPARENT, text: PNE_NEUTRAL_RAMP[0]},
+        disabled:
+            mode === 'dark'
+                ? {
+                      fill: PNE_DARK_COLORS.actionDisabledBackground,
+                      border: TRANSPARENT,
+                      text: PNE_DARK_COLORS.textDisabled,
+                  }
+                : {fill: PNE_NEUTRAL_RAMP[400], border: TRANSPARENT, text: PNE_NEUTRAL_RAMP[0]},
     }
 }
 
@@ -188,15 +191,11 @@ const createOutline = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariant
     }
 }
 
-type TertiaryTone = {text: string, pressed: string, hoverFill: string}
+type TertiaryTone = {text: string; pressed: string; hoverFill: string}
 
 // Tertiary: one sunken fill at rest, under the pointer and disabled; the label carries the state.
 // Active is the picked item of a set. A tone colours the label and tints the fill under the pointer.
-const createText = (
-    mode: PneColorMode,
-    resting: string,
-    tone: TertiaryTone,
-): PneButtonVariantColors => {
+const createText = (mode: PneColorMode, resting: string, tone: TertiaryTone): PneButtonVariantColors => {
     if (mode === 'dark') {
         const d = PNE_DARK_COLORS
         const base = {fill: d.surfaceSubtle, border: TRANSPARENT, text: resting}
@@ -223,7 +222,11 @@ const createTertiary = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVarian
     if (mode === 'dark') {
         const d = PNE_DARK_COLORS
         return {
-            ...createText(mode, d.textSecondary, {text: d.textPrimary, pressed: d.textPrimary, hoverFill: d.surfaceRaised}),
+            ...createText(mode, d.textSecondary, {
+                text: d.textPrimary,
+                pressed: d.textPrimary,
+                hoverFill: d.surfaceRaised,
+            }),
             active: {fill: d.surfacePressed, border: TRANSPARENT, text: d.textPrimary, shadow: ACTIVE_SHADOW},
         }
     }
@@ -255,7 +258,7 @@ const createSoft = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariantCol
         const resting = {fill: TRANSPARENT, border: TRANSPARENT, text}
         return {
             default: resting,
-            hover: {fill: alpha(text, 0.10), border: TRANSPARENT, text},
+            hover: {fill: alpha(text, 0.1), border: TRANSPARENT, text},
             pressed: {fill: alpha(text, 0.16), border: TRANSPARENT, text: pressed},
             focus: resting,
             disabled: {fill: TRANSPARENT, border: TRANSPARENT, text: PNE_DARK_COLORS.textDisabled},
@@ -273,21 +276,22 @@ const createSoft = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonVariantCol
     }
 }
 
-const createStatus = (colors: PneStatusRamp, mode: PneColorMode): PneButtonVariantColors => mode === 'dark'
-    ? {
-        default: filled(colors[600], mode),
-        hover: filled(colors[500], mode),
-        pressed: filled(colors[700], mode),
-        focus: filled(colors[600], mode),
-        disabled: {fill: colors[900], border: TRANSPARENT, text: PNE_DARK_COLORS.textDisabled},
-    }
-    : {
-        default: filled(colors[600], mode),
-        hover: filled(colors[700], mode),
-        pressed: filled(colors[800], mode),
-        focus: filled(colors[600], mode),
-        disabled: {fill: colors[300], border: TRANSPARENT, text: PNE_NEUTRAL_RAMP[0]},
-    }
+const createStatus = (colors: PneStatusRamp, mode: PneColorMode): PneButtonVariantColors =>
+    mode === 'dark'
+        ? {
+              default: filled(colors[600], mode),
+              hover: filled(colors[500], mode),
+              pressed: filled(colors[700], mode),
+              focus: filled(colors[600], mode),
+              disabled: {fill: colors[900], border: TRANSPARENT, text: PNE_DARK_COLORS.textDisabled},
+          }
+        : {
+              default: filled(colors[600], mode),
+              hover: filled(colors[700], mode),
+              pressed: filled(colors[800], mode),
+              focus: filled(colors[600], mode),
+              disabled: {fill: colors[300], border: TRANSPARENT, text: PNE_NEUTRAL_RAMP[0]},
+          }
 
 export const createPneButtonPalette = (ramp: PneBrandRamp, mode: PneColorMode): PneButtonPalette => ({
     primary: createPrimary(ramp, mode),

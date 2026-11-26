@@ -54,61 +54,72 @@ const OverlayToast = function OverlayToast({
     tone = 'info',
     ref,
 }: React.PropsWithoutRef<OverlayToastProps> & {ref?: React.Ref<HTMLDivElement>}) {
-    const timer = progress != null ? <span
-        aria-hidden='true'
-        data-pne-toast-timer='true'
-        data-testid='overlay-snackbar-progress'
-        style={{transform: `scaleX(${progress})`}}
-    /> : null
+    const timer =
+        progress != null ? (
+            <span
+                aria-hidden='true'
+                data-pne-toast-timer='true'
+                data-testid='overlay-snackbar-progress'
+                style={{transform: `scaleX(${progress})`}}
+            />
+        ) : null
 
     if (presentation === 'banner') {
         // A notification interrupts whatever its tone is, as the toast does.
-        return <PneBanner
-            ref={ref}
-            style={style}
-            closeLabel={closeLabel}
-            data-pne-toast='banner'
-            onClose={onClose}
-            role='alert'
-            sx={overlayBannerSx}
-            tone={tone}
-        >
-            {timer}
-            {children}
-            {action ? <div data-pne-toast-action='true'>{action}</div> : null}
-        </PneBanner>
+        return (
+            <PneBanner
+                ref={ref}
+                style={style}
+                closeLabel={closeLabel}
+                data-pne-toast='banner'
+                onClose={onClose}
+                role='alert'
+                sx={overlayBannerSx}
+                tone={tone}
+            >
+                {timer}
+                {children}
+                {action ? <div data-pne-toast-action='true'>{action}</div> : null}
+            </PneBanner>
+        )
     }
 
-    return <Alert
-        ref={ref}
-        style={style}
-        action={<>
-            {action}
-            {onClose ? <IconButton
-                aria-label={closeLabel}
-                data-pne-toast-close='true'
-                disableRipple
-                onClick={onClose}
-                sx={pneIconActionSx('medium', 'var(--pne-toast-text)')}
-                title={closeLabel}
-                type='button'
-            >
-                <PneCloseIcon/>
-            </IconButton> : null}
-        </>}
-        data-pne-toast='toast'
-        data-pne-tone={tone}
-        elevation={0}
-        icon={false}
-        severity={tone}
-        sx={overlayToastSx}
-    >
-        {timer}
-        <span data-pne-toast-title='true'>{children}</span>
-        {description != null && description !== ''
-            ? <span data-pne-toast-description='true'>{description}</span>
-            : null}
-    </Alert>
+    return (
+        <Alert
+            ref={ref}
+            style={style}
+            action={
+                <>
+                    {action}
+                    {onClose ? (
+                        <IconButton
+                            aria-label={closeLabel}
+                            data-pne-toast-close='true'
+                            disableRipple
+                            onClick={onClose}
+                            sx={pneIconActionSx('medium', 'var(--pne-toast-text)')}
+                            title={closeLabel}
+                            type='button'
+                        >
+                            <PneCloseIcon />
+                        </IconButton>
+                    ) : null}
+                </>
+            }
+            data-pne-toast='toast'
+            data-pne-tone={tone}
+            elevation={0}
+            icon={false}
+            severity={tone}
+            sx={overlayToastSx}
+        >
+            {timer}
+            <span data-pne-toast-title='true'>{children}</span>
+            {description != null && description !== '' ? (
+                <span data-pne-toast-description='true'>{description}</span>
+            ) : null}
+        </Alert>
+    )
 }
 
 export default OverlayToast

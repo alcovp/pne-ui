@@ -1,5 +1,14 @@
 import React, {use, useEffect} from 'react'
-import {Alert, Box, FormControlLabel, InputAdornment, SxProps, ToggleButton, ToggleButtonGroup, Button} from '@mui/material'
+import {
+    Alert,
+    Box,
+    FormControlLabel,
+    InputAdornment,
+    SxProps,
+    ToggleButton,
+    ToggleButtonGroup,
+    Button,
+} from '@mui/material'
 import {LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../filters/types'
 import {useTranslation} from 'react-i18next'
 import {AbstractEntity} from '../../../common/paynet/type'
@@ -29,19 +38,12 @@ export type MultigetSelectProps = {
     actionsPlacement?: 'inline' | 'external'
 }
 
-export type MultigetSelectActionsProps = Pick<
-    MultigetSelectProps,
-    'multigetCriterion' | 'onCancel' | 'onSave'
-> & {
+export type MultigetSelectActionsProps = Pick<MultigetSelectProps, 'multigetCriterion' | 'onCancel' | 'onSave'> & {
     sx?: SxProps
 }
 
 export const MultigetSelect = (props: MultigetSelectProps) => {
-    const {
-        multigetCriterion,
-        linkedMultigetCriteria,
-        actionsPlacement = 'inline',
-    } = props
+    const {multigetCriterion, linkedMultigetCriteria, actionsPlacement = 'inline'} = props
     const {t} = useTranslation()
     const {getMatchLinkedItems} = use(SearchUIDefaultsContext)
 
@@ -66,17 +68,13 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
 
     useEffect(() => {
         setSelectedItems(parseInitialSelectedEntities(multigetCriterion))
-    }, [
-        multigetCriterion.filterType,
-        multigetCriterion.deselectedItems,
-        multigetCriterion.deselectedItemNames,
-    ])
+    }, [multigetCriterion.filterType, multigetCriterion.deselectedItems, multigetCriterion.deselectedItemNames])
 
     useEffect(() => {
         setLoading(true)
         getMatchLinkedItems({
             type: multigetCriterion.entityType,
-            searchString: searchLabel !== 'all' ? (searchLabel + ':' + searchString) : searchString,
+            searchString: searchLabel !== 'all' ? searchLabel + ':' + searchString : searchString,
             status: onlyEnabledStatus ? 'E' : null,
             startRow: (currentPage - 1) * MULTIGET_PAGE_SIZE,
             numRows: MULTIGET_PAGE_SIZE,
@@ -96,14 +94,7 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
                 console.error(error)
                 setLoading(false)
             })
-    }, [
-        searchString,
-        searchLabel,
-        filterType,
-        currentPage,
-        onlyEnabledStatus,
-        linkedMultigetCriteria,
-    ])
+    }, [searchString, searchLabel, filterType, currentPage, onlyEnabledStatus, linkedMultigetCriteria])
 
     const onExcludeClick = () => {
         setSelectedItems([])
@@ -133,123 +124,135 @@ export const MultigetSelect = (props: MultigetSelectProps) => {
     const showPoorSearchEngineImplementationAlert = /\s/.test(searchString) && searchLabel !== 'all'
     const poorSearchEngineImplementationAlert = t('react.searchUI.poorSearchEngine')
 
-    return <>
-        <Box sx={{display: 'flex', flexDirection: 'column', rowGap: '16px'}}>
-            <Box sx={topRowSx}>
-                <ToggleButtonGroup
-                    value={filterType}
-                    exclusive
-                    onChange={(_event, value: MultichoiceFilterTypeEnum) => {
-                        if (value === 'NONE') {
-                            onIncludeClick()
-                        } else {
-                            onExcludeClick()
-                        }
-                    }}
-                    size="small"
-                    sx={[searchUITabsGroupSx, mainToggleGroupSx] as SxProps<Theme>}
-                >
-                    <ToggleButton
-                        {...createAutoTestAttributes(
-                            CRITERION_MULTIGET_MODE_AUTOTEST_ID,
-                            MultichoiceFilterTypeEnum.NONE,
-                        )}
-                        value={MultichoiceFilterTypeEnum.NONE}
-                        sx={toggleSx}
-                    >{t('react.searchUI.include')}</ToggleButton>
-                    <ToggleButton
-                        {...createAutoTestAttributes(
-                            CRITERION_MULTIGET_MODE_AUTOTEST_ID,
-                            MultichoiceFilterTypeEnum.ALL,
-                        )}
-                        value={MultichoiceFilterTypeEnum.ALL}
-                        sx={toggleSx}
-                    >{t('react.searchUI.exclude')}</ToggleButton>
-                </ToggleButtonGroup>
-                {statusMakesSense ? <FormControlLabel
-                    label={t('react.searchUI.onlyEnabledStatus')}
-                    control={<PneSwitch
-                        checked={onlyEnabledStatus}
-                        onChange={e => setOnlyEnabledStatus(e.target.checked)}
-                        slotProps={{
-                            input: createAutoTestAttributes(CRITERION_MULTIGET_ONLY_ENABLED_AUTOTEST_ID),
+    return (
+        <>
+            <Box sx={{display: 'flex', flexDirection: 'column', rowGap: '16px'}}>
+                <Box sx={topRowSx}>
+                    <ToggleButtonGroup
+                        value={filterType}
+                        exclusive
+                        onChange={(_event, value: MultichoiceFilterTypeEnum) => {
+                            if (value === 'NONE') {
+                                onIncludeClick()
+                            } else {
+                                onExcludeClick()
+                            }
                         }}
-                    />}
-                /> : null}
+                        size='small'
+                        sx={[searchUITabsGroupSx, mainToggleGroupSx] as SxProps<Theme>}
+                    >
+                        <ToggleButton
+                            {...createAutoTestAttributes(
+                                CRITERION_MULTIGET_MODE_AUTOTEST_ID,
+                                MultichoiceFilterTypeEnum.NONE,
+                            )}
+                            value={MultichoiceFilterTypeEnum.NONE}
+                            sx={toggleSx}
+                        >
+                            {t('react.searchUI.include')}
+                        </ToggleButton>
+                        <ToggleButton
+                            {...createAutoTestAttributes(
+                                CRITERION_MULTIGET_MODE_AUTOTEST_ID,
+                                MultichoiceFilterTypeEnum.ALL,
+                            )}
+                            value={MultichoiceFilterTypeEnum.ALL}
+                            sx={toggleSx}
+                        >
+                            {t('react.searchUI.exclude')}
+                        </ToggleButton>
+                    </ToggleButtonGroup>
+                    {statusMakesSense ? (
+                        <FormControlLabel
+                            label={t('react.searchUI.onlyEnabledStatus')}
+                            control={
+                                <PneSwitch
+                                    checked={onlyEnabledStatus}
+                                    onChange={e => setOnlyEnabledStatus(e.target.checked)}
+                                    slotProps={{
+                                        input: createAutoTestAttributes(CRITERION_MULTIGET_ONLY_ENABLED_AUTOTEST_ID),
+                                    }}
+                                />
+                            }
+                        />
+                    ) : null}
+                </Box>
+                <Box sx={searchRowSx}>
+                    <PneTextField
+                        size='medium'
+                        value={searchString}
+                        onChange={onSearchChange}
+                        placeholder={t('search')}
+                        fullWidth
+                        slotProps={{
+                            htmlInput: {
+                                ...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_AUTOTEST_ID),
+                                'aria-label': t('search'),
+                            },
+                            input: {
+                                startAdornment: (
+                                    <InputAdornment position='start'>
+                                        <SearchRoundedIcon sx={{fontSize: 16}} />
+                                    </InputAdornment>
+                                ),
+                            },
+                        }}
+                    />
+                    {showGateSearchLabels ? (
+                        <ToggleButtonGroup
+                            value={searchLabel}
+                            exclusive
+                            onChange={(_event, value: MultigetSearchLabel | null) => {
+                                if (value !== null) {
+                                    setSearchLabel(value)
+                                }
+                            }}
+                            sx={[searchUITabsGroupSx, searchLabelToggleGroupSx] as SxProps<Theme>}
+                            size='small'
+                        >
+                            <ToggleButton
+                                {...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID, 'all')}
+                                value={'all' satisfies MultigetSearchLabel}
+                                sx={toggleSx}
+                            >
+                                {t('react.searchUI.all')}
+                            </ToggleButton>
+                            <ToggleButton
+                                {...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID, 'mid')}
+                                value={'mid' satisfies MultigetSearchLabel}
+                                sx={toggleSx}
+                            >
+                                {t('MID')}
+                            </ToggleButton>
+                            <ToggleButton
+                                {...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID, 'descriptor')}
+                                value={'descriptor' satisfies MultigetSearchLabel}
+                                sx={toggleSx}
+                            >
+                                {t('react.searchUI.descriptor')}
+                            </ToggleButton>
+                        </ToggleButtonGroup>
+                    ) : null}
+                </Box>
+                {showPoorSearchEngineImplementationAlert ? (
+                    <Alert severity='warning'>{poorSearchEngineImplementationAlert}</Alert>
+                ) : null}
+                <MultigetSelectTable />
             </Box>
-            <Box sx={searchRowSx}>
-                <PneTextField
-                    size='medium'
-                    value={searchString}
-                    onChange={onSearchChange}
-                    placeholder={t('search')}
-                    fullWidth
-                    slotProps={{
-                        htmlInput: {
-                            ...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_AUTOTEST_ID),
-                            'aria-label': t('search'),
-                        },
-                        input: {
-                            startAdornment: <InputAdornment position='start'>
-                                <SearchRoundedIcon sx={{fontSize: 16}}/>
-                            </InputAdornment>,
-                        },
-                    }}
+            {actionsPlacement === 'inline' && (
+                <MultigetSelectActions
+                    multigetCriterion={multigetCriterion}
+                    onCancel={props.onCancel}
+                    onSave={props.onSave}
+                    sx={{mt: '15px'}}
                 />
-                {showGateSearchLabels ? <ToggleButtonGroup
-                    value={searchLabel}
-                    exclusive
-                    onChange={(_event, value: MultigetSearchLabel | null) => {
-                        if (value !== null) {
-                            setSearchLabel(value)
-                        }
-                    }}
-                    sx={[searchUITabsGroupSx, searchLabelToggleGroupSx] as SxProps<Theme>}
-                    size="small"
-                >
-                    <ToggleButton
-                        {...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID, 'all')}
-                        value={'all' satisfies MultigetSearchLabel}
-                        sx={toggleSx}
-                    >{t('react.searchUI.all')}</ToggleButton>
-                    <ToggleButton
-                        {...createAutoTestAttributes(CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID, 'mid')}
-                        value={'mid' satisfies MultigetSearchLabel}
-                        sx={toggleSx}
-                    >{t('MID')}</ToggleButton>
-                    <ToggleButton
-                        {...createAutoTestAttributes(
-                            CRITERION_MULTIGET_SEARCH_LABEL_AUTOTEST_ID,
-                            'descriptor',
-                        )}
-                        value={'descriptor' satisfies MultigetSearchLabel}
-                        sx={toggleSx}
-                    >{t('react.searchUI.descriptor')}</ToggleButton>
-                </ToggleButtonGroup> : null}
-            </Box>
-            {showPoorSearchEngineImplementationAlert ? <Alert severity="warning">
-                {poorSearchEngineImplementationAlert}
-            </Alert> : null}
-            <MultigetSelectTable/>
-        </Box>
-        {actionsPlacement === 'inline' && (
-            <MultigetSelectActions
-                multigetCriterion={multigetCriterion}
-                onCancel={props.onCancel}
-                onSave={props.onSave}
-                sx={{mt: '15px'}}
-            />
-        )}
-    </>
+            )}
+        </>
+    )
 }
 
 export const MultigetSelectActions = (props: MultigetSelectActionsProps) => {
-    const {
-        multigetCriterion,
-        onCancel,
-        onSave,
-        sx,
-    } = props
+    const {multigetCriterion, onCancel, onSave, sx} = props
     const {t} = useTranslation()
     const filterType = useMultigetSelectStore()(s => s.filterType)
     const searchString = useMultigetSelectStore()(s => s.searchString)
@@ -268,10 +271,18 @@ export const MultigetSelectActions = (props: MultigetSelectActionsProps) => {
         entityType: multigetCriterion.entityType,
         filterType,
         searchString,
-        selectedItems: getSelectedItemsByFilterType().map(e => e.id).join(','),
-        selectedItemNames: getSelectedItemsByFilterType().map(e => e.displayName).join(','),
-        deselectedItems: getDeselectedItemsByFilterType().map(e => e.id).join(','),
-        deselectedItemNames: getDeselectedItemsByFilterType().map(e => e.displayName).join(','),
+        selectedItems: getSelectedItemsByFilterType()
+            .map(e => e.id)
+            .join(','),
+        selectedItemNames: getSelectedItemsByFilterType()
+            .map(e => e.displayName)
+            .join(','),
+        deselectedItems: getDeselectedItemsByFilterType()
+            .map(e => e.id)
+            .join(','),
+        deselectedItemNames: getDeselectedItemsByFilterType()
+            .map(e => e.displayName)
+            .join(','),
     })
 
     const onSaveClick = () => {
@@ -284,19 +295,21 @@ export const MultigetSelectActions = (props: MultigetSelectActionsProps) => {
         onCancel()
     }
 
-    return <PneModalActions
-        sx={sx}
-        secondary={(
-            <Button size='medium' variant='outlined' onClick={onCancelClick}>
-                {t('cancel')}
-            </Button>
-        )}
-        primary={(
-            <Button variant='contained' size='medium' onClick={onSaveClick}>
-                {t('save')}
-            </Button>
-        )}
-    />
+    return (
+        <PneModalActions
+            sx={sx}
+            secondary={
+                <Button size='medium' variant='outlined' onClick={onCancelClick}>
+                    {t('cancel')}
+                </Button>
+            }
+            primary={
+                <Button variant='contained' size='medium' onClick={onSaveClick}>
+                    {t('save')}
+                </Button>
+            }
+        />
+    )
 }
 
 const parseInitialSelectedEntities = (multigetCriterion: MultigetCriterion): AbstractEntity[] => {

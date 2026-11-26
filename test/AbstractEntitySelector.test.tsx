@@ -42,9 +42,7 @@ jest.mock('react-virtuoso', () => {
         Virtuoso: ({children, data, itemContent}: any) => (
             <div>
                 {data.map((item: {id: number}, index: number) => (
-                    <React.Fragment key={item.id}>
-                        {itemContent(index, item)}
-                    </React.Fragment>
+                    <React.Fragment key={item.id}>{itemContent(index, item)}</React.Fragment>
                 ))}
                 {children}
             </div>
@@ -73,7 +71,7 @@ describe('AbstractEntitySelector', () => {
                 disableMoving='ADDED'
                 allowNewlyAddedRemoval
                 onChange={onChange}
-            />
+            />,
         )
 
         await waitFor(() => {
@@ -84,8 +82,12 @@ describe('AbstractEntitySelector', () => {
 
         // The sign at the end of a row tells what a click does: an arrow adds, a cross takes back, and a
         // row a click cannot move carries no sign.
-        const signOf = (name: string) => screen.getByText(name).closest('button')
-            ?.querySelector('[data-pne-transfer-sign]')?.getAttribute('data-pne-transfer-sign')
+        const signOf = (name: string) =>
+            screen
+                .getByText(name)
+                .closest('button')
+                ?.querySelector('[data-pne-transfer-sign]')
+                ?.getAttribute('data-pne-transfer-sign')
         expect(signOf('New superior')).toBe('add')
         expect(signOf('Saved superior')).toBeUndefined()
 

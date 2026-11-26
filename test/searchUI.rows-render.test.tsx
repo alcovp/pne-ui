@@ -24,10 +24,8 @@ const createDeferred = <T,>() => {
     return {promise, resolve}
 }
 
-const rowsFor = (params: SearchParams): Row[] => Array.from(
-    {length: params.rowCount},
-    (_, index) => ({id: params.startNum + index + 1}),
-)
+const rowsFor = (params: SearchParams): Row[] =>
+    Array.from({length: params.rowCount}, (_, index) => ({id: params.startNum + index + 1}))
 
 describe('SearchUI rows', () => {
     beforeEach(() => {
@@ -52,7 +50,11 @@ describe('SearchUI rows', () => {
         const drawn: number[] = []
         const RowView = ({row}: {row: Row}) => {
             drawn.push(row.id)
-            return <tr><td>{`Row ${row.id}`}</td></tr>
+            return (
+                <tr>
+                    <td>{`Row ${row.id}`}</td>
+                </tr>
+            )
         }
 
         const {container} = render(
@@ -62,8 +64,12 @@ describe('SearchUI rows', () => {
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     searchData={searchData}
-                    createTableHeader={() => <tr><th>Result</th></tr>}
-                    createTableRow={row => <RowView key={row.id} row={row}/>}
+                    createTableHeader={() => (
+                        <tr>
+                            <th>Result</th>
+                        </tr>
+                    )}
+                    createTableRow={row => <RowView key={row.id} row={row} />}
                     config={{
                         hideShowFiltersButton: true,
                         hideTemplatesSelect: true,

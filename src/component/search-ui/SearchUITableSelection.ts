@@ -1,30 +1,20 @@
 import type React from 'react'
-import type {
-    TableRowId,
-    TableSelectionModel,
-    TableSelectionUpdate,
-} from '../table/tableSelection'
-import type {
-    TableSelectionChangeDetails,
-    UseTableSelectionResult,
-} from '../table/useTableSelection'
+import type {TableRowId, TableSelectionModel, TableSelectionUpdate} from '../table/tableSelection'
+import type {TableSelectionChangeDetails, UseTableSelectionResult} from '../table/useTableSelection'
 import type {SearchCriteria} from './filters/types'
 
-export type SearchUITableSelectionScopeContext<
-    TViewId extends string = string,
-> = {
+export type SearchUITableSelectionScopeContext<TViewId extends string = string> = {
     /** Criteria that produced the currently applied result set; draft filters are intentionally excluded. */
     appliedSearchCriteria: Readonly<SearchCriteria> | null
     /** Active table View, when SearchUI is configured with views. */
     viewId?: TViewId
 }
 
-export type SearchUITableSelectionScope<
-    TViewId extends string = string,
-> = SearchUITableSelectionScopeContext<TViewId> & {
-    /** Canonical in-memory identity used to reject stale selection work. */
-    scopeKey: string
-}
+export type SearchUITableSelectionScope<TViewId extends string = string> =
+    SearchUITableSelectionScopeContext<TViewId> & {
+        /** Canonical in-memory identity used to reject stale selection work. */
+        scopeKey: string
+    }
 
 export type SearchUITableSelectionController<
     D extends object,
@@ -57,13 +47,13 @@ export type SearchUITableSelectionRenderContext<
 
 type SearchUITableSelectionToolbarAccessibleName =
     | {
-        toolbarAriaLabel: string
-        toolbarAriaLabelledBy?: never
-    }
+          toolbarAriaLabel: string
+          toolbarAriaLabelledBy?: never
+      }
     | {
-        toolbarAriaLabel?: never
-        toolbarAriaLabelledBy: string
-    }
+          toolbarAriaLabel?: never
+          toolbarAriaLabelledBy: string
+      }
 
 type SearchUITableSelectionBaseConfig<
     D extends object,
@@ -85,54 +75,41 @@ type SearchUITableSelectionBaseConfig<
      * An in-flight request keeps the resolver active when it started; replacing
      * the callback affects the next request, while removing it cancels pending work.
      */
-    resolveAllMatchingCount?: (
-        scope: SearchUITableSelectionScope<TViewId>,
-    ) => Promise<number>
+    resolveAllMatchingCount?: (scope: SearchUITableSelectionScope<TViewId>) => Promise<number>
     /** Consumer-owned, localized summary and bulk actions rendered in the responsive toolbar. */
-    renderControls: (
-        context: SearchUITableSelectionRenderContext<D, TKey, TViewId>,
-    ) => React.ReactNode
+    renderControls: (context: SearchUITableSelectionRenderContext<D, TKey, TViewId>) => React.ReactNode
     /** Consumer-owned feedback rendered full-width above the table toolbar and top pagination. */
-    renderFeedback?: (
-        context: SearchUITableSelectionRenderContext<D, TKey, TViewId>,
-    ) => React.ReactNode
+    renderFeedback?: (context: SearchUITableSelectionRenderContext<D, TKey, TViewId>) => React.ReactNode
 }
 
 type SearchUIControlledTableSelectionConfig<TKey extends TableRowId> = {
     selection: TableSelectionModel<TKey>
     defaultSelection?: never
-    onSelectionChange: (
-        selection: TableSelectionModel<TKey>,
-        details: TableSelectionChangeDetails,
-    ) => void
+    onSelectionChange: (selection: TableSelectionModel<TKey>, details: TableSelectionChangeDetails) => void
 }
 
 type SearchUIUncontrolledTableSelectionConfig<TKey extends TableRowId> = {
     selection?: never
     defaultSelection?: TableSelectionModel<TKey>
-    onSelectionChange?: (
-        selection: TableSelectionModel<TKey>,
-        details: TableSelectionChangeDetails,
-    ) => void
+    onSelectionChange?: (selection: TableSelectionModel<TKey>, details: TableSelectionChangeDetails) => void
 }
 
 export type SearchUITableSelectionConfig<
     D extends object,
     TKey extends TableRowId = TableRowId,
     TViewId extends string = string,
-> = SearchUITableSelectionBaseConfig<D, TKey, TViewId> & (
-    SearchUIControlledTableSelectionConfig<TKey>
-    | SearchUIUncontrolledTableSelectionConfig<TKey>
-)
+> = SearchUITableSelectionBaseConfig<D, TKey, TViewId> &
+    (SearchUIControlledTableSelectionConfig<TKey> | SearchUIUncontrolledTableSelectionConfig<TKey>)
 
 export const createSearchUITableSelectionScopeKey = (
     appliedSearchCriteria: Readonly<SearchCriteria> | null,
     viewId: string | undefined,
     preserveAcrossViews: boolean,
-): string => canonicalStringify({
-    appliedSearchCriteria,
-    viewId: preserveAcrossViews ? null : viewId ?? null,
-})
+): string =>
+    canonicalStringify({
+        appliedSearchCriteria,
+        viewId: preserveAcrossViews ? null : (viewId ?? null),
+    })
 
 const canonicalStringify = (value: unknown): string => JSON.stringify(canonicalize(value))
 

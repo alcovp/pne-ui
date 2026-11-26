@@ -20,7 +20,9 @@ const SheetDemo = () => {
 
     return (
         <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 720, p: 3}}>
-            <Typography data-story-banner-message sx={{color: 'text.secondary', fontSize: 14}}>{message}</Typography>
+            <Typography data-story-banner-message sx={{color: 'text.secondary', fontSize: 14}}>
+                {message}
+            </Typography>
             {TONES.map(tone => (
                 <PneBanner
                     actionLabel='Change the limit'
@@ -36,15 +38,15 @@ const SheetDemo = () => {
             ))}
             <PneBanner tone='info'>Selection complete. Total items: 48</PneBanner>
             <PneBanner icon={false} tone='warning' title='Without the sign'>
-                A long text wraps inside the banner and never pushes the close cross out of it, however
-                long the message of the page turns out to be on a narrow screen.
+                A long text wraps inside the banner and never pushes the close cross out of it, however long the message
+                of the page turns out to be on a narrow screen.
             </PneBanner>
         </Box>
     )
 }
 
 export const Sheet: Story = {
-    render: () => <SheetDemo/>,
+    render: () => <SheetDemo />,
     play: ({canvasElement}) => {
         const banners = canvasElement.querySelectorAll<HTMLElement>('[data-story-banner]')
         if (banners.length !== TONES.length) {

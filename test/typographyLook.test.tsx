@@ -22,15 +22,18 @@ const matches = (element: Element, selector: string) => {
 const declaredColor = (element: Element) =>
     Array.from(document.styleSheets)
         .flatMap(sheet => Array.from(sheet.cssRules))
-        .filter((rule): rule is CSSStyleRule =>
-            rule instanceof CSSStyleRule && matches(element, rule.selectorText) && rule.style.color !== '')
+        .filter(
+            (rule): rule is CSSStyleRule =>
+                rule instanceof CSSStyleRule && matches(element, rule.selectorText) && rule.style.color !== '',
+        )
         .at(-1)?.style.color
 
-const renderOnPage = (mode: 'light' | 'dark', children: React.ReactNode) => render(
-    <PneThemeProvider mode={mode} skin={SKIN}>
-        <Box sx={{color: PAGE_TEXT_COLOR}}>{children}</Box>
-    </PneThemeProvider>,
-)
+const renderOnPage = (mode: 'light' | 'dark', children: React.ReactNode) =>
+    render(
+        <PneThemeProvider mode={mode} skin={SKIN}>
+            <Box sx={{color: PAGE_TEXT_COLOR}}>{children}</Box>
+        </PneThemeProvider>,
+    )
 
 describe('Typography headings under the Paynet skin', () => {
     let skinHeadings: HTMLStyleElement
@@ -67,16 +70,28 @@ describe('Typography headings under the Paynet skin', () => {
 
     // QA7: the skin's h2 padding-top of 1.3em put the titles of side sheets 23px low.
     it.each(['light', 'dark'] as const)('keeps no skin padding on a heading in %s', mode => {
-        const {getByRole} = renderOnPage(mode, <Typography component='h2' sx={{fontSize: 18}}>Widget help</Typography>)
+        const {getByRole} = renderOnPage(
+            mode,
+            <Typography component='h2' sx={{fontSize: 18}}>
+                Widget help
+            </Typography>,
+        )
 
         expect(getComputedStyle(getByRole('heading', {level: 2})).paddingTop).toBe('0px')
     })
 
     it.each(['light', 'dark'] as const)('leaves a heading the colour and the padding the page gave it in %s', mode => {
-        const {getByRole} = renderOnPage(mode, <>
-            <Typography component='h2' sx={{color: 'rgb(10, 145, 188)', pt: '12px'}}>Documents</Typography>
-            <Typography color='error' component='h4'>Failed</Typography>
-        </>)
+        const {getByRole} = renderOnPage(
+            mode,
+            <>
+                <Typography component='h2' sx={{color: 'rgb(10, 145, 188)', pt: '12px'}}>
+                    Documents
+                </Typography>
+                <Typography color='error' component='h4'>
+                    Failed
+                </Typography>
+            </>,
+        )
 
         expect(getComputedStyle(getByRole('heading', {level: 2})).color).toBe('rgb(10, 145, 188)')
         expect(getComputedStyle(getByRole('heading', {level: 2})).paddingTop).toBe('12px')

@@ -3,11 +3,10 @@ import {act, render, screen, within} from '@testing-library/react'
 
 import {PneModalActions, pneActionSpacing} from '../src'
 
-const buttonLabels = (container: HTMLElement) => (
+const buttonLabels = (container: HTMLElement) =>
     within(container)
         .getAllByRole('button')
         .map(button => button.textContent)
-)
 
 type MediaQueryListener = (event: MediaQueryListEvent) => void
 
@@ -107,9 +106,7 @@ describe('PneModalActions', () => {
         )
 
         const actions = container.querySelector<HTMLElement>('[data-pne-modal-actions]')!
-        const secondary = container.querySelector<HTMLElement>(
-            "[data-pne-modal-action='secondary']",
-        )!
+        const secondary = container.querySelector<HTMLElement>("[data-pne-modal-action='secondary']")!
         const backButton = screen.getByRole('button', {name: 'Back'})
         const tryEditingButton = screen.getByRole('button', {name: 'Try editing'})
         const doneButton = screen.getByRole('button', {name: 'Done'})
@@ -141,9 +138,7 @@ describe('PneModalActions', () => {
 
         const actions = container.querySelector<HTMLElement>('[data-pne-modal-actions]')!
         const directGroups = Array.from(actions.children) as HTMLElement[]
-        const actionSlots = Array.from(
-            actions.querySelectorAll<HTMLElement>('[data-pne-modal-action]'),
-        )
+        const actionSlots = Array.from(actions.querySelectorAll<HTMLElement>('[data-pne-modal-action]'))
         const buttons = within(actions).getAllByRole('button')
 
         expect(buttonLabels(actions)).toEqual(['Do not offer again', 'Not now', 'Show me'])
@@ -164,10 +159,7 @@ describe('PneModalActions', () => {
 
     it('does not remount actions or drop focus when its props update', () => {
         const {rerender} = render(
-            <PneModalActions
-                primary={<button>Save</button>}
-                secondary={<button>Cancel</button>}
-            />,
+            <PneModalActions primary={<button>Save</button>} secondary={<button>Cancel</button>} />,
         )
 
         const saveButton = screen.getByRole('button', {name: 'Save'})
@@ -240,12 +232,7 @@ describe('PneModalActions', () => {
             dangerouslySetInnerHTML: {__html: 'Replaced actions'},
         } as unknown as React.ComponentProps<typeof PneModalActions>
 
-        const {container} = render(
-            <PneModalActions
-                {...unsafeProps}
-                primary={<button>Save</button>}
-            />,
-        )
+        const {container} = render(<PneModalActions {...unsafeProps} primary={<button>Save</button>} />)
 
         const actions = container.querySelector<HTMLElement>('[data-pne-modal-actions]')!
         expect(actions.tagName).toBe('DIV')

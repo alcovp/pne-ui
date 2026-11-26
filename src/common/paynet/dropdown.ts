@@ -1,7 +1,4 @@
-import type {
-    AutocompleteFreeSoloValueMapping,
-    SxProps,
-} from '@mui/material'
+import type {AutocompleteFreeSoloValueMapping, SxProps} from '@mui/material'
 
 export type PneAutocompleteKey = string | number
 
@@ -15,29 +12,23 @@ export type PneAutocompleteChoiceOption = {
     displayName: string
 }
 
-export type PneBuiltInAutocompleteOption =
-    | string
-    | number
-    | PneAutocompleteIdOption
-    | PneAutocompleteChoiceOption
+export type PneBuiltInAutocompleteOption = string | number | PneAutocompleteIdOption | PneAutocompleteChoiceOption
 
 /** Any non-nullish value can be an option when object-specific adapters are supplied. */
 export type PneAutocompleteOption = NonNullable<unknown>
 
-type BuiltInOptionOrFreeSolo<
-    T extends PneBuiltInAutocompleteOption,
-    FreeSolo extends boolean | undefined,
-> = T | AutocompleteFreeSoloValueMapping<FreeSolo>
+type BuiltInOptionOrFreeSolo<T extends PneBuiltInAutocompleteOption, FreeSolo extends boolean | undefined> =
+    | T
+    | AutocompleteFreeSoloValueMapping<FreeSolo>
 
 type BuiltInIdentity = {
     key: PneAutocompleteKey
     kind: 'choiceId' | 'id' | 'number' | 'string'
 }
 
-export const getOptionLabel = <
-    T extends PneBuiltInAutocompleteOption,
-    FreeSolo extends boolean | undefined = false,
->(option: BuiltInOptionOrFreeSolo<T, FreeSolo>): string => {
+export const getOptionLabel = <T extends PneBuiltInAutocompleteOption, FreeSolo extends boolean | undefined = false>(
+    option: BuiltInOptionOrFreeSolo<T, FreeSolo>,
+): string => {
     if (typeof option === 'string') {
         return option
     }
@@ -53,10 +44,9 @@ export const getOptionLabel = <
     throw new TypeError('Unsupported autocomplete option. Supply getOptionLabel for custom options.')
 }
 
-export const getOptionKey = <
-    T extends PneBuiltInAutocompleteOption,
-    FreeSolo extends boolean | undefined = false,
->(option: BuiltInOptionOrFreeSolo<T, FreeSolo>): PneAutocompleteKey => {
+export const getOptionKey = <T extends PneBuiltInAutocompleteOption, FreeSolo extends boolean | undefined = false>(
+    option: BuiltInOptionOrFreeSolo<T, FreeSolo>,
+): PneAutocompleteKey => {
     const identity = getBuiltInIdentity(option)
 
     if (identity) {
@@ -70,17 +60,16 @@ export const getOptionKey = <
  * Default equality for the built-in option shapes. It is intentionally total:
  * incompatible option kinds and malformed runtime values compare as unequal.
  */
-export const isOptionEqualToValue = <T extends PneBuiltInAutocompleteOption>(
-    option: T,
-    value: unknown,
-): boolean => {
+export const isOptionEqualToValue = <T extends PneBuiltInAutocompleteOption>(option: T, value: unknown): boolean => {
     const optionIdentity = getBuiltInIdentity(option)
     const valueIdentity = getBuiltInIdentity(value)
 
-    return optionIdentity !== undefined
-        && valueIdentity !== undefined
-        && optionIdentity.kind === valueIdentity.kind
-        && optionIdentity.key === valueIdentity.key
+    return (
+        optionIdentity !== undefined &&
+        valueIdentity !== undefined &&
+        optionIdentity.kind === valueIdentity.kind &&
+        optionIdentity.key === valueIdentity.key
+    )
 }
 
 const getBuiltInIdentity = (option: unknown): BuiltInIdentity | undefined => {
@@ -107,8 +96,7 @@ const getBuiltInIdentity = (option: unknown): BuiltInIdentity | undefined => {
     return undefined
 }
 
-const isRecord = (value: unknown): value is Record<PropertyKey, unknown> =>
-    typeof value === 'object' && value !== null
+const isRecord = (value: unknown): value is Record<PropertyKey, unknown> => typeof value === 'object' && value !== null
 
 const isAutocompleteKey = (value: unknown): value is PneAutocompleteKey =>
     typeof value === 'string' || typeof value === 'number'

@@ -1,40 +1,37 @@
-import React, {useState} from 'react';
-import {TFunction, useTranslation} from 'react-i18next';
+import React, {useState} from 'react'
+import {TFunction, useTranslation} from 'react-i18next'
 import {
     AbstractEntitySelector,
     AbstractEntitySelectorProp,
     IAbstractEntityOptions,
-    IMappedUnmappedList
-} from './AbstractEntitySelector';
-import {Button} from '@mui/material';
-import PneModal, {
-    PneModalCloseButtonProps,
-    PneModalContainerProps,
-} from "../PneModal";
-import PneModalActions from '../PneModalActions';
+    IMappedUnmappedList,
+} from './AbstractEntitySelector'
+import {Button} from '@mui/material'
+import PneModal, {PneModalCloseButtonProps, PneModalContainerProps} from '../PneModal'
+import PneModalActions from '../PneModalActions'
 
 interface IProps<T extends AbstractEntitySelectorProp> {
-    open: boolean;
-    onClose: () => void;
-    mappedList: T[];
-    unMappedList: T[];
-    handleSave: (list: IMappedUnmappedList<T>) => void;
-    title: string;
-    subTitle?: string;
+    open: boolean
+    onClose: () => void
+    mappedList: T[]
+    unMappedList: T[]
+    handleSave: (list: IMappedUnmappedList<T>) => void
+    title: string
+    subTitle?: string
     /** Use false for short reorderable lists to keep the original touch target mounted. */
-    virtualized?: boolean;
+    virtualized?: boolean
     /** Show a separate handle for immediate touch dragging; disables list virtualization. */
-    dragHandle?: 'row' | 'button';
-    disableMoving?: 'ADDED' | 'AVAILABLE' | undefined;
-    allowNewlyAddedRemoval?: boolean;
-    optionRenderer?: TFunction;
-    textRepresentation?: 'ID' | 'NAME' | undefined;
-    textRepresentationValue?: string;
-    containerProps?: PneModalContainerProps;
-    closeButtonProps?: PneModalCloseButtonProps;
-    closeLabel?: string;
-    getItemAttributes?: IAbstractEntityOptions<T>['getItemAttributes'];
-    elementAttributes?: IAbstractEntityOptions<T>['elementAttributes'];
+    dragHandle?: 'row' | 'button'
+    disableMoving?: 'ADDED' | 'AVAILABLE' | undefined
+    allowNewlyAddedRemoval?: boolean
+    optionRenderer?: TFunction
+    textRepresentation?: 'ID' | 'NAME' | undefined
+    textRepresentationValue?: string
+    containerProps?: PneModalContainerProps
+    closeButtonProps?: PneModalCloseButtonProps
+    closeLabel?: string
+    getItemAttributes?: IAbstractEntityOptions<T>['getItemAttributes']
+    elementAttributes?: IAbstractEntityOptions<T>['elementAttributes']
 }
 
 export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(props: IProps<T>) => {
@@ -58,11 +55,11 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         closeLabel,
         getItemAttributes,
         elementAttributes,
-    } = props;
+    } = props
 
-    const virtualized = requestedVirtualization && dragHandle !== 'button';
+    const virtualized = requestedVirtualization && dragHandle !== 'button'
 
-    const {t} = useTranslation();
+    const {t} = useTranslation()
 
     const autoHeight = () => {
         if (mappedList?.length > unMappedList?.length) {
@@ -78,15 +75,15 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
                     : `calc((${unMappedList?.length} * 32px) + 36px)`
                 : `calc(320px + 36px)`
         }
-    };
+    }
 
-    const [localUnMappedList, setLocalUnMappedList] = useState<T[]>(unMappedList);
-    const [localMappedList, setLocalMappedList] = useState<T[]>(mappedList);
+    const [localUnMappedList, setLocalUnMappedList] = useState<T[]>(unMappedList)
+    const [localMappedList, setLocalMappedList] = useState<T[]>(mappedList)
 
     const handleChange = (mappedList: T[], unMappedList: T[]) => {
-        setLocalMappedList(mappedList);
-        setLocalUnMappedList(unMappedList);
-    };
+        setLocalMappedList(mappedList)
+        setLocalUnMappedList(unMappedList)
+    }
 
     const entitySelectorOptions: IAbstractEntityOptions<T> = {
         list: unMappedList,
@@ -102,33 +99,45 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
         onChange: handleChange,
         getItemAttributes,
         elementAttributes,
-    };
+    }
 
     return (
         <PneModal
-            actions={<PneModalActions
-                secondary={<Button size='medium' variant='outlined' onClick={onClose}>
-                    {t('cancel')}
-                </Button>}
-                primary={<Button
-                    size='medium'
-                    variant='contained'
-                    onClick={() => handleSave({
-                        mapped: localMappedList,
-                        unmapped: localUnMappedList
-                    })}
-                >
-                    {t('save')}
-                </Button>}
-            />}
+            actions={
+                <PneModalActions
+                    secondary={
+                        <Button size='medium' variant='outlined' onClick={onClose}>
+                            {t('cancel')}
+                        </Button>
+                    }
+                    primary={
+                        <Button
+                            size='medium'
+                            variant='contained'
+                            onClick={() =>
+                                handleSave({
+                                    mapped: localMappedList,
+                                    unmapped: localUnMappedList,
+                                })
+                            }
+                        >
+                            {t('save')}
+                        </Button>
+                    }
+                />
+            }
             open={open}
             onClose={onClose}
             title={title}
             subtitle={subTitle}
             closeLabel={closeLabel}
-            modalProps={!virtualized ? {
-                sx: {display: 'flex', alignItems: 'center', justifyContent: 'center'},
-            } : undefined}
+            modalProps={
+                !virtualized
+                    ? {
+                          sx: {display: 'flex', alignItems: 'center', justifyContent: 'center'},
+                      }
+                    : undefined
+            }
             slotProps={{
                 container: containerProps,
                 closeButton: closeButtonProps,
@@ -136,7 +145,7 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
             containerSx={{
                 width: {
                     xs: 'clamp(360px, calc(100vw - 32px), 600px)',
-                    sm: '600px'
+                    sm: '600px',
                 },
                 minWidth: 0,
                 maxWidth: '600px',
@@ -146,7 +155,7 @@ export const AbstractEntitySelectModal = <T extends AbstractEntitySelectorProp>(
                 ...(!virtualized && {position: 'relative', top: 'auto', left: 'auto', transform: 'none'}),
             }}
         >
-            <AbstractEntitySelector {...entitySelectorOptions}/>
+            <AbstractEntitySelector {...entitySelectorOptions} />
         </PneModal>
-    );
-};
+    )
+}

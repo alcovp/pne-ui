@@ -1,4 +1,4 @@
-import React, {use, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {use, useEffect, useId, useLayoutEffect, useMemo, useRef, useState} from 'react'
 import {
     CUSTOMER_LEVEL_DEPENDENCIES,
     CriterionTypeEnum,
@@ -8,80 +8,55 @@ import {
     SearchUICriterionAvailabilityRule,
     SearchUIConditionsInput,
     SearchUITemplate,
-} from './types';
-import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu';
-import {useTranslation} from 'react-i18next';
-import {
-    useSearchUIFiltersStore,
-    useSearchUIFiltersStoreContext,
-    useSearchUIFiltersStoreApi,
-} from './state/store';
-import {Box, SxProps, Tooltip, Button} from '@mui/material';
-import type {Theme} from '@mui/material/styles';
-import {PneChevronDownIcon} from '../../dropdown/dropdownLook';
-import {resolvePneSemanticPalette} from '../../../createTheme';
-import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from '../../../labelCentring';
-import isEqual from 'lodash/isEqual';
-import SearchUIAddFilter from './component/select/SearchUIAddFilter';
-import {CriterionContainer} from './CriterionContainer';
-import {SearchUIDefaults, SearchUIDefaultsContext} from '../SearchUIProvider';
-import {useSearchUIResetToDefaults} from './useSearchUIResetToDefaults';
-import {isCriterionAvailable} from './criterionAvailability';
-import type { SearchUIDateOnlyTimeZone } from './dateRangeTimeZone';
-import {SearchUIFiltersStoreProvider} from './state/SearchUIFiltersStoreProvider';
-import {
-    getRetainedSearchUIState,
-    isSearchUIRetentionSnapshotCompatible,
-} from './state/retention';
-import type {SearchUIRetentionSnapshot} from './state/type';
-import {toSearchUIConditionsState} from './publicConditions';
-import {resolveImpliedCriteria} from './impliedCriteria';
-import type {AbstractEntity} from '../../../common/paynet/type';
-import {
-    normalizeAllowedEntityNames,
-    resolveAllowedEntityOptions,
-} from './entityOptionRestriction';
+} from './types'
+import SearchUITemplatesMenu from './component/template/SearchUITemplatesMenu'
+import {useTranslation} from 'react-i18next'
+import {useSearchUIFiltersStore, useSearchUIFiltersStoreContext, useSearchUIFiltersStoreApi} from './state/store'
+import {Box, SxProps, Tooltip, Button} from '@mui/material'
+import type {Theme} from '@mui/material/styles'
+import {PneChevronDownIcon} from '../../dropdown/dropdownLook'
+import {resolvePneSemanticPalette} from '../../../createTheme'
+import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from '../../../labelCentring'
+import isEqual from 'lodash/isEqual'
+import SearchUIAddFilter from './component/select/SearchUIAddFilter'
+import {CriterionContainer} from './CriterionContainer'
+import {SearchUIDefaults, SearchUIDefaultsContext} from '../SearchUIProvider'
+import {useSearchUIResetToDefaults} from './useSearchUIResetToDefaults'
+import {isCriterionAvailable} from './criterionAvailability'
+import type {SearchUIDateOnlyTimeZone} from './dateRangeTimeZone'
+import {SearchUIFiltersStoreProvider} from './state/SearchUIFiltersStoreProvider'
+import {getRetainedSearchUIState, isSearchUIRetentionSnapshotCompatible} from './state/retention'
+import type {SearchUIRetentionSnapshot} from './state/type'
+import {toSearchUIConditionsState} from './publicConditions'
+import {resolveImpliedCriteria} from './impliedCriteria'
+import type {AbstractEntity} from '../../../common/paynet/type'
+import {normalizeAllowedEntityNames, resolveAllowedEntityOptions} from './entityOptionRestriction'
 import {
     discardLegacyLastSearchUITemplateName,
     forgetLastSearchUITemplateName,
     type LastSearchUITemplateName,
     readLastSearchUITemplateName,
     rememberLastSearchUITemplateName,
-} from './templateStorage';
-import {createAutoTestAttributes} from '../../AutoTestAttribute';
-import {readSearchUIFiltersCollapsed, rememberSearchUIFiltersCollapsed} from './collapsedStorage';
-import {SearchUIAutoTestScopeProvider} from './AutoTestScope';
-import {
-    assertValidMaxRangeSpanInDays,
-    type SearchUIValidationResult,
-} from './validation';
-import {
-    SEARCH_UI_FILTERS_NO_SUBGRID,
-    SEARCH_UI_FILTERS_PHONE_MEDIA,
-} from './layout';
-import {
-    footerLeadSx,
-    footerSx,
-    footerTrailSx,
-    headerGroupSx,
-    headerSx,
-    rootSx,
-    searchButtonSx,
-} from './panelSx';
-import {SearchUIFiltersSkeleton, type SearchUIFiltersSkeletonAction} from './SearchUIFiltersSkeleton';
-import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled';
+} from './templateStorage'
+import {createAutoTestAttributes} from '../../AutoTestAttribute'
+import {readSearchUIFiltersCollapsed, rememberSearchUIFiltersCollapsed} from './collapsedStorage'
+import {SearchUIAutoTestScopeProvider} from './AutoTestScope'
+import {assertValidMaxRangeSpanInDays, type SearchUIValidationResult} from './validation'
+import {SEARCH_UI_FILTERS_NO_SUBGRID, SEARCH_UI_FILTERS_PHONE_MEDIA} from './layout'
+import {footerLeadSx, footerSx, footerTrailSx, headerGroupSx, headerSx, rootSx, searchButtonSx} from './panelSx'
+import {SearchUIFiltersSkeleton, type SearchUIFiltersSkeletonAction} from './SearchUIFiltersSkeleton'
+import {SEARCH_UI_FILTERS_TOOLTIP_DELAY} from './styled'
 
-const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters';
-const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters';
-const FILTERS_COUNT_AUTOTEST_ID = 'filters-count';
-const FILTERS_HEADER_AUTOTEST_ID = 'filters-header';
-const FILTERS_FOOTER_AUTOTEST_ID = 'filters-footer';
-const CLEAR_FILTERS_AUTOTEST_ID = 'clear-all';
-const RUN_SEARCH_AUTOTEST_ID = 'run-search';
+const SEARCH_FILTERS_AUTOTEST_ID = 'search-filters'
+const TOGGLE_FILTERS_AUTOTEST_ID = 'toggle-filters'
+const FILTERS_COUNT_AUTOTEST_ID = 'filters-count'
+const FILTERS_HEADER_AUTOTEST_ID = 'filters-header'
+const FILTERS_FOOTER_AUTOTEST_ID = 'filters-footer'
+const CLEAR_FILTERS_AUTOTEST_ID = 'clear-all'
+const RUN_SEARCH_AUTOTEST_ID = 'run-search'
 
 /** The fold transition of the criteria rows; the fallback timer runs a little longer. */
 const COLLAPSE_DURATION_MS = 200
-
 
 /**
  * Дополнительные настройки критерия диапазона дат.
@@ -234,12 +209,11 @@ export type SearchUIFiltersProps = {
  * @param props Свойства компонента.
  */
 export const SearchUIFilters = (props: SearchUIFiltersProps) => {
-    return <SearchUIFiltersStoreProvider
-        key={props.settingsContextName}
-        settingsContextName={props.settingsContextName}
-    >
-        <SearchUIFiltersContent {...props}/>
-    </SearchUIFiltersStoreProvider>
+    return (
+        <SearchUIFiltersStoreProvider key={props.settingsContextName} settingsContextName={props.settingsContextName}>
+            <SearchUIFiltersContent {...props} />
+        </SearchUIFiltersStoreProvider>
+    )
 }
 
 export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
@@ -251,18 +225,18 @@ export const SearchUIFiltersContent = (props: SearchUIFiltersProps) => {
 
     const transactionTypesConfig = props.config?.transactionTypes
     if (transactionTypesConfig === undefined) {
-        return <SearchUIFiltersBootstrap {...props}/>
+        return <SearchUIFiltersBootstrap {...props} />
     }
 
-    const normalizedAllowedNames = normalizeAllowedEntityNames(
-        transactionTypesConfig.allowedNames,
-    ) ?? []
+    const normalizedAllowedNames = normalizeAllowedEntityNames(transactionTypesConfig.allowedNames) ?? []
 
-    return <RestrictedTransactionTypesSearchUIFiltersContent
-        key={JSON.stringify(normalizedAllowedNames)}
-        {...props}
-        allowedNames={normalizedAllowedNames}
-    />
+    return (
+        <RestrictedTransactionTypesSearchUIFiltersContent
+            key={JSON.stringify(normalizedAllowedNames)}
+            {...props}
+            allowedNames={normalizedAllowedNames}
+        />
+    )
 }
 
 type RestrictedTransactionTypesSearchUIFiltersContentProps = SearchUIFiltersProps & {
@@ -271,8 +245,8 @@ type RestrictedTransactionTypesSearchUIFiltersContentProps = SearchUIFiltersProp
 
 type RestrictedTransactionTypesLoadState =
     | {status: 'loading'}
-    | {status: 'ready', options: AbstractEntity[]}
-    | {status: 'error', error: Error}
+    | {status: 'ready'; options: AbstractEntity[]}
+    | {status: 'error'; error: Error}
 
 const RestrictedTransactionTypesSearchUIFiltersContent = (
     props: RestrictedTransactionTypesSearchUIFiltersContentProps,
@@ -285,12 +259,9 @@ const RestrictedTransactionTypesSearchUIFiltersContent = (
     useEffect(() => {
         let active = true
 
-        loadPromiseRef.current ??= getTransactionTypes()
-            .then(options => resolveAllowedEntityOptions(
-                options,
-                allowedNames,
-                'SearchUIFiltersConfig.transactionTypes.allowedNames',
-            ))
+        loadPromiseRef.current ??= getTransactionTypes().then(options =>
+            resolveAllowedEntityOptions(options, allowedNames, 'SearchUIFiltersConfig.transactionTypes.allowedNames'),
+        )
 
         loadPromiseRef.current
             .then(options => {
@@ -317,13 +288,10 @@ const RestrictedTransactionTypesSearchUIFiltersContent = (
     }
 
     if (loadState.status === 'loading') {
-        return <SearchUIFiltersLoading {...filtersProps}/>
+        return <SearchUIFiltersLoading {...filtersProps} />
     }
 
-    return <SearchUIFiltersBootstrap
-        {...filtersProps}
-        allowedTransactionTypes={loadState.options}
-    />
+    return <SearchUIFiltersBootstrap {...filtersProps} allowedTransactionTypes={loadState.options} />
 }
 
 type SearchUIFiltersBootstrapProps = SearchUIFiltersProps & {
@@ -361,8 +329,8 @@ const withCollapsed = (
 }
 
 type SearchUIFiltersBootstrapWork =
-    | {status: 'ready', result: SearchUIFiltersBootstrapResult}
-    | {status: 'pending', promise: Promise<SearchUIFiltersBootstrapResult>}
+    | {status: 'ready'; result: SearchUIFiltersBootstrapResult}
+    | {status: 'pending'; promise: Promise<SearchUIFiltersBootstrapResult>}
 
 const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
     const {
@@ -383,67 +351,64 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
     // The work starts on the first render: whatever the host already knows (peeks, no remembered set)
     // makes it ready at once, and the panel shows on its first frame instead of a promise round later.
     if (bootstrapWorkRef.current === null) {
-        bootstrapWorkRef.current = withCollapsed((() => {
-            const hasExternalSearchConditions = searchConditions !== undefined
-                && Object.keys(searchConditions).length > 0
-            const implied = resolveImpliedCriteria(
-                predefinedCriteria,
-                possibleCriteria,
-                toSearchUIConditionsState(initialSearchConditions, 'initialSearchConditions', false),
-            )
-            const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
-                ...new Set([
-                    ...possibleCriteria,
-                    ...implied.predefinedCriteria,
-                ]),
-            ])
-            const retainedSnapshot = hasExternalSearchConditions
-                ? undefined
-                : getRetainedSearchUIState(settingsContextName, instanceId)
-            const retainedSnapshotCompatible = retainedSnapshot !== undefined
-                && isSearchUIRetentionSnapshotCompatible(retainedSnapshot, {
-                    possibleCriteria: adjustedPossibleCriteria,
-                    predefinedCriteria: implied.predefinedCriteria,
-                    exactSearchLabels,
-                    config,
-                    prefetchedData: allowedTransactionTypes === undefined
-                        ? {}
-                        : {allowedTransactionTypes},
-                })
-
-            if (hasExternalSearchConditions || retainedSnapshotCompatible) {
-                return {
-                    status: 'ready' as const,
-                    result: {
-                        retainedSnapshot,
-                        loadTemplatesInBackground: true,
-                    },
-                }
-            }
-
-            const lastTemplate = readLastSearchUITemplateName(defaults, settingsContextName)
-            if (!(lastTemplate instanceof Promise) && lastTemplate.name === null) {
-                return {
-                    status: 'ready' as const,
-                    result: {
-                        retainedSnapshot,
-                        loadTemplatesInBackground: true,
-                    },
-                }
-            }
-
-            const loadInitialTemplate = (
-                {name: lastTemplateName, legacy}: LastSearchUITemplateName,
-            ): Promise<SearchUIFiltersBootstrapResult> => {
-                if (lastTemplateName === null) {
-                    return Promise.resolve({
-                        retainedSnapshot,
-                        loadTemplatesInBackground: true,
+        bootstrapWorkRef.current = withCollapsed(
+            (() => {
+                const hasExternalSearchConditions =
+                    searchConditions !== undefined && Object.keys(searchConditions).length > 0
+                const implied = resolveImpliedCriteria(
+                    predefinedCriteria,
+                    possibleCriteria,
+                    toSearchUIConditionsState(initialSearchConditions, 'initialSearchConditions', false),
+                )
+                const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
+                    ...new Set([...possibleCriteria, ...implied.predefinedCriteria]),
+                ])
+                const retainedSnapshot = hasExternalSearchConditions
+                    ? undefined
+                    : getRetainedSearchUIState(settingsContextName, instanceId)
+                const retainedSnapshotCompatible =
+                    retainedSnapshot !== undefined &&
+                    isSearchUIRetentionSnapshotCompatible(retainedSnapshot, {
+                        possibleCriteria: adjustedPossibleCriteria,
+                        predefinedCriteria: implied.predefinedCriteria,
+                        exactSearchLabels,
+                        config,
+                        prefetchedData: allowedTransactionTypes === undefined ? {} : {allowedTransactionTypes},
                     })
+
+                if (hasExternalSearchConditions || retainedSnapshotCompatible) {
+                    return {
+                        status: 'ready' as const,
+                        result: {
+                            retainedSnapshot,
+                            loadTemplatesInBackground: true,
+                        },
+                    }
                 }
 
-                return defaults.getSearchTemplates(settingsContextName)
-                    .then(templates => {
+                const lastTemplate = readLastSearchUITemplateName(defaults, settingsContextName)
+                if (!(lastTemplate instanceof Promise) && lastTemplate.name === null) {
+                    return {
+                        status: 'ready' as const,
+                        result: {
+                            retainedSnapshot,
+                            loadTemplatesInBackground: true,
+                        },
+                    }
+                }
+
+                const loadInitialTemplate = ({
+                    name: lastTemplateName,
+                    legacy,
+                }: LastSearchUITemplateName): Promise<SearchUIFiltersBootstrapResult> => {
+                    if (lastTemplateName === null) {
+                        return Promise.resolve({
+                            retainedSnapshot,
+                            loadTemplatesInBackground: true,
+                        })
+                    }
+
+                    return defaults.getSearchTemplates(settingsContextName).then(templates => {
                         const initialTemplate = templates.find(template => template.name === lastTemplateName)
 
                         if (initialTemplate === undefined) {
@@ -464,22 +429,24 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
                             loadTemplatesInBackground: false,
                         }
                     })
-            }
+                }
 
-            return {
-                status: 'pending' as const,
-                promise: Promise.resolve(lastTemplate)
-                    .then(loadInitialTemplate)
-                    .catch(error => {
-                        console.error(error)
-                        return {
-                            retainedSnapshot,
-                            templates: [],
-                            loadTemplatesInBackground: false,
-                        }
-                    }),
-            }
-        })(), config?.hideShowFiltersButton ? false : readSearchUIFiltersCollapsed(defaults, settingsContextName))
+                return {
+                    status: 'pending' as const,
+                    promise: Promise.resolve(lastTemplate)
+                        .then(loadInitialTemplate)
+                        .catch(error => {
+                            console.error(error)
+                            return {
+                                retainedSnapshot,
+                                templates: [],
+                                loadTemplatesInBackground: false,
+                            }
+                        }),
+                }
+            })(),
+            config?.hideShowFiltersButton ? false : readSearchUIFiltersCollapsed(defaults, settingsContextName),
+        )
     }
     // The keyed store provider remounts this subtree when the search context changes, so the work of
     // one mount never serves another; the ref also survives the StrictMode effect replay.
@@ -504,13 +471,10 @@ const SearchUIFiltersBootstrap = (props: SearchUIFiltersBootstrapProps) => {
 
     const result = bootstrapWork.status === 'ready' ? bootstrapWork.result : bootstrapResult
     if (result === null) {
-        return <SearchUIFiltersLoading {...props}/>
+        return <SearchUIFiltersLoading {...props} />
     }
 
-    return <InitializedSearchUIFiltersContent
-        {...props}
-        {...result}
-    />
+    return <InitializedSearchUIFiltersContent {...props} {...result} />
 }
 
 /**
@@ -528,8 +492,8 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
         config,
     } = props
     const defaults = use(SearchUIDefaultsContext)
-    const collapsed = !config?.hideShowFiltersButton
-        && defaults.peekSearchFiltersCollapsed?.(settingsContextName) === true
+    const collapsed =
+        !config?.hideShowFiltersButton && defaults.peekSearchFiltersCollapsed?.(settingsContextName) === true
     const implied = resolveImpliedCriteria(
         predefinedCriteria,
         possibleCriteria,
@@ -541,15 +505,18 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
     // before the count existed has none, and the predefined criteria stand in for the set. The count
     // covers every row; a hidden predefined criterion that cannot be removed is in every set.
     const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
-    const hiddenInEverySet = availablePredefined.filter(criterion => hiddenCriteria.includes(criterion)
-        && !removablePredefinedCriteria.includes(criterion)).length
+    const hiddenInEverySet = availablePredefined.filter(
+        criterion => hiddenCriteria.includes(criterion) && !removablePredefinedCriteria.includes(criterion),
+    ).length
     const lastTemplateName = defaults.peekLastSearchTemplateName?.(settingsContextName)
-    const lastTemplateRows = typeof lastTemplateName === 'string'
-        ? defaults.peekLastSearchTemplateCriteriaCount?.(settingsContextName)
-        : undefined
-    const rows = typeof lastTemplateRows === 'number' && lastTemplateRows >= 0
-        ? Math.max(0, lastTemplateRows - hiddenInEverySet)
-        : predefinedRows
+    const lastTemplateRows =
+        typeof lastTemplateName === 'string'
+            ? defaults.peekLastSearchTemplateCriteriaCount?.(settingsContextName)
+            : undefined
+    const rows =
+        typeof lastTemplateRows === 'number' && lastTemplateRows >= 0
+            ? Math.max(0, lastTemplateRows - hiddenInEverySet)
+            : predefinedRows
     const available = filterAvailableCriteria(defaults, [
         ...new Set([...possibleCriteria, ...implied.predefinedCriteria]),
     ]).filter(criterion => !hiddenCriteria.includes(criterion)).length
@@ -560,13 +527,15 @@ const SearchUIFiltersLoading = (props: SearchUIFiltersProps) => {
         ...(config?.manualSearch || !config?.hideRefreshButton ? [{width: 80, main: true}] : []),
     ]
 
-    return <SearchUIFiltersSkeleton
-        actions={actions}
-        autoTestId={props.autoTestId ?? settingsContextName}
-        collapsed={collapsed}
-        rows={rows}
-        toggle={!config?.hideShowFiltersButton && (collapsed || rows > 0)}
-    />
+    return (
+        <SearchUIFiltersSkeleton
+            actions={actions}
+            autoTestId={props.autoTestId ?? settingsContextName}
+            collapsed={collapsed}
+            rows={rows}
+            toggle={!config?.hideShowFiltersButton && (collapsed || rows > 0)}
+        />
+    )
 }
 
 type InitializedSearchUIFiltersContentProps = SearchUIFiltersProps & {
@@ -609,13 +578,13 @@ const useCollapsibleRows = (shown: boolean, panelRef: React.RefObject<HTMLDivEle
             const frame = requestAnimationFrame(() => {
                 // The zero-height state must be laid out before the growth, or nothing animates.
                 void panelRef.current?.offsetHeight
-                setPhase(current => current === 'mounting' ? 'opening' : current)
+                setPhase(current => (current === 'mounting' ? 'opening' : current))
             })
             return () => cancelAnimationFrame(frame)
         }
         if (phase === 'opening' || phase === 'closing') {
             const timer = setTimeout(
-                () => setPhase(current => current === phase ? (phase === 'opening' ? 'open' : 'closed') : current),
+                () => setPhase(current => (current === phase ? (phase === 'opening' ? 'open' : 'closed') : current)),
                 COLLAPSE_DURATION_MS + 50,
             )
             return () => clearTimeout(timer)
@@ -638,7 +607,7 @@ const useCollapsibleRows = (shown: boolean, panelRef: React.RefObject<HTMLDivEle
 }
 
 const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersContentProps) => {
-    const {t} = useTranslation();
+    const {t} = useTranslation()
     const {
         autoTestId = props.settingsContextName,
         settingsContextName,
@@ -662,29 +631,22 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     } = props
 
     const defaults = use(SearchUIDefaultsContext)
-    const hasExternalSearchConditions = searchConditions !== undefined
-        && Object.keys(searchConditions).length > 0
-    const initialSearchConditionsState = useMemo(() => toSearchUIConditionsState(
-        initialSearchConditions,
-        'initialSearchConditions',
-        false,
-    ), [initialSearchConditions])
-    const searchConditionsState = useMemo(() => toSearchUIConditionsState(
-        searchConditions,
-        'searchConditions',
-        true,
-    ), [searchConditions])
-    const implied = useMemo(() => resolveImpliedCriteria(
-        predefinedCriteria,
-        possibleCriteria,
-        initialSearchConditionsState,
-    ), [predefinedCriteria, possibleCriteria, initialSearchConditionsState])
+    const hasExternalSearchConditions = searchConditions !== undefined && Object.keys(searchConditions).length > 0
+    const initialSearchConditionsState = useMemo(
+        () => toSearchUIConditionsState(initialSearchConditions, 'initialSearchConditions', false),
+        [initialSearchConditions],
+    )
+    const searchConditionsState = useMemo(
+        () => toSearchUIConditionsState(searchConditions, 'searchConditions', true),
+        [searchConditions],
+    )
+    const implied = useMemo(
+        () => resolveImpliedCriteria(predefinedCriteria, possibleCriteria, initialSearchConditionsState),
+        [predefinedCriteria, possibleCriteria, initialSearchConditionsState],
+    )
 
     const adjustedPossibleCriteria = filterAvailableCriteria(defaults, [
-        ...new Set([
-            ...possibleCriteria,
-            ...implied.predefinedCriteria
-        ])
+        ...new Set([...possibleCriteria, ...implied.predefinedCriteria]),
     ])
     const disabledCriteriaSet = useMemo(() => new Set(disabledCriteria), [disabledCriteria])
     const hiddenCriteriaSet = useMemo(() => new Set(hiddenCriteria), [hiddenCriteria])
@@ -706,11 +668,13 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     // them are unavailable now, not to the whole store, so a key typed into a criterion does not draw the whole
     // panel again (it did, 25-80 ms a key on a list page).
     const availabilityRules = config?.criterionAvailabilityRules
-    const unavailableCriteriaKey = useSearchUIFiltersStore(state => (availabilityRules ?? [])
-        .map(rule => rule.criterion)
-        .filter((criterion, index, list) => list.indexOf(criterion) === index)
-        .filter(criterion => !isCriterionAvailable(criterion, state, config))
-        .join('|'))
+    const unavailableCriteriaKey = useSearchUIFiltersStore(state =>
+        (availabilityRules ?? [])
+            .map(rule => rule.criterion)
+            .filter((criterion, index, list) => list.indexOf(criterion) === index)
+            .filter(criterion => !isCriterionAvailable(criterion, state, config))
+            .join('|'),
+    )
     const unavailableCriteria = useMemo(
         () => new Set(unavailableCriteriaKey === '' ? [] : unavailableCriteriaKey.split('|')),
         [unavailableCriteriaKey],
@@ -740,36 +704,42 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
 
         if (process.env.NODE_ENV !== 'production' && implied.undeclaredCriteria.length > 0) {
             console.error(
-                `[pne-ui] SearchUI "${settingsContextName}": initialSearchConditions.multigetCriteria selects `
-                + `${implied.undeclaredCriteria.join(', ')}, which neither predefinedCriteria nor possibleCriteria `
-                + 'declares; the criterion is shown as predefined. Declare it in predefinedCriteria.',
+                `[pne-ui] SearchUI "${settingsContextName}": initialSearchConditions.multigetCriteria selects ` +
+                    `${implied.undeclaredCriteria.join(', ')}, which neither predefinedCriteria nor possibleCriteria ` +
+                    'declares; the criterion is shown as predefined. Declare it in predefinedCriteria.',
             )
         }
 
-        setInitialState({
-            defaults: defaults,
-            settingsContextName: settingsContextName,
-            possibleCriteria: adjustedPossibleCriteria,
-            predefinedCriteria: implied.predefinedCriteria,
-            exactSearchLabels: exactSearchLabels,
-            exactSearchLabel: exactSearchLabels[0],
-            criteria: [...implied.predefinedCriteria, ...implied.defaultCriteria],
-            pageDefaults: {...initialSearchConditionsState, criteria: implied.defaultCriteria},
-            config: config,
-            onFiltersUpdate: onFiltersUpdate,
-            onValidationChange: onValidationChange ?? (() => undefined),
-            skipLastTemplateAutoApply: true,
-            ...(allowedTransactionTypes === undefined ? {} : {
-                prefetchedData: {
-                    allowedTransactionTypes,
-                },
-            }),
-            ...initialSearchConditionsState,
-        }, hasExternalSearchConditions ? undefined : retainedSnapshot, {
-            templates,
-            initialTemplate: hasExternalSearchConditions ? undefined : initialTemplate,
-            initialConditions: hasExternalSearchConditions ? searchConditionsState : undefined,
-        })
+        setInitialState(
+            {
+                defaults: defaults,
+                settingsContextName: settingsContextName,
+                possibleCriteria: adjustedPossibleCriteria,
+                predefinedCriteria: implied.predefinedCriteria,
+                exactSearchLabels: exactSearchLabels,
+                exactSearchLabel: exactSearchLabels[0],
+                criteria: [...implied.predefinedCriteria, ...implied.defaultCriteria],
+                pageDefaults: {...initialSearchConditionsState, criteria: implied.defaultCriteria},
+                config: config,
+                onFiltersUpdate: onFiltersUpdate,
+                onValidationChange: onValidationChange ?? (() => undefined),
+                skipLastTemplateAutoApply: true,
+                ...(allowedTransactionTypes === undefined
+                    ? {}
+                    : {
+                          prefetchedData: {
+                              allowedTransactionTypes,
+                          },
+                      }),
+                ...initialSearchConditionsState,
+            },
+            hasExternalSearchConditions ? undefined : retainedSnapshot,
+            {
+                templates,
+                initialTemplate: hasExternalSearchConditions ? undefined : initialTemplate,
+                initialConditions: hasExternalSearchConditions ? searchConditionsState : undefined,
+            },
+        )
         if (loadTemplatesInBackground) {
             loadTemplates({autoApplyLastTemplate: false})
         }
@@ -777,10 +747,12 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         // release changed the page's filters), gets its count now: the next page load draws its skeleton
         // as tall as the panel. Only a host that keeps counts is told.
         const {activeTemplateName, criteria: initialCriteria} = storeApi.getState()
-        if (typeof defaults.peekLastSearchTemplateCriteriaCount === 'function'
-            && initialTemplate !== undefined
-            && activeTemplateName === initialTemplate.name
-            && defaults.peekLastSearchTemplateCriteriaCount(settingsContextName) !== initialCriteria.length) {
+        if (
+            typeof defaults.peekLastSearchTemplateCriteriaCount === 'function' &&
+            initialTemplate !== undefined &&
+            activeTemplateName === initialTemplate.name &&
+            defaults.peekLastSearchTemplateCriteriaCount(settingsContextName) !== initialCriteria.length
+        ) {
             void rememberLastSearchUITemplateName(
                 defaults,
                 settingsContextName,
@@ -817,8 +789,9 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     // A hidden criterion that blocks the search keeps its row: an error out of sight would leave the
     // search disabled for no visible reason.
     const blockingCriteria = new Set<CriterionTypeEnum>(validationResult.errors.map(error => error.criterion))
-    const visibleCriteria = criteria.filter(criterion => !hiddenCriteriaSet.has(criterion)
-        || blockingCriteria.has(criterion))
+    const visibleCriteria = criteria.filter(
+        criterion => !hiddenCriteriaSet.has(criterion) || blockingCriteria.has(criterion),
+    )
     const someCriteriaAdded = visibleCriteria.length > 0
     const removablePredefinedCriteria = config?.removablePredefinedCriteria ?? []
     const nonRemovablePredefinedCriteria = implied.predefinedCriteria.filter(
@@ -830,9 +803,10 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
         .filter(criterion => !disabledCriteriaSet.has(criterion))
         .filter(criterion => !hiddenCriteriaSet.has(criterion))
         .filter(possibleC => {
-            const criteriaToAdd = possibleC === CriterionTypeEnum.CUSTOMER_LEVEL
-                ? [possibleC, ...CUSTOMER_LEVEL_DEPENDENCIES]
-                : [possibleC]
+            const criteriaToAdd =
+                possibleC === CriterionTypeEnum.CUSTOMER_LEVEL
+                    ? [possibleC, ...CUSTOMER_LEVEL_DEPENDENCIES]
+                    : [possibleC]
 
             return criteriaToAdd.every(candidate => {
                 if (unavailableCriteria.has(candidate)) {
@@ -843,10 +817,11 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                     return true
                 }
 
-                return !conflictingCriteriaGroups?.some(group => (
-                    group.includes(candidate)
-                    && group.some(conflictingCriterion => criteria.includes(conflictingCriterion))
-                ))
+                return !conflictingCriteriaGroups?.some(
+                    group =>
+                        group.includes(candidate) &&
+                        group.some(conflictingCriterion => criteria.includes(conflictingCriterion)),
+                )
             })
         })
     const allCriteriaAdded = criteriaOptions.length === 0
@@ -879,127 +854,139 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     // unfolds the panel with the first one.
     const canFold = !hideShowFiltersButton && someCriteriaAdded
     // The hint tells a pointer user what the click will do; the button keeps its name.
-    const toggleButton = canFold ? <Tooltip
-        describeChild
-        disableInteractive
-        enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
-        enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
-        title={toggleHint}
-    >
+    const toggleButton = canFold ? (
+        <Tooltip
+            describeChild
+            disableInteractive
+            enterDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+            enterNextDelay={SEARCH_UI_FILTERS_TOOLTIP_DELAY}
+            title={toggleHint}
+        >
+            <Button
+                {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
+                onClick={() => setFiltersShown(!showFilters)}
+                aria-label={filtersLabel}
+                aria-controls={filtersPanelId}
+                aria-expanded={showFilters}
+                variant='text'
+                size='small'
+                startIcon={<PneChevronDownIcon sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}} />}
+                sx={nowrapButtonSx}
+            >
+                {filtersLabel}
+            </Button>
+        </Tooltip>
+    ) : (
+        <Box component='span' sx={headerCaptionSx}>
+            {filtersLabel}
+        </Box>
+    )
+    const countBadge = someCriteriaAdded ? (
+        <Box {...createAutoTestAttributes(FILTERS_COUNT_AUTOTEST_ID)} component={'span'} sx={filtersCountSx}>
+            {visibleCriteria.length}
+        </Box>
+    ) : null
+    const clearAllButton = showClearAllButton ? (
         <Button
-            {...createAutoTestAttributes(TOGGLE_FILTERS_AUTOTEST_ID)}
-            onClick={() => setFiltersShown(!showFilters)}
-            aria-label={filtersLabel}
-            aria-controls={filtersPanelId}
-            aria-expanded={showFilters}
-            variant='text'
-            size='small'
-            startIcon={<PneChevronDownIcon sx={{transform: showFilters ? 'rotate(180deg)' : 'rotate(-90deg)'}}/>}
+            {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
+            onClick={resetToDefaults}
+            variant='soft'
+            size={actionSize}
             sx={nowrapButtonSx}
         >
-            {filtersLabel}
+            {t('clear.all')}
         </Button>
-    </Tooltip> : <Box component='span' sx={headerCaptionSx}>{filtersLabel}</Box>
-    const countBadge = someCriteriaAdded ? <Box
-        {...createAutoTestAttributes(FILTERS_COUNT_AUTOTEST_ID)}
-        component={'span'}
-        sx={filtersCountSx}
-    >
-        {visibleCriteria.length}
-    </Box> : null
-    const clearAllButton = showClearAllButton ? <Button
-        {...createAutoTestAttributes(CLEAR_FILTERS_AUTOTEST_ID)}
-        onClick={resetToDefaults}
-        variant='soft'
-        size={actionSize}
-        sx={nowrapButtonSx}
-    >
-        {t('clear.all')}
-    </Button> : null
-    const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu onResetToDefaults={resetToDefaults}/> : null
-    const addFilterButton = showAddFilterButton ? <SearchUIAddFilter
-        size={actionSize}
-        options={criteriaOptions}
-        onChange={criterion => {
-            setFiltersShown(true)
-            addCriterion(criterion)
-        }}
-    /> : null
-    const searchButton = manualSearch || !hideRefreshButton ? <Button
-        {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
-        onClick={triggerSearch}
-        variant='contained'
-        size={actionSize}
-        disabled={searchLoading || !validationResult.isValid}
-        sx={searchButtonSx}
-    >
-        {manualSearch
-            ? t('react.searchUI.search')
-            : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
-    </Button> : null
-    const rowsMounted = phase !== 'closed'
-    const criteriaRows = rowsMounted ? visibleCriteria.map((criterion) =>
-        <CriterionContainer
-            disabled={disabledCriteriaSet.has(criterion)}
-            key={criterion}
-            type={criterion}
+    ) : null
+    const templatesMenu = showTemplatesMenu ? <SearchUITemplatesMenu onResetToDefaults={resetToDefaults} /> : null
+    const addFilterButton = showAddFilterButton ? (
+        <SearchUIAddFilter
+            size={actionSize}
+            options={criteriaOptions}
+            onChange={criterion => {
+                setFiltersShown(true)
+                addCriterion(criterion)
+            }}
         />
     ) : null
+    const searchButton =
+        manualSearch || !hideRefreshButton ? (
+            <Button
+                {...createAutoTestAttributes(RUN_SEARCH_AUTOTEST_ID)}
+                onClick={triggerSearch}
+                variant='contained'
+                size={actionSize}
+                disabled={searchLoading || !validationResult.isValid}
+                sx={searchButtonSx}
+            >
+                {manualSearch ? t('react.searchUI.search') : t('react.searchUI.refresh', {defaultValue: 'Refresh'})}
+            </Button>
+        ) : null
+    const rowsMounted = phase !== 'closed'
+    const criteriaRows = rowsMounted
+        ? visibleCriteria.map(criterion => (
+              <CriterionContainer disabled={disabledCriteriaSet.has(criterion)} key={criterion} type={criterion} />
+          ))
+        : null
 
     // UI Kit Filter: one bordered panel. The header strip names it and folds it; the criteria rows
     // and the footer strip share the grid of the panel, so the footer actions line up with the
     // values column and fold away with the rows.
-    const headerActions = actionsInFooter ? null : <>
-        {clearAllButton}
-        {addFilterButton}
-        {searchButton}
-    </>
+    const headerActions = actionsInFooter ? null : (
+        <>
+            {clearAllButton}
+            {addFilterButton}
+            {searchButton}
+        </>
+    )
 
-
-    return <SearchUIAutoTestScopeProvider scope={autoTestId}>
-        <Box
-            {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
-            role={'region'}
-            aria-label={filtersLabel}
-            data-pne-folding={phase === 'mounting' || phase === 'opening' || phase === 'closing' ? 'true' : undefined}
-            sx={rootSx}
-        >
+    return (
+        <SearchUIAutoTestScopeProvider scope={autoTestId}>
             <Box
-                {...createAutoTestAttributes(FILTERS_HEADER_AUTOTEST_ID)}
-                data-pne-folded={rowsMounted && someCriteriaAdded ? undefined : 'true'}
-                sx={headerSx}
+                {...createAutoTestAttributes(SEARCH_FILTERS_AUTOTEST_ID, autoTestId)}
+                role={'region'}
+                aria-label={filtersLabel}
+                data-pne-folding={
+                    phase === 'mounting' || phase === 'opening' || phase === 'closing' ? 'true' : undefined
+                }
+                sx={rootSx}
             >
-                <Box sx={headerGroupSx}>
-                    {toggleButton}
-                    {countBadge}
+                <Box
+                    {...createAutoTestAttributes(FILTERS_HEADER_AUTOTEST_ID)}
+                    data-pne-folded={rowsMounted && someCriteriaAdded ? undefined : 'true'}
+                    sx={headerSx}
+                >
+                    <Box sx={headerGroupSx}>
+                        {toggleButton}
+                        {countBadge}
+                    </Box>
+                    <Box sx={headerGroupSx}>
+                        {templatesMenu}
+                        {headerActions}
+                    </Box>
                 </Box>
-                <Box sx={headerGroupSx}>
-                    {templatesMenu}
-                    {headerActions}
+                <Box
+                    id={filtersPanelId}
+                    ref={panelRef}
+                    hidden={!rowsMounted}
+                    onTransitionEnd={onTransitionEnd}
+                    sx={getPanelSx(phase)}
+                >
+                    <Box sx={panelInnerSx}>
+                        {criteriaRows}
+                        {actionsInFooter && rowsMounted ? (
+                            <Box {...createAutoTestAttributes(FILTERS_FOOTER_AUTOTEST_ID)} sx={footerSx}>
+                                <Box sx={footerLeadSx}>{addFilterButton}</Box>
+                                <Box sx={footerTrailSx}>
+                                    {clearAllButton}
+                                    {searchButton}
+                                </Box>
+                            </Box>
+                        ) : null}
+                    </Box>
                 </Box>
             </Box>
-            <Box
-                id={filtersPanelId}
-                ref={panelRef}
-                hidden={!rowsMounted}
-                onTransitionEnd={onTransitionEnd}
-                sx={getPanelSx(phase)}
-            >
-                <Box sx={panelInnerSx}>
-                    {criteriaRows}
-                    {actionsInFooter && rowsMounted ? <Box {...createAutoTestAttributes(FILTERS_FOOTER_AUTOTEST_ID)} sx={footerSx}>
-                        <Box sx={footerLeadSx}>
-                            {addFilterButton}
-                        </Box>
-                        <Box sx={footerTrailSx}>
-                            {clearAllButton}
-                            {searchButton}
-                        </Box>
-                    </Box> : null}
-                </Box>
-            </Box>
-        </Box>
-    </SearchUIAutoTestScopeProvider>
+        </SearchUIAutoTestScopeProvider>
+    )
 }
 
 const nowrapButtonSx: SxProps = {
@@ -1043,7 +1030,6 @@ const filtersCountSx: SxProps<Theme> = theme => {
         },
     }
 }
-
 
 // The panel is a row of the root grid that passes the columns through and folds by animating its
 // single row track between 0fr and 1fr; the inner box may shrink to nothing, so the fold clips.
@@ -1090,7 +1076,7 @@ const panelInnerSx: SxProps = {
  */
 export const filterAvailableCriteria = (
     defaults: SearchUIDefaults,
-    criteria: CriterionTypeEnum[] | undefined
+    criteria: CriterionTypeEnum[] | undefined,
 ): CriterionTypeEnum[] => {
     const visibilityFlags: Partial<Record<CriterionTypeEnum, boolean>> = {
         [CriterionTypeEnum.PROJECT_CURRENCY]: defaults.showProjectCurrencyCriterion(),
@@ -1111,10 +1097,10 @@ export const filterAvailableCriteria = (
     }
 
     const visibleCriteria = (criteria || []).filter(c => visibilityFlags[c] !== false)
-    const customerLevelDependenciesAvailable = visibleCriteria.includes(CriterionTypeEnum.MERCHANT)
-        && visibleCriteria.includes(CriterionTypeEnum.CURRENCY)
+    const customerLevelDependenciesAvailable =
+        visibleCriteria.includes(CriterionTypeEnum.MERCHANT) && visibleCriteria.includes(CriterionTypeEnum.CURRENCY)
 
-    return visibleCriteria.filter(criterion => (
-        criterion !== CriterionTypeEnum.CUSTOMER_LEVEL || customerLevelDependenciesAvailable
-    ))
+    return visibleCriteria.filter(
+        criterion => criterion !== CriterionTypeEnum.CUSTOMER_LEVEL || customerLevelDependenciesAvailable,
+    )
 }

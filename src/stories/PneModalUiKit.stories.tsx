@@ -15,10 +15,16 @@ const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px'} a
 
 // A window shown in the flow of the page, so several stand side by side as on the Figma sheet
 // (StoryBook › pne-ui composites · v2 › PneModal). Product code opens a modal over the page.
-const Specimen = ({caption, width = 320, ...props}: {
+const Specimen = ({
+    caption,
+    width = 320,
+    ...props
+}: {
     caption: string
     width?: number
-} & Pick<React.ComponentProps<typeof PneModal>, 'actions' | 'children' | 'subtitle' | 'hideCloseButton'> & {title: string}) => (
+} & Pick<React.ComponentProps<typeof PneModal>, 'actions' | 'children' | 'subtitle' | 'hideCloseButton'> & {
+        title: string
+    }) => (
     <Box>
         <Typography sx={{...CAPTION_SX, mb: 1}}>{caption}</Typography>
         <PneModal
@@ -41,13 +47,13 @@ const noop = () => undefined
 
 const CURRENCIES = ['EUR', 'USD', 'GBP'] as const
 
-const AmountsForm = ({disabled, error}: {disabled?: boolean, error?: boolean}) => (
+const AmountsForm = ({disabled, error}: {disabled?: boolean; error?: boolean}) => (
     <Stack spacing={2}>
         <PneField disabled={disabled} label='Currency'>
-            <PneSelect onChange={noop} options={CURRENCIES} value='EUR' variant='filled'/>
+            <PneSelect onChange={noop} options={CURRENCIES} value='EUR' variant='filled' />
         </PneField>
         <PneField disabled={disabled} label='Minimal amount'>
-            <PneTextField onChange={noop} value={error ? '1.00' : '2.00'} variant='filled'/>
+            <PneTextField onChange={noop} value={error ? '1.00' : '2.00'} variant='filled' />
         </PneField>
         <PneField
             disabled={disabled}
@@ -55,7 +61,7 @@ const AmountsForm = ({disabled, error}: {disabled?: boolean, error?: boolean}) =
             helperText={error ? 'Must be greater than the minimal amount' : undefined}
             label='Maximal amount'
         >
-            <PneTextField onChange={noop} value={error ? '0.50' : '2.00'} variant='filled'/>
+            <PneTextField onChange={noop} value={error ? '0.50' : '2.00'} variant='filled' />
         </PneField>
     </Stack>
 )
@@ -73,18 +79,32 @@ export const Sheets: Story = {
     render: () => (
         <Stack spacing={4} sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
-                The window of the UI Kit: a 16px-rounded card with 16px around its content, the title 18/26
-                SemiBold, the subtitle 12/16, a 32px close cross without a fill, hairlines that stop short of
-                the edges. The header and the buttons stay, the body scrolls. The buttons of a modal are
-                medium (32px); their order and layout follow the pne-ui conventions of PneModalActions.
+                The window of the UI Kit: a 16px-rounded card with 16px around its content, the title 18/26 SemiBold,
+                the subtitle 12/16, a 32px close cross without a fill, hairlines that stop short of the edges. The
+                header and the buttons stay, the body scrolls. The buttons of a modal are medium (32px); their order and
+                layout follow the pne-ui conventions of PneModalActions.
             </Typography>
             <Stack direction='row' spacing={3} sx={{alignItems: 'flex-start', flexWrap: 'wrap', rowGap: 3}}>
                 <Specimen
-                    actions={<PneModalActions
-                        leading={<Button onClick={noop} variant='text' size='medium'>Reset</Button>}
-                        primary={<Button variant='contained' onClick={noop} size='medium'>Apply</Button>}
-                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
-                    />}
+                    actions={
+                        <PneModalActions
+                            leading={
+                                <Button onClick={noop} variant='text' size='medium'>
+                                    Reset
+                                </Button>
+                            }
+                            primary={
+                                <Button variant='contained' onClick={noop} size='medium'>
+                                    Apply
+                                </Button>
+                            }
+                            secondary={
+                                <Button onClick={noop} variant='outlined' size='medium'>
+                                    Cancel
+                                </Button>
+                            }
+                        />
+                    }
                     caption='Anatomy'
                     subtitle='Subtitle: context of the dialog'
                     title='Title of the dialog'
@@ -92,31 +112,65 @@ export const Sheets: Story = {
                     Any content: text, a form, a table. The header and the actions stay, the body scrolls.
                 </Specimen>
                 <Specimen
-                    actions={<PneModalActions
-                        primary={<Button variant='contained' onClick={noop} size='medium'>Сохранить</Button>}
-                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Отмена</Button>}
-                    />}
+                    actions={
+                        <PneModalActions
+                            primary={
+                                <Button variant='contained' onClick={noop} size='medium'>
+                                    Сохранить
+                                </Button>
+                            }
+                            secondary={
+                                <Button onClick={noop} variant='outlined' size='medium'>
+                                    Отмена
+                                </Button>
+                            }
+                        />
+                    }
                     caption='Ordinary actions'
                     title='Редактирование профиля'
                 >
                     Проверьте данные перед сохранением изменений.
                 </Specimen>
                 <Specimen
-                    actions={<PneModalActions
-                        primary={<Button onClick={noop} variant='contained' color='error' size='medium'>Удалить</Button>}
-                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Отмена</Button>}
-                    />}
+                    actions={
+                        <PneModalActions
+                            primary={
+                                <Button onClick={noop} variant='contained' color='error' size='medium'>
+                                    Удалить
+                                </Button>
+                            }
+                            secondary={
+                                <Button onClick={noop} variant='outlined' size='medium'>
+                                    Отмена
+                                </Button>
+                            }
+                        />
+                    }
                     caption='Destructive actions'
                     title='Удаление ключа'
                 >
                     После удаления приватный ключ нельзя будет восстановить.
                 </Specimen>
                 <Specimen
-                    actions={<PneModalActions
-                        leading={<Button onClick={noop} variant='text' size='medium'>Отмена</Button>}
-                        primary={<Button variant='contained' onClick={noop} size='medium'>Далее</Button>}
-                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Назад</Button>}
-                    />}
+                    actions={
+                        <PneModalActions
+                            leading={
+                                <Button onClick={noop} variant='text' size='medium'>
+                                    Отмена
+                                </Button>
+                            }
+                            primary={
+                                <Button variant='contained' onClick={noop} size='medium'>
+                                    Далее
+                                </Button>
+                            }
+                            secondary={
+                                <Button onClick={noop} variant='outlined' size='medium'>
+                                    Назад
+                                </Button>
+                            }
+                        />
+                    }
                     caption='Wizard actions'
                     subtitle='Шаг 2 из 3'
                     title='Подключение терминала'
@@ -126,33 +180,63 @@ export const Sheets: Story = {
             </Stack>
             <Stack direction='row' spacing={3} sx={{alignItems: 'flex-start', flexWrap: 'wrap', rowGap: 3}}>
                 <Specimen
-                    actions={<PneModalActions
-                        primary={<Button variant='contained' onClick={noop} size='medium'>Save</Button>}
-                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
-                    />}
+                    actions={
+                        <PneModalActions
+                            primary={
+                                <Button variant='contained' onClick={noop} size='medium'>
+                                    Save
+                                </Button>
+                            }
+                            secondary={
+                                <Button onClick={noop} variant='outlined' size='medium'>
+                                    Cancel
+                                </Button>
+                            }
+                        />
+                    }
                     caption='Form'
                     hideCloseButton
                     subtitle='3 gates selected'
                     title='Min/max amounts'
                 >
-                    <AmountsForm error/>
+                    <AmountsForm error />
                 </Specimen>
                 <Specimen
-                    actions={<PneModalActions
-                        primary={<Button variant='contained' loading onClick={noop} size='medium'>Save</Button>}
-                        secondary={<Button disabled onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
-                    />}
+                    actions={
+                        <PneModalActions
+                            primary={
+                                <Button variant='contained' loading onClick={noop} size='medium'>
+                                    Save
+                                </Button>
+                            }
+                            secondary={
+                                <Button disabled onClick={noop} variant='outlined' size='medium'>
+                                    Cancel
+                                </Button>
+                            }
+                        />
+                    }
                     caption='Busy: the fields and Cancel are disabled, Save is loading'
                     subtitle='3 gates selected'
                     title='Min/max amounts'
                 >
-                    <AmountsForm disabled/>
+                    <AmountsForm disabled />
                 </Specimen>
                 <Specimen
-                    actions={<PneModalActions
-                        primary={<Button variant='contained' onClick={noop} size='medium'>Apply</Button>}
-                        secondary={<Button onClick={noop} variant='outlined' size='medium'>Cancel</Button>}
-                    />}
+                    actions={
+                        <PneModalActions
+                            primary={
+                                <Button variant='contained' onClick={noop} size='medium'>
+                                    Apply
+                                </Button>
+                            }
+                            secondary={
+                                <Button onClick={noop} variant='outlined' size='medium'>
+                                    Cancel
+                                </Button>
+                            }
+                        />
+                    }
                     caption='Long content: the body scrolls, the header and the buttons stay'
                     subtitle='8 gates'
                     title='Selected gates'
@@ -161,7 +245,9 @@ export const Sheets: Story = {
                         {GATES.map(([name, description]) => (
                             <Box key={name}>
                                 <Box sx={{fontWeight: 500}}>{name}</Box>
-                                <Box sx={{color: 'text.secondary', fontSize: 12, lineHeight: '16px'}}>{description}</Box>
+                                <Box sx={{color: 'text.secondary', fontSize: 12, lineHeight: '16px'}}>
+                                    {description}
+                                </Box>
                             </Box>
                         ))}
                     </Stack>

@@ -3,12 +3,7 @@ import {act, fireEvent, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    Country,
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {Country, CriterionTypeEnum, SearchUIFilters, SearchUIProvider} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -30,14 +25,11 @@ const country: Country = {
     theCode3: 'USA',
 }
 
-const getCountriesCriterion = (
-    container: HTMLElement,
-    scope: string,
-): HTMLElement => {
+const getCountriesCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"]`
-        + `[data-autotest-value="${CriterionTypeEnum.COUNTRIES}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"]` +
+            `[data-autotest-value="${CriterionTypeEnum.COUNTRIES}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -55,32 +47,29 @@ const getCollectionInput = (criterion: HTMLElement): HTMLInputElement => {
     return input as HTMLInputElement
 }
 
-const getSelectedValue = (
-    criterion: HTMLElement,
-    value: string | number,
-): HTMLElement | null => criterion.querySelector<HTMLElement>(
-    '[data-autotest="criterion-collection-value"]'
-    + `[data-autotest-value="${value}"]`,
-)
-
-const getOwnedPanel = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[data-autotest="criterion-collection-panel"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.COUNTRIES}"]`,
-)
-
-const getOwnedOptions = (scope: string): HTMLElement | null => document.body.querySelector<HTMLElement>(
-    '[role="listbox"][data-autotest="criterion-collection-options"]'
-    + `[data-autotest-value="${scope}"]`
-    + `[data-autotest-criterion="${CriterionTypeEnum.COUNTRIES}"]`,
-)
-
-const getOption = (listbox: HTMLElement, value: string | number): HTMLElement | null => (
-    listbox.querySelector<HTMLElement>(
-        '[role="option"][data-autotest="criterion-collection-option"]'
-        + `[data-autotest-value="${value}"]`,
+const getSelectedValue = (criterion: HTMLElement, value: string | number): HTMLElement | null =>
+    criterion.querySelector<HTMLElement>(
+        '[data-autotest="criterion-collection-value"]' + `[data-autotest-value="${value}"]`,
     )
-)
+
+const getOwnedPanel = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[data-autotest="criterion-collection-panel"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.COUNTRIES}"]`,
+    )
+
+const getOwnedOptions = (scope: string): HTMLElement | null =>
+    document.body.querySelector<HTMLElement>(
+        '[role="listbox"][data-autotest="criterion-collection-options"]' +
+            `[data-autotest-value="${scope}"]` +
+            `[data-autotest-criterion="${CriterionTypeEnum.COUNTRIES}"]`,
+    )
+
+const getOption = (listbox: HTMLElement, value: string | number): HTMLElement | null =>
+    listbox.querySelector<HTMLElement>(
+        '[role="option"][data-autotest="criterion-collection-option"]' + `[data-autotest-value="${value}"]`,
+    )
 
 const openCollection = (input: HTMLInputElement) => {
     fireEvent.focus(input)
@@ -109,8 +98,8 @@ describe('SearchUI countries collection Selenium contract', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="countries-all"
-                    settingsContextName="countries-all-context"
+                    autoTestId='countries-all'
+                    settingsContextName='countries-all-context'
                     possibleCriteria={[CriterionTypeEnum.COUNTRIES]}
                     predefinedCriteria={[CriterionTypeEnum.COUNTRIES]}
                     initialSearchConditions={{
@@ -123,8 +112,8 @@ describe('SearchUI countries collection Selenium contract', () => {
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    autoTestId="countries-entity"
-                    settingsContextName="countries-entity-context"
+                    autoTestId='countries-entity'
+                    settingsContextName='countries-entity-context'
                     possibleCriteria={[CriterionTypeEnum.COUNTRIES]}
                     predefinedCriteria={[CriterionTypeEnum.COUNTRIES]}
                     initialSearchConditions={{
@@ -141,12 +130,16 @@ describe('SearchUI countries collection Selenium contract', () => {
 
         await waitFor(() => {
             expect(getCountries).toHaveBeenCalledTimes(2)
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                countries: [],
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                countries: [country.id],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    countries: [],
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    countries: [country.id],
+                }),
+            )
         })
 
         await act(async () => {
@@ -196,14 +189,12 @@ describe('SearchUI countries collection Selenium contract', () => {
             expect(input.getAttribute('aria-controls')).toBe(listbox.id)
             expect(criterion.contains(panel)).toBe(false)
             expect(panel.contains(listbox)).toBe(true)
-            expect(listbox.querySelectorAll(
-                '[role="option"][data-autotest="criterion-collection-option"]',
-            )).toHaveLength(2)
+            expect(
+                listbox.querySelectorAll('[role="option"][data-autotest="criterion-collection-option"]'),
+            ).toHaveLength(2)
             expect(getOption(listbox, 'all')).not.toBeNull()
             expect(getOption(listbox, country.id)).not.toBeNull()
-            expect(getOption(listbox, 'all')?.querySelector(
-                'input[type="checkbox"], [role="checkbox"]',
-            )).toBeNull()
+            expect(getOption(listbox, 'all')?.querySelector('input[type="checkbox"], [role="checkbox"]')).toBeNull()
         }
 
         expect(getOption(firstOptions, 'all')?.getAttribute('aria-selected')).toBe('true')
@@ -229,9 +220,11 @@ describe('SearchUI countries collection Selenium contract', () => {
         await waitFor(() => {
             expect(getSelectedValue(firstCriterion, country.id)).not.toBeNull()
             expect(getSelectedValue(firstCriterion, 'all')).toBeNull()
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                countries: [country.id],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    countries: [country.id],
+                }),
+            )
         })
         expect(getSelectedValue(secondCriterion, country.id)).not.toBeNull()
         expect(secondOnFiltersUpdate).not.toHaveBeenCalled()
@@ -255,9 +248,11 @@ describe('SearchUI countries collection Selenium contract', () => {
         await waitFor(() => {
             expect(getSelectedValue(firstCriterion, 'all')).not.toBeNull()
             expect(getSelectedValue(firstCriterion, country.id)).toBeNull()
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                countries: [],
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    countries: [],
+                }),
+            )
         })
         expect(getSelectedValue(secondCriterion, country.id)).not.toBeNull()
         expect(getSelectedValue(secondCriterion, 'all')).toBeNull()

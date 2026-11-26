@@ -7,12 +7,7 @@ import * as React from 'react'
 import {resolvePneSemanticPalette} from '../createTheme'
 import {PneCloseIcon} from './dropdown/dropdownLook'
 import {pneIconActionSx} from './iconActionLook'
-import {
-    PneSurface,
-    PneSurfaceBody,
-    PneSurfaceFooter,
-    PneSurfaceHeader,
-} from './internal/PneSurface'
+import {PneSurface, PneSurfaceBody, PneSurfaceFooter, PneSurfaceHeader} from './internal/PneSurface'
 import {hasRenderableContent} from './internal/hasRenderableContent'
 import {usePneModalFrame} from './internal/usePneModalFrame'
 
@@ -20,16 +15,11 @@ export type PneModalDataAttributes = {
     [attribute: `data-${string}`]: string | number | boolean | undefined
 }
 
-export type PneModalCloseReason =
-    | Parameters<NonNullable<ModalProps['onClose']>>[1]
-    | 'closeButtonClick'
+export type PneModalCloseReason = Parameters<NonNullable<ModalProps['onClose']>>[1] | 'closeButtonClick'
 
 export type PneModalCloseEvent = React.SyntheticEvent
 
-export type PneModalCloseHandler = (
-    event: PneModalCloseEvent,
-    reason: PneModalCloseReason,
-) => void
+export type PneModalCloseHandler = (event: PneModalCloseEvent, reason: PneModalCloseReason) => void
 
 export type PneModalRootProps = Pick<
     ModalProps,
@@ -57,32 +47,21 @@ type ManagedContainerAttribute =
     | 'role'
     | 'style'
 
-export type PneModalContainerProps = Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    ManagedContainerAttribute
-> & PneModalDataAttributes
+export type PneModalContainerProps = Omit<React.HTMLAttributes<HTMLDivElement>, ManagedContainerAttribute> &
+    PneModalDataAttributes
 
 export type PneModalCloseButtonProps = Omit<
     IconButtonProps<'button'>,
-    | 'LinkComponent'
-    | 'children'
-    | 'component'
-    | 'dangerouslySetInnerHTML'
-    | 'href'
-    | 'onClick'
-    | 'sx'
-    | 'type'
-    | 'to'
-> & PneModalDataAttributes
+    'LinkComponent' | 'children' | 'component' | 'dangerouslySetInnerHTML' | 'href' | 'onClick' | 'sx' | 'type' | 'to'
+> &
+    PneModalDataAttributes
 
 export type PneModalContainerSlotProps = PneModalContainerProps & {
     sx?: SxProps<Theme>
 }
 
-export type PneModalBoxSlotProps = Omit<
-    BoxProps<'div'>,
-    'children' | 'component' | 'dangerouslySetInnerHTML'
-> & PneModalDataAttributes
+export type PneModalBoxSlotProps = Omit<BoxProps<'div'>, 'children' | 'component' | 'dangerouslySetInnerHTML'> &
+    PneModalDataAttributes
 
 export type PneModalTitleSlotProps = Omit<
     TypographyProps<'h3'>,
@@ -113,14 +92,14 @@ export type PneModalTitle = React.ReactNode
 
 type PneModalAccessibleName =
     | {
-        /** Fallback used when the title value is null or empty. Components that render null must be omitted explicitly. */
-        ariaLabel?: string
-        title: PneModalTitle
-    }
+          /** Fallback used when the title value is null or empty. Components that render null must be omitted explicitly. */
+          ariaLabel?: string
+          title: PneModalTitle
+      }
     | {
-        ariaLabel: string
-        title?: null
-    }
+          ariaLabel: string
+          title?: null
+      }
 
 type PneModalOwnProps = {
     actions?: React.ReactNode
@@ -149,11 +128,12 @@ type PneModalOwnProps = {
     subtitle?: React.ReactNode
 }
 
-export type PneModalProps = PneModalOwnProps
-    & PneModalAccessibleName
-    & PneModalDataAttributes
+export type PneModalProps = PneModalOwnProps & PneModalAccessibleName & PneModalDataAttributes
 
-const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneModalProps> & {ref?: React.Ref<HTMLDivElement>}) {
+const PneModal = function PneModal({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneModalProps> & {ref?: React.Ref<HTMLDivElement>}) {
     const {
         actions,
         ariaDescribedBy,
@@ -179,9 +159,9 @@ const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneMod
     const focusBeforeBlockingRef = React.useRef<HTMLElement | null>(null)
     const setContainerAnchorRef = React.useCallback((anchor: HTMLSpanElement | null) => {
         const nextContainer = anchor?.parentElement as HTMLDivElement | undefined
-        setContainerElement(currentContainer => (
-            currentContainer === nextContainer ? currentContainer : nextContainer ?? null
-        ))
+        setContainerElement(currentContainer =>
+            currentContainer === nextContainer ? currentContainer : (nextContainer ?? null),
+        )
     }, [])
     const generatedTitleId = React.useId()
     const generatedSubtitleId = React.useId()
@@ -220,9 +200,9 @@ const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneMod
         if (isBlocked) {
             const activeElement = document.activeElement
             if (
-                activeElement instanceof HTMLElement
-                && activeElement !== container
-                && container.contains(activeElement)
+                activeElement instanceof HTMLElement &&
+                activeElement !== container &&
+                container.contains(activeElement)
             ) {
                 focusBeforeBlockingRef.current = activeElement
             }
@@ -252,31 +232,19 @@ const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneMod
     const resolvedCloseButtonProps = sanitizeCloseButtonProps({
         ...slotProps?.closeButton,
     })
-    const {
-        'aria-label': closeButtonAriaLabel,
-        ...forwardedCloseButtonProps
-    } = resolvedCloseButtonProps
-    const {
-        sx: modalRootSx,
-        ...forwardedModalProps
-    } = sanitizeModalRootProps(modalProps)
+    const {'aria-label': closeButtonAriaLabel, ...forwardedCloseButtonProps} = resolvedCloseButtonProps
+    const {sx: modalRootSx, ...forwardedModalProps} = sanitizeModalRootProps(modalProps)
     const forwardedHeaderProps = sanitizeFixedElementProps(slotProps?.header)
     const forwardedBodyProps = sanitizeFixedElementProps(slotProps?.body)
     const forwardedFooterProps = sanitizeFixedElementProps(slotProps?.footer)
     const forwardedBlockingOverlayProps = sanitizeFixedElementProps(slotProps?.blockingOverlay)
-    const {
-        component: titleComponent,
-        sx: titleSx,
-        ...forwardedTitleProps
-    } = sanitizeTitleSlotProps(slotProps?.title)
+    const {component: titleComponent, sx: titleSx, ...forwardedTitleProps} = sanitizeTitleSlotProps(slotProps?.title)
     const {
         component: subtitleComponent,
         sx: subtitleSx,
         ...forwardedSubtitleProps
     } = sanitizeSubtitleSlotProps(slotProps?.subtitle)
-    const resolvedCloseLabel = normalizeLabel(closeButtonAriaLabel)
-        ?? normalizeLabel(closeLabel)
-        ?? 'Close'
+    const resolvedCloseLabel = normalizeLabel(closeButtonAriaLabel) ?? normalizeLabel(closeLabel) ?? 'Close'
 
     const handleModalClose: NonNullable<ModalProps['onClose']> = (event, reason) => {
         if (!isBlocked) {
@@ -293,120 +261,129 @@ const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneMod
         if (!event.defaultPrevented) windowFrame.onMoveStart(event)
     }
 
-    return <Modal
-        {...forwardedModalProps}
-        open={open}
-        onClose={handleModalClose}
-        sx={[
-            ...(Array.isArray(modalRootSx) ? modalRootSx : [modalRootSx]),
-            isBlocked ? blockingModalRootSx : undefined,
-        ]}
-    >
-        <Container
-            {...forwardedContainerProps}
-            aria-busy={isBlocked ? true : containerAriaBusy}
-            aria-describedby={mergeIds(subtitleId, ariaDescribedBy)}
-            aria-label={hasTitle ? undefined : resolvedAriaLabel}
-            aria-labelledby={titleId}
-            aria-modal='true'
-            className={className}
-            data-pne-modal-container='true'
-            data-pne-modal-lines={!hasBody || bodyIsOneRow ? 'none' : undefined}
-            data-pne-modal-movable={movable ? 'true' : undefined}
-            data-pne-modal-resizable={resizable ? 'true' : undefined}
-            data-pne-modal-action={windowFrame.action ?? undefined}
-            role='dialog'
-            style={windowFrame.frameStyle}
-            tabIndex={isBlocked ? -1 : containerTabIndex}
+    return (
+        <Modal
+            {...forwardedModalProps}
+            open={open}
+            onClose={handleModalClose}
             sx={[
-                ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
-                ...(Array.isArray(containerSlotSx) ? containerSlotSx : [containerSlotSx]),
+                ...(Array.isArray(modalRootSx) ? modalRootSx : [modalRootSx]),
+                isBlocked ? blockingModalRootSx : undefined,
             ]}
         >
-            <span ref={setContainerAnchorRef} aria-hidden='true' hidden/>
-            {(hasTitle || hasSubtitle || !hideCloseButton) && <Header
-                {...forwardedHeaderProps}
-                data-pne-modal-header='true'
-                inert={isBlocked ? true : forwardedHeaderProps.inert}
-                onPointerDown={handleHeaderPointerDown}
+            <Container
+                {...forwardedContainerProps}
+                aria-busy={isBlocked ? true : containerAriaBusy}
+                aria-describedby={mergeIds(subtitleId, ariaDescribedBy)}
+                aria-label={hasTitle ? undefined : resolvedAriaLabel}
+                aria-labelledby={titleId}
+                aria-modal='true'
+                className={className}
+                data-pne-modal-container='true'
+                data-pne-modal-lines={!hasBody || bodyIsOneRow ? 'none' : undefined}
+                data-pne-modal-movable={movable ? 'true' : undefined}
+                data-pne-modal-resizable={resizable ? 'true' : undefined}
+                data-pne-modal-action={windowFrame.action ?? undefined}
+                role='dialog'
+                style={windowFrame.frameStyle}
+                tabIndex={isBlocked ? -1 : containerTabIndex}
+                sx={[
+                    ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
+                    ...(Array.isArray(containerSlotSx) ? containerSlotSx : [containerSlotSx]),
+                ]}
             >
-                <HeaderText>
-                    {hasTitle && <Typography
-                        {...forwardedTitleProps}
-                        component={titleComponent ?? 'h3'}
-                        id={titleId}
-                        sx={[
-                            getModalTitleSx(forwardedTitleProps.color !== undefined),
-                            ...(Array.isArray(titleSx) ? titleSx : [titleSx]),
-                        ]}
+                <span ref={setContainerAnchorRef} aria-hidden='true' hidden />
+                {(hasTitle || hasSubtitle || !hideCloseButton) && (
+                    <Header
+                        {...forwardedHeaderProps}
+                        data-pne-modal-header='true'
+                        inert={isBlocked ? true : forwardedHeaderProps.inert}
+                        onPointerDown={handleHeaderPointerDown}
                     >
-                        {title}
-                    </Typography>}
-                    {hasSubtitle && <Typography
-                        {...forwardedSubtitleProps}
-                        component={subtitleComponent ?? 'span'}
-                        id={subtitleId}
-                        sx={[
-                            modalSubtitleSx,
-                            ...(Array.isArray(subtitleSx) ? subtitleSx : [subtitleSx]),
-                        ]}
+                        <HeaderText>
+                            {hasTitle && (
+                                <Typography
+                                    {...forwardedTitleProps}
+                                    component={titleComponent ?? 'h3'}
+                                    id={titleId}
+                                    sx={[
+                                        getModalTitleSx(forwardedTitleProps.color !== undefined),
+                                        ...(Array.isArray(titleSx) ? titleSx : [titleSx]),
+                                    ]}
+                                >
+                                    {title}
+                                </Typography>
+                            )}
+                            {hasSubtitle && (
+                                <Typography
+                                    {...forwardedSubtitleProps}
+                                    component={subtitleComponent ?? 'span'}
+                                    id={subtitleId}
+                                    sx={[modalSubtitleSx, ...(Array.isArray(subtitleSx) ? subtitleSx : [subtitleSx])]}
+                                >
+                                    {subtitle}
+                                </Typography>
+                            )}
+                        </HeaderText>
+                        {!hideCloseButton && (
+                            <IconButton
+                                {...forwardedCloseButtonProps}
+                                aria-label={resolvedCloseLabel}
+                                inert={isBlocked ? true : undefined}
+                                disableRipple
+                                sx={modalCloseButtonSx}
+                                onClick={handleCloseButtonClick}
+                                type='button'
+                            >
+                                <PneCloseIcon />
+                            </IconButton>
+                        )}
+                    </Header>
+                )}
+                {children != null && (
+                    <Body
+                        {...forwardedBodyProps}
+                        data-pne-modal-body='true'
+                        data-pne-modal-last={actions == null ? 'true' : undefined}
+                        inert={isBlocked ? true : forwardedBodyProps.inert}
                     >
-                        {subtitle}
-                    </Typography>}
-                </HeaderText>
-                {!hideCloseButton && <IconButton
-                    {...forwardedCloseButtonProps}
-                    aria-label={resolvedCloseLabel}
-                    inert={isBlocked ? true : undefined}
-                    disableRipple
-                    sx={modalCloseButtonSx}
-                    onClick={handleCloseButtonClick}
-                    type='button'
-                >
-                    <PneCloseIcon/>
-                </IconButton>}
-            </Header>}
-            {children != null && <Body
-                {...forwardedBodyProps}
-                data-pne-modal-body='true'
-                data-pne-modal-last={actions == null ? 'true' : undefined}
-                inert={isBlocked ? true : forwardedBodyProps.inert}
-            >
-                {children}
-            </Body>}
-            {actions != null && <Footer
-                {...forwardedFooterProps}
-                data-pne-modal-footer='true'
-                inert={isBlocked ? true : forwardedFooterProps.inert}
-            >
-                {actions}
-            </Footer>}
-            {resizable && <ResizeHandle
-                aria-hidden='true'
-                data-pne-modal-resize-handle='true'
-                inert={isBlocked ? true : undefined}
-                onPointerDown={windowFrame.onResizeStart}
-            >
-                <svg fill='none' height='16' viewBox='0 0 16 16' width='16'>
-                    <path d='M13 3 3 13M13 7l-6 6' stroke='currentColor' strokeLinecap='round'/>
-                </svg>
-            </ResizeHandle>}
-            {isBlocked && <BlockingOverlaySlot
-                {...forwardedBlockingOverlayProps}
-                data-pne-modal-blocking-overlay='true'
-            >
-                {blockingOverlay}
-            </BlockingOverlaySlot>}
-        </Container>
-    </Modal>
+                        {children}
+                    </Body>
+                )}
+                {actions != null && (
+                    <Footer
+                        {...forwardedFooterProps}
+                        data-pne-modal-footer='true'
+                        inert={isBlocked ? true : forwardedFooterProps.inert}
+                    >
+                        {actions}
+                    </Footer>
+                )}
+                {resizable && (
+                    <ResizeHandle
+                        aria-hidden='true'
+                        data-pne-modal-resize-handle='true'
+                        inert={isBlocked ? true : undefined}
+                        onPointerDown={windowFrame.onResizeStart}
+                    >
+                        <svg fill='none' height='16' viewBox='0 0 16 16' width='16'>
+                            <path d='M13 3 3 13M13 7l-6 6' stroke='currentColor' strokeLinecap='round' />
+                        </svg>
+                    </ResizeHandle>
+                )}
+                {isBlocked && (
+                    <BlockingOverlaySlot {...forwardedBlockingOverlayProps} data-pne-modal-blocking-overlay='true'>
+                        {blockingOverlay}
+                    </BlockingOverlaySlot>
+                )}
+            </Container>
+        </Modal>
+    )
 }
 
 export default PneModal
 
-const exposeForwardedRef = <T,>(
-    forwardedRef: React.Ref<T> | undefined,
-    value: T | null,
-): (() => void) | undefined => {
+const exposeForwardedRef = <T,>(forwardedRef: React.Ref<T> | undefined, value: T | null): (() => void) | undefined => {
     if (!forwardedRef || value === null) return undefined
 
     if (typeof forwardedRef === 'function') {
@@ -446,9 +423,7 @@ const sanitizeContainerProps = (
     return safeProps as PneModalContainerProps & {sx?: SxProps<Theme>}
 }
 
-const sanitizeCloseButtonProps = (
-    props: PneModalCloseButtonProps,
-): PneModalCloseButtonProps => {
+const sanitizeCloseButtonProps = (props: PneModalCloseButtonProps): PneModalCloseButtonProps => {
     const safeProps: Record<string, unknown> = sanitizeFixedElementProps(props)
     delete safeProps.href
     delete safeProps.LinkComponent
@@ -459,21 +434,18 @@ const sanitizeCloseButtonProps = (
 
 const headingComponents = new Set(['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
 
-const sanitizeTitleSlotProps = (
-    props?: PneModalTitleSlotProps,
-): PneModalTitleSlotProps => {
+const sanitizeTitleSlotProps = (props?: PneModalTitleSlotProps): PneModalTitleSlotProps => {
     const component = (props as {component?: unknown} | undefined)?.component
     const safeProps = sanitizeFixedElementProps(props ?? {}) as PneModalTitleSlotProps
-    safeProps.component = typeof component === 'string' && headingComponents.has(component)
-        ? component as NonNullable<PneModalTitleSlotProps['component']>
-        : 'h3'
+    safeProps.component =
+        typeof component === 'string' && headingComponents.has(component)
+            ? (component as NonNullable<PneModalTitleSlotProps['component']>)
+            : 'h3'
     delete (safeProps as Record<string, unknown>).id
     return safeProps
 }
 
-const sanitizeSubtitleSlotProps = (
-    props?: PneModalSubtitleSlotProps,
-): PneModalSubtitleSlotProps => {
+const sanitizeSubtitleSlotProps = (props?: PneModalSubtitleSlotProps): PneModalSubtitleSlotProps => {
     const component = (props as {component?: unknown} | undefined)?.component
     const safeProps = sanitizeFixedElementProps(props ?? {}) as PneModalSubtitleSlotProps
     safeProps.component = component === 'p' || component === 'span' ? component : 'span'
@@ -498,9 +470,10 @@ const normalizeLabel = (value: unknown): string | undefined => {
     return normalizedValue.length > 0 ? normalizedValue : undefined
 }
 
-const pickDataAttributes = (props: object): PneModalDataAttributes => Object.fromEntries(
-    Object.entries(props).filter(([attribute]) => attribute.startsWith('data-')),
-) as PneModalDataAttributes
+const pickDataAttributes = (props: object): PneModalDataAttributes =>
+    Object.fromEntries(
+        Object.entries(props).filter(([attribute]) => attribute.startsWith('data-')),
+    ) as PneModalDataAttributes
 
 const blockingModalRootSx = (theme: Theme) => ({
     zIndex: Math.max(...Object.values(theme.zIndex)) + 1,
@@ -552,17 +525,12 @@ const focusActiveBlockingDialog = (
     force = false,
 ): void => {
     const activeDialog = getTopmostBlockingDialog(state)
-    if (
-        activeDialog
-        && (force || !activeDialog.contains(ownerDocument.activeElement))
-    ) {
+    if (activeDialog && (force || !activeDialog.contains(ownerDocument.activeElement))) {
         activeDialog.focus({preventScroll: true})
     }
 }
 
-const createBlockingDialogBoundaryState = (
-    ownerDocument: Document,
-): BlockingDialogBoundaryState => {
+const createBlockingDialogBoundaryState = (ownerDocument: Document): BlockingDialogBoundaryState => {
     const state: BlockingDialogBoundaryState = {
         dialogs: [],
         inertSnapshots: new Map(),
@@ -585,10 +553,7 @@ const createBlockingDialogBoundaryState = (
     return state
 }
 
-const applyBlockingDialogBoundary = (
-    ownerDocument: Document,
-    state: BlockingDialogBoundaryState,
-): void => {
+const applyBlockingDialogBoundary = (ownerDocument: Document, state: BlockingDialogBoundaryState): void => {
     state.inertSnapshots.forEach((wasInert, element) => {
         if (wasInert) {
             element.setAttribute('inert', '')
@@ -616,40 +581,26 @@ const applyBlockingDialogBoundary = (
     })
 }
 
-const getTopmostBlockingDialog = (
-    state: BlockingDialogBoundaryState,
-): HTMLDivElement | undefined => state.dialogs.reduce<HTMLDivElement | undefined>(
-    (topmostDialog, candidateDialog) => {
+const getTopmostBlockingDialog = (state: BlockingDialogBoundaryState): HTMLDivElement | undefined =>
+    state.dialogs.reduce<HTMLDivElement | undefined>((topmostDialog, candidateDialog) => {
         if (!candidateDialog.isConnected) return topmostDialog
         if (!topmostDialog?.isConnected) return candidateDialog
 
         const topmostRoot = topmostDialog.closest('.MuiModal-root') ?? topmostDialog
         const candidateRoot = candidateDialog.closest('.MuiModal-root') ?? candidateDialog
         const documentPosition = topmostRoot.compareDocumentPosition(candidateRoot)
-        const following = topmostDialog.ownerDocument.defaultView
-            ?.Node.DOCUMENT_POSITION_FOLLOWING ?? 4
+        const following = topmostDialog.ownerDocument.defaultView?.Node.DOCUMENT_POSITION_FOLLOWING ?? 4
 
         return documentPosition & following ? candidateDialog : topmostDialog
-    },
-    undefined,
-)
+    }, undefined)
 
 const mergeIds = (...values: Array<string | undefined>): string | undefined => {
     const ids = values.flatMap(value => value?.trim().split(/\s+/) ?? []).filter(Boolean)
     return ids.length > 0 ? Array.from(new Set(ids)).join(' ') : undefined
 }
 
-const warnAboutMissingAccessibleName = (
-    open: boolean,
-    hasTitle: boolean,
-    ariaLabel: string | undefined,
-) => {
-    if (
-        process.env.NODE_ENV !== 'production'
-        && open
-        && !hasTitle
-        && !ariaLabel?.trim()
-    ) {
+const warnAboutMissingAccessibleName = (open: boolean, hasTitle: boolean, ariaLabel: string | undefined) => {
+    if (process.env.NODE_ENV !== 'production' && open && !hasTitle && !ariaLabel?.trim()) {
         console.warn('PneModal requires a non-empty title or ariaLabel for its accessible name.')
     }
 }
@@ -730,13 +681,15 @@ const Footer = styled(PneSurfaceFooter)(({theme}) => ({
 }))
 
 // UI Kit Text/Heading in a modal: 18/26 SemiBold. A colour the consumer gives stays.
-const getModalTitleSx = (hasExplicitColor: boolean): SxProps<Theme> => theme => ({
-    padding: '0',
-    fontWeight: '600',
-    fontSize: '18px',
-    lineHeight: '26px',
-    color: hasExplicitColor ? undefined : resolvePneSemanticPalette(theme).modal.title,
-})
+const getModalTitleSx =
+    (hasExplicitColor: boolean): SxProps<Theme> =>
+    theme => ({
+        padding: '0',
+        fontWeight: '600',
+        fontSize: '18px',
+        lineHeight: '26px',
+        color: hasExplicitColor ? undefined : resolvePneSemanticPalette(theme).modal.title,
+    })
 
 const modalSubtitleSx: SxProps<Theme> = theme => ({
     display: 'block',

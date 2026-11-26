@@ -29,16 +29,18 @@ const OPTIONS = ['Email', 'SFTP', 'FTP'] as const
 
 // Extra props are untyped here: PneSelect's overloads infer the option type from `options`.
 const renderSelect = (props: object = {}) => {
-    const view = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-        <PneSelect
-            aria-label='Delivery'
-            getOptionDisabled={option => option === 'FTP'}
-            onChange={() => undefined}
-            options={OPTIONS}
-            value='SFTP'
-            {...props}
-        />
-    </PneThemeProvider>)
+    const view = render(
+        <PneThemeProvider skin={UI_KIT_SKIN}>
+            <PneSelect
+                aria-label='Delivery'
+                getOptionDisabled={option => option === 'FTP'}
+                onChange={() => undefined}
+                options={OPTIONS}
+                value='SFTP'
+                {...props}
+            />
+        </PneThemeProvider>,
+    )
     const root = view.container.querySelector<HTMLElement>('.MuiFormControl-root')!
     return {...view, root}
 }
@@ -53,9 +55,16 @@ describe('PneSelect (UI Kit look)', () => {
         const {root} = renderSelect()
 
         expect(ruleValue(root, OUTLINED, '--pne-field-ring')).toBe('#E2E9F0')
-        expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline`, 'border-color')).toBe('var(--pne-field-ring)')
-        expect(ruleValue(root, `${OUTLINED} .MuiInputBase-input, & .MuiFilledInput-root.MuiInputBase-root .MuiInputBase-input`, 'color'))
-            .toBe('#2C3136')
+        expect(ruleValue(root, `${OUTLINED} .MuiOutlinedInput-notchedOutline`, 'border-color')).toBe(
+            'var(--pne-field-ring)',
+        )
+        expect(
+            ruleValue(
+                root,
+                `${OUTLINED} .MuiInputBase-input, & .MuiFilledInput-root.MuiInputBase-root .MuiInputBase-input`,
+                'color',
+            ),
+        ).toBe('#2C3136')
     })
 
     it('marks a pinned specimen state on the root', () => {
@@ -66,26 +75,33 @@ describe('PneSelect (UI Kit look)', () => {
 
     it('keeps no room for a label inside a filled box, with a label of its own or without one', () => {
         const bare = renderSelect({variant: 'filled'})
-        expect(bare.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(true)
+        expect(bare.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(
+            true,
+        )
         bare.unmount()
 
         const labelled = renderSelect({label: 'Delivery', variant: 'filled'})
-        expect(labelled.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel')).toBe(true)
+        expect(
+            labelled.root.querySelector('.MuiFilledInput-root')?.classList.contains('MuiInputBase-hiddenLabel'),
+        ).toBe(true)
     })
 
     it.each([
         ['small', '24px', '5px', '24px'],
         ['medium', '32px', '9px', '34px'],
         ['large', '40px', '13px', '38px'],
-    ] as const)('makes the %s box %s high with the chevron in the middle of its icon button', (size, height, right, reserve) => {
-        const {root} = renderSelect({size})
-        const sized = `&[data-pne-size="${size}"]`
+    ] as const)(
+        'makes the %s box %s high with the chevron in the middle of its icon button',
+        (size, height, right, reserve) => {
+            const {root} = renderSelect({size})
+            const sized = `&[data-pne-size="${size}"]`
 
-        expect(root.getAttribute('data-pne-size')).toBe(size)
-        expect(ruleValue(root, `${sized} .MuiInputBase-root`, 'min-height')).toBe(height)
-        expect(ruleValue(root, `${sized} .MuiSelect-icon.PneSelect-chevron`, 'right')).toBe(right)
-        expect(ruleValue(root, `${sized} .MuiSelect-select.MuiInputBase-input`, 'padding-right')).toBe(reserve)
-    })
+            expect(root.getAttribute('data-pne-size')).toBe(size)
+            expect(ruleValue(root, `${sized} .MuiInputBase-root`, 'min-height')).toBe(height)
+            expect(ruleValue(root, `${sized} .MuiSelect-icon.PneSelect-chevron`, 'right')).toBe(right)
+            expect(ruleValue(root, `${sized} .MuiSelect-select.MuiInputBase-input`, 'padding-right')).toBe(reserve)
+        },
+    )
 
     it('is medium unless a size is given and marks a box that holds a value', () => {
         const picked = renderSelect()
@@ -109,7 +125,7 @@ describe('PneSelect (UI Kit look)', () => {
     })
 
     it('keeps an icon component of the consumer at its own size', () => {
-        const Arrow = ({className}: {className?: string}) => <svg className={className} data-testid='ConsumerArrow'/>
+        const Arrow = ({className}: {className?: string}) => <svg className={className} data-testid='ConsumerArrow' />
         const {root} = renderSelect({IconComponent: Arrow})
         const icon = root.querySelector('.MuiSelect-icon')!
 
@@ -138,28 +154,33 @@ describe('PneSelect (UI Kit look)', () => {
         ['small', '24px', '12px', '4px 8px', '200px'],
         ['medium', '32px', '14px', '6px 8px', '264px'],
         ['large', '40px', '14px', '10px 12px', '328px'],
-    ] as const)('makes the rows of a %s select %s high and shows eight of them', (size, height, fontSize, padding, eightRows) => {
-        renderSelect({size})
-        const menu = openMenu()
-        const sized = `&[data-pne-size="${size}"]`
+    ] as const)(
+        'makes the rows of a %s select %s high and shows eight of them',
+        (size, height, fontSize, padding, eightRows) => {
+            renderSelect({size})
+            const menu = openMenu()
+            const sized = `&[data-pne-size="${size}"]`
 
-        expect(menu.getAttribute('data-pne-size')).toBe(size)
-        expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'min-height')).toBe(height)
-        expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'font-size')).toBe(fontSize)
-        expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'padding')).toBe(padding)
-        expect(ruleValue(menu, `${sized} .MuiMenu-paper`, 'max-height')).toContain(eightRows)
-    })
+            expect(menu.getAttribute('data-pne-size')).toBe(size)
+            expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'min-height')).toBe(height)
+            expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'font-size')).toBe(fontSize)
+            expect(ruleValue(menu, `${sized} .MuiMenuItem-root`, 'padding')).toBe(padding)
+            expect(ruleValue(menu, `${sized} .MuiMenu-paper`, 'max-height')).toContain(eightRows)
+        },
+    )
 
     it('tints the hovered and the picked option, checks the picked one and drops MUI opacity on disabled ones', () => {
         renderSelect()
         const menu = openMenu()
 
         expect(ruleValue(menu, ITEM, 'border-radius')).toBe('4px')
-        expect(ruleValue(
-            menu,
-            `${ITEM}:hover, ${ITEM}.Mui-focusVisible, ${ITEM}[data-pne-state="hover"]`,
-            'background-color',
-        )).toBe('#F0F4F8')
+        expect(
+            ruleValue(
+                menu,
+                `${ITEM}:hover, ${ITEM}.Mui-focusVisible, ${ITEM}[data-pne-state="hover"]`,
+                'background-color',
+            ),
+        ).toBe('#F0F4F8')
         expect(ruleValue(menu, `${ITEM}.Mui-selected`, 'background-color')).toBe('#EBF3FF')
         expect(ruleValue(menu, `${ITEM}.Mui-selected::after`, 'background-color')).toBe('#026FD7')
         expect(ruleValue(menu, `${ITEM}.Mui-disabled`, 'opacity')).toBe('1')

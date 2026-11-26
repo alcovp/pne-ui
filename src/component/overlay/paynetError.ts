@@ -1,15 +1,13 @@
-import type { NormalizedPaynetError, PaynetViolation } from './types'
+import type {NormalizedPaynetError, PaynetViolation} from './types'
 
 type UnknownRecord = Record<PropertyKey, unknown>
 
 const UNKNOWN_ERROR_MESSAGE_ID = 'react.unexpected.exception.unknown-message'
 const PAYNET_ERROR_ID_PREFIX = 'paynet-error:'
 
-const isRecord = (value: unknown): value is UnknownRecord =>
-    typeof value === 'object' && value !== null
+const isRecord = (value: unknown): value is UnknownRecord => typeof value === 'object' && value !== null
 
-const hasOwn = (value: UnknownRecord, key: PropertyKey): boolean =>
-    Object.prototype.hasOwnProperty.call(value, key)
+const hasOwn = (value: UnknownRecord, key: PropertyKey): boolean => Object.prototype.hasOwnProperty.call(value, key)
 
 const readString = (value: UnknownRecord | undefined, key: PropertyKey): string | undefined => {
     const candidate = value?.[key]
@@ -28,8 +26,7 @@ const createRandomId = (): string => {
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
-const createNotificationId = (): string =>
-    `${PAYNET_ERROR_ID_PREFIX}${createRandomId()}`
+const createNotificationId = (): string => `${PAYNET_ERROR_ID_PREFIX}${createRandomId()}`
 
 const settle = async (value: unknown): Promise<unknown> => {
     try {
@@ -46,28 +43,31 @@ const isCancellation = (value: unknown): boolean => {
     const name = readString(value, 'name')
     const config = isRecord(value.config) ? value.config : undefined
     const signal = config && isRecord(config.signal) ? config.signal : undefined
-    return code === 'ERR_CANCELED'
-        || name === 'AbortError'
-        || name === 'CanceledError'
-        || value.__CANCEL__ === true
-        || signal?.aborted === true
+    return (
+        code === 'ERR_CANCELED' ||
+        name === 'AbortError' ||
+        name === 'CanceledError' ||
+        value.__CANCEL__ === true ||
+        signal?.aborted === true
+    )
 }
 
-const isFetchResponseLike = (value: unknown): value is UnknownRecord & {
+const isFetchResponseLike = (
+    value: unknown,
+): value is UnknownRecord & {
     status: number
     text: () => Promise<string>
     clone?: () => unknown
-} => isRecord(value)
-    && typeof value.status === 'number'
-    && typeof value.text === 'function'
-    && !hasOwn(value, 'data')
+} => isRecord(value) && typeof value.status === 'number' && typeof value.text === 'function' && !hasOwn(value, 'data')
 
 const isBlobLike = (value: unknown): value is Blob => {
     if (typeof Blob !== 'undefined' && value instanceof Blob) return true
-    return isRecord(value)
-        && typeof value.size === 'number'
-        && typeof value.type === 'string'
-        && typeof value.arrayBuffer === 'function'
+    return (
+        isRecord(value) &&
+        typeof value.size === 'number' &&
+        typeof value.type === 'string' &&
+        typeof value.arrayBuffer === 'function'
+    )
 }
 
 const readBlobText = async (blob: Blob): Promise<string> => {
@@ -143,7 +143,7 @@ type UnwrappedError = {
 }
 
 const unwrapTransport = async (source: unknown): Promise<UnwrappedError> => {
-    if (!isRecord(source)) return { payload: source, source }
+    if (!isRecord(source)) return {payload: source, source}
 
     const response = isRecord(source.response) ? source.response : undefined
     if (response && hasOwn(response, 'data')) {
@@ -167,16 +167,15 @@ const unwrapTransport = async (source: unknown): Promise<UnwrappedError> => {
     if (isFetchResponseLike(source)) {
         try {
             const clone = typeof source.clone === 'function' ? source.clone() : source
-            const readText = isRecord(clone) && typeof clone.text === 'function'
-                ? clone.text.bind(clone)
-                : source.text.bind(source)
+            const readText =
+                isRecord(clone) && typeof clone.text === 'function' ? clone.text.bind(clone) : source.text.bind(source)
             return {
                 payload: parseString(await readText()),
                 source,
                 httpStatus: source.status,
             }
         } catch {
-            return { payload: source, source, httpStatus: source.status }
+            return {payload: source, source, httpStatus: source.status}
         }
     }
 
@@ -200,27 +199,30 @@ const normalizeResolvedError = async (input: unknown): Promise<NormalizedPaynetE
 
     const errorId = readString(payloadRecord, 'errorId') ?? readString(sourceRecord, 'errorId')
     const messageId = readString(payloadRecord, 'messageId') ?? readString(sourceRecord, 'messageId')
-    const errorType = readString(payloadRecord, 'errorType')
-        ?? readString(sourceRecord, 'errorType')
+    const errorType =
+        readString(payloadRecord, 'errorType') ??
+        readString(sourceRecord, 'errorType') ??
         // Temporary compatibility with Dashboard's former RFC-style model.
-        ?? readString(payloadRecord, 'type')
-        ?? readString(sourceRecord, 'type')
+        readString(payloadRecord, 'type') ??
+        readString(sourceRecord, 'type')
     const errorI18N = readString(payloadRecord, 'errorI18N') ?? readString(sourceRecord, 'errorI18N')
     const details = stringifyDetails(payloadRecord?.details ?? sourceRecord?.details)
     const violations = readViolations(payloadRecord?.violations ?? sourceRecord?.violations)
 
     const primitiveMessage = typeof payload === 'string' && payload.trim().length > 0 ? payload : undefined
-    const message = readString(payloadRecord, 'message')
-        ?? readString(payloadRecord, 'title')
-        ?? readString(sourceRecord, 'message')
-        ?? readString(sourceRecord, 'title')
-        ?? primitiveMessage
+    const message =
+        readString(payloadRecord, 'message') ??
+        readString(payloadRecord, 'title') ??
+        readString(sourceRecord, 'message') ??
+        readString(sourceRecord, 'title') ??
+        primitiveMessage
 
-    const httpStatus = unwrapped.httpStatus
-        ?? readNumber(payloadRecord, 'httpStatus')
-        ?? readNumber(payloadRecord, 'status')
-        ?? readNumber(sourceRecord, 'httpStatus')
-        ?? readNumber(sourceRecord, 'status')
+    const httpStatus =
+        unwrapped.httpStatus ??
+        readNumber(payloadRecord, 'httpStatus') ??
+        readNumber(payloadRecord, 'status') ??
+        readNumber(sourceRecord, 'httpStatus') ??
+        readNumber(sourceRecord, 'status')
 
     return {
         notificationId: createNotificationId(),

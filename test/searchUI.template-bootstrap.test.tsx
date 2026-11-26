@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { act, cleanup, render, waitFor } from '@testing-library/react'
+import {act, cleanup, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import { SearchUI } from '../src/component/search-ui/SearchUI'
-import { SearchUIFilters } from '../src/component/search-ui/filters/SearchUIFilters'
+import {SearchUI} from '../src/component/search-ui/SearchUI'
+import {SearchUIFilters} from '../src/component/search-ui/filters/SearchUIFilters'
 import {
     CriterionTypeEnum,
     LinkedEntityTypeEnum,
@@ -12,16 +12,13 @@ import {
     SearchCriteria,
     SearchUITemplate,
 } from '../src/component/search-ui/filters/types'
-import { getSearchUIInitialSearchCriteria } from '../src/component/search-ui/filters/state/initial'
-import { resetSearchUIRetentionForTests } from '../src/component/search-ui/filters/state/retention'
-import {
-    initialSearchUIDefaults,
-    SearchUIDefaultsContext,
-} from '../src/component/search-ui/SearchUIProvider'
+import {getSearchUIInitialSearchCriteria} from '../src/component/search-ui/filters/state/initial'
+import {resetSearchUIRetentionForTests} from '../src/component/search-ui/filters/state/retention'
+import {initialSearchUIDefaults, SearchUIDefaultsContext} from '../src/component/search-ui/SearchUIProvider'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
-        t: (key: string, options?: { defaultValue?: string }) => options?.defaultValue ?? key,
+        t: (key: string, options?: {defaultValue?: string}) => options?.defaultValue ?? key,
     }),
 }))
 
@@ -74,25 +71,27 @@ const renderFilters = ({
     strictMode = false,
 }: RenderFiltersOptions) => {
     const getSearchTemplates = jest.fn(() => deferred.promise)
-    const filters = <SearchUIDefaultsContext
-        value={{
-            ...initialSearchUIDefaults,
-            getSearchTemplates,
-        }}
-    >
-        <SearchUIFilters
-            settingsContextName={contextName}
-            possibleCriteria={[CriterionTypeEnum.STATUS]}
-            predefinedCriteria={[CriterionTypeEnum.STATUS]}
-            searchConditions={searchConditions}
-            onFiltersUpdate={onFiltersUpdate}
-            config={{
-                hideShowFiltersButton: true,
-                hideTemplatesSelect: true,
-                manualSearch,
+    const filters = (
+        <SearchUIDefaultsContext
+            value={{
+                ...initialSearchUIDefaults,
+                getSearchTemplates,
             }}
-        />
-    </SearchUIDefaultsContext>
+        >
+            <SearchUIFilters
+                settingsContextName={contextName}
+                possibleCriteria={[CriterionTypeEnum.STATUS]}
+                predefinedCriteria={[CriterionTypeEnum.STATUS]}
+                searchConditions={searchConditions}
+                onFiltersUpdate={onFiltersUpdate}
+                config={{
+                    hideShowFiltersButton: true,
+                    hideTemplatesSelect: true,
+                    manualSearch,
+                }}
+            />
+        </SearchUIDefaultsContext>
+    )
 
     return {
         getSearchTemplates,
@@ -121,16 +120,22 @@ describe('SearchUI template bootstrap', () => {
         const searchData = jest.fn().mockResolvedValue([])
 
         render(
-            <SearchUIDefaultsContext
-                value={{...initialSearchUIDefaults, getSearchTemplates}}
-            >
+            <SearchUIDefaultsContext value={{...initialSearchUIDefaults, getSearchTemplates}}>
                 <SearchUI
                     settingsContextName={contextName}
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     searchData={searchData}
-                    createTableHeader={() => <tr><th>Result</th></tr>}
-                    createTableRow={() => <tr><td>Result</td></tr>}
+                    createTableHeader={() => (
+                        <tr>
+                            <th>Result</th>
+                        </tr>
+                    )}
+                    createTableRow={() => (
+                        <tr>
+                            <td>Result</td>
+                        </tr>
+                    )}
                     config={{
                         hideShowFiltersButton: true,
                         hideTemplatesSelect: true,
@@ -170,8 +175,16 @@ describe('SearchUI template bootstrap', () => {
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     searchData={searchData}
-                    createTableHeader={() => <tr><th>Result</th></tr>}
-                    createTableRow={() => <tr><td>Found row</td></tr>}
+                    createTableHeader={() => (
+                        <tr>
+                            <th>Result</th>
+                        </tr>
+                    )}
+                    createTableRow={() => (
+                        <tr>
+                            <td>Found row</td>
+                        </tr>
+                    )}
                     config={{
                         hideShowFiltersButton: true,
                         hideTemplatesSelect: true,
@@ -220,8 +233,16 @@ describe('SearchUI template bootstrap', () => {
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     searchData={searchData}
-                    createTableHeader={() => <tr><th>Result</th></tr>}
-                    createTableRow={() => <tr><td>Found row</td></tr>}
+                    createTableHeader={() => (
+                        <tr>
+                            <th>Result</th>
+                        </tr>
+                    )}
+                    createTableRow={() => (
+                        <tr>
+                            <td>Found row</td>
+                        </tr>
+                    )}
                     config={{
                         hideShowFiltersButton: true,
                         hideTemplatesSelect: true,
@@ -310,24 +331,28 @@ describe('SearchUI template bootstrap', () => {
             searchConditions: {
                 criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.MERCHANT],
                 status: 'ENABLED',
-                multigetCriteria: [{
-                    entityType: LinkedEntityTypeEnum.MERCHANT,
-                    filterType: MultichoiceFilterTypeEnum.SEARCH,
-                    searchString: '',
-                    selectedItems: '777',
-                    selectedItemNames: 'Merchant',
-                    deselectedItems: '',
-                    deselectedItemNames: '',
-                }],
+                multigetCriteria: [
+                    {
+                        entityType: LinkedEntityTypeEnum.MERCHANT,
+                        filterType: MultichoiceFilterTypeEnum.SEARCH,
+                        searchString: '',
+                        selectedItems: '777',
+                        selectedItemNames: 'Merchant',
+                        deselectedItems: '',
+                        deselectedItemNames: '',
+                    },
+                ],
             },
         })
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalledTimes(1)
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                multigetCriteria: [],
-                status: 'E',
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    multigetCriteria: [],
+                    status: 'E',
+                }),
+            )
         })
 
         await act(async () => {
@@ -357,10 +382,12 @@ describe('SearchUI template bootstrap', () => {
 
         await waitFor(() => {
             expect(onFiltersUpdate).toHaveBeenCalledTimes(1)
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                dateFrom: expect.any(Date),
-                dateTo: expect.any(Date),
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    dateFrom: expect.any(Date),
+                    dateTo: expect.any(Date),
+                }),
+            )
         })
 
         await act(async () => {

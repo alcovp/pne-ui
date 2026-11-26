@@ -71,12 +71,7 @@ type StatusName = keyof typeof PNE_STATUS_COLORS
 
 const STATUS_BY_COLOR: Partial<Record<string, StatusName>> = {error: 'error', success: 'success', warning: 'warning'}
 
-const resolveTone = (
-    pne: ChipPaletteSource,
-    dark: boolean,
-    variant: unknown,
-    color: unknown,
-): ChipTone => {
+const resolveTone = (pne: ChipPaletteSource, dark: boolean, variant: unknown, color: unknown): ChipTone => {
     const n = PNE_NEUTRAL_RAMP
     const d = PNE_DARK_COLORS
     const outlined = variant === 'outlined'
@@ -84,13 +79,23 @@ const resolveTone = (
     const brandRing = pne.focusRing
     const surface: ChipTone = dark
         ? {
-            fill: pne.dropdown.chip.fill, fillHover: pne.dropdown.chip.fill, ring: pne.dropdown.chip.ring,
-            ringHover: brandRing, text: d.textPrimary, icon: d.textSecondary, removeHover: pne.ramp[800],
-        }
+              fill: pne.dropdown.chip.fill,
+              fillHover: pne.dropdown.chip.fill,
+              ring: pne.dropdown.chip.ring,
+              ringHover: brandRing,
+              text: d.textPrimary,
+              icon: d.textSecondary,
+              removeHover: pne.ramp[800],
+          }
         : {
-            fill: n[50], fillHover: n[50], ring: n[300], ringHover: brandRing, text: n[900], icon: n[600],
-            removeHover: pne.ramp[200],
-        }
+              fill: n[50],
+              fillHover: n[50],
+              ring: n[300],
+              ringHover: brandRing,
+              text: n[900],
+              icon: n[600],
+              removeHover: pne.ramp[200],
+          }
 
     if (status) {
         const ramp = PNE_STATUS_COLORS[status]
@@ -108,8 +113,11 @@ const resolveTone = (
         }
         const primary = pne.button.primary
         return {
-            fill: primary.default.fill, fillHover: primary.pressed.fill, text: primary.default.text,
-            icon: primary.default.text, removeHover: primary.pressed.fill,
+            fill: primary.default.fill,
+            fillHover: primary.pressed.fill,
+            text: primary.default.text,
+            icon: primary.default.text,
+            removeHover: primary.pressed.fill,
         }
     }
     if (color === 'info' || color === 'secondary') {
@@ -117,16 +125,22 @@ const resolveTone = (
         return outlined
             ? {...surface, ring: brandRing, text, icon: text}
             : dark
-                ? {fill: pne.ramp[900], fillHover: pne.ramp[800], text, icon: text, removeHover: pne.ramp[800]}
-                : {fill: pne.ramp[100], fillHover: pne.ramp[200], text, icon: text, removeHover: pne.ramp[200]}
+              ? {fill: pne.ramp[900], fillHover: pne.ramp[800], text, icon: text, removeHover: pne.ramp[800]}
+              : {fill: pne.ramp[100], fillHover: pne.ramp[200], text, icon: text, removeHover: pne.ramp[200]}
     }
     if (outlined) return surface
     return dark
-        ? {fill: d.surfaceSubtle, fillHover: d.surfacePressed, text: d.textPrimary, icon: d.textSecondary, removeHover: d.surfacePressed}
+        ? {
+              fill: d.surfaceSubtle,
+              fillHover: d.surfacePressed,
+              text: d.textPrimary,
+              icon: d.textSecondary,
+              removeHover: d.surfacePressed,
+          }
         : {fill: n[100], fillHover: n[200], text: n[900], icon: n[600], removeHover: n[200]}
 }
 
-const ring = (color: string | undefined): string => color ? `inset 0 0 0 1px ${color}` : 'none'
+const ring = (color: string | undefined): string => (color ? `inset 0 0 0 1px ${color}` : 'none')
 
 const chipStyle = (
     theme: Theme,
@@ -212,7 +226,7 @@ export const createPneChipOverrides = (
     resolvePalette: (theme: Theme) => ChipPaletteSource,
 ): NonNullable<Components<Theme>['MuiChip']> => ({
     defaultProps: {
-        deleteIcon: <PneCloseIcon className={PNE_CHIP_REMOVE_CLASS}/>,
+        deleteIcon: <PneCloseIcon className={PNE_CHIP_REMOVE_CLASS} />,
     },
     styleOverrides: {
         root: ({ownerState, theme}) => {

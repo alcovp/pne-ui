@@ -179,35 +179,36 @@ export const usePneModalFrame = ({
             const deltaX = moveEvent.clientX - session.pointerX
             const deltaY = moveEvent.clientY - session.pointerY
             const liveBounds = getBounds(container)
-            const next: PneModalFrame = session.action === 'move'
-                ? {
-                    left: clamp(session.left + deltaX, 0, liveBounds.width - session.width),
-                    top: clamp(session.top + deltaY, 0, liveBounds.height - session.height),
-                    width: session.width,
-                }
-                : {
-                    left: session.left,
-                    top: session.top,
-                    width: clamp(
-                        session.width + deltaX,
-                        session.min.width,
-                        Math.min(liveBounds.width - session.left, session.max.width),
-                    ),
-                    height: clamp(
-                        session.height + deltaY,
-                        session.min.height,
-                        Math.min(liveBounds.height - session.top, session.max.height),
-                    ),
-                }
+            const next: PneModalFrame =
+                session.action === 'move'
+                    ? {
+                          left: clamp(session.left + deltaX, 0, liveBounds.width - session.width),
+                          top: clamp(session.top + deltaY, 0, liveBounds.height - session.height),
+                          width: session.width,
+                      }
+                    : {
+                          left: session.left,
+                          top: session.top,
+                          width: clamp(
+                              session.width + deltaX,
+                              session.min.width,
+                              Math.min(liveBounds.width - session.left, session.max.width),
+                          ),
+                          height: clamp(
+                              session.height + deltaY,
+                              session.min.height,
+                              Math.min(liveBounds.height - session.top, session.max.height),
+                          ),
+                      }
 
             setFrame(current => {
                 // A move keeps the height the corner was dragged to before, if it was.
                 const merged = session.action === 'move' ? {...next, height: current?.height} : next
-                return current
-                    && current.left === merged.left
-                    && current.top === merged.top
-                    && current.width === merged.width
-                    && current.height === merged.height
+                return current &&
+                    current.left === merged.left &&
+                    current.top === merged.top &&
+                    current.width === merged.width &&
+                    current.height === merged.height
                     ? current
                     : merged
             })
@@ -277,12 +278,12 @@ export const usePneModalFrame = ({
 
     const frameStyle: React.CSSProperties | undefined = frame
         ? {
-            left: `${frame.left}px`,
-            top: `${frame.top}px`,
-            transform: 'none',
-            width: `${frame.width}px`,
-            height: frame.height === undefined ? undefined : `${frame.height}px`,
-        }
+              left: `${frame.left}px`,
+              top: `${frame.top}px`,
+              transform: 'none',
+              width: `${frame.width}px`,
+              height: frame.height === undefined ? undefined : `${frame.height}px`,
+          }
         : undefined
 
     return {action, frameStyle, onMoveStart, onResizeStart}

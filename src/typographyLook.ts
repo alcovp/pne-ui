@@ -41,9 +41,7 @@ export const createPneTypographyOverrides = (): NonNullable<Components<Theme>['M
             if (!tag || !HEADING_TAGS.has(tag)) return {}
             return {
                 padding: 0,
-                ...(theme.palette.mode === 'dark' && props.color === undefined
-                    ? {color: 'inherit'}
-                    : {}),
+                ...(theme.palette.mode === 'dark' && props.color === undefined ? {color: 'inherit'} : {}),
             }
         },
     },

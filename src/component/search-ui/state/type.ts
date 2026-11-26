@@ -1,4 +1,4 @@
-import {SearchCriteria} from "../filters/types";
+import {SearchCriteria} from '../filters/types'
 
 export type SearchUIState = {
     searchCriteria: SearchCriteria

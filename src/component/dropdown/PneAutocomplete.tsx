@@ -54,13 +54,9 @@ type PneAutocompleteSlots<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = Omit<NonNullable<MuiAutocompleteProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['slots']>, 'root'> & {root?: never}
+> = Omit<NonNullable<MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['slots']>, 'root'> & {
+    root?: never
+}
 
 type PneAutocompleteSlotProps<
     T extends PneAutocompleteOption,
@@ -68,13 +64,10 @@ type PneAutocompleteSlotProps<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = Omit<NonNullable<MuiAutocompleteProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['slotProps']>, 'root'> & {root?: never}
+> = Omit<
+    NonNullable<MuiAutocompleteProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['slotProps']>,
+    'root'
+> & {root?: never}
 
 type PneAutocompleteBaseProps<
     T extends PneAutocompleteOption,
@@ -120,19 +113,8 @@ export type PneAutocompleteBuiltInProps<
     DisableClearable extends boolean | undefined = undefined,
     FreeSolo extends boolean | undefined = undefined,
     ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-> = PneAutocompleteBaseProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
-> & PneAutocompleteAdapterProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->
+> = PneAutocompleteBaseProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent> &
+    PneAutocompleteAdapterProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
 
 export type PneAutocompleteCustomProps<
     T extends PneAutocompleteOption,
@@ -140,31 +122,14 @@ export type PneAutocompleteCustomProps<
     DisableClearable extends boolean | undefined = undefined,
     FreeSolo extends boolean | undefined = undefined,
     ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-> = PneAutocompleteBaseProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
-> & Required<Pick<
-    PneAutocompleteAdapterProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >,
-    'getOptionKey' | 'getOptionLabel'
->> & Pick<
-    PneAutocompleteAdapterProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >,
-    'isOptionEqualToValue'
->
+> = PneAutocompleteBaseProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent> &
+    Required<
+        Pick<
+            PneAutocompleteAdapterProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+            'getOptionKey' | 'getOptionLabel'
+        >
+    > &
+    Pick<PneAutocompleteAdapterProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>, 'isOptionEqualToValue'>
 
 export type PneAutocompleteProps<
     T extends PneAutocompleteOption,
@@ -174,19 +139,13 @@ export type PneAutocompleteProps<
     ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
 > = [T] extends [PneBuiltInAutocompleteOption]
     ? PneAutocompleteBuiltInProps<
-        Extract<T, PneBuiltInAutocompleteOption>,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >
-    : PneAutocompleteCustomProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >
+          Extract<T, PneBuiltInAutocompleteOption>,
+          Multiple,
+          DisableClearable,
+          FreeSolo,
+          ChipComponent
+      >
+    : PneAutocompleteCustomProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
 
 export type IProps<
     T extends PneAutocompleteOption,
@@ -202,19 +161,8 @@ type PneAutocompleteImplementationProps<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = PneAutocompleteBaseProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
-> & PneAutocompleteAdapterProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->
+> = PneAutocompleteBaseProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent> &
+    PneAutocompleteAdapterProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>
 
 type PneAutocompleteInferredCustomProps<
     Options extends readonly PneAutocompleteOption[],
@@ -223,13 +171,7 @@ type PneAutocompleteInferredCustomProps<
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
 > = Omit<
-    PneAutocompleteCustomProps<
-        NoInfer<Options[number]>,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >,
+    PneAutocompleteCustomProps<NoInfer<Options[number]>, Multiple, DisableClearable, FreeSolo, ChipComponent>,
     'options'
 > & {
     options: Options
@@ -242,39 +184,27 @@ type PneAutocompleteComponent = {
         DisableClearable extends boolean | undefined = false,
         FreeSolo extends boolean | undefined = false,
         ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-    >(props: PneAutocompleteInferredCustomProps<
-        Options,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >): React.JSX.Element
+    >(
+        props: PneAutocompleteInferredCustomProps<Options, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+    ): React.JSX.Element
     <
         T extends PneBuiltInAutocompleteOption,
         Multiple extends boolean | undefined = false,
         DisableClearable extends boolean | undefined = false,
         FreeSolo extends boolean | undefined = false,
         ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-    >(props: PneAutocompleteBuiltInProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >): React.JSX.Element
+    >(
+        props: PneAutocompleteBuiltInProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+    ): React.JSX.Element
     <
         T extends PneAutocompleteOption,
         Multiple extends boolean | undefined = false,
         DisableClearable extends boolean | undefined = false,
         FreeSolo extends boolean | undefined = false,
         ChipComponent extends React.ElementType = ChipTypeMap['defaultComponent'],
-    >(props: PneAutocompleteCustomProps<
-        T,
-        Multiple,
-        DisableClearable,
-        FreeSolo,
-        ChipComponent
-    >): React.JSX.Element
+    >(
+        props: PneAutocompleteCustomProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+    ): React.JSX.Element
     displayName?: string
 }
 
@@ -284,13 +214,7 @@ type PneAutocompleteOptionKeyResolver<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = NonNullable<PneAutocompleteAdapterProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['getOptionKey']>
+> = NonNullable<PneAutocompleteAdapterProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['getOptionKey']>
 
 type PneAutocompleteOptionLabelResolver<
     T extends PneAutocompleteOption,
@@ -298,13 +222,7 @@ type PneAutocompleteOptionLabelResolver<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = NonNullable<PneAutocompleteAdapterProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['getOptionLabel']>
+> = NonNullable<PneAutocompleteAdapterProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['getOptionLabel']>
 
 type PneAutocompleteOptionEquality<
     T extends PneAutocompleteOption,
@@ -312,13 +230,9 @@ type PneAutocompleteOptionEquality<
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
-> = NonNullable<PneAutocompleteAdapterProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->['isOptionEqualToValue']>
+> = NonNullable<
+    PneAutocompleteAdapterProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>['isOptionEqualToValue']
+>
 
 const PneAutocompleteImplementation = <
     T extends PneAutocompleteOption,
@@ -326,13 +240,9 @@ const PneAutocompleteImplementation = <
     DisableClearable extends boolean | undefined,
     FreeSolo extends boolean | undefined,
     ChipComponent extends React.ElementType,
->(rawProps: PneAutocompleteImplementationProps<
-    T,
-    Multiple,
-    DisableClearable,
-    FreeSolo,
-    ChipComponent
->) => {
+>(
+    rawProps: PneAutocompleteImplementationProps<T, Multiple, DisableClearable, FreeSolo, ChipComponent>,
+) => {
     const props = rawProps as typeof rawProps & {as?: unknown; component?: unknown}
     const {
         as: _as,
@@ -387,13 +297,11 @@ const PneAutocompleteImplementation = <
         FreeSolo,
         ChipComponent
     >
-    const resolvedOptionEquality = (isOptionEqualToValue ?? (getOptionKey
-        ? (option: T, value: unknown) => areAutocompleteOptionsEqualBy(
-            option,
-            value,
-            resolvedOptionKey as (option: T) => PneAutocompleteKey,
-        )
-        : areBuiltInOptionsEqual)) as PneAutocompleteOptionEquality<
+    const resolvedOptionEquality = (isOptionEqualToValue ??
+        (getOptionKey
+            ? (option: T, value: unknown) =>
+                  areAutocompleteOptionsEqualBy(option, value, resolvedOptionKey as (option: T) => PneAutocompleteKey)
+            : areBuiltInOptionsEqual)) as PneAutocompleteOptionEquality<
         T,
         Multiple,
         DisableClearable,
@@ -408,53 +316,50 @@ const PneAutocompleteImplementation = <
     })
     const resolvedSlotProps = withAutocompleteListboxName(slotProps, listboxName)
     const resolvedSlots = withoutAutocompleteRootSlot(slots)
-    const innerSx: SxProps = [
-        dropDownSx,
-        pneAutocompleteFieldSx,
-        ...(Array.isArray(sx) ? sx : [sx]),
-    ]
+    const innerSx: SxProps = [dropDownSx, pneAutocompleteFieldSx, ...(Array.isArray(sx) ? sx : [sx])]
 
-    return <Autocomplete
-        {...rest}
-        data-pne-multiple={rest.multiple === true ? '' : undefined}
-        data-pne-size={resolvedSize}
-        disabled={controlProps.disabled}
-        fullWidth={controlProps.fullWidth}
-        getOptionKey={resolvedOptionKey}
-        getOptionLabel={resolvedOptionLabel}
-        id={resolvedId}
-        isOptionEqualToValue={resolvedOptionEquality}
-        ref={ref}
-        renderInput={params => <PneTextField
-            {...params}
-            data-pne-state={pinnedState}
-            error={controlProps.error ?? false}
-            helperText={helperText}
-            inputRef={inputRef}
-            label={label}
-            placeholder={placeholder}
-            required={controlProps.required}
-            size={resolvedSize}
-            slotProps={{
-                ...params.slotProps,
-                htmlInput: mergeAutocompleteHtmlInputProps(
-                    params.slotProps.htmlInput,
-                    safeHtmlInputProps,
-                ),
-            }}
-            variant={variant}
-        />}
-        clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon'/>}
-        popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon'/>}
-        // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
-        size='small'
-        slotProps={withAutocompleteLook(resolvedSlotProps, {
-            ownRows: rest.renderOption !== undefined,
-            size: resolvedSize,
-        })}
-        slots={resolvedSlots}
-        sx={innerSx}
-    />
+    return (
+        <Autocomplete
+            {...rest}
+            data-pne-multiple={rest.multiple === true ? '' : undefined}
+            data-pne-size={resolvedSize}
+            disabled={controlProps.disabled}
+            fullWidth={controlProps.fullWidth}
+            getOptionKey={resolvedOptionKey}
+            getOptionLabel={resolvedOptionLabel}
+            id={resolvedId}
+            isOptionEqualToValue={resolvedOptionEquality}
+            ref={ref}
+            renderInput={params => (
+                <PneTextField
+                    {...params}
+                    data-pne-state={pinnedState}
+                    error={controlProps.error ?? false}
+                    helperText={helperText}
+                    inputRef={inputRef}
+                    label={label}
+                    placeholder={placeholder}
+                    required={controlProps.required}
+                    size={resolvedSize}
+                    slotProps={{
+                        ...params.slotProps,
+                        htmlInput: mergeAutocompleteHtmlInputProps(params.slotProps.htmlInput, safeHtmlInputProps),
+                    }}
+                    variant={variant}
+                />
+            )}
+            clearIcon={clearIcon ?? <PneCloseIcon className='PneAutocomplete-icon' />}
+            popupIcon={popupIcon ?? <PneChevronDownIcon className='PneAutocomplete-icon' />}
+            // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+            size='small'
+            slotProps={withAutocompleteLook(resolvedSlotProps, {
+                ownRows: rest.renderOption !== undefined,
+                size: resolvedSize,
+            })}
+            slots={resolvedSlots}
+            sx={innerSx}
+        />
+    )
 }
 
 const PneAutocomplete = PneAutocompleteImplementation as PneAutocompleteComponent

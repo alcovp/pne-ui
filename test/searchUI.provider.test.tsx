@@ -23,10 +23,14 @@ describe('SearchUIProvider', () => {
         const Application = () => {
             const [, tick] = React.useReducer((count: number) => count + 1, 0)
             rerender = tick
-            return <SearchUIProvider defaults={HOST_DEFAULTS}><Reader/></SearchUIProvider>
+            return (
+                <SearchUIProvider defaults={HOST_DEFAULTS}>
+                    <Reader />
+                </SearchUIProvider>
+            )
         }
 
-        render(<Application/>)
+        render(<Application />)
         act(() => rerender())
         act(() => rerender())
 
@@ -43,10 +47,16 @@ describe('SearchUIProvider', () => {
             return null
         })
         const reorderSearchTemplates = () => Promise.resolve()
-        const view = render(<SearchUIProvider defaults={HOST_DEFAULTS}><Reader/></SearchUIProvider>)
+        const view = render(
+            <SearchUIProvider defaults={HOST_DEFAULTS}>
+                <Reader />
+            </SearchUIProvider>,
+        )
 
         view.rerender(
-            <SearchUIProvider defaults={{...HOST_DEFAULTS, reorderSearchTemplates}}><Reader/></SearchUIProvider>,
+            <SearchUIProvider defaults={{...HOST_DEFAULTS, reorderSearchTemplates}}>
+                <Reader />
+            </SearchUIProvider>,
         )
 
         expect(seen).toHaveLength(2)

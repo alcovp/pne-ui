@@ -13,11 +13,13 @@ import {pneIconActionLook, pneIconButtonSizeLook} from '../iconButtonLook'
  * repeat the look here because they have to look right without the PNE UI theme as well, and they size
  * every glyph, whatever size the icon asked for.
  */
-export const pneIconActionSx = (size: 'small' | 'medium', restColor?: string): SxProps<Theme> => theme => ({
-    flex: '0 0 auto',
-    ...pneIconButtonSizeLook(size),
-    ...pneIconActionLook(theme, resolvePneSemanticPalette(theme), 'neutral', restColor),
-    '& .MuiSvgIcon-root': {
-        fontSize: `${PNE_BUTTON_SIZE[size].icon}px`,
-    },
-})
+export const pneIconActionSx =
+    (size: 'small' | 'medium', restColor?: string): SxProps<Theme> =>
+    theme => ({
+        flex: '0 0 auto',
+        ...pneIconButtonSizeLook(size),
+        ...pneIconActionLook(theme, resolvePneSemanticPalette(theme), 'neutral', restColor),
+        '& .MuiSvgIcon-root': {
+            fontSize: `${PNE_BUTTON_SIZE[size].icon}px`,
+        },
+    })

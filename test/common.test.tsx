@@ -7,9 +7,6 @@ import {Button} from '@mui/material'
 
 describe('Common render', () => {
     it('renders without crashing', () => {
-        render(<Button
-            variant='contained'
-            title={'Push!'}
-        />)
+        render(<Button variant='contained' title={'Push!'} />)
     })
 })

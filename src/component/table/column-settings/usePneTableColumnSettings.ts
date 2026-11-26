@@ -27,10 +27,7 @@ export type UsePneTableColumnSettingsResult<TColumn extends PneTableColumnOption
     openDialog: () => void
     closeDialog: () => void
     /** Spread into `PneTableColumnSettingsDialog`. */
-    dialogProps: Pick<
-        PneTableColumnSettingsDialogProps<TColumn>,
-        'columns' | 'onClose' | 'onSave' | 'open' | 'value'
-    >
+    dialogProps: Pick<PneTableColumnSettingsDialogProps<TColumn>, 'columns' | 'onClose' | 'onSave' | 'open' | 'value'>
 }
 
 /**
@@ -44,10 +41,7 @@ const usePneTableColumnSettings = <TColumn extends PneTableColumnOption>(
     const {columns, onSave, value} = params
     const [open, setOpen] = useState(false)
     const resolved = useMemo(() => resolvePneTableColumnSettings(columns, value), [columns, value])
-    const visibleIds = useMemo(
-        () => new Set(resolved.value.visibleColumnIds),
-        [resolved.value.visibleColumnIds],
-    )
+    const visibleIds = useMemo(() => new Set(resolved.value.visibleColumnIds), [resolved.value.visibleColumnIds])
     const openDialog = useCallback(() => setOpen(true), [])
     const closeDialog = useCallback(() => setOpen(false), [])
     const isVisible = useCallback((columnId: PneTableColumnId) => visibleIds.has(columnId), [visibleIds])

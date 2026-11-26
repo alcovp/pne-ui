@@ -30,8 +30,7 @@ export const PNE_ICON_SIZE_VAR = '--pne-icon-size'
 
 type IconButtonPaletteSource = Pick<PneSemanticPalette, 'button' | 'focusRing'>
 
-const resolveSize = (size: unknown): PneIconButtonLookSize =>
-    size === 'small' || size === 'large' ? size : 'medium'
+const resolveSize = (size: unknown): PneIconButtonLookSize => (size === 'small' || size === 'large' ? size : 'medium')
 
 /** The box and the glyph of a size; no colour here. */
 export const pneIconButtonSizeLook = (size: PneIconButtonLookSize): CSSObject => {
@@ -48,8 +47,10 @@ export const pneIconButtonSizeLook = (size: PneIconButtonLookSize): CSSObject =>
     }
 }
 
-const focusRing = (theme: Theme, pne: IconButtonPaletteSource): string[] =>
-    [`0 0 0 2px ${theme.palette.background.paper}`, `0 0 0 4px ${pne.focusRing}`]
+const focusRing = (theme: Theme, pne: IconButtonPaletteSource): string[] => [
+    `0 0 0 2px ${theme.palette.background.paper}`,
+    `0 0 0 4px ${pne.focusRing}`,
+]
 
 /**
  * UI Kit Icon action: the colours of an icon button without a fill. `tone` is the colour under the
@@ -83,12 +84,10 @@ export const pneIconActionLook = (
     }
 }
 
-const paletteColor = (theme: Theme, color: unknown): {main: string, dark: string} | undefined => {
-    const entry = typeof color === 'string'
-        ? (theme.palette as unknown as Record<string, unknown>)[color]
-        : undefined
+const paletteColor = (theme: Theme, color: unknown): {main: string; dark: string} | undefined => {
+    const entry = typeof color === 'string' ? (theme.palette as unknown as Record<string, unknown>)[color] : undefined
     if (entry && typeof entry === 'object' && 'main' in entry && 'dark' in entry) {
-        return entry as {main: string, dark: string}
+        return entry as {main: string; dark: string}
     }
     return undefined
 }
@@ -114,10 +113,10 @@ const colorLook = (theme: Theme, pne: IconButtonPaletteSource, color: unknown): 
             const palette = paletteColor(theme, color)
             return palette
                 ? {
-                    ...pneIconActionLook(theme, pne, 'neutral', palette.main),
-                    '&:hover': {backgroundColor: 'transparent', color: palette.dark},
-                    '&:active': {color: palette.dark},
-                }
+                      ...pneIconActionLook(theme, pne, 'neutral', palette.main),
+                      '&:hover': {backgroundColor: 'transparent', color: palette.dark},
+                      '&:active': {color: palette.dark},
+                  }
                 : pneIconActionLook(theme, pne)
         }
     }

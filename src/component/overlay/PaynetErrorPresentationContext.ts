@@ -1,5 +1,5 @@
-import { createContext } from 'react'
-import type { PaynetViolationMessageResolver } from './types'
+import {createContext} from 'react'
+import type {PaynetViolationMessageResolver} from './types'
 
 export type PaynetErrorPresentationContextValue = {
     resolveViolationMessage?: PaynetViolationMessageResolver

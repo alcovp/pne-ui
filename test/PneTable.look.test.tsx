@@ -39,26 +39,37 @@ const sortOptions = (sortIndex: number, order: 'asc' | 'desc'): TableSortOptions
     onSortChange: () => undefined,
 })
 
-const renderTable = (options = sortOptions(1, 'asc')) => render(<PneThemeProvider skin={UI_KIT_SKIN}>
-    <Table>
-        <TableHead>
-            <PneTableRow>
-                <PneHeaderTableCell><PneTableSortLabel sortIndex={0} sortOptions={options}>Date</PneTableSortLabel></PneHeaderTableCell>
-                <PneHeaderTableCell><PneTableSortLabel sortIndex={1} sortOptions={options}>ID</PneTableSortLabel></PneHeaderTableCell>
-            </PneTableRow>
-        </TableHead>
-        <TableBody>
-            <PneTableRow data-testid='first-row'>
-                <PneTableCell>Dec 09</PneTableCell>
-                <PneTableCell>9232734</PneTableCell>
-            </PneTableRow>
-            <PneTableRow data-testid='picked-row' selected>
-                <PneTableCell selected>Dec 10</PneTableCell>
-                <PneTableCell selected>9232735</PneTableCell>
-            </PneTableRow>
-        </TableBody>
-    </Table>
-</PneThemeProvider>)
+const renderTable = (options = sortOptions(1, 'asc')) =>
+    render(
+        <PneThemeProvider skin={UI_KIT_SKIN}>
+            <Table>
+                <TableHead>
+                    <PneTableRow>
+                        <PneHeaderTableCell>
+                            <PneTableSortLabel sortIndex={0} sortOptions={options}>
+                                Date
+                            </PneTableSortLabel>
+                        </PneHeaderTableCell>
+                        <PneHeaderTableCell>
+                            <PneTableSortLabel sortIndex={1} sortOptions={options}>
+                                ID
+                            </PneTableSortLabel>
+                        </PneHeaderTableCell>
+                    </PneTableRow>
+                </TableHead>
+                <TableBody>
+                    <PneTableRow data-testid='first-row'>
+                        <PneTableCell>Dec 09</PneTableCell>
+                        <PneTableCell>9232734</PneTableCell>
+                    </PneTableRow>
+                    <PneTableRow data-testid='picked-row' selected>
+                        <PneTableCell selected>Dec 10</PneTableCell>
+                        <PneTableCell selected>9232735</PneTableCell>
+                    </PneTableRow>
+                </TableBody>
+            </Table>
+        </PneThemeProvider>,
+    )
 
 const style = (element: Element) => window.getComputedStyle(element)
 
@@ -99,9 +110,17 @@ describe('PneTable frame (UI Kit look)', () => {
     })
 
     it('leaves a row without the hover fill when the consumer switches it off', () => {
-        render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <Table><TableBody><PneTableRow data-testid='plain-row' hover={false}><PneTableCell>x</PneTableCell></PneTableRow></TableBody></Table>
-        </PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <Table>
+                    <TableBody>
+                        <PneTableRow data-testid='plain-row' hover={false}>
+                            <PneTableCell>x</PneTableCell>
+                        </PneTableRow>
+                    </TableBody>
+                </Table>
+            </PneThemeProvider>,
+        )
 
         expect(ruleValue(screen.getByTestId('plain-row'), 'tbody > &:hover', 'background-color')).toBeUndefined()
     })
@@ -139,43 +158,57 @@ describe('PneTable frame (UI Kit look)', () => {
         expect(ruleValue(idle, icon, 'color')).toBe('#6E747A')
         expect(sorted.classList.contains('Mui-active')).toBe(true)
         expect(sorted.classList.contains('MuiTableSortLabel-directionDesc')).toBe(true)
-        expect(ruleValue(
-            sorted,
-            '&.Mui-active.MuiTableSortLabel-directionAsc .PneTableSortLabel-up, '
-                + '&.Mui-active.MuiTableSortLabel-directionDesc .PneTableSortLabel-down',
-            'stroke',
-        )).toBe('#005EB9')
-        expect(ruleValue(
-            sorted,
-            '&.Mui-active.MuiTableSortLabel-directionAsc .PneTableSortLabel-down, '
-                + '&.Mui-active.MuiTableSortLabel-directionDesc .PneTableSortLabel-up',
-            'stroke',
-        )).toBe('#B2B8BF')
+        expect(
+            ruleValue(
+                sorted,
+                '&.Mui-active.MuiTableSortLabel-directionAsc .PneTableSortLabel-up, ' +
+                    '&.Mui-active.MuiTableSortLabel-directionDesc .PneTableSortLabel-down',
+                'stroke',
+            ),
+        ).toBe('#005EB9')
+        expect(
+            ruleValue(
+                sorted,
+                '&.Mui-active.MuiTableSortLabel-directionAsc .PneTableSortLabel-down, ' +
+                    '&.Mui-active.MuiTableSortLabel-directionDesc .PneTableSortLabel-up',
+                'stroke',
+            ),
+        ).toBe('#B2B8BF')
         // The label keeps the colour of the header whether its column is sorted or not.
         expect(ruleValue(sorted, '&.Mui-active', 'color')).toBe('inherit')
     })
 
     it('fills the page size in force with the brand colour and leaves the others tertiary', () => {
-        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <PneTable<{id: string}>
-                autoTestId='band'
-                createRow={row => <tr key={row.id}><td>{row.id}</td></tr>}
-                createTableHeader={() => <tr><th>ID</th></tr>}
-                data={[{id: '1'}]}
-                paginator={{
-                    activeActionSx: {},
-                    disableActions: false,
-                    displayedRowsLabel: '1 - 1',
-                    hasNext: false,
-                    onPageChange: () => undefined,
-                    onPageSizeChange: () => undefined,
-                    page: 0,
-                    paginationRef: {current: null},
-                    rowsPerPage: 25,
-                    rowsPerPageOptions: [10, 25, 50],
-                }}
-            />
-        </PneThemeProvider>)
+        const {container} = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneTable<{id: string}>
+                    autoTestId='band'
+                    createRow={row => (
+                        <tr key={row.id}>
+                            <td>{row.id}</td>
+                        </tr>
+                    )}
+                    createTableHeader={() => (
+                        <tr>
+                            <th>ID</th>
+                        </tr>
+                    )}
+                    data={[{id: '1'}]}
+                    paginator={{
+                        activeActionSx: {},
+                        disableActions: false,
+                        displayedRowsLabel: '1 - 1',
+                        hasNext: false,
+                        onPageChange: () => undefined,
+                        onPageSizeChange: () => undefined,
+                        page: 0,
+                        paginationRef: {current: null},
+                        rowsPerPage: 25,
+                        rowsPerPageOptions: [10, 25, 50],
+                    }}
+                />
+            </PneThemeProvider>,
+        )
         const sizes = Array.from(container.querySelectorAll<HTMLElement>('[data-autotest="page-size"]')).slice(0, 3)
         const [ten, twentyFive] = sizes.map(button => style(button))
 
@@ -191,15 +224,25 @@ describe('PneTable frame (UI Kit look)', () => {
     })
 
     it('shows the message of an empty table under a glyph in a round fill, with no other content', () => {
-        const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <PneTable<{id: string}>
-                autoTestId='empty'
-                createRow={row => <tr key={row.id}><td>{row.id}</td></tr>}
-                createTableHeader={() => <tr><th>ID</th></tr>}
-                data={[]}
-                noRowsMessage='Nothing is found.'
-            />
-        </PneThemeProvider>)
+        const {container} = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneTable<{id: string}>
+                    autoTestId='empty'
+                    createRow={row => (
+                        <tr key={row.id}>
+                            <td>{row.id}</td>
+                        </tr>
+                    )}
+                    createTableHeader={() => (
+                        <tr>
+                            <th>ID</th>
+                        </tr>
+                    )}
+                    data={[]}
+                    noRowsMessage='Nothing is found.'
+                />
+            </PneThemeProvider>,
+        )
         const row = container.querySelector<HTMLElement>('[data-autotest="empty-state"]')!
         const cell = row.querySelector('td')!
         const sign = cell.querySelector<HTMLElement>('span[aria-hidden="true"]')!
@@ -220,14 +263,24 @@ describe('PneTable frame (UI Kit look)', () => {
         // jsdom lays nothing out: the container reports the width the test gives it.
         const clientWidth = jest.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(600)
         try {
-            const {container} = render(<PneThemeProvider skin={UI_KIT_SKIN}>
-                <PneTable<{id: string}>
-                    autoTestId='empty-wide'
-                    createRow={row => <tr key={row.id}><td>{row.id}</td></tr>}
-                    createTableHeader={() => <tr><th>ID</th></tr>}
-                    data={[]}
-                />
-            </PneThemeProvider>)
+            const {container} = render(
+                <PneThemeProvider skin={UI_KIT_SKIN}>
+                    <PneTable<{id: string}>
+                        autoTestId='empty-wide'
+                        createRow={row => (
+                            <tr key={row.id}>
+                                <td>{row.id}</td>
+                            </tr>
+                        )}
+                        createTableHeader={() => (
+                            <tr>
+                                <th>ID</th>
+                            </tr>
+                        )}
+                        data={[]}
+                    />
+                </PneThemeProvider>,
+            )
             const message = container.querySelector<HTMLElement>('[data-autotest="empty-state"] td > div')!
             const scroller = container.querySelector<HTMLElement>('.MuiTableContainer-root')!
 
@@ -244,18 +297,27 @@ describe('PneTable frame (UI Kit look)', () => {
 
 // UI Kit Cell/Header-island: the header of a table that is one of several on its page.
 describe('PneTable island header', () => {
-    const renderWithHeader = (headerVariant?: 'main' | 'island') => render(<PneThemeProvider skin={UI_KIT_SKIN}>
-        <PneTable<{id: string}>
-            autoTestId='island'
-            createRow={row => <PneTableRow key={row.id}><PneTableCell>{row.id}</PneTableCell></PneTableRow>}
-            createTableHeader={() => <PneTableRow>
-                <PneHeaderTableCell>ID</PneHeaderTableCell>
-                <PneHeaderTableCell>Name</PneHeaderTableCell>
-            </PneTableRow>}
-            data={[{id: '1'}]}
-            headerVariant={headerVariant}
-        />
-    </PneThemeProvider>)
+    const renderWithHeader = (headerVariant?: 'main' | 'island') =>
+        render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <PneTable<{id: string}>
+                    autoTestId='island'
+                    createRow={row => (
+                        <PneTableRow key={row.id}>
+                            <PneTableCell>{row.id}</PneTableCell>
+                        </PneTableRow>
+                    )}
+                    createTableHeader={() => (
+                        <PneTableRow>
+                            <PneHeaderTableCell>ID</PneHeaderTableCell>
+                            <PneHeaderTableCell>Name</PneHeaderTableCell>
+                        </PneTableRow>
+                    )}
+                    data={[{id: '1'}]}
+                    headerVariant={headerVariant}
+                />
+            </PneThemeProvider>,
+        )
 
     it('draws a 24px strip on the sunken fill with 12/16 Medium text and no line under it', () => {
         const {container} = renderWithHeader('island')

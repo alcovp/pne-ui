@@ -1,44 +1,44 @@
-import * as React from 'react';
-import '../fonts/pne-fonts.css';
-import Box from '@mui/material/Box';
-import {PneThemeProvider, Skin, type PneColorMode} from "../src";
-import { MINIMAL_VIEWPORTS } from 'storybook/viewport'
-import { withContext } from './decorators/withContext';
-import { HostPageStyles } from './hostPage';
-import { STORYBOOK_DEFAULT_SKIN, skinColorOf } from './skins';
+import * as React from 'react'
+import '../fonts/pne-fonts.css'
+import Box from '@mui/material/Box'
+import {PneThemeProvider, Skin, type PneColorMode} from '../src'
+import {MINIMAL_VIEWPORTS} from 'storybook/viewport'
+import {withContext} from './decorators/withContext'
+import {HostPageStyles} from './hostPage'
+import {STORYBOOK_DEFAULT_SKIN, skinColorOf} from './skins'
 
 const defaultSkin: Skin = {
-    'headerBackgroundColor': '#18547b',
-    'headerTextColor': '#fff',
-    'headerBorder': '1px solid #3899d5',
-    'menuBackgroundColor': '#fff',
-    'menuBorder': '1px solid transparent',
-    'menuItemBackgroundColor': '#1686ca',
-    'menuItemTextColor': '#fff',
-    'menuItemBorderLeft': '1px solid #2aa4f2',
-    'menuItemBorderTop': '1px solid #2aa4f2',
-    'menuItemBorderRight': '1px solid #106ba3',
-    'menuItemBorderBottom': 'none',
-    'menuItemActiveBackgroundColor': '#f0f8fc',
-    'menuItemActiveTextColor': '#116fa9',
-    'menuItemActiveBorderLeft': '1px solid #fff',
-    'menuItemActiveBorderTop': '1px solid #fff',
-    'menuItemActiveBorderRight': '1px solid #0d68a2',
-    'menuItemActiveBorderBottom': 'none',
-    'menuItemHoverBackgroundColor': '#f0f8fc',
-    'menuItemHoverTextColor': '#116fa9',
-    'menuItemHoverBorderLeft': '1px solid #fff',
-    'menuItemHoverBorderTop': '1px solid #fff',
-    'menuItemHoverBorderRight': '1px solid #0d68a2',
-    'menuItemHoverBorderBottom': 'none',
-    'subMenuBackgroundColor': '#1686ca',
-    'subMenuItemTextColor': '#fff',
-    'subMenuItemHoverTextColor': '#fff',
-    'subMenuItemHoverBackgroundColor': '#116fa9',
-    'footerBackgroundColor': '#18547b',
-    'footerTextColor': '#fff',
+    headerBackgroundColor: '#18547b',
+    headerTextColor: '#fff',
+    headerBorder: '1px solid #3899d5',
+    menuBackgroundColor: '#fff',
+    menuBorder: '1px solid transparent',
+    menuItemBackgroundColor: '#1686ca',
+    menuItemTextColor: '#fff',
+    menuItemBorderLeft: '1px solid #2aa4f2',
+    menuItemBorderTop: '1px solid #2aa4f2',
+    menuItemBorderRight: '1px solid #106ba3',
+    menuItemBorderBottom: 'none',
+    menuItemActiveBackgroundColor: '#f0f8fc',
+    menuItemActiveTextColor: '#116fa9',
+    menuItemActiveBorderLeft: '1px solid #fff',
+    menuItemActiveBorderTop: '1px solid #fff',
+    menuItemActiveBorderRight: '1px solid #0d68a2',
+    menuItemActiveBorderBottom: 'none',
+    menuItemHoverBackgroundColor: '#f0f8fc',
+    menuItemHoverTextColor: '#116fa9',
+    menuItemHoverBorderLeft: '1px solid #fff',
+    menuItemHoverBorderTop: '1px solid #fff',
+    menuItemHoverBorderRight: '1px solid #0d68a2',
+    menuItemHoverBorderBottom: 'none',
+    subMenuBackgroundColor: '#1686ca',
+    subMenuItemTextColor: '#fff',
+    subMenuItemHoverTextColor: '#fff',
+    subMenuItemHoverBackgroundColor: '#116fa9',
+    footerBackgroundColor: '#18547b',
+    footerTextColor: '#fff',
     // Replaced by the Skin toolbar choice; the default is the UI Kit (Claude) blue.
-    'experimentalColor': skinColorOf(STORYBOOK_DEFAULT_SKIN)
+    experimentalColor: skinColorOf(STORYBOOK_DEFAULT_SKIN),
 }
 
 const customViewports = {
@@ -140,25 +140,27 @@ const preview = {
     decorators: [
         withContext,
         (Story, context) => {
-            const mode = (context.globals.colorMode ?? 'light') as PneColorMode;
+            const mode = (context.globals.colorMode ?? 'light') as PneColorMode
             return (
                 <PneThemeProvider
                     skin={{...defaultSkin, experimentalColor: skinColorOf(context.globals.skin)}}
                     mode={mode}
                 >
-                    <HostPageStyles mode={mode}/>
+                    <HostPageStyles mode={mode} />
                     {/* The light page is the host one from HostPageStyles, the dark one is the theme's. */}
                     <Box
-                        sx={mode === 'dark'
-                            ? {backgroundColor: 'background.default', color: 'text.primary', minHeight: '100vh'}
-                            : {minHeight: '100vh'}}
+                        sx={
+                            mode === 'dark'
+                                ? {backgroundColor: 'background.default', color: 'text.primary', minHeight: '100vh'}
+                                : {minHeight: '100vh'}
+                        }
                     >
-                        <Story/>
+                        <Story />
                     </Box>
                 </PneThemeProvider>
-            );
+            )
         },
     ],
-};
+}
 
-export default preview;
+export default preview

@@ -4,14 +4,7 @@ import type {SwitchOwnerState} from '@mui/material/Switch'
 import {createTheme, ThemeProvider} from '@mui/material/styles'
 import * as React from 'react'
 
-import {
-    PneCheckbox,
-    PneField,
-    PneLabeledCheckbox,
-    PneSwitch,
-    PneThemeProvider,
-    type Skin,
-} from '../src'
+import {PneCheckbox, PneField, PneLabeledCheckbox, PneSwitch, PneThemeProvider, type Skin} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -45,12 +38,12 @@ type CustomInputProps = React.ComponentPropsWithoutRef<'input'> & {ownerState?: 
 
 const FirstNativeInput = ({ref, ...props}: CustomInputProps & {ref?: React.Ref<HTMLInputElement>}) => {
     const {ownerState: _ownerState, ...inputProps} = props
-    return <input {...inputProps} data-input-slot='first' ref={ref}/>
+    return <input {...inputProps} data-input-slot='first' ref={ref} />
 }
 
 const SecondNativeInput = ({ref, ...props}: CustomInputProps & {ref?: React.Ref<HTMLInputElement>}) => {
     const {ownerState: _ownerState, ...inputProps} = props
-    return <input {...inputProps} data-input-slot='second' ref={ref}/>
+    return <input {...inputProps} data-input-slot='second' ref={ref} />
 }
 
 describe('PneCheckbox', () => {
@@ -58,12 +51,14 @@ describe('PneCheckbox', () => {
         const rootRef = React.createRef<HTMLSpanElement>()
         const inputRef = React.createRef<HTMLInputElement>()
 
-        render(<PneCheckbox
-            aria-label='Select report'
-            data-autotest='report-checkbox'
-            inputRef={inputRef}
-            ref={rootRef}
-        />)
+        render(
+            <PneCheckbox
+                aria-label='Select report'
+                data-autotest='report-checkbox'
+                inputRef={inputRef}
+                ref={rootRef}
+            />,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Select report'}) as HTMLInputElement
 
@@ -75,40 +70,44 @@ describe('PneCheckbox', () => {
     })
 
     it('synchronizes managed mixed state when the native input is replaced', () => {
-        const view = render(<PneCheckbox
-            aria-checked={false}
-            aria-label='Select page'
-            indeterminate
-            slots={{input: FirstNativeInput}}
-            slotProps={{
-                input: {
-                    'aria-checked': false,
-                },
-            }}
-        />)
+        const view = render(
+            <PneCheckbox
+                aria-checked={false}
+                aria-label='Select page'
+                indeterminate
+                slots={{input: FirstNativeInput}}
+                slotProps={{
+                    input: {
+                        'aria-checked': false,
+                    },
+                }}
+            />,
+        )
         const firstInput = screen.getByRole('checkbox', {name: 'Select page'}) as HTMLInputElement
 
         expect(firstInput.indeterminate).toBe(true)
         expect(firstInput.getAttribute('aria-checked')).toBe('mixed')
 
-        view.rerender(<PneCheckbox
-            aria-checked={false}
-            aria-label='Select page'
-            indeterminate
-            slots={{input: SecondNativeInput}}
-            slotProps={{
-                input: {
-                    'aria-checked': false,
-                },
-            }}
-        />)
+        view.rerender(
+            <PneCheckbox
+                aria-checked={false}
+                aria-label='Select page'
+                indeterminate
+                slots={{input: SecondNativeInput}}
+                slotProps={{
+                    input: {
+                        'aria-checked': false,
+                    },
+                }}
+            />,
+        )
         const secondInput = screen.getByRole('checkbox', {name: 'Select page'}) as HTMLInputElement
 
         expect(secondInput).not.toBe(firstInput)
         expect(secondInput.indeterminate).toBe(true)
         expect(secondInput.getAttribute('aria-checked')).toBe('mixed')
 
-        view.rerender(<PneCheckbox aria-label='Select page' indeterminate={false}/>)
+        view.rerender(<PneCheckbox aria-label='Select page' indeterminate={false} />)
 
         const determinateInput = screen.getByRole('checkbox', {name: 'Select page'}) as HTMLInputElement
         expect(determinateInput.indeterminate).toBe(false)
@@ -117,11 +116,9 @@ describe('PneCheckbox', () => {
 
     it('preserves uncontrolled and controlled checked behavior', () => {
         const uncontrolledChange = jest.fn()
-        const uncontrolled = render(<PneCheckbox
-            aria-label='Uncontrolled checkbox'
-            defaultChecked={false}
-            onChange={uncontrolledChange}
-        />)
+        const uncontrolled = render(
+            <PneCheckbox aria-label='Uncontrolled checkbox' defaultChecked={false} onChange={uncontrolledChange} />,
+        )
         const uncontrolledInput = screen.getByRole('checkbox', {
             name: 'Uncontrolled checkbox',
         }) as HTMLInputElement
@@ -134,11 +131,7 @@ describe('PneCheckbox', () => {
         uncontrolled.unmount()
 
         const controlledChange = jest.fn()
-        render(<PneCheckbox
-            aria-label='Controlled checkbox'
-            checked={false}
-            onChange={controlledChange}
-        />)
+        render(<PneCheckbox aria-label='Controlled checkbox' checked={false} onChange={controlledChange} />)
         const controlledInput = screen.getByRole('checkbox', {
             name: 'Controlled checkbox',
         }) as HTMLInputElement
@@ -153,29 +146,25 @@ describe('PneCheckbox', () => {
         const slotInputRef = React.createRef<HTMLInputElement>()
         const inputRef = React.createRef<HTMLInputElement>()
 
-        render(<>
-            <span id='external-help'>External help</span>
-            <span id='slot-help'>Slot help</span>
-            <PneField
-                error
-                helperText='Field help'
-                id='report-selection'
-                label='Select report'
-                required
-            >
-                <PneCheckbox
-                    aria-describedby='external-help'
-                    inputRef={inputRef}
-                    slotProps={{
-                        input: {
-                            'aria-describedby': 'slot-help',
-                            ref: slotInputRef,
-                            title: 'Native checkbox title',
-                        },
-                    }}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='external-help'>External help</span>
+                <span id='slot-help'>Slot help</span>
+                <PneField error helperText='Field help' id='report-selection' label='Select report' required>
+                    <PneCheckbox
+                        aria-describedby='external-help'
+                        inputRef={inputRef}
+                        slotProps={{
+                            input: {
+                                'aria-describedby': 'slot-help',
+                                ref: slotInputRef,
+                                title: 'Native checkbox title',
+                            },
+                        }}
+                    />
+                </PneField>
+            </>,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Select report'}) as HTMLInputElement
         const helper = screen.getByText('Field help')
@@ -191,17 +180,19 @@ describe('PneCheckbox', () => {
     })
 
     it('lets an explicit top-level accessible name override PneField labels', () => {
-        render(<>
-            <span id='ignored-checkbox-label'>Ignored checkbox label</span>
-            <PneField label='Field checkbox name'>
-                <PneCheckbox
-                    aria-label='Explicit checkbox name'
-                    slotProps={{
-                        input: {'aria-labelledby': 'ignored-checkbox-label'},
-                    }}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='ignored-checkbox-label'>Ignored checkbox label</span>
+                <PneField label='Field checkbox name'>
+                    <PneCheckbox
+                        aria-label='Explicit checkbox name'
+                        slotProps={{
+                            input: {'aria-labelledby': 'ignored-checkbox-label'},
+                        }}
+                    />
+                </PneField>
+            </>,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Explicit checkbox name'})
 
@@ -243,15 +234,13 @@ describe('PneCheckbox', () => {
             },
         }
 
-        render(<ThemeProvider theme={theme}>
-            <span id='theme-help'>Theme help</span>
-            <span id='consumer-help'>Consumer help</span>
-            <PneCheckbox
-                inputRef={inputRef}
-                onChange={onChange}
-                slotProps={{input: consumerInputSlot}}
-            />
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <span id='theme-help'>Theme help</span>
+                <span id='consumer-help'>Consumer help</span>
+                <PneCheckbox inputRef={inputRef} onChange={onChange} slotProps={{input: consumerInputSlot}} />
+            </ThemeProvider>,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Theme checkbox'}) as HTMLInputElement
 
@@ -277,17 +266,19 @@ describe('PneCheckbox', () => {
     })
 
     it('inherits disabled state from PneField', () => {
-        render(<PneField controlId='archived-report' disabled label='Archived report'>
-            <PneCheckbox
-                slotProps={{
-                    input: {
-                        'aria-disabled': false,
-                        disabled: false,
-                        id: 'ignored-checkbox-id',
-                    },
-                }}
-            />
-        </PneField>)
+        render(
+            <PneField controlId='archived-report' disabled label='Archived report'>
+                <PneCheckbox
+                    slotProps={{
+                        input: {
+                            'aria-disabled': false,
+                            disabled: false,
+                            id: 'ignored-checkbox-id',
+                        },
+                    }}
+                />
+            </PneField>,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Archived report'}) as HTMLInputElement
 
@@ -299,15 +290,11 @@ describe('PneCheckbox', () => {
     it('keeps native form value, required validation, and reset behavior', () => {
         const formRef = React.createRef<HTMLFormElement>()
 
-        render(<form ref={formRef}>
-            <PneCheckbox
-                aria-label='Terms accepted'
-                defaultChecked
-                name='terms'
-                required
-                value='accepted'
-            />
-        </form>)
+        render(
+            <form ref={formRef}>
+                <PneCheckbox aria-label='Terms accepted' defaultChecked name='terms' required value='accepted' />
+            </form>,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Terms accepted'}) as HTMLInputElement
 
@@ -325,11 +312,12 @@ describe('PneCheckbox', () => {
 
 describe('PneSwitch', () => {
     it('smoothly transitions the track color for every switch state change', () => {
-        const {container} = render(<PneSwitch aria-label='Animated track switch'/>)
+        const {container} = render(<PneSwitch aria-label='Animated track switch' />)
         const track = container.querySelector<HTMLElement>('.MuiSwitch-track')!
 
-        expect(window.getComputedStyle(track).transition)
-            .toBe('background-color 240ms cubic-bezier(0.4, 0, 0.2, 1) 0ms')
+        expect(window.getComputedStyle(track).transition).toBe(
+            'background-color 240ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+        )
     })
 
     it('lets a functional track slot extend and override the shared transition', () => {
@@ -337,16 +325,17 @@ describe('PneSwitch', () => {
             'data-consumer-track': 'true',
             sx: {transitionDuration: '333ms'},
         }))
-        const {container} = render(<PneSwitch
-            aria-label='Custom animated track switch'
-            slotProps={{track: trackSlot}}
-        />)
+        const {container} = render(
+            <PneSwitch aria-label='Custom animated track switch' slotProps={{track: trackSlot}} />,
+        )
         const track = container.querySelector<HTMLElement>('.MuiSwitch-track')!
 
-        expect(trackSlot).toHaveBeenCalledWith(expect.objectContaining({
-            checked: false,
-            size: 'medium',
-        }))
+        expect(trackSlot).toHaveBeenCalledWith(
+            expect.objectContaining({
+                checked: false,
+                size: 'medium',
+            }),
+        )
         expect(track.dataset.consumerTrack).toBe('true')
         expect(window.getComputedStyle(track).transitionDuration).toBe('333ms')
     })
@@ -362,16 +351,18 @@ describe('PneSwitch', () => {
             title: 'Native switch title',
         }))
 
-        const view = render(<>
-            <span id='external-help'>External help</span>
-            <span id='slot-help'>Slot help</span>
-            <PneSwitch
-                aria-describedby='external-help'
-                aria-label='Live updates'
-                inputRef={inputRef}
-                slotProps={{input: inputSlot}}
-            />
-        </>)
+        const view = render(
+            <>
+                <span id='external-help'>External help</span>
+                <span id='slot-help'>Slot help</span>
+                <PneSwitch
+                    aria-describedby='external-help'
+                    aria-label='Live updates'
+                    inputRef={inputRef}
+                    slotProps={{input: inputSlot}}
+                />
+            </>,
+        )
 
         const input = screen.getByRole('switch', {name: 'Live updates'}) as HTMLInputElement
 
@@ -391,15 +382,11 @@ describe('PneSwitch', () => {
     it('forwards its primary ref to a span and integrates with PneField', () => {
         const rootRef = React.createRef<HTMLSpanElement>()
 
-        render(<PneField
-            error
-            helperText='Switch help'
-            id='updates-field'
-            label='Live updates'
-            required
-        >
-            <PneSwitch data-autotest='live-updates-switch' ref={rootRef}/>
-        </PneField>)
+        render(
+            <PneField error helperText='Switch help' id='updates-field' label='Live updates' required>
+                <PneSwitch data-autotest='live-updates-switch' ref={rootRef} />
+            </PneField>,
+        )
 
         const input = screen.getByRole('switch', {name: 'Live updates'}) as HTMLInputElement
         const helper = screen.getByText('Switch help')
@@ -419,15 +406,14 @@ describe('PneSwitch', () => {
             'aria-labelledby': 'ignored-switch-label',
         }))
 
-        render(<>
-            <span id='ignored-switch-label'>Ignored switch label</span>
-            <PneField label='Field switch name'>
-                <PneSwitch
-                    aria-labelledby='also-ignored-switch-label'
-                    slotProps={{input: inputSlot}}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='ignored-switch-label'>Ignored switch label</span>
+                <PneField label='Field switch name'>
+                    <PneSwitch aria-labelledby='also-ignored-switch-label' slotProps={{input: inputSlot}} />
+                </PneField>
+            </>,
+        )
 
         const input = screen.getByRole('switch', {name: 'Explicit switch name'})
 
@@ -457,11 +443,13 @@ describe('PneSwitch', () => {
             },
         }
 
-        render(<ThemeProvider theme={theme}>
-            <PneField controlId='field-switch-id' disabled label='Locked updates'>
-                <PneSwitch slotProps={{input: inputSlot}}/>
-            </PneField>
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <PneField controlId='field-switch-id' disabled label='Locked updates'>
+                    <PneSwitch slotProps={{input: inputSlot}} />
+                </PneField>
+            </ThemeProvider>,
+        )
 
         const input = screen.getByRole('switch', {name: 'Locked updates'}) as HTMLInputElement
 
@@ -501,15 +489,13 @@ describe('PneSwitch', () => {
             },
         }
 
-        render(<ThemeProvider theme={theme}>
-            <span id='theme-switch-help'>Theme help</span>
-            <span id='consumer-switch-help'>Consumer help</span>
-            <PneSwitch
-                inputRef={inputRef}
-                onChange={onChange}
-                slotProps={{input: consumerInputSlot}}
-            />
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <span id='theme-switch-help'>Theme help</span>
+                <span id='consumer-switch-help'>Consumer help</span>
+                <PneSwitch inputRef={inputRef} onChange={onChange} slotProps={{input: consumerInputSlot}} />
+            </ThemeProvider>,
+        )
 
         const input = screen.getByRole('switch', {name: 'Theme switch'}) as HTMLInputElement
 
@@ -536,17 +522,19 @@ describe('PneSwitch', () => {
         const ControlledSwitch = () => {
             const [checked, setChecked] = React.useState(false)
 
-            return <PneSwitch
-                aria-label='Remote updates'
-                checked={checked}
-                onChange={(event, nextChecked) => {
-                    onChange(event, nextChecked)
-                    return request.promise.then(() => setChecked(nextChecked))
-                }}
-            />
+            return (
+                <PneSwitch
+                    aria-label='Remote updates'
+                    checked={checked}
+                    onChange={(event, nextChecked) => {
+                        onChange(event, nextChecked)
+                        return request.promise.then(() => setChecked(nextChecked))
+                    }}
+                />
+            )
         }
 
-        render(<ControlledSwitch/>)
+        render(<ControlledSwitch />)
 
         const input = screen.getByRole('switch', {name: 'Remote updates'}) as HTMLInputElement
 
@@ -581,11 +569,7 @@ describe('PneSwitch', () => {
             return request.promise
         })
 
-        render(<PneSwitch
-            aria-label='Reentrant updates'
-            checked={false}
-            onChange={onChange}
-        />)
+        render(<PneSwitch aria-label='Reentrant updates' checked={false} onChange={onChange} />)
 
         const input = screen.getByRole('switch', {name: 'Reentrant updates'}) as HTMLInputElement
 
@@ -607,11 +591,7 @@ describe('PneSwitch', () => {
     it('rolls a rejected controlled async change back and handles the rejection', async () => {
         const request = createDeferred<void>()
 
-        render(<PneSwitch
-            aria-label='Rejected updates'
-            checked={false}
-            onChange={() => request.promise}
-        />)
+        render(<PneSwitch aria-label='Rejected updates' checked={false} onChange={() => request.promise} />)
 
         const input = screen.getByRole('switch', {name: 'Rejected updates'}) as HTMLInputElement
 
@@ -632,15 +612,12 @@ describe('PneSwitch', () => {
     it('commits and rolls back async changes with defaultChecked usage', async () => {
         const acceptedRequest = createDeferred<void>()
         const rejectedRequest = createDeferred<void>()
-        const onChange = jest.fn()
+        const onChange = jest
+            .fn()
             .mockImplementationOnce(() => acceptedRequest.promise)
             .mockImplementationOnce(() => rejectedRequest.promise)
 
-        render(<PneSwitch
-            aria-label='Uncontrolled updates'
-            defaultChecked={false}
-            onChange={onChange}
-        />)
+        render(<PneSwitch aria-label='Uncontrolled updates' defaultChecked={false} onChange={onChange} />)
 
         const input = screen.getByRole('switch', {name: 'Uncontrolled updates'}) as HTMLInputElement
 
@@ -672,11 +649,9 @@ describe('PneSwitch', () => {
         const controlledChange = jest.fn()
         const formRef = React.createRef<HTMLFormElement>()
 
-        const view = render(<PneSwitch
-            aria-label='Controlled sync switch'
-            checked={false}
-            onChange={controlledChange}
-        />)
+        const view = render(
+            <PneSwitch aria-label='Controlled sync switch' checked={false} onChange={controlledChange} />,
+        )
         const controlledInput = screen.getByRole('switch', {
             name: 'Controlled sync switch',
         }) as HTMLInputElement
@@ -688,15 +663,17 @@ describe('PneSwitch', () => {
         expect(controlledChange).toHaveBeenCalledWith(expect.anything(), true)
 
         view.unmount()
-        render(<form ref={formRef}>
-            <PneSwitch
-                aria-label='Resettable sync switch'
-                defaultChecked
-                name='updates'
-                onChange={(_event, nextChecked) => changes.push(nextChecked)}
-                value='enabled'
-            />
-        </form>)
+        render(
+            <form ref={formRef}>
+                <PneSwitch
+                    aria-label='Resettable sync switch'
+                    defaultChecked
+                    name='updates'
+                    onChange={(_event, nextChecked) => changes.push(nextChecked)}
+                    value='enabled'
+                />
+            </form>,
+        )
 
         const resettableInput = screen.getByRole('switch', {
             name: 'Resettable sync switch',
@@ -720,13 +697,11 @@ describe('PneSwitch', () => {
         const request = createDeferred<void>()
         const formRef = React.createRef<HTMLFormElement>()
 
-        render(<form ref={formRef}>
-            <PneSwitch
-                aria-label='Reset pending switch'
-                defaultChecked={false}
-                onChange={() => request.promise}
-            />
-        </form>)
+        render(
+            <form ref={formRef}>
+                <PneSwitch aria-label='Reset pending switch' defaultChecked={false} onChange={() => request.promise} />
+            </form>,
+        )
 
         const input = screen.getByRole('switch', {
             name: 'Reset pending switch',
@@ -757,20 +732,16 @@ describe('PneSwitch', () => {
         const request = createDeferred<void>()
         const formRef = React.createRef<HTMLFormElement>()
 
-        render(<form
-            onReset={event => event.preventDefault()}
-            ref={formRef}
-        >
-            <PneSwitch
-                aria-label='Canceled idle reset'
-                defaultChecked
-            />
-            <PneSwitch
-                aria-label='Canceled pending reset'
-                defaultChecked={false}
-                onChange={() => request.promise}
-            />
-        </form>)
+        render(
+            <form onReset={event => event.preventDefault()} ref={formRef}>
+                <PneSwitch aria-label='Canceled idle reset' defaultChecked />
+                <PneSwitch
+                    aria-label='Canceled pending reset'
+                    defaultChecked={false}
+                    onChange={() => request.promise}
+                />
+            </form>,
+        )
 
         const idleInput = screen.getByRole('switch', {
             name: 'Canceled idle reset',
@@ -804,15 +775,13 @@ describe('PneSwitch', () => {
     })
 
     it('tracks a changed native form association without remounting', async () => {
-        const renderSwitch = (formId: string) => <>
-            <form id='updates-form-a'/>
-            <form id='updates-form-b'/>
-            <PneSwitch
-                aria-label='Reassociated switch'
-                defaultChecked
-                slotProps={{input: {form: formId}}}
-            />
-        </>
+        const renderSwitch = (formId: string) => (
+            <>
+                <form id='updates-form-a' />
+                <form id='updates-form-b' />
+                <PneSwitch aria-label='Reassociated switch' defaultChecked slotProps={{input: {form: formId}}} />
+            </>
+        )
         const view = render(renderSwitch('updates-form-a'))
         const input = screen.getByRole('switch', {
             name: 'Reassociated switch',
@@ -824,13 +793,13 @@ describe('PneSwitch', () => {
         view.rerender(renderSwitch('updates-form-b'))
 
         await act(async () => {
-            (document.getElementById('updates-form-a') as HTMLFormElement).reset()
+            ;(document.getElementById('updates-form-a') as HTMLFormElement).reset()
             await Promise.resolve()
         })
         expect(input.checked).toBe(false)
 
         await act(async () => {
-            (document.getElementById('updates-form-b') as HTMLFormElement).reset()
+            ;(document.getElementById('updates-form-b') as HTMLFormElement).reset()
             await Promise.resolve()
         })
         expect(input.checked).toBe(true)
@@ -838,13 +807,11 @@ describe('PneSwitch', () => {
 
     it('settles while React Activity temporarily disconnects effects', async () => {
         const request = createDeferred<void>()
-        const renderActivity = (mode: 'hidden' | 'visible') => <React.Activity mode={mode}>
-            <PneSwitch
-                aria-label='Activity switch'
-                defaultChecked={false}
-                onChange={() => request.promise}
-            />
-        </React.Activity>
+        const renderActivity = (mode: 'hidden' | 'visible') => (
+            <React.Activity mode={mode}>
+                <PneSwitch aria-label='Activity switch' defaultChecked={false} onChange={() => request.promise} />
+            </React.Activity>
+        )
         const view = render(renderActivity('visible'))
         const input = screen.getByRole('switch', {name: 'Activity switch'}) as HTMLInputElement
 
@@ -869,15 +836,17 @@ describe('PneSwitch', () => {
     it('honors a form reset while React Activity is hidden', async () => {
         const request = createDeferred<void>()
         const formRef = React.createRef<HTMLFormElement>()
-        const renderActivity = (mode: 'hidden' | 'visible') => <form ref={formRef}>
-            <React.Activity mode={mode}>
-                <PneSwitch
-                    aria-label='Hidden reset switch'
-                    defaultChecked={false}
-                    onChange={() => request.promise}
-                />
-            </React.Activity>
-        </form>
+        const renderActivity = (mode: 'hidden' | 'visible') => (
+            <form ref={formRef}>
+                <React.Activity mode={mode}>
+                    <PneSwitch
+                        aria-label='Hidden reset switch'
+                        defaultChecked={false}
+                        onChange={() => request.promise}
+                    />
+                </React.Activity>
+            </form>
+        )
         const view = render(renderActivity('visible'))
         const input = screen.getByRole('switch', {
             name: 'Hidden reset switch',
@@ -910,11 +879,15 @@ describe('PneSwitch', () => {
 
     it('releases a form reset listener when hidden Activity is unmounted', async () => {
         const formRef = React.createRef<HTMLFormElement>()
-        const renderActivity = (mounted: boolean, mode: 'hidden' | 'visible') => <form ref={formRef}>
-            {mounted && <React.Activity mode={mode}>
-                <PneSwitch aria-label='Hidden unmount switch' defaultChecked/>
-            </React.Activity>}
-        </form>
+        const renderActivity = (mounted: boolean, mode: 'hidden' | 'visible') => (
+            <form ref={formRef}>
+                {mounted && (
+                    <React.Activity mode={mode}>
+                        <PneSwitch aria-label='Hidden unmount switch' defaultChecked />
+                    </React.Activity>
+                )}
+            </form>
+        )
         const view = render(renderActivity(true, 'visible'))
         const form = formRef.current!
         const removeEventListener = jest.spyOn(form, 'removeEventListener')
@@ -926,10 +899,7 @@ describe('PneSwitch', () => {
 
         view.rerender(renderActivity(false, 'hidden'))
 
-        await waitFor(() => expect(removeEventListener).toHaveBeenCalledWith(
-            'reset',
-            expect.any(Function),
-        ))
+        await waitFor(() => expect(removeEventListener).toHaveBeenCalledWith('reset', expect.any(Function)))
 
         removeEventListener.mockRestore()
     })
@@ -947,7 +917,9 @@ const switchRuleValue = (name: string, selectorSuffix: string, property: string)
         .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
         .filter(rule => {
             const selector = rule.selectorText.replace(/\s+/g, '')
-            return rootClasses.some(className => selector.startsWith(`.${className}`)) && selector.endsWith(selectorSuffix)
+            return (
+                rootClasses.some(className => selector.startsWith(`.${className}`)) && selector.endsWith(selectorSuffix)
+            )
         })
         .map(rule => rule.style.getPropertyValue(property))
         .filter(Boolean)
@@ -957,15 +929,17 @@ const switchRuleValue = (name: string, selectorSuffix: string, property: string)
 
 describe('PneSwitch hit area', () => {
     it('makes the whole switch clickable and nothing around it', () => {
-        render(<>
-            <PneSwitch aria-label='Small hit area' size='small'/>
-            <PneSwitch aria-label='Medium hit area'/>
-        </>)
+        render(
+            <>
+                <PneSwitch aria-label='Small hit area' size='small' />
+                <PneSwitch aria-label='Medium hit area' />
+            </>,
+        )
 
         const inputGeometry = (name: string) => [
-            ...['top', 'left', 'width', 'height'].map(property => (
-                switchRuleValue(name, '.MuiSwitch-switchBase.MuiSwitch-input', property)
-            )),
+            ...['top', 'left', 'width', 'height'].map(property =>
+                switchRuleValue(name, '.MuiSwitch-switchBase.MuiSwitch-input', property),
+            ),
             // The checked thumb moves right, so the input moves back by the same shift.
             switchRuleValue(name, '.MuiSwitch-switchBase.Mui-checked.MuiSwitch-input', 'left'),
         ]
@@ -977,29 +951,38 @@ describe('PneSwitch hit area', () => {
 
 describe('PneSwitch disabled state', () => {
     const rootOf = switchRootOf
-    const trackRuleColor = (name: string, switchBaseState: string) => (
+    const trackRuleColor = (name: string, switchBaseState: string) =>
         switchRuleValue(name, `.MuiSwitch-switchBase${switchBaseState}+.MuiSwitch-track`, 'background-color')
-    )
 
     it('draws a disabled switch neutral in both values: the place of the knob tells on from off', () => {
         const theme = createTheme({palette: {primary: {main: '#0a91bc'}}})
 
-        render(<ThemeProvider theme={theme}>
-            <PneSwitch aria-label='Disabled on' checked disabled/>
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <PneSwitch aria-label='Disabled on' checked disabled />
+            </ThemeProvider>,
+        )
 
         // UI Kit: a disabled track is Neutral/300 with a Neutral/400 knob, on and off alike.
         expect(trackRuleColor('Disabled on', '.Mui-checked.Mui-disabled')).toBe('#CED5DC')
         expect(trackRuleColor('Disabled on', '.Mui-disabled')).toBe('#CED5DC')
-        expect(switchRuleValue('Disabled on', '.MuiSwitch-switchBase.Mui-checked.Mui-disabled.MuiSwitch-thumb', 'background-color')).toBe('#B2B8BF')
+        expect(
+            switchRuleValue(
+                'Disabled on',
+                '.MuiSwitch-switchBase.Mui-checked.Mui-disabled.MuiSwitch-thumb',
+                'background-color',
+            ),
+        ).toBe('#B2B8BF')
     })
 
     it('shows a neutral hint and a not-allowed cursor only for a disabled switch', async () => {
-        render(<>
-            <PneSwitch aria-label='Locked status' checked disabled/>
-            <PneSwitch aria-label='Live status' defaultChecked/>
-            <PneSwitch aria-label='Read-only status' checked readOnly/>
-        </>)
+        render(
+            <>
+                <PneSwitch aria-label='Locked status' checked disabled />
+                <PneSwitch aria-label='Live status' defaultChecked />
+                <PneSwitch aria-label='Read-only status' checked readOnly />
+            </>,
+        )
 
         expect(window.getComputedStyle(rootOf('Locked status')).cursor).toBe('not-allowed')
         expect(window.getComputedStyle(rootOf('Live status')).cursor).not.toBe('not-allowed')
@@ -1022,10 +1005,16 @@ describe('PneSwitch disabled state', () => {
     })
 
     it('replaces the neutral hint with a specific reason or turns it off', async () => {
-        render(<>
-            <div><PneSwitch aria-label='Mandatory filter' checked disabled disabledHint='The filter is mandatory'/></div>
-            <div><PneSwitch aria-label='Quiet switch' checked disabled disabledHint={false}/></div>
-        </>)
+        render(
+            <>
+                <div>
+                    <PneSwitch aria-label='Mandatory filter' checked disabled disabledHint='The filter is mandatory' />
+                </div>
+                <div>
+                    <PneSwitch aria-label='Quiet switch' checked disabled disabledHint={false} />
+                </div>
+            </>,
+        )
 
         fireEvent.mouseEnter(rootOf('Quiet switch'))
         await act(() => new Promise(resolve => setTimeout(resolve, 200)))
@@ -1039,17 +1028,21 @@ describe('PneSwitch disabled state', () => {
     })
 
     it('follows a disabled PneField and drops the hint once the switch is enabled', async () => {
-        const {rerender} = render(<PneField controlId='archived-switch' disabled label='Archived'>
-            <PneSwitch checked/>
-        </PneField>)
+        const {rerender} = render(
+            <PneField controlId='archived-switch' disabled label='Archived'>
+                <PneSwitch checked />
+            </PneField>,
+        )
 
         expect(window.getComputedStyle(rootOf('Archived')).cursor).toBe('not-allowed')
         fireEvent.mouseEnter(rootOf('Archived'))
         expect((await screen.findByRole('tooltip')).textContent).toBe('Cannot be changed')
 
-        rerender(<PneField controlId='archived-switch' label='Archived'>
-            <PneSwitch checked onChange={jest.fn()}/>
-        </PneField>)
+        rerender(
+            <PneField controlId='archived-switch' label='Archived'>
+                <PneSwitch checked onChange={jest.fn()} />
+            </PneField>,
+        )
 
         await waitFor(() => expect(screen.queryByRole('tooltip')).toBeNull())
         expect(window.getComputedStyle(rootOf('Archived')).cursor).not.toBe('not-allowed')
@@ -1062,16 +1055,18 @@ describe('read-only toggle controls', () => {
         const onChange = jest.fn()
         const formRef = React.createRef<HTMLFormElement>()
 
-        render(<form ref={formRef}>
-            <PneLabeledCheckbox
-                defaultChecked
-                label='Locked selection'
-                name='selection'
-                onChange={onChange}
-                readOnly
-                value='locked'
-            />
-        </form>)
+        render(
+            <form ref={formRef}>
+                <PneLabeledCheckbox
+                    defaultChecked
+                    label='Locked selection'
+                    name='selection'
+                    onChange={onChange}
+                    readOnly
+                    value='locked'
+                />
+            </form>,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Locked selection'}) as HTMLInputElement
 
@@ -1094,12 +1089,7 @@ describe('read-only toggle controls', () => {
     it('prevents direct activation of a read-only switch', async () => {
         const onChange = jest.fn()
 
-        render(<PneSwitch
-            aria-label='Locked switch'
-            defaultChecked={false}
-            onChange={onChange}
-            readOnly
-        />)
+        render(<PneSwitch aria-label='Locked switch' defaultChecked={false} onChange={onChange} readOnly />)
 
         const input = screen.getByRole('switch', {name: 'Locked switch'}) as HTMLInputElement
 
@@ -1114,15 +1104,17 @@ describe('read-only toggle controls', () => {
         const ReadOnlySwitch = () => {
             const [checked, setChecked] = React.useState(false)
 
-            return <PneSwitch
-                aria-label='Externally updated read-only switch'
-                checked={checked}
-                onClick={() => setChecked(true)}
-                readOnly
-            />
+            return (
+                <PneSwitch
+                    aria-label='Externally updated read-only switch'
+                    checked={checked}
+                    onClick={() => setChecked(true)}
+                    readOnly
+                />
+            )
         }
 
-        render(<ReadOnlySwitch/>)
+        render(<ReadOnlySwitch />)
 
         const input = screen.getByRole('switch', {
             name: 'Externally updated read-only switch',
@@ -1137,50 +1129,40 @@ describe('read-only toggle controls', () => {
 
 describe('PneLabeledCheckbox', () => {
     it('associates helper and error state while preserving explicit and slot descriptions', () => {
-        render(<>
-            <span id='external-help'>External help</span>
-            <span id='slot-help'>Slot help</span>
-            <PneLabeledCheckbox
-                aria-describedby='external-help'
-                error
-                helperText='Choose carefully'
-                helperTextProps={{id: 'selection-helper'}}
-                label='Select all'
-                slotProps={{
-                    input: {
-                        'aria-describedby': 'slot-help',
-                    },
-                }}
-            />
-        </>)
+        render(
+            <>
+                <span id='external-help'>External help</span>
+                <span id='slot-help'>Slot help</span>
+                <PneLabeledCheckbox
+                    aria-describedby='external-help'
+                    error
+                    helperText='Choose carefully'
+                    helperTextProps={{id: 'selection-helper'}}
+                    label='Select all'
+                    slotProps={{
+                        input: {
+                            'aria-describedby': 'slot-help',
+                        },
+                    }}
+                />
+            </>,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Select all'}) as HTMLInputElement
         const helper = screen.getByText('Choose carefully')
 
         expect(helper.id).toBe('selection-helper')
-        expect(getDescriptionIds(input)).toEqual([
-            'external-help',
-            'selection-helper',
-            'slot-help',
-        ])
+        expect(getDescriptionIds(input)).toEqual(['external-help', 'selection-helper', 'slot-help'])
         expect(input.getAttribute('aria-invalid')).toBe('true')
     })
 
     it('generates a stable helper id and exposes the corrected span ref', () => {
         const rootRef = React.createRef<HTMLSpanElement>()
-        const view = render(<PneLabeledCheckbox
-            helperText='Generated helper'
-            label='Remember choice'
-            ref={rootRef}
-        />)
+        const view = render(<PneLabeledCheckbox helperText='Generated helper' label='Remember choice' ref={rootRef} />)
         const input = screen.getByRole('checkbox', {name: 'Remember choice'}) as HTMLInputElement
         const firstHelperId = screen.getByText('Generated helper').id
 
-        view.rerender(<PneLabeledCheckbox
-            helperText='Generated helper'
-            label='Remember choice'
-            ref={rootRef}
-        />)
+        view.rerender(<PneLabeledCheckbox helperText='Generated helper' label='Remember choice' ref={rootRef} />)
 
         expect(firstHelperId).not.toBe('')
         expect(screen.getByText('Generated helper').id).toBe(firstHelperId)
@@ -1200,9 +1182,11 @@ describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
             .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
             .filter(rule => {
                 const selector = rule.selectorText.replace(/\s+/g, '')
-                return classes.some(className => selectorSuffix === ''
-                    ? selector === `.${className}`
-                    : selector.startsWith(`.${className}`) && selector.endsWith(selectorSuffix))
+                return classes.some(className =>
+                    selectorSuffix === ''
+                        ? selector === `.${className}`
+                        : selector.startsWith(`.${className}`) && selector.endsWith(selectorSuffix),
+                )
             })
             .map(rule => rule.style.getPropertyValue(property))
             .filter(Boolean)
@@ -1214,9 +1198,11 @@ describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
         screen.getByRole('checkbox', {name}).closest<HTMLElement>('.MuiFormControl-root')!
 
     it('sets the label 14/20 on a line with the box and the description under the label', () => {
-        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
-            <PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' size='medium'/>
-        </PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
+                <PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' size='medium' />
+            </PneThemeProvider>,
+        )
 
         const container = containerOf('Include declined')
         expect(container.getAttribute('data-pne-variant')).toBe('plain')
@@ -1233,21 +1219,23 @@ describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
     })
 
     it('keeps the description out of the name of the checkbox', () => {
-        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' variant='card'/>)
+        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' variant='card' />)
 
         expect(screen.getByRole('checkbox', {name: 'Include declined'})).not.toBeNull()
         expect(screen.getByLabelText('Include declined')).not.toBeNull()
     })
 
     it('draws the card as a tinted, ringed frame when picked and marks its state on the container', () => {
-        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
-            <PneLabeledCheckbox label='Off' variant='card'/>
-            <PneLabeledCheckbox defaultChecked label='On' variant='card'/>
-            <PneLabeledCheckbox indeterminate label='Mixed' variant='card'/>
-            <PneLabeledCheckbox checked disabled label='Disabled' onChange={() => undefined} variant='card'/>
-            <PneLabeledCheckbox checked label='Read only' onChange={() => undefined} readOnly variant='card'/>
-            <PneLabeledCheckbox error label='Invalid' variant='card'/>
-        </PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
+                <PneLabeledCheckbox label='Off' variant='card' />
+                <PneLabeledCheckbox defaultChecked label='On' variant='card' />
+                <PneLabeledCheckbox indeterminate label='Mixed' variant='card' />
+                <PneLabeledCheckbox checked disabled label='Disabled' onChange={() => undefined} variant='card' />
+                <PneLabeledCheckbox checked label='Read only' onChange={() => undefined} readOnly variant='card' />
+                <PneLabeledCheckbox error label='Invalid' variant='card' />
+            </PneThemeProvider>,
+        )
 
         const off = containerOf('Off')
         expect(off.getAttribute('data-pne-variant')).toBe('card')
@@ -1274,7 +1262,9 @@ describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
 
     it('follows the value of an uncontrolled card and toggles it by a click on the card or its description', () => {
         const onChange = jest.fn()
-        render(<PneLabeledCheckbox helperText='Visa, Mastercard' label='Bank cards' onChange={onChange} variant='card'/>)
+        render(
+            <PneLabeledCheckbox helperText='Visa, Mastercard' label='Bank cards' onChange={onChange} variant='card' />,
+        )
 
         const input = screen.getByRole('checkbox', {name: 'Bank cards'}) as HTMLInputElement
         const container = containerOf('Bank cards')
@@ -1294,7 +1284,7 @@ describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
     })
 
     it('leaves a click on the description of a plain checkbox alone', () => {
-        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined'/>)
+        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' />)
 
         fireEvent.click(screen.getByText('Adds about 4k rows'))
         expect((screen.getByRole('checkbox', {name: 'Include declined'}) as HTMLInputElement).checked).toBe(false)

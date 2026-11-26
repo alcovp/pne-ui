@@ -1,6 +1,16 @@
-import React, {useId, useLayoutEffect, useRef, useState} from 'react';
-import {Box, Divider, InputAdornment, ListItemIcon, ListItemText, Menu, MenuItem, useMediaQuery, Button} from '@mui/material';
-import {SxProps, Theme, useTheme} from '@mui/material/styles';
+import React, {useId, useLayoutEffect, useRef, useState} from 'react'
+import {
+    Box,
+    Divider,
+    InputAdornment,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    useMediaQuery,
+    Button,
+} from '@mui/material'
+import {SxProps, Theme, useTheme} from '@mui/material/styles'
 import {
     DragDropContext,
     Draggable,
@@ -9,63 +19,63 @@ import {
     type DropResult,
     type ResponderProvided,
     useMouseSensor,
-} from '@hello-pangea/dnd';
-import {useTranslation} from 'react-i18next';
-import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
-import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
-import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
-import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import UndoRoundedIcon from '@mui/icons-material/UndoRounded';
-import {useSearchUIFiltersStore} from '../../state/store';
-import {isSearchUITemplateModified} from '../../state/actions';
-import {SearchUITemplate} from "../../types";
-import {overlayActions} from '../../../../overlay/overlayStore';
-import PneTextField from '../../../../PneTextField';
-import PneDragHandleIcon from '../../../../PneDragHandleIcon';
-import {createPneMenuPanelStyle, PneChevronDownIcon, PneCloseIcon} from '../../../../dropdown/dropdownLook';
-import {resolvePneSemanticPalette} from '../../../../../createTheme';
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
-import {useOptionalPneConfirm} from '../../../../confirm/PneConfirmProvider';
-import useImmediateTouchSensor from '../../../../non-abstract-entity-selector/useImmediateTouchSensor';
-import {useSearchUIAutoTestScope} from '../../AutoTestScope';
-import SearchUITemplateEditor from './SearchUITemplateEditor';
+} from '@hello-pangea/dnd'
+import {useTranslation} from 'react-i18next'
+import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined'
+import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined'
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
+import SaveOutlinedIcon from '@mui/icons-material/SaveOutlined'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
+import UndoRoundedIcon from '@mui/icons-material/UndoRounded'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {isSearchUITemplateModified} from '../../state/actions'
+import {SearchUITemplate} from '../../types'
+import {overlayActions} from '../../../../overlay/overlayStore'
+import PneTextField from '../../../../PneTextField'
+import PneDragHandleIcon from '../../../../PneDragHandleIcon'
+import {createPneMenuPanelStyle, PneChevronDownIcon, PneCloseIcon} from '../../../../dropdown/dropdownLook'
+import {resolvePneSemanticPalette} from '../../../../../createTheme'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {useOptionalPneConfirm} from '../../../../confirm/PneConfirmProvider'
+import useImmediateTouchSensor from '../../../../non-abstract-entity-selector/useImmediateTouchSensor'
+import {useSearchUIAutoTestScope} from '../../AutoTestScope'
+import SearchUITemplateEditor from './SearchUITemplateEditor'
 
-const TEMPLATES_AUTOTEST_ID = 'templates';
-const TEMPLATES_PANEL_AUTOTEST_ID = 'templates-panel';
-const TEMPLATE_ITEM_AUTOTEST_ID = 'template-item';
-const SELECT_TEMPLATE_AUTOTEST_ID = 'select-template';
-const SELECT_DEFAULT_TEMPLATE_AUTOTEST_ID = 'select-default-template';
-const REMOVE_TEMPLATE_AUTOTEST_ID = 'remove-template';
-const REORDER_TEMPLATE_AUTOTEST_ID = 'reorder-template';
-const CREATE_TEMPLATE_AUTOTEST_ID = 'create-template';
-const UPDATE_TEMPLATE_AUTOTEST_ID = 'update-template';
-const DISCARD_TEMPLATE_CHANGES_AUTOTEST_ID = 'discard-template-changes';
-const TEMPLATE_MODIFIED_AUTOTEST_ID = 'template-modified';
-const TEMPLATE_SEARCH_AUTOTEST_ID = 'template-search';
-const TEMPLATE_SEARCH_EMPTY_AUTOTEST_ID = 'template-search-empty';
+const TEMPLATES_AUTOTEST_ID = 'templates'
+const TEMPLATES_PANEL_AUTOTEST_ID = 'templates-panel'
+const TEMPLATE_ITEM_AUTOTEST_ID = 'template-item'
+const SELECT_TEMPLATE_AUTOTEST_ID = 'select-template'
+const SELECT_DEFAULT_TEMPLATE_AUTOTEST_ID = 'select-default-template'
+const REMOVE_TEMPLATE_AUTOTEST_ID = 'remove-template'
+const REORDER_TEMPLATE_AUTOTEST_ID = 'reorder-template'
+const CREATE_TEMPLATE_AUTOTEST_ID = 'create-template'
+const UPDATE_TEMPLATE_AUTOTEST_ID = 'update-template'
+const DISCARD_TEMPLATE_CHANGES_AUTOTEST_ID = 'discard-template-changes'
+const TEMPLATE_MODIFIED_AUTOTEST_ID = 'template-modified'
+const TEMPLATE_SEARCH_AUTOTEST_ID = 'template-search'
+const TEMPLATE_SEARCH_EMPTY_AUTOTEST_ID = 'template-search-empty'
 
-const DROPPABLE_ID = 'pne-search-ui-templates';
-const KEYBOARD_REORDER_SHORTCUTS = 'Alt+ArrowUp Alt+ArrowDown';
+const DROPPABLE_ID = 'pne-search-ui-templates'
+const KEYBOARD_REORDER_SHORTCUTS = 'Alt+ArrowUp Alt+ArrowDown'
 /** Short lists stay a plain menu; a search field appears once the list stops fitting at a glance. */
-const SEARCH_FROM_TEMPLATE_COUNT = 10;
+const SEARCH_FROM_TEMPLATE_COUNT = 10
 
-const normalizeSearch = (value: string) => value.trim().toLocaleLowerCase();
+const normalizeSearch = (value: string) => value.trim().toLocaleLowerCase()
 
 /**
  * Template names are rendered as React text, which escapes them already; hosts that keep
  * i18next's HTML escaping would otherwise show "EU/UK" as "EU&#x2F;UK".
  */
-const RAW_NAME_INTERPOLATION = {escapeValue: false};
+const RAW_NAME_INTERPOLATION = {escapeValue: false}
 
 /**
  * Pointer and touch dragging on the grip only. Keyboard users reorder with Alt+Arrow on
  * the focused template, so arrow keys keep their usual menu navigation.
  */
-const reorderSensors = [useMouseSensor, useImmediateTouchSensor];
+const reorderSensors = [useMouseSensor, useImmediateTouchSensor]
 
 /** Template names are user input; the prefix keeps them clear of object-key collisions. */
-const toDraggableId = (templateName: string) => `template:${templateName}`;
+const toDraggableId = (templateName: string) => `template:${templateName}`
 
 /** A dragged row moves only vertically, so it never leaves the menu column. */
 const lockToVerticalAxis = (style: DraggableProvidedDraggableProps['style']) => {
@@ -88,9 +98,8 @@ const getRowBackground = (theme: Theme, selected: boolean, state: RowState) => {
 }
 
 /** No modifier held: the arrow is plain navigation, not Alt+arrow reordering or a browser shortcut. */
-const isPlainKey = (event: React.KeyboardEvent): boolean => (
+const isPlainKey = (event: React.KeyboardEvent): boolean =>
     !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey
-)
 
 type SearchUITemplatesMenuProps = {
     /** Back to the page defaults without a template, as the Default item does. */
@@ -98,7 +107,7 @@ type SearchUITemplatesMenuProps = {
 }
 
 const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) => {
-    const {t} = useTranslation();
+    const {t} = useTranslation()
     const autoTestScope = useSearchUIAutoTestScope()?.scope
     const menuId = useId()
     const confirm = useOptionalPneConfirm()
@@ -115,7 +124,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
     // Phones give the trigger little room; the icon would leave the name none.
     const showTriggerIcon = useMediaQuery(useTheme().breakpoints.up('sm'), {noSsr: true})
 
-    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
+    const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
     const [editorOpen, setEditorOpen] = useState(false)
     const [editorSession, setEditorSession] = useState(0)
     const [announcement, setAnnouncement] = useState('')
@@ -126,7 +135,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
     const defaultItemRef = useRef<HTMLButtonElement | null>(null)
     const pendingFocusRef = useRef<string | null>(null)
 
-    const open = Boolean(anchorEl);
+    const open = Boolean(anchorEl)
     const searchable = templates.length >= SEARCH_FROM_TEMPLATE_COUNT
     const normalizedQuery = searchable ? normalizeSearch(query) : ''
     const filtering = normalizedQuery !== ''
@@ -136,7 +145,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
     // A move inside a filtered subset has no clear place among the hidden templates.
     const reorderable = canPersistOrder && templates.length > 1 && !filtering
     // "Saved filters": the key kept its name when the texts moved away from "template".
-    const placeholder = template?.name || t('react.searchUI.template', {defaultValue: 'Saved filters'});
+    const placeholder = template?.name || t('react.searchUI.template', {defaultValue: 'Saved filters'})
     const removeTemplateLabel = t('react.searchUI.template.remove', {defaultValue: 'Remove filter set'})
     const reorderLabel = t('react.searchUI.template.reorder', {defaultValue: 'Drag to reorder'})
     const searchLabel = t('react.searchUI.template.search', {defaultValue: 'Search saved filters'})
@@ -157,10 +166,10 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
     const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         // Cleared on open rather than on close, so the closing menu keeps its filtered look.
         setQuery('')
-        setAnchorEl(event.currentTarget);
+        setAnchorEl(event.currentTarget)
     }
     const handleClose = () => {
-        setAnchorEl(null);
+        setAnchorEl(null)
     }
     const handleMenuClose = () => {
         // Escape cancels an active drag; it must not close the menu under the pointer.
@@ -170,7 +179,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         handleClose()
     }
     const handleSelectTemplate = (template: SearchUITemplate) => {
-        setTemplate(template, { forceSearch: true })
+        setTemplate(template, {forceSearch: true})
         handleClose()
     }
     const handleSelectDefault = () => {
@@ -208,7 +217,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
     }
     const handleDiscardTemplateChanges = () => {
         if (template) {
-            setTemplate(template, { forceSearch: true })
+            setTemplate(template, {forceSearch: true})
         }
         handleClose()
     }
@@ -217,13 +226,15 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         const templateNames = templates.map(item => item.name)
         const [moved] = templateNames.splice(from, 1)
         templateNames.splice(to, 0, moved)
-        setAnnouncement(t('react.searchUI.template.moved', {
-            defaultValue: '{{name}}: position {{position}} of {{count}}',
-            name: moved,
-            position: to + 1,
-            count: templateNames.length,
-            interpolation: RAW_NAME_INTERPOLATION,
-        }))
+        setAnnouncement(
+            t('react.searchUI.template.moved', {
+                defaultValue: '{{name}}: position {{position}} of {{count}}',
+                name: moved,
+                position: to + 1,
+                count: templateNames.length,
+                interpolation: RAW_NAME_INTERPOLATION,
+            }),
+        )
         reorderTemplates(templateNames).catch((error: unknown) => {
             console.error(error)
             overlayActions.showTransientError({
@@ -243,8 +254,14 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
             searchInputRef.current?.focus()
             return
         }
-        if (!reorderable || !event.altKey || event.ctrlKey || event.metaKey || event.shiftKey
-            || (!up && event.key !== 'ArrowDown')) {
+        if (
+            !reorderable ||
+            !event.altKey ||
+            event.ctrlKey ||
+            event.metaKey ||
+            event.shiftKey ||
+            (!up && event.key !== 'ArrowDown')
+        ) {
             return
         }
         event.preventDefault()
@@ -276,9 +293,7 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         event.stopPropagation()
         const firstMatch = visibleTemplates[0]
         // Default leads the list while the search field is empty.
-        const firstItem = filtering
-            ? firstMatch && selectItemsRef.current.get(firstMatch.name)
-            : defaultItemRef.current
+        const firstItem = filtering ? firstMatch && selectItemsRef.current.get(firstMatch.name) : defaultItemRef.current
         if (event.key === 'ArrowDown' && firstItem) {
             event.preventDefault()
             firstItem.focus()
@@ -312,263 +327,302 @@ const SearchUITemplatesMenu = ({onResetToDefaults}: SearchUITemplatesMenuProps) 
         moveTemplate(source.index, destination.index)
     }
 
-    return <>
-        <Button
-            {...createAutoTestAttributes(TEMPLATES_AUTOTEST_ID)}
-            onClick={handleOpen}
-            size={'small'}
-            // UI Kit Filter header: the saved sets are a tertiary button, dark on the strip.
-            variant='text'
-            startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon/> : undefined}
-            endIcon={<PneChevronDownIcon/>}
-            sx={templateTriggerSx}
-            title={modified ? `${placeholder} · ${modifiedLabel}` : placeholder}
-            aria-controls={open ? menuId : undefined}
-            aria-expanded={open}
-            aria-haspopup={'menu'}
-        >
-            <Box sx={templateTriggerLabelSx} component="span">
-                <Box sx={templateTriggerNameSx} component="span">{placeholder}</Box>
-                {modified ? <>
-                    <Box
-                        {...createAutoTestAttributes(TEMPLATE_MODIFIED_AUTOTEST_ID)}
-                        component={'span'}
-                        aria-hidden={true}
-                        sx={modifiedDotSx}
-                    />
-                    <Box component={'span'} sx={visuallyHiddenSx}>{`, ${modifiedLabel}`}</Box>
-                </> : null}
-            </Box>
-        </Button>
-        <Box component={'span'} aria-live={'polite'} sx={visuallyHiddenSx}>{announcement}</Box>
-        <Menu
-            open={open}
-            onClose={handleMenuClose}
-            anchorEl={anchorEl}
-            // A long list opens with the cursor in the search field instead of on a template.
-            autoFocus={!searchable}
-            slotProps={{
-                paper: {sx: menuPaperSx},
-                list: {
-                    ...createAutoTestAttributes(TEMPLATES_PANEL_AUTOTEST_ID, autoTestScope),
-                    id: menuId,
-                    'aria-label': t('react.searchUI.template'),
-                    sx: searchable ? searchableMenuListSx : menuListSx,
-                },
-                transition: {onEntered: revealSelectedTemplate},
-            }}
-        >
-            {searchable ? <Box component={'li'} role={'none'} sx={menuSearchSx}>
-                <PneTextField
-                    size='medium'
-                    aria-label={searchLabel}
-                    autoComplete={'off'}
-                    autoFocus
-                    fullWidth
-                    inputRef={searchInputRef}
-                    onChange={event => setQuery(event.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    placeholder={searchLabel}
-                    slotProps={{
-                        htmlInput: createAutoTestAttributes(TEMPLATE_SEARCH_AUTOTEST_ID),
-                        input: {
-                            startAdornment: <InputAdornment position={'start'}>
-                                <SearchRoundedIcon sx={{fontSize: 16}}/>
-                            </InputAdornment>,
-                        },
-                    }}
-                    type={'search'}
-                    value={query}
-                />
-            </Box> : null}
-            {filtering ? null : <Box component={'li'} role={'none'} sx={getTemplateRowSx(defaultSelected, false)}>
-                <MenuItem
-                    {...createAutoTestAttributes(SELECT_DEFAULT_TEMPLATE_AUTOTEST_ID)}
-                    component={'button'}
-                    ref={defaultItemRef}
-                    role={'menuitemradio'}
-                    aria-checked={defaultSelected}
-                    selected={defaultSelected}
-                    onClick={handleSelectDefault}
-                    onKeyDown={handleDefaultKeyDown}
-                    sx={selectItemSx}
-                >
-                    <ListItemIcon sx={{color: defaultSelected ? 'primary.main' : 'transparent'}}>
-                        <CheckRoundedIcon fontSize={'small'}/>
-                    </ListItemIcon>
-                    <ListItemText primary={defaultLabel} slotProps={{primary: {noWrap: true}}}/>
-                </MenuItem>
-            </Box>}
-            {!filtering && templates.length > 0 ? <Box component={'li'} role={'none'}>
-                <Divider sx={dividerSx}/>
-            </Box> : null}
-            {templates.length > 0 ? <DragDropContext
-                enableDefaultSensors={false}
-                sensors={reorderSensors}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
+    return (
+        <>
+            <Button
+                {...createAutoTestAttributes(TEMPLATES_AUTOTEST_ID)}
+                onClick={handleOpen}
+                size={'small'}
+                // UI Kit Filter header: the saved sets are a tertiary button, dark on the strip.
+                variant='text'
+                startIcon={showTriggerIcon ? <BookmarkBorderOutlinedIcon /> : undefined}
+                endIcon={<PneChevronDownIcon />}
+                sx={templateTriggerSx}
+                title={modified ? `${placeholder} · ${modifiedLabel}` : placeholder}
+                aria-controls={open ? menuId : undefined}
+                aria-expanded={open}
+                aria-haspopup={'menu'}
             >
-                <Droppable droppableId={DROPPABLE_ID} isDropDisabled={!reorderable}>
-                    {(droppable, droppableSnapshot) => <Box
-                        component={'li'}
-                        ref={droppable.innerRef}
-                        {...droppable.droppableProps}
-                        data-pne-search-template-list-dragging={
-                            droppableSnapshot.draggingFromThisWith ? 'true' : undefined
-                        }
-                        role={'none'}
-                        sx={templateListSx}
+                <Box sx={templateTriggerLabelSx} component='span'>
+                    <Box sx={templateTriggerNameSx} component='span'>
+                        {placeholder}
+                    </Box>
+                    {modified ? (
+                        <>
+                            <Box
+                                {...createAutoTestAttributes(TEMPLATE_MODIFIED_AUTOTEST_ID)}
+                                component={'span'}
+                                aria-hidden={true}
+                                sx={modifiedDotSx}
+                            />
+                            <Box component={'span'} sx={visuallyHiddenSx}>{`, ${modifiedLabel}`}</Box>
+                        </>
+                    ) : null}
+                </Box>
+            </Button>
+            <Box component={'span'} aria-live={'polite'} sx={visuallyHiddenSx}>
+                {announcement}
+            </Box>
+            <Menu
+                open={open}
+                onClose={handleMenuClose}
+                anchorEl={anchorEl}
+                // A long list opens with the cursor in the search field instead of on a template.
+                autoFocus={!searchable}
+                slotProps={{
+                    paper: {sx: menuPaperSx},
+                    list: {
+                        ...createAutoTestAttributes(TEMPLATES_PANEL_AUTOTEST_ID, autoTestScope),
+                        id: menuId,
+                        'aria-label': t('react.searchUI.template'),
+                        sx: searchable ? searchableMenuListSx : menuListSx,
+                    },
+                    transition: {onEntered: revealSelectedTemplate},
+                }}
+            >
+                {searchable ? (
+                    <Box component={'li'} role={'none'} sx={menuSearchSx}>
+                        <PneTextField
+                            size='medium'
+                            aria-label={searchLabel}
+                            autoComplete={'off'}
+                            autoFocus
+                            fullWidth
+                            inputRef={searchInputRef}
+                            onChange={event => setQuery(event.target.value)}
+                            onKeyDown={handleSearchKeyDown}
+                            placeholder={searchLabel}
+                            slotProps={{
+                                htmlInput: createAutoTestAttributes(TEMPLATE_SEARCH_AUTOTEST_ID),
+                                input: {
+                                    startAdornment: (
+                                        <InputAdornment position={'start'}>
+                                            <SearchRoundedIcon sx={{fontSize: 16}} />
+                                        </InputAdornment>
+                                    ),
+                                },
+                            }}
+                            type={'search'}
+                            value={query}
+                        />
+                    </Box>
+                ) : null}
+                {filtering ? null : (
+                    <Box component={'li'} role={'none'} sx={getTemplateRowSx(defaultSelected, false)}>
+                        <MenuItem
+                            {...createAutoTestAttributes(SELECT_DEFAULT_TEMPLATE_AUTOTEST_ID)}
+                            component={'button'}
+                            ref={defaultItemRef}
+                            role={'menuitemradio'}
+                            aria-checked={defaultSelected}
+                            selected={defaultSelected}
+                            onClick={handleSelectDefault}
+                            onKeyDown={handleDefaultKeyDown}
+                            sx={selectItemSx}
+                        >
+                            <ListItemIcon sx={{color: defaultSelected ? 'primary.main' : 'transparent'}}>
+                                <CheckRoundedIcon fontSize={'small'} />
+                            </ListItemIcon>
+                            <ListItemText primary={defaultLabel} slotProps={{primary: {noWrap: true}}} />
+                        </MenuItem>
+                    </Box>
+                )}
+                {!filtering && templates.length > 0 ? (
+                    <Box component={'li'} role={'none'}>
+                        <Divider sx={dividerSx} />
+                    </Box>
+                ) : null}
+                {templates.length > 0 ? (
+                    <DragDropContext
+                        enableDefaultSensors={false}
+                        sensors={reorderSensors}
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
                     >
-                        {visibleTemplates.map((item, index) => {
-                            const selected = item.name === template?.name
-                            return <Draggable
-                                draggableId={toDraggableId(item.name)}
-                                index={index}
-                                isDragDisabled={!reorderable}
-                                key={item.name}
-                            >
-                                {(draggable, snapshot) => <Box
-                                    ref={draggable.innerRef}
-                                    {...draggable.draggableProps}
-                                    {...createAutoTestAttributes(TEMPLATE_ITEM_AUTOTEST_ID)}
-                                    data-pne-search-template-row={'true'}
-                                    style={lockToVerticalAxis(draggable.draggableProps.style)}
-                                    sx={getTemplateRowSx(selected, snapshot.isDragging)}
+                        <Droppable droppableId={DROPPABLE_ID} isDropDisabled={!reorderable}>
+                            {(droppable, droppableSnapshot) => (
+                                <Box
+                                    component={'li'}
+                                    ref={droppable.innerRef}
+                                    {...droppable.droppableProps}
+                                    data-pne-search-template-list-dragging={
+                                        droppableSnapshot.draggingFromThisWith ? 'true' : undefined
+                                    }
+                                    role={'none'}
+                                    sx={templateListSx}
                                 >
-                                    <MenuItem
-                                        {...createAutoTestAttributes(SELECT_TEMPLATE_AUTOTEST_ID)}
-                                        component={'button'}
-                                        ref={(element: HTMLButtonElement | null) => {
-                                            if (element) {
-                                                selectItemsRef.current.set(item.name, element)
-                                            } else {
-                                                selectItemsRef.current.delete(item.name)
-                                            }
-                                        }}
-                                        role={'menuitemradio'}
-                                        aria-checked={selected}
-                                        aria-keyshortcuts={reorderable ? KEYBOARD_REORDER_SHORTCUTS : undefined}
-                                        selected={selected}
-                                        title={item.name}
-                                        onClick={() => handleSelectTemplate(item)}
-                                        onKeyDown={event => handleTemplateKeyDown(event, index)}
-                                        sx={selectItemSx}
-                                    >
-                                        <ListItemIcon sx={{color: selected ? 'primary.main' : 'transparent'}}>
-                                            <CheckRoundedIcon fontSize={'small'}/>
-                                        </ListItemIcon>
-                                        <ListItemText primary={item.name} slotProps={{primary: {noWrap: true}}}/>
-                                        {selected && modified ? <Box
-                                            component={'span'}
-                                            aria-hidden={true}
-                                            title={modifiedLabel}
-                                            sx={rowModifiedDotSx}
-                                        /> : null}
-                                    </MenuItem>
-                                    {reorderable ? <Box
-                                        component={'span'}
-                                        {...draggable.dragHandleProps}
-                                        {...createAutoTestAttributes(REORDER_TEMPLATE_AUTOTEST_ID)}
-                                        // Pointer-only grip; keyboard reordering lives on the template item.
-                                        aria-describedby={undefined}
-                                        aria-hidden={true}
-                                        role={undefined}
-                                        tabIndex={-1}
-                                        data-pne-search-template-grip={'true'}
-                                        title={reorderLabel}
-                                        style={{touchAction: 'none'}}
-                                        sx={gripSx}
-                                    >
-                                        <PneDragHandleIcon sx={{fontSize: 16}}/>
-                                    </Box> : null}
-                                    <MenuItem
-                                        {...createAutoTestAttributes(REMOVE_TEMPLATE_AUTOTEST_ID)}
-                                        component={'button'}
-                                        aria-label={`${removeTemplateLabel}: ${item.name}`}
-                                        data-pne-search-template-remove={'true'}
-                                        title={`${removeTemplateLabel}: ${item.name}`}
-                                        onClick={() => void handleRemoveTemplate(item)}
-                                        sx={removeItemSx}
-                                    >
-                                        <PneCloseIcon sx={{fontSize: 16}}/>
-                                    </MenuItem>
-                                </Box>}
-                            </Draggable>
-                        })}
-                        {droppable.placeholder}
-                    </Box>}
-                </Droppable>
-            </DragDropContext> : null}
-            {filtering && visibleTemplates.length === 0 ? <Box
-                component={'li'}
-                {...createAutoTestAttributes(TEMPLATE_SEARCH_EMPTY_AUTOTEST_ID)}
-                role={'none'}
-                sx={searchEmptySx}
-            >
-                {t('react.searchUI.template.noMatches', {defaultValue: 'No saved filters match'})}
-            </Box> : null}
-            <Box component={'li'} role={'none'} sx={menuFooterSx}>
-                {/* Default, or the search field while filtering, always stands above the actions. */}
-                <Divider sx={footerDividerSx}/>
-                <MenuItem
-                    {...createAutoTestAttributes(CREATE_TEMPLATE_AUTOTEST_ID)}
-                    component={'button'}
-                    aria-haspopup={'dialog'}
-                    onClick={handleCreateTemplate}
-                    sx={actionItemSx}
-                >
-                    <ListItemIcon>
-                        <BookmarkAddOutlinedIcon fontSize={'small'}/>
-                    </ListItemIcon>
-                    <ListItemText
-                        primary={t('react.searchUI.template.saveAsNew', {
-                            defaultValue: 'Save as new filter set',
-                        })}
-                    />
-                </MenuItem>
-                {template ? <MenuItem
-                    {...createAutoTestAttributes(UPDATE_TEMPLATE_AUTOTEST_ID)}
-                    component={'button'}
-                    onClick={handleUpdateTemplate}
-                    title={template.name}
-                    sx={actionItemSx}
-                >
-                    <ListItemIcon>
-                        <SaveOutlinedIcon fontSize={'small'}/>
-                    </ListItemIcon>
-                    <ListItemText
-                        primary={t('react.searchUI.template.updateNamed', {
-                            defaultValue: 'Update “{{name}}”',
-                            name: template.name,
-                            interpolation: RAW_NAME_INTERPOLATION,
-                        })}
-                        slotProps={{primary: {noWrap: true}}}
-                    />
-                </MenuItem> : null}
-                {template && modified ? <MenuItem
-                    {...createAutoTestAttributes(DISCARD_TEMPLATE_CHANGES_AUTOTEST_ID)}
-                    component={'button'}
-                    onClick={handleDiscardTemplateChanges}
-                    title={template.name}
-                    sx={actionItemSx}
-                >
-                    <ListItemIcon>
-                        <UndoRoundedIcon fontSize={'small'}/>
-                    </ListItemIcon>
-                    <ListItemText
-                        primary={t('react.searchUI.template.discardChanges', {
-                            defaultValue: 'Discard changes',
-                        })}
-                    />
-                </MenuItem> : null}
-            </Box>
-        </Menu>
-        <SearchUITemplateEditor
-            key={editorSession}
-            open={editorOpen}
-            onClose={() => setEditorOpen(false)}
-        />
-    </>
+                                    {visibleTemplates.map((item, index) => {
+                                        const selected = item.name === template?.name
+                                        return (
+                                            <Draggable
+                                                draggableId={toDraggableId(item.name)}
+                                                index={index}
+                                                isDragDisabled={!reorderable}
+                                                key={item.name}
+                                            >
+                                                {(draggable, snapshot) => (
+                                                    <Box
+                                                        ref={draggable.innerRef}
+                                                        {...draggable.draggableProps}
+                                                        {...createAutoTestAttributes(TEMPLATE_ITEM_AUTOTEST_ID)}
+                                                        data-pne-search-template-row={'true'}
+                                                        style={lockToVerticalAxis(draggable.draggableProps.style)}
+                                                        sx={getTemplateRowSx(selected, snapshot.isDragging)}
+                                                    >
+                                                        <MenuItem
+                                                            {...createAutoTestAttributes(SELECT_TEMPLATE_AUTOTEST_ID)}
+                                                            component={'button'}
+                                                            ref={(element: HTMLButtonElement | null) => {
+                                                                if (element) {
+                                                                    selectItemsRef.current.set(item.name, element)
+                                                                } else {
+                                                                    selectItemsRef.current.delete(item.name)
+                                                                }
+                                                            }}
+                                                            role={'menuitemradio'}
+                                                            aria-checked={selected}
+                                                            aria-keyshortcuts={
+                                                                reorderable ? KEYBOARD_REORDER_SHORTCUTS : undefined
+                                                            }
+                                                            selected={selected}
+                                                            title={item.name}
+                                                            onClick={() => handleSelectTemplate(item)}
+                                                            onKeyDown={event => handleTemplateKeyDown(event, index)}
+                                                            sx={selectItemSx}
+                                                        >
+                                                            <ListItemIcon
+                                                                sx={{color: selected ? 'primary.main' : 'transparent'}}
+                                                            >
+                                                                <CheckRoundedIcon fontSize={'small'} />
+                                                            </ListItemIcon>
+                                                            <ListItemText
+                                                                primary={item.name}
+                                                                slotProps={{primary: {noWrap: true}}}
+                                                            />
+                                                            {selected && modified ? (
+                                                                <Box
+                                                                    component={'span'}
+                                                                    aria-hidden={true}
+                                                                    title={modifiedLabel}
+                                                                    sx={rowModifiedDotSx}
+                                                                />
+                                                            ) : null}
+                                                        </MenuItem>
+                                                        {reorderable ? (
+                                                            <Box
+                                                                component={'span'}
+                                                                {...draggable.dragHandleProps}
+                                                                {...createAutoTestAttributes(
+                                                                    REORDER_TEMPLATE_AUTOTEST_ID,
+                                                                )}
+                                                                // Pointer-only grip; keyboard reordering lives on the template item.
+                                                                aria-describedby={undefined}
+                                                                aria-hidden={true}
+                                                                role={undefined}
+                                                                tabIndex={-1}
+                                                                data-pne-search-template-grip={'true'}
+                                                                title={reorderLabel}
+                                                                style={{touchAction: 'none'}}
+                                                                sx={gripSx}
+                                                            >
+                                                                <PneDragHandleIcon sx={{fontSize: 16}} />
+                                                            </Box>
+                                                        ) : null}
+                                                        <MenuItem
+                                                            {...createAutoTestAttributes(REMOVE_TEMPLATE_AUTOTEST_ID)}
+                                                            component={'button'}
+                                                            aria-label={`${removeTemplateLabel}: ${item.name}`}
+                                                            data-pne-search-template-remove={'true'}
+                                                            title={`${removeTemplateLabel}: ${item.name}`}
+                                                            onClick={() => void handleRemoveTemplate(item)}
+                                                            sx={removeItemSx}
+                                                        >
+                                                            <PneCloseIcon sx={{fontSize: 16}} />
+                                                        </MenuItem>
+                                                    </Box>
+                                                )}
+                                            </Draggable>
+                                        )
+                                    })}
+                                    {droppable.placeholder}
+                                </Box>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
+                ) : null}
+                {filtering && visibleTemplates.length === 0 ? (
+                    <Box
+                        component={'li'}
+                        {...createAutoTestAttributes(TEMPLATE_SEARCH_EMPTY_AUTOTEST_ID)}
+                        role={'none'}
+                        sx={searchEmptySx}
+                    >
+                        {t('react.searchUI.template.noMatches', {defaultValue: 'No saved filters match'})}
+                    </Box>
+                ) : null}
+                <Box component={'li'} role={'none'} sx={menuFooterSx}>
+                    {/* Default, or the search field while filtering, always stands above the actions. */}
+                    <Divider sx={footerDividerSx} />
+                    <MenuItem
+                        {...createAutoTestAttributes(CREATE_TEMPLATE_AUTOTEST_ID)}
+                        component={'button'}
+                        aria-haspopup={'dialog'}
+                        onClick={handleCreateTemplate}
+                        sx={actionItemSx}
+                    >
+                        <ListItemIcon>
+                            <BookmarkAddOutlinedIcon fontSize={'small'} />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary={t('react.searchUI.template.saveAsNew', {
+                                defaultValue: 'Save as new filter set',
+                            })}
+                        />
+                    </MenuItem>
+                    {template ? (
+                        <MenuItem
+                            {...createAutoTestAttributes(UPDATE_TEMPLATE_AUTOTEST_ID)}
+                            component={'button'}
+                            onClick={handleUpdateTemplate}
+                            title={template.name}
+                            sx={actionItemSx}
+                        >
+                            <ListItemIcon>
+                                <SaveOutlinedIcon fontSize={'small'} />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={t('react.searchUI.template.updateNamed', {
+                                    defaultValue: 'Update “{{name}}”',
+                                    name: template.name,
+                                    interpolation: RAW_NAME_INTERPOLATION,
+                                })}
+                                slotProps={{primary: {noWrap: true}}}
+                            />
+                        </MenuItem>
+                    ) : null}
+                    {template && modified ? (
+                        <MenuItem
+                            {...createAutoTestAttributes(DISCARD_TEMPLATE_CHANGES_AUTOTEST_ID)}
+                            component={'button'}
+                            onClick={handleDiscardTemplateChanges}
+                            title={template.name}
+                            sx={actionItemSx}
+                        >
+                            <ListItemIcon>
+                                <UndoRoundedIcon fontSize={'small'} />
+                            </ListItemIcon>
+                            <ListItemText
+                                primary={t('react.searchUI.template.discardChanges', {
+                                    defaultValue: 'Discard changes',
+                                })}
+                            />
+                        </MenuItem>
+                    ) : null}
+                </Box>
+            </Menu>
+            <SearchUITemplateEditor key={editorSession} open={editorOpen} onClose={() => setEditorOpen(false)} />
+        </>
+    )
 }
 
 export default SearchUITemplatesMenu
@@ -631,42 +685,48 @@ const revealOnRowSx = {
     },
 }
 
-const getTemplateRowSx = (selected: boolean, dragging: boolean): SxProps<Theme> => theme => ({
-    alignItems: 'stretch',
-    borderRadius: '4px',
-    display: 'flex',
-    minWidth: 0,
-    position: 'relative',
-    ...(dragging ? {
-        // The lifted row keeps the fill of the panel under the tint of an applied set.
-        backgroundColor: getRowBackground(theme, selected, 'base')
-            ?? resolvePneSemanticPalette(theme).dropdown.panel.fill,
-        boxShadow: theme.shadows[6],
-        '& [data-pne-search-template-grip]': {opacity: 1, cursor: 'grabbing'},
-        '& [data-pne-search-template-remove]': {opacity: 0},
-    } : {
-        backgroundColor: getRowBackground(theme, selected, 'base'),
-        '&:hover': {
-            backgroundColor: getRowBackground(theme, selected, 'hover'),
-        },
-        '&:has(.Mui-focusVisible)': {
-            backgroundColor: getRowBackground(theme, selected, 'focus'),
-        },
-        '&:hover [data-pne-search-template-grip], &:has(.Mui-focusVisible) [data-pne-search-template-grip]': {
-            opacity: 1,
-        },
-        '&:hover [data-pne-search-template-remove], &:has(.Mui-focusVisible) [data-pne-search-template-remove]': {
-            opacity: 1,
-        },
-        // Rows passing under the lifted one are not hovered by the user; keep them at rest.
-        '[data-pne-search-template-list-dragging] &': {
-            backgroundColor: getRowBackground(theme, selected, 'base') ?? 'transparent',
-        },
-        '[data-pne-search-template-list-dragging] & [data-pne-search-template-grip], [data-pne-search-template-list-dragging] & [data-pne-search-template-remove]': {
-            opacity: 0,
-        },
-    }),
-})
+const getTemplateRowSx =
+    (selected: boolean, dragging: boolean): SxProps<Theme> =>
+    theme => ({
+        alignItems: 'stretch',
+        borderRadius: '4px',
+        display: 'flex',
+        minWidth: 0,
+        position: 'relative',
+        ...(dragging
+            ? {
+                  // The lifted row keeps the fill of the panel under the tint of an applied set.
+                  backgroundColor:
+                      getRowBackground(theme, selected, 'base') ?? resolvePneSemanticPalette(theme).dropdown.panel.fill,
+                  boxShadow: theme.shadows[6],
+                  '& [data-pne-search-template-grip]': {opacity: 1, cursor: 'grabbing'},
+                  '& [data-pne-search-template-remove]': {opacity: 0},
+              }
+            : {
+                  backgroundColor: getRowBackground(theme, selected, 'base'),
+                  '&:hover': {
+                      backgroundColor: getRowBackground(theme, selected, 'hover'),
+                  },
+                  '&:has(.Mui-focusVisible)': {
+                      backgroundColor: getRowBackground(theme, selected, 'focus'),
+                  },
+                  '&:hover [data-pne-search-template-grip], &:has(.Mui-focusVisible) [data-pne-search-template-grip]': {
+                      opacity: 1,
+                  },
+                  '&:hover [data-pne-search-template-remove], &:has(.Mui-focusVisible) [data-pne-search-template-remove]':
+                      {
+                          opacity: 1,
+                      },
+                  // Rows passing under the lifted one are not hovered by the user; keep them at rest.
+                  '[data-pne-search-template-list-dragging] &': {
+                      backgroundColor: getRowBackground(theme, selected, 'base') ?? 'transparent',
+                  },
+                  '[data-pne-search-template-list-dragging] & [data-pne-search-template-grip], [data-pne-search-template-list-dragging] & [data-pne-search-template-remove]':
+                      {
+                          opacity: 0,
+                      },
+              }),
+    })
 
 /** Trailing grip next to delete, as in the table column settings: the leading column stays for icons. */
 const gripSx: SxProps<Theme> = {

@@ -4,10 +4,7 @@ import {getSearchUIInitialSearchCriteria} from '../src/component/search-ui/filte
 import {isSearchUITemplateModified} from '../src/component/search-ui/filters/state/actions'
 import {initialSearchUIDefaults, type SearchUIDefaults} from '../src/component/search-ui/SearchUIProvider'
 
-const createTemplate = (
-    name: string,
-    conditions: Partial<SearchUITemplate['searchConditions']>,
-): SearchUITemplate => ({
+const createTemplate = (name: string, conditions: Partial<SearchUITemplate['searchConditions']>): SearchUITemplate => ({
     name,
     searchConditions: {
         ...getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
@@ -28,17 +25,18 @@ const ENABLED_TODAY = createTemplate('Enabled today', {
 
 const createStore = (defaults: Partial<SearchUIDefaults> = {}, templates: SearchUITemplate[] = []) => {
     const store = createSearchUIFiltersStore()
-    store.getState().setInitialState({
-        defaults: {...initialSearchUIDefaults, ...defaults},
-        settingsContextName: 'template-modified',
-        possibleCriteria: [
-            CriterionTypeEnum.STATUS,
-            CriterionTypeEnum.TRANSACTION_SESSION_STATUS,
-        ],
-        predefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
-        criteria: [CriterionTypeEnum.DATE_RANGE],
-        onFiltersUpdate: jest.fn(),
-    }, undefined, {templates})
+    store.getState().setInitialState(
+        {
+            defaults: {...initialSearchUIDefaults, ...defaults},
+            settingsContextName: 'template-modified',
+            possibleCriteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
+            predefinedCriteria: [CriterionTypeEnum.DATE_RANGE],
+            criteria: [CriterionTypeEnum.DATE_RANGE],
+            onFiltersUpdate: jest.fn(),
+        },
+        undefined,
+        {templates},
+    )
     return store
 }
 
@@ -100,15 +98,21 @@ describe('SearchUI applied template changes', () => {
     })
 
     it('does not count statuses that load after the template as a change', async () => {
-        let resolveStatuses: (value: Awaited<ReturnType<SearchUIDefaults['getTransactionSessionStatuses']>>) => void = () => undefined
-        const getTransactionSessionStatuses = jest.fn(() => new Promise<Awaited<ReturnType<SearchUIDefaults['getTransactionSessionStatuses']>>>(resolve => {
-            resolveStatuses = resolve
-        }))
+        let resolveStatuses: (value: Awaited<ReturnType<SearchUIDefaults['getTransactionSessionStatuses']>>) => void =
+            () => undefined
+        const getTransactionSessionStatuses = jest.fn(
+            () =>
+                new Promise<Awaited<ReturnType<SearchUIDefaults['getTransactionSessionStatuses']>>>(resolve => {
+                    resolveStatuses = resolve
+                }),
+        )
         const store = createStore({getTransactionSessionStatuses})
-        store.getState().setTemplate(createTemplate('Sessions', {
-            criteria: [CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
-            transactionSessionStatuses: [],
-        }))
+        store.getState().setTemplate(
+            createTemplate('Sessions', {
+                criteria: [CriterionTypeEnum.DATE_RANGE, CriterionTypeEnum.TRANSACTION_SESSION_STATUS],
+                transactionSessionStatuses: [],
+            }),
+        )
         expect(getTransactionSessionStatuses).toHaveBeenCalled()
         expect(modified(store)).toBe(false)
 

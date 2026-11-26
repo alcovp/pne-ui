@@ -4,9 +4,7 @@ import {createTheme, ThemeProvider} from '@mui/material/styles'
 
 import 'jest-canvas-mock'
 
-import PneAsyncAutocomplete, {
-    PneLoadOptions,
-} from '../src/component/dropdown/PneAsyncAutocomplete'
+import PneAsyncAutocomplete, {PneLoadOptions} from '../src/component/dropdown/PneAsyncAutocomplete'
 import {PneField} from '../src'
 import type {AutoCompleteChoice} from '../src/common/paynet/type'
 
@@ -38,12 +36,14 @@ describe('PneAsyncAutocomplete', () => {
     it('loads immediately on open and exposes the loaded options', async () => {
         const loadOptions = jest.fn(async () => [choice(1, 'First result')])
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            defaultOpen
-            disablePortal
-            htmlInputProps={{'aria-label': 'Remote account'}}
-            loadOptions={loadOptions}
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                defaultOpen
+                disablePortal
+                htmlInputProps={{'aria-label': 'Remote account'}}
+                loadOptions={loadOptions}
+            />,
+        )
 
         expect(await screen.findByRole('option', {name: 'First result'})).toBeTruthy()
         expect(loadOptions).toHaveBeenCalledTimes(1)
@@ -57,17 +57,19 @@ describe('PneAsyncAutocomplete', () => {
     it('merges PneField and consumer names without losing error semantics', async () => {
         const loadOptions = jest.fn(async () => [choice(1, 'First result')])
 
-        render(<>
-            <span id='remote-account-context'>Consumer context</span>
-            <PneField error id='remote-account-field' label='Remote account'>
-                <PneAsyncAutocomplete<AutoCompleteChoice>
-                    defaultOpen
-                    disablePortal
-                    htmlInputProps={{'aria-labelledby': 'remote-account-context'}}
-                    loadOptions={loadOptions}
-                />
-            </PneField>
-        </>)
+        render(
+            <>
+                <span id='remote-account-context'>Consumer context</span>
+                <PneField error id='remote-account-field' label='Remote account'>
+                    <PneAsyncAutocomplete<AutoCompleteChoice>
+                        defaultOpen
+                        disablePortal
+                        htmlInputProps={{'aria-labelledby': 'remote-account-context'}}
+                        loadOptions={loadOptions}
+                    />
+                </PneField>
+            </>,
+        )
 
         expect(await screen.findByRole('option', {name: 'First result'})).toBeTruthy()
         const input = screen.getByRole('combobox', {
@@ -79,16 +81,21 @@ describe('PneAsyncAutocomplete', () => {
             'remote-account-context',
         ])
         expect(input.getAttribute('aria-invalid')).toBe('true')
-        expect(screen.getByRole('listbox', {
-            name: 'Remote account Consumer context',
-        })).toBeTruthy()
+        expect(
+            screen.getByRole('listbox', {
+                name: 'Remote account Consumer context',
+            }),
+        ).toBeTruthy()
     })
 
     it('aborts superseded requests and ignores their late results', async () => {
-        const requests = new Map<string, {
-            context: {signal: AbortSignal}
-            deferred: Deferred<readonly AutoCompleteChoice[]>
-        }>()
+        const requests = new Map<
+            string,
+            {
+                context: {signal: AbortSignal}
+                deferred: Deferred<readonly AutoCompleteChoice[]>
+            }
+        >()
         const loadOptions: PneLoadOptions<AutoCompleteChoice> = jest.fn((query, context) => {
             if (query === '') {
                 return Promise.resolve([])
@@ -99,16 +106,18 @@ describe('PneAsyncAutocomplete', () => {
             return deferred.promise
         })
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            label="Account"
-            loadOptions={loadOptions}
-            open
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice> disablePortal label='Account' loadOptions={loadOptions} open />,
+        )
 
-        await waitFor(() => expect(loadOptions).toHaveBeenCalledWith('', expect.objectContaining({
-            reason: 'open',
-        })))
+        await waitFor(() =>
+            expect(loadOptions).toHaveBeenCalledWith(
+                '',
+                expect.objectContaining({
+                    reason: 'open',
+                }),
+            ),
+        )
 
         const input = screen.getByRole('combobox', {name: 'Account'})
         fireEvent.focus(input)
@@ -137,34 +146,44 @@ describe('PneAsyncAutocomplete', () => {
         const loadOptions = jest.fn(async () => [choice(1, 'Selectable result')])
         const onInputChange = jest.fn()
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            label="Account"
-            loadOptions={loadOptions}
-            onInputChange={onInputChange}
-            open
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                disablePortal
+                label='Account'
+                loadOptions={loadOptions}
+                onInputChange={onInputChange}
+                open
+            />,
+        )
 
         await screen.findByRole('option', {name: 'Selectable result'})
         const input = screen.getByRole('combobox', {name: 'Account'})
         fireEvent.focus(input)
         fireEvent.change(input, {target: {value: 'sel'}})
-        await waitFor(() => expect(loadOptions).toHaveBeenLastCalledWith('sel', expect.objectContaining({
-            reason: 'input',
-        })))
+        await waitFor(() =>
+            expect(loadOptions).toHaveBeenLastCalledWith(
+                'sel',
+                expect.objectContaining({
+                    reason: 'input',
+                }),
+            ),
+        )
 
         fireEvent.click(await screen.findByRole('option', {name: 'Selectable result'}))
-        await waitFor(() => expect(onInputChange).toHaveBeenCalledWith(
-            expect.anything(),
-            'Selectable result',
-            'selectOption',
-        ))
+        await waitFor(() =>
+            expect(onInputChange).toHaveBeenCalledWith(expect.anything(), 'Selectable result', 'selectOption'),
+        )
         const callsAfterSelection = loadOptions.mock.calls.length
 
         fireEvent.click(screen.getByTitle('Clear'))
-        await waitFor(() => expect(loadOptions).toHaveBeenLastCalledWith('', expect.objectContaining({
-            reason: 'clear',
-        })))
+        await waitFor(() =>
+            expect(loadOptions).toHaveBeenLastCalledWith(
+                '',
+                expect.objectContaining({
+                    reason: 'clear',
+                }),
+            ),
+        )
         expect(loadOptions).toHaveBeenCalledTimes(callsAfterSelection + 1)
     })
 
@@ -172,46 +191,57 @@ describe('PneAsyncAutocomplete', () => {
         const selectedChoice = choice(1, 'Selected result')
         const loadOptions = jest.fn(async () => [selectedChoice])
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice, true>
-            disablePortal
-            loadOptions={loadOptions}
-            multiple
-            onChange={() => undefined}
-            open
-            value={[selectedChoice]}
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice, true>
+                disablePortal
+                loadOptions={loadOptions}
+                multiple
+                onChange={() => undefined}
+                open
+                value={[selectedChoice]}
+            />,
+        )
 
         await screen.findByRole('option', {name: 'Selected result'})
         expect((screen.getByRole('combobox') as HTMLInputElement).value).toBe('')
 
         fireEvent.click(screen.getByTitle('Clear'))
 
-        await waitFor(() => expect(loadOptions).toHaveBeenLastCalledWith('', expect.objectContaining({
-            reason: 'clear',
-        })))
+        await waitFor(() =>
+            expect(loadOptions).toHaveBeenLastCalledWith(
+                '',
+                expect.objectContaining({
+                    reason: 'clear',
+                }),
+            ),
+        )
         expect(loadOptions).toHaveBeenCalledTimes(2)
     })
 
     it('does not load below minQueryLength and announces the requirement', async () => {
         const loadOptions = jest.fn(async () => [choice(1, 'Eligible result')])
-        const {rerender} = render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            inputValue="ab"
-            loadOptions={loadOptions}
-            minQueryLength={3}
-            open
-        />)
+        const {rerender} = render(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                disablePortal
+                inputValue='ab'
+                loadOptions={loadOptions}
+                minQueryLength={3}
+                open
+            />,
+        )
 
         expect((await screen.findByRole('status')).textContent).toContain('Enter at least 3 characters')
         expect(loadOptions).not.toHaveBeenCalled()
 
-        rerender(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            inputValue="abc"
-            loadOptions={loadOptions}
-            minQueryLength={3}
-            open
-        />)
+        rerender(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                disablePortal
+                inputValue='abc'
+                loadOptions={loadOptions}
+                minQueryLength={3}
+                open
+            />,
+        )
 
         expect(await screen.findByRole('option', {name: 'Eligible result'})).toBeTruthy()
         expect(loadOptions).toHaveBeenCalledWith('abc', expect.objectContaining({reason: 'input'}))
@@ -231,13 +261,11 @@ describe('PneAsyncAutocomplete', () => {
             },
         })
 
-        render(<ThemeProvider theme={theme}>
-            <PneAsyncAutocomplete<AutoCompleteChoice>
-                disablePortal
-                loadOptions={() => request.promise}
-                open
-            />
-        </ThemeProvider>)
+        render(
+            <ThemeProvider theme={theme}>
+                <PneAsyncAutocomplete<AutoCompleteChoice> disablePortal loadOptions={() => request.promise} open />
+            </ThemeProvider>,
+        )
 
         expect((await screen.findByRole('status')).textContent).toContain('Chargement…')
         expect(screen.getAllByText('Chargement…').length).toBeGreaterThanOrEqual(2)
@@ -254,29 +282,16 @@ describe('PneAsyncAutocomplete', () => {
     it('reloads only when reloadKey changes, not when the loader identity changes', async () => {
         const firstLoader = jest.fn(async () => [choice(1, 'Initial result')])
         const nextLoader = jest.fn(async () => [choice(2, 'Reloaded result')])
-        const {rerender} = render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            loadOptions={firstLoader}
-            open
-            reloadKey={1}
-        />)
+        const {rerender} = render(
+            <PneAsyncAutocomplete<AutoCompleteChoice> disablePortal loadOptions={firstLoader} open reloadKey={1} />,
+        )
 
         expect(await screen.findByRole('option', {name: 'Initial result'})).toBeTruthy()
-        rerender(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            loadOptions={nextLoader}
-            open
-            reloadKey={1}
-        />)
+        rerender(<PneAsyncAutocomplete<AutoCompleteChoice> disablePortal loadOptions={nextLoader} open reloadKey={1} />)
         await act(async () => Promise.resolve())
         expect(nextLoader).not.toHaveBeenCalled()
 
-        rerender(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            loadOptions={nextLoader}
-            open
-            reloadKey={2}
-        />)
+        rerender(<PneAsyncAutocomplete<AutoCompleteChoice> disablePortal loadOptions={nextLoader} open reloadKey={2} />)
         expect(await screen.findByRole('option', {name: 'Reloaded result'})).toBeTruthy()
         expect(nextLoader).toHaveBeenCalledWith('', expect.objectContaining({reason: 'reload'}))
     })
@@ -288,13 +303,15 @@ describe('PneAsyncAutocomplete', () => {
             throw failure
         }) as unknown as PneLoadOptions<AutoCompleteChoice>
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            loadErrorText="Could not load accounts"
-            loadOptions={loadOptions}
-            onLoadError={onLoadError}
-            open
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                disablePortal
+                loadErrorText='Could not load accounts'
+                loadOptions={loadOptions}
+                onLoadError={onLoadError}
+                open
+            />,
+        )
 
         expect((await screen.findByRole('alert')).textContent).toContain('Could not load accounts')
         expect(onLoadError).toHaveBeenCalledWith(failure, {
@@ -311,12 +328,14 @@ describe('PneAsyncAutocomplete', () => {
             throw new DOMException('cancelled', 'AbortError')
         })
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            loadOptions={loadOptions}
-            onLoadError={onLoadError}
-            open
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                disablePortal
+                loadOptions={loadOptions}
+                onLoadError={onLoadError}
+                open
+            />,
+        )
 
         await waitFor(() => expect(loadOptions).toHaveBeenCalled())
         await waitFor(() => expect(screen.getByRole('combobox').getAttribute('aria-busy')).toBe('false'))
@@ -326,18 +345,20 @@ describe('PneAsyncAutocomplete', () => {
 
     it('keeps previous options only while the next request is loading', async () => {
         const nextRequest = createDeferred<readonly AutoCompleteChoice[]>()
-        const loadOptions = jest.fn((query: string) => query === ''
-            ? Promise.resolve([choice(1, 'Previous result')])
-            : nextRequest.promise)
+        const loadOptions = jest.fn((query: string) =>
+            query === '' ? Promise.resolve([choice(1, 'Previous result')]) : nextRequest.promise,
+        )
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            keepPreviousOptions
-            label="Account"
-            loadErrorText="Reload failed"
-            loadOptions={loadOptions}
-            open
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                disablePortal
+                keepPreviousOptions
+                label='Account'
+                loadErrorText='Reload failed'
+                loadOptions={loadOptions}
+                open
+            />,
+        )
 
         expect(await screen.findByRole('option', {name: 'Previous result'})).toBeTruthy()
         const input = screen.getByRole('combobox', {name: 'Account'})
@@ -365,12 +386,9 @@ describe('PneAsyncAutocomplete', () => {
             return request.promise
         }
 
-        render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            disablePortal
-            loadOptions={loadOptions}
-            onClose={onClose}
-            open
-        />)
+        render(
+            <PneAsyncAutocomplete<AutoCompleteChoice> disablePortal loadOptions={loadOptions} onClose={onClose} open />,
+        )
 
         await waitFor(() => expect(requestSignal).toBeDefined())
         fireEvent.click(screen.getByRole('button', {name: 'Close'}))
@@ -392,31 +410,37 @@ describe('PneAsyncAutocomplete', () => {
         }
         const inputRef = React.createRef<HTMLInputElement>()
         const rootRef = React.createRef<HTMLDivElement>()
-        const {rerender, unmount} = render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            inputRef={inputRef}
-            loadOptions={loadOptions}
-            open
-            ref={rootRef}
-        />)
+        const {rerender, unmount} = render(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                inputRef={inputRef}
+                loadOptions={loadOptions}
+                open
+                ref={rootRef}
+            />,
+        )
 
         await waitFor(() => expect(signals).toHaveLength(1))
         expect(inputRef.current).toBe(screen.getByRole('combobox'))
         expect(rootRef.current?.classList.contains('MuiAutocomplete-root')).toBe(true)
 
-        rerender(<PneAsyncAutocomplete<AutoCompleteChoice>
-            inputRef={inputRef}
-            loadOptions={loadOptions}
-            open={false}
-            ref={rootRef}
-        />)
+        rerender(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                inputRef={inputRef}
+                loadOptions={loadOptions}
+                open={false}
+                ref={rootRef}
+            />,
+        )
         expect(signals[0].aborted).toBe(true)
 
-        rerender(<PneAsyncAutocomplete<AutoCompleteChoice>
-            inputRef={inputRef}
-            loadOptions={loadOptions}
-            open
-            ref={rootRef}
-        />)
+        rerender(
+            <PneAsyncAutocomplete<AutoCompleteChoice>
+                inputRef={inputRef}
+                loadOptions={loadOptions}
+                open
+                ref={rootRef}
+            />,
+        )
         await waitFor(() => expect(signals).toHaveLength(2))
         unmount()
         expect(signals[1].aborted).toBe(true)
@@ -424,10 +448,7 @@ describe('PneAsyncAutocomplete', () => {
 
     it('does not invoke a loader after unmount cancels its deferred start', async () => {
         const loadOptions = jest.fn(async () => [choice(1, 'Too late')])
-        const {unmount} = render(<PneAsyncAutocomplete<AutoCompleteChoice>
-            loadOptions={loadOptions}
-            open
-        />)
+        const {unmount} = render(<PneAsyncAutocomplete<AutoCompleteChoice> loadOptions={loadOptions} open />)
 
         expect(screen.getByRole('combobox').getAttribute('aria-busy')).toBe('true')
         unmount()
@@ -440,12 +461,11 @@ describe('PneAsyncAutocomplete', () => {
     it('does not duplicate the backend load during the StrictMode effect replay', async () => {
         const loadOptions = jest.fn(async () => [] as readonly AutoCompleteChoice[])
 
-        render(<React.StrictMode>
-            <PneAsyncAutocomplete<AutoCompleteChoice>
-                defaultOpen
-                loadOptions={loadOptions}
-            />
-        </React.StrictMode>)
+        render(
+            <React.StrictMode>
+                <PneAsyncAutocomplete<AutoCompleteChoice> defaultOpen loadOptions={loadOptions} />
+            </React.StrictMode>,
+        )
 
         await waitFor(() => expect(loadOptions).toHaveBeenCalledTimes(1))
         await act(async () => Promise.resolve())

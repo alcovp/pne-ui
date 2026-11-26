@@ -14,36 +14,38 @@ export const TransactionReportScopeCriterion = () => {
     const setTransactionReportScopeCriterion = useSearchUIFiltersStore(
         state => state.setTransactionReportScopeCriterion,
     )
-    const setTransactionIdsCriterion = useSearchUIFiltersStore(
-        state => state.setTransactionIdsCriterion,
-    )
+    const setTransactionIdsCriterion = useSearchUIFiltersStore(state => state.setTransactionIdsCriterion)
 
-    return <Box sx={criterionSx}>
-        <SearchUIEnumChipSelect
-            mode={'select'}
-            value={scope}
-            options={TRANSACTION_REPORT_SCOPES}
-            onChange={setTransactionReportScopeCriterion}
-            getOptionLabel={value => t(`react.TransactionReportScopeCriterionEnum.${value}`)}
-            ariaLabel={t('react.CriterionTypeEnum.TRANSACTION_REPORT_SCOPE')}
-        />
-        {scope !== 'ALL' ? <PneTextField
-            value={transactionIds}
-            onChange={event => setTransactionIdsCriterion(event.target.value)}
-            label={t('react.searchUI.transactionIds')}
-            multiline
-            rows={6}
-            fullWidth
-            size={'small'}
-            variant={'outlined'}
-            slotProps={{
-                htmlInput: {
-                    'aria-label': t('react.searchUI.transactionIds'),
-                },
-            }}
-            sx={transactionIdsSx}
-        /> : null}
-    </Box>
+    return (
+        <Box sx={criterionSx}>
+            <SearchUIEnumChipSelect
+                mode={'select'}
+                value={scope}
+                options={TRANSACTION_REPORT_SCOPES}
+                onChange={setTransactionReportScopeCriterion}
+                getOptionLabel={value => t(`react.TransactionReportScopeCriterionEnum.${value}`)}
+                ariaLabel={t('react.CriterionTypeEnum.TRANSACTION_REPORT_SCOPE')}
+            />
+            {scope !== 'ALL' ? (
+                <PneTextField
+                    value={transactionIds}
+                    onChange={event => setTransactionIdsCriterion(event.target.value)}
+                    label={t('react.searchUI.transactionIds')}
+                    multiline
+                    rows={6}
+                    fullWidth
+                    size={'small'}
+                    variant={'outlined'}
+                    slotProps={{
+                        htmlInput: {
+                            'aria-label': t('react.searchUI.transactionIds'),
+                        },
+                    }}
+                    sx={transactionIdsSx}
+                />
+            ) : null}
+        </Box>
+    )
 }
 
 const criterionSx: SxProps = {

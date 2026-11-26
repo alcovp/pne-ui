@@ -16,14 +16,17 @@ export type PnePickerTextFieldProps = Omit<OutlinedPickerTextFieldProps, 'size' 
 type SlotObject = Record<string, unknown>
 
 const asObject = (value: unknown): SlotObject | undefined =>
-    typeof value === 'object' && value !== null ? value as SlotObject : undefined
+    typeof value === 'object' && value !== null ? (value as SlotObject) : undefined
 
 /**
  * The field of a MUI X picker in the UI Kit look: the box of PneTextField with the typed date in it. It
  * goes into a picker as `slots.textField`; the pickers of the library put it there themselves. Inside
  * PneField it takes the field's id, label, helper text, error and disabled state, as PneTextField does.
  */
-const PnePickerTextField = ({ref, ...props}: React.PropsWithoutRef<PnePickerTextFieldProps> & {ref?: React.Ref<HTMLDivElement>}) => {
+const PnePickerTextField = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PnePickerTextFieldProps> & {ref?: React.Ref<HTMLDivElement>}) => {
     const {
         'aria-describedby': ariaDescribedBy,
         'aria-labelledby': ariaLabelledBy,
@@ -55,7 +58,7 @@ const PnePickerTextField = ({ref, ...props}: React.PropsWithoutRef<PnePickerText
     // MUI X writes the date in sections and keeps the whole of it in a hidden input, so the box is the
     // control: inside PneField it carries the field's id and names the field's label and helper text
     // as its own. With a label of its own the box keeps the names MUI X gives it.
-    const labelledBy = hasLabel ? ariaLabelledBy : control.ariaLabelledBy ?? control.labelId
+    const labelledBy = hasLabel ? ariaLabelledBy : (control.ariaLabelledBy ?? control.labelId)
     const describedBy = control.ariaDescribedBy
     const input = asObject(slotProps?.input)
     const inputSlotProps = asObject(input?.slotProps)
@@ -74,25 +77,27 @@ const PnePickerTextField = ({ref, ...props}: React.PropsWithoutRef<PnePickerText
         inputLabel: {shrink: true, ...slotProps?.inputLabel},
     } as OutlinedPickerTextFieldProps['slotProps']
 
-    return <PickersTextField
-        {...rest}
-        areAllSectionsEmpty={areAllSectionsEmpty}
-        data-pne-empty={areAllSectionsEmpty ? '' : undefined}
-        data-pne-filled={areAllSectionsEmpty ? undefined : ''}
-        data-pne-size={resolvePneFieldSize(size)}
-        disabled={resolvedDisabled}
-        error={control.error ?? error}
-        fullWidth={control.fullWidth ?? fullWidth}
-        id={id}
-        label={label}
-        ref={ref}
-        required={control.required}
-        // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
-        size='small'
-        slotProps={resolvedSlotProps}
-        sx={[pnePickerFieldSx, ...(Array.isArray(sx) ? sx : [sx])]}
-        variant='outlined'
-    />
+    return (
+        <PickersTextField
+            {...rest}
+            areAllSectionsEmpty={areAllSectionsEmpty}
+            data-pne-empty={areAllSectionsEmpty ? '' : undefined}
+            data-pne-filled={areAllSectionsEmpty ? undefined : ''}
+            data-pne-size={resolvePneFieldSize(size)}
+            disabled={resolvedDisabled}
+            error={control.error ?? error}
+            fullWidth={control.fullWidth ?? fullWidth}
+            id={id}
+            label={label}
+            ref={ref}
+            required={control.required}
+            // The geometry is pne-ui's own, by `data-pne-size`; MUI keeps its compact base under it.
+            size='small'
+            slotProps={resolvedSlotProps}
+            sx={[pnePickerFieldSx, ...(Array.isArray(sx) ? sx : [sx])]}
+            variant='outlined'
+        />
+    )
 }
 
 PnePickerTextField.displayName = 'PnePickerTextField'

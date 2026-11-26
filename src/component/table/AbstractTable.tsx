@@ -1,24 +1,24 @@
-import React, {useState, useLayoutEffect, useRef, MutableRefObject} from 'react';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import Box from '@mui/material/Box';
-import Skeleton from '@mui/material/Skeleton';
-import {SxProps} from '@mui/material';
-import type {Theme} from '@mui/material/styles';
-import type { TablePaginationActionsProps } from '@mui/material/TablePaginationActions';
-import PneTableRow from './PneTableRow';
-import PneTableCell from './PneTableCell';
-import PneEmptyState from '../PneEmptyState';
-import PneTablePagination from './PneTablePagination';
-import PneTablePaginationActions from './PneTablePaginationActions';
-import {TABLE_CONTROL_BAND_SIZE} from './tableControlMetrics';
-import {PneTableHeaderVariantContext, type PneTableHeaderVariant} from './tableHeaderVariant';
-import {Order} from "../../common/pne/type";
-import {useTranslation} from "react-i18next";
-import useDelayedLoading from "./useDelayedLoading";
-import {createAutoTestAttributes} from '../AutoTestAttribute';
+import React, {useState, useLayoutEffect, useRef, MutableRefObject} from 'react'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import Box from '@mui/material/Box'
+import Skeleton from '@mui/material/Skeleton'
+import {SxProps} from '@mui/material'
+import type {Theme} from '@mui/material/styles'
+import type {TablePaginationActionsProps} from '@mui/material/TablePaginationActions'
+import PneTableRow from './PneTableRow'
+import PneTableCell from './PneTableCell'
+import PneEmptyState from '../PneEmptyState'
+import PneTablePagination from './PneTablePagination'
+import PneTablePaginationActions from './PneTablePaginationActions'
+import {TABLE_CONTROL_BAND_SIZE} from './tableControlMetrics'
+import {PneTableHeaderVariantContext, type PneTableHeaderVariant} from './tableHeaderVariant'
+import {Order} from '../../common/pne/type'
+import {useTranslation} from 'react-i18next'
+import useDelayedLoading from './useDelayedLoading'
+import {createAutoTestAttributes} from '../AutoTestAttribute'
 import {
     countRowColumns,
     isSameSkeletonColumns,
@@ -33,22 +33,22 @@ import {
     SkeletonColumn,
     SkeletonColumnText,
     SkeletonGeometry,
-} from './tableSkeleton';
+} from './tableSkeleton'
 
-const TABLE_AUTOTEST_ID = 'table';
-const TABLE_EMPTY_STATE_AUTOTEST_ID = 'empty-state';
-const TABLE_PAGINATION_AUTOTEST_ID = 'pagination';
-const TABLE_FEEDBACK_AUTOTEST_ID = 'table-feedback';
-const TABLE_TOP_CONTROLS_AUTOTEST_ID = 'table-top-controls';
-const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar';
+const TABLE_AUTOTEST_ID = 'table'
+const TABLE_EMPTY_STATE_AUTOTEST_ID = 'empty-state'
+const TABLE_PAGINATION_AUTOTEST_ID = 'pagination'
+const TABLE_FEEDBACK_AUTOTEST_ID = 'table-feedback'
+const TABLE_TOP_CONTROLS_AUTOTEST_ID = 'table-top-controls'
+const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar'
 // A body row of the UI Kit table: 40px, the same with text, an icon, a flag or a switch.
-const DEFAULT_SKELETON_ROW_HEIGHT = 40;
-const skeletonBarSx = pneSkeletonLineSx;
+const DEFAULT_SKELETON_ROW_HEIGHT = 40
+const skeletonBarSx = pneSkeletonLineSx
 const SKELETON_LINE_ALIGN: Record<SkeletonAlign, React.CSSProperties['alignItems']> = {
     left: 'flex-start',
     center: 'center',
     right: 'flex-end',
-};
+}
 
 export type RowsPerPageOption = number //| { label: string, value: number };
 
@@ -56,10 +56,7 @@ export type PaginatorProps = {
     rowsPerPageOptions: RowsPerPageOption[]
     rowsPerPage: number
     page: number
-    onPageChange: (
-        event: React.MouseEvent<HTMLButtonElement> | null,
-        page: number
-    ) => void
+    onPageChange: (event: React.MouseEvent<HTMLButtonElement> | null, page: number) => void
     onPageSizeChange: (pageSize: number) => void
     hasNext: boolean
     disableActions: boolean
@@ -102,21 +99,14 @@ const StablePaginationActions = (props: TablePaginationActionsProps) => {
         throw new Error('StablePaginationActions must be rendered inside PaginationActionsContext')
     }
 
-    return <PneTablePaginationActions
-        {...props}
-        {...context}
-    />
+    return <PneTablePaginationActions {...props} {...context} />
 }
 
 export type TableProps<D> = {
     /** Stable, non-secret instance identifier; required for unambiguous multiple-table scopes. */
     autoTestId?: string
     data: D[]
-    createRow: (
-        rowData: D,
-        index: number,
-        arr: D[]
-    ) => React.ReactElement
+    createRow: (rowData: D, index: number, arr: D[]) => React.ReactElement
     createTableHeader: TableCreateHeaderType
     sortOptions?: TableSortOptions
     lastRow?: React.ReactElement
@@ -152,7 +142,7 @@ export type TableProps<D> = {
      * controls by default; `{top: {'& .MuiToolbar-root.MuiTablePagination-toolbar': {marginTop: 0,
      * marginBottom: 0}}}` removes them around the top row.
      */
-    paginationSx?: {top?: SxProps, bottom?: SxProps}
+    paginationSx?: {top?: SxProps; bottom?: SxProps}
     /** Optional full-width feedback rendered above, and independently from, the responsive top controls. */
     feedback?: React.ReactNode
 }
@@ -171,9 +161,7 @@ export interface ITableCreateHeaderParams {
 
 export type TableCreateHeaderType = (headerParams: ITableCreateHeaderParams) => React.ReactElement
 
-const AbstractTable = <D, >(
-    props: React.PropsWithChildren<TableProps<D>>
-) => {
+const AbstractTable = <D,>(props: React.PropsWithChildren<TableProps<D>>) => {
     const {
         data,
         autoTestId,
@@ -201,373 +189,382 @@ const AbstractTable = <D, >(
 
     const {t} = useTranslation()
 
-    const showSkeleton = useDelayedLoading(loading, loadingKey);
+    const showSkeleton = useDelayedLoading(loading, loadingKey)
 
-    const containerRef = useRef<HTMLElement>(null);
-    const tableContainerRef = useRef<HTMLDivElement>(null);
-    const tableRef = useRef<HTMLTableElement>(null);
-    const skeletonGeometryRef = useRef(new Map<string | number | undefined, SkeletonGeometry>());
+    const containerRef = useRef<HTMLElement>(null)
+    const tableContainerRef = useRef<HTMLDivElement>(null)
+    const tableRef = useRef<HTMLTableElement>(null)
+    const skeletonGeometryRef = useRef(new Map<string | number | undefined, SkeletonGeometry>())
     // Column text is read only when the rows change: it walks every text node of a few rows.
-    const measuredTextRef = useRef<{rows: D[], key: string | number | undefined, text?: SkeletonColumnText[]} | undefined>(undefined);
-    const [columnCount, setColumnCount] = useState(5);
-    const [skeletonColumns, setSkeletonColumns] = useState<SkeletonColumn[]>([]);
+    const measuredTextRef = useRef<
+        {rows: D[]; key: string | number | undefined; text?: SkeletonColumnText[]} | undefined
+    >(undefined)
+    const [columnCount, setColumnCount] = useState(5)
+    const [skeletonColumns, setSkeletonColumns] = useState<SkeletonColumn[]>([])
 
-    const visibleRows = React.useMemo(
-        () => data,
-        [data, sortOptions?.order, sortOptions?.sortIndex],
-    );
+    const visibleRows = React.useMemo(() => data, [data, sortOptions?.order, sortOptions?.sortIndex])
     // The same rows from the same factory are the same elements: React then leaves them as they are when the
     // table renders for anything else (loading, a page change still on its way, the controls).
-    const rowElements = React.useMemo(() => visibleRows.map(createRow), [visibleRows, createRow]);
+    const rowElements = React.useMemo(() => visibleRows.map(createRow), [visibleRows, createRow])
 
     // A table wider than its container scrolls sideways. The message of an empty table is as wide as
     // what is seen and stays there (sticky), instead of standing in the middle of the whole width.
-    const hasEmptyState = !showSkeleton && visibleRows.length === 0 && showNothingIsFoundRow;
+    const hasEmptyState = !showSkeleton && visibleRows.length === 0 && showNothingIsFoundRow
     useLayoutEffect(() => {
-        const container = tableContainerRef.current;
+        const container = tableContainerRef.current
         if (!hasEmptyState || !container) {
-            return;
+            return
         }
 
         const measure = () => {
-            const width = container.clientWidth - 2 * EMPTY_STATE_PADDING_X;
+            const width = container.clientWidth - 2 * EMPTY_STATE_PADDING_X
             if (width > 0) {
-                container.style.setProperty(EMPTY_STATE_WIDTH_PROPERTY, `${width}px`);
+                container.style.setProperty(EMPTY_STATE_WIDTH_PROPERTY, `${width}px`)
             } else {
                 // Not laid out: the message keeps the width of its cell.
-                container.style.removeProperty(EMPTY_STATE_WIDTH_PROPERTY);
+                container.style.removeProperty(EMPTY_STATE_WIDTH_PROPERTY)
             }
-        };
-        measure();
+        }
+        measure()
         if (typeof ResizeObserver === 'undefined') {
-            return;
+            return
         }
 
-        const observer = new ResizeObserver(measure);
-        observer.observe(container);
-        return () => observer.disconnect();
-    }, [hasEmptyState]);
+        const observer = new ResizeObserver(measure)
+        observer.observe(container)
+        return () => observer.disconnect()
+    }, [hasEmptyState])
 
     // The header decides the columns. Measured before paint, so that a switched view
     // never shows a frame with the previous view's column count.
     useLayoutEffect(() => {
-        const headerRow = tableRef.current?.tHead?.rows[0];
+        const headerRow = tableRef.current?.tHead?.rows[0]
         if (!headerRow) {
-            return;
+            return
         }
 
-        setColumnCount(countRowColumns(headerRow));
+        setColumnCount(countRowColumns(headerRow))
         if (showSkeleton) {
-            const columns = measureSkeletonColumns(headerRow);
-            setSkeletonColumns(current => isSameSkeletonColumns(current, columns) ? current : columns);
+            const columns = measureSkeletonColumns(headerRow)
+            setSkeletonColumns(current => (isSameSkeletonColumns(current, columns) ? current : columns))
         }
-    });
+    })
 
     useLayoutEffect(() => {
-        const table = tableRef.current;
-        const headerRow = table?.tHead?.rows[0];
+        const table = tableRef.current
+        const headerRow = table?.tHead?.rows[0]
         if (showSkeleton || !table || !headerRow || !tableContainerRef.current || visibleRows.length === 0) {
-            return;
+            return
         }
 
-        const tableWidth = table.getBoundingClientRect().width;
+        const tableWidth = table.getBoundingClientRect().width
         if (tableWidth === 0) {
             // Not laid out (a hidden table): nothing to learn, keep what was measured before.
-            return;
+            return
         }
 
-        const headerHeight = table.tHead?.getBoundingClientRect().height ?? 0;
-        const rowHeight = (tableContainerRef.current.offsetHeight - headerHeight) / visibleRows.length;
-        const headerColumnCount = countRowColumns(headerRow);
-        const columnWidths = measureColumnWidths(table, headerColumnCount);
-        const measured = measuredTextRef.current;
-        const columnText = measured?.rows === visibleRows
-            && Object.is(measured.key, loadingKey)
-            && measured.text?.length === headerColumnCount
-            ? measured.text
-            : measureColumnText(table, headerColumnCount);
-        measuredTextRef.current = {rows: visibleRows, key: loadingKey, text: columnText};
+        const headerHeight = table.tHead?.getBoundingClientRect().height ?? 0
+        const rowHeight = (tableContainerRef.current.offsetHeight - headerHeight) / visibleRows.length
+        const headerColumnCount = countRowColumns(headerRow)
+        const columnWidths = measureColumnWidths(table, headerColumnCount)
+        const measured = measuredTextRef.current
+        const columnText =
+            measured?.rows === visibleRows &&
+            Object.is(measured.key, loadingKey) &&
+            measured.text?.length === headerColumnCount
+                ? measured.text
+                : measureColumnText(table, headerColumnCount)
+        measuredTextRef.current = {rows: visibleRows, key: loadingKey, text: columnText}
 
         skeletonGeometryRef.current.set(loadingKey, {
             columnCount: headerColumnCount,
-            columnPercents: columnWidths?.map(width => width * 100 / tableWidth),
+            columnPercents: columnWidths?.map(width => (width * 100) / tableWidth),
             rowHeight: rowHeight > 0 ? rowHeight : undefined,
             headerHeight,
             columnText,
-        });
+        })
         // Measured when the rows or the columns change, not on every render: each measurement makes the browser lay
         // the whole table out at once.
-    }, [showSkeleton, visibleRows, loadingKey, columnCount]);
+    }, [showSkeleton, visibleRows, loadingKey, columnCount])
 
-    const getPneTablePagination = (
-        position: 'top' | 'bottom',
-        topToolbar?: React.ReactNode,
-    ) => {
+    const getPneTablePagination = (position: 'top' | 'bottom', topToolbar?: React.ReactNode) => {
         if (!paginator) {
             return null
         }
 
         const observedToolbar = position === 'top' ? toolbar : undefined
 
-        return <PaginationActionsContext
-            value={{
-                paginator,
-                shouldRequestScroll: position === 'bottom',
-                toolbar: position === 'top' ? topToolbar : undefined,
-                toolbarElementKey: React.isValidElement(observedToolbar)
-                    ? observedToolbar.key
-                    : null,
-                toolbarElementType: React.isValidElement(observedToolbar)
-                    ? observedToolbar.type
-                    : typeof observedToolbar,
-            }}
-        >
-            <PneTablePagination
-                {...createAutoTestAttributes(TABLE_PAGINATION_AUTOTEST_ID, position)}
-                ref={position === 'bottom' ? paginator.paginationRef : undefined}
-                count={-1}
-                component={'div'}
-                labelDisplayedRows={() => null}
-                labelRowsPerPage={null}
-                rowsPerPageOptions={paginator.rowsPerPageOptions}
-                rowsPerPage={paginator.rowsPerPage}
-                page={paginator.page}
-                onPageChange={paginator.onPageChange}
-                ActionsComponent={StablePaginationActions}
-                sx={paginationSx?.[position]}
-            />
-        </PaginationActionsContext>;
-    }
-    const skeletonRowCount = paginator?.rowsPerPage || 10;
-    const cellPadding = 19; // 10px over the text and 9px under it
-    const cellBorderHeight = 1; // the hairline under a row
-    const rememberedGeometry = skeletonGeometryRef.current.get(loadingKey);
-    const skeletonGeometry = rememberedGeometry?.columnCount === columnCount
-        ? rememberedGeometry
-        : undefined;
-    const actualSkeletonRowHeight = skeletonGeometry?.rowHeight ?? skeletonRowHeight ?? DEFAULT_SKELETON_ROW_HEIGHT;
-    const skeletonRowSx: SxProps | undefined = actualSkeletonRowHeight
-        ? {
-            height: actualSkeletonRowHeight,
-            maxHeight: actualSkeletonRowHeight,
-        }
-        : undefined;
-    const skeletonCellSx: SxProps | undefined = actualSkeletonRowHeight
-        ? {
-            '&&': {
-                boxSizing: 'border-box',
-                height: actualSkeletonRowHeight,
-                maxHeight: actualSkeletonRowHeight,
-                overflow: 'hidden',
-            },
-        }
-        : undefined;
-    const skeletonItemHeight = actualSkeletonRowHeight
-        ? Math.max(16, actualSkeletonRowHeight - cellPadding - cellBorderHeight)
-        : undefined;
-    const skeletonLinesFitting = skeletonItemHeight ? linesFitting(skeletonItemHeight) : 1;
-    const skeletonTableHeight = showSkeleton && skeletonGeometry?.rowHeight && skeletonGeometry.headerHeight > 0
-        ? skeletonGeometry.headerHeight + skeletonGeometry.rowHeight * skeletonRowCount
-        : undefined;
-    const hasToolbar = toolbar !== undefined
-        && toolbar !== null
-        && typeof toolbar !== 'boolean'
-    const hasFeedback = feedback !== undefined
-        && feedback !== null
-        && typeof feedback !== 'boolean'
-    const createTableToolbar = (insidePagination: boolean) => {
-        const toolbarContent = React.isValidElement(toolbar)
-            && toolbar.type !== React.Fragment
-            ? toolbar
-            : <Box
-                sx={{
-                    alignItems: 'center',
-                    display: 'flex',
-                    maxWidth: '100%',
-                    minWidth: 0,
-                    width: 'max-content',
+        return (
+            <PaginationActionsContext
+                value={{
+                    paginator,
+                    shouldRequestScroll: position === 'bottom',
+                    toolbar: position === 'top' ? topToolbar : undefined,
+                    toolbarElementKey: React.isValidElement(observedToolbar) ? observedToolbar.key : null,
+                    toolbarElementType: React.isValidElement(observedToolbar)
+                        ? observedToolbar.type
+                        : typeof observedToolbar,
                 }}
             >
-                {toolbar}
-            </Box>
+                <PneTablePagination
+                    {...createAutoTestAttributes(TABLE_PAGINATION_AUTOTEST_ID, position)}
+                    ref={position === 'bottom' ? paginator.paginationRef : undefined}
+                    count={-1}
+                    component={'div'}
+                    labelDisplayedRows={() => null}
+                    labelRowsPerPage={null}
+                    rowsPerPageOptions={paginator.rowsPerPageOptions}
+                    rowsPerPage={paginator.rowsPerPage}
+                    page={paginator.page}
+                    onPageChange={paginator.onPageChange}
+                    ActionsComponent={StablePaginationActions}
+                    sx={paginationSx?.[position]}
+                />
+            </PaginationActionsContext>
+        )
+    }
+    const skeletonRowCount = paginator?.rowsPerPage || 10
+    const cellPadding = 19 // 10px over the text and 9px under it
+    const cellBorderHeight = 1 // the hairline under a row
+    const rememberedGeometry = skeletonGeometryRef.current.get(loadingKey)
+    const skeletonGeometry = rememberedGeometry?.columnCount === columnCount ? rememberedGeometry : undefined
+    const actualSkeletonRowHeight = skeletonGeometry?.rowHeight ?? skeletonRowHeight ?? DEFAULT_SKELETON_ROW_HEIGHT
+    const skeletonRowSx: SxProps | undefined = actualSkeletonRowHeight
+        ? {
+              height: actualSkeletonRowHeight,
+              maxHeight: actualSkeletonRowHeight,
+          }
+        : undefined
+    const skeletonCellSx: SxProps | undefined = actualSkeletonRowHeight
+        ? {
+              '&&': {
+                  boxSizing: 'border-box',
+                  height: actualSkeletonRowHeight,
+                  maxHeight: actualSkeletonRowHeight,
+                  overflow: 'hidden',
+              },
+          }
+        : undefined
+    const skeletonItemHeight = actualSkeletonRowHeight
+        ? Math.max(16, actualSkeletonRowHeight - cellPadding - cellBorderHeight)
+        : undefined
+    const skeletonLinesFitting = skeletonItemHeight ? linesFitting(skeletonItemHeight) : 1
+    const skeletonTableHeight =
+        showSkeleton && skeletonGeometry?.rowHeight && skeletonGeometry.headerHeight > 0
+            ? skeletonGeometry.headerHeight + skeletonGeometry.rowHeight * skeletonRowCount
+            : undefined
+    const hasToolbar = toolbar !== undefined && toolbar !== null && typeof toolbar !== 'boolean'
+    const hasFeedback = feedback !== undefined && feedback !== null && typeof feedback !== 'boolean'
+    const createTableToolbar = (insidePagination: boolean) => {
+        const toolbarContent =
+            React.isValidElement(toolbar) && toolbar.type !== React.Fragment ? (
+                toolbar
+            ) : (
+                <Box
+                    sx={{
+                        alignItems: 'center',
+                        display: 'flex',
+                        maxWidth: '100%',
+                        minWidth: 0,
+                        width: 'max-content',
+                    }}
+                >
+                    {toolbar}
+                </Box>
+            )
 
-        return <Box
-            {...createAutoTestAttributes(TABLE_TOOLBAR_AUTOTEST_ID)}
-            sx={[
-                {
-                    alignItems: 'center',
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    maxWidth: '100%',
-                    minWidth: 0,
-                    width: '100%',
-                },
-                insidePagination
-                    ? {flex: '1 1 auto'}
-                    : {marginBottom: '6px', marginTop: '6px', minHeight: `${TABLE_CONTROL_BAND_SIZE}px`},
-                ...(Array.isArray(toolbarSx) ? toolbarSx : [toolbarSx]),
-            ]}
-        >
-            {toolbarContent}
-        </Box>
+        return (
+            <Box
+                {...createAutoTestAttributes(TABLE_TOOLBAR_AUTOTEST_ID)}
+                sx={[
+                    {
+                        alignItems: 'center',
+                        display: 'flex',
+                        justifyContent: 'flex-end',
+                        maxWidth: '100%',
+                        minWidth: 0,
+                        width: '100%',
+                    },
+                    insidePagination
+                        ? {flex: '1 1 auto'}
+                        : {marginBottom: '6px', marginTop: '6px', minHeight: `${TABLE_CONTROL_BAND_SIZE}px`},
+                    ...(Array.isArray(toolbarSx) ? toolbarSx : [toolbarSx]),
+                ]}
+            >
+                {toolbarContent}
+            </Box>
+        )
     }
     const hasTopPagination = Boolean(paginator?.duplicatePagination)
     const hasTopControls = hasToolbar || hasTopPagination
 
     const skeletonCellContent = (row: number, col: number) => {
-        const column = skeletonColumns[col];
+        const column = skeletonColumns[col]
         if (column?.hidden) {
-            return null;
+            return null
         }
         const variation = (line: number) =>
-            (Math.sin(row * 127.1 + col * 311.7 + line * 74.7) * 43758.5453 % 1 + 1) % 1;
+            (((Math.sin(row * 127.1 + col * 311.7 + line * 74.7) * 43758.5453) % 1) + 1) % 1
         // Narrow columns keep bars long enough to read as text, yet short enough to show their alignment.
         const singleWidth = column?.narrow
             ? `${60 + Math.floor(variation(0) * 30)}%`
-            : `${40 + Math.floor(variation(0) * 40)}%`;
+            : `${40 + Math.floor(variation(0) * 40)}%`
 
         if (skeletonLinesFitting === 1) {
-            const style: React.CSSProperties | undefined = column?.align === 'right'
-                ? {marginLeft: 'auto'}
-                : column?.align === 'center'
-                    ? {marginLeft: 'auto', marginRight: 'auto'}
-                    : undefined;
-            return <Skeleton
-                variant="rounded"
-                width={singleWidth}
-                height={SKELETON_LINE_HEIGHT}
-                style={style}
-                sx={skeletonBarSx}
-            />;
+            const style: React.CSSProperties | undefined =
+                column?.align === 'right'
+                    ? {marginLeft: 'auto'}
+                    : column?.align === 'center'
+                      ? {marginLeft: 'auto', marginRight: 'auto'}
+                      : undefined
+            return (
+                <Skeleton
+                    variant='rounded'
+                    width={singleWidth}
+                    height={SKELETON_LINE_HEIGHT}
+                    style={style}
+                    sx={skeletonBarSx}
+                />
+            )
         }
 
         // A tall row gets lines of text: as many as the column had in real rows of this view,
         // or, before it was seen, most of what fits, a few lines fewer here and there.
-        const remembered = skeletonGeometry?.columnText?.[col]?.lines;
+        const remembered = skeletonGeometry?.columnText?.[col]?.lines
         const lines = Math.min(
             skeletonLinesFitting,
-            remembered ?? skeletonLinesFitting - Math.floor(variation(0) * (skeletonLinesFitting + 1) / 2),
-        );
-        return <div
-            style={{
-                alignItems: SKELETON_LINE_ALIGN[column?.align ?? 'left'],
-                display: 'flex',
-                flexDirection: 'column',
-                gap: SKELETON_LINE_GAP,
-            }}
-        >
-            {Array.from({length: lines}, (_, line) => (
-                <Skeleton
-                    key={line}
-                    variant="rounded"
-                    width={lines === 1
-                        ? singleWidth
-                        : line === lines - 1
-                            ? `${35 + Math.floor(variation(line + 1) * 30)}%`
-                            : `${75 + Math.floor(variation(line + 1) * 20)}%`}
-                    height={SKELETON_LINE_HEIGHT}
-                    sx={skeletonBarSx}
-                />
-            ))}
-        </div>;
-    };
-
-    return <Box
-        {...createAutoTestAttributes(TABLE_AUTOTEST_ID, autoTestId)}
-        sx={{...boxSx}}
-        ref={containerRef}
-    >
-        {hasFeedback ? <Box
-            {...createAutoTestAttributes(TABLE_FEEDBACK_AUTOTEST_ID)}
-            sx={{
-                boxSizing: 'border-box',
-                marginBottom: '8px',
-                maxWidth: '100%',
-                minWidth: 0,
-                overflowWrap: 'anywhere',
-                width: '100%',
-            }}
-        >
-            {feedback}
-        </Box> : null}
-        {hasTopControls ? <Box
-            {...createAutoTestAttributes(TABLE_TOP_CONTROLS_AUTOTEST_ID)}
-            sx={{minWidth: 0, width: '100%'}}
-        >
-            {hasTopPagination
-                ? getPneTablePagination('top', hasToolbar ? createTableToolbar(true) : undefined)
-                : hasToolbar ? createTableToolbar(false) : null}
-        </Box> : null}
-        <TableContainer ref={tableContainerRef}>
-            <Table
-                ref={tableRef}
-                aria-busy={showSkeleton}
-                aria-label={tableAriaLabel}
-                aria-labelledby={tableAriaLabelledBy}
-                stickyHeader={stickyHeader}
-                sx={{...tableSx, ...(skeletonTableHeight ? {height: skeletonTableHeight} : {})}}
+            remembered ?? skeletonLinesFitting - Math.floor((variation(0) * (skeletonLinesFitting + 1)) / 2),
+        )
+        return (
+            <div
+                style={{
+                    alignItems: SKELETON_LINE_ALIGN[column?.align ?? 'left'],
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: SKELETON_LINE_GAP,
+                }}
             >
-                {showSkeleton && skeletonGeometry?.columnPercents && (
-                    <colgroup>
-                        {skeletonGeometry.columnPercents.map((percent, i) => (
-                            // eslint-disable-next-line @eslint-react/no-array-index-key -- columns of a skeleton: the place is the identity
-                            <col key={i} style={{width: `${percent}%`}} />
-                        ))}
-                    </colgroup>
-                )}
-                <TableHead data-pne-header={headerVariant}>
-                    <PneTableHeaderVariantContext value={headerVariant}>
-                        {createTableHeader({
-                            sortOptions: sortOptions
-                        })}
-                    </PneTableHeaderVariantContext>
-                </TableHead>
-                <TableBody>
-                    {showSkeleton ? (
-                        Array.from({length: skeletonRowCount}).map((_, rowIndex) => (
-                            <PneTableRow
-                                // eslint-disable-next-line @eslint-react/no-array-index-key -- rows of a skeleton
-                                key={`skeleton-${rowIndex}`}
-                                hover={false}
-                                sx={skeletonRowSx}
-                            >
-                                {Array.from({length: columnCount}).map((_, colIndex) => (
-                                    <PneTableCell
-                                        // eslint-disable-next-line @eslint-react/no-array-index-key -- cells of a skeleton
-                                        key={`skeleton-${rowIndex}-${colIndex}`}
-                                        sx={skeletonCellSx}
-                                        style={skeletonLinesFitting > 1
-                                            ? {verticalAlign: skeletonGeometry?.columnText?.[colIndex]?.verticalAlign}
-                                            : undefined}
-                                    >
-                                        {skeletonCellContent(rowIndex, colIndex)}
-                                    </PneTableCell>
-                                ))}
-                            </PneTableRow>
-                        ))
-                    ) : (
-                        <>
-                            {rowElements}
-                            {visibleRows.length === 0 && showNothingIsFoundRow && (
-                                <PneTableRow
-                                    {...createAutoTestAttributes(TABLE_EMPTY_STATE_AUTOTEST_ID)}
-                                    hover={false}
-                                >
-                                    <PneTableCell colSpan={columnCount} sx={emptyStateCellSx}>
-                                        <PneEmptyState sx={emptyStateSx}>
-                                            {noRowsMessage || t('advancedSearch.noRows')}
-                                        </PneEmptyState>
-                                    </PneTableCell>
-                                </PneTableRow>
-                            )}
-                            {lastRow}
-                        </>
+                {Array.from({length: lines}, (_, line) => (
+                    <Skeleton
+                        key={line}
+                        variant='rounded'
+                        width={
+                            lines === 1
+                                ? singleWidth
+                                : line === lines - 1
+                                  ? `${35 + Math.floor(variation(line + 1) * 30)}%`
+                                  : `${75 + Math.floor(variation(line + 1) * 20)}%`
+                        }
+                        height={SKELETON_LINE_HEIGHT}
+                        sx={skeletonBarSx}
+                    />
+                ))}
+            </div>
+        )
+    }
+
+    return (
+        <Box {...createAutoTestAttributes(TABLE_AUTOTEST_ID, autoTestId)} sx={{...boxSx}} ref={containerRef}>
+            {hasFeedback ? (
+                <Box
+                    {...createAutoTestAttributes(TABLE_FEEDBACK_AUTOTEST_ID)}
+                    sx={{
+                        boxSizing: 'border-box',
+                        marginBottom: '8px',
+                        maxWidth: '100%',
+                        minWidth: 0,
+                        overflowWrap: 'anywhere',
+                        width: '100%',
+                    }}
+                >
+                    {feedback}
+                </Box>
+            ) : null}
+            {hasTopControls ? (
+                <Box {...createAutoTestAttributes(TABLE_TOP_CONTROLS_AUTOTEST_ID)} sx={{minWidth: 0, width: '100%'}}>
+                    {hasTopPagination
+                        ? getPneTablePagination('top', hasToolbar ? createTableToolbar(true) : undefined)
+                        : hasToolbar
+                          ? createTableToolbar(false)
+                          : null}
+                </Box>
+            ) : null}
+            <TableContainer ref={tableContainerRef}>
+                <Table
+                    ref={tableRef}
+                    aria-busy={showSkeleton}
+                    aria-label={tableAriaLabel}
+                    aria-labelledby={tableAriaLabelledBy}
+                    stickyHeader={stickyHeader}
+                    sx={{...tableSx, ...(skeletonTableHeight ? {height: skeletonTableHeight} : {})}}
+                >
+                    {showSkeleton && skeletonGeometry?.columnPercents && (
+                        <colgroup>
+                            {skeletonGeometry.columnPercents.map((percent, i) => (
+                                // eslint-disable-next-line @eslint-react/no-array-index-key -- columns of a skeleton: the place is the identity
+                                <col key={i} style={{width: `${percent}%`}} />
+                            ))}
+                        </colgroup>
                     )}
-                </TableBody>
-            </Table>
-        </TableContainer>
-        {paginator && getPneTablePagination('bottom')}
-    </Box>
+                    <TableHead data-pne-header={headerVariant}>
+                        <PneTableHeaderVariantContext value={headerVariant}>
+                            {createTableHeader({
+                                sortOptions: sortOptions,
+                            })}
+                        </PneTableHeaderVariantContext>
+                    </TableHead>
+                    <TableBody>
+                        {showSkeleton ? (
+                            Array.from({length: skeletonRowCount}).map((_, rowIndex) => (
+                                <PneTableRow
+                                    // eslint-disable-next-line @eslint-react/no-array-index-key -- rows of a skeleton
+                                    key={`skeleton-${rowIndex}`}
+                                    hover={false}
+                                    sx={skeletonRowSx}
+                                >
+                                    {Array.from({length: columnCount}).map((_, colIndex) => (
+                                        <PneTableCell
+                                            // eslint-disable-next-line @eslint-react/no-array-index-key -- cells of a skeleton
+                                            key={`skeleton-${rowIndex}-${colIndex}`}
+                                            sx={skeletonCellSx}
+                                            style={
+                                                skeletonLinesFitting > 1
+                                                    ? {
+                                                          verticalAlign:
+                                                              skeletonGeometry?.columnText?.[colIndex]?.verticalAlign,
+                                                      }
+                                                    : undefined
+                                            }
+                                        >
+                                            {skeletonCellContent(rowIndex, colIndex)}
+                                        </PneTableCell>
+                                    ))}
+                                </PneTableRow>
+                            ))
+                        ) : (
+                            <>
+                                {rowElements}
+                                {visibleRows.length === 0 && showNothingIsFoundRow && (
+                                    <PneTableRow
+                                        {...createAutoTestAttributes(TABLE_EMPTY_STATE_AUTOTEST_ID)}
+                                        hover={false}
+                                    >
+                                        <PneTableCell colSpan={columnCount} sx={emptyStateCellSx}>
+                                            <PneEmptyState sx={emptyStateSx}>
+                                                {noRowsMessage || t('advancedSearch.noRows')}
+                                            </PneEmptyState>
+                                        </PneTableCell>
+                                    </PneTableRow>
+                                )}
+                                {lastRow}
+                            </>
+                        )}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            {paginator && getPneTablePagination('bottom')}
+        </Box>
+    )
 }
 
 // The empty state of a table stands in the middle of what is seen of it, with 32px over and under it:
@@ -585,4 +582,4 @@ const emptyStateSx: SxProps<Theme> = {
     width: `var(${EMPTY_STATE_WIDTH_PROPERTY}, 100%)`,
 }
 
-export default AbstractTable;
+export default AbstractTable

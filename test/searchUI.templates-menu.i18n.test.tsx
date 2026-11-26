@@ -25,17 +25,19 @@ it('shows template names in interpolated menu labels as typed', async () => {
         name: 'EU/UK <cards> & "fees"',
         searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
     }
-    render(<I18nextProvider i18n={providerI18n}>
-        <SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([template])}}>
-            <SearchUIFilters
-                autoTestId='escaping'
-                settingsContextName='templates-menu-escaping'
-                possibleCriteria={[]}
-                onFiltersUpdate={jest.fn()}
-                config={{hideShowFiltersButton: true}}
-            />
-        </SearchUIProvider>
-    </I18nextProvider>)
+    render(
+        <I18nextProvider i18n={providerI18n}>
+            <SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([template])}}>
+                <SearchUIFilters
+                    autoTestId='escaping'
+                    settingsContextName='templates-menu-escaping'
+                    possibleCriteria={[]}
+                    onFiltersUpdate={jest.fn()}
+                    config={{hideShowFiltersButton: true}}
+                />
+            </SearchUIProvider>
+        </I18nextProvider>,
+    )
     const trigger = document.body.querySelector<HTMLButtonElement>('[data-autotest="templates"]')!
 
     fireEvent.click(trigger)

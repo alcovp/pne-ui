@@ -6,10 +6,7 @@ import {createPneTheme, PneModal, PneModalActions, type Skin} from '../src'
 
 describe('PneModal', () => {
     it('keeps its dark title readable against legacy heading styles', () => {
-        const theme = createPneTheme(
-            {experimentalColor: '#0a91bc'} as Skin,
-            {colorMode: 'dark'},
-        )
+        const theme = createPneTheme({experimentalColor: '#0a91bc'} as Skin, {colorMode: 'dark'})
 
         render(
             <ThemeProvider theme={theme}>
@@ -23,8 +20,7 @@ describe('PneModal', () => {
             </ThemeProvider>,
         )
 
-        expect(window.getComputedStyle(screen.getByTestId('dark-modal-title')).color)
-            .toBe('rgb(242, 242, 242)')
+        expect(window.getComputedStyle(screen.getByTestId('dark-modal-title')).color).toBe('rgb(242, 242, 242)')
     })
 
     // The class of the title outweighs a heading rule of a skin (`h3 {color}`) in a browser. jsdom has
@@ -43,15 +39,11 @@ describe('PneModal', () => {
             </ThemeProvider>,
         )
 
-        expect(window.getComputedStyle(screen.getByTestId('light-modal-title')).color)
-            .toBe('rgb(44, 49, 54)')
+        expect(window.getComputedStyle(screen.getByTestId('light-modal-title')).color).toBe('rgb(44, 49, 54)')
     })
 
     it('keeps an explicit title color ahead of the dark default', () => {
-        const theme = createPneTheme(
-            {experimentalColor: '#0a91bc'} as Skin,
-            {colorMode: 'dark'},
-        )
+        const theme = createPneTheme({experimentalColor: '#0a91bc'} as Skin, {colorMode: 'dark'})
 
         render(
             <ThemeProvider theme={theme}>
@@ -69,50 +61,44 @@ describe('PneModal', () => {
             </ThemeProvider>,
         )
 
-        expect(window.getComputedStyle(screen.getByTestId('custom-modal-title')).color)
-            .toBe('rgb(244, 67, 54)')
+        expect(window.getComputedStyle(screen.getByTestId('custom-modal-title')).color).toBe('rgb(244, 67, 54)')
     })
 
     it.each([
         ['light', 'rgb(226, 233, 240)'],
         ['dark', 'rgb(72, 72, 72)'],
-    ] as const)('parts the header and the buttons from the body by the modal hairline in %s mode', (colorMode, expectedColor) => {
-        const theme = createPneTheme(
-            {experimentalColor: '#0a91bc'} as Skin,
-            {colorMode},
-        )
+    ] as const)(
+        'parts the header and the buttons from the body by the modal hairline in %s mode',
+        (colorMode, expectedColor) => {
+            const theme = createPneTheme({experimentalColor: '#0a91bc'} as Skin, {colorMode})
 
-        render(
-            <ThemeProvider theme={theme}>
-                <PneModal
-                    actions={<PneModalActions primary={<button>Save</button>} />}
-                    onClose={jest.fn()}
-                    open
-                    title='Edit item'
-                >
-                    <div>Modal content</div>
-                </PneModal>
-            </ThemeProvider>,
-        )
+            render(
+                <ThemeProvider theme={theme}>
+                    <PneModal
+                        actions={<PneModalActions primary={<button>Save</button>} />}
+                        onClose={jest.fn()}
+                        open
+                        title='Edit item'
+                    >
+                        <div>Modal content</div>
+                    </PneModal>
+                </ThemeProvider>,
+            )
 
-        const header = document.querySelector<HTMLElement>('[data-pne-modal-header]')
-        const footer = document.querySelector<HTMLElement>('[data-pne-modal-footer]')
-        const modal = screen.getByRole('dialog', {name: 'Edit item'})
+            const header = document.querySelector<HTMLElement>('[data-pne-modal-header]')
+            const footer = document.querySelector<HTMLElement>('[data-pne-modal-footer]')
+            const modal = screen.getByRole('dialog', {name: 'Edit item'})
 
-        expect(window.getComputedStyle(modal).colorScheme).toBe(colorMode)
-        expect(window.getComputedStyle(header!).borderBottomColor).toBe(expectedColor)
-        expect(window.getComputedStyle(footer!).borderTopColor).toBe(expectedColor)
-    })
+            expect(window.getComputedStyle(modal).colorScheme).toBe(colorMode)
+            expect(window.getComputedStyle(header!).borderBottomColor).toBe(expectedColor)
+            expect(window.getComputedStyle(footer!).borderTopColor).toBe(expectedColor)
+        },
+    )
 
     it('renders actions in a persistent footer and makes only the body scrollable', () => {
         render(
             <PneModal
-                actions={(
-                    <PneModalActions
-                        primary={<button>Save</button>}
-                        secondary={<button>Cancel</button>}
-                    />
-                )}
+                actions={<PneModalActions primary={<button>Save</button>} secondary={<button>Cancel</button>} />}
                 onClose={jest.fn()}
                 open
                 title='Edit item'
@@ -126,22 +112,25 @@ describe('PneModal', () => {
         const modalContainer = body?.parentElement
 
         expect(screen.getByText('Long modal content')).not.toBeNull()
-        expect(within(footer!).getAllByRole('button').map(button => button.textContent))
-            .toEqual(['Cancel', 'Save'])
+        expect(
+            within(footer!)
+                .getAllByRole('button')
+                .map(button => button.textContent),
+        ).toEqual(['Cancel', 'Save'])
         expect(window.getComputedStyle(modalContainer!).display).toBe('flex')
         expect(window.getComputedStyle(modalContainer!).overflow).toBe('hidden')
         expect(window.getComputedStyle(body!).overflowY).toBe('auto')
-        const generatedBodyClass = Array.from(body!.classList)
-            .find(className => className.startsWith('css-'))
+        const generatedBodyClass = Array.from(body!.classList).find(className => className.startsWith('css-'))
         const bodyTouchScrollingRule = Array.from(document.styleSheets)
             .flatMap(styleSheet => Array.from(styleSheet.cssRules))
             .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
-            .find(rule => (
-                generatedBodyClass !== undefined
-                && rule.selectorText.includes(`.${generatedBodyClass}`)
-                && body!.matches(rule.selectorText)
-                && rule.style.getPropertyValue('-webkit-overflow-scrolling') === 'touch'
-            ))
+            .find(
+                rule =>
+                    generatedBodyClass !== undefined &&
+                    rule.selectorText.includes(`.${generatedBodyClass}`) &&
+                    body!.matches(rule.selectorText) &&
+                    rule.style.getPropertyValue('-webkit-overflow-scrolling') === 'touch',
+            )
 
         expect(generatedBodyClass).toBeDefined()
         expect(bodyTouchScrollingRule).toBeDefined()
@@ -186,9 +175,7 @@ describe('PneModal', () => {
     it('honors cleanup returned by a React 19 callback ref', () => {
         const cleanup = jest.fn()
         const callbackRef = jest.fn(() => cleanup)
-        const {unmount} = render(
-            <PneModal ref={callbackRef} onClose={jest.fn()} open title='Ref contract'/>,
-        )
+        const {unmount} = render(<PneModal ref={callbackRef} onClose={jest.fn()} open title='Ref contract' />)
         const dialog = screen.getByRole('dialog', {name: 'Ref contract'})
 
         expect(callbackRef).toHaveBeenCalledWith(dialog)
@@ -198,14 +185,8 @@ describe('PneModal', () => {
 
     it('supports a non-visual accessible name and an optional localized close label', () => {
         render(
-            <PneModal
-                ariaLabel='Logo preview'
-                closeLabel='Закрыть'
-                onClose={jest.fn()}
-                open
-                title=''
-            >
-                <img alt='Logo' src='logo.png'/>
+            <PneModal ariaLabel='Logo preview' closeLabel='Закрыть' onClose={jest.fn()} open title=''>
+                <img alt='Logo' src='logo.png' />
             </PneModal>,
         )
 
@@ -215,15 +196,7 @@ describe('PneModal', () => {
     })
 
     it('uses a visible title before ariaLabel and normalizes an empty close label', () => {
-        render(
-            <PneModal
-                ariaLabel='Fallback name'
-                closeLabel='   '
-                onClose={jest.fn()}
-                open
-                title='Visible title'
-            />,
-        )
+        render(<PneModal ariaLabel='Fallback name' closeLabel='   ' onClose={jest.fn()} open title='Visible title' />)
 
         const dialog = screen.getByRole('dialog', {name: 'Visible title'})
         expect(dialog.getAttribute('aria-label')).toBeNull()
@@ -234,7 +207,9 @@ describe('PneModal', () => {
         const onClose = jest.fn()
 
         render(
-            <PneModal onClose={onClose} open title='Edit item'>Content</PneModal>,
+            <PneModal onClose={onClose} open title='Edit item'>
+                Content
+            </PneModal>,
         )
 
         fireEvent.click(screen.getByRole('button', {name: 'Close'}))
@@ -270,8 +245,7 @@ describe('PneModal', () => {
         const closeButton = screen.getByRole('button', {name: 'Close', hidden: true})
 
         expect(dialog.getAttribute('aria-busy')).toBe('true')
-        expect(Number(window.getComputedStyle(dialog.closest('.MuiModal-root')!).zIndex))
-            .toBeGreaterThan(1500)
+        expect(Number(window.getComputedStyle(dialog.closest('.MuiModal-root')!).zIndex)).toBeGreaterThan(1500)
         expect(header.hasAttribute('inert')).toBe(true)
         expect(body.hasAttribute('inert')).toBe(true)
         expect(footer.hasAttribute('inert')).toBe(true)
@@ -342,22 +316,24 @@ describe('PneModal', () => {
     })
 
     it('keeps the topmost of two blocked dialogs as the only active boundary', async () => {
-        const {rerender} = render(<>
-            <PneModal
-                blockingOverlay={<div>Loading first</div>}
-                data-testid='first-dialog'
-                onClose={jest.fn()}
-                open
-                title='First dialog'
-            />
-            <PneModal
-                blockingOverlay={<div>Loading second</div>}
-                data-testid='second-dialog'
-                onClose={jest.fn()}
-                open
-                title='Second dialog'
-            />
-        </>)
+        const {rerender} = render(
+            <>
+                <PneModal
+                    blockingOverlay={<div>Loading first</div>}
+                    data-testid='first-dialog'
+                    onClose={jest.fn()}
+                    open
+                    title='First dialog'
+                />
+                <PneModal
+                    blockingOverlay={<div>Loading second</div>}
+                    data-testid='second-dialog'
+                    onClose={jest.fn()}
+                    open
+                    title='Second dialog'
+                />
+            </>,
+        )
 
         const firstDialog = screen.getByTestId('first-dialog')
         const secondDialog = screen.getByTestId('second-dialog')
@@ -390,21 +366,18 @@ describe('PneModal', () => {
     })
 
     it('keeps the real top modal active when a lower modal starts blocking later', async () => {
-        const {rerender} = render(<>
-            <PneModal
-                data-testid='lower-dialog'
-                onClose={jest.fn()}
-                open
-                title='Lower dialog'
-            />
-            <PneModal
-                blockingOverlay={<div>Loading upper</div>}
-                data-testid='upper-dialog'
-                onClose={jest.fn()}
-                open
-                title='Upper dialog'
-            />
-        </>)
+        const {rerender} = render(
+            <>
+                <PneModal data-testid='lower-dialog' onClose={jest.fn()} open title='Lower dialog' />
+                <PneModal
+                    blockingOverlay={<div>Loading upper</div>}
+                    data-testid='upper-dialog'
+                    onClose={jest.fn()}
+                    open
+                    title='Upper dialog'
+                />
+            </>,
+        )
 
         const lowerDialog = screen.getByTestId('lower-dialog')
         const upperDialog = screen.getByTestId('upper-dialog')
@@ -413,22 +386,24 @@ describe('PneModal', () => {
 
         await waitFor(() => expect(document.activeElement).toBe(upperDialog))
 
-        rerender(<>
-            <PneModal
-                blockingOverlay={<div>Loading lower</div>}
-                data-testid='lower-dialog'
-                onClose={jest.fn()}
-                open
-                title='Lower dialog'
-            />
-            <PneModal
-                blockingOverlay={<div>Loading upper</div>}
-                data-testid='upper-dialog'
-                onClose={jest.fn()}
-                open
-                title='Upper dialog'
-            />
-        </>)
+        rerender(
+            <>
+                <PneModal
+                    blockingOverlay={<div>Loading lower</div>}
+                    data-testid='lower-dialog'
+                    onClose={jest.fn()}
+                    open
+                    title='Lower dialog'
+                />
+                <PneModal
+                    blockingOverlay={<div>Loading upper</div>}
+                    data-testid='upper-dialog'
+                    onClose={jest.fn()}
+                    open
+                    title='Upper dialog'
+                />
+            </>,
+        )
 
         await waitFor(() => {
             expect(document.activeElement).toBe(upperDialog)
@@ -447,14 +422,7 @@ describe('PneModal', () => {
             role: 'alert',
         } as unknown as NonNullable<React.ComponentProps<typeof PneModal>['slotProps']>['container']
 
-        render(
-            <PneModal
-                onClose={jest.fn()}
-                open
-                slotProps={{container: unsafeContainerProps}}
-                title='Managed name'
-            />,
-        )
+        render(<PneModal onClose={jest.fn()} open slotProps={{container: unsafeContainerProps}} title='Managed name' />)
 
         const dialog = screen.getByRole('dialog', {name: 'Managed name'})
         expect(dialog.getAttribute('aria-modal')).toBe('true')
@@ -487,12 +455,7 @@ describe('PneModal', () => {
         } as unknown as NonNullable<React.ComponentProps<typeof PneModal>['slotProps']>
 
         render(
-            <PneModal
-                onClose={jest.fn()}
-                open
-                slotProps={unsafeSlotProps}
-                title='Managed structure'
-            >
+            <PneModal onClose={jest.fn()} open slotProps={unsafeSlotProps} title='Managed structure'>
                 Safe body
             </PneModal>,
         )
@@ -514,9 +477,7 @@ describe('PneModal', () => {
     })
 
     it('can hide the close control without requiring another label prop', () => {
-        render(
-            <PneModal hideCloseButton onClose={jest.fn()} open title='Passive status'/>,
-        )
+        render(<PneModal hideCloseButton onClose={jest.fn()} open title='Passive status' />)
 
         expect(screen.getByRole('dialog', {name: 'Passive status'})).not.toBeNull()
         expect(screen.queryByRole('button', {name: 'Close'})).toBeNull()

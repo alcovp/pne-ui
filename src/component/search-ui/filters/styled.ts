@@ -1,13 +1,13 @@
-import {styled as themedStyled} from '@mui/material/styles';
-import type {Theme} from '@mui/material/styles';
-import {resolvePneSemanticPalette} from '../../../createTheme';
-import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP} from '../../../themeColors';
+import {styled as themedStyled} from '@mui/material/styles'
+import type {Theme} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../../createTheme'
+import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP} from '../../../themeColors'
 
 /**
  * Hover delay of the panel's tooltips, as on the table column settings action. The tooltips are
  * not interactive: one may lie over the icons of the next row and must not catch their clicks.
  */
-export const SEARCH_UI_FILTERS_TOOLTIP_DELAY = 300;
+export const SEARCH_UI_FILTERS_TOOLTIP_DELAY = 300
 
 /**
  * The keyboard focus of the panel's own controls: the icons, the fold pill, the pill inputs, the
@@ -18,13 +18,13 @@ export const SEARCH_UI_FILTERS_TOOLTIP_DELAY = 300;
 export const createSearchUIFocusRing = (theme: Theme) => ({
     outline: `2px solid ${theme.palette.primary.main}`,
     outlineOffset: '1px',
-});
+})
 
 /** The same ring for `sx` nesting. */
 export const searchUIFocusRingSx = {
     outline: (theme: Theme) => `2px solid ${theme.palette.primary.main}`,
     outlineOffset: '1px',
-};
+}
 
 // UI Kit Icon action md: a 32px box with a 16px glyph and no background; the icon rests in the tertiary
 // text colour and takes the brand text colour under the pointer or the keyboard focus. The icons take
@@ -59,4 +59,4 @@ export const SearchUIFiltersCriterionHeaderButton = themedStyled('button')(({the
         },
         '&:focus-visible': createSearchUIFocusRing(theme),
     }
-});
+})

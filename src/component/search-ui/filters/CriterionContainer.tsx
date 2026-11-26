@@ -1,40 +1,40 @@
 import React from 'react'
-import { CriterionTypeEnum, LinkedEntityTypeEnum } from './types'
-import { Box } from '@mui/material'
-import { ExactSearchCriterion } from './component/criterion/ExactSearchCriterion'
-import { StatusCriterion } from './component/criterion/StatusCriterion'
-import { OtpStatusCriterion } from './component/criterion/OtpStatusCriterion'
-import { CriterionLeft } from './component/criterion/CriterionLeft'
-import { CriterionRight } from './component/criterion/CriterionRight'
-import { ThreeDCriterion } from './component/criterion/ThreeDCriterion'
-import { CurrenciesCriterion } from './component/criterion/CurrenciesCriterion'
-import { MultigetCriterionPanel } from './component/criterion/MultigetCriterionPanel'
-import { MarkerStatusCriterion } from './component/criterion/MarkerStatusCriterion'
-import { MarkerTypesCriterion } from './component/criterion/MarkerTypesCriterion'
-import { MfoConfigurationTypesCriterion } from './component/criterion/MfoFonfigurationTypesCriterion'
-import { RecurrenceStatusesCriterion } from './component/criterion/RecurrenceStatusesCriterion'
-import { RecurrenceTypesCriterion } from './component/criterion/RecurrenceTypesCriterion'
-import { TransactionTypesCriterion } from './component/criterion/TransactionTypesCriterion'
-import { TransactionStatusesCriterion } from './component/criterion/TransactionStatusesCriterion'
-import { TransactionSessionStatusCriterion } from './component/criterion/TransactionSessionStatusCriterion'
-import { CardTypesCriterion } from './component/criterion/CardTypesCriterion'
-import { CountriesCriterion } from './component/criterion/CountriesCriterion'
-import { DateRangeCriterion } from './component/criterion/DateRangeCriterion'
-import { ProjectCurrencyCriterion } from './component/criterion/ProjectCurrencyCriterion'
-import { GroupingCriterion } from './component/criterion/GroupingCriterion'
-import { exhaustiveCheck } from '../../../common/pne/type'
-import { OrdersSearchCriterion } from './component/criterion/orders-search/OrdersSearchCriterion'
-import { ProcessorLogEntryTypesCriterion } from './component/criterion/ProcessorLogEntryTypesCriterion'
-import { ErrorCodeCriterion } from './component/criterion/ErrorCodeCriterion'
-import { CustomerLevelCriterion } from './component/criterion/CustomerLevelCriterion'
+import {CriterionTypeEnum, LinkedEntityTypeEnum} from './types'
+import {Box} from '@mui/material'
+import {ExactSearchCriterion} from './component/criterion/ExactSearchCriterion'
+import {StatusCriterion} from './component/criterion/StatusCriterion'
+import {OtpStatusCriterion} from './component/criterion/OtpStatusCriterion'
+import {CriterionLeft} from './component/criterion/CriterionLeft'
+import {CriterionRight} from './component/criterion/CriterionRight'
+import {ThreeDCriterion} from './component/criterion/ThreeDCriterion'
+import {CurrenciesCriterion} from './component/criterion/CurrenciesCriterion'
+import {MultigetCriterionPanel} from './component/criterion/MultigetCriterionPanel'
+import {MarkerStatusCriterion} from './component/criterion/MarkerStatusCriterion'
+import {MarkerTypesCriterion} from './component/criterion/MarkerTypesCriterion'
+import {MfoConfigurationTypesCriterion} from './component/criterion/MfoFonfigurationTypesCriterion'
+import {RecurrenceStatusesCriterion} from './component/criterion/RecurrenceStatusesCriterion'
+import {RecurrenceTypesCriterion} from './component/criterion/RecurrenceTypesCriterion'
+import {TransactionTypesCriterion} from './component/criterion/TransactionTypesCriterion'
+import {TransactionStatusesCriterion} from './component/criterion/TransactionStatusesCriterion'
+import {TransactionSessionStatusCriterion} from './component/criterion/TransactionSessionStatusCriterion'
+import {CardTypesCriterion} from './component/criterion/CardTypesCriterion'
+import {CountriesCriterion} from './component/criterion/CountriesCriterion'
+import {DateRangeCriterion} from './component/criterion/DateRangeCriterion'
+import {ProjectCurrencyCriterion} from './component/criterion/ProjectCurrencyCriterion'
+import {GroupingCriterion} from './component/criterion/GroupingCriterion'
+import {exhaustiveCheck} from '../../../common/pne/type'
+import {OrdersSearchCriterion} from './component/criterion/orders-search/OrdersSearchCriterion'
+import {ProcessorLogEntryTypesCriterion} from './component/criterion/ProcessorLogEntryTypesCriterion'
+import {ErrorCodeCriterion} from './component/criterion/ErrorCodeCriterion'
+import {CustomerLevelCriterion} from './component/criterion/CustomerLevelCriterion'
 import {createAutoTestAttributes} from '../../AutoTestAttribute'
 import {SearchUICriterionAutoTestScopeProvider} from './AutoTestScope'
 import {useTranslation} from 'react-i18next'
-import { TransactionReportScopeCriterion } from './component/criterion/TransactionReportScopeCriterion'
-import { TransactionDateTypeCriterion } from './component/criterion/TransactionDateTypeCriterion'
-import { TransactionRecurrentFilterCriterion } from './component/criterion/TransactionRecurrentFilterCriterion'
-import { TimeZoneCriterion } from './component/criterion/TimeZoneCriterion'
-import { CsvCharsetCriterion } from './component/criterion/CsvCharsetCriterion'
+import {TransactionReportScopeCriterion} from './component/criterion/TransactionReportScopeCriterion'
+import {TransactionDateTypeCriterion} from './component/criterion/TransactionDateTypeCriterion'
+import {TransactionRecurrentFilterCriterion} from './component/criterion/TransactionRecurrentFilterCriterion'
+import {TimeZoneCriterion} from './component/criterion/TimeZoneCriterion'
+import {CsvCharsetCriterion} from './component/criterion/CsvCharsetCriterion'
 import {
     criterionActionsWrapperSx,
     criterionContentWrapperSx,
@@ -50,169 +50,139 @@ interface IProps {
 }
 
 export const CriterionContainer = (props: IProps) => {
-
-    const {
-        disabled = false,
-        type,
-    } = props
+    const {disabled = false, type} = props
     const {t} = useTranslation()
     const disabledTitle = disabled
         ? t('react.searchUI.criterion.notAvailableInView', {
-            defaultValue: 'This filter is not available in the selected view',
-        })
+              defaultValue: 'This filter is not available in the selected view',
+          })
         : undefined
-    const disabledAriaLabel = disabled
-        ? `${t('react.CriterionTypeEnum.' + type)}: ${disabledTitle}`
-        : undefined
+    const disabledAriaLabel = disabled ? `${t('react.CriterionTypeEnum.' + type)}: ${disabledTitle}` : undefined
 
     const renderCriterion = () => {
         switch (type) {
             case CriterionTypeEnum.PROJECT:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.PROJECT}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.PROJECT} />
             case CriterionTypeEnum.ENDPOINT:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.ENDPOINT}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.ENDPOINT} />
             case CriterionTypeEnum.GATE:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.GATE}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.GATE} />
             case CriterionTypeEnum.PROCESSOR:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.PROCESSOR}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.PROCESSOR} />
             case CriterionTypeEnum.COMPANY:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.COMPANY}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.COMPANY} />
             case CriterionTypeEnum.MANAGER:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.MANAGER}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.MANAGER} />
             case CriterionTypeEnum.MERCHANT:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.MERCHANT}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.MERCHANT} />
             case CriterionTypeEnum.RESELLER:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.RESELLER}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.RESELLER} />
             case CriterionTypeEnum.DEALER:
-                return <MultigetCriterionPanel
-                    criterionType={type}
-                    entityType={LinkedEntityTypeEnum.DEALER}
-                />
+                return <MultigetCriterionPanel criterionType={type} entityType={LinkedEntityTypeEnum.DEALER} />
             case CriterionTypeEnum.EXACT:
-                return <ExactSearchCriterion/>
+                return <ExactSearchCriterion />
             case CriterionTypeEnum.ORDERS_SEARCH:
-                return <OrdersSearchCriterion/>
+                return <OrdersSearchCriterion />
             case CriterionTypeEnum.STATUS:
-                return <StatusCriterion/>
+                return <StatusCriterion />
             case CriterionTypeEnum.OTP_STATUS:
-                return <OtpStatusCriterion/>
+                return <OtpStatusCriterion />
             case CriterionTypeEnum.THREE_D:
-                return <ThreeDCriterion/>
+                return <ThreeDCriterion />
             case CriterionTypeEnum.CURRENCY:
-                return <CurrenciesCriterion/>
+                return <CurrenciesCriterion />
             case CriterionTypeEnum.CUSTOMER_LEVEL:
-                return <CustomerLevelCriterion/>
+                return <CustomerLevelCriterion />
             case CriterionTypeEnum.DATE_RANGE:
-                return <DateRangeCriterion/>
+                return <DateRangeCriterion />
             case CriterionTypeEnum.DATE_RANGE_ORDERS:
-                return <DateRangeCriterion showOrdersDateType/>
+                return <DateRangeCriterion showOrdersDateType />
             case CriterionTypeEnum.PROJECT_CURRENCY:
-                return <ProjectCurrencyCriterion/>
+                return <ProjectCurrencyCriterion />
             case CriterionTypeEnum.CARD_TYPES:
-                return <CardTypesCriterion/>
+                return <CardTypesCriterion />
             case CriterionTypeEnum.COUNTRIES:
-                return <CountriesCriterion/>
+                return <CountriesCriterion />
             case CriterionTypeEnum.TRANSACTION_TYPES:
-                return <TransactionTypesCriterion/>
+                return <TransactionTypesCriterion />
             case CriterionTypeEnum.TRANSACTION_STATUS:
-                return <TransactionStatusesCriterion/>
+                return <TransactionStatusesCriterion />
             case CriterionTypeEnum.TRANSACTION_SESSION_STATUS:
-                return <TransactionSessionStatusCriterion/>
+                return <TransactionSessionStatusCriterion />
             case CriterionTypeEnum.GROUPING:
-                return <GroupingCriterion/>
+                return <GroupingCriterion />
             case CriterionTypeEnum.RECURRENCE_TYPE:
-                return <RecurrenceTypesCriterion/>
+                return <RecurrenceTypesCriterion />
             case CriterionTypeEnum.RECURRENCE_STATUS:
-                return <RecurrenceStatusesCriterion/>
+                return <RecurrenceStatusesCriterion />
             case CriterionTypeEnum.MFO_CONFIGURATION_TYPE:
-                return <MfoConfigurationTypesCriterion/>
+                return <MfoConfigurationTypesCriterion />
             case CriterionTypeEnum.MARKER_TYPE:
-                return <MarkerTypesCriterion/>
+                return <MarkerTypesCriterion />
             case CriterionTypeEnum.MARKER_STATUS:
-                return <MarkerStatusCriterion/>
+                return <MarkerStatusCriterion />
             case CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE:
-                return <ProcessorLogEntryTypesCriterion/>
+                return <ProcessorLogEntryTypesCriterion />
             case CriterionTypeEnum.ERROR_CODE:
-                return <ErrorCodeCriterion/>
+                return <ErrorCodeCriterion />
             case CriterionTypeEnum.TRANSACTION_REPORT_SCOPE:
-                return <TransactionReportScopeCriterion/>
+                return <TransactionReportScopeCriterion />
             case CriterionTypeEnum.TRANSACTION_DATE_TYPE:
-                return <TransactionDateTypeCriterion/>
+                return <TransactionDateTypeCriterion />
             case CriterionTypeEnum.TRANSACTION_RECURRENT_FILTER:
-                return <TransactionRecurrentFilterCriterion/>
+                return <TransactionRecurrentFilterCriterion />
             case CriterionTypeEnum.TIME_ZONE:
-                return <TimeZoneCriterion/>
+                return <TimeZoneCriterion />
             case CriterionTypeEnum.CSV_CHARSET:
-                return <CsvCharsetCriterion/>
+                return <CsvCharsetCriterion />
             default:
                 exhaustiveCheck(type)
         }
-        throw new Error('Can\'t be')
+        throw new Error("Can't be")
     }
 
     // UI Kit Filter row: the reset and the cross lead the row, then the name, then the value; in DOM
     // order too, so the keyboard reaches the icons before the control they act on.
-    return <SearchUICriterionAutoTestScopeProvider criterionType={type}>
-        <Box
-            {...createAutoTestAttributes(CRITERION_AUTOTEST_ID, type)}
-            sx={criterionSx}
-        >
-            <Box sx={criterionActionsWrapperSx}>
-                <CriterionRight criterionType={type}/>
-            </Box>
-            <Box sx={criterionLeftWrapperSx}>
-                <CriterionLeft criterionType={type}/>
-            </Box>
-            <Box
-                aria-disabled={disabled || undefined}
-                aria-label={disabledAriaLabel}
-                onClickCapture={disabled ? event => {
-                    event.preventDefault()
-                    event.stopPropagation()
-                } : undefined}
-                role={disabled ? 'group' : undefined}
-                sx={{
-                    ...criterionContentWrapperSx,
-                    ...(disabled ? disabledCriterionContentSx : {}),
-                }}
-                tabIndex={disabled ? 0 : undefined}
-                title={disabledTitle}
-            >
+    return (
+        <SearchUICriterionAutoTestScopeProvider criterionType={type}>
+            <Box {...createAutoTestAttributes(CRITERION_AUTOTEST_ID, type)} sx={criterionSx}>
+                <Box sx={criterionActionsWrapperSx}>
+                    <CriterionRight criterionType={type} />
+                </Box>
+                <Box sx={criterionLeftWrapperSx}>
+                    <CriterionLeft criterionType={type} />
+                </Box>
                 <Box
-                    component='fieldset'
-                    disabled={disabled}
-                    inert={disabled || undefined}
-                    sx={criterionFieldsetSx}
+                    aria-disabled={disabled || undefined}
+                    aria-label={disabledAriaLabel}
+                    onClickCapture={
+                        disabled
+                            ? event => {
+                                  event.preventDefault()
+                                  event.stopPropagation()
+                              }
+                            : undefined
+                    }
+                    role={disabled ? 'group' : undefined}
+                    sx={{
+                        ...criterionContentWrapperSx,
+                        ...(disabled ? disabledCriterionContentSx : {}),
+                    }}
+                    tabIndex={disabled ? 0 : undefined}
+                    title={disabledTitle}
                 >
-                    {renderCriterion()}
+                    <Box
+                        component='fieldset'
+                        disabled={disabled}
+                        inert={disabled || undefined}
+                        sx={criterionFieldsetSx}
+                    >
+                        {renderCriterion()}
+                    </Box>
                 </Box>
             </Box>
-        </Box>
-    </SearchUICriterionAutoTestScopeProvider>
+        </SearchUICriterionAutoTestScopeProvider>
+    )
 }
 
 const criterionFieldsetSx = {
@@ -226,4 +196,3 @@ const disabledCriterionContentSx = {
     opacity: 0.5,
     pointerEvents: 'none',
 }
-

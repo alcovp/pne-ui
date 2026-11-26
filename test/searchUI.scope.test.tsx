@@ -2,13 +2,7 @@ import * as React from 'react'
 import {fireEvent, render, screen, waitFor, within} from '@testing-library/react'
 import {createPortal} from 'react-dom'
 
-import {
-    CriterionTypeEnum,
-    SearchUI,
-    SearchUIFilters,
-    SearchUIProvider,
-    type SearchUITemplate,
-} from '../src'
+import {CriterionTypeEnum, SearchUI, SearchUIFilters, SearchUIProvider, type SearchUITemplate} from '../src'
 import {
     SearchUICriterionAutoTestScopeProvider,
     SearchUIAutoTestScopeProvider,
@@ -37,11 +31,7 @@ const PortalScopeProbe = () => {
     const scope = useSearchUIAutoTestScope()
 
     return createPortal(
-        <div
-            data-testid="portal-scope"
-            data-scope={scope?.scope}
-            data-criterion={scope?.criterionType}
-        />,
+        <div data-testid='portal-scope' data-scope={scope?.scope} data-criterion={scope?.criterionType} />,
         document.body,
     )
 }
@@ -53,15 +43,15 @@ describe('SearchUI autotest scope', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="standalone-orders"
-                    settingsContextName="stored-orders-filters"
+                    autoTestId='standalone-orders'
+                    settingsContextName='stored-orders-filters'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={explicitOnFiltersUpdate}
                     config={filtersConfig}
                 />
                 <SearchUIFilters
-                    settingsContextName="fallback-filters"
+                    settingsContextName='fallback-filters'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={fallbackOnFiltersUpdate}
@@ -75,9 +65,9 @@ describe('SearchUI autotest scope', () => {
             expect(fallbackOnFiltersUpdate).toHaveBeenCalled()
         })
 
-        const filterScopes = Array.from(
-            container.querySelectorAll('[data-autotest="search-filters"]'),
-        ).map(element => element.getAttribute('data-autotest-value'))
+        const filterScopes = Array.from(container.querySelectorAll('[data-autotest="search-filters"]')).map(element =>
+            element.getAttribute('data-autotest-value'),
+        )
 
         expect(filterScopes).toEqual(['standalone-orders', 'fallback-filters'])
 
@@ -99,8 +89,8 @@ describe('SearchUI autotest scope', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="removable-status"
-                    settingsContextName="removable-status-actions"
+                    autoTestId='removable-status'
+                    settingsContextName='removable-status-actions'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     initialSearchConditions={{status: 'ENABLED'}}
@@ -112,8 +102,8 @@ describe('SearchUI autotest scope', () => {
                     }}
                 />
                 <SearchUIFilters
-                    autoTestId="fixed-status"
-                    settingsContextName="fixed-status-actions"
+                    autoTestId='fixed-status'
+                    settingsContextName='fixed-status-actions'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     initialSearchConditions={{status: 'ENABLED'}}
@@ -140,32 +130,26 @@ describe('SearchUI autotest scope', () => {
         const fixedCriterion = fixedScope?.querySelector<HTMLElement>(
             `[data-autotest="criterion"][data-autotest-value="${CriterionTypeEnum.STATUS}"]`,
         )
-        const removableClear = removableCriterion?.querySelector<HTMLButtonElement>(
-            '[data-autotest="clear-criterion"]',
-        )
+        const removableClear = removableCriterion?.querySelector<HTMLButtonElement>('[data-autotest="clear-criterion"]')
         const removableRemove = removableCriterion?.querySelector<HTMLButtonElement>(
             '[data-autotest="remove-criterion"]',
         )
-        const fixedClear = fixedCriterion?.querySelector<HTMLButtonElement>(
-            '[data-autotest="clear-criterion"]',
-        )
+        const fixedClear = fixedCriterion?.querySelector<HTMLButtonElement>('[data-autotest="clear-criterion"]')
 
         expect(removableClear?.tagName).toBe('BUTTON')
         expect(removableClear?.type).toBe('button')
-        expect(removableClear?.getAttribute('aria-label')).toBe(
-            'Clear filter: react.CriterionTypeEnum.STATUS',
-        )
+        expect(removableClear?.getAttribute('aria-label')).toBe('Clear filter: react.CriterionTypeEnum.STATUS')
         expect(removableRemove?.tagName).toBe('BUTTON')
         expect(removableRemove?.type).toBe('button')
-        expect(removableRemove?.getAttribute('aria-label')).toBe(
-            'Remove filter: react.CriterionTypeEnum.STATUS',
-        )
+        expect(removableRemove?.getAttribute('aria-label')).toBe('Remove filter: react.CriterionTypeEnum.STATUS')
         expect(fixedClear?.tagName).toBe('BUTTON')
         expect(fixedCriterion?.querySelector('[data-autotest="remove-criterion"]')).toBeNull()
 
-        fireEvent.click(fixedCriterion?.querySelector(
-            '[data-autotest="criterion-option"][data-autotest-value="DISABLED"]',
-        ) as HTMLElement)
+        fireEvent.click(
+            fixedCriterion?.querySelector(
+                '[data-autotest="criterion-option"][data-autotest-value="DISABLED"]',
+            ) as HTMLElement,
+        )
 
         await waitFor(() => {
             expect(fixedOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({status: 'D'}))
@@ -199,21 +183,37 @@ describe('SearchUI autotest scope', () => {
             const {container} = render(
                 <>
                     <SearchUI
-                        autoTestId="orders"
-                        settingsContextName="shared-search-state"
+                        autoTestId='orders'
+                        settingsContextName='shared-search-state'
                         possibleCriteria={[]}
                         searchData={ordersSearch}
-                        createTableHeader={() => <tr><th>Order</th></tr>}
-                        createTableRow={() => <tr><td>Order</td></tr>}
+                        createTableHeader={() => (
+                            <tr>
+                                <th>Order</th>
+                            </tr>
+                        )}
+                        createTableRow={() => (
+                            <tr>
+                                <td>Order</td>
+                            </tr>
+                        )}
                         config={filtersConfig}
                     />
                     <SearchUI
-                        autoTestId="transactions"
-                        settingsContextName="shared-search-state"
+                        autoTestId='transactions'
+                        settingsContextName='shared-search-state'
                         possibleCriteria={[]}
                         searchData={transactionsSearch}
-                        createTableHeader={() => <tr><th>Transaction</th></tr>}
-                        createTableRow={() => <tr><td>Transaction</td></tr>}
+                        createTableHeader={() => (
+                            <tr>
+                                <th>Transaction</th>
+                            </tr>
+                        )}
+                        createTableRow={() => (
+                            <tr>
+                                <td>Transaction</td>
+                            </tr>
+                        )}
                         config={filtersConfig}
                     />
                 </>,
@@ -225,18 +225,18 @@ describe('SearchUI autotest scope', () => {
                 expect(container.querySelectorAll('table[aria-busy="false"]')).toHaveLength(2)
             })
 
-            const filterScopes = Array.from(
-                container.querySelectorAll('[data-autotest="search-filters"]'),
-            ).map(element => element.getAttribute('data-autotest-value'))
-            const resultScopes = Array.from(
-                container.querySelectorAll('[data-autotest="table"]'),
-            ).map(element => element.getAttribute('data-autotest-value'))
+            const filterScopes = Array.from(container.querySelectorAll('[data-autotest="search-filters"]')).map(
+                element => element.getAttribute('data-autotest-value'),
+            )
+            const resultScopes = Array.from(container.querySelectorAll('[data-autotest="table"]')).map(element =>
+                element.getAttribute('data-autotest-value'),
+            )
 
             expect(filterScopes).toEqual(['orders', 'transactions'])
             expect(resultScopes).toEqual(['orders', 'transactions'])
-            expect(consoleWarn).toHaveBeenCalledWith(expect.stringContaining(
-                'Multiple SearchUI instances use settingsContextName "shared-search-state"',
-            ))
+            expect(consoleWarn).toHaveBeenCalledWith(
+                expect.stringContaining('Multiple SearchUI instances use settingsContextName "shared-search-state"'),
+            )
         } finally {
             consoleWarn.mockRestore()
         }
@@ -248,16 +248,16 @@ describe('SearchUI autotest scope', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="action-orders"
-                    settingsContextName="action-orders-context"
+                    autoTestId='action-orders'
+                    settingsContextName='action-orders-context'
                     possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.THREE_D]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={ordersOnFiltersUpdate}
                     config={{removablePredefinedCriteria: [CriterionTypeEnum.STATUS]}}
                 />
                 <SearchUIFilters
-                    autoTestId="action-transactions"
-                    settingsContextName="action-transactions-context"
+                    autoTestId='action-transactions'
+                    settingsContextName='action-transactions-context'
                     possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.THREE_D]}
                     predefinedCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={transactionsOnFiltersUpdate}
@@ -272,15 +272,8 @@ describe('SearchUI autotest scope', () => {
             expect(transactionsOnFiltersUpdate).toHaveBeenCalled()
         })
 
-        const actionIds = [
-            'toggle-filters',
-            'templates',
-            'add-filter',
-            'run-search',
-        ]
-        const filterScopes = Array.from(
-            container.querySelectorAll<HTMLElement>('[data-autotest="search-filters"]'),
-        )
+        const actionIds = ['toggle-filters', 'templates', 'add-filter', 'run-search']
+        const filterScopes = Array.from(container.querySelectorAll<HTMLElement>('[data-autotest="search-filters"]'))
 
         for (const filterScope of filterScopes) {
             for (const actionId of actionIds) {
@@ -290,15 +283,11 @@ describe('SearchUI autotest scope', () => {
 
         const ordersScope = filterScopes[0]
         const transactionsScope = filterScopes[1]
-        const toggleFilters = ordersScope.querySelector<HTMLButtonElement>(
-            '[data-autotest="toggle-filters"]',
-        )
+        const toggleFilters = ordersScope.querySelector<HTMLButtonElement>('[data-autotest="toggle-filters"]')
         const templates = ordersScope.querySelector<HTMLButtonElement>('[data-autotest="templates"]')
         const addFilter = ordersScope.querySelector<HTMLElement>('[data-autotest="add-filter"]')
         const runSearch = ordersScope.querySelector<HTMLButtonElement>('[data-autotest="run-search"]')
-        const loadingRunSearch = transactionsScope.querySelector<HTMLButtonElement>(
-            '[data-autotest="run-search"]',
-        )
+        const loadingRunSearch = transactionsScope.querySelector<HTMLButtonElement>('[data-autotest="run-search"]')
         const controlledPanelId = toggleFilters?.getAttribute('aria-controls')
         const controlledPanel = controlledPanelId ? document.getElementById(controlledPanelId) : null
 
@@ -333,23 +322,21 @@ describe('SearchUI autotest scope', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="portal-orders"
-                    settingsContextName="portal-orders-templates"
+                    autoTestId='portal-orders'
+                    settingsContextName='portal-orders-templates'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={jest.fn()}
                 />
                 <SearchUIFilters
-                    autoTestId="portal-transactions"
-                    settingsContextName="portal-transactions-templates"
+                    autoTestId='portal-transactions'
+                    settingsContextName='portal-transactions-templates'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={jest.fn()}
                 />
             </>,
         )
 
-        const filterScopes = Array.from(
-            container.querySelectorAll<HTMLElement>('[data-autotest="search-filters"]'),
-        )
+        const filterScopes = Array.from(container.querySelectorAll<HTMLElement>('[data-autotest="search-filters"]'))
 
         for (const filterScope of filterScopes) {
             const templates = filterScope.querySelector<HTMLButtonElement>('[data-autotest="templates"]')
@@ -387,8 +374,8 @@ describe('SearchUI autotest scope', () => {
                 }}
             >
                 <SearchUIFilters
-                    autoTestId="template-actions"
-                    settingsContextName="template-item-actions"
+                    autoTestId='template-actions'
+                    settingsContextName='template-item-actions'
                     possibleCriteria={[]}
                     onFiltersUpdate={jest.fn()}
                     config={{hideShowFiltersButton: true}}
@@ -419,8 +406,7 @@ describe('SearchUI autotest scope', () => {
         expect(selectTemplate?.getAttribute('role')).toBe('menuitemradio')
         expect(selectTemplate?.getAttribute('aria-checked')).toBe('false')
         expect(selectTemplate?.getAttribute('title')).toBe('Saved orders')
-        expect(within(panel as HTMLElement).getByRole('menuitemradio', {name: 'Saved orders'}))
-            .toBe(selectTemplate)
+        expect(within(panel as HTMLElement).getByRole('menuitemradio', {name: 'Saved orders'})).toBe(selectTemplate)
         expect(removeTemplate?.tagName).toBe('BUTTON')
         expect(removeTemplate?.type).toBe('button')
         expect(removeTemplate?.getAttribute('aria-label')).toBe('Remove filter set: Saved orders')
@@ -467,8 +453,8 @@ describe('SearchUI autotest scope', () => {
     it('keeps the template editor scoped and linked through its nested modal portal', async () => {
         const {container} = render(
             <SearchUIFilters
-                autoTestId="template-editor-owner"
-                settingsContextName="template-editor-actions"
+                autoTestId='template-editor-owner'
+                settingsContextName='template-editor-actions'
                 possibleCriteria={[]}
                 onFiltersUpdate={jest.fn()}
                 config={{hideShowFiltersButton: true}}
@@ -513,8 +499,9 @@ describe('SearchUI autotest scope', () => {
         expect(editor.getAttribute('role')).toBe('dialog')
         expect(editor.getAttribute('aria-modal')).toBe('true')
         expect(editor.getAttribute('aria-label')).toBeNull()
-        expect(document.getElementById(editor.getAttribute('aria-labelledby')!)?.textContent)
-            .toBe('react.searchUI.template.newModal.title')
+        expect(document.getElementById(editor.getAttribute('aria-labelledby')!)?.textContent).toBe(
+            'react.searchUI.template.newModal.title',
+        )
         expect(panel.contains(editor)).toBe(false)
         expect(closeEditor?.getAttribute('aria-label')).toBe('Close')
         expect(cancelTemplate?.type).toBe('button')
@@ -534,15 +521,15 @@ describe('SearchUI autotest scope', () => {
         const {container} = render(
             <>
                 <SearchUIFilters
-                    autoTestId="portal-orders"
-                    settingsContextName="portal-orders-add-filter"
+                    autoTestId='portal-orders'
+                    settingsContextName='portal-orders-add-filter'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={jest.fn()}
                     config={{hideTemplatesSelect: true}}
                 />
                 <SearchUIFilters
-                    autoTestId="portal-transactions"
-                    settingsContextName="portal-transactions-add-filter"
+                    autoTestId='portal-transactions'
+                    settingsContextName='portal-transactions-add-filter'
                     possibleCriteria={[CriterionTypeEnum.STATUS]}
                     onFiltersUpdate={jest.fn()}
                     config={{hideTemplatesSelect: true}}
@@ -554,9 +541,7 @@ describe('SearchUI autotest scope', () => {
             expect(container.querySelectorAll('[data-autotest="add-filter"]')).toHaveLength(2)
         })
 
-        const filterScopes = Array.from(
-            container.querySelectorAll<HTMLElement>('[data-autotest="search-filters"]'),
-        )
+        const filterScopes = Array.from(container.querySelectorAll<HTMLElement>('[data-autotest="search-filters"]'))
 
         for (const filterScope of filterScopes) {
             const addFilter = filterScope.querySelector<HTMLElement>('[data-autotest="add-filter"]')
@@ -584,9 +569,9 @@ describe('SearchUI autotest scope', () => {
 
     it('keeps SearchUI and criterion ownership through a portal', () => {
         render(
-            <SearchUIAutoTestScopeProvider scope="orders">
+            <SearchUIAutoTestScopeProvider scope='orders'>
                 <SearchUICriterionAutoTestScopeProvider criterionType={CriterionTypeEnum.STATUS}>
-                    <PortalScopeProbe/>
+                    <PortalScopeProbe />
                 </SearchUICriterionAutoTestScopeProvider>
             </SearchUIAutoTestScopeProvider>,
         )

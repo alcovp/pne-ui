@@ -38,7 +38,7 @@ describe('MUI Radio under the pne-ui theme', () => {
         {size: 'medium', box: '20', ring: '8.25'},
         {size: 'small', box: '16', ring: '6.25'},
     ] as const)('draws the UI Kit circle of size $size inside the MUI hit area', ({size, box, ring}) => {
-        const {root} = renderRadio(<Radio size={size} slotProps={label}/>)
+        const {root} = renderRadio(<Radio size={size} slotProps={label} />)
         const svg = root.querySelector('svg.PneRadio-dot')!
 
         expect(svg.getAttribute('width')).toBe(box)
@@ -54,7 +54,7 @@ describe('MUI Radio under the pne-ui theme', () => {
         {size: 'medium', thick: '5.5', radius: '6.25'},
         {size: 'small', thick: '4.5', radius: '4.75'},
     ] as const)('draws a picked $size circle as a thick ring around the centre', ({size, thick, radius}) => {
-        const {root} = renderRadio(<Radio checked readOnly size={size} slotProps={label}/>)
+        const {root} = renderRadio(<Radio checked readOnly size={size} slotProps={label} />)
         const svg = root.querySelector('svg.PneRadio-on')!
 
         expect(svg.querySelector('.PneRadio-thick')!.getAttribute('stroke-width')).toBe(thick)
@@ -63,7 +63,7 @@ describe('MUI Radio under the pne-ui theme', () => {
     })
 
     it('takes the colours of the UI Kit checkbox by state', () => {
-        const {root} = renderRadio(<Radio slotProps={label}/>)
+        const {root} = renderRadio(<Radio slotProps={label} />)
 
         expect(ruleValue(root, '&', '--pne-radio-off-ring')).toBe('#B2B8BF')
         expect(ruleValue(root, '&', '--pne-radio-off-fill')).toBe('#F7FBFF')
@@ -86,12 +86,14 @@ describe('MUI Radio under the pne-ui theme', () => {
 
     it('still picks one value of a group', () => {
         const onChange = jest.fn()
-        render(<PneThemeProvider skin={UI_KIT_SKIN}>
-            <RadioGroup onChange={(_event, value) => onChange(value)} value='black'>
-                <FormControlLabel control={<Radio/>} label='Black' value='black'/>
-                <FormControlLabel control={<Radio/>} label='White' value='white'/>
-            </RadioGroup>
-        </PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <RadioGroup onChange={(_event, value) => onChange(value)} value='black'>
+                    <FormControlLabel control={<Radio />} label='Black' value='black' />
+                    <FormControlLabel control={<Radio />} label='White' value='white' />
+                </RadioGroup>
+            </PneThemeProvider>,
+        )
 
         expect((screen.getByRole('radio', {name: 'Black'}) as HTMLInputElement).checked).toBe(true)
         expect(document.querySelectorAll('svg.PneRadio-on')).toHaveLength(1)
@@ -102,7 +104,7 @@ describe('MUI Radio under the pne-ui theme', () => {
     })
 
     it('keeps an icon the page gives', () => {
-        const {root} = renderRadio(<Radio icon={<span data-testid='own-icon'/>} slotProps={label}/>)
+        const {root} = renderRadio(<Radio icon={<span data-testid='own-icon' />} slotProps={label} />)
 
         expect(screen.getByTestId('own-icon')).not.toBeNull()
         expect(root.querySelector('svg.PneRadio-dot')).toBeNull()

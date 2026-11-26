@@ -14,31 +14,38 @@ const JUSTIFY: Record<string, string> = {
  * the middle of the row. `align` puts them at the left edge (the default), in the centre or at the
  * right edge of the cell.
  */
-const PneTableActionsCell = ({ref, ...props}: React.PropsWithoutRef<PneTableActionsCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
+const PneTableActionsCell = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTableActionsCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {align, children, sx, ...rest} = props
 
-    return <PneTableCell
-        data-pne-cell='actions'
-        {...rest}
-        align={align}
-        ref={ref}
-        sx={[
-            // The 24px actions stand in the 40px row with the side padding of a value.
-            {padding: '0 12px'},
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ] as PneTableCellProps['sx']}
-    >
-        <Box
-            sx={{
-                alignItems: 'center',
-                display: 'flex',
-                gap: '4px',
-                justifyContent: JUSTIFY[align ?? ''] ?? 'flex-start',
-            }}
+    return (
+        <PneTableCell
+            data-pne-cell='actions'
+            {...rest}
+            align={align}
+            ref={ref}
+            sx={
+                [
+                    // The 24px actions stand in the 40px row with the side padding of a value.
+                    {padding: '0 12px'},
+                    ...(Array.isArray(sx) ? sx : [sx]),
+                ] as PneTableCellProps['sx']
+            }
         >
-            {children}
-        </Box>
-    </PneTableCell>
+            <Box
+                sx={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    gap: '4px',
+                    justifyContent: JUSTIFY[align ?? ''] ?? 'flex-start',
+                }}
+            >
+                {children}
+            </Box>
+        </PneTableCell>
+    )
 }
 
 PneTableActionsCell.displayName = 'PneTableActionsCell'

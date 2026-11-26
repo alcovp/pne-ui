@@ -11,27 +11,41 @@ type Row = {
     label: string
 }
 
-const rows: Row[] = [{id: '1', label: 'First'}, {id: '2', label: 'Second'}]
+const rows: Row[] = [
+    {id: '1', label: 'First'},
+    {id: '2', label: 'Second'},
+]
 
-const renderSearchUI = (duplicatePagination: boolean) => render(
-    <SearchUI<Row>
-        autoTestId={'table-spacing'}
-        config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
-        possibleCriteria={[]}
-        settingsContextName={'table-spacing-settings'}
-        tableParams={{duplicatePagination}}
-        searchData={(_params: SearchParams) => Promise.resolve(rows)}
-        createTableHeader={() => <tr><th>Header</th></tr>}
-        createTableRow={row => <tr key={row.id}><td>{row.label}</td></tr>}
-    />,
-)
+const renderSearchUI = (duplicatePagination: boolean) =>
+    render(
+        <SearchUI<Row>
+            autoTestId={'table-spacing'}
+            config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
+            possibleCriteria={[]}
+            settingsContextName={'table-spacing-settings'}
+            tableParams={{duplicatePagination}}
+            searchData={(_params: SearchParams) => Promise.resolve(rows)}
+            createTableHeader={() => (
+                <tr>
+                    <th>Header</th>
+                </tr>
+            )}
+            createTableRow={row => (
+                <tr key={row.id}>
+                    <td>{row.label}</td>
+                </tr>
+            )}
+        />,
+    )
 
 describe('SearchUI table spacing', () => {
     it('sets the table 8px under the filter panel, with no line between them, and the bottom pagination 6px under the last row', async () => {
         const {container} = renderSearchUI(true)
 
         const table = await waitFor(() => {
-            const element = container.querySelector<HTMLElement>('[data-autotest="table"][data-autotest-value="table-spacing"]')
+            const element = container.querySelector<HTMLElement>(
+                '[data-autotest="table"][data-autotest-value="table-spacing"]',
+            )
             expect(element?.querySelector('tbody tr td')?.textContent).toBe('First')
             return element as HTMLElement
         })
@@ -50,9 +64,10 @@ describe('SearchUI table spacing', () => {
         expect(getComputedStyle(tableBox).paddingBottom).toBe('0px')
         expect(getComputedStyle(table).paddingBottom).toBe('0px')
 
-        const toolbar = (position: 'top' | 'bottom') => table.querySelector<HTMLElement>(
-            `[data-autotest="pagination"][data-autotest-value="${position}"] .MuiTablePagination-toolbar`,
-        ) as HTMLElement
+        const toolbar = (position: 'top' | 'bottom') =>
+            table.querySelector<HTMLElement>(
+                `[data-autotest="pagination"][data-autotest-value="${position}"] .MuiTablePagination-toolbar`,
+            ) as HTMLElement
         // The top row touches the table head; the bottom row keeps 6px from the last row.
         expect(getComputedStyle(toolbar('top')).marginTop).toBe('0px')
         expect(getComputedStyle(toolbar('top')).marginBottom).toBe('0px')
@@ -66,8 +81,16 @@ describe('SearchUI table spacing', () => {
             <PneTable<Row>
                 autoTestId={'plain-table'}
                 data={rows}
-                createTableHeader={() => <tr><th>Header</th></tr>}
-                createRow={row => <tr key={row.id}><td>{row.label}</td></tr>}
+                createTableHeader={() => (
+                    <tr>
+                        <th>Header</th>
+                    </tr>
+                )}
+                createRow={row => (
+                    <tr key={row.id}>
+                        <td>{row.label}</td>
+                    </tr>
+                )}
                 paginator={{
                     rowsPerPageOptions: [10, 25],
                     rowsPerPage: 10,
@@ -83,7 +106,9 @@ describe('SearchUI table spacing', () => {
             />,
         )
 
-        const table = container.querySelector<HTMLElement>('[data-autotest="table"][data-autotest-value="plain-table"]') as HTMLElement
+        const table = container.querySelector<HTMLElement>(
+            '[data-autotest="table"][data-autotest-value="plain-table"]',
+        ) as HTMLElement
         expect(getComputedStyle(table).paddingBottom).toBe('8px')
         const toolbar = table.querySelector<HTMLElement>('.MuiTablePagination-toolbar') as HTMLElement
         expect(getComputedStyle(toolbar).marginTop).toBe('6px')

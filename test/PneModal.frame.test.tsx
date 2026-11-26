@@ -18,19 +18,28 @@ const layOut = (container: HTMLElement) => {
         const top = style.top ? Number.parseFloat(style.top) : (PAGE.height - height) / 2
 
         return {
-            left, top, width, height, right: left + width, bottom: top + height, x: left, y: top, toJSON: () => ({}),
+            left,
+            top,
+            width,
+            height,
+            right: left + width,
+            bottom: top + height,
+            x: left,
+            y: top,
+            toJSON: () => ({}),
         }
     }
 }
 
-const pointer = (type: string, clientX: number, clientY: number, init: MouseEventInit = {}) => new MouseEvent(type, {
-    bubbles: true,
-    button: 0,
-    cancelable: true,
-    clientX,
-    clientY,
-    ...init,
-})
+const pointer = (type: string, clientX: number, clientY: number, init: MouseEventInit = {}) =>
+    new MouseEvent(type, {
+        bubbles: true,
+        button: 0,
+        cancelable: true,
+        clientX,
+        clientY,
+        ...init,
+    })
 
 const drag = (from: Element, by: {x: number; y: number}, start = {x: 500, y: 250}) => {
     fireEvent(from, pointer('pointerdown', start.x, start.y))
@@ -42,7 +51,7 @@ const renderModal = (props: Partial<PneModalProps> = {}) => {
     const theme = createPneTheme({experimentalColor: '#0a91bc'} as Skin)
     const view = render(
         <ThemeProvider theme={theme}>
-            <PneModal onClose={jest.fn()} open title='Window' {...props as object}>
+            <PneModal onClose={jest.fn()} open title='Window' {...(props as object)}>
                 Body
             </PneModal>
         </ThemeProvider>,
@@ -55,13 +64,14 @@ const renderModal = (props: Partial<PneModalProps> = {}) => {
         container,
         header: container.querySelector<HTMLElement>('[data-pne-modal-header]')!,
         handle: () => container.querySelector<HTMLElement>('[data-pne-modal-resize-handle]'),
-        rerenderModal: (nextProps: Partial<PneModalProps>) => view.rerender(
-            <ThemeProvider theme={theme}>
-                <PneModal onClose={jest.fn()} open title='Window' {...nextProps as object}>
-                    Body
-                </PneModal>
-            </ThemeProvider>,
-        ),
+        rerenderModal: (nextProps: Partial<PneModalProps>) =>
+            view.rerender(
+                <ThemeProvider theme={theme}>
+                    <PneModal onClose={jest.fn()} open title='Window' {...(nextProps as object)}>
+                        Body
+                    </PneModal>
+                </ThemeProvider>,
+            ),
     }
 }
 
@@ -178,7 +188,13 @@ describe('PneModal: a window a person moves and resizes', () => {
 
         expect(handle()).not.toBeNull()
         fireEvent(handle()!, pointer('pointerdown', 712, 534))
-        expect(place(container)).toEqual({left: '312px', top: '234px', width: '400px', height: '300px', transform: 'none'})
+        expect(place(container)).toEqual({
+            left: '312px',
+            top: '234px',
+            width: '400px',
+            height: '300px',
+            transform: 'none',
+        })
         expect(container.getAttribute('data-pne-modal-action')).toBe('resize')
 
         fireEvent(document, pointer('pointermove', 772, 574))

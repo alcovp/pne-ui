@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { DEFAULT_BREAKPOINTS, resolveBreakpoint } from '../../common/responsive/breakpoints'
+import {useEffect, useState} from 'react'
+import {DEFAULT_BREAKPOINTS, resolveBreakpoint} from '../../common/responsive/breakpoints'
 
 type UseBreakpointOptions = {
     breakpoints?: readonly number[]
@@ -8,7 +8,7 @@ type UseBreakpointOptions = {
 /**
  * Returns the nearest configured breakpoint for the current window width.
  */
-export function useBreakpoint({ breakpoints = DEFAULT_BREAKPOINTS }: UseBreakpointOptions = {}) {
+export function useBreakpoint({breakpoints = DEFAULT_BREAKPOINTS}: UseBreakpointOptions = {}) {
     const [current, setCurrent] = useState(() =>
         typeof window !== 'undefined' ? resolveBreakpoint(window.innerWidth, breakpoints) : breakpoints[0],
     )

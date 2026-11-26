@@ -30,14 +30,16 @@ export const measureNaturalWidths = (elements: ReadonlyArray<HTMLElement | null 
     const present = elements.filter((element): element is HTMLElement => !!element)
     const savedCssTexts = present.map(element => element.style.cssText)
 
-    present.forEach(element => Object.assign(element.style, {
-        left: '-99999px',
-        maxWidth: 'none',
-        position: 'fixed',
-        top: '0',
-        visibility: 'hidden',
-        width: 'max-content',
-    }))
+    present.forEach(element =>
+        Object.assign(element.style, {
+            left: '-99999px',
+            maxWidth: 'none',
+            position: 'fixed',
+            top: '0',
+            visibility: 'hidden',
+            width: 'max-content',
+        }),
+    )
 
     const widths = new Map(present.map(element => [element, element.getBoundingClientRect().width]))
 
@@ -45,5 +47,5 @@ export const measureNaturalWidths = (elements: ReadonlyArray<HTMLElement | null 
         element.style.cssText = savedCssTexts[index]
     })
 
-    return elements.map(element => (element ? widths.get(element) ?? 0 : 0))
+    return elements.map(element => (element ? (widths.get(element) ?? 0) : 0))
 }

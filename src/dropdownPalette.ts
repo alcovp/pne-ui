@@ -50,13 +50,15 @@ export type PneDropdownPalette = {
 const checkOnTint = (ramp: PneBrandRamp, tint: string, mode: PneColorMode): string => {
     const order: PneBrandRampStep[] = mode === 'dark' ? [...PNE_BRAND_RAMP_STEPS].reverse() : [...PNE_BRAND_RAMP_STEPS]
     const candidates = order.slice(Math.max(order.indexOf(readableBrandStep(ramp, brandFillStep(mode), mode)), 0))
-    const step = candidates.find(candidate => contrastRatio(ramp[candidate], tint) >= 3) ?? candidates[candidates.length - 1]
+    const step =
+        candidates.find(candidate => contrastRatio(ramp[candidate], tint) >= 3) ?? candidates[candidates.length - 1]
     return ramp[step]
 }
 
 // UI Kit `--elevation-popover`, the same in both modes.
-const POPOVER_SHADOW = '0 17px 36px rgba(0,0,0,0.07), 0 6.268px 22.16px rgba(0,0,0,0.0502), '
-    + '0 2.104px 9.879px rgba(0,0,0,0.029), 0 0.566px 2.782px rgba(0,0,0,0.0108)'
+const POPOVER_SHADOW =
+    '0 17px 36px rgba(0,0,0,0.07), 0 6.268px 22.16px rgba(0,0,0,0.0502), ' +
+    '0 2.104px 9.879px rgba(0,0,0,0.029), 0 0.566px 2.782px rgba(0,0,0,0.0108)'
 
 const createLight = (ramp: PneBrandRamp): PneDropdownPalette => {
     const n = PNE_NEUTRAL_RAMP

@@ -22,10 +22,7 @@ import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT, pneIconOnCapitals} from './label
  * A pair the UI Kit does not draw is shown as its `variant` in the default colour. `color="inherit"`
  * keeps the colour of the place the button stands in.
  */
-export const resolvePneButtonVariant = (
-    variant: unknown,
-    color: unknown,
-): PneButtonVariant | undefined => {
+export const resolvePneButtonVariant = (variant: unknown, color: unknown): PneButtonVariant | undefined => {
     if (color === 'inherit') return undefined
     switch (variant) {
         case 'soft':
@@ -66,12 +63,29 @@ export type PneButtonSizeConfig = {
  */
 export const PNE_BUTTON_SIZE: Record<PneButtonLookSize, PneButtonSizeConfig> = {
     small: {height: 24, paddingBlock: 4, paddingInline: 8, fontSize: 12, lineHeight: 16, icon: 14, gap: 4, iconPull: 2},
-    medium: {height: 32, paddingBlock: 6, paddingInline: 12, fontSize: 14, lineHeight: 20, icon: 16, gap: 4, iconPull: 2},
-    large: {height: 40, paddingBlock: 10, paddingInline: 16, fontSize: 14, lineHeight: 20, icon: 18, gap: 8, iconPull: 0},
+    medium: {
+        height: 32,
+        paddingBlock: 6,
+        paddingInline: 12,
+        fontSize: 14,
+        lineHeight: 20,
+        icon: 16,
+        gap: 4,
+        iconPull: 2,
+    },
+    large: {
+        height: 40,
+        paddingBlock: 10,
+        paddingInline: 16,
+        fontSize: 14,
+        lineHeight: 20,
+        icon: 18,
+        gap: 8,
+        iconPull: 0,
+    },
 }
 
-const resolveSize = (size: unknown): PneButtonLookSize =>
-    size === 'small' || size === 'large' ? size : 'medium'
+const resolveSize = (size: unknown): PneButtonLookSize => (size === 'small' || size === 'large' ? size : 'medium')
 
 const ring = (border: string): string | undefined =>
     border === 'transparent' ? undefined : `inset 0 0 0 1px ${border}`
@@ -95,7 +109,8 @@ const WAITING_CENTRE = '&.MuiButton-loading.MuiButton-loadingPositionCenter'
 
 // A button that holds its label and the slots MUI itself renders, nothing else. A button with other children
 // (a bare icon, a box of its own) keeps the flex layout: only flex centres what the page put inside.
-const LABEL_ONLY = '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))'
+const LABEL_ONLY =
+    '&:where(:not(:has(> :not(.MuiButton-startIcon, .MuiButton-endIcon, .MuiButton-loadingWrapper, .MuiTouchRipple-root))))'
 
 // The trimmed layout changes `display` and the block padding through properties that only it sets: the
 // declarations themselves stay plain declarations of the button, so a `display` or a padding from the `sx` of a
@@ -224,12 +239,14 @@ export const pneButtonLookStyle = (
             ...stateStyle(colors.focus),
             boxShadow: shadows(colors.focus, ...focusRing),
         },
-        ...(colors.active ? {
-            [picked()]: stateStyle(colors.active),
-            [`${picked('.Mui-focusVisible')}, ${picked('[data-pne-state="focus"]')}`]: {
-                boxShadow: shadows(colors.active, ...focusRing),
-            },
-        } : {}),
+        ...(colors.active
+            ? {
+                  [picked()]: stateStyle(colors.active),
+                  [`${picked('.Mui-focusVisible')}, ${picked('[data-pne-state="focus"]')}`]: {
+                      boxShadow: shadows(colors.active, ...focusRing),
+                  },
+              }
+            : {}),
         // MUI gives a disabled outlined button a border of its own; the ring is the inset shadow.
         '&.Mui-disabled': {...stateStyle(colors.disabled), border: 'none'},
         // MUI disables a waiting button; it keeps the look of the focused one, without the ring.
@@ -241,13 +258,15 @@ export const pneButtonLookStyle = (
         },
         // The one-way result of an activation: a status that takes no clicks. `aria-disabled` says
         // so; the consumer also takes it out of the tab order.
-        ...(colors.activated ? {
-            '&[aria-disabled="true"]': {
-                ...stateStyle(colors.activated),
-                cursor: 'default',
-                pointerEvents: 'none',
-            },
-        } : {}),
+        ...(colors.activated
+            ? {
+                  '&[aria-disabled="true"]': {
+                      ...stateStyle(colors.activated),
+                      cursor: 'default',
+                      pointerEvents: 'none',
+                  },
+              }
+            : {}),
     }
 }
 
@@ -262,7 +281,7 @@ const inheritStyle = (theme: Theme, focusRing: string[]): CSSObject => ({
     '&.Mui-disabled': {border: 'none', color: theme.palette.action.disabled},
 })
 
-type ButtonPaletteSource = {button: PneButtonPalette, focusRing: string}
+type ButtonPaletteSource = {button: PneButtonPalette; focusRing: string}
 
 const styleCache = new WeakMap<Theme, Map<string, CSSObject>>()
 
@@ -305,11 +324,12 @@ export const createPneButtonOverrides = (
         loadingPosition: 'start',
     },
     styleOverrides: {
-        root: ({ownerState, theme}) => buttonStyle(
-            theme,
-            resolvePalette,
-            resolveSize(ownerState.size),
-            resolvePneButtonVariant(ownerState.variant, ownerState.color),
-        ),
+        root: ({ownerState, theme}) =>
+            buttonStyle(
+                theme,
+                resolvePalette,
+                resolveSize(ownerState.size),
+                resolvePneButtonVariant(ownerState.variant, ownerState.color),
+            ),
     },
 })

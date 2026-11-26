@@ -10,7 +10,8 @@ export default {
     parameters: {
         docs: {
             description: {
-                component: 'PneField владеет control ID и связями label/helper text. PNE inputs читают field context автоматически; произвольные controls подключаются через публичный render-prop adapter или hook usePneFieldControl. Field-level required семантический (aria-required) и не включает native constraint validation.',
+                component:
+                    'PneField владеет control ID и связями label/helper text. PNE inputs читают field context автоматически; произвольные controls подключаются через публичный render-prop adapter или hook usePneFieldControl. Field-level required семантический (aria-required) и не включает native constraint validation.',
             },
         },
     },
@@ -29,60 +30,51 @@ const toggleGroupSx = {
 }
 
 export const Base: Story = {
-    render: () => <Stack
-        sx={{
-            width: 420,
-        }}
-    >
-        <PneField
-            label='Report file name'
+    render: () => (
+        <Stack
+            sx={{
+                width: 420,
+            }}
         >
-            <PneTextField
-                size='large'
-                defaultValue='Cashflow_10_12_2024'
-            />
-        </PneField>
-    </Stack>,
+            <PneField label='Report file name'>
+                <PneTextField size='large' defaultValue='Cashflow_10_12_2024' />
+            </PneField>
+        </Stack>
+    ),
 }
 
 export const Controls: Story = {
-    render: () => <Stack
-        spacing={2}
-        sx={{
-            width: 420,
-        }}
-    >
-        <PneField
-            label='Report file name'
+    render: () => (
+        <Stack
+            spacing={2}
+            sx={{
+                width: 420,
+            }}
         >
-            <PneTextField
-                size='large'
-                defaultValue='Cashflow_10_12_2024'
-            />
-        </PneField>
-        <PneField
-            label='Message server'
-            required
-        >
-            <PneSelect
-                size='large'
-                options={deliveryServers.slice(1)}
-                placeholder='Please select'
-                value={null}
-                onChange={() => undefined}
-            />
-        </PneField>
-        <PneField label='Delivery server'>
-            <PneAutocomplete
-                size='large'
-                options={deliveryServers.slice(1)}
-                placeholder='Please select'
-                sx={{
-                    width: '100%',
-                }}
-            />
-        </PneField>
-    </Stack>,
+            <PneField label='Report file name'>
+                <PneTextField size='large' defaultValue='Cashflow_10_12_2024' />
+            </PneField>
+            <PneField label='Message server' required>
+                <PneSelect
+                    size='large'
+                    options={deliveryServers.slice(1)}
+                    placeholder='Please select'
+                    value={null}
+                    onChange={() => undefined}
+                />
+            </PneField>
+            <PneField label='Delivery server'>
+                <PneAutocomplete
+                    size='large'
+                    options={deliveryServers.slice(1)}
+                    placeholder='Please select'
+                    sx={{
+                        width: '100%',
+                    }}
+                />
+            </PneField>
+        </Stack>
+    ),
 }
 
 export const SegmentedControl: Story = {
@@ -119,73 +111,74 @@ export const SegmentedControl: Story = {
             expect(button).not.toHaveAttribute('required')
         })
     },
-    render: () => <Stack
-        spacing={1}
-        sx={{
-            width: 420,
-        }}
-    >
-        <Typography id='period-context' variant='caption'>Reporting period</Typography>
-        <PneField
-            controlId='period-control'
-            disabled
-            error
-            helperText='Choose a supported period'
-            id='period-field'
-            label='Period'
-            required
-            slotProps={{
-                helperText: {
-                    'data-story-slot': 'helper-text',
-                    id: 'period-helper',
-                },
-                label: {
-                    'data-story-slot': 'label',
-                    id: 'period-label',
-                },
+    render: () => (
+        <Stack
+            spacing={1}
+            sx={{
+                width: 420,
             }}
         >
-            {({getControlProps}) => <ToggleButtonGroup
-                {...getControlProps({
-                    'aria-describedby': 'period-format',
-                    'aria-invalid': false,
-                    'aria-labelledby': 'period-context',
-                    'aria-required': false,
-                    disabled: false,
-                })}
-                exclusive
-                size='medium'
-                sx={toggleGroupSx}
-                value='weeks'
+            <Typography id='period-context' variant='caption'>
+                Reporting period
+            </Typography>
+            <PneField
+                controlId='period-control'
+                disabled
+                error
+                helperText='Choose a supported period'
+                id='period-field'
+                label='Period'
+                required
+                slotProps={{
+                    helperText: {
+                        'data-story-slot': 'helper-text',
+                        id: 'period-helper',
+                    },
+                    label: {
+                        'data-story-slot': 'label',
+                        id: 'period-label',
+                    },
+                }}
             >
-                <ToggleButton value='days'>Days</ToggleButton>
-                <ToggleButton value='weeks'>Weeks</ToggleButton>
-                <ToggleButton value='months'>Months</ToggleButton>
-            </ToggleButtonGroup>}
-        </PneField>
-        <Typography id='period-format' variant='caption'>Calendar unit</Typography>
-    </Stack>,
+                {({getControlProps}) => (
+                    <ToggleButtonGroup
+                        {...getControlProps({
+                            'aria-describedby': 'period-format',
+                            'aria-invalid': false,
+                            'aria-labelledby': 'period-context',
+                            'aria-required': false,
+                            disabled: false,
+                        })}
+                        exclusive
+                        size='medium'
+                        sx={toggleGroupSx}
+                        value='weeks'
+                    >
+                        <ToggleButton value='days'>Days</ToggleButton>
+                        <ToggleButton value='weeks'>Weeks</ToggleButton>
+                        <ToggleButton value='months'>Months</ToggleButton>
+                    </ToggleButtonGroup>
+                )}
+            </PneField>
+            <Typography id='period-format' variant='caption'>
+                Calendar unit
+            </Typography>
+        </Stack>
+    ),
 }
 
 const longInvalidToken = 'invalid-' + 'x'.repeat(400)
 
 export const LongError: Story = {
-    render: () => <Stack
-        sx={{
-            width: 320,
-        }}
-    >
-        <PneField
-            error
-            helperText={`Invalid IP/mask: ${longInvalidToken}`}
-            label='Login IPs/masks whitelist'
+    render: () => (
+        <Stack
+            sx={{
+                width: 320,
+            }}
         >
-            <PneTextField
-                size='large'
-                defaultValue={longInvalidToken}
-                multiline
-                rows={5}
-            />
-        </PneField>
-    </Stack>,
+            <PneField error helperText={`Invalid IP/mask: ${longInvalidToken}`} label='Login IPs/masks whitelist'>
+                <PneTextField size='large' defaultValue={longInvalidToken} multiline rows={5} />
+            </PneField>
+        </Stack>
+    ),
 }

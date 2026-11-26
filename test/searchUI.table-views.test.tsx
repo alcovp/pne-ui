@@ -1,12 +1,6 @@
 import React from 'react'
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
-import {
-    CriterionTypeEnum,
-    SearchUI,
-    type SearchParams,
-    type TableSelectionModel,
-    type SearchUIView,
-} from '../src'
+import {CriterionTypeEnum, SearchUI, type SearchParams, type TableSelectionModel, type SearchUIView} from '../src'
 import {ThreeDCriterionEnum} from '../src/component/search-ui/filters/types'
 
 jest.mock('react-i18next', () => ({
@@ -27,7 +21,7 @@ const filtersConfig = {
     hideTemplatesSelect: true,
 }
 
-const createDeferred = <T, >() => {
+const createDeferred = <T,>() => {
     let resolve!: (value: T) => void
     const promise = new Promise<T>(promiseResolve => {
         resolve = promiseResolve
@@ -41,8 +35,16 @@ const createViews = (searchByView: Record<ViewId, SearchData>): readonly SearchU
         id: 'summary',
         label: 'Summary',
         searchData: searchByView.summary,
-        createTableHeader: () => <tr><th>Summary header</th></tr>,
-        createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+        createTableHeader: () => (
+            <tr>
+                <th>Summary header</th>
+            </tr>
+        ),
+        createTableRow: row => (
+            <tr key={row.id}>
+                <td>{row.label}</td>
+            </tr>
+        ),
         actions: <button type='button'>View settings</button>,
         sortOnActivate: {sortColumnIndex: 2, sortAsc: false},
     },
@@ -50,8 +52,16 @@ const createViews = (searchByView: Record<ViewId, SearchData>): readonly SearchU
         id: 'operations',
         label: 'Operations',
         searchData: searchByView.operations,
-        createTableHeader: () => <tr><th>Operations header</th></tr>,
-        createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+        createTableHeader: () => (
+            <tr>
+                <th>Operations header</th>
+            </tr>
+        ),
+        createTableRow: row => (
+            <tr key={row.id}>
+                <td>{row.label}</td>
+            </tr>
+        ),
         actions: <button type='button'>View settings</button>,
         sortOnActivate: {sortColumnIndex: 7, sortAsc: true},
     },
@@ -60,8 +70,16 @@ const createViews = (searchByView: Record<ViewId, SearchData>): readonly SearchU
         label: 'Risk',
         searchData: searchByView.risk,
         actions: <button type='button'>View settings</button>,
-        createTableHeader: () => <tr><th>Risk header</th></tr>,
-        createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+        createTableHeader: () => (
+            <tr>
+                <th>Risk header</th>
+            </tr>
+        ),
+        createTableRow: row => (
+            <tr key={row.id}>
+                <td>{row.label}</td>
+            </tr>
+        ),
     },
 ]
 
@@ -80,27 +98,33 @@ const TableViewsHarness = ({
 }) => {
     const [value, setValue] = React.useState<ViewId>(initialView)
 
-    return <section data-testid={instanceId}>
-        <SearchUI<Row, ViewId>
-            autoTestId={instanceId}
-            config={filtersConfig}
-            possibleCriteria={[]}
-            settingsContextName={`${instanceId}-settings`}
-            tableParams={{duplicatePagination}}
-            tableViews={{
-                'aria-label': `${instanceId} table view`,
-                onChange: setValue,
-                renderViewSelector: selector => (
-                    <div data-autotest={`${instanceId}.legacy-view-control`}>{selector}</div>
-                ),
-                value,
-                views: createViews(searchByView).map(view => ({
-                    ...view,
-                    actions: <button onClick={onSettings} type='button'>View settings</button>,
-                })),
-            }}
-        />
-    </section>
+    return (
+        <section data-testid={instanceId}>
+            <SearchUI<Row, ViewId>
+                autoTestId={instanceId}
+                config={filtersConfig}
+                possibleCriteria={[]}
+                settingsContextName={`${instanceId}-settings`}
+                tableParams={{duplicatePagination}}
+                tableViews={{
+                    'aria-label': `${instanceId} table view`,
+                    onChange: setValue,
+                    renderViewSelector: selector => (
+                        <div data-autotest={`${instanceId}.legacy-view-control`}>{selector}</div>
+                    ),
+                    value,
+                    views: createViews(searchByView).map(view => ({
+                        ...view,
+                        actions: (
+                            <button onClick={onSettings} type='button'>
+                                View settings
+                            </button>
+                        ),
+                    })),
+                }}
+            />
+        </section>
+    )
 }
 
 type ConfigurableViewId = 'brief' | 'detailed'
@@ -124,8 +148,16 @@ const ConfigurableDetailedViewHarness = ({
             id: 'brief',
             label: 'Brief',
             searchData: briefSearch,
-            createTableHeader: () => <tr><th>Brief header</th></tr>,
-            createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+            createTableHeader: () => (
+                <tr>
+                    <th>Brief header</th>
+                </tr>
+            ),
+            createTableRow: row => (
+                <tr key={row.id}>
+                    <td>{row.label}</td>
+                </tr>
+            ),
             sortOnActivate: {sortColumnIndex: 2, sortAsc: true},
             tableStateOnActivate: 'restore',
         },
@@ -138,8 +170,16 @@ const ConfigurableDetailedViewHarness = ({
             },
             searchData: params => detailedSearch(searchDataKey, params),
             searchDataKey,
-            createTableHeader: () => <tr><th>Detailed header</th></tr>,
-            createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+            createTableHeader: () => (
+                <tr>
+                    <th>Detailed header</th>
+                </tr>
+            ),
+            createTableRow: row => (
+                <tr key={row.id}>
+                    <td>{row.label}</td>
+                </tr>
+            ),
             sortOnActivate: {sortColumnIndex: -100, sortAsc: true},
             tableStateOnActivate: 'restore',
         },
@@ -150,30 +190,40 @@ const ConfigurableDetailedViewHarness = ({
         setPickerOpen(false)
     }
 
-    return <section data-testid='configurable-detailed-view'>
-        <SearchUI<Row, ConfigurableViewId>
-            autoTestId='configurable-detailed-view'
-            config={filtersConfig}
-            possibleCriteria={[]}
-            settingsContextName='configurable-detailed-view-settings'
-            tableParams={{duplicatePagination}}
-            tableViews={{
-                'aria-label': 'Configurable results view',
-                onChange: setValue,
-                value,
-                views,
-            }}
-        />
-        {pickerOpen ? <div aria-label='KPI picker' role='dialog'>
-            <button onClick={() => applyKpis('kpi-a')} type='button'>Apply KPI A</button>
-            <button onClick={() => applyKpis('kpi-b')} type='button'>Apply KPI B</button>
-            <button onClick={() => applyKpis('kpi-c')} type='button'>Apply KPI C</button>
-        </div> : null}
-    </section>
+    return (
+        <section data-testid='configurable-detailed-view'>
+            <SearchUI<Row, ConfigurableViewId>
+                autoTestId='configurable-detailed-view'
+                config={filtersConfig}
+                possibleCriteria={[]}
+                settingsContextName='configurable-detailed-view-settings'
+                tableParams={{duplicatePagination}}
+                tableViews={{
+                    'aria-label': 'Configurable results view',
+                    onChange: setValue,
+                    value,
+                    views,
+                }}
+            />
+            {pickerOpen ? (
+                <div aria-label='KPI picker' role='dialog'>
+                    <button onClick={() => applyKpis('kpi-a')} type='button'>
+                        Apply KPI A
+                    </button>
+                    <button onClick={() => applyKpis('kpi-b')} type='button'>
+                        Apply KPI B
+                    </button>
+                    <button onClick={() => applyKpis('kpi-c')} type='button'>
+                        Apply KPI C
+                    </button>
+                </div>
+            ) : null}
+        </section>
+    )
 }
 
-const resolvedSearch = (label: string) => jest.fn<Promise<Row[]>, [SearchParams]>()
-    .mockResolvedValue([{id: label, label}])
+const resolvedSearch = (label: string) =>
+    jest.fn<Promise<Row[]>, [SearchParams]>().mockResolvedValue([{id: label, label}])
 
 describe('SearchUI table views', () => {
     const originalScrollIntoView = HTMLElement.prototype.scrollIntoView
@@ -202,53 +252,52 @@ describe('SearchUI table views', () => {
 
     it('renders the selected descriptor in the table toolbar and switches with one reset fetch', async () => {
         const onSettings = jest.fn()
-        const summarySearch = jest.fn<Promise<Row[]>, [SearchParams]>()
-            .mockImplementation(params => Promise.resolve(
+        const summarySearch = jest.fn<Promise<Row[]>, [SearchParams]>().mockImplementation(params =>
+            Promise.resolve(
                 params.startNum === 0
                     ? Array.from({length: 51}, (_, index) => ({
-                        id: `summary-${index}`,
-                        label: `Summary row ${index}`,
-                    }))
+                          id: `summary-${index}`,
+                          label: `Summary row ${index}`,
+                      }))
                     : [{id: 'summary-page-two', label: 'Summary page two row'}],
-            ))
+            ),
+        )
         const operationsSearch = resolvedSearch('Operations row')
         const riskSearch = resolvedSearch('Risk row')
-        const {container} = render(<TableViewsHarness
-            instanceId='orders'
-            onSettings={onSettings}
-            searchByView={{
-                summary: summarySearch,
-                operations: operationsSearch,
-                risk: riskSearch,
-            }}
-        />)
+        const {container} = render(
+            <TableViewsHarness
+                instanceId='orders'
+                onSettings={onSettings}
+                searchByView={{
+                    summary: summarySearch,
+                    operations: operationsSearch,
+                    risk: riskSearch,
+                }}
+            />,
+        )
 
         await waitFor(() => {
             expect(screen.getByText('Summary row 0')).toBeTruthy()
         })
         expect(summarySearch).toHaveBeenCalledTimes(1)
-        expect(summarySearch).toHaveBeenLastCalledWith(expect.objectContaining({
-            orderBy: 2,
-            sortOrder: 'desc',
-            startNum: 0,
-        }))
+        expect(summarySearch).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                orderBy: 2,
+                sortOrder: 'desc',
+                startNum: 0,
+            }),
+        )
 
         const tableScope = container.querySelector(
             '[data-autotest="table"][data-autotest-value="orders"]',
         ) as HTMLElement
         const toolbar = tableScope.querySelector('[data-autotest="table-toolbar"]') as HTMLElement
-        const selector = toolbar.querySelector(
-            '[data-autotest="table-views"][data-autotest-value="orders"]',
-        )
+        const selector = toolbar.querySelector('[data-autotest="table-views"][data-autotest-value="orders"]')
 
         expect(selector).not.toBeNull()
         expect(toolbar.querySelector('[data-autotest="orders.legacy-view-control"]')).not.toBeNull()
-        expect(tableScope.querySelector(
-            '[data-autotest="pagination"][data-autotest-value="top"]',
-        )).toBeNull()
-        const filtersScope = container.querySelector(
-            '[data-autotest="search-filters"][data-autotest-value="orders"]',
-        )
+        expect(tableScope.querySelector('[data-autotest="pagination"][data-autotest-value="top"]')).toBeNull()
+        const filtersScope = container.querySelector('[data-autotest="search-filters"][data-autotest-value="orders"]')
 
         const bottomPagination = tableScope.querySelector(
             '[data-autotest="pagination"][data-autotest-value="bottom"]',
@@ -272,26 +321,26 @@ describe('SearchUI table views', () => {
         ) as HTMLElement
         expect(switchedTableScope.querySelector('[data-autotest="empty-state"]')).toBeNull()
         expect(within(switchedTableScope).getByRole('table').getAttribute('aria-busy')).toBe('true')
-        expect(container.querySelector(
-            '[data-autotest="search-filters"][data-autotest-value="orders"]',
-        )).toBe(filtersScope)
+        expect(container.querySelector('[data-autotest="search-filters"][data-autotest-value="orders"]')).toBe(
+            filtersScope,
+        )
         expect(document.activeElement).toBe(operationsButton)
 
         await waitFor(() => {
             expect(screen.getByText('Operations row')).toBeTruthy()
         })
         expect(operationsSearch).toHaveBeenCalledTimes(1)
-        expect(operationsSearch).toHaveBeenLastCalledWith(expect.objectContaining({
-            orderBy: 7,
-            sortOrder: 'asc',
-            startNum: 0,
-        }))
+        expect(operationsSearch).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                orderBy: 7,
+                sortOrder: 'asc',
+                startNum: 0,
+            }),
+        )
         expect(summarySearch).toHaveBeenCalledTimes(2)
         expect(riskSearch).not.toHaveBeenCalled()
 
-        const switchedToolbar = switchedTableScope.querySelector(
-            '[data-autotest="table-toolbar"]',
-        ) as HTMLElement
+        const switchedToolbar = switchedTableScope.querySelector('[data-autotest="table-toolbar"]') as HTMLElement
         fireEvent.click(within(switchedToolbar).getByRole('button', {name: 'View settings'}))
         expect(onSettings).toHaveBeenCalledTimes(1)
         expect(operationsSearch).toHaveBeenCalledTimes(1)
@@ -305,35 +354,53 @@ describe('SearchUI table views', () => {
                 id: 'summary',
                 label: 'Summary',
                 searchData: resolvedSearch('Summary row'),
-                createTableHeader: () => <tr><th>Summary header</th></tr>,
-                createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                createTableHeader: () => (
+                    <tr>
+                        <th>Summary header</th>
+                    </tr>
+                ),
+                createTableRow: row => (
+                    <tr key={row.id}>
+                        <td>{row.label}</td>
+                    </tr>
+                ),
             },
             {
                 id: 'operations',
                 label: 'Operations',
                 searchData: () => operations.promise,
                 skeletonRowHeight: 120,
-                createTableHeader: () => <tr><th>Operations header</th></tr>,
-                createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                createTableHeader: () => (
+                    <tr>
+                        <th>Operations header</th>
+                    </tr>
+                ),
+                createTableRow: row => (
+                    <tr key={row.id}>
+                        <td>{row.label}</td>
+                    </tr>
+                ),
             },
         ]
         const PresetHarness = () => {
             const [value, setValue] = React.useState<PresetViewId>('summary')
 
-            return <SearchUI<Row, PresetViewId>
-                autoTestId='preset'
-                config={filtersConfig}
-                possibleCriteria={[]}
-                settingsContextName='preset-settings'
-                tableViews={{
-                    'aria-label': 'Preset table view',
-                    onChange: setValue,
-                    value,
-                    views,
-                }}
-            />
+            return (
+                <SearchUI<Row, PresetViewId>
+                    autoTestId='preset'
+                    config={filtersConfig}
+                    possibleCriteria={[]}
+                    settingsContextName='preset-settings'
+                    tableViews={{
+                        'aria-label': 'Preset table view',
+                        onChange: setValue,
+                        value,
+                        views,
+                    }}
+                />
+            )
         }
-        render(<PresetHarness/>)
+        render(<PresetHarness />)
 
         await waitFor(() => {
             expect(screen.getByText('Summary row')).toBeTruthy()
@@ -371,52 +438,66 @@ describe('SearchUI table views', () => {
                     id: 'brief',
                     label: 'Filtered Brief',
                     searchData: briefSearch,
-                    createTableHeader: (_params, context) => <tr>
-                        <th data-three-d={String(context?.appliedSearchCriteria?.threeD)}>
-                            Filtered Brief header
-                        </th>
-                    </tr>,
-                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    createTableHeader: (_params, context) => (
+                        <tr>
+                            <th data-three-d={String(context?.appliedSearchCriteria?.threeD)}>Filtered Brief header</th>
+                        </tr>
+                    ),
+                    createTableRow: row => (
+                        <tr key={row.id}>
+                            <td>{row.label}</td>
+                        </tr>
+                    ),
                 },
                 {
                     id: 'detailed',
                     label: 'Filtered Detailed',
                     disabledCriteria: [CriterionTypeEnum.THREE_D],
                     searchData: detailedSearch,
-                    createTableHeader: (_params, context) => <tr>
-                        <th data-three-d={String(context?.appliedSearchCriteria?.threeD)}>
-                            Filtered Detailed header
-                        </th>
-                    </tr>,
-                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    createTableHeader: (_params, context) => (
+                        <tr>
+                            <th data-three-d={String(context?.appliedSearchCriteria?.threeD)}>
+                                Filtered Detailed header
+                            </th>
+                        </tr>
+                    ),
+                    createTableRow: row => (
+                        <tr key={row.id}>
+                            <td>{row.label}</td>
+                        </tr>
+                    ),
                 },
             ]
 
-            return <SearchUI<Row, FilteredViewId, string>
-                config={filtersConfig}
-                initialSearchConditions={{threeD: ThreeDCriterionEnum.YES}}
-                possibleCriteria={[CriterionTypeEnum.THREE_D]}
-                predefinedCriteria={[CriterionTypeEnum.THREE_D]}
-                settingsContextName='view-disabled-filter-settings'
-                tableSelection={{
-                    getRowId: row => row.id,
-                    onSelectionChange: setSelection,
-                    renderControls: ({selection: controller}) => <output data-testid='selection-three-d'>
-                        {String(controller.scope.appliedSearchCriteria?.threeD)}
-                    </output>,
-                    selection,
-                    toolbarAriaLabel: 'Filtered selection',
-                }}
-                tableViews={{
-                    'aria-label': 'Filtered views',
-                    onChange: setValue,
-                    value,
-                    views,
-                }}
-            />
+            return (
+                <SearchUI<Row, FilteredViewId, string>
+                    config={filtersConfig}
+                    initialSearchConditions={{threeD: ThreeDCriterionEnum.YES}}
+                    possibleCriteria={[CriterionTypeEnum.THREE_D]}
+                    predefinedCriteria={[CriterionTypeEnum.THREE_D]}
+                    settingsContextName='view-disabled-filter-settings'
+                    tableSelection={{
+                        getRowId: row => row.id,
+                        onSelectionChange: setSelection,
+                        renderControls: ({selection: controller}) => (
+                            <output data-testid='selection-three-d'>
+                                {String(controller.scope.appliedSearchCriteria?.threeD)}
+                            </output>
+                        ),
+                        selection,
+                        toolbarAriaLabel: 'Filtered selection',
+                    }}
+                    tableViews={{
+                        'aria-label': 'Filtered views',
+                        onChange: setValue,
+                        value,
+                        views,
+                    }}
+                />
+            )
         }
 
-        const {container} = render(<FilteredViewsHarness/>)
+        const {container} = render(<FilteredViewsHarness />)
         await waitFor(() => expect(screen.getByText('Filtered Brief row')).toBeTruthy())
         expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: true}))
         expect(screen.getByText('Filtered Brief header').getAttribute('data-three-d')).toBe('true')
@@ -443,9 +524,11 @@ describe('SearchUI table views', () => {
         fireEvent.click(screen.getByRole('button', {name: 'Filtered Brief'}))
         await waitFor(() => expect(briefSearch).toHaveBeenCalledTimes(2))
         expect(briefSearch).toHaveBeenLastCalledWith(expect.objectContaining({threeD: true}))
-        expect(within(criterion).queryByRole('group', {
-            name: 'react.CriterionTypeEnum.THREE_D: react.searchUI.criterion.notAvailableInView',
-        })).toBeNull()
+        expect(
+            within(criterion).queryByRole('group', {
+                name: 'react.CriterionTypeEnum.THREE_D: react.searchUI.criterion.notAvailableInView',
+            }),
+        ).toBeNull()
     })
 
     it('hides a view-hidden filter, keeps its value for other views and neutralizes its request value', async () => {
@@ -461,34 +544,52 @@ describe('SearchUI table views', () => {
                     label: 'Hidden Brief',
                     hiddenCriteria: [CriterionTypeEnum.THREE_D, CriterionTypeEnum.STATUS],
                     searchData: briefSearch,
-                    createTableHeader: () => <tr><th>Hidden Brief header</th></tr>,
-                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    createTableHeader: () => (
+                        <tr>
+                            <th>Hidden Brief header</th>
+                        </tr>
+                    ),
+                    createTableRow: row => (
+                        <tr key={row.id}>
+                            <td>{row.label}</td>
+                        </tr>
+                    ),
                 },
                 {
                     id: 'detailed',
                     label: 'Hidden Detailed',
                     searchData: detailedSearch,
-                    createTableHeader: () => <tr><th>Hidden Detailed header</th></tr>,
-                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    createTableHeader: () => (
+                        <tr>
+                            <th>Hidden Detailed header</th>
+                        </tr>
+                    ),
+                    createTableRow: row => (
+                        <tr key={row.id}>
+                            <td>{row.label}</td>
+                        </tr>
+                    ),
                 },
             ]
 
-            return <SearchUI<Row, HiddenViewId, string>
-                config={filtersConfig}
-                initialSearchConditions={{threeD: ThreeDCriterionEnum.YES}}
-                possibleCriteria={[CriterionTypeEnum.THREE_D, CriterionTypeEnum.STATUS]}
-                predefinedCriteria={[CriterionTypeEnum.THREE_D]}
-                settingsContextName='view-hidden-filter-settings'
-                tableViews={{
-                    'aria-label': 'Hidden views',
-                    onChange: setValue,
-                    value,
-                    views,
-                }}
-            />
+            return (
+                <SearchUI<Row, HiddenViewId, string>
+                    config={filtersConfig}
+                    initialSearchConditions={{threeD: ThreeDCriterionEnum.YES}}
+                    possibleCriteria={[CriterionTypeEnum.THREE_D, CriterionTypeEnum.STATUS]}
+                    predefinedCriteria={[CriterionTypeEnum.THREE_D]}
+                    settingsContextName='view-hidden-filter-settings'
+                    tableViews={{
+                        'aria-label': 'Hidden views',
+                        onChange: setValue,
+                        value,
+                        views,
+                    }}
+                />
+            )
         }
 
-        const {container} = render(<HiddenViewsHarness/>)
+        const {container} = render(<HiddenViewsHarness />)
         const threeDRow = () => container.querySelector('[data-autotest="criterion"][data-autotest-value="THREE_D"]')
         const addFilter = () => container.querySelector('[data-autotest="add-filter"]')
 
@@ -512,16 +613,18 @@ describe('SearchUI table views', () => {
 
     it('composes the selector into the responsive top pagination band when enabled', async () => {
         const onSettings = jest.fn()
-        const {container} = render(<TableViewsHarness
-            duplicatePagination
-            instanceId='orders-with-top-pagination'
-            onSettings={onSettings}
-            searchByView={{
-                summary: resolvedSearch('Summary row'),
-                operations: resolvedSearch('Operations row'),
-                risk: resolvedSearch('Risk row'),
-            }}
-        />)
+        const {container} = render(
+            <TableViewsHarness
+                duplicatePagination
+                instanceId='orders-with-top-pagination'
+                onSettings={onSettings}
+                searchByView={{
+                    summary: resolvedSearch('Summary row'),
+                    operations: resolvedSearch('Operations row'),
+                    risk: resolvedSearch('Risk row'),
+                }}
+            />,
+        )
 
         await waitFor(() => {
             expect(screen.getByText('Summary row')).toBeTruthy()
@@ -530,23 +633,19 @@ describe('SearchUI table views', () => {
         const tableScope = container.querySelector(
             '[data-autotest="table"][data-autotest-value="orders-with-top-pagination"]',
         ) as HTMLElement
-        const topControls = tableScope.querySelector(
-            '[data-autotest="table-top-controls"]',
-        ) as HTMLElement
+        const topControls = tableScope.querySelector('[data-autotest="table-top-controls"]') as HTMLElement
         const topPagination = topControls.querySelector(
             '[data-autotest="pagination"][data-autotest-value="top"]',
         ) as HTMLElement
         const bottomPagination = tableScope.querySelector(
             '[data-autotest="pagination"][data-autotest-value="bottom"]',
         ) as HTMLElement
-        const toolbar = topPagination.querySelector(
-            '[data-autotest="table-toolbar"]',
-        ) as HTMLElement
+        const toolbar = topPagination.querySelector('[data-autotest="table-toolbar"]') as HTMLElement
 
         expect(toolbar).not.toBeNull()
-        expect(toolbar.querySelector(
-            '[data-autotest="table-views"][data-autotest-value="orders-with-top-pagination"]',
-        )).not.toBeNull()
+        expect(
+            toolbar.querySelector('[data-autotest="table-views"][data-autotest-value="orders-with-top-pagination"]'),
+        ).not.toBeNull()
         expect(bottomPagination.querySelector('[data-autotest="table-toolbar"]')).toBeNull()
 
         fireEvent.click(within(toolbar).getByRole('button', {name: 'View settings'}))
@@ -557,20 +656,18 @@ describe('SearchUI table views', () => {
         const kpiBResponse = createDeferred<Row[]>()
         const kpiCResponse = createDeferred<Row[]>()
         const briefSearch = resolvedSearch('Brief row')
-        const detailedSearch = jest.fn<Promise<Row[]>, [string, SearchParams]>()
-            .mockImplementation(searchDataKey => {
-                if (searchDataKey === 'kpi-b') {
-                    return kpiBResponse.promise
-                }
-                if (searchDataKey === 'kpi-c') {
-                    return kpiCResponse.promise
-                }
-                return Promise.resolve([{id: 'kpi-a', label: 'KPI A row'}])
-            })
-        const {container} = render(<ConfigurableDetailedViewHarness
-            briefSearch={briefSearch}
-            detailedSearch={detailedSearch}
-        />)
+        const detailedSearch = jest.fn<Promise<Row[]>, [string, SearchParams]>().mockImplementation(searchDataKey => {
+            if (searchDataKey === 'kpi-b') {
+                return kpiBResponse.promise
+            }
+            if (searchDataKey === 'kpi-c') {
+                return kpiCResponse.promise
+            }
+            return Promise.resolve([{id: 'kpi-a', label: 'KPI A row'}])
+        })
+        const {container} = render(
+            <ConfigurableDetailedViewHarness briefSearch={briefSearch} detailedSearch={detailedSearch} />,
+        )
 
         await waitFor(() => {
             expect(screen.getByText('Brief row')).toBeTruthy()
@@ -593,14 +690,19 @@ describe('SearchUI table views', () => {
             expect(screen.getByText('KPI A row')).toBeTruthy()
         })
         expect(detailedSearch).toHaveBeenCalledTimes(1)
-        expect(detailedSearch).toHaveBeenLastCalledWith('kpi-a', expect.objectContaining({
-            orderBy: -100,
-            sortOrder: 'asc',
-            startNum: 0,
-        }))
-        expect(container.querySelector(
-            '[data-autotest="search-filters"][data-autotest-value="configurable-detailed-view"]',
-        )).toBe(filtersScope)
+        expect(detailedSearch).toHaveBeenLastCalledWith(
+            'kpi-a',
+            expect.objectContaining({
+                orderBy: -100,
+                sortOrder: 'asc',
+                startNum: 0,
+            }),
+        )
+        expect(
+            container.querySelector(
+                '[data-autotest="search-filters"][data-autotest-value="configurable-detailed-view"]',
+            ),
+        ).toBe(filtersScope)
 
         fireEvent.click(screen.getByRole('button', {name: 'Detailed'}))
 
@@ -614,10 +716,13 @@ describe('SearchUI table views', () => {
         await waitFor(() => {
             expect(detailedSearch).toHaveBeenCalledTimes(2)
         })
-        expect(detailedSearch).toHaveBeenLastCalledWith('kpi-b', expect.objectContaining({
-            orderBy: -100,
-            startNum: 0,
-        }))
+        expect(detailedSearch).toHaveBeenLastCalledWith(
+            'kpi-b',
+            expect.objectContaining({
+                orderBy: -100,
+                startNum: 0,
+            }),
+        )
 
         fireEvent.click(screen.getByRole('button', {name: 'Detailed'}))
         fireEvent.click(screen.getByRole('button', {name: 'Apply KPI C'}))
@@ -644,14 +749,17 @@ describe('SearchUI table views', () => {
 
     it('keeps the intercepted active view button mounted in duplicated pagination', async () => {
         const briefSearch = resolvedSearch('Stable brief row')
-        const detailedSearch = jest.fn<Promise<Row[]>, [string, SearchParams]>()
+        const detailedSearch = jest
+            .fn<Promise<Row[]>, [string, SearchParams]>()
             .mockResolvedValue([{id: 'stable-kpi', label: 'Stable KPI row'}])
 
-        render(<ConfigurableDetailedViewHarness
-            briefSearch={briefSearch}
-            detailedSearch={detailedSearch}
-            duplicatePagination
-        />)
+        render(
+            <ConfigurableDetailedViewHarness
+                briefSearch={briefSearch}
+                detailedSearch={detailedSearch}
+                duplicatePagination
+            />,
+        )
 
         await waitFor(() => {
             expect(screen.getByText('Stable brief row')).toBeTruthy()
@@ -674,31 +782,31 @@ describe('SearchUI table views', () => {
         const summarySearch = resolvedSearch('Active summary row')
         const operationsSearch = resolvedSearch('Inactive operations row')
         const riskSearch = resolvedSearch('Inactive risk row')
-        const InactiveKeyHarness = ({riskKey}: {riskKey: string}) => <SearchUI<Row, ViewId>
-            config={filtersConfig}
-            possibleCriteria={[]}
-            settingsContextName='inactive-key-settings'
-            tableViews={{
-                'aria-label': 'Inactive key views',
-                onChange: () => undefined,
-                value: 'summary',
-                views: createViews({
-                    summary: summarySearch,
-                    operations: operationsSearch,
-                    risk: riskSearch,
-                }).map(view => view.id === 'risk'
-                    ? {...view, searchDataKey: riskKey}
-                    : view),
-            }}
-        />
-        const view = render(<InactiveKeyHarness riskKey='risk-a'/>)
+        const InactiveKeyHarness = ({riskKey}: {riskKey: string}) => (
+            <SearchUI<Row, ViewId>
+                config={filtersConfig}
+                possibleCriteria={[]}
+                settingsContextName='inactive-key-settings'
+                tableViews={{
+                    'aria-label': 'Inactive key views',
+                    onChange: () => undefined,
+                    value: 'summary',
+                    views: createViews({
+                        summary: summarySearch,
+                        operations: operationsSearch,
+                        risk: riskSearch,
+                    }).map(view => (view.id === 'risk' ? {...view, searchDataKey: riskKey} : view)),
+                }}
+            />
+        )
+        const view = render(<InactiveKeyHarness riskKey='risk-a' />)
 
         await waitFor(() => {
             expect(screen.getByText('Active summary row')).toBeTruthy()
         })
         expect(summarySearch).toHaveBeenCalledTimes(1)
 
-        view.rerender(<InactiveKeyHarness riskKey='risk-b'/>)
+        view.rerender(<InactiveKeyHarness riskKey='risk-b' />)
         await act(async () => {
             await Promise.resolve()
         })
@@ -710,15 +818,16 @@ describe('SearchUI table views', () => {
 
     it('keeps reset identities distinct when view IDs and data keys contain the same separators', async () => {
         type CollisionViewId = 'a|b' | 'a'
-        const firstSearch = jest.fn<Promise<Row[]>, [SearchParams]>()
-            .mockImplementation(params => Promise.resolve(
+        const firstSearch = jest.fn<Promise<Row[]>, [SearchParams]>().mockImplementation(params =>
+            Promise.resolve(
                 params.startNum === 0
                     ? Array.from({length: 51}, (_, index) => ({
-                        id: `first-${index}`,
-                        label: `First row ${index}`,
-                    }))
+                          id: `first-${index}`,
+                          label: `First row ${index}`,
+                      }))
                     : [{id: 'first-page-two', label: 'First page two row'}],
-            ))
+            ),
+        )
         const secondSearch = resolvedSearch('Second view row')
         const CollisionHarness = () => {
             const [value, setValue] = React.useState<CollisionViewId>('a|b')
@@ -728,8 +837,16 @@ describe('SearchUI table views', () => {
                     label: 'First collision view',
                     searchData: firstSearch,
                     searchDataKey: 'c',
-                    createTableHeader: () => <tr><th>First collision header</th></tr>,
-                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    createTableHeader: () => (
+                        <tr>
+                            <th>First collision header</th>
+                        </tr>
+                    ),
+                    createTableRow: row => (
+                        <tr key={row.id}>
+                            <td>{row.label}</td>
+                        </tr>
+                    ),
                     sortOnActivate: {sortColumnIndex: 2, sortAsc: true},
                 },
                 {
@@ -737,25 +854,35 @@ describe('SearchUI table views', () => {
                     label: 'Second collision view',
                     searchData: secondSearch,
                     searchDataKey: 'b|c',
-                    createTableHeader: () => <tr><th>Second collision header</th></tr>,
-                    createTableRow: row => <tr key={row.id}><td>{row.label}</td></tr>,
+                    createTableHeader: () => (
+                        <tr>
+                            <th>Second collision header</th>
+                        </tr>
+                    ),
+                    createTableRow: row => (
+                        <tr key={row.id}>
+                            <td>{row.label}</td>
+                        </tr>
+                    ),
                     sortOnActivate: {sortColumnIndex: 7, sortAsc: false},
                 },
             ]
 
-            return <SearchUI<Row, CollisionViewId>
-                config={filtersConfig}
-                possibleCriteria={[]}
-                settingsContextName='collision-safe-view-settings'
-                tableViews={{
-                    'aria-label': 'Collision-safe views',
-                    onChange: setValue,
-                    value,
-                    views,
-                }}
-            />
+            return (
+                <SearchUI<Row, CollisionViewId>
+                    config={filtersConfig}
+                    possibleCriteria={[]}
+                    settingsContextName='collision-safe-view-settings'
+                    tableViews={{
+                        'aria-label': 'Collision-safe views',
+                        onChange: setValue,
+                        value,
+                        views,
+                    }}
+                />
+            )
         }
-        const {container} = render(<CollisionHarness/>)
+        const {container} = render(<CollisionHarness />)
 
         await waitFor(() => {
             expect(screen.getByText('First row 0')).toBeTruthy()
@@ -775,28 +902,30 @@ describe('SearchUI table views', () => {
             expect(screen.getByText('Second view row')).toBeTruthy()
         })
         expect(secondSearch).toHaveBeenCalledTimes(1)
-        expect(secondSearch).toHaveBeenLastCalledWith(expect.objectContaining({
-            orderBy: 7,
-            sortOrder: 'desc',
-            startNum: 0,
-        }))
+        expect(secondSearch).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                orderBy: 7,
+                sortOrder: 'desc',
+                startNum: 0,
+            }),
+        )
     })
 
     it('suppresses a stale view completion and never renders its rows under the new header', async () => {
         const summaryResponse = createDeferred<Row[]>()
         const operationsResponse = createDeferred<Row[]>()
-        const summarySearch = jest.fn<Promise<Row[]>, [SearchParams]>()
-            .mockReturnValue(summaryResponse.promise)
-        const operationsSearch = jest.fn<Promise<Row[]>, [SearchParams]>()
-            .mockReturnValue(operationsResponse.promise)
-        const {container} = render(<TableViewsHarness
-            instanceId='stale-orders'
-            searchByView={{
-                summary: summarySearch,
-                operations: operationsSearch,
-                risk: resolvedSearch('Risk row'),
-            }}
-        />)
+        const summarySearch = jest.fn<Promise<Row[]>, [SearchParams]>().mockReturnValue(summaryResponse.promise)
+        const operationsSearch = jest.fn<Promise<Row[]>, [SearchParams]>().mockReturnValue(operationsResponse.promise)
+        const {container} = render(
+            <TableViewsHarness
+                instanceId='stale-orders'
+                searchByView={{
+                    summary: summarySearch,
+                    operations: operationsSearch,
+                    risk: resolvedSearch('Risk row'),
+                }}
+            />,
+        )
 
         await waitFor(() => {
             expect(summarySearch).toHaveBeenCalledTimes(1)
@@ -832,17 +961,18 @@ describe('SearchUI table views', () => {
 
     it('finishes the active loading state after a view request fails', async () => {
         const failure = new Error('Operations unavailable')
-        const operationsSearch = jest.fn<Promise<Row[]>, [SearchParams]>()
-            .mockRejectedValue(failure)
+        const operationsSearch = jest.fn<Promise<Row[]>, [SearchParams]>().mockRejectedValue(failure)
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
-        const {container} = render(<TableViewsHarness
-            instanceId='failed-orders'
-            searchByView={{
-                summary: resolvedSearch('Summary row'),
-                operations: operationsSearch,
-                risk: resolvedSearch('Risk row'),
-            }}
-        />)
+        const {container} = render(
+            <TableViewsHarness
+                instanceId='failed-orders'
+                searchByView={{
+                    summary: resolvedSearch('Summary row'),
+                    operations: operationsSearch,
+                    risk: resolvedSearch('Risk row'),
+                }}
+            />,
+        )
 
         try {
             await waitFor(() => {
@@ -854,13 +984,16 @@ describe('SearchUI table views', () => {
             await waitFor(() => {
                 expect(consoleError).toHaveBeenCalledWith(failure)
             })
-            await waitFor(() => {
-                const tableScope = container.querySelector(
-                    '[data-autotest="table"][data-autotest-value="failed-orders"]',
-                ) as HTMLElement
-                expect(within(tableScope).getByRole('table').getAttribute('aria-busy')).toBe('false')
-                expect(tableScope.querySelector('[data-autotest="empty-state"]')).not.toBeNull()
-            }, {timeout: 2000})
+            await waitFor(
+                () => {
+                    const tableScope = container.querySelector(
+                        '[data-autotest="table"][data-autotest-value="failed-orders"]',
+                    ) as HTMLElement
+                    expect(within(tableScope).getByRole('table').getAttribute('aria-busy')).toBe('false')
+                    expect(tableScope.querySelector('[data-autotest="empty-state"]')).not.toBeNull()
+                },
+                {timeout: 2000},
+            )
             expect(operationsSearch).toHaveBeenCalledTimes(1)
         } finally {
             consoleError.mockRestore()
@@ -873,24 +1006,26 @@ describe('SearchUI table views', () => {
         const secondSummary = resolvedSearch('Second summary row')
         const secondOperations = resolvedSearch('Second operations row')
 
-        render(<>
-            <TableViewsHarness
-                instanceId='first'
-                searchByView={{
-                    summary: firstSummary,
-                    operations: firstOperations,
-                    risk: resolvedSearch('First risk row'),
-                }}
-            />
-            <TableViewsHarness
-                instanceId='second'
-                searchByView={{
-                    summary: secondSummary,
-                    operations: secondOperations,
-                    risk: resolvedSearch('Second risk row'),
-                }}
-            />
-        </>)
+        render(
+            <>
+                <TableViewsHarness
+                    instanceId='first'
+                    searchByView={{
+                        summary: firstSummary,
+                        operations: firstOperations,
+                        risk: resolvedSearch('First risk row'),
+                    }}
+                />
+                <TableViewsHarness
+                    instanceId='second'
+                    searchByView={{
+                        summary: secondSummary,
+                        operations: secondOperations,
+                        risk: resolvedSearch('Second risk row'),
+                    }}
+                />
+            </>,
+        )
 
         await waitFor(() => {
             expect(screen.getByText('First summary row')).toBeTruthy()
@@ -915,21 +1050,23 @@ describe('SearchUI table views', () => {
         process.env.NODE_ENV = 'production'
 
         try {
-            render(<SearchUI<Row, ViewId>
-                config={filtersConfig}
-                possibleCriteria={[]}
-                settingsContextName='production-fallback'
-                tableViews={{
-                    'aria-label': 'Production fallback views',
-                    onChange: () => undefined,
-                    value: 'risk',
-                    views: createViews({
-                        summary: summarySearch,
-                        operations: operationsSearch,
-                        risk: riskSearch,
-                    }).slice(0, 2),
-                }}
-            />)
+            render(
+                <SearchUI<Row, ViewId>
+                    config={filtersConfig}
+                    possibleCriteria={[]}
+                    settingsContextName='production-fallback'
+                    tableViews={{
+                        'aria-label': 'Production fallback views',
+                        onChange: () => undefined,
+                        value: 'risk',
+                        views: createViews({
+                            summary: summarySearch,
+                            operations: operationsSearch,
+                            risk: riskSearch,
+                        }).slice(0, 2),
+                    }}
+                />,
+            )
 
             await waitFor(() => {
                 expect(screen.getByText('Fallback summary row')).toBeTruthy()
@@ -953,41 +1090,53 @@ describe('SearchUI table views', () => {
         const consoleError = jest.spyOn(console, 'error').mockImplementation(() => undefined)
 
         try {
-            expect(() => render(<SearchUI<Row, ViewId>
-                config={filtersConfig}
-                possibleCriteria={[]}
-                settingsContextName='empty-views'
-                tableViews={{
-                    'aria-label': 'Empty views',
-                    onChange: () => undefined,
-                    value: 'summary',
-                    views: [],
-                }}
-            />)).toThrow('SearchUI: table views must not be empty')
+            expect(() =>
+                render(
+                    <SearchUI<Row, ViewId>
+                        config={filtersConfig}
+                        possibleCriteria={[]}
+                        settingsContextName='empty-views'
+                        tableViews={{
+                            'aria-label': 'Empty views',
+                            onChange: () => undefined,
+                            value: 'summary',
+                            views: [],
+                        }}
+                    />,
+                ),
+            ).toThrow('SearchUI: table views must not be empty')
 
-            expect(() => render(<SearchUI<Row, ViewId>
-                config={filtersConfig}
-                possibleCriteria={[]}
-                settingsContextName='duplicate-views'
-                tableViews={{
-                    'aria-label': 'Duplicate views',
-                    onChange: () => undefined,
-                    value: 'summary',
-                    views: [validViews[0], validViews[0]],
-                }}
-            />)).toThrow('SearchUI: duplicate table view ID "summary"')
+            expect(() =>
+                render(
+                    <SearchUI<Row, ViewId>
+                        config={filtersConfig}
+                        possibleCriteria={[]}
+                        settingsContextName='duplicate-views'
+                        tableViews={{
+                            'aria-label': 'Duplicate views',
+                            onChange: () => undefined,
+                            value: 'summary',
+                            views: [validViews[0], validViews[0]],
+                        }}
+                    />,
+                ),
+            ).toThrow('SearchUI: duplicate table view ID "summary"')
 
-            expect(() => render(<SearchUI<Row, ViewId>
-                config={filtersConfig}
-                possibleCriteria={[]}
-                settingsContextName='missing-view'
-                tableViews={{
-                    'aria-label': 'Missing view',
-                    onChange: () => undefined,
-                    value: 'risk',
-                    views: validViews.slice(0, 2),
-                }}
-            />)).toThrow('SearchUI: selected table view "risk" is not configured')
+            expect(() =>
+                render(
+                    <SearchUI<Row, ViewId>
+                        config={filtersConfig}
+                        possibleCriteria={[]}
+                        settingsContextName='missing-view'
+                        tableViews={{
+                            'aria-label': 'Missing view',
+                            onChange: () => undefined,
+                            value: 'risk',
+                            views: validViews.slice(0, 2),
+                        }}
+                    />,
+                ),
+            ).toThrow('SearchUI: selected table view "risk" is not configured')
         } finally {
             consoleError.mockRestore()
         }

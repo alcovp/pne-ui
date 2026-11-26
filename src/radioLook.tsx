@@ -29,38 +29,44 @@ const RING_WIDTH = 1.5
  * The circle MUI renders as `icon` or `checkedIcon`. MUI hands it the radio size as `fontSize`; the
  * colours come from the root's rules.
  */
-export const PneRadioDot = ({fontSize, value}: {fontSize?: string, value: 'off' | 'on'}) => {
+export const PneRadioDot = ({fontSize, value}: {fontSize?: string; value: 'off' | 'on'}) => {
     const geometry = DOT_GEOMETRY[fontSize as RadioSize] ?? DOT_GEOMETRY.medium
     const centre = geometry.box / 2
     // The circle sits 1px inside the box; a ring is drawn on its inner edge.
     const radius = centre - 1
-    const ring = <circle
-        className={value === 'off' ? 'PneRadio-ring' : 'PneRadio-edge'}
-        cx={centre}
-        cy={centre}
-        r={radius - RING_WIDTH / 2}
-        strokeWidth={RING_WIDTH}
-    />
-
-    return <svg
-        aria-hidden
-        className={`PneRadio-dot PneRadio-${value}`}
-        height={geometry.box}
-        viewBox={`0 0 ${geometry.box} ${geometry.box}`}
-        width={geometry.box}
-    >
-        {value === 'on' ? <circle
-            className='PneRadio-thick'
+    const ring = (
+        <circle
+            className={value === 'off' ? 'PneRadio-ring' : 'PneRadio-edge'}
             cx={centre}
             cy={centre}
-            r={radius - geometry.on / 2}
-            strokeWidth={geometry.on}
-        /> : null}
-        {ring}
-    </svg>
+            r={radius - RING_WIDTH / 2}
+            strokeWidth={RING_WIDTH}
+        />
+    )
+
+    return (
+        <svg
+            aria-hidden
+            className={`PneRadio-dot PneRadio-${value}`}
+            height={geometry.box}
+            viewBox={`0 0 ${geometry.box} ${geometry.box}`}
+            width={geometry.box}
+        >
+            {value === 'on' ? (
+                <circle
+                    className='PneRadio-thick'
+                    cx={centre}
+                    cy={centre}
+                    r={radius - geometry.on / 2}
+                    strokeWidth={geometry.on}
+                />
+            ) : null}
+            {ring}
+        </svg>
+    )
 }
 
-type RadioPaletteSource = {checkbox: PneCheckboxPalette, focusRing: string}
+type RadioPaletteSource = {checkbox: PneCheckboxPalette; focusRing: string}
 
 /**
  * Colours of one state as custom properties on the root; the circle rules read them. The root colour
@@ -86,10 +92,10 @@ export const createPneRadioOverrides = (
     resolvePalette: (theme: Theme) => RadioPaletteSource,
 ): NonNullable<Components<Theme>['MuiRadio']> => ({
     defaultProps: {
-        checkedIcon: <PneRadioDot value='on'/>,
+        checkedIcon: <PneRadioDot value='on' />,
         // The circle shows hover, press and focus itself (UI Kit); an explicit false brings MUI's back.
         disableRipple: true,
-        icon: <PneRadioDot value='off'/>,
+        icon: <PneRadioDot value='off' />,
     },
     styleOverrides: {
         root: ({theme}) => {

@@ -1,6 +1,6 @@
-import {styled} from '@mui/system';
-import {TablePagination} from "@mui/material";
-import {TABLE_CONTROL_BAND_SIZE} from "./tableControlMetrics";
+import {styled} from '@mui/system'
+import {TablePagination} from '@mui/material'
+import {TABLE_CONTROL_BAND_SIZE} from './tableControlMetrics'
 
 const PneTablePagination = styled(TablePagination)`
     border: none;
@@ -25,6 +25,6 @@ const PneTablePagination = styled(TablePagination)`
         margin-bottom: 6px;
         min-height: ${TABLE_CONTROL_BAND_SIZE}px;
     }
-` as typeof TablePagination;
+` as typeof TablePagination
 
-export default PneTablePagination;
+export default PneTablePagination

@@ -1,12 +1,7 @@
 import React from 'react'
 import {Box, Stack, Typography} from '@mui/material'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
-import {
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-    type SearchUIDefaults,
-} from '../index'
+import {CriterionTypeEnum, SearchUIFilters, SearchUIProvider, type SearchUIDefaults} from '../index'
 
 const meta = {
     title: 'pne-ui/SearchUI/Loading skeleton',
@@ -31,21 +26,23 @@ const waitingForTheSet = (collapsed: boolean): Partial<SearchUIDefaults> => ({
     getSearchTemplates: () => new Promise(() => undefined),
 })
 
-const Panel = (props: {collapsed: boolean, context: string}) => <SearchUIProvider defaults={waitingForTheSet(props.collapsed)}>
-    <SearchUIFilters
-        autoTestId={props.context}
-        settingsContextName={props.context}
-        possibleCriteria={[
-            CriterionTypeEnum.EXACT,
-            CriterionTypeEnum.STATUS,
-            CriterionTypeEnum.CURRENCY,
-            CriterionTypeEnum.THREE_D,
-        ]}
-        predefinedCriteria={[CriterionTypeEnum.EXACT, CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
-        onFiltersUpdate={() => undefined}
-        config={{manualSearch: true}}
-    />
-</SearchUIProvider>
+const Panel = (props: {collapsed: boolean; context: string}) => (
+    <SearchUIProvider defaults={waitingForTheSet(props.collapsed)}>
+        <SearchUIFilters
+            autoTestId={props.context}
+            settingsContextName={props.context}
+            possibleCriteria={[
+                CriterionTypeEnum.EXACT,
+                CriterionTypeEnum.STATUS,
+                CriterionTypeEnum.CURRENCY,
+                CriterionTypeEnum.THREE_D,
+            ]}
+            predefinedCriteria={[CriterionTypeEnum.EXACT, CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
+            onFiltersUpdate={() => undefined}
+            config={{manualSearch: true}}
+        />
+    </SearchUIProvider>
+)
 
 /**
  * The panel waiting for the filter set chosen last time: folded it is the actions row alone, open it
@@ -53,14 +50,20 @@ const Panel = (props: {collapsed: boolean, context: string}) => <SearchUIProvide
  * take the phone layout of the panel.
  */
 export const WaitingForTheChosenSet: Story = {
-    render: () => <Stack spacing={4} sx={{py: 2}}>
-        <Box>
-            <Typography sx={{px: 2}} variant='caption'>Folded</Typography>
-            <Panel collapsed context='skeleton-story-folded'/>
-        </Box>
-        <Box>
-            <Typography sx={{px: 2}} variant='caption'>Open, three predefined filters</Typography>
-            <Panel collapsed={false} context='skeleton-story-open'/>
-        </Box>
-    </Stack>,
+    render: () => (
+        <Stack spacing={4} sx={{py: 2}}>
+            <Box>
+                <Typography sx={{px: 2}} variant='caption'>
+                    Folded
+                </Typography>
+                <Panel collapsed context='skeleton-story-folded' />
+            </Box>
+            <Box>
+                <Typography sx={{px: 2}} variant='caption'>
+                    Open, three predefined filters
+                </Typography>
+                <Panel collapsed={false} context='skeleton-story-open' />
+            </Box>
+        </Stack>
+    ),
 }

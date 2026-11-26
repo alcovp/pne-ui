@@ -35,7 +35,7 @@ type Deferred<T> = {
     resolve: (value: T) => void
 }
 
-const createDeferred = <T, >(): Deferred<T> => {
+const createDeferred = <T,>(): Deferred<T> => {
     let reject!: (reason?: unknown) => void
     let resolve!: (value: T) => void
     const promise = new Promise<T>((promiseResolve, promiseReject) => {
@@ -51,48 +51,41 @@ const rows: Row[] = [
     {id: 2, label: 'Gate 2'},
 ]
 
-const createHeader = (
-    label: string,
-    selection?: SearchUITableSelectionController<Row, number>,
-) => <PneTableRow>
-    <PneTableSelectionHeaderCell
-        aria-label='Select current page'
-        disabled={!selection || selection.interactionDisabled}
-        onChange={checked => selection?.setPageSelected(checked)}
-        state={selection?.pageState ?? 'none'}
-    />
-    <PneHeaderTableCell>{label}</PneHeaderTableCell>
-</PneTableRow>
+const createHeader = (label: string, selection?: SearchUITableSelectionController<Row, number>) => (
+    <PneTableRow>
+        <PneTableSelectionHeaderCell
+            aria-label='Select current page'
+            disabled={!selection || selection.interactionDisabled}
+            onChange={checked => selection?.setPageSelected(checked)}
+            state={selection?.pageState ?? 'none'}
+        />
+        <PneHeaderTableCell>{label}</PneHeaderTableCell>
+    </PneTableRow>
+)
 
-const createRow = (
-    row: Row,
-    selection?: SearchUITableSelectionController<Row, number>,
-) => <PneTableRow
-    aria-selected={selection?.isRowSelected(row) ?? false}
-    key={row.id}
-    selected={selection?.isRowSelected(row) ?? false}
->
-    <PneTableSelectionCell
-        aria-label={`Select ${row.label}`}
-        checked={selection?.isRowSelected(row) ?? false}
-        disabled={!selection || selection.interactionDisabled}
-        onChange={checked => selection?.setRowSelected(row, checked)}
-    />
-    <PneTableCell>{row.label}</PneTableCell>
-</PneTableRow>
+const createRow = (row: Row, selection?: SearchUITableSelectionController<Row, number>) => (
+    <PneTableRow
+        aria-selected={selection?.isRowSelected(row) ?? false}
+        key={row.id}
+        selected={selection?.isRowSelected(row) ?? false}
+    >
+        <PneTableSelectionCell
+            aria-label={`Select ${row.label}`}
+            checked={selection?.isRowSelected(row) ?? false}
+            disabled={!selection || selection.interactionDisabled}
+            onChange={checked => selection?.setRowSelected(row, checked)}
+        />
+        <PneTableCell>{row.label}</PneTableCell>
+    </PneTableRow>
+)
 
-type ControllerRef = React.MutableRefObject<
-    SearchUITableSelectionController<Row, number> | null
->
+type ControllerRef = React.MutableRefObject<SearchUITableSelectionController<Row, number> | null>
 
 type AsyncSelectionHarnessProps = {
     controllerRef: ControllerRef
     manualSearch?: boolean
     maxSelected?: number
-    onSelectionChange?: (
-        selection: TableSelectionModel<number>,
-        details: TableSelectionChangeDetails,
-    ) => void
+    onSelectionChange?: (selection: TableSelectionModel<number>, details: TableSelectionChangeDetails) => void
     resolveAllMatchingCount?: (scope: SearchUITableSelectionScope) => Promise<number>
     searchData?: (params: SearchParams) => Promise<Row[]>
     selectionOverride?: TableSelectionModel<number>
@@ -112,37 +105,38 @@ const AsyncSelectionHarness = ({
         selectedIds: new Set(),
     }))
 
-    return <SearchUI<Row, string, number>
-        autoTestId='async-gates'
-        config={{hideShowFiltersButton: true, hideTemplatesSelect: true, manualSearch}}
-        createTableHeader={(_params, context) => createHeader('Gates', context?.selection)}
-        createTableRow={(row, _index, _data, _setData, context) => (
-            createRow(row, context?.selection)
-        )}
-        possibleCriteria={[]}
-        searchData={searchData}
-        settingsContextName='async-gates-selection-test'
-        tableSelection={{
-            getRowId: row => row.id,
-            maxSelected,
-            onSelectionChange: (nextSelection, details) => {
-                setSelection(nextSelection)
-                onSelectionChange?.(nextSelection, details)
-            },
-            renderControls: ({selection: controller}) => {
-                controllerRef.current = controller
-                return <PneTableSelectionControls
-                    summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
-                />
-            },
-            renderFeedback: ({selection: controller}) => controller.selectingAllMatching
-                ? 'Selecting all results'
-                : undefined,
-            resolveAllMatchingCount,
-            selection: selectionOverride ?? selection,
-            toolbarAriaLabel: 'Gate table controls',
-        }}
-    />
+    return (
+        <SearchUI<Row, string, number>
+            autoTestId='async-gates'
+            config={{hideShowFiltersButton: true, hideTemplatesSelect: true, manualSearch}}
+            createTableHeader={(_params, context) => createHeader('Gates', context?.selection)}
+            createTableRow={(row, _index, _data, _setData, context) => createRow(row, context?.selection)}
+            possibleCriteria={[]}
+            searchData={searchData}
+            settingsContextName='async-gates-selection-test'
+            tableSelection={{
+                getRowId: row => row.id,
+                maxSelected,
+                onSelectionChange: (nextSelection, details) => {
+                    setSelection(nextSelection)
+                    onSelectionChange?.(nextSelection, details)
+                },
+                renderControls: ({selection: controller}) => {
+                    controllerRef.current = controller
+                    return (
+                        <PneTableSelectionControls
+                            summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
+                        />
+                    )
+                },
+                renderFeedback: ({selection: controller}) =>
+                    controller.selectingAllMatching ? 'Selecting all results' : undefined,
+                resolveAllMatchingCount,
+                selection: selectionOverride ?? selection,
+                toolbarAriaLabel: 'Gate table controls',
+            }}
+        />
+    )
 }
 
 const AsyncViewsHarness = ({
@@ -151,10 +145,7 @@ const AsyncViewsHarness = ({
     resolveAllMatchingCount,
 }: {
     controllerRef: ControllerRef
-    onSelectionChange: (
-        selection: TableSelectionModel<number>,
-        details: TableSelectionChangeDetails,
-    ) => void
+    onSelectionChange: (selection: TableSelectionModel<number>, details: TableSelectionChangeDetails) => void
     resolveAllMatchingCount: (scope: SearchUITableSelectionScope) => Promise<number>
 }) => {
     const [view, setView] = React.useState<ViewId>('summary')
@@ -163,64 +154,60 @@ const AsyncViewsHarness = ({
         selectedIds: new Set(),
     }))
     const searchData = React.useCallback(() => Promise.resolve(rows), [])
-    const views = React.useMemo<readonly SearchUIView<Row, ViewId, number>[]>(() => [
-        {
-            id: 'summary',
-            label: 'Summary',
-            searchData,
-            createTableHeader: (_params, context) => createHeader(
-                'Summary heading',
-                context?.selection,
-            ),
-            createTableRow: (row, _index, _data, _setData, context) => (
-                createRow(row, context?.selection)
-            ),
-        },
-        {
-            id: 'operations',
-            label: 'Operations',
-            searchData,
-            createTableHeader: (_params, context) => createHeader(
-                'Operations heading',
-                context?.selection,
-            ),
-            createTableRow: (row, _index, _data, _setData, context) => (
-                createRow(row, context?.selection)
-            ),
-        },
-    ], [searchData])
+    const views = React.useMemo<readonly SearchUIView<Row, ViewId, number>[]>(
+        () => [
+            {
+                id: 'summary',
+                label: 'Summary',
+                searchData,
+                createTableHeader: (_params, context) => createHeader('Summary heading', context?.selection),
+                createTableRow: (row, _index, _data, _setData, context) => createRow(row, context?.selection),
+            },
+            {
+                id: 'operations',
+                label: 'Operations',
+                searchData,
+                createTableHeader: (_params, context) => createHeader('Operations heading', context?.selection),
+                createTableRow: (row, _index, _data, _setData, context) => createRow(row, context?.selection),
+            },
+        ],
+        [searchData],
+    )
 
-    return <SearchUI<Row, ViewId, number>
-        autoTestId='async-view-gates'
-        config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
-        possibleCriteria={[]}
-        settingsContextName='async-view-gates-selection-test'
-        tableSelection={{
-            getRowId: row => row.id,
-            onSelectionChange: (nextSelection, details) => {
-                setSelection(nextSelection)
-                onSelectionChange(nextSelection, details)
-            },
-            renderControls: ({selection: controller}) => {
-                controllerRef.current = controller
-                return <PneTableSelectionControls
-                    summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
-                />
-            },
-            renderFeedback: ({selection: controller}) => controller.selectingAllMatching
-                ? 'Selecting all results'
-                : undefined,
-            resolveAllMatchingCount,
-            selection,
-            toolbarAriaLabel: 'Gate table controls',
-        }}
-        tableViews={{
-            'aria-label': 'Gate view',
-            onChange: setView,
-            value: view,
-            views,
-        }}
-    />
+    return (
+        <SearchUI<Row, ViewId, number>
+            autoTestId='async-view-gates'
+            config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
+            possibleCriteria={[]}
+            settingsContextName='async-view-gates-selection-test'
+            tableSelection={{
+                getRowId: row => row.id,
+                onSelectionChange: (nextSelection, details) => {
+                    setSelection(nextSelection)
+                    onSelectionChange(nextSelection, details)
+                },
+                renderControls: ({selection: controller}) => {
+                    controllerRef.current = controller
+                    return (
+                        <PneTableSelectionControls
+                            summary={`${controller.selectedCount} selected (${controller.selection.mode})`}
+                        />
+                    )
+                },
+                renderFeedback: ({selection: controller}) =>
+                    controller.selectingAllMatching ? 'Selecting all results' : undefined,
+                resolveAllMatchingCount,
+                selection,
+                toolbarAriaLabel: 'Gate table controls',
+            }}
+            tableViews={{
+                'aria-label': 'Gate view',
+                onChange: setView,
+                value: view,
+                views,
+            }}
+        />
+    )
 }
 
 describe('SearchUI asynchronous all-matching selection', () => {
@@ -255,11 +242,13 @@ describe('SearchUI asynchronous all-matching selection', () => {
         const resolver = jest.fn().mockReturnValue(count.promise)
         const onSelectionChange = jest.fn()
         const controllerRef: ControllerRef = {current: null}
-        render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            onSelectionChange={onSelectionChange}
-            resolveAllMatchingCount={resolver}
-        />)
+        render(
+            <AsyncSelectionHarness
+                controllerRef={controllerRef}
+                onSelectionChange={onSelectionChange}
+                resolveAllMatchingCount={resolver}
+            />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
         onSelectionChange.mockClear()
 
@@ -274,9 +263,9 @@ describe('SearchUI asynchronous all-matching selection', () => {
         await waitFor(() => expect(resolver).toHaveBeenCalledTimes(1))
         expect(controllerRef.current?.selectingAllMatching).toBe(true)
         expect(controllerRef.current?.interactionDisabled).toBe(true)
-        const feedback = screen.getByText('Selecting all results').closest(
-            '[data-autotest="table-feedback"]',
-        ) as HTMLElement
+        const feedback = screen
+            .getByText('Selecting all results')
+            .closest('[data-autotest="table-feedback"]') as HTMLElement
         expect(feedback).not.toBeNull()
         expect(feedback.closest('[data-autotest="table-top-controls"]')).toBeNull()
         expect(feedback.closest('[data-autotest="pagination-actions"]')).toBeNull()
@@ -300,14 +289,9 @@ describe('SearchUI asynchronous all-matching selection', () => {
 
     it('recovers after an active resolver rejection', async () => {
         const resolverError = new Error('summary unavailable')
-        const resolver = jest.fn()
-            .mockRejectedValueOnce(resolverError)
-            .mockResolvedValueOnce(2)
+        const resolver = jest.fn().mockRejectedValueOnce(resolverError).mockResolvedValueOnce(2)
         const controllerRef: ControllerRef = {current: null}
-        render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            resolveAllMatchingCount={resolver}
-        />)
+        render(<AsyncSelectionHarness controllerRef={controllerRef} resolveAllMatchingCount={resolver} />)
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
 
         let caught: unknown
@@ -334,12 +318,14 @@ describe('SearchUI asynchronous all-matching selection', () => {
     it('rejects an over-limit count atomically', async () => {
         const onSelectionChange = jest.fn()
         const controllerRef: ControllerRef = {current: null}
-        render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            maxSelected={1}
-            onSelectionChange={onSelectionChange}
-            resolveAllMatchingCount={jest.fn().mockResolvedValue(2)}
-        />)
+        render(
+            <AsyncSelectionHarness
+                controllerRef={controllerRef}
+                maxSelected={1}
+                onSelectionChange={onSelectionChange}
+                resolveAllMatchingCount={jest.fn().mockResolvedValue(2)}
+            />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
         onSelectionChange.mockClear()
 
@@ -359,14 +345,11 @@ describe('SearchUI asynchronous all-matching selection', () => {
 
     it('invalidates a pending request when the selection limit changes', async () => {
         const oldCount = createDeferred<number>()
-        const resolver = jest.fn()
-            .mockReturnValueOnce(oldCount.promise)
-            .mockResolvedValueOnce(2)
+        const resolver = jest.fn().mockReturnValueOnce(oldCount.promise).mockResolvedValueOnce(2)
         const controllerRef: ControllerRef = {current: null}
-        const {rerender} = render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            resolveAllMatchingCount={resolver}
-        />)
+        const {rerender} = render(
+            <AsyncSelectionHarness controllerRef={controllerRef} resolveAllMatchingCount={resolver} />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
 
         let oldRequest!: Promise<TableSelectionUpdate<number>>
@@ -375,11 +358,9 @@ describe('SearchUI asynchronous all-matching selection', () => {
         })
         await waitFor(() => expect(resolver).toHaveBeenCalledTimes(1))
 
-        rerender(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            maxSelected={1}
-            resolveAllMatchingCount={resolver}
-        />)
+        rerender(
+            <AsyncSelectionHarness controllerRef={controllerRef} maxSelected={1} resolveAllMatchingCount={resolver} />,
+        )
         await waitFor(() => expect(controllerRef.current?.selectingAllMatching).toBe(false))
 
         let oldResult!: TableSelectionUpdate<number>
@@ -413,12 +394,14 @@ describe('SearchUI asynchronous all-matching selection', () => {
             excludedIds: new Set(),
             matchingCount: 2,
         }
-        const {rerender} = render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            onSelectionChange={onSelectionChange}
-            resolveAllMatchingCount={resolver}
-            selectionOverride={emptySelection}
-        />)
+        const {rerender} = render(
+            <AsyncSelectionHarness
+                controllerRef={controllerRef}
+                onSelectionChange={onSelectionChange}
+                resolveAllMatchingCount={resolver}
+                selectionOverride={emptySelection}
+            />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
 
         let request!: Promise<TableSelectionUpdate<number>>
@@ -427,12 +410,14 @@ describe('SearchUI asynchronous all-matching selection', () => {
         })
         await waitFor(() => expect(resolver).toHaveBeenCalledTimes(1))
 
-        rerender(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            onSelectionChange={onSelectionChange}
-            resolveAllMatchingCount={resolver}
-            selectionOverride={alreadySelected}
-        />)
+        rerender(
+            <AsyncSelectionHarness
+                controllerRef={controllerRef}
+                onSelectionChange={onSelectionChange}
+                resolveAllMatchingCount={resolver}
+                selectionOverride={alreadySelected}
+            />,
+        )
         onSelectionChange.mockClear()
 
         let result!: TableSelectionUpdate<number>
@@ -451,11 +436,13 @@ describe('SearchUI asynchronous all-matching selection', () => {
         const searchData = jest.fn().mockReturnValue(data.promise)
         const resolver = jest.fn().mockResolvedValue(2)
         const controllerRef: ControllerRef = {current: null}
-        render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            resolveAllMatchingCount={resolver}
-            searchData={searchData}
-        />)
+        render(
+            <AsyncSelectionHarness
+                controllerRef={controllerRef}
+                resolveAllMatchingCount={resolver}
+                searchData={searchData}
+            />,
+        )
         await waitFor(() => expect(searchData).toHaveBeenCalled())
         expect(controllerRef.current?.interactionDisabled).toBe(true)
 
@@ -476,16 +463,16 @@ describe('SearchUI asynchronous all-matching selection', () => {
     it('keeps a pending resolver through a same-scope refresh', async () => {
         const count = createDeferred<number>()
         const refreshedRows = createDeferred<Row[]>()
-        const searchData = jest.fn()
-            .mockResolvedValueOnce(rows)
-            .mockReturnValueOnce(refreshedRows.promise)
+        const searchData = jest.fn().mockResolvedValueOnce(rows).mockReturnValueOnce(refreshedRows.promise)
         const controllerRef: ControllerRef = {current: null}
-        render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            manualSearch
-            resolveAllMatchingCount={jest.fn().mockReturnValue(count.promise)}
-            searchData={searchData}
-        />)
+        render(
+            <AsyncSelectionHarness
+                controllerRef={controllerRef}
+                manualSearch
+                resolveAllMatchingCount={jest.fn().mockReturnValue(count.promise)}
+                searchData={searchData}
+            />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
 
         let request!: Promise<TableSelectionUpdate<number>>
@@ -514,11 +501,13 @@ describe('SearchUI asynchronous all-matching selection', () => {
     it('rejects a saved callback from an earlier scope before starting its resolver', async () => {
         const resolver = jest.fn().mockResolvedValue(2)
         const controllerRef: ControllerRef = {current: null}
-        render(<AsyncViewsHarness
-            controllerRef={controllerRef}
-            onSelectionChange={jest.fn()}
-            resolveAllMatchingCount={resolver}
-        />)
+        render(
+            <AsyncViewsHarness
+                controllerRef={controllerRef}
+                onSelectionChange={jest.fn()}
+                resolveAllMatchingCount={resolver}
+            />,
+        )
         await screen.findByRole('columnheader', {name: 'Summary heading'})
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
         const oldSummarySelectAll = controllerRef.current!.selectAllMatchingResults!
@@ -544,16 +533,19 @@ describe('SearchUI asynchronous all-matching selection', () => {
     it('ignores an old A request after A to B to A and applies the new A request', async () => {
         const oldSummaryCount = createDeferred<number>()
         const newSummaryCount = createDeferred<number>()
-        const resolver = jest.fn()
+        const resolver = jest
+            .fn()
             .mockReturnValueOnce(oldSummaryCount.promise)
             .mockReturnValueOnce(newSummaryCount.promise)
         const onSelectionChange = jest.fn()
         const controllerRef: ControllerRef = {current: null}
-        render(<AsyncViewsHarness
-            controllerRef={controllerRef}
-            onSelectionChange={onSelectionChange}
-            resolveAllMatchingCount={resolver}
-        />)
+        render(
+            <AsyncViewsHarness
+                controllerRef={controllerRef}
+                onSelectionChange={onSelectionChange}
+                resolveAllMatchingCount={resolver}
+            />,
+        )
         await screen.findByRole('columnheader', {name: 'Summary heading'})
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
 
@@ -599,10 +591,9 @@ describe('SearchUI asynchronous all-matching selection', () => {
         const count = createDeferred<number>()
         const resolver = jest.fn().mockReturnValue(count.promise)
         const controllerRef: ControllerRef = {current: null}
-        const {rerender} = render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            resolveAllMatchingCount={resolver}
-        />)
+        const {rerender} = render(
+            <AsyncSelectionHarness controllerRef={controllerRef} resolveAllMatchingCount={resolver} />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
         const savedSelectAll = controllerRef.current!.selectAllMatchingResults!
 
@@ -612,7 +603,7 @@ describe('SearchUI asynchronous all-matching selection', () => {
         })
         await waitFor(() => expect(resolver).toHaveBeenCalledTimes(1))
 
-        rerender(<AsyncSelectionHarness controllerRef={controllerRef}/>)
+        rerender(<AsyncSelectionHarness controllerRef={controllerRef} />)
         await waitFor(() => expect(controllerRef.current?.selectingAllMatching).toBe(false))
         expect(controllerRef.current?.selectAllMatchingResults).toBeUndefined()
 
@@ -637,19 +628,17 @@ describe('SearchUI asynchronous all-matching selection', () => {
         const firstResolver = jest.fn().mockReturnValue(firstCount.promise)
         const replacementResolver = jest.fn().mockResolvedValue(1)
         const controllerRef: ControllerRef = {current: null}
-        const {rerender} = render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            resolveAllMatchingCount={firstResolver}
-        />)
+        const {rerender} = render(
+            <AsyncSelectionHarness controllerRef={controllerRef} resolveAllMatchingCount={firstResolver} />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
 
         let firstRequest!: Promise<TableSelectionUpdate<number>>
         act(() => {
             firstRequest = controllerRef.current!.selectAllMatchingResults!()
-            rerender(<AsyncSelectionHarness
-                controllerRef={controllerRef}
-                resolveAllMatchingCount={replacementResolver}
-            />)
+            rerender(
+                <AsyncSelectionHarness controllerRef={controllerRef} resolveAllMatchingCount={replacementResolver} />,
+            )
         })
         await waitFor(() => expect(firstResolver).toHaveBeenCalledTimes(1))
         expect(replacementResolver).not.toHaveBeenCalled()
@@ -673,10 +662,9 @@ describe('SearchUI asynchronous all-matching selection', () => {
     it('does not invoke a saved resolver callback after unmount', async () => {
         const resolver = jest.fn().mockResolvedValue(2)
         const controllerRef: ControllerRef = {current: null}
-        const {unmount} = render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            resolveAllMatchingCount={resolver}
-        />)
+        const {unmount} = render(
+            <AsyncSelectionHarness controllerRef={controllerRef} resolveAllMatchingCount={resolver} />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
         const savedSelectAll = controllerRef.current!.selectAllMatchingResults!
         unmount()
@@ -692,10 +680,9 @@ describe('SearchUI asynchronous all-matching selection', () => {
     it('blocks saved synchronous selection callbacks after unmount', async () => {
         const onSelectionChange = jest.fn()
         const controllerRef: ControllerRef = {current: null}
-        const {unmount} = render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            onSelectionChange={onSelectionChange}
-        />)
+        const {unmount} = render(
+            <AsyncSelectionHarness controllerRef={controllerRef} onSelectionChange={onSelectionChange} />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
         const savedSetRowSelected = controllerRef.current!.setRowSelected
         onSelectionChange.mockClear()
@@ -711,11 +698,13 @@ describe('SearchUI asynchronous all-matching selection', () => {
         const count = createDeferred<number>()
         const onSelectionChange = jest.fn()
         const controllerRef: ControllerRef = {current: null}
-        const {unmount} = render(<AsyncSelectionHarness
-            controllerRef={controllerRef}
-            onSelectionChange={onSelectionChange}
-            resolveAllMatchingCount={jest.fn().mockReturnValue(count.promise)}
-        />)
+        const {unmount} = render(
+            <AsyncSelectionHarness
+                controllerRef={controllerRef}
+                onSelectionChange={onSelectionChange}
+                resolveAllMatchingCount={jest.fn().mockReturnValue(count.promise)}
+            />,
+        )
         await waitFor(() => expect(controllerRef.current?.interactionDisabled).toBe(false))
         onSelectionChange.mockClear()
 

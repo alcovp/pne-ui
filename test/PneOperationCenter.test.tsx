@@ -1,20 +1,14 @@
 import * as React from 'react'
 import {fireEvent, render, screen, within} from '@testing-library/react'
 
-import {
-    PneOperationCenter,
-    type PneOperationCenterItem,
-    type PneOperationCenterStatus,
-} from '../src'
+import {PneOperationCenter, type PneOperationCenterItem, type PneOperationCenterStatus} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
         t: (_key: string, options?: Record<string, unknown> & {defaultValue?: string}) =>
             Object.entries(options ?? {}).reduce(
-                (value, [key, replacement]) => value.replace(
-                    `{{${key}}}`,
-                    key === 'defaultValue' ? `{{${key}}}` : String(replacement),
-                ),
+                (value, [key, replacement]) =>
+                    value.replace(`{{${key}}}`, key === 'defaultValue' ? `{{${key}}}` : String(replacement)),
                 options?.defaultValue ?? _key,
             ),
     }),
@@ -33,7 +27,7 @@ const operation = (
 
 describe('PneOperationCenter', () => {
     it('does not render an empty operation collection', () => {
-        const {container} = render(<PneOperationCenter operations={[]}/>)
+        const {container} = render(<PneOperationCenter operations={[]} />)
 
         expect(container.firstChild).toBeNull()
     })
@@ -52,7 +46,7 @@ describe('PneOperationCenter', () => {
             operation('done', 'succeeded'),
         ]
 
-        render(<PneOperationCenter operations={operations}/>)
+        render(<PneOperationCenter operations={operations} />)
 
         const trigger = screen.getByRole('button', {name: 'Show background operations'})
         expect(trigger.getAttribute('aria-expanded')).toBe('false')
@@ -121,9 +115,9 @@ describe('PneOperationCenter', () => {
         const {container} = render(
             <PneOperationCenter
                 defaultExpanded
-                operations={statuses.map(status => operation(status, status, status === 'running'
-                    ? {statusLabel: 'Processing in Paynet'}
-                    : {}))}
+                operations={statuses.map(status =>
+                    operation(status, status, status === 'running' ? {statusLabel: 'Processing in Paynet'} : {}),
+                )}
             />,
         )
 
@@ -198,10 +192,7 @@ describe('PneOperationCenter', () => {
                 defaultExpanded
                 onClearTerminal={jest.fn()}
                 onDismiss={jest.fn()}
-                operations={[
-                    operation('done', 'succeeded'),
-                    operation('cancelled', 'cancelled'),
-                ]}
+                operations={[operation('done', 'succeeded'), operation('cancelled', 'cancelled')]}
             />,
         )
 
@@ -244,12 +235,16 @@ describe('PneOperationCenter', () => {
             />,
         )
 
-        expect(screen.getByRole('button', {
-            name: 'Retry: Generate report, Order #1, 1 of 2',
-        })).toBeTruthy()
-        expect(screen.getByRole('button', {
-            name: 'Retry: Generate report, Order #2, 2 of 2',
-        })).toBeTruthy()
+        expect(
+            screen.getByRole('button', {
+                name: 'Retry: Generate report, Order #1, 1 of 2',
+            }),
+        ).toBeTruthy()
+        expect(
+            screen.getByRole('button', {
+                name: 'Retry: Generate report, Order #2, 2 of 2',
+            }),
+        ).toBeTruthy()
     })
 
     it('uses an explicit accessible label for ReactNode action content', () => {
@@ -259,20 +254,24 @@ describe('PneOperationCenter', () => {
                 onAction={jest.fn()}
                 operations={[
                     operation('first', 'failed', {
-                        actions: [{
-                            accessibleLabel: 'Retry',
-                            id: 'retry',
-                            label: <span aria-hidden='true'>Retry icon and text</span>,
-                        }],
+                        actions: [
+                            {
+                                accessibleLabel: 'Retry',
+                                id: 'retry',
+                                label: <span aria-hidden='true'>Retry icon and text</span>,
+                            },
+                        ],
                         context: 'Order #1',
                         title: 'Generate report',
                     }),
                     operation('second', 'failed', {
-                        actions: [{
-                            accessibleLabel: 'Retry',
-                            id: 'retry',
-                            label: <span aria-hidden='true'>Retry icon and text</span>,
-                        }],
+                        actions: [
+                            {
+                                accessibleLabel: 'Retry',
+                                id: 'retry',
+                                label: <span aria-hidden='true'>Retry icon and text</span>,
+                            },
+                        ],
                         context: 'Order #2',
                         title: 'Generate report',
                     }),
@@ -280,23 +279,23 @@ describe('PneOperationCenter', () => {
             />,
         )
 
-        expect(screen.getByRole('button', {
-            name: 'Retry: Generate report, Order #1, 1 of 2',
-        })).toBeTruthy()
-        expect(screen.getByRole('button', {
-            name: 'Retry: Generate report, Order #2, 2 of 2',
-        })).toBeTruthy()
+        expect(
+            screen.getByRole('button', {
+                name: 'Retry: Generate report, Order #1, 1 of 2',
+            }),
+        ).toBeTruthy()
+        expect(
+            screen.getByRole('button', {
+                name: 'Retry: Generate report, Order #2, 2 of 2',
+            }),
+        ).toBeTruthy()
     })
 
     it('supports controlled expansion and returns focus to the trigger on Escape', () => {
         const onExpandedChange = jest.fn()
         const operations = [operation('report', 'running')]
         const view = render(
-            <PneOperationCenter
-                expanded={false}
-                onExpandedChange={onExpandedChange}
-                operations={operations}
-            />,
+            <PneOperationCenter expanded={false} onExpandedChange={onExpandedChange} operations={operations} />,
         )
 
         const trigger = screen.getByRole('button', {name: 'Show background operations'})
@@ -304,13 +303,7 @@ describe('PneOperationCenter', () => {
         expect(onExpandedChange).toHaveBeenLastCalledWith(true)
         expect(screen.queryByRole('region')).toBeNull()
 
-        view.rerender(
-            <PneOperationCenter
-                expanded
-                onExpandedChange={onExpandedChange}
-                operations={operations}
-            />,
-        )
+        view.rerender(<PneOperationCenter expanded onExpandedChange={onExpandedChange} operations={operations} />)
 
         const region = screen.getByRole('region', {name: 'Background operations'})
         fireEvent.keyDown(region, {key: 'Escape'})
@@ -321,72 +314,79 @@ describe('PneOperationCenter', () => {
     it.each<[string, string, PneOperationCenterItem[]]>([
         ['clear', 'Clear finished', [operation('done', 'succeeded'), operation('failed', 'failed')]],
         ['dismiss', 'Dismiss: Operation done', [operation('done', 'succeeded')]],
-    ])('restores external focus when %s removes the final operation', async (_command, buttonName, initialOperations) => {
-        const ControlledCenter = () => {
-            const [operations, setOperations] = React.useState<PneOperationCenterItem[]>(initialOperations)
+    ])(
+        'restores external focus when %s removes the final operation',
+        async (_command, buttonName, initialOperations) => {
+            const ControlledCenter = () => {
+                const [operations, setOperations] = React.useState<PneOperationCenterItem[]>(initialOperations)
 
-            return (
-                <>
-                    <button type='button'>Before operation center</button>
-                    <PneOperationCenter
-                        defaultExpanded
-                        onClearTerminal={() => setOperations([])}
-                        onDismiss={() => setOperations([])}
-                        operations={operations}
-                    />
-                </>
-            )
-        }
+                return (
+                    <>
+                        <button type='button'>Before operation center</button>
+                        <PneOperationCenter
+                            defaultExpanded
+                            onClearTerminal={() => setOperations([])}
+                            onDismiss={() => setOperations([])}
+                            operations={operations}
+                        />
+                    </>
+                )
+            }
 
-        render(<ControlledCenter/>)
+            render(<ControlledCenter />)
 
-        const fallback = screen.getByRole('button', {name: 'Before operation center'})
-        const command = screen.getByRole('button', {name: buttonName})
-        fallback.focus()
-        command.focus()
-        fireEvent.click(command)
-        await Promise.resolve()
+            const fallback = screen.getByRole('button', {name: 'Before operation center'})
+            const command = screen.getByRole('button', {name: buttonName})
+            fallback.focus()
+            command.focus()
+            fireEvent.click(command)
+            await Promise.resolve()
 
-        expect(screen.queryByRole('button', {name: buttonName})).toBeNull()
-        expect(document.activeElement).toBe(fallback)
-    })
+            expect(screen.queryByRole('button', {name: buttonName})).toBeNull()
+            expect(document.activeElement).toBe(fallback)
+        },
+    )
 
     it('announces status transitions without announcing progress-only updates', () => {
         const initial = operation('report', 'running', {
             progress: {kind: 'determinate', value: 20},
         })
-        const view = render(<PneOperationCenter operations={[initial]}/>)
+        const view = render(<PneOperationCenter operations={[initial]} />)
         const liveRegion = screen.getByRole('status')
 
         expect(liveRegion.textContent).toBe('')
 
         view.rerender(
             <PneOperationCenter
-                operations={[{
-                    ...initial,
-                    status: 'finalizing',
-                    progress: {kind: 'determinate', value: 90},
-                }]}
+                operations={[
+                    {
+                        ...initial,
+                        status: 'finalizing',
+                        progress: {kind: 'determinate', value: 90},
+                    },
+                ]}
             />,
         )
         expect(liveRegion.textContent).toBe('Operation report: Finalizing')
 
         view.rerender(
             <PneOperationCenter
-                operations={[{
-                    ...initial,
-                    status: 'finalizing',
-                    progress: {kind: 'determinate', value: 95},
-                }]}
+                operations={[
+                    {
+                        ...initial,
+                        status: 'finalizing',
+                        progress: {kind: 'determinate', value: 95},
+                    },
+                ]}
             />,
         )
         expect(liveRegion.textContent).toBe('Operation report: Finalizing')
     })
 
     it('announces operations added after the initially empty state', () => {
-        const view = render(<PneOperationCenter operations={[]}/>)
+        const view = render(<PneOperationCenter operations={[]} />)
 
-        view.rerender(<PneOperationCenter operations={[operation('report', 'starting')]}/>)
+        view.rerender(<PneOperationCenter operations={[operation('report', 'starting')]} />)
 
         expect(screen.getByRole('status').textContent).toBe('Operation report: Starting')
     })
@@ -400,14 +400,16 @@ describe('PneOperationCenter', () => {
             context: 'Order #2',
             title: 'Generate report',
         })
-        const view = render(<PneOperationCenter operations={[first, second]}/>)
+        const view = render(<PneOperationCenter operations={[first, second]} />)
 
-        view.rerender(<PneOperationCenter
-            operations={[
-                {...first, status: 'failed'},
-                {...second, status: 'failed'},
-            ]}
-        />)
+        view.rerender(
+            <PneOperationCenter
+                operations={[
+                    {...first, status: 'failed'},
+                    {...second, status: 'failed'},
+                ]}
+            />,
+        )
 
         expect(screen.getByRole('status').textContent).toBe(
             'Generate report, Order #1, 1 of 2: Failed. Generate report, Order #2, 2 of 2: Failed',

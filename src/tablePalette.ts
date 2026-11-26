@@ -21,7 +21,7 @@ export type PneTablePalette = {
     header: {
         text: string
         /** The strip of an island header: the sunken fill and the secondary text on it. */
-        island: {fill: string, text: string}
+        island: {fill: string; text: string}
     }
     sort: {
         /** The direction the column is sorted in. */
@@ -34,9 +34,9 @@ export type PneTablePalette = {
     /** The bands of controls over and under a table. */
     band: {
         /** The white shell of a group of actions: the pagination, the page sizes (UI Kit Button group). */
-        shell: {fill: string, ring: string}
+        shell: {fill: string; ring: string}
         /** The grey shell of the views (UI Kit Tabs); the picked view is a white button on it. */
-        tabs: {fill: string, ring: string}
+        tabs: {fill: string; ring: string}
     }
     /** A bar that stands for a line of text while the rows load (UI Kit Skeleton/Line). */
     skeleton: string

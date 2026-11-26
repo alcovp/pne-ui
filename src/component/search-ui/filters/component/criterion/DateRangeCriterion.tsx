@@ -1,18 +1,18 @@
-import React, { ChangeEvent, FocusEvent, useEffect, useMemo, useRef, useState } from 'react'
-import { CriterionTypeEnum } from '../../types'
+import React, {ChangeEvent, FocusEvent, useEffect, useMemo, useRef, useState} from 'react'
+import {CriterionTypeEnum} from '../../types'
 import SearchUIDateRangeSpecTypeSelect from '../select/SearchUIDateRangeSpecTypeSelect'
-import type { Dayjs } from 'dayjs'
-import { dayjs } from '../../dayjsSetup'
-import { Box, FormHelperText, SxProps, useMediaQuery } from '@mui/material'
-import { DateRange, DateRangePicker, LocalizationProvider } from '@mui/x-date-pickers-pro'
-import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import type { FieldRef, PickerChangeHandlerContext } from '@mui/x-date-pickers/models'
-import { useSearchUIFiltersStore, useSearchUIFiltersStoreApi } from '../../state/store'
+import type {Dayjs} from 'dayjs'
+import {dayjs} from '../../dayjsSetup'
+import {Box, FormHelperText, SxProps, useMediaQuery} from '@mui/material'
+import {DateRange, DateRangePicker, LocalizationProvider} from '@mui/x-date-pickers-pro'
+import {DateTimePicker} from '@mui/x-date-pickers/DateTimePicker'
+import {AdapterDayjs} from '@mui/x-date-pickers/AdapterDayjs'
+import type {FieldRef, PickerChangeHandlerContext} from '@mui/x-date-pickers/models'
+import {useSearchUIFiltersStore, useSearchUIFiltersStoreApi} from '../../state/store'
 import PneTextField from '../../../../PneTextField'
-import { SearchUIOrderDateTypeSelect } from '../select/SearchUIOrderDateTypeSelect'
-import { filtersInputSx, pickerToggleSx, SEARCH_UI_VALUE_HEIGHT, SEARCH_UI_VALUE_RADIUS } from './style'
-import { pneCalendarPopperSx } from '../../../../calendarLook'
+import {SearchUIOrderDateTypeSelect} from '../select/SearchUIOrderDateTypeSelect'
+import {filtersInputSx, pickerToggleSx, SEARCH_UI_VALUE_HEIGHT, SEARCH_UI_VALUE_RADIUS} from './style'
+import {pneCalendarPopperSx} from '../../../../calendarLook'
 import PneCalendarActionBar from '../../../../PneCalendarActionBar'
 import {
     createDateOnlyPickerDate,
@@ -22,19 +22,9 @@ import {
 } from '../../dateRangeTimeZone'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 import {useTranslation} from 'react-i18next'
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope'
-import {
-    SEARCH_UI_DATE_RANGE_END_BEFORE_START,
-    SEARCH_UI_DATE_RANGE_INVALID_DATE,
-} from '../../validation'
-import {
-    resolveSearchUIPickerLocale,
-    SEARCH_UI_DATE_FORMAT,
-    SEARCH_UI_DATE_TIME_FORMAT,
-} from '../../datePickerLocale'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
+import {SEARCH_UI_DATE_RANGE_END_BEFORE_START, SEARCH_UI_DATE_RANGE_INVALID_DATE} from '../../validation'
+import {resolveSearchUIPickerLocale, SEARCH_UI_DATE_FORMAT, SEARCH_UI_DATE_TIME_FORMAT} from '../../datePickerLocale'
 
 type Props = {
     showOrdersDateType?: boolean
@@ -78,39 +68,35 @@ const toDateKey = (date: Date | null): string => {
 
 const isSameStoredDate = (left: Date | null, right: Date | null): boolean => toDateKey(left) === toDateKey(right)
 
-const hasTypedSection = (sections: ReadonlyArray<{ value: string }> | undefined): boolean => (
+const hasTypedSection = (sections: ReadonlyArray<{value: string}> | undefined): boolean =>
     !!sections?.some(section => section.value !== '')
-)
 
 export const DateRangeCriterion = (props: Props) => {
     const {t, i18n} = useTranslation()
-    const { showOrdersDateType } = props
+    const {showOrdersDateType} = props
     const autoTestOwner = useSearchUIAutoTestScope()
     const storeApi = useSearchUIFiltersStoreApi()
     const pickerLocale = resolveSearchUIPickerLocale(i18n?.language)
 
     const dateRangeSpec = useSearchUIFiltersStore(s => s.dateRangeSpec)
     const setDateRangeCriterion = useSearchUIFiltersStore(s => s.setDateRangeCriterion)
-    const timeSelectionEnabledInConfig = useSearchUIFiltersStore(
-        s => !!s.config?.dateRange?.enableTimeSelection,
-    )
-    const dateOnlyTimeZone = useSearchUIFiltersStore(
-        s => resolveDateOnlyTimeZone(s.config?.dateRange?.dateOnlyTimeZone),
+    const timeSelectionEnabledInConfig = useSearchUIFiltersStore(s => !!s.config?.dateRange?.enableTimeSelection)
+    const dateOnlyTimeZone = useSearchUIFiltersStore(s =>
+        resolveDateOnlyTimeZone(s.config?.dateRange?.dateOnlyTimeZone),
     )
     const validationResult = useSearchUIFiltersStore(s => s.validationResult)
 
-    const criterionType = showOrdersDateType
-        ? CriterionTypeEnum.DATE_RANGE_ORDERS
-        : CriterionTypeEnum.DATE_RANGE
+    const criterionType = showOrdersDateType ? CriterionTypeEnum.DATE_RANGE_ORDERS : CriterionTypeEnum.DATE_RANGE
     const dateErrors = validationResult.errors.filter(error => error.criterion === criterionType)
     const shownError = dateErrors[0]
-    const fromInError = dateErrors.some(error => (
-        error.code === SEARCH_UI_DATE_RANGE_INVALID_DATE && error.params.boundary === 'from'
-    ))
-    const toInError = dateErrors.some(error => (
-        (error.code === SEARCH_UI_DATE_RANGE_INVALID_DATE && error.params.boundary === 'to')
-        || error.code === SEARCH_UI_DATE_RANGE_END_BEFORE_START
-    ))
+    const fromInError = dateErrors.some(
+        error => error.code === SEARCH_UI_DATE_RANGE_INVALID_DATE && error.params.boundary === 'from',
+    )
+    const toInError = dateErrors.some(
+        error =>
+            (error.code === SEARCH_UI_DATE_RANGE_INVALID_DATE && error.params.boundary === 'to') ||
+            error.code === SEARCH_UI_DATE_RANGE_END_BEFORE_START,
+    )
 
     const changeBeforeCount = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
         const value = event.target.value
@@ -127,12 +113,13 @@ export const DateRangeCriterion = (props: Props) => {
     }
 
     const exactDates = dateRangeSpec.dateRangeSpecType === 'EXACTLY'
-    const daysOrHoursBefore = dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE'
-        || dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
+    const daysOrHoursBefore =
+        dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE' || dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
     const enableTimeSelection = !!showOrdersDateType || timeSelectionEnabledInConfig
-    const beforeCountAriaLabel = dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
-        ? t('react.searchUI.dateRange.hoursBefore', {defaultValue: 'Number of hours before'})
-        : t('react.searchUI.dateRange.daysBefore', {defaultValue: 'Number of days before'})
+    const beforeCountAriaLabel =
+        dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
+            ? t('react.searchUI.dateRange.hoursBefore', {defaultValue: 'Number of hours before'})
+            : t('react.searchUI.dateRange.daysBefore', {defaultValue: 'Number of days before'})
     const exactDateRangeAriaLabel = t('react.searchUI.dateRange.exactRange', {
         defaultValue: 'Exact date range',
     })
@@ -140,10 +127,7 @@ export const DateRangeCriterion = (props: Props) => {
         defaultValue: 'Exact date range calendar',
     })
     const exactDateRangePickerAttributes = {
-        ...createSearchUIOwnedAutoTestAttributes(
-            CRITERION_DATE_RANGE_PICKER_AUTOTEST_ID,
-            autoTestOwner,
-        ),
+        ...createSearchUIOwnedAutoTestAttributes(CRITERION_DATE_RANGE_PICKER_AUTOTEST_ID, autoTestOwner),
         'aria-label': exactDateRangePickerAriaLabel,
     }
     const exactDateTimeFromAriaLabel = t('react.searchUI.dateRange.exactDateTimeFrom', {
@@ -153,19 +137,13 @@ export const DateRangeCriterion = (props: Props) => {
         defaultValue: 'Exact date and time to',
     })
     const exactDateTimeFromPickerAttributes = {
-        ...createSearchUIOwnedAutoTestAttributes(
-            CRITERION_DATE_TIME_FROM_PICKER_AUTOTEST_ID,
-            autoTestOwner,
-        ),
+        ...createSearchUIOwnedAutoTestAttributes(CRITERION_DATE_TIME_FROM_PICKER_AUTOTEST_ID, autoTestOwner),
         'aria-label': t('react.searchUI.dateRange.exactDateTimeFromPicker', {
             defaultValue: 'Exact start date and time picker',
         }),
     }
     const exactDateTimeToPickerAttributes = {
-        ...createSearchUIOwnedAutoTestAttributes(
-            CRITERION_DATE_TIME_TO_PICKER_AUTOTEST_ID,
-            autoTestOwner,
-        ),
+        ...createSearchUIOwnedAutoTestAttributes(CRITERION_DATE_TIME_TO_PICKER_AUTOTEST_ID, autoTestOwner),
         'aria-label': t('react.searchUI.dateRange.exactDateTimeToPicker', {
             defaultValue: 'Exact end date and time picker',
         }),
@@ -205,9 +183,8 @@ export const DateRangeCriterion = (props: Props) => {
 
     // The pickers keep what is being typed or picked; the store gets a date once it means a range.
     // The key keeps the picker value stable, so MUI does not rebuild the typed sections each render.
-    const keyOfStoredRange = (from: Date | null, to: Date | null) => (
+    const keyOfStoredRange = (from: Date | null, to: Date | null) =>
         `${toDateKey(from)}|${toDateKey(to)}|${enableTimeSelection}|${dateOnlyTimeZone ?? ''}`
-    )
     const storedKey = keyOfStoredRange(dateRangeSpec.dateFrom, dateRangeSpec.dateTo)
     const storedRange = useMemo<PickerRange>(
         () => [toPickerDate(dateRangeSpec.dateFrom), toPickerDate(dateRangeSpec.dateTo)],
@@ -292,16 +269,13 @@ export const DateRangeCriterion = (props: Props) => {
         }
     }
 
-    const handleBoundaryChange = (boundary: 'from' | 'to') => (
-        date: Dayjs | null,
-        context: PickerChangeHandlerContext<unknown>,
-    ) => {
-        const range: PickerRange = boundary === 'from'
-            ? [date, pickerRangeRef.current[1]]
-            : [pickerRangeRef.current[0], date]
-        showPickerRange(range)
-        commitPickerRange(range, context.source === 'field' ? 'keep' : 'open')
-    }
+    const handleBoundaryChange =
+        (boundary: 'from' | 'to') => (date: Dayjs | null, context: PickerChangeHandlerContext<unknown>) => {
+            const range: PickerRange =
+                boundary === 'from' ? [date, pickerRangeRef.current[1]] : [pickerRangeRef.current[0], date]
+            showPickerRange(range)
+            commitPickerRange(range, context.source === 'field' ? 'keep' : 'open')
+        }
 
     const commitTypedRange = () => {
         commitPickerRange(pickerRangeRef.current, 'typed')
@@ -319,59 +293,179 @@ export const DateRangeCriterion = (props: Props) => {
     const stackDateTimePickers = enableTimeSelection && isSmallScreen
     const dateTimePickerWrapperSx: SxProps = stackDateTimePickers
         ? ({
-            ...dateTimePickerContainerSx,
-            ...stackedDateTimePickerContainerSx,
-        } as SxProps)
+              ...dateTimePickerContainerSx,
+              ...stackedDateTimePickerContainerSx,
+          } as SxProps)
         : dateTimePickerContainerSx
-    const dateTimePickerInputSx = (stackDateTimePickers
-        ? {...dateTimePickerFullWidthInputSx, ...fieldErrorSx}
-        : {...filtersInputSx, ...fieldErrorSx}) as SxProps
+    const dateTimePickerInputSx = (
+        stackDateTimePickers
+            ? {...dateTimePickerFullWidthInputSx, ...fieldErrorSx}
+            : {...filtersInputSx, ...fieldErrorSx}
+    ) as SxProps
 
-    return <>
-        <Box sx={specRowSx}>
-            {showOrdersDateType ? <SearchUIOrderDateTypeSelect/> : null}
-            <SearchUIDateRangeSpecTypeSelect/>
-            {daysOrHoursBefore
-                ? <PneTextField
-                    value={dateRangeSpec.beforeCount || ''}
-                    onChange={changeBeforeCount}
-                    type={'number'}
-                    slotProps={{
-                        htmlInput: {
-                            ...createAutoTestAttributes(CRITERION_BEFORE_COUNT_AUTOTEST_ID),
-                            'aria-label': beforeCountAriaLabel,
-                            min: 1,
-                        },
-                        input: { disableUnderline: true },
-                    }}
-                    sx={{
-                        ...filtersInputSx,
-                        width: '80px',
-                    }}
-                    size={'small'}
-                    variant={'filled'}
-                />
-                : null}
-            {exactDates
-                ? <Box sx={stackDateTimePickers ? stackedExactFieldsSx : exactFieldsSx}>
-                    <LocalizationProvider
-                        dateAdapter={AdapterDayjs}
-                        adapterLocale={pickerLocale.adapterLocale}
-                        localeText={pickerLocale.localeText}
-                    >
-                        {enableTimeSelection
-                            ? <Box sx={dateTimePickerWrapperSx}>
-                                <DateTimePicker
-                                    value={pickerRange[0]}
-                                    onChange={handleBoundaryChange('from')}
+    return (
+        <>
+            <Box sx={specRowSx}>
+                {showOrdersDateType ? <SearchUIOrderDateTypeSelect /> : null}
+                <SearchUIDateRangeSpecTypeSelect />
+                {daysOrHoursBefore ? (
+                    <PneTextField
+                        value={dateRangeSpec.beforeCount || ''}
+                        onChange={changeBeforeCount}
+                        type={'number'}
+                        slotProps={{
+                            htmlInput: {
+                                ...createAutoTestAttributes(CRITERION_BEFORE_COUNT_AUTOTEST_ID),
+                                'aria-label': beforeCountAriaLabel,
+                                min: 1,
+                            },
+                            input: {disableUnderline: true},
+                        }}
+                        sx={{
+                            ...filtersInputSx,
+                            width: '80px',
+                        }}
+                        size={'small'}
+                        variant={'filled'}
+                    />
+                ) : null}
+                {exactDates ? (
+                    <Box sx={stackDateTimePickers ? stackedExactFieldsSx : exactFieldsSx}>
+                        <LocalizationProvider
+                            dateAdapter={AdapterDayjs}
+                            adapterLocale={pickerLocale.adapterLocale}
+                            localeText={pickerLocale.localeText}
+                        >
+                            {enableTimeSelection ? (
+                                <Box sx={dateTimePickerWrapperSx}>
+                                    <DateTimePicker
+                                        value={pickerRange[0]}
+                                        onChange={handleBoundaryChange('from')}
+                                        onClose={commitTypedRange}
+                                        ampm={false}
+                                        views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                                        format={SEARCH_UI_DATE_TIME_FORMAT}
+                                        timeSteps={{
+                                            minutes: 1,
+                                            seconds: 1,
+                                        }}
+                                        slots={pickerSlots}
+                                        slotProps={{
+                                            day: ownerState => ({
+                                                ...createAutoTestAttributes(
+                                                    CRITERION_DATE_OPTION_AUTOTEST_ID,
+                                                    ownerState.day.format('YYYY-MM-DD'),
+                                                ),
+                                                role: 'gridcell',
+                                            }),
+                                            digitalClockItem: {
+                                                ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                                role: 'option',
+                                            },
+                                            digitalClockSectionItem: {
+                                                ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                                role: 'option',
+                                            },
+                                            field: {fieldRef: fromFieldRef},
+                                            mobilePaper: exactDateTimeFromPickerAttributes,
+                                            openPickerButton: {
+                                                ...createAutoTestAttributes(
+                                                    CRITERION_DATE_TIME_FROM_PICKER_TOGGLE_AUTOTEST_ID,
+                                                ),
+                                                type: 'button',
+                                            },
+                                            popper: {
+                                                ...exactDateTimeFromPickerAttributes,
+                                                placement: 'auto',
+                                                sx: pneCalendarPopperSx,
+                                            },
+                                            textField: {
+                                                size: 'small',
+                                                sx: dateTimePickerInputSx,
+                                                variant: 'filled',
+                                                // Replaces MUI's own verdict, which would also paint
+                                                // a year outside 1900-2099 red.
+                                                error: fromInError,
+                                                onBlur: handleFieldBlur,
+                                                slotProps: {
+                                                    htmlInput: {placeholder: SEARCH_UI_DATE_TIME_FORMAT},
+                                                    input: {
+                                                        ...createAutoTestAttributes(
+                                                            CRITERION_DATE_TIME_FROM_AUTOTEST_ID,
+                                                        ),
+                                                        'aria-label': exactDateTimeFromAriaLabel,
+                                                        disableUnderline: true,
+                                                    },
+                                                },
+                                            },
+                                        }}
+                                    />
+                                    <DateTimePicker
+                                        value={pickerRange[1]}
+                                        onChange={handleBoundaryChange('to')}
+                                        onClose={commitTypedRange}
+                                        ampm={false}
+                                        views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
+                                        format={SEARCH_UI_DATE_TIME_FORMAT}
+                                        timeSteps={{
+                                            minutes: 1,
+                                            seconds: 1,
+                                        }}
+                                        slots={pickerSlots}
+                                        slotProps={{
+                                            day: ownerState => ({
+                                                ...createAutoTestAttributes(
+                                                    CRITERION_DATE_OPTION_AUTOTEST_ID,
+                                                    ownerState.day.format('YYYY-MM-DD'),
+                                                ),
+                                                role: 'gridcell',
+                                            }),
+                                            digitalClockItem: {
+                                                ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                                role: 'option',
+                                            },
+                                            digitalClockSectionItem: {
+                                                ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
+                                                role: 'option',
+                                            },
+                                            field: {fieldRef: toFieldRef},
+                                            mobilePaper: exactDateTimeToPickerAttributes,
+                                            openPickerButton: {
+                                                ...createAutoTestAttributes(
+                                                    CRITERION_DATE_TIME_TO_PICKER_TOGGLE_AUTOTEST_ID,
+                                                ),
+                                                type: 'button',
+                                            },
+                                            popper: {
+                                                ...exactDateTimeToPickerAttributes,
+                                                placement: 'auto',
+                                                sx: pneCalendarPopperSx,
+                                            },
+                                            textField: {
+                                                size: 'small',
+                                                sx: dateTimePickerInputSx,
+                                                variant: 'filled',
+                                                error: toInError,
+                                                onBlur: handleFieldBlur,
+                                                slotProps: {
+                                                    htmlInput: {placeholder: SEARCH_UI_DATE_TIME_FORMAT},
+                                                    input: {
+                                                        ...createAutoTestAttributes(CRITERION_DATE_TIME_TO_AUTOTEST_ID),
+                                                        'aria-label': exactDateTimeToAriaLabel,
+                                                        disableUnderline: true,
+                                                    },
+                                                },
+                                            },
+                                        }}
+                                    />
+                                </Box>
+                            ) : (
+                                <DateRangePicker
+                                    sx={dateRangePickerSx}
+                                    value={pickerRange}
+                                    onChange={handleRangeChange}
                                     onClose={commitTypedRange}
-                                    ampm={false}
-                                    views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
-                                    format={SEARCH_UI_DATE_TIME_FORMAT}
-                                    timeSteps={{
-                                        minutes: 1,
-                                        seconds: 1,
-                                    }}
+                                    format={SEARCH_UI_DATE_FORMAT}
                                     slots={pickerSlots}
                                     slotProps={{
                                         day: ownerState => ({
@@ -381,163 +475,45 @@ export const DateRangeCriterion = (props: Props) => {
                                             ),
                                             role: 'gridcell',
                                         }),
-                                        digitalClockItem: {
-                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
-                                            role: 'option',
-                                        },
-                                        digitalClockSectionItem: {
-                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
-                                            role: 'option',
-                                        },
-                                        field: { fieldRef: fromFieldRef },
-                                        mobilePaper: exactDateTimeFromPickerAttributes,
+                                        field: {fieldRef: rangeFieldRef},
+                                        mobilePaper: exactDateRangePickerAttributes,
                                         openPickerButton: {
-                                            ...createAutoTestAttributes(
-                                                CRITERION_DATE_TIME_FROM_PICKER_TOGGLE_AUTOTEST_ID,
-                                            ),
+                                            ...createAutoTestAttributes(CRITERION_DATE_RANGE_PICKER_TOGGLE_AUTOTEST_ID),
                                             type: 'button',
                                         },
                                         popper: {
-                                            ...exactDateTimeFromPickerAttributes,
+                                            ...exactDateRangePickerAttributes,
                                             placement: 'auto',
                                             sx: pneCalendarPopperSx,
                                         },
                                         textField: {
                                             size: 'small',
-                                            sx: dateTimePickerInputSx,
-                                            variant: 'filled',
+                                            sx: dateRangePickerSx,
                                             // Replaces MUI's own verdict, which would also paint
                                             // a year outside 1900-2099 red.
-                                            error: fromInError,
+                                            error: dateErrors.length > 0,
                                             onBlur: handleFieldBlur,
                                             slotProps: {
-                                                htmlInput: { placeholder: SEARCH_UI_DATE_TIME_FORMAT },
                                                 input: {
-                                                    ...createAutoTestAttributes(
-                                                        CRITERION_DATE_TIME_FROM_AUTOTEST_ID,
-                                                    ),
-                                                    'aria-label': exactDateTimeFromAriaLabel,
-                                                    disableUnderline: true,
+                                                    ...createAutoTestAttributes(CRITERION_DATE_RANGE_AUTOTEST_ID),
+                                                    'aria-label': exactDateRangeAriaLabel,
                                                 },
                                             },
                                         },
                                     }}
                                 />
-                                <DateTimePicker
-                                    value={pickerRange[1]}
-                                    onChange={handleBoundaryChange('to')}
-                                    onClose={commitTypedRange}
-                                    ampm={false}
-                                    views={['year', 'month', 'day', 'hours', 'minutes', 'seconds']}
-                                    format={SEARCH_UI_DATE_TIME_FORMAT}
-                                    timeSteps={{
-                                        minutes: 1,
-                                        seconds: 1,
-                                    }}
-                                    slots={pickerSlots}
-                                    slotProps={{
-                                        day: ownerState => ({
-                                            ...createAutoTestAttributes(
-                                                CRITERION_DATE_OPTION_AUTOTEST_ID,
-                                                ownerState.day.format('YYYY-MM-DD'),
-                                            ),
-                                            role: 'gridcell',
-                                        }),
-                                        digitalClockItem: {
-                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
-                                            role: 'option',
-                                        },
-                                        digitalClockSectionItem: {
-                                            ...createAutoTestAttributes(CRITERION_TIME_OPTION_AUTOTEST_ID),
-                                            role: 'option',
-                                        },
-                                        field: { fieldRef: toFieldRef },
-                                        mobilePaper: exactDateTimeToPickerAttributes,
-                                        openPickerButton: {
-                                            ...createAutoTestAttributes(
-                                                CRITERION_DATE_TIME_TO_PICKER_TOGGLE_AUTOTEST_ID,
-                                            ),
-                                            type: 'button',
-                                        },
-                                        popper: {
-                                            ...exactDateTimeToPickerAttributes,
-                                            placement: 'auto',
-                                            sx: pneCalendarPopperSx,
-                                        },
-                                        textField: {
-                                            size: 'small',
-                                            sx: dateTimePickerInputSx,
-                                            variant: 'filled',
-                                            error: toInError,
-                                            onBlur: handleFieldBlur,
-                                            slotProps: {
-                                                htmlInput: { placeholder: SEARCH_UI_DATE_TIME_FORMAT },
-                                                input: {
-                                                    ...createAutoTestAttributes(
-                                                        CRITERION_DATE_TIME_TO_AUTOTEST_ID,
-                                                    ),
-                                                    'aria-label': exactDateTimeToAriaLabel,
-                                                    disableUnderline: true,
-                                                },
-                                            },
-                                        },
-                                    }}
-                                />
-                            </Box>
-                            : <DateRangePicker
-                                sx={dateRangePickerSx}
-                                value={pickerRange}
-                                onChange={handleRangeChange}
-                                onClose={commitTypedRange}
-                                format={SEARCH_UI_DATE_FORMAT}
-                                slots={pickerSlots}
-                                slotProps={{
-                                    day: ownerState => ({
-                                        ...createAutoTestAttributes(
-                                            CRITERION_DATE_OPTION_AUTOTEST_ID,
-                                            ownerState.day.format('YYYY-MM-DD'),
-                                        ),
-                                        role: 'gridcell',
-                                    }),
-                                    field: { fieldRef: rangeFieldRef },
-                                    mobilePaper: exactDateRangePickerAttributes,
-                                    openPickerButton: {
-                                        ...createAutoTestAttributes(
-                                            CRITERION_DATE_RANGE_PICKER_TOGGLE_AUTOTEST_ID,
-                                        ),
-                                        type: 'button',
-                                    },
-                                    popper: {
-                                        ...exactDateRangePickerAttributes,
-                                        placement: 'auto',
-                                        sx: pneCalendarPopperSx,
-                                    },
-                                    textField: {
-                                        size: 'small',
-                                        sx: dateRangePickerSx,
-                                        // Replaces MUI's own verdict, which would also paint
-                                        // a year outside 1900-2099 red.
-                                        error: dateErrors.length > 0,
-                                        onBlur: handleFieldBlur,
-                                        slotProps: {
-                                            input: {
-                                                ...createAutoTestAttributes(
-                                                    CRITERION_DATE_RANGE_AUTOTEST_ID,
-                                                ),
-                                                'aria-label': exactDateRangeAriaLabel,
-                                            },
-                                        },
-                                    },
-                                }}
-                            />}
-                    </LocalizationProvider>
-                </Box>
-                : null}
-        </Box>
-        {shownError ? <FormHelperText error role={'alert'} sx={{mt: '4px', mb: 0}}>
-            {t(shownError.messageKey, shownError.params as Record<string, unknown>)}
-        </FormHelperText> : null}
-    </>
+                            )}
+                        </LocalizationProvider>
+                    </Box>
+                ) : null}
+            </Box>
+            {shownError ? (
+                <FormHelperText error role={'alert'} sx={{mt: '4px', mb: 0}}>
+                    {t(shownError.messageKey, shownError.params as Record<string, unknown>)}
+                </FormHelperText>
+            ) : null}
+        </>
+    )
 }
 
 /**

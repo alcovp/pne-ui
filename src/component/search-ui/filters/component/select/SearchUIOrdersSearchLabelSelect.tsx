@@ -1,10 +1,10 @@
-import React, {useId, useState} from 'react';
-import {Box, Chip} from '@mui/material';
-import {useTranslation} from 'react-i18next';
-import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
-import {useSearchUIFiltersStore} from "../../state/store";
-import {SearchUICollapsableGroupSelect} from './SearchUICollapsableGroupSelect';
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import React, {useId, useState} from 'react'
+import {Box, Chip} from '@mui/material'
+import {useTranslation} from 'react-i18next'
+import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {SearchUICollapsableGroupSelect} from './SearchUICollapsableGroupSelect'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 
 const CRITERION_LABEL_AUTOTEST_ID = 'criterion-label'
 
@@ -16,8 +16,8 @@ export const SearchUIOrdersSearchLabelSelect = () => {
     const labelTip = ordersSearchLabel.startsWith('source_')
         ? t('orders.search.labelTip.source', {defaultValue: 'src.'})
         : ordersSearchLabel.startsWith('dest_')
-            ? t('orders.search.labelTip.destination', {defaultValue: 'dest.'})
-            : null
+          ? t('orders.search.labelTip.destination', {defaultValue: 'dest.'})
+          : null
 
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
     const optionsDialogId = useId()
@@ -39,40 +39,48 @@ export const SearchUIOrdersSearchLabelSelect = () => {
         setAnchorEl(null)
     }
 
-    return <Box>
-        <Chip
-            {...createAutoTestAttributes(CRITERION_LABEL_AUTOTEST_ID, ordersSearchLabel)}
-            component={'button'}
-            nativeButton
-            type={'button'}
-            clickable
-            onClick={handleOpen}
-            onKeyDown={handleKeyDown}
-            label={<Box component={'span'} sx={triggerLabelSx}>
-                <Box component={'span'}>
-                    {optionRenderer(ordersSearchLabel)}
-                    {labelTip && <>
-                        {' '}
-                        <Box component={'span'} sx={labelTipSx}>{labelTip}</Box>
-                    </>}
-                </Box>
-                <PneChevronDownIcon aria-hidden={true} sx={triggerChevronSx}/>
-            </Box>}
-            size={'small'}
-            role={'combobox'}
-            aria-label={fieldLabel}
-            aria-autocomplete={'none'}
-            aria-controls={open ? optionsDialogId : undefined}
-            aria-expanded={open}
-            aria-haspopup={'dialog'}
-        />
-        <SearchUICollapsableGroupSelect
-            anchorEl={anchorEl}
-            id={optionsDialogId}
-            open={open}
-            onClose={handleClose}
-        />
-    </Box>
+    return (
+        <Box>
+            <Chip
+                {...createAutoTestAttributes(CRITERION_LABEL_AUTOTEST_ID, ordersSearchLabel)}
+                component={'button'}
+                nativeButton
+                type={'button'}
+                clickable
+                onClick={handleOpen}
+                onKeyDown={handleKeyDown}
+                label={
+                    <Box component={'span'} sx={triggerLabelSx}>
+                        <Box component={'span'}>
+                            {optionRenderer(ordersSearchLabel)}
+                            {labelTip && (
+                                <>
+                                    {' '}
+                                    <Box component={'span'} sx={labelTipSx}>
+                                        {labelTip}
+                                    </Box>
+                                </>
+                            )}
+                        </Box>
+                        <PneChevronDownIcon aria-hidden={true} sx={triggerChevronSx} />
+                    </Box>
+                }
+                size={'small'}
+                role={'combobox'}
+                aria-label={fieldLabel}
+                aria-autocomplete={'none'}
+                aria-controls={open ? optionsDialogId : undefined}
+                aria-expanded={open}
+                aria-haspopup={'dialog'}
+            />
+            <SearchUICollapsableGroupSelect
+                anchorEl={anchorEl}
+                id={optionsDialogId}
+                open={open}
+                onClose={handleClose}
+            />
+        </Box>
+    )
 }
 
 const triggerLabelSx = {

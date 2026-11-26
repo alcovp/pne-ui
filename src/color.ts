@@ -7,7 +7,10 @@ export const normalizeHexColor = (value: string | undefined): string => {
 
     const shortMatch = /^#([0-9a-f]{3})$/i.exec(color)
     if (shortMatch) {
-        return `#${shortMatch[1].split('').map(part => `${part}${part}`).join('')}`.toUpperCase()
+        return `#${shortMatch[1]
+            .split('')
+            .map(part => `${part}${part}`)
+            .join('')}`.toUpperCase()
     }
 
     return /^#[0-9a-f]{6}$/i.test(color) ? color.toUpperCase() : MISSING_COLOR
@@ -20,7 +23,11 @@ export const hexToRgb = (color: string): [number, number, number] => {
 
 export const rgbToHex = (red: number, green: number, blue: number): string =>
     `#${[red, green, blue]
-        .map(channel => Math.max(0, Math.min(255, Math.round(channel))).toString(16).padStart(2, '0'))
+        .map(channel =>
+            Math.max(0, Math.min(255, Math.round(channel)))
+                .toString(16)
+                .padStart(2, '0'),
+        )
         .join('')}`.toUpperCase()
 
 /** Moves `color` towards `target` by `amount` (0…1) in sRGB. */
@@ -62,20 +69,20 @@ const linearToOklab = ([red, green, blue]: Triple): Triple => {
     const medium = Math.cbrt(0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue)
     const short = Math.cbrt(0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue)
     return [
-        0.2104542553 * long + 0.7936177850 * medium - 0.0040720468 * short,
-        1.9779984951 * long - 2.4285922050 * medium + 0.4505937099 * short,
-        0.0259040371 * long + 0.7827717662 * medium - 0.8086757660 * short,
+        0.2104542553 * long + 0.793617785 * medium - 0.0040720468 * short,
+        1.9779984951 * long - 2.428592205 * medium + 0.4505937099 * short,
+        0.0259040371 * long + 0.7827717662 * medium - 0.808675766 * short,
     ]
 }
 
 const oklabToLinear = ([lightness, greenRed, blueYellow]: Triple): Triple => {
     const long = (lightness + 0.3963377774 * greenRed + 0.2158037573 * blueYellow) ** 3
     const medium = (lightness - 0.1055613458 * greenRed - 0.0638541728 * blueYellow) ** 3
-    const short = (lightness - 0.0894841775 * greenRed - 1.2914855480 * blueYellow) ** 3
+    const short = (lightness - 0.0894841775 * greenRed - 1.291485548 * blueYellow) ** 3
     return [
         4.0767416621 * long - 3.3077115913 * medium + 0.2309699292 * short,
         -1.2684380046 * long + 2.6097574011 * medium - 0.3413193965 * short,
-        -0.0041960863 * long - 0.7034186147 * medium + 1.7076147010 * short,
+        -0.0041960863 * long - 0.7034186147 * medium + 1.707614701 * short,
     ]
 }
 

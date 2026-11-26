@@ -21,4 +21,4 @@ const actionSpacingStyles = {
 }
 
 /** Mount once when using an application's own ThemeProvider. Included in PneThemeProvider. */
-export const PneActionSpacingStyles = () => <GlobalStyles styles={actionSpacingStyles}/>
+export const PneActionSpacingStyles = () => <GlobalStyles styles={actionSpacingStyles} />

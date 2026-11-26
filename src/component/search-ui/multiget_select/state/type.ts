@@ -1,5 +1,5 @@
-import {MultichoiceFilterTypeEnum} from "../../filters/types";
-import {AbstractEntity} from "../../../../common";
+import {MultichoiceFilterTypeEnum} from '../../filters/types'
+import {AbstractEntity} from '../../../../common'
 
 export type MultigetSelectStore = MultigetSelectState & MultigetSelectActions
 

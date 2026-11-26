@@ -2,17 +2,15 @@ import Box from '@mui/material/Box'
 import {styled, type SxProps, type Theme} from '@mui/material/styles'
 import type {SystemStyleObject} from '@mui/system'
 
-export const getPneSurfaceTitleSx = (hasExplicitColor = false): SxProps<Theme> => (
-    theme: Theme,
-) => ({
-    padding: '0',
-    fontWeight: '700',
-    fontSize: '18px',
-    lineHeight: '24px',
-    color: !hasExplicitColor && theme.palette.mode === 'dark'
-        ? theme.palette.text.primary
-        : undefined,
-})
+export const getPneSurfaceTitleSx =
+    (hasExplicitColor = false): SxProps<Theme> =>
+    (theme: Theme) => ({
+        padding: '0',
+        fontWeight: '700',
+        fontSize: '18px',
+        lineHeight: '24px',
+        color: !hasExplicitColor && theme.palette.mode === 'dark' ? theme.palette.text.primary : undefined,
+    })
 
 export const pneSurfaceSubtitleSx: SystemStyleObject<Theme> = {
     padding: '0',
@@ -28,9 +26,7 @@ export const pneSurfaceCloseButtonSx: SxProps<Theme> = (theme: Theme) => ({
     backgroundColor: theme.palette.pne?.surface.subtle ?? '#F1F5FA',
     borderRadius: '4px',
     '&:hover': {
-        backgroundColor: theme.palette.mode === 'dark'
-            ? theme.palette.action.selected
-            : '#F1F5FA',
+        backgroundColor: theme.palette.mode === 'dark' ? theme.palette.action.selected : '#F1F5FA',
     },
 })
 
@@ -44,9 +40,10 @@ export const PneSurface = styled(Box)(({theme}) => ({
     display: 'flex',
     flexDirection: 'column',
     overflow: 'hidden',
-    boxShadow: theme.palette.mode === 'dark'
-        ? '0 16px 40px rgba(0, 0, 0, 0.48)'
-        : '0px -1px 12px rgba(0, 0, 0, 0.03), 0px 3px 3px rgba(0, 0, 0, 0.02), 0px 7px 6px rgba(0, 0, 0, 0.06), 0px 12px 10px rgba(0, 0, 3, 0.03), 0px 22px 18px rgba(0, 0, 0, 0.04), 0px 40px 33px rgba(0, 0, 0, 0.04), 0px 100px 80px rgba(0, 0, 0, 0.04)',
+    boxShadow:
+        theme.palette.mode === 'dark'
+            ? '0 16px 40px rgba(0, 0, 0, 0.48)'
+            : '0px -1px 12px rgba(0, 0, 0, 0.03), 0px 3px 3px rgba(0, 0, 0, 0.02), 0px 7px 6px rgba(0, 0, 0, 0.06), 0px 12px 10px rgba(0, 0, 3, 0.03), 0px 22px 18px rgba(0, 0, 0, 0.04), 0px 40px 33px rgba(0, 0, 0, 0.04), 0px 100px 80px rgba(0, 0, 0, 0.04)',
 }))
 
 export const PneSurfaceHeader = styled(Box)(({theme}) => ({

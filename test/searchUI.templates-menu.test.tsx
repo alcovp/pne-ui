@@ -25,43 +25,45 @@ jest.mock('react-i18next', () => ({
 const CONTEXT_NAME = 'templates-menu'
 const SCOPE = 'orders'
 
-const createTemplates = (...names: string[]): SearchUITemplate[] => names.map(name => ({
-    name,
-    searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
-}))
+const createTemplates = (...names: string[]): SearchUITemplate[] =>
+    names.map(name => ({
+        name,
+        searchConditions: getSearchUIInitialSearchCriteria(initialSearchUIDefaults),
+    }))
 
 const renderMenu = (
     defaults: Partial<SearchUIDefaults> = {},
-    options: {confirm?: boolean, contextName?: string} = {},
+    options: {confirm?: boolean; contextName?: string} = {},
 ) => {
-    const filters = <SearchUIProvider
-        defaults={{
-            getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo', 'Charlie')),
-            ...defaults,
-        }}
-    >
-        <SearchUIFilters
-            autoTestId={SCOPE}
-            settingsContextName={options.contextName ?? CONTEXT_NAME}
-            possibleCriteria={[]}
-            onFiltersUpdate={jest.fn()}
-            config={{hideShowFiltersButton: true}}
-        />
-    </SearchUIProvider>
+    const filters = (
+        <SearchUIProvider
+            defaults={{
+                getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo', 'Charlie')),
+                ...defaults,
+            }}
+        >
+            <SearchUIFilters
+                autoTestId={SCOPE}
+                settingsContextName={options.contextName ?? CONTEXT_NAME}
+                possibleCriteria={[]}
+                onFiltersUpdate={jest.fn()}
+                config={{hideShowFiltersButton: true}}
+            />
+        </SearchUIProvider>
+    )
 
     return render(options.confirm ? <PneConfirmProvider>{filters}</PneConfirmProvider> : filters)
 }
 
 const trigger = () => document.body.querySelector<HTMLButtonElement>('[data-autotest="templates"]')!
-const panel = () => document.body.querySelector<HTMLElement>(
-    `[data-autotest="templates-panel"][data-autotest-value="${SCOPE}"]`,
-)
-const templateNames = () => Array.from(
-    document.body.querySelectorAll<HTMLElement>('[data-autotest="select-template"]'),
-).map(item => item.getAttribute('title'))
-const selectItem = (name: string) => document.body.querySelector<HTMLButtonElement>(
-    `[data-autotest="select-template"][title="${name}"]`,
-)!
+const panel = () =>
+    document.body.querySelector<HTMLElement>(`[data-autotest="templates-panel"][data-autotest-value="${SCOPE}"]`)
+const templateNames = () =>
+    Array.from(document.body.querySelectorAll<HTMLElement>('[data-autotest="select-template"]')).map(item =>
+        item.getAttribute('title'),
+    )
+const selectItem = (name: string) =>
+    document.body.querySelector<HTMLButtonElement>(`[data-autotest="select-template"][title="${name}"]`)!
 const rowOf = (name: string) => selectItem(name).closest<HTMLElement>('[data-autotest="template-item"]')!
 const defaultItem = () => document.body.querySelector<HTMLButtonElement>('[data-autotest="select-default-template"]')
 
@@ -91,8 +93,11 @@ describe('SearchUI templates menu', () => {
         expect(trigger().getAttribute('aria-haspopup')).toBe('menu')
         expect(trigger().getAttribute('aria-controls')).toBe(menu.id)
         expect(menu.getAttribute('role')).toBe('menu')
-        expect(within(menu).getAllByRole('menuitemradio').map(item => item.textContent))
-            .toEqual(['Default', 'Alpha', 'Bravo', 'Charlie'])
+        expect(
+            within(menu)
+                .getAllByRole('menuitemradio')
+                .map(item => item.textContent),
+        ).toEqual(['Default', 'Alpha', 'Bravo', 'Charlie'])
 
         fireEvent.click(selectItem('Bravo'))
         await waitFor(() => expect(trigger().textContent).toContain('Bravo'))
@@ -129,15 +134,17 @@ describe('SearchUI templates menu', () => {
     it('offers the handles once the host provides reorderSearchTemplates after mount', async () => {
         const getSearchTemplates = jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo', 'Charlie'))
         const reorderSearchTemplates = jest.fn().mockResolvedValue(undefined)
-        const filters = (defaults: Partial<SearchUIDefaults>) => <SearchUIProvider defaults={{getSearchTemplates, ...defaults}}>
-            <SearchUIFilters
-                autoTestId={SCOPE}
-                settingsContextName={CONTEXT_NAME}
-                possibleCriteria={[]}
-                onFiltersUpdate={jest.fn()}
-                config={{hideShowFiltersButton: true}}
-            />
-        </SearchUIProvider>
+        const filters = (defaults: Partial<SearchUIDefaults>) => (
+            <SearchUIProvider defaults={{getSearchTemplates, ...defaults}}>
+                <SearchUIFilters
+                    autoTestId={SCOPE}
+                    settingsContextName={CONTEXT_NAME}
+                    possibleCriteria={[]}
+                    onFiltersUpdate={jest.fn()}
+                    config={{hideShowFiltersButton: true}}
+                />
+            </SearchUIProvider>
+        )
 
         const {rerender} = render(filters({}))
         const menu = await openMenu()
@@ -256,10 +263,12 @@ describe('SearchUI templates menu', () => {
         })
         fireEvent.click(confirmation.querySelector('[data-autotest="alert.button.submit"]') as HTMLElement)
 
-        await waitFor(() => expect(deleteSearchTemplate).toHaveBeenCalledWith({
-            contextName: CONTEXT_NAME,
-            templateName: 'Bravo',
-        }))
+        await waitFor(() =>
+            expect(deleteSearchTemplate).toHaveBeenCalledWith({
+                contextName: CONTEXT_NAME,
+                templateName: 'Bravo',
+            }),
+        )
     })
 
     it('saves the current filters into the applied template', async () => {
@@ -272,10 +281,14 @@ describe('SearchUI templates menu', () => {
         await openMenu()
         fireEvent.click(panel()?.querySelector('[data-autotest="update-template"]') as HTMLElement)
 
-        await waitFor(() => expect(saveSearchTemplate).toHaveBeenCalledWith(expect.objectContaining({
-            contextName: CONTEXT_NAME,
-            templateName: 'Charlie',
-        })))
+        await waitFor(() =>
+            expect(saveSearchTemplate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    contextName: CONTEXT_NAME,
+                    templateName: 'Charlie',
+                }),
+            ),
+        )
     })
 
     describe('new template name', () => {
@@ -307,11 +320,15 @@ describe('SearchUI templates menu', () => {
             fireEvent.change(name, {target: {value: '  Delta  '}})
             fireEvent.click(create)
 
-            await waitFor(() => expect(saveSearchTemplate).toHaveBeenCalledWith(expect.objectContaining({
-                contextName: CONTEXT_NAME,
-                templateName: 'Delta',
-                template: expect.objectContaining({name: 'Delta'}),
-            })))
+            await waitFor(() =>
+                expect(saveSearchTemplate).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        contextName: CONTEXT_NAME,
+                        templateName: 'Delta',
+                        template: expect.objectContaining({name: 'Delta'}),
+                    }),
+                ),
+            )
             expect(searchTemplateExists).toHaveBeenCalledWith({contextName: CONTEXT_NAME, templateName: 'Delta'})
             await waitFor(() => expect(trigger().textContent).toContain('Delta'))
         })
@@ -325,8 +342,11 @@ describe('SearchUI templates menu', () => {
             fireEvent.change(name, {target: {value: ' Alpha '}})
             fireEvent.click(create)
 
-            await waitFor(() => expect(within(editor).getByRole('alert').textContent)
-                .toBe('react.searchUI.template.name.confirmRewrite'))
+            await waitFor(() =>
+                expect(within(editor).getByRole('alert').textContent).toBe(
+                    'react.searchUI.template.name.confirmRewrite',
+                ),
+            )
             expect(searchTemplateExists).toHaveBeenCalledWith({contextName: CONTEXT_NAME, templateName: 'Alpha'})
             expect(saveSearchTemplate).not.toHaveBeenCalled()
         })
@@ -356,20 +376,24 @@ describe('SearchUI templates menu', () => {
 
     it('marks the applied template once the filters change and discards the changes', async () => {
         const onFiltersUpdate = jest.fn()
-        render(<SearchUIProvider
-            defaults={{getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo'))}}
-        >
-            <SearchUIFilters
-                autoTestId={SCOPE}
-                settingsContextName={CONTEXT_NAME}
-                possibleCriteria={[CriterionTypeEnum.STATUS]}
-                onFiltersUpdate={onFiltersUpdate}
-                config={{hideShowFiltersButton: true}}
-            />
-        </SearchUIProvider>)
+        render(
+            <SearchUIProvider
+                defaults={{getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha', 'Bravo'))}}
+            >
+                <SearchUIFilters
+                    autoTestId={SCOPE}
+                    settingsContextName={CONTEXT_NAME}
+                    possibleCriteria={[CriterionTypeEnum.STATUS]}
+                    onFiltersUpdate={onFiltersUpdate}
+                    config={{hideShowFiltersButton: true}}
+                />
+            </SearchUIProvider>,
+        )
         const modifiedDot = () => trigger().querySelector('[data-autotest="template-modified"]')
-        const criteria = () => Array.from(document.body.querySelectorAll('[data-autotest="criterion"]'))
-            .map(criterion => criterion.getAttribute('data-autotest-value'))
+        const criteria = () =>
+            Array.from(document.body.querySelectorAll('[data-autotest="criterion"]')).map(criterion =>
+                criterion.getAttribute('data-autotest-value'),
+            )
 
         await openMenu(2)
         fireEvent.click(selectItem('Alpha'))
@@ -424,18 +448,20 @@ describe('SearchUI templates menu', () => {
             withDates('Exact', 'EXACTLY'),
             {name: 'Bare', searchConditions: bareConditions},
         ]
-        render(<SearchUIProvider
-            defaults={{getSearchTemplates: jest.fn().mockResolvedValue(templates as unknown as SearchUITemplate[])}}
-        >
-            <SearchUIFilters
-                autoTestId={SCOPE}
-                settingsContextName={`${CONTEXT_NAME}-string-dates`}
-                possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
-                predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
-                onFiltersUpdate={jest.fn()}
-                config={{hideShowFiltersButton: true}}
-            />
-        </SearchUIProvider>)
+        render(
+            <SearchUIProvider
+                defaults={{getSearchTemplates: jest.fn().mockResolvedValue(templates as unknown as SearchUITemplate[])}}
+            >
+                <SearchUIFilters
+                    autoTestId={SCOPE}
+                    settingsContextName={`${CONTEXT_NAME}-string-dates`}
+                    possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                    predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                    onFiltersUpdate={jest.fn()}
+                    config={{hideShowFiltersButton: true}}
+                />
+            </SearchUIProvider>,
+        )
 
         await openMenu(3)
         fireEvent.click(selectItem('Bare'))
@@ -489,22 +515,25 @@ describe('SearchUI templates menu', () => {
         })
 
         it('replaces Clear all, which stays only where the templates menu is hidden', async () => {
-            const renderFilters = (hideTemplatesSelect: boolean) => render(<SearchUIProvider
-                defaults={{getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha'))}}
-            >
-                <SearchUIFilters
-                    autoTestId={SCOPE}
-                    settingsContextName={`${CONTEXT_NAME}-hidden-${hideTemplatesSelect}`}
-                    possibleCriteria={[CriterionTypeEnum.STATUS]}
-                    predefinedCriteria={[CriterionTypeEnum.STATUS]}
-                    onFiltersUpdate={jest.fn()}
-                    config={{
-                        hideShowFiltersButton: true,
-                        hideTemplatesSelect,
-                        removablePredefinedCriteria: [CriterionTypeEnum.STATUS],
-                    }}
-                />
-            </SearchUIProvider>)
+            const renderFilters = (hideTemplatesSelect: boolean) =>
+                render(
+                    <SearchUIProvider
+                        defaults={{getSearchTemplates: jest.fn().mockResolvedValue(createTemplates('Alpha'))}}
+                    >
+                        <SearchUIFilters
+                            autoTestId={SCOPE}
+                            settingsContextName={`${CONTEXT_NAME}-hidden-${hideTemplatesSelect}`}
+                            possibleCriteria={[CriterionTypeEnum.STATUS]}
+                            predefinedCriteria={[CriterionTypeEnum.STATUS]}
+                            onFiltersUpdate={jest.fn()}
+                            config={{
+                                hideShowFiltersButton: true,
+                                hideTemplatesSelect,
+                                removablePredefinedCriteria: [CriterionTypeEnum.STATUS],
+                            }}
+                        />
+                    </SearchUIProvider>,
+                )
             const clearAll = () => document.body.querySelector('[data-autotest="clear-all"]')
 
             const withMenu = renderFilters(false)
@@ -528,16 +557,18 @@ describe('SearchUI templates menu', () => {
                     dateRangeSpec: {dateRangeSpecType: 'YESTERDAY', dateFrom: null, dateTo: null, beforeCount: 1},
                 },
             }
-            render(<SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([yesterday])}}>
-                <SearchUIFilters
-                    autoTestId={SCOPE}
-                    settingsContextName={`${CONTEXT_NAME}-default-manual`}
-                    possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
-                    predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
-                    onFiltersUpdate={onFiltersUpdate}
-                    config={{hideShowFiltersButton: true, manualSearch: true}}
-                />
-            </SearchUIProvider>)
+            render(
+                <SearchUIProvider defaults={{getSearchTemplates: jest.fn().mockResolvedValue([yesterday])}}>
+                    <SearchUIFilters
+                        autoTestId={SCOPE}
+                        settingsContextName={`${CONTEXT_NAME}-default-manual`}
+                        possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                        predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                        onFiltersUpdate={onFiltersUpdate}
+                        config={{hideShowFiltersButton: true, manualSearch: true}}
+                    />
+                </SearchUIProvider>,
+            )
             await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalledTimes(1))
 
             await openMenu(1)
@@ -553,15 +584,24 @@ describe('SearchUI templates menu', () => {
 
     describe('search', () => {
         const LONG_LIST = [
-            'Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo',
-            'Foxtrot', 'Golf', 'Hotel', 'India', 'Bravo EU',
+            'Alpha',
+            'Bravo',
+            'Charlie',
+            'Delta',
+            'Echo',
+            'Foxtrot',
+            'Golf',
+            'Hotel',
+            'India',
+            'Bravo EU',
         ]
         const searchField = () => document.body.querySelector<HTMLInputElement>('[data-autotest="template-search"]')
-        const renderLongMenu = (defaults: Partial<SearchUIDefaults> = {}) => renderMenu({
-            getSearchTemplates: jest.fn().mockResolvedValue(createTemplates(...LONG_LIST)),
-            reorderSearchTemplates: jest.fn().mockResolvedValue(undefined),
-            ...defaults,
-        })
+        const renderLongMenu = (defaults: Partial<SearchUIDefaults> = {}) =>
+            renderMenu({
+                getSearchTemplates: jest.fn().mockResolvedValue(createTemplates(...LONG_LIST)),
+                reorderSearchTemplates: jest.fn().mockResolvedValue(undefined),
+                ...defaults,
+            })
 
         it('keeps short lists without a search field', async () => {
             renderMenu()
@@ -589,8 +629,9 @@ describe('SearchUI templates menu', () => {
 
             fireEvent.change(searchField() as HTMLInputElement, {target: {value: 'zulu'}})
             expect(templateNames()).toEqual([])
-            expect(menu.querySelector('[data-autotest="template-search-empty"]')?.textContent)
-                .toBe('No saved filters match')
+            expect(menu.querySelector('[data-autotest="template-search-empty"]')?.textContent).toBe(
+                'No saved filters match',
+            )
             // Filtering happens in the browser: the list was loaded once.
             expect(getSearchTemplates).toHaveBeenCalledTimes(1)
         })
@@ -639,8 +680,14 @@ describe('SearchUI templates menu', () => {
 
 describe('SearchUI templates menu dragging', () => {
     const rect = (left: number, top: number, width: number, height: number): DOMRect => ({
-        x: left, y: top, left, top, width, height,
-        right: left + width, bottom: top + height,
+        x: left,
+        y: top,
+        left,
+        top,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
         toJSON: () => ({}),
     })
 
@@ -696,10 +743,12 @@ describe('SearchUI templates menu dragging', () => {
         pointer(grip, 'pointerup', 110, 200)
         fireEvent.click(grip)
 
-        await waitFor(() => expect(reorderSearchTemplates).toHaveBeenCalledWith({
-            contextName: CONTEXT_NAME,
-            templateNames: ['Bravo', 'Charlie', 'Alpha'],
-        }))
+        await waitFor(() =>
+            expect(reorderSearchTemplates).toHaveBeenCalledWith({
+                contextName: CONTEXT_NAME,
+                templateNames: ['Bravo', 'Charlie', 'Alpha'],
+            }),
+        )
         expect(templateNames()).toEqual(['Bravo', 'Charlie', 'Alpha'])
         expect(panel()).not.toBeNull()
     })

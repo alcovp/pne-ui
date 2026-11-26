@@ -42,13 +42,13 @@ const collectionContract: CriterionContract = {
 }
 const enumAnyContract: CriterionContract = {
     family: 'enum',
-    selector: '[role="button"][data-autotest="criterion-option"]'
-        + '[data-autotest-value="ANY"][aria-pressed="true"]',
+    selector: '[role="button"][data-autotest="criterion-option"]' + '[data-autotest-value="ANY"][aria-pressed="true"]',
 }
 const multigetContract: CriterionContract = {
     family: 'multiget',
-    selector: 'button[data-autotest="criterion-multiget-trigger"]'
-        + '[data-autotest-value="NONE"][aria-haspopup="dialog"][aria-expanded="false"]',
+    selector:
+        'button[data-autotest="criterion-multiget-trigger"]' +
+        '[data-autotest-value="NONE"][aria-haspopup="dialog"][aria-expanded="false"]',
 }
 
 const criterionContracts = {
@@ -93,8 +93,8 @@ const criterionContracts = {
     [CriterionTypeEnum.COUNTRIES]: collectionContract,
     [CriterionTypeEnum.GROUPING]: {
         family: 'grouping',
-        selector: 'button[data-autotest="criterion-grouping-groups"]'
-            + '[aria-haspopup="dialog"][aria-expanded="false"]',
+        selector:
+            'button[data-autotest="criterion-grouping-groups"]' + '[aria-haspopup="dialog"][aria-expanded="false"]',
     },
     [CriterionTypeEnum.TRANSACTION_TYPES]: collectionContract,
     [CriterionTypeEnum.TRANSACTION_STATUS]: collectionContract,
@@ -104,8 +104,8 @@ const criterionContracts = {
     [CriterionTypeEnum.MARKER_TYPE]: collectionContract,
     [CriterionTypeEnum.MARKER_STATUS]: {
         family: 'enum',
-        selector: '[role="button"][data-autotest="criterion-option"]'
-            + '[data-autotest-value="any"][aria-pressed="true"]',
+        selector:
+            '[role="button"][data-autotest="criterion-option"]' + '[data-autotest-value="any"][aria-pressed="true"]',
     },
     [CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE]: {
         family: 'processor-log',
@@ -117,8 +117,9 @@ const criterionContracts = {
     },
     [CriterionTypeEnum.TRANSACTION_SESSION_STATUS]: {
         family: 'session-status',
-        selector: 'button[data-autotest="criterion-transaction-session-status"]'
-            + '[data-autotest-value="APPROVED"][aria-haspopup="dialog"]',
+        selector:
+            'button[data-autotest="criterion-transaction-session-status"]' +
+            '[data-autotest-value="APPROVED"][aria-haspopup="dialog"]',
     },
     [CriterionTypeEnum.TRANSACTION_REPORT_SCOPE]: {
         family: 'enum',
@@ -203,14 +204,13 @@ describe('SearchUI 37-of-37 criterion contract', () => {
 
     it('renders one typed meaningful locator contract for every enum value', async () => {
         const criterionTypes = Object.values(CriterionTypeEnum)
-        const initialMultigetCriteria = Object.values(multigetEntityByCriterion)
-            .map(createMultigetCriterion)
+        const initialMultigetCriteria = Object.values(multigetEntityByCriterion).map(createMultigetCriterion)
         const onFiltersUpdate = jest.fn()
         const {container} = render(
             <SearchUIProvider defaults={{getSearchTemplates: neverResolves}}>
                 <SearchUIFilters
-                    autoTestId="criterion-contract"
-                    settingsContextName="criterion-contract-context"
+                    autoTestId='criterion-contract'
+                    settingsContextName='criterion-contract-context'
                     possibleCriteria={criterionTypes}
                     predefinedCriteria={criterionTypes}
                     exactSearchLabels={[ExactCriterionSearchLabelEnum.ID]}

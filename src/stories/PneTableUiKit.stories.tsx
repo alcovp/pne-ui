@@ -51,15 +51,17 @@ const FrameDemo = () => {
     return (
         <Box sx={{p: 3, maxWidth: 900}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 2}}>
-                The frame of a table by the UI Kit. The second column is sorted; click a header to sort by it.
-                The third row is picked. A row takes the hover fill under the pointer.
+                The frame of a table by the UI Kit. The second column is sorted; click a header to sort by it. The third
+                row is picked. A row takes the hover fill under the pointer.
             </Typography>
             <Table>
                 <TableHead>
                     <PneTableRow>
                         {COLUMNS.map((column, index) => (
                             <PneHeaderTableCell key={column} sortIndex={index} sortOptions={sortOptions}>
-                                <PneTableSortLabel sortIndex={index} sortOptions={sortOptions}>{column}</PneTableSortLabel>
+                                <PneTableSortLabel sortIndex={index} sortOptions={sortOptions}>
+                                    {column}
+                                </PneTableSortLabel>
                             </PneHeaderTableCell>
                         ))}
                     </PneTableRow>
@@ -81,12 +83,22 @@ const FrameDemo = () => {
 }
 
 export const Frame: Story = {
-    render: () => <FrameDemo/>,
+    render: () => <FrameDemo />,
 }
 
 const WIDE_COLUMNS = [
-    'Balance topup ID', 'Session ID', 'Transaction amount', 'Currency', 'Insert time stamp', 'Bank date',
-    'Transaction type ID', 'Transaction type', 'Transaction status ID', 'Transaction status', 'Manager', 'Merchant',
+    'Balance topup ID',
+    'Session ID',
+    'Transaction amount',
+    'Currency',
+    'Insert time stamp',
+    'Bank date',
+    'Transaction type ID',
+    'Transaction type',
+    'Transaction status ID',
+    'Transaction status',
+    'Manager',
+    'Merchant',
 ]
 
 // An empty table wider than its container: the message stands in the middle of what is seen and
@@ -101,17 +113,23 @@ export const EmptyWide: Story = {
                 createTableHeader={() => (
                     <PneTableRow>
                         {WIDE_COLUMNS.map(column => (
-                            <PneHeaderTableCell key={column} sx={{whiteSpace: 'nowrap'}}>{column}</PneHeaderTableCell>
+                            <PneHeaderTableCell key={column} sx={{whiteSpace: 'nowrap'}}>
+                                {column}
+                            </PneHeaderTableCell>
                         ))}
                     </PneTableRow>
                 )}
-                createRow={row => <PneTableRow key={row.id}><PneTableCell>{row.id}</PneTableCell></PneTableRow>}
+                createRow={row => (
+                    <PneTableRow key={row.id}>
+                        <PneTableCell>{row.id}</PneTableCell>
+                    </PneTableRow>
+                )}
             />
         </Box>
     ),
 }
 
-type Row = typeof ROWS[number]
+type Row = (typeof ROWS)[number]
 
 // Figma «PneTable — части», Cell: Header-island. A page with several tables, each under its own
 // heading: the header is a 24px strip on the sunken fill with 12/16 Medium text and no line under it.
@@ -128,7 +146,9 @@ const IslandTable = ({title}: {title: string}) => {
 
     return (
         <Box sx={{mb: 4}}>
-            <Typography component='h3' sx={{fontSize: 16, fontWeight: 600, lineHeight: '24px', mb: 1}}>{title}</Typography>
+            <Typography component='h3' sx={{fontSize: 16, fontWeight: 600, lineHeight: '24px', mb: 1}}>
+                {title}
+            </Typography>
             <PneTable<Row>
                 data={[...ROWS]}
                 headerVariant='island'
@@ -138,9 +158,13 @@ const IslandTable = ({title}: {title: string}) => {
                     <PneTableRow data-story-island-header>
                         {COLUMNS.map((column, index) => (
                             <PneHeaderTableCell key={column} sortIndex={index} sortOptions={sortOptions}>
-                                {index < 2
-                                    ? <PneTableSortLabel sortIndex={index} sortOptions={sortOptions}>{column}</PneTableSortLabel>
-                                    : column}
+                                {index < 2 ? (
+                                    <PneTableSortLabel sortIndex={index} sortOptions={sortOptions}>
+                                        {column}
+                                    </PneTableSortLabel>
+                                ) : (
+                                    column
+                                )}
                             </PneHeaderTableCell>
                         ))}
                     </PneTableRow>
@@ -165,8 +189,8 @@ export const IslandHeader: Story = {
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 2}}>
                 The island header (headerVariant island): the header of a table that is one of several on its page.
             </Typography>
-            <IslandTable title='Last transactions'/>
-            <IslandTable title='Refunds'/>
+            <IslandTable title='Last transactions' />
+            <IslandTable title='Refunds' />
         </Box>
     ),
     play: ({canvasElement}) => {
@@ -191,11 +215,13 @@ const CellsDemo = () => {
 
     return (
         <Box sx={{p: 3, maxWidth: 900}}>
-            <Typography data-story-cells-message sx={{fontSize: 14, color: 'text.secondary', mb: 2}}>{message}</Typography>
+            <Typography data-story-cells-message sx={{fontSize: 14, color: 'text.secondary', mb: 2}}>
+                {message}
+            </Typography>
             <Table>
                 <TableHead>
                     <PneTableRow>
-                        <PneHeaderTableCell/>
+                        <PneHeaderTableCell />
                         <PneHeaderTableCell>ID</PneHeaderTableCell>
                         <PneHeaderTableCell>Merchant</PneHeaderTableCell>
                         <PneHeaderTableCell align='right'>Amount</PneHeaderTableCell>
@@ -222,10 +248,10 @@ const CellsDemo = () => {
                             <PneTableCell>{row.status}</PneTableCell>
                             <PneTableActionsCell>
                                 <PneTableAction onClick={() => setMessage(`View ${row.id}`)} tooltip='View'>
-                                    <VisibilityOutlinedIcon/>
+                                    <VisibilityOutlinedIcon />
                                 </PneTableAction>
                                 <PneTableAction onClick={() => setMessage(`Edit ${row.id}`)} tooltip='Edit'>
-                                    <ModeEditIcon/>
+                                    <ModeEditIcon />
                                 </PneTableAction>
                                 <PneTableAction
                                     disabled={row.status === 'Approved'}
@@ -233,7 +259,7 @@ const CellsDemo = () => {
                                     tone='danger'
                                     tooltip='Delete'
                                 >
-                                    <DeleteOutlinedIcon/>
+                                    <DeleteOutlinedIcon />
                                 </PneTableAction>
                             </PneTableActionsCell>
                         </PneTableRow>
@@ -245,7 +271,7 @@ const CellsDemo = () => {
 }
 
 export const Cells: Story = {
-    render: () => <CellsDemo/>,
+    render: () => <CellsDemo />,
     play: ({canvasElement}) => {
         const rows = canvasElement.querySelectorAll<HTMLElement>('[data-story-cells-row]')
         if (rows.length !== ROWS.length) {
@@ -254,7 +280,9 @@ export const Cells: Story = {
         rows.forEach(row => {
             // The 24px actions and the chevron must not make a row higher than the 40px of the UI Kit.
             if (row.getBoundingClientRect().height > 40) {
-                throw new Error(`A row with ready cells must stay 40px high, got ${row.getBoundingClientRect().height}px`)
+                throw new Error(
+                    `A row with ready cells must stay 40px high, got ${row.getBoundingClientRect().height}px`,
+                )
             }
         })
         const action = canvasElement.querySelector<HTMLElement>('[data-pne-cell="actions"] button')

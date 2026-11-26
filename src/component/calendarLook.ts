@@ -82,9 +82,10 @@ export const pneCalendarPopperSx: SxProps<Theme> = theme => {
             padding: '6px 4px',
             width: '40px',
         },
-        '& .MuiMultiSectionDigitalClockSection-item:hover, & .MuiMultiSectionDigitalClockSection-item.Mui-focusVisible': {
-            backgroundColor: pne.table.band.tabs.fill,
-        },
+        '& .MuiMultiSectionDigitalClockSection-item:hover, & .MuiMultiSectionDigitalClockSection-item.Mui-focusVisible':
+            {
+                backgroundColor: pne.table.band.tabs.fill,
+            },
         [CLOCK_PICKED]: solid,
         '& .MuiPickersLayout-root .MuiDivider-root': {
             borderColor: pne.dropdown.panel.ring,

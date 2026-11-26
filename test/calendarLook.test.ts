@@ -21,13 +21,15 @@ describe('pneCalendarPopperSx', () => {
             fontSize: '14px',
             minHeight: '32px',
         })
-        const picked = Object.keys(rules).find(selector => selector.startsWith(
-            '& .MuiMultiSectionDigitalClockSection-item.Mui-selected',
-        )) as string
-        expect(rules[picked].backgroundColor).toBe(rules[
-            '& .MuiDateRangePickerDay-root.Mui-selected:not(.MuiDateRangePickerDay-insideSelection), '
-            + '& .MuiPickerDay-root.Mui-selected'
-        ].backgroundColor)
+        const picked = Object.keys(rules).find(selector =>
+            selector.startsWith('& .MuiMultiSectionDigitalClockSection-item.Mui-selected'),
+        ) as string
+        expect(rules[picked].backgroundColor).toBe(
+            rules[
+                '& .MuiDateRangePickerDay-root.Mui-selected:not(.MuiDateRangePickerDay-insideSelection), ' +
+                    '& .MuiPickerDay-root.Mui-selected'
+            ].backgroundColor,
+        )
     })
 
     it('draws a day as the UI Kit Date picker/Day cell: 36x32, radius 4, no gap in a week', () => {
@@ -55,9 +57,11 @@ describe('pneCalendarPopperSx', () => {
         expect(rules[`${end}::before`]).toMatchObject({backgroundColor: 'transparent'})
         expect(typeof solid.backgroundColor).toBe('string')
         expect(solid.backgroundColor).not.toBe(rules['& .MuiDateRangePickerDay-root::before'].backgroundColor)
-        expect(rules['& .MuiDateRangePickerDay-selectionStart:not(.MuiDateRangePickerDay-selectionEnd)'])
-            .toMatchObject({borderRadius: '4px 0 0 4px'})
-        expect(rules['& .MuiDateRangePickerDay-selectionEnd:not(.MuiDateRangePickerDay-selectionStart)'])
-            .toMatchObject({borderRadius: '0 4px 4px 0'})
+        expect(rules['& .MuiDateRangePickerDay-selectionStart:not(.MuiDateRangePickerDay-selectionEnd)']).toMatchObject(
+            {borderRadius: '4px 0 0 4px'},
+        )
+        expect(rules['& .MuiDateRangePickerDay-selectionEnd:not(.MuiDateRangePickerDay-selectionStart)']).toMatchObject(
+            {borderRadius: '0 4px 4px 0'},
+        )
     })
 })

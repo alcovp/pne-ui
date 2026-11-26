@@ -10,7 +10,14 @@ import type {PneDropdownPalette} from '../../dropdownPalette'
 import {PNE_FIELD_SIZE, PNE_FIELD_SIZES, PNE_LIST_MAX_ROWS, type PneFieldSize} from '../fieldSize'
 
 const ChevronDownSvg = createSvgIcon(
-    <path d='M6 9l6 5.8L18 9' fill='none' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5}/>,
+    <path
+        d='M6 9l6 5.8L18 9'
+        fill='none'
+        stroke='currentColor'
+        strokeLinecap='round'
+        strokeLinejoin='round'
+        strokeWidth={1.5}
+    />,
     'PneChevronDown',
 )
 
@@ -18,15 +25,17 @@ const ChevronDownSvg = createSvgIcon(
  * UI Kit IcChevronChevronDown in MUI's own select icon slot, so MUI places it and turns it over
  * while the list is open; `pneSelectIconSx` gives it the UI Kit size.
  */
-export const PneChevronDownIcon = ({className, ...props}: SvgIconProps) =>
-    <ChevronDownSvg {...props} className={className ? `${className} PneSelect-chevron` : 'PneSelect-chevron'}/>
+export const PneChevronDownIcon = ({className, ...props}: SvgIconProps) => (
+    <ChevronDownSvg {...props} className={className ? `${className} PneSelect-chevron` : 'PneSelect-chevron'} />
+)
 
 export {PneCloseIcon} from '../PneCloseIcon'
 
 // UI Kit IcActionApprove, drawn by CSS on the picked row so the row keeps the consumer's content.
-const CHECK_MASK = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
-    + '%3Cpath d=\'M5 14l3.5 3.5L19 6.5\' fill=\'none\' stroke=\'%23000\' stroke-linecap=\'round\' '
-    + 'stroke-linejoin=\'round\' stroke-width=\'1.5\'/%3E%3C/svg%3E")'
+const CHECK_MASK =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E" +
+    "%3Cpath d='M5 14l3.5 3.5L19 6.5' fill='none' stroke='%23000' stroke-linecap='round' " +
+    "stroke-linejoin='round' stroke-width='1.5'/%3E%3C/svg%3E\")"
 
 type Rules = Record<string, SystemStyleObject<Theme>>
 
@@ -52,9 +61,10 @@ const rowStyle = (dropdown: PneDropdownPalette): SystemStyleObject<Theme> => ({
 })
 
 // UI Kit IcStatusWarning before the text of a failed load.
-const WARNING_MASK = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
-    + '%3Cpath d=\'M12 4.5 3.5 19h17L12 4.5ZM12 10v4.5M12 17v.2\' fill=\'none\' stroke=\'%23000\' '
-    + 'stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\'/%3E%3C/svg%3E")'
+const WARNING_MASK =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E" +
+    "%3Cpath d='M12 4.5 3.5 19h17L12 4.5ZM12 10v4.5M12 17v.2' fill='none' stroke='%23000' " +
+    "stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'/%3E%3C/svg%3E\")"
 
 const spinnerRotation = keyframes({
     from: {transform: 'rotate(0deg)'},
@@ -191,12 +201,13 @@ export const pneSelectIconSx: SxProps<Theme> = theme => {
 const checkboxImage = (colors: PneCheckboxStateColors, checked: boolean): string => {
     const ring = colors.ring === 'transparent' ? colors.fill : colors.ring
     const mark = checked
-        ? `<path d='M4.2 8.2 L6.6 10.6 L11.8 5.4' fill='none' stroke='${colors.mark}' stroke-linecap='round' `
-            + 'stroke-linejoin=\'round\' stroke-width=\'1.5\'/>'
+        ? `<path d='M4.2 8.2 L6.6 10.6 L11.8 5.4' fill='none' stroke='${colors.mark}' stroke-linecap='round' ` +
+          "stroke-linejoin='round' stroke-width='1.5'/>"
         : ''
-    const svg = '<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 16 16\'>'
-        + `<rect x='1.75' y='1.75' width='12.5' height='12.5' rx='2.25' fill='${colors.fill}' stroke='${ring}' `
-        + `stroke-width='1.5'/>${mark}</svg>`
+    const svg =
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'>" +
+        `<rect x='1.75' y='1.75' width='12.5' height='12.5' rx='2.25' fill='${colors.fill}' stroke='${ring}' ` +
+        `stroke-width='1.5'/>${mark}</svg>`
     return `url("data:image/svg+xml,${encodeURIComponent(svg)}")`
 }
 
@@ -310,8 +321,9 @@ const paperSizeRules = (size: PneFieldSize): Rules => {
     const option = `${listbox} .MuiAutocomplete-option`
     const multiOption = `${listbox}[aria-multiselectable="true"]:not([data-pne-rows="own"]) .MuiAutocomplete-option`
     const status = `${root} .MuiAutocomplete-noOptions, ${root} .MuiAutocomplete-loading`
-    const statusIcon = `${root} .MuiAutocomplete-loading::before, `
-        + `${root}[data-pne-status="error"] .MuiAutocomplete-noOptions::before`
+    const statusIcon =
+        `${root} .MuiAutocomplete-loading::before, ` +
+        `${root}[data-pne-status="error"] .MuiAutocomplete-noOptions::before`
     return {
         [listbox]: {maxHeight: listMaxHeight(size)},
         [option]: rowSizeStyle(size),
@@ -390,10 +402,11 @@ export const pneAutocompleteFieldSx: SxProps<Theme> = theme => {
         },
         // MUI pulls its delete icon over the label's padding; the badge spaces them by its gap.
         // The cross of the theme too: a chip a page renders as a value of this field.
-        [`& .MuiAutocomplete-tag .MuiChip-deleteIcon, & .MuiAutocomplete-tag .MuiChip-deleteIcon.${PNE_CHIP_REMOVE_CLASS}`]: {
-            flexShrink: 0,
-            margin: 0,
-        },
+        [`& .MuiAutocomplete-tag .MuiChip-deleteIcon, & .MuiAutocomplete-tag .MuiChip-deleteIcon.${PNE_CHIP_REMOVE_CLASS}`]:
+            {
+                flexShrink: 0,
+                margin: 0,
+            },
         '& .MuiAutocomplete-tag .MuiChip-deleteIcon.PneAutocomplete-icon': {
             color: chip.remove,
         },

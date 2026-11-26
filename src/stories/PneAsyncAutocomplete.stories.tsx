@@ -25,7 +25,7 @@ type Story = StoryObj<PlaygroundArgs>
 
 const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 
-type Account = {id: number, displayName: string}
+type Account = {id: number; displayName: string}
 
 const ACCOUNTS: readonly Account[] = [
     {id: 1, displayName: 'Acme Europe'},
@@ -60,7 +60,8 @@ const search = (query: string): readonly Account[] => {
         : ACCOUNTS.filter(account => account.displayName.toLowerCase().includes(normalized))
 }
 
-const createLoader = ({delay, fail}: {delay: number, fail: boolean}): PneLoadOptions<Account> =>
+const createLoader =
+    ({delay, fail}: {delay: number; fail: boolean}): PneLoadOptions<Account> =>
     async (query, {signal}) => {
         await abortableDelay(delay, signal)
         if (fail) {
@@ -89,8 +90,8 @@ export const States: Story = {
     render: () => (
         <Box sx={{p: 3, minHeight: 420}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 3, maxWidth: 900}}>
-                The open list in each state of a remote search: options, loading (the spinner stands in the list),
-                a failed load (an error row), a query shorter than <code>minQueryLength</code> and nothing found.
+                The open list in each state of a remote search: options, loading (the spinner stands in the list), a
+                failed load (an error row), a query shorter than <code>minQueryLength</code> and nothing found.
             </Typography>
             <Stack direction='row' spacing={3} sx={{alignItems: 'flex-start'}}>
                 {STATE_COLUMNS.map(column => (
@@ -117,7 +118,7 @@ export const States: Story = {
     ),
 }
 
-type LogEntry = {at: string, text: string}
+type LogEntry = {at: string; text: string}
 
 const timestamp = () => new Date().toLocaleTimeString('ru-RU', {hour12: false})
 
@@ -128,13 +129,17 @@ const DynamicsDemo = () => {
         [],
     )
     const [value, setValue] = React.useState<Account | null>(null)
-    const loadOptions = React.useMemo<PneLoadOptions<Account>>(() => async (query, {reason, signal}) => {
-        log(`Запрос «${query}» (${reason})`)
-        await abortableDelay(600, signal)
-        const found = search(query)
-        log(found.length === 0 ? 'Ответ: ничего не найдено' : `Ответ: ${found.length}`)
-        return found
-    }, [log])
+    const loadOptions = React.useMemo<PneLoadOptions<Account>>(
+        () =>
+            async (query, {reason, signal}) => {
+                log(`Запрос «${query}» (${reason})`)
+                await abortableDelay(600, signal)
+                const found = search(query)
+                log(found.length === 0 ? 'Ответ: ничего не найдено' : `Ответ: ${found.length}`)
+                return found
+            },
+        [log],
+    )
 
     return (
         <Stack spacing={3} sx={{p: 3, maxWidth: 560, minHeight: 480}}>
@@ -158,7 +163,11 @@ const DynamicsDemo = () => {
             <Box>
                 <Typography sx={{...CAPTION_SX, mb: 0.5}}>Лог</Typography>
                 <Box component='ul' sx={{m: 0, pl: 2, fontSize: 12, lineHeight: '18px', color: 'text.secondary'}}>
-                    {entries.map((entry, index) => <li key={index}>{entry.at} — {entry.text}</li>)}
+                    {entries.map((entry, index) => (
+                        <li key={index}>
+                            {entry.at} — {entry.text}
+                        </li>
+                    ))}
                 </Box>
             </Box>
         </Stack>
@@ -167,7 +176,7 @@ const DynamicsDemo = () => {
 
 export const Dynamics: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <DynamicsDemo/>,
+    render: () => <DynamicsDemo />,
 }
 
 const PlaygroundDemo = ({controlled, delay, fail, minQueryLength}: PlaygroundArgs) => {
@@ -179,9 +188,11 @@ const PlaygroundDemo = ({controlled, delay, fail, minQueryLength}: PlaygroundArg
     return (
         <Box sx={{p: 3, width: 360}}>
             <PneAsyncAutocomplete<Account>
-                helperText={controlled
-                    ? 'The story controls both popup and query state.'
-                    : 'Type to load matching remote accounts.'}
+                helperText={
+                    controlled
+                        ? 'The story controls both popup and query state.'
+                        : 'Type to load matching remote accounts.'
+                }
                 inputValue={controlled ? inputValue : undefined}
                 label='Account'
                 loadErrorText='Accounts could not be loaded'
@@ -202,5 +213,5 @@ const PlaygroundDemo = ({controlled, delay, fail, minQueryLength}: PlaygroundArg
 
 /** Remote search with cancellation and explicit reloads; the component does not debounce calls. */
 export const Playground: Story = {
-    render: args => <PlaygroundDemo {...args}/>,
+    render: args => <PlaygroundDemo {...args} />,
 }

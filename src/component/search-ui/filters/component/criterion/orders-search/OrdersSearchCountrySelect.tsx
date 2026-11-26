@@ -1,17 +1,14 @@
-import React, {use, useEffect, useState} from 'react';
-import {Box, Chip} from '@mui/material';
-import {PneChevronDownIcon} from '../../../../../dropdown/dropdownLook';
-import {useSearchUIFiltersStore} from "../../../state/store";
-import {chipChevronSx, selectUnderChipSx} from '../../select/style';
-import PneSelect from '../../../../../dropdown/PneSelect';
-import {SearchUIDefaultsContext} from "../../../../SearchUIProvider";
-import {Country} from '../../../../../../common';
-import {useTranslation} from "react-i18next";
-import {createAutoTestAttributes} from '../../../../../AutoTestAttribute';
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../../AutoTestScope';
+import React, {use, useEffect, useState} from 'react'
+import {Box, Chip} from '@mui/material'
+import {PneChevronDownIcon} from '../../../../../dropdown/dropdownLook'
+import {useSearchUIFiltersStore} from '../../../state/store'
+import {chipChevronSx, selectUnderChipSx} from '../../select/style'
+import PneSelect from '../../../../../dropdown/PneSelect'
+import {SearchUIDefaultsContext} from '../../../../SearchUIProvider'
+import {Country} from '../../../../../../common'
+import {useTranslation} from 'react-i18next'
+import {createAutoTestAttributes} from '../../../../../AutoTestAttribute'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../../AutoTestScope'
 
 const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input'
 const CRITERION_INPUT_OPTIONS_AUTOTEST_ID = 'criterion-input-options'
@@ -55,9 +52,7 @@ export const OrdersSearchCountrySelect = () => {
     }, [getCountries])
 
     const [open, setOpen] = useState(false)
-    const selectedCountry = availableCountries.find(country => (
-        String(country.id) === ordersSearchValue
-    ))
+    const selectedCountry = availableCountries.find(country => String(country.id) === ordersSearchValue)
     const disabled = loading || availableCountries.length === 0
     const inputAriaLabel = t('react.searchUI.ordersSearch.value', {defaultValue: 'Order search value'})
 
@@ -70,47 +65,43 @@ export const OrdersSearchCountrySelect = () => {
         if (!disabled) setOpen(true)
     }
 
-    return <Box sx={{position: 'relative'}}>
-        <Chip
-            onDelete={openSelect}
-            deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
-            label={selectedCountry?.displayName ?? t('react.searchUI.countrySelectPlaceholder')}
-            size={'small'}
-            aria-hidden={true}
-            tabIndex={-1}
-            sx={{pointerEvents: 'none'}}
-        />
-        <PneSelect
-            size='large'
-            disabled={disabled}
-            open={open}
-            onClose={() => setOpen(false)}
-            onOpen={openSelect}
-            sx={selectUnderChipSx}
-            value={selectedCountry ?? null}
-            onChange={country => {
-                setOrderSearchCriterionValue(String(country.id))
-            }}
-            options={availableCountries}
-            getOptionKey={country => country.id}
-            getOptionLabel={country => country.displayName}
-            getOptionProps={option => createAutoTestAttributes(
-                CRITERION_INPUT_OPTION_AUTOTEST_ID,
-                option.id,
-            )}
-            MenuProps={{
-                slotProps: {
-                    list: createSearchUIOwnedAutoTestAttributes(
-                        CRITERION_INPUT_OPTIONS_AUTOTEST_ID,
-                        autoTestOwner,
-                    ),
-                },
-            }}
-            SelectDisplayProps={{
-                ...createAutoTestAttributes(CRITERION_INPUT_AUTOTEST_ID, selectedCountry?.id),
-                'aria-label': inputAriaLabel,
-                'aria-busy': loading,
-            }}
-        />
-    </Box>
+    return (
+        <Box sx={{position: 'relative'}}>
+            <Chip
+                onDelete={openSelect}
+                deleteIcon={<PneChevronDownIcon sx={chipChevronSx} />}
+                label={selectedCountry?.displayName ?? t('react.searchUI.countrySelectPlaceholder')}
+                size={'small'}
+                aria-hidden={true}
+                tabIndex={-1}
+                sx={{pointerEvents: 'none'}}
+            />
+            <PneSelect
+                size='large'
+                disabled={disabled}
+                open={open}
+                onClose={() => setOpen(false)}
+                onOpen={openSelect}
+                sx={selectUnderChipSx}
+                value={selectedCountry ?? null}
+                onChange={country => {
+                    setOrderSearchCriterionValue(String(country.id))
+                }}
+                options={availableCountries}
+                getOptionKey={country => country.id}
+                getOptionLabel={country => country.displayName}
+                getOptionProps={option => createAutoTestAttributes(CRITERION_INPUT_OPTION_AUTOTEST_ID, option.id)}
+                MenuProps={{
+                    slotProps: {
+                        list: createSearchUIOwnedAutoTestAttributes(CRITERION_INPUT_OPTIONS_AUTOTEST_ID, autoTestOwner),
+                    },
+                }}
+                SelectDisplayProps={{
+                    ...createAutoTestAttributes(CRITERION_INPUT_AUTOTEST_ID, selectedCountry?.id),
+                    'aria-label': inputAriaLabel,
+                    'aria-busy': loading,
+                }}
+            />
+        </Box>
+    )
 }

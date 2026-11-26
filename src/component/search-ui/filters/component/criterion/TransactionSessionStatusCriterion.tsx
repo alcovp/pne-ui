@@ -1,42 +1,30 @@
 import React from 'react'
-import { Box, Chip, FormControlLabel, SxProps } from '@mui/material'
-import type { Theme } from '@mui/material/styles'
+import {Box, Chip, FormControlLabel, SxProps} from '@mui/material'
+import type {Theme} from '@mui/material/styles'
 import PneSelect from '../../../../dropdown/PneSelect'
-import { PneCheckbox } from '../../../../PneCheckbox'
+import {PneCheckbox} from '../../../../PneCheckbox'
 import PneModal from '../../../../PneModal'
 import useModal from '../../../../useModal'
-import { useSearchUIFiltersStore } from '../../state/store'
-import { TransactionSessionGroup, TransactionSessionStatus } from '../../types'
-import { useTranslation } from 'react-i18next'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {TransactionSessionGroup, TransactionSessionStatus} from '../../types'
+import {useTranslation} from 'react-i18next'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 import {searchUIFocusRingSx} from '../../styled'
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
 
 const CRITERION_TRANSACTION_SESSION_STATUS_AUTOTEST_ID = 'criterion-transaction-session-status'
-const CRITERION_TRANSACTION_SESSION_STATUS_GROUP_VALUE_AUTOTEST_ID =
-    'criterion-transaction-session-status-group-value'
-const CRITERION_TRANSACTION_SESSION_STATUS_GROUP_AUTOTEST_ID =
-    'criterion-transaction-session-status-group'
+const CRITERION_TRANSACTION_SESSION_STATUS_GROUP_VALUE_AUTOTEST_ID = 'criterion-transaction-session-status-group-value'
+const CRITERION_TRANSACTION_SESSION_STATUS_GROUP_AUTOTEST_ID = 'criterion-transaction-session-status-group'
 const CRITERION_TRANSACTION_SESSION_STATUS_GROUP_OPTIONS_AUTOTEST_ID =
     'criterion-transaction-session-status-group-options'
 const CRITERION_TRANSACTION_SESSION_STATUS_GROUP_OPTION_AUTOTEST_ID =
     'criterion-transaction-session-status-group-option'
-const CRITERION_TRANSACTION_SESSION_STATUS_OPTION_AUTOTEST_ID =
-    'criterion-transaction-session-status-option'
-const CRITERION_TRANSACTION_SESSION_STATUS_PANEL_AUTOTEST_ID =
-    'criterion-transaction-session-status-panel'
-const CRITERION_TRANSACTION_SESSION_STATUS_VALUE_AUTOTEST_ID =
-    'criterion-transaction-session-status-value'
+const CRITERION_TRANSACTION_SESSION_STATUS_OPTION_AUTOTEST_ID = 'criterion-transaction-session-status-option'
+const CRITERION_TRANSACTION_SESSION_STATUS_PANEL_AUTOTEST_ID = 'criterion-transaction-session-status-panel'
+const CRITERION_TRANSACTION_SESSION_STATUS_VALUE_AUTOTEST_ID = 'criterion-transaction-session-status-value'
 
 export const TransactionSessionStatusCriterion = () => {
-    const {
-        open,
-        handleOpen,
-        handleClose,
-    } = useModal()
+    const {open, handleOpen, handleClose} = useModal()
 
     const {t} = useTranslation()
     const autoTestOwner = useSearchUIAutoTestScope()
@@ -47,23 +35,23 @@ export const TransactionSessionStatusCriterion = () => {
     const setGroup = useSearchUIFiltersStore(s => s.setTransactionSessionStatusGroupCriterion)
     const setStatuses = useSearchUIFiltersStore(s => s.setTransactionSessionStatusesCriterion)
     const availableStatuses = useSearchUIFiltersStore(s => s.prefetchedData.transactionSessionStatuses)
-    const loading = useSearchUIFiltersStore(
-        s => s.prefetchedDataLoading.transactionSessionStatuses,
-    )
+    const loading = useSearchUIFiltersStore(s => s.prefetchedDataLoading.transactionSessionStatuses)
 
-    const copyStatuses = (statuses: TransactionSessionStatus[]) => statuses.map(status => ({ ...status }))
+    const copyStatuses = (statuses: TransactionSessionStatus[]) => statuses.map(status => ({...status}))
 
     const toggleStatus = (statusDisplayName: string) => {
-        setStatuses(transactionSessionStatuses.map(status => {
-            if (status.displayName !== statusDisplayName) {
-                return status
-            }
+        setStatuses(
+            transactionSessionStatuses.map(status => {
+                if (status.displayName !== statusDisplayName) {
+                    return status
+                }
 
-            return {
-                ...status,
-                selected: !status.selected,
-            }
-        }))
+                return {
+                    ...status,
+                    selected: !status.selected,
+                }
+            }),
+        )
     }
 
     const changeGroup = (group: TransactionSessionGroup) => {
@@ -81,120 +69,124 @@ export const TransactionSessionStatusCriterion = () => {
         defaultValue: 'Transaction session status group',
     })
     const modalTitle = t('react.searchUI.addSessionStatusTitle')
-    const groupValue = groupOptions.includes(transactionSessionStatusGroup)
-        ? transactionSessionStatusGroup
-        : null
+    const groupValue = groupOptions.includes(transactionSessionStatusGroup) ? transactionSessionStatusGroup : null
 
-    return <>
-        <Box
-            {...createAutoTestAttributes(
-                CRITERION_TRANSACTION_SESSION_STATUS_AUTOTEST_ID,
-                transactionSessionStatusGroup,
-            )}
-            component='button'
-            type='button'
-            sx={containerSx}
-            onClick={handleOpen}
-            aria-label={triggerLabel}
-            aria-controls={open ? panelId : undefined}
-            aria-expanded={open}
-            aria-haspopup='dialog'
-            aria-busy={loading}
-        >
-            <Box sx={chipsRowSx}>
-                <Chip
-                    {...createAutoTestAttributes(
-                        CRITERION_TRANSACTION_SESSION_STATUS_GROUP_VALUE_AUTOTEST_ID,
-                        transactionSessionStatusGroup,
-                    )}
-                    data-pne-tone='neutral'
-                    label={transactionSessionStatusGroup}
-                    size={'small'}
-                />
-            </Box>
-            <Box sx={chipsRowSx}>
-                {selectedStatuses.map(status =>
+    return (
+        <>
+            <Box
+                {...createAutoTestAttributes(
+                    CRITERION_TRANSACTION_SESSION_STATUS_AUTOTEST_ID,
+                    transactionSessionStatusGroup,
+                )}
+                component='button'
+                type='button'
+                sx={containerSx}
+                onClick={handleOpen}
+                aria-label={triggerLabel}
+                aria-controls={open ? panelId : undefined}
+                aria-expanded={open}
+                aria-haspopup='dialog'
+                aria-busy={loading}
+            >
+                <Box sx={chipsRowSx}>
                     <Chip
                         {...createAutoTestAttributes(
-                            CRITERION_TRANSACTION_SESSION_STATUS_VALUE_AUTOTEST_ID,
-                            status.displayName,
-                        )}
-                        label={status.displayName}
-                        size={'small'}
-                        key={status.displayName}
-                    />)
-                }
-            </Box>
-        </Box>
-        <PneModal
-            open={open}
-            onClose={handleClose}
-            title={modalTitle}
-            containerSx={modalContainerSx}
-            closeLabel={t('close', {defaultValue: 'Close'})}
-            slotProps={{
-                container: {
-                    ...createSearchUIOwnedAutoTestAttributes(
-                        CRITERION_TRANSACTION_SESSION_STATUS_PANEL_AUTOTEST_ID,
-                        autoTestOwner,
-                    ),
-                    id: panelId,
-                    'aria-busy': loading,
-                },
-            }}
-        >
-            <Box sx={modalContentSx}>
-                <PneSelect
-                    size='medium'
-                    value={groupValue}
-                    onChange={changeGroup}
-                    options={groupOptions}
-                    label={groupLabel}
-                    disabled={loading || groupOptions.length === 0}
-                    getOptionProps={option => createAutoTestAttributes(
-                        CRITERION_TRANSACTION_SESSION_STATUS_GROUP_OPTION_AUTOTEST_ID,
-                        option,
-                    )}
-                    MenuProps={{
-                        slotProps: {
-                            list: createSearchUIOwnedAutoTestAttributes(
-                                CRITERION_TRANSACTION_SESSION_STATUS_GROUP_OPTIONS_AUTOTEST_ID,
-                                autoTestOwner,
-                            ),
-                        },
-                    }}
-                    SelectDisplayProps={{
-                        ...createAutoTestAttributes(
-                            CRITERION_TRANSACTION_SESSION_STATUS_GROUP_AUTOTEST_ID,
+                            CRITERION_TRANSACTION_SESSION_STATUS_GROUP_VALUE_AUTOTEST_ID,
                             transactionSessionStatusGroup,
-                        ),
-                        'aria-label': groupLabel,
-                        'aria-busy': loading,
-                    }}
-                />
-                <Box sx={checkboxesSx}>
-                    {transactionSessionStatuses.map(status => (
-                        <Box key={status.displayName} sx={checkboxItemSx}>
-                            <FormControlLabel
-                                label={status.displayName}
-                                control={<PneCheckbox
-                                    checked={status.selected}
-                                    disabled={loading}
-                                    onChange={() => toggleStatus(status.displayName)}
-                                    slotProps={{
-                                        input: createAutoTestAttributes(
-                                            CRITERION_TRANSACTION_SESSION_STATUS_OPTION_AUTOTEST_ID,
-                                            status.displayName,
-                                        ),
-                                    }}
-                                />}
-                            />
-                        </Box>
+                        )}
+                        data-pne-tone='neutral'
+                        label={transactionSessionStatusGroup}
+                        size={'small'}
+                    />
+                </Box>
+                <Box sx={chipsRowSx}>
+                    {selectedStatuses.map(status => (
+                        <Chip
+                            {...createAutoTestAttributes(
+                                CRITERION_TRANSACTION_SESSION_STATUS_VALUE_AUTOTEST_ID,
+                                status.displayName,
+                            )}
+                            label={status.displayName}
+                            size={'small'}
+                            key={status.displayName}
+                        />
                     ))}
                 </Box>
             </Box>
-        </PneModal>
-    </>
+            <PneModal
+                open={open}
+                onClose={handleClose}
+                title={modalTitle}
+                containerSx={modalContainerSx}
+                closeLabel={t('close', {defaultValue: 'Close'})}
+                slotProps={{
+                    container: {
+                        ...createSearchUIOwnedAutoTestAttributes(
+                            CRITERION_TRANSACTION_SESSION_STATUS_PANEL_AUTOTEST_ID,
+                            autoTestOwner,
+                        ),
+                        id: panelId,
+                        'aria-busy': loading,
+                    },
+                }}
+            >
+                <Box sx={modalContentSx}>
+                    <PneSelect
+                        size='medium'
+                        value={groupValue}
+                        onChange={changeGroup}
+                        options={groupOptions}
+                        label={groupLabel}
+                        disabled={loading || groupOptions.length === 0}
+                        getOptionProps={option =>
+                            createAutoTestAttributes(
+                                CRITERION_TRANSACTION_SESSION_STATUS_GROUP_OPTION_AUTOTEST_ID,
+                                option,
+                            )
+                        }
+                        MenuProps={{
+                            slotProps: {
+                                list: createSearchUIOwnedAutoTestAttributes(
+                                    CRITERION_TRANSACTION_SESSION_STATUS_GROUP_OPTIONS_AUTOTEST_ID,
+                                    autoTestOwner,
+                                ),
+                            },
+                        }}
+                        SelectDisplayProps={{
+                            ...createAutoTestAttributes(
+                                CRITERION_TRANSACTION_SESSION_STATUS_GROUP_AUTOTEST_ID,
+                                transactionSessionStatusGroup,
+                            ),
+                            'aria-label': groupLabel,
+                            'aria-busy': loading,
+                        }}
+                    />
+                    <Box sx={checkboxesSx}>
+                        {transactionSessionStatuses.map(status => (
+                            <Box key={status.displayName} sx={checkboxItemSx}>
+                                <FormControlLabel
+                                    label={status.displayName}
+                                    control={
+                                        <PneCheckbox
+                                            checked={status.selected}
+                                            disabled={loading}
+                                            onChange={() => toggleStatus(status.displayName)}
+                                            slotProps={{
+                                                input: createAutoTestAttributes(
+                                                    CRITERION_TRANSACTION_SESSION_STATUS_OPTION_AUTOTEST_ID,
+                                                    status.displayName,
+                                                ),
+                                            }}
+                                        />
+                                    }
+                                />
+                            </Box>
+                        ))}
+                    </Box>
+                </Box>
+            </PneModal>
+        </>
+    )
 }
 
 export default TransactionSessionStatusCriterion

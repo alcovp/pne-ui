@@ -1,54 +1,54 @@
-import {MultigetSearchLabel, MultigetSelectActions, MultigetSelectStore} from './type';
-import {AbstractEntity, ZustandStoreGet, ZustandStoreImmerSet} from "../../../../common";
-import {MultichoiceFilterTypeEnum} from "../../filters/types";
+import {MultigetSearchLabel, MultigetSelectActions, MultigetSelectStore} from './type'
+import {AbstractEntity, ZustandStoreGet, ZustandStoreImmerSet} from '../../../../common'
+import {MultichoiceFilterTypeEnum} from '../../filters/types'
 
 export const getMultigetSelectActions = (
     set: ZustandStoreImmerSet<MultigetSelectStore>,
     _get: ZustandStoreGet<MultigetSelectStore>,
 ): MultigetSelectActions => ({
     setFilterType: (searchType: MultichoiceFilterTypeEnum) => {
-        set((draft) => {
+        set(draft => {
             draft.filterType = searchType
         })
     },
     setOnlyEnabledStatus: (onlyEnabledStatus: boolean) => {
-        set((draft) => {
+        set(draft => {
             draft.onlyEnabledStatus = onlyEnabledStatus
             draft.currentPage = 1
         })
     },
     setSearchString: (searchString: string) => {
-        set((draft) => {
+        set(draft => {
             draft.searchString = searchString
         })
     },
     setSearchLabel: (searchLabel: MultigetSearchLabel) => {
-        set((draft) => {
+        set(draft => {
             draft.searchLabel = searchLabel
         })
     },
     setAvailableItems: (items: AbstractEntity[]) => {
-        set((draft) => {
+        set(draft => {
             draft.availableItems = items
         })
     },
     setSelectedItems: (items: AbstractEntity[]) => {
-        set((draft) => {
+        set(draft => {
             draft.selectedItems = items
         })
     },
     setCurrentPage: currentPage => {
-        set((draft) => {
+        set(draft => {
             draft.currentPage = currentPage
         })
     },
     setHasNextPage: hasNextPage => {
-        set((draft) => {
+        set(draft => {
             draft.hasNextPage = hasNextPage
         })
     },
     setLoading: isLoading => {
-        set((draft) => {
+        set(draft => {
             draft.isLoading = isLoading
         })
     },

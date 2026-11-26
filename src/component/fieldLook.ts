@@ -16,9 +16,10 @@ const FILLED = '.MuiFilledInput-root.MuiInputBase-root'
 const HOVER = ':hover:not(.Mui-disabled):not(.Mui-focused):not(.Mui-error)'
 
 // UI Kit IcStatusWarning before the error text of a field.
-const WARNING_MASK = 'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'%3E'
-    + '%3Cpath d=\'M12 4.5 3.5 19h17L12 4.5ZM12 10v4.5M12 17v.2\' fill=\'none\' stroke=\'%23000\' '
-    + 'stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\'/%3E%3C/svg%3E")'
+const WARNING_MASK =
+    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E" +
+    "%3Cpath d='M12 4.5 3.5 19h17L12 4.5ZM12 10v4.5M12 17v.2' fill='none' stroke='%23000' " +
+    "stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5'/%3E%3C/svg%3E\")"
 
 type Rules = Record<string, SystemStyleObject<Theme>>
 

@@ -77,8 +77,9 @@ describe('createPneButtonPalette', () => {
                 expect(getContrastRatio(color, '#F0F4F8')).toBeGreaterThanOrEqual(4.5)
             })
             expect(getContrastRatio(buttons.outline.default.border, '#FFFFFF')).toBeGreaterThanOrEqual(3)
-            expect(getContrastRatio(buttons.outline.pressed.text, '#FFFFFF'))
-                .toBeGreaterThanOrEqual(getContrastRatio(buttons.outline.default.text, '#FFFFFF'))
+            expect(getContrastRatio(buttons.outline.pressed.text, '#FFFFFF')).toBeGreaterThanOrEqual(
+                getContrastRatio(buttons.outline.default.text, '#FFFFFF'),
+            )
         })
 
         it('leaves a skin that already reads alone: the ring is its fill, the text one step darker', () => {

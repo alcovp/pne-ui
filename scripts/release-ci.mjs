@@ -5,8 +5,13 @@ import path from 'node:path'
 import {pathToFileURL} from 'node:url'
 import {gunzipSync} from 'node:zlib'
 import {
-    RELEASE_CONFIG, channelForVersion, ensureFreshVersion, readReleaseTag,
-    registrySnapshot, run, versionFromTag,
+    RELEASE_CONFIG,
+    channelForVersion,
+    ensureFreshVersion,
+    readReleaseTag,
+    registrySnapshot,
+    run,
+    versionFromTag,
 } from './release-common.mjs'
 
 const REGISTRY = 'https://registry.npmjs.org'
@@ -21,41 +26,69 @@ async function readRegularFile(filename) {
 }
 
 function verifyPackage(manifest, expected) {
-    if (manifest.name !== RELEASE_CONFIG.packageName || manifest.private === true
-        || manifest.repository?.type !== 'git'
-        || manifest.repository?.url !== `git+https://github.com/${RELEASE_CONFIG.repository}.git`
-        || manifest.main !== 'cjs/index.js' || manifest.module !== 'esm/index.js'
-        || manifest.types !== './esm/index.d.ts') throw new Error('Invalid release package metadata or entry points')
+    if (
+        manifest.name !== RELEASE_CONFIG.packageName ||
+        manifest.private === true ||
+        manifest.repository?.type !== 'git' ||
+        manifest.repository?.url !== `git+https://github.com/${RELEASE_CONFIG.repository}.git` ||
+        manifest.main !== 'cjs/index.js' ||
+        manifest.module !== 'esm/index.js' ||
+        manifest.types !== './esm/index.d.ts'
+    )
+        throw new Error('Invalid release package metadata or entry points')
     channelForVersion(manifest.version)
-    if (expected && !isDeepStrictEqual(manifest, expected)) throw new Error('Archive package.json differs from the checked package')
+    if (expected && !isDeepStrictEqual(manifest, expected))
+        throw new Error('Archive package.json differs from the checked package')
 }
 
 /**
  * Check the event, annotated tag and checkout before any privileged operation. A run starts from the
  * tag push or, when GitHub created no run for it, by hand on the same tag (`workflow_dispatch`).
  */
-export async function validateContext({cwd = process.cwd(), env = process.env, runImpl = run, readReleaseTagImpl = readReleaseTag} = {}) {
+export async function validateContext({
+    cwd = process.cwd(),
+    env = process.env,
+    runImpl = run,
+    readReleaseTagImpl = readReleaseTag,
+} = {}) {
     const ref = env.GITHUB_REF
-    if (env.GITHUB_ACTIONS !== 'true' || !['push', 'workflow_dispatch'].includes(env.GITHUB_EVENT_NAME)
-        || env.RUNNER_ENVIRONMENT !== 'github-hosted'
-        || env.GITHUB_SERVER_URL !== 'https://github.com' || env.GITHUB_REPOSITORY !== RELEASE_CONFIG.repository
-        || env.GITHUB_REF_TYPE !== 'tag' || typeof ref !== 'string' || !ref.startsWith('refs/tags/')) {
+    if (
+        env.GITHUB_ACTIONS !== 'true' ||
+        !['push', 'workflow_dispatch'].includes(env.GITHUB_EVENT_NAME) ||
+        env.RUNNER_ENVIRONMENT !== 'github-hosted' ||
+        env.GITHUB_SERVER_URL !== 'https://github.com' ||
+        env.GITHUB_REPOSITORY !== RELEASE_CONFIG.repository ||
+        env.GITHUB_REF_TYPE !== 'tag' ||
+        typeof ref !== 'string' ||
+        !ref.startsWith('refs/tags/')
+    ) {
         throw new Error('Publication requires the canonical GitHub release-tag context')
     }
     const tag = ref.slice('refs/tags/'.length)
     const version = versionFromTag(tag)
-    if (env.GITHUB_WORKFLOW_REF !== `${RELEASE_CONFIG.repository}/.github/workflows/${RELEASE_CONFIG.workflow}@${ref}`) {
+    if (
+        env.GITHUB_WORKFLOW_REF !== `${RELEASE_CONFIG.repository}/.github/workflows/${RELEASE_CONFIG.workflow}@${ref}`
+    ) {
         throw new Error('Unexpected GitHub workflow ref')
     }
     const metadata = await readReleaseTagImpl(tag, {cwd})
     const commit = await runImpl('git', ['rev-parse', 'HEAD'], {cwd})
     if (!/^[0-9a-f]{40}(?:[0-9a-f]{24})?$/.test(env.GITHUB_SHA ?? '')) throw new Error('Invalid GitHub event SHA')
     const eventCommit = await runImpl('git', ['rev-parse', `${env.GITHUB_SHA}^{commit}`], {cwd})
-    if (metadata.commit !== commit || eventCommit !== commit || metadata.version !== version
-        || metadata.channel !== channelForVersion(version)) throw new Error('Tag, event and checkout commit do not match')
+    if (
+        metadata.commit !== commit ||
+        eventCommit !== commit ||
+        metadata.version !== version ||
+        metadata.channel !== channelForVersion(version)
+    )
+        throw new Error('Tag, event and checkout commit do not match')
     if (metadata.channel === 'latest') {
         if (metadata.branch !== RELEASE_CONFIG.stableBranch) throw new Error('Stable releases require master')
-        await runImpl('git', ['merge-base', '--is-ancestor', commit, `${RELEASE_CONFIG.remote}/${RELEASE_CONFIG.stableBranch}`], {cwd})
+        await runImpl(
+            'git',
+            ['merge-base', '--is-ancestor', commit, `${RELEASE_CONFIG.remote}/${RELEASE_CONFIG.stableBranch}`],
+            {cwd},
+        )
     }
     const manifest = JSON.parse(await readRegularFile(path.join(cwd, 'package.json')))
     const committed = JSON.parse(await runImpl('git', ['show', `${commit}:package.json`], {cwd}))
@@ -85,7 +118,8 @@ function paxFields(bytes) {
         if (space < offset || !/^[1-9]\d*$/.test(lengthText)) throw new Error('Invalid PAX record')
         const length = Number(lengthText)
         const end = offset + length
-        if (!Number.isSafeInteger(end) || end > bytes.length || end <= space + 2 || bytes[end - 1] !== 10) throw new Error('Invalid PAX record length')
+        if (!Number.isSafeInteger(end) || end > bytes.length || end <= space + 2 || bytes[end - 1] !== 10)
+            throw new Error('Invalid PAX record length')
         const record = bytes.subarray(space + 1, end - 1).toString('utf8')
         const equals = record.indexOf('=')
         if (equals <= 0 || Object.hasOwn(fields, record.slice(0, equals))) throw new Error('Invalid PAX field')
@@ -101,11 +135,14 @@ export function inspectArchive(bytes, expectedPackage) {
     const tar = gunzipSync(bytes, {maxOutputLength: MAX_ARCHIVE_BYTES})
     const files = new Map()
     const seen = new Set()
-    let offset = 0, pax = null, ended = false
+    let offset = 0,
+        pax = null,
+        ended = false
     while (offset + 512 <= tar.length) {
         const header = tar.subarray(offset, offset + 512)
         if (header.every(byte => byte === 0)) {
-            if (pax || tar.length - offset < 1024 || !tar.subarray(offset).every(byte => byte === 0)) throw new Error('Invalid tar end marker')
+            if (pax || tar.length - offset < 1024 || !tar.subarray(offset).every(byte => byte === 0))
+                throw new Error('Invalid tar end marker')
             ended = true
             break
         }
@@ -130,15 +167,21 @@ export function inspectArchive(bytes, expectedPackage) {
         let name = pax?.path ?? `${prefix ? `${prefix}/` : ''}${tarText(header.subarray(0, 100))}`
         pax = null
         if (type === '5') name = name.replace(/\/$/, '')
-        if (name !== 'package' && (!name.startsWith('package/') || /[\\\0\r\n\uFFFD]/u.test(name)
-            || name.split('/').some(part => !part || part.startsWith('.')))) throw new Error('Unsafe archive path')
+        if (
+            name !== 'package' &&
+            (!name.startsWith('package/') ||
+                /[\\\0\r\n\uFFFD]/u.test(name) ||
+                name.split('/').some(part => !part || part.startsWith('.')))
+        )
+            throw new Error('Unsafe archive path')
         if (seen.has(name) || seen.size >= 10_000) throw new Error('Duplicate path or too many archive entries')
         seen.add(name)
         if (type === '5') {
             if (size !== 0) throw new Error('Invalid archive directory')
             continue
         }
-        if (!/^package\/(?:package\.json|README\.md|LICENSE|(?:cjs|esm|docs|fonts)\/.+)$/.test(name)) throw new Error(`Unexpected archive file: ${name}`)
+        if (!/^package\/(?:package\.json|README\.md|LICENSE|(?:cjs|esm|docs|fonts)\/.+)$/.test(name))
+            throw new Error(`Unexpected archive file: ${name}`)
         files.set(name, content)
     }
     if (!ended) throw new Error('Missing tar end marker')
@@ -155,7 +198,8 @@ export function inspectArchive(bytes, expectedPackage) {
     }
     if (manifest.exports['./package.json'] !== './package.json') throw new Error('Missing package.json export')
     const fonts = manifest.exports['./fonts.css']
-    if (typeof fonts !== 'string' || !files.has(`package/${fonts.slice(2)}`)) throw new Error('Missing fonts stylesheet export')
+    if (typeof fonts !== 'string' || !files.has(`package/${fonts.slice(2)}`))
+        throw new Error('Missing fonts stylesheet export')
     return {manifest, fileCount: files.size}
 }
 
@@ -176,7 +220,10 @@ export async function packRelease(options = {}) {
         const manifest = JSON.parse(await readRegularFile(path.join(cwd, 'package.json')))
         verifyPackage(manifest)
         context = {
-            tag: null, version: manifest.version, channel: channelForVersion(manifest.version), manifest,
+            tag: null,
+            version: manifest.version,
+            channel: channelForVersion(manifest.version),
+            manifest,
             branch: await runImpl('git', ['branch', '--show-current'], {cwd}),
             commit: await runImpl('git', ['rev-parse', 'HEAD'], {cwd}),
         }
@@ -185,16 +232,29 @@ export async function packRelease(options = {}) {
     for (const name of await readdir(directory)) {
         if (name.endsWith('.tgz') || name === 'release.json') await unlink(path.join(directory, name))
     }
-    const output = JSON.parse(await runImpl('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', directory], {cwd, timeout: 120_000}))
+    const output = JSON.parse(
+        await runImpl('npm', ['pack', '--json', '--ignore-scripts', '--pack-destination', directory], {
+            cwd,
+            timeout: 120_000,
+        }),
+    )
     const filename = packageFilename(context.version)
-    if (!Array.isArray(output) || output.length !== 1 || output[0].filename !== filename) throw new Error('Unexpected npm pack output')
+    if (!Array.isArray(output) || output.length !== 1 || output[0].filename !== filename)
+        throw new Error('Unexpected npm pack output')
     const bytes = await readRegularFile(path.join(directory, filename))
     const {fileCount} = inspectArchive(bytes, context.manifest)
     const manifest = {
-        schema: 1, name: RELEASE_CONFIG.packageName, repository: RELEASE_CONFIG.repository,
-        version: context.version, tag: context.tag, branch: context.branch, commit: context.commit,
-        channel: context.channel, filename,
-        sha1: digest(bytes, 'sha1', 'hex'), sha512: digest(bytes, 'sha512', 'base64'),
+        schema: 1,
+        name: RELEASE_CONFIG.packageName,
+        repository: RELEASE_CONFIG.repository,
+        version: context.version,
+        tag: context.tag,
+        branch: context.branch,
+        commit: context.commit,
+        channel: context.channel,
+        filename,
+        sha1: digest(bytes, 'sha1', 'hex'),
+        sha512: digest(bytes, 'sha512', 'base64'),
     }
     await writeFile(path.join(directory, 'release.json'), `${JSON.stringify(manifest, null, 2)}\n`, {flag: 'wx'})
     return {manifest, fileCount}
@@ -202,12 +262,17 @@ export async function packRelease(options = {}) {
 
 async function publishedDigest(version, manifest, fetchImpl) {
     const response = await fetchImpl(`${REGISTRY}/${RELEASE_CONFIG.packageName}/${encodeURIComponent(version)}`, {
-        headers: {accept: 'application/json'}, signal: AbortSignal.timeout(15_000),
+        headers: {accept: 'application/json'},
+        signal: AbortSignal.timeout(15_000),
     })
     if (!response.ok) throw new Error(`Cannot verify published archive: HTTP ${response.status}`)
     const published = await response.json()
-    if (published.name !== manifest.name || published.version !== version
-        || published.dist?.integrity !== `sha512-${manifest.sha512}` || published.dist?.shasum !== manifest.sha1) {
+    if (
+        published.name !== manifest.name ||
+        published.version !== version ||
+        published.dist?.integrity !== `sha512-${manifest.sha512}` ||
+        published.dist?.shasum !== manifest.sha1
+    ) {
         throw new Error('Published version has different archive integrity')
     }
 }
@@ -221,9 +286,13 @@ export async function publishRelease(options = {}) {
     }
     const directory = await releaseDirectory(cwd)
     const manifest = JSON.parse(await readRegularFile(path.join(directory, 'release.json')))
-    if (manifest.schema !== 1 || manifest.name !== RELEASE_CONFIG.packageName || manifest.repository !== RELEASE_CONFIG.repository
-        || manifest.filename !== packageFilename(context.version)
-        || ['tag', 'version', 'branch', 'commit', 'channel'].some(key => manifest[key] !== context[key])) {
+    if (
+        manifest.schema !== 1 ||
+        manifest.name !== RELEASE_CONFIG.packageName ||
+        manifest.repository !== RELEASE_CONFIG.repository ||
+        manifest.filename !== packageFilename(context.version) ||
+        ['tag', 'version', 'branch', 'commit', 'channel'].some(key => manifest[key] !== context[key])
+    ) {
         throw new Error('Release artifact metadata does not match the checked-out tag')
     }
     const archivePath = path.join(directory, manifest.filename)
@@ -236,30 +305,58 @@ export async function publishRelease(options = {}) {
     const existing = before.versions.includes(manifest.version)
     if (existing) {
         await publishedDigest(manifest.version, manifest, fetchImpl)
-        if (before.distTags[manifest.channel] !== manifest.version) throw new Error('Existing version is no longer the channel target; refusing a rollback')
+        if (before.distTags[manifest.channel] !== manifest.version)
+            throw new Error('Existing version is no longer the channel target; refusing a rollback')
         const distTags = {...before.distTags}
         delete distTags[manifest.channel]
-        ensureFreshVersion(manifest.version, {versions: before.versions.filter(version => version !== manifest.version), distTags})
+        ensureFreshVersion(manifest.version, {
+            versions: before.versions.filter(version => version !== manifest.version),
+            distTags,
+        })
         return {status: 'already-published', version: manifest.version, channel: manifest.channel}
     }
     ensureFreshVersion(manifest.version, before)
-    await runImpl('npm', ['publish', archivePath, '--ignore-scripts', '--access', 'public', '--tag', manifest.channel, '--registry', REGISTRY], {
-        cwd, timeout: 120_000,
-        // An OIDC failure must not silently fall back to a developer's publishing token.
-        env: {NODE_AUTH_TOKEN: '', NPM_TOKEN: '', NPM_CONFIG_USERCONFIG: '/dev/null', npm_config_userconfig: '/dev/null'},
-    })
+    await runImpl(
+        'npm',
+        [
+            'publish',
+            archivePath,
+            '--ignore-scripts',
+            '--access',
+            'public',
+            '--tag',
+            manifest.channel,
+            '--registry',
+            REGISTRY,
+        ],
+        {
+            cwd,
+            timeout: 120_000,
+            // An OIDC failure must not silently fall back to a developer's publishing token.
+            env: {
+                NODE_AUTH_TOKEN: '',
+                NPM_TOKEN: '',
+                NPM_CONFIG_USERCONFIG: '/dev/null',
+                npm_config_userconfig: '/dev/null',
+            },
+        },
+    )
     // npm shows a trusted-publish version minutes after the upload; `release:status` reads it later.
     return {status: 'published', version: manifest.version, channel: manifest.channel}
 }
 
 export async function main(argv = process.argv.slice(2), options = {}) {
-    if (argv.length !== 1 || !['validate', 'pack', 'publish'].includes(argv[0])) throw new Error('Usage: release-ci.mjs validate|pack|publish')
-    const result = await ({validate: validateContext, pack: packRelease, publish: publishRelease})[argv[0]](options)
+    if (argv.length !== 1 || !['validate', 'pack', 'publish'].includes(argv[0]))
+        throw new Error('Usage: release-ci.mjs validate|pack|publish')
+    const result = await {validate: validateContext, pack: packRelease, publish: publishRelease}[argv[0]](options)
     const {manifest, ...summary} = result
     ;(options.print ?? console.log)(JSON.stringify(argv[0] === 'validate' ? summary : result, null, 2))
     return result
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
-    main().catch(error => { console.error(error.message); process.exitCode = 1 })
+    main().catch(error => {
+        console.error(error.message)
+        process.exitCode = 1
+    })
 }

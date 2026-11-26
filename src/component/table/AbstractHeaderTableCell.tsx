@@ -1,24 +1,21 @@
-import React, {use} from 'react';
-import {SxProps, TableCell, TableCellProps} from '@mui/material';
-import type {Theme} from '@mui/material/styles';
-import {resolvePneSemanticPalette} from '../../createTheme';
-import {PneTableHeaderVariantContext} from './tableHeaderVariant';
+import React, {use} from 'react'
+import {SxProps, TableCell, TableCellProps} from '@mui/material'
+import type {Theme} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../createTheme'
+import {PneTableHeaderVariantContext} from './tableHeaderVariant'
 
 const AbstractHeaderTableCell = (props: TableCellProps) => {
-    const {
-        sx,
-        children,
-        ...rest
-    } = props;
+    const {sx, children, ...rest} = props
 
-    const island = use(PneTableHeaderVariantContext) === 'island';
+    const island = use(PneTableHeaderVariantContext) === 'island'
 
-    const _sx: SxProps<Theme> = [
-        island ? islandHeaderCellSx : mainHeaderCellSx,
-        ...(Array.isArray(sx) ? sx : [sx])
-    ]
+    const _sx: SxProps<Theme> = [island ? islandHeaderCellSx : mainHeaderCellSx, ...(Array.isArray(sx) ? sx : [sx])]
 
-    return <TableCell sx={_sx} {...rest}>{children}</TableCell>
+    return (
+        <TableCell sx={_sx} {...rest}>
+            {children}
+        </TableCell>
+    )
 }
 
 // UI Kit Cell/Header: 14/20 SemiBold over a hairline; with the line the header row is 40px high.
@@ -58,4 +55,4 @@ const islandHeaderCellSx: SxProps<Theme> = theme => {
     }
 }
 
-export default AbstractHeaderTableCell;
+export default AbstractHeaderTableCell

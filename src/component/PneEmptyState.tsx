@@ -14,15 +14,14 @@ export type PneEmptyStateProps = {
  * Medium. An empty `PneTable` draws it itself; a list or a panel of the page that has nothing to show
  * says so the same way. It knows no more than its message: no description and no action.
  */
-const PneEmptyState = ({children, sx}: PneEmptyStateProps) => <Box
-    data-pne-empty-state=''
-    sx={[emptyStateSx, ...(Array.isArray(sx) ? sx : [sx])]}
->
-    <Box aria-hidden='true' component='span' sx={signSx}>
-        <EmptyStateGlyph/>
+const PneEmptyState = ({children, sx}: PneEmptyStateProps) => (
+    <Box data-pne-empty-state='' sx={[emptyStateSx, ...(Array.isArray(sx) ? sx : [sx])]}>
+        <Box aria-hidden='true' component='span' sx={signSx}>
+            <EmptyStateGlyph />
+        </Box>
+        <span>{children}</span>
     </Box>
-    <span>{children}</span>
-</Box>
+)
 
 PneEmptyState.displayName = 'PneEmptyState'
 
@@ -67,7 +66,7 @@ const EmptyStateGlyph = () => (
         viewBox='0 0 24 24'
         width='24'
     >
-        <circle cx='11' cy='11' r='7'/>
-        <path d='M16.5 16.5 20 20'/>
+        <circle cx='11' cy='11' r='7' />
+        <path d='M16.5 16.5 20 20' />
     </svg>
 )

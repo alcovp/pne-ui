@@ -11,21 +11,19 @@ import {PNE_NEUTRAL_RAMP} from './themeColors'
 export const PNE_TOOLTIP_GAP = 6
 const ARROW_BASE = 10
 
-type TooltipColors = {fill: string, text: string}
+type TooltipColors = {fill: string; text: string}
 
-export const resolvePneTooltipColors = (theme: Theme): TooltipColors => theme.palette.mode === 'dark'
-    ? {fill: PNE_NEUTRAL_RAMP[100], text: PNE_NEUTRAL_RAMP[950]}
-    : {fill: PNE_NEUTRAL_RAMP[900], text: PNE_NEUTRAL_RAMP[0]}
+export const resolvePneTooltipColors = (theme: Theme): TooltipColors =>
+    theme.palette.mode === 'dark'
+        ? {fill: PNE_NEUTRAL_RAMP[100], text: PNE_NEUTRAL_RAMP[950]}
+        : {fill: PNE_NEUTRAL_RAMP[900], text: PNE_NEUTRAL_RAMP[0]}
 
 const ARROW = '.MuiTooltip-arrow'
 const placed = (placement: string, scope: string) => `&[data-popper-placement*="${placement}"] ${scope}`
 const placedTooltip = (placement: string) => `.MuiTooltip-popper[data-popper-placement*="${placement}"] &`
 
 // The arrow is a triangle cut from the box MUI places at the edge of the body, not MUI's turned square.
-const arrowBox = (
-    box: CSSObject,
-    triangle: string,
-): CSSObject => ({
+const arrowBox = (box: CSSObject, triangle: string): CSSObject => ({
     ...box,
     '&::before': {clipPath: `polygon(${triangle})`},
 })
@@ -45,10 +43,7 @@ export const createPneTooltipOverrides = (): NonNullable<Components<Theme>['MuiT
                 {...along, marginInlineStart: -PNE_TOOLTIP_GAP},
                 '100% 0, 0 50%, 100% 100%',
             ),
-            [placed('left', ARROW)]: arrowBox(
-                {...along, marginInlineEnd: -PNE_TOOLTIP_GAP},
-                '0 0, 100% 50%, 0 100%',
-            ),
+            [placed('left', ARROW)]: arrowBox({...along, marginInlineEnd: -PNE_TOOLTIP_GAP}, '0 0, 100% 50%, 0 100%'),
         },
         tooltip: ({theme}) => {
             const colors = resolvePneTooltipColors(theme)

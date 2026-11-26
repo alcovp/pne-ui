@@ -1,12 +1,6 @@
 import React, {useEffect, useLayoutEffect, useMemo, useRef} from 'react'
-import {
-    createSearchUIFiltersStore,
-    SearchUIFiltersStoreContext,
-} from './store'
-import {
-    registerSearchUIInstance,
-    retainSearchUIState,
-} from './retention'
+import {createSearchUIFiltersStore, SearchUIFiltersStoreContext} from './store'
+import {registerSearchUIInstance, retainSearchUIState} from './retention'
 
 type Props = {
     settingsContextName: string
@@ -31,14 +25,15 @@ export const SearchUIFiltersStoreProvider = ({settingsContextName, children}: Pr
         }
     }, [settingsContextName, store])
 
-    const contextValue = useMemo(() => ({
-        store,
-        instanceId: instanceIdRef.current,
-    }), [store])
+    const contextValue = useMemo(
+        () => ({
+            store,
+            instanceId: instanceIdRef.current,
+        }),
+        [store],
+    )
 
-    return <SearchUIFiltersStoreContext value={contextValue}>
-        {children}
-    </SearchUIFiltersStoreContext>
+    return <SearchUIFiltersStoreContext value={contextValue}>{children}</SearchUIFiltersStoreContext>
 }
 
 const useStoreLifecycleEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect

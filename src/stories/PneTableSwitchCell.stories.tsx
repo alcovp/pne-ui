@@ -1,13 +1,7 @@
 import React, {useState} from 'react'
 import {Meta, StoryObj} from '@storybook/react-webpack5'
 import {expect, userEvent, waitFor, within} from 'storybook/test'
-import {
-    PneHeaderTableCell,
-    PneSwitch,
-    PneTableCell,
-    PneTableRow,
-    PneTableSwitchCell,
-} from '../index'
+import {PneHeaderTableCell, PneSwitch, PneTableCell, PneTableRow, PneTableSwitchCell} from '../index'
 
 type StatusRow = {
     id: number
@@ -67,60 +61,59 @@ const asyncMutationPhaseLabel: Record<AsyncMutationPhase, string> = {
     rejected: 'Rejected — rolled back',
 }
 
-const wait = (delayMs: number) => new Promise<void>(resolve => {
-    window.setTimeout(resolve, delayMs)
-})
+const wait = (delayMs: number) =>
+    new Promise<void>(resolve => {
+        window.setTimeout(resolve, delayMs)
+    })
 
 const CompactStatusTable = () => {
     const [rows, setRows] = useState(initialRows)
 
-    return <table aria-label='Endpoint statuses' style={{borderCollapse: 'collapse', width: 520}}>
-        <thead>
-            <PneTableRow>
-                <PneHeaderTableCell>ID</PneHeaderTableCell>
-                <PneHeaderTableCell>Name</PneHeaderTableCell>
-                <PneHeaderTableCell sx={{padding: 0, textAlign: 'center', width: '40px'}}>
-                    Status
-                </PneHeaderTableCell>
-            </PneTableRow>
-        </thead>
-        <tbody>
-            {rows.map(row => <PneTableRow data-story-row key={row.id}>
-                <PneTableCell>{row.id}</PneTableCell>
-                <PneTableCell>{row.name}</PneTableCell>
-                {row.state === 'readOnly'
-                    ? <PneTableSwitchCell
-                        aria-label={`${row.name} status`}
-                        checked={row.status}
-                        readOnly
-                    />
-                    : <PneTableSwitchCell
-                        aria-label={`Enable ${row.name}`}
-                        checked={row.status}
-                        disabled={row.state === 'disabled'}
-                        onChange={checked => setRows(current => current.map(item => (
-                            item.id === row.id ? {...item, status: checked} : item
-                        )))}
-                    />}
-            </PneTableRow>)}
-        </tbody>
-    </table>
+    return (
+        <table aria-label='Endpoint statuses' style={{borderCollapse: 'collapse', width: 520}}>
+            <thead>
+                <PneTableRow>
+                    <PneHeaderTableCell>ID</PneHeaderTableCell>
+                    <PneHeaderTableCell>Name</PneHeaderTableCell>
+                    <PneHeaderTableCell sx={{padding: 0, textAlign: 'center', width: '40px'}}>
+                        Status
+                    </PneHeaderTableCell>
+                </PneTableRow>
+            </thead>
+            <tbody>
+                {rows.map(row => (
+                    <PneTableRow data-story-row key={row.id}>
+                        <PneTableCell>{row.id}</PneTableCell>
+                        <PneTableCell>{row.name}</PneTableCell>
+                        {row.state === 'readOnly' ? (
+                            <PneTableSwitchCell aria-label={`${row.name} status`} checked={row.status} readOnly />
+                        ) : (
+                            <PneTableSwitchCell
+                                aria-label={`Enable ${row.name}`}
+                                checked={row.status}
+                                disabled={row.state === 'disabled'}
+                                onChange={checked =>
+                                    setRows(current =>
+                                        current.map(item => (item.id === row.id ? {...item, status: checked} : item)),
+                                    )
+                                }
+                            />
+                        )}
+                    </PneTableRow>
+                ))}
+            </tbody>
+        </table>
+    )
 }
 
 const AsyncMutationTable = () => {
     const [rows, setRows] = useState(initialAsyncMutationRows)
 
-    const updateRow = (
-        outcome: AsyncMutationOutcome,
-        update: (row: AsyncMutationRow) => AsyncMutationRow,
-    ) => {
-        setRows(current => current.map(row => row.outcome === outcome ? update(row) : row))
+    const updateRow = (outcome: AsyncMutationOutcome, update: (row: AsyncMutationRow) => AsyncMutationRow) => {
+        setRows(current => current.map(row => (row.outcome === outcome ? update(row) : row)))
     }
 
-    const handleChange = (
-        outcome: AsyncMutationOutcome,
-        nextChecked: boolean,
-    ): PromiseLike<unknown> => {
+    const handleChange = (outcome: AsyncMutationOutcome, nextChecked: boolean): PromiseLike<unknown> => {
         updateRow(outcome, row => ({
             ...row,
             phase: 'pending',
@@ -145,47 +138,45 @@ const AsyncMutationTable = () => {
         })
     }
 
-    return <div data-story-verification='pending'>
-        <table
-            aria-label='Asynchronous status mutations'
-            data-story-async-switch-table
-            style={{borderCollapse: 'collapse', width: 680}}
-        >
-            <thead>
-                <PneTableRow>
-                    <PneHeaderTableCell>Backend result</PneHeaderTableCell>
-                    <PneHeaderTableCell>Phase and requests</PneHeaderTableCell>
-                    <PneHeaderTableCell sx={{padding: 0, textAlign: 'center', width: '58px'}}>
-                        Status
-                    </PneHeaderTableCell>
-                </PneTableRow>
-            </thead>
-            <tbody>
-                {rows.map(row => <PneTableRow
-                    data-story-outcome={row.outcome}
-                    key={row.outcome}
-                >
-                    <PneTableCell>{row.name}</PneTableCell>
-                    <PneTableCell>
-                        <output
-                            data-story-phase={row.phase}
-                            data-story-request-count={row.requestCount}
-                        >
-                            {asyncMutationPhaseLabel[row.phase]} · requests: {row.requestCount}
-                        </output>
-                    </PneTableCell>
-                    <PneTableCell sx={{padding: 0, textAlign: 'center', width: '58px'}}>
-                        <PneSwitch
-                            aria-label={`${row.name} status`}
-                            checked={row.checked}
-                            onChange={(_event, checked) => handleChange(row.outcome, checked)}
-                            size='medium'
-                        />
-                    </PneTableCell>
-                </PneTableRow>)}
-            </tbody>
-        </table>
-    </div>
+    return (
+        <div data-story-verification='pending'>
+            <table
+                aria-label='Asynchronous status mutations'
+                data-story-async-switch-table
+                style={{borderCollapse: 'collapse', width: 680}}
+            >
+                <thead>
+                    <PneTableRow>
+                        <PneHeaderTableCell>Backend result</PneHeaderTableCell>
+                        <PneHeaderTableCell>Phase and requests</PneHeaderTableCell>
+                        <PneHeaderTableCell sx={{padding: 0, textAlign: 'center', width: '58px'}}>
+                            Status
+                        </PneHeaderTableCell>
+                    </PneTableRow>
+                </thead>
+                <tbody>
+                    {rows.map(row => (
+                        <PneTableRow data-story-outcome={row.outcome} key={row.outcome}>
+                            <PneTableCell>{row.name}</PneTableCell>
+                            <PneTableCell>
+                                <output data-story-phase={row.phase} data-story-request-count={row.requestCount}>
+                                    {asyncMutationPhaseLabel[row.phase]} · requests: {row.requestCount}
+                                </output>
+                            </PneTableCell>
+                            <PneTableCell sx={{padding: 0, textAlign: 'center', width: '58px'}}>
+                                <PneSwitch
+                                    aria-label={`${row.name} status`}
+                                    checked={row.checked}
+                                    onChange={(_event, checked) => handleChange(row.outcome, checked)}
+                                    size='medium'
+                                />
+                            </PneTableCell>
+                        </PneTableRow>
+                    ))}
+                </tbody>
+            </table>
+        </div>
+    )
 }
 
 const meta = {
@@ -194,11 +185,12 @@ const meta = {
     parameters: {
         docs: {
             description: {
-                component: 'Compact 40px table status cell. It fixes PneSwitch to the small size, '
-                    + 'keeps the native input accessibly named, and prevents switch activation from '
-                    + 'triggering an interactive row. Cell props are top-level; switch-only props use '
-                    + '`switchProps`. `autoTestId` targets the input while top-level `data-*` props in '
-                    + '`switchProps` remain on the same DOM anchor as direct PneSwitch usage.',
+                component:
+                    'Compact 40px table status cell. It fixes PneSwitch to the small size, ' +
+                    'keeps the native input accessibly named, and prevents switch activation from ' +
+                    'triggering an interactive row. Cell props are top-level; switch-only props use ' +
+                    '`switchProps`. `autoTestId` targets the input while top-level `data-*` props in ' +
+                    '`switchProps` remain on the same DOM anchor as direct PneSwitch usage.',
             },
         },
     },
@@ -213,7 +205,7 @@ export const CompactStatuses: Story = {
         checked: false,
         onChange: () => undefined,
     },
-    render: () => <CompactStatusTable/>,
+    render: () => <CompactStatusTable />,
     play: ({canvasElement}) => {
         const rows = canvasElement.querySelectorAll<HTMLElement>('[data-story-row]')
 
@@ -236,14 +228,15 @@ export const AsyncMutationLifecycle: Story = {
     parameters: {
         docs: {
             description: {
-                story: 'Promise-returning status changes move immediately to their optimistic value, '
-                    + 'lock repeat activation while pending, keep the value after resolve, and roll it '
-                    + 'back after reject. The final row intentionally never settles so the pending '
-                    + 'repeating ripple remains available for visual inspection at the medium size.',
+                story:
+                    'Promise-returning status changes move immediately to their optimistic value, ' +
+                    'lock repeat activation while pending, keep the value after resolve, and roll it ' +
+                    'back after reject. The final row intentionally never settles so the pending ' +
+                    'repeating ripple remains available for visual inspection at the medium size.',
             },
         },
     },
-    render: () => <AsyncMutationTable/>,
+    render: () => <AsyncMutationTable />,
     play: async ({canvasElement}) => {
         const canvas = within(canvasElement)
         const verification = canvasElement.querySelector<HTMLElement>('[data-story-verification]')!
@@ -256,9 +249,8 @@ export const AsyncMutationLifecycle: Story = {
         const pendingSwitch = canvas.getByRole('switch', {
             name: 'Request stays pending status',
         }) as HTMLInputElement
-        const getStatus = (outcome: AsyncMutationOutcome) => canvasElement.querySelector<HTMLOutputElement>(
-            `[data-story-outcome="${outcome}"] output`,
-        )!
+        const getStatus = (outcome: AsyncMutationOutcome) =>
+            canvasElement.querySelector<HTMLOutputElement>(`[data-story-outcome="${outcome}"] output`)!
 
         const expectOptimisticPending = (input: HTMLInputElement, outcome: AsyncMutationOutcome) => {
             expect(input.checked).toBe(true)
@@ -274,13 +266,16 @@ export const AsyncMutationLifecycle: Story = {
         await userEvent.click(resolveSwitch)
         expectOptimisticPending(resolveSwitch, 'resolve')
 
-        await waitFor(() => {
-            expect(resolveSwitch.checked).toBe(true)
-            expect(resolveSwitch).not.toHaveAttribute('aria-busy')
-            expect(resolveSwitch).not.toHaveAttribute('aria-disabled')
-            expect(getStatus('resolve')).toHaveAttribute('data-story-phase', 'resolved')
-            expect(getStatus('resolve')).toHaveAttribute('data-story-request-count', '1')
-        }, {timeout: 3000})
+        await waitFor(
+            () => {
+                expect(resolveSwitch.checked).toBe(true)
+                expect(resolveSwitch).not.toHaveAttribute('aria-busy')
+                expect(resolveSwitch).not.toHaveAttribute('aria-disabled')
+                expect(getStatus('resolve')).toHaveAttribute('data-story-phase', 'resolved')
+                expect(getStatus('resolve')).toHaveAttribute('data-story-request-count', '1')
+            },
+            {timeout: 3000},
+        )
 
         await userEvent.click(rejectSwitch)
         expectOptimisticPending(rejectSwitch, 'reject')
@@ -288,13 +283,16 @@ export const AsyncMutationLifecycle: Story = {
         await userEvent.click(rejectSwitch)
         expectOptimisticPending(rejectSwitch, 'reject')
 
-        await waitFor(() => {
-            expect(rejectSwitch.checked).toBe(false)
-            expect(rejectSwitch).not.toHaveAttribute('aria-busy')
-            expect(rejectSwitch).not.toHaveAttribute('aria-disabled')
-            expect(getStatus('reject')).toHaveAttribute('data-story-phase', 'rejected')
-            expect(getStatus('reject')).toHaveAttribute('data-story-request-count', '1')
-        }, {timeout: 3000})
+        await waitFor(
+            () => {
+                expect(rejectSwitch.checked).toBe(false)
+                expect(rejectSwitch).not.toHaveAttribute('aria-busy')
+                expect(rejectSwitch).not.toHaveAttribute('aria-disabled')
+                expect(getStatus('reject')).toHaveAttribute('data-story-phase', 'rejected')
+                expect(getStatus('reject')).toHaveAttribute('data-story-request-count', '1')
+            },
+            {timeout: 3000},
+        )
 
         await userEvent.click(pendingSwitch)
         expectOptimisticPending(pendingSwitch, 'pending')

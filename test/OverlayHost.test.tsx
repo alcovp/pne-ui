@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { createTheme, ThemeProvider } from '@mui/material'
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react'
+import {createTheme, ThemeProvider} from '@mui/material'
 
 import {
     OverlayHost,
@@ -10,8 +10,8 @@ import {
     type Skin,
     useOverlayStore,
 } from '../src'
-import { createResponsiveLeftOffsetStyles } from '../src/component/overlay/OverlayHost'
-import { resetOverlayRuntimeForTests } from '../src/component/overlay/overlayRuntime'
+import {createResponsiveLeftOffsetStyles} from '../src/component/overlay/OverlayHost'
+import {resetOverlayRuntimeForTests} from '../src/component/overlay/overlayRuntime'
 
 // jsdom ignores selector specificity in getComputedStyle, so the look is read from the rules of the
 // element's own css- class. `&` stands for that class; selectors are compared without whitespace.
@@ -122,7 +122,11 @@ describe('OverlayHost', () => {
     })
 
     it('draws a toast by the UI Kit: the fill of its tone, the message as the title, a description, a 32px close cross', async () => {
-        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}><OverlayHost container={null} /></PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
+                <OverlayHost container={null} />
+            </PneThemeProvider>,
+        )
 
         act(() => {
             overlayActions.showSuccess({
@@ -136,7 +140,7 @@ describe('OverlayHost', () => {
         const title = await screen.findByText('Done')
         const alert = title.closest<HTMLElement>('.MuiAlert-root')!
         const description = screen.getByText('The changes are saved.')
-        const closeButton = screen.getByRole('button', { name: 'Close' })
+        const closeButton = screen.getByRole('button', {name: 'Close'})
         const snackbar = alert.closest<HTMLElement>('.MuiSnackbar-root')!
 
         expect(alert.getAttribute('data-pne-toast')).toBe('toast')
@@ -167,7 +171,11 @@ describe('OverlayHost', () => {
     })
 
     it('keeps the close cross after a consumer action and draws the undo action as a soft small button', async () => {
-        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}><OverlayHost container={null} /></PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
+                <OverlayHost container={null} />
+            </PneThemeProvider>,
+        )
 
         act(() => {
             overlayActions.showUndoSnackbar({
@@ -178,19 +186,23 @@ describe('OverlayHost', () => {
             })
         })
 
-        const undoButton = await screen.findByRole('button', { name: 'Undo' })
+        const undoButton = await screen.findByRole('button', {name: 'Undo'})
         const action = undoButton.closest<HTMLElement>('.MuiAlert-action')!
 
         expect(undoButton.classList.contains('MuiButton-sizeSmall')).toBe(true)
         expect(undoButton.classList.contains('MuiButton-soft')).toBe(true)
         expect(undoButton.querySelector('svg')).toBeNull()
-        expect(within(action).getByRole('button', { name: 'Close' })).not.toBeNull()
+        expect(within(action).getByRole('button', {name: 'Close'})).not.toBeNull()
         // The action stands before the cross.
         expect(action.firstElementChild).toBe(undoButton)
     })
 
     it('draws an error with details as the library banner, lifted by the toast shadow', async () => {
-        render(<PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}><OverlayHost container={null} /></PneThemeProvider>)
+        render(
+            <PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
+                <OverlayHost container={null} />
+            </PneThemeProvider>,
+        )
 
         act(() => {
             overlayActions.showError({
@@ -217,7 +229,7 @@ describe('OverlayHost', () => {
         // What the notification adds: the toast shadow after the ring of the tone.
         const shadow = ruleValue(banner, '&[data-pne-tone="error"]', 'box-shadow') as string
         expect(shadow).toMatch(/^inset 0 0 0 1px #FEBEBB,\s*0 /)
-        const close = within(banner).getByRole('button', { name: 'Close' })
+        const close = within(banner).getByRole('button', {name: 'Close'})
         expect(close.getAttribute('data-pne-banner-close')).toBe('true')
         expect(window.getComputedStyle(close).width).toBe('24px')
     })
@@ -279,7 +291,7 @@ describe('OverlayHost', () => {
         })
 
         const snackbar = await screen.findByTestId('overlay-snackbar-hover-focus-info')
-        const closeButton = screen.getByRole('button', { name: 'Close' })
+        const closeButton = screen.getByRole('button', {name: 'Close'})
 
         act(() => {
             jest.advanceTimersByTime(400)
@@ -293,7 +305,7 @@ describe('OverlayHost', () => {
         })
         expect(screen.getByText('Keep me paused')).toBeTruthy()
 
-        fireEvent.blur(closeButton, { relatedTarget: null })
+        fireEvent.blur(closeButton, {relatedTarget: null})
         act(() => {
             jest.advanceTimersByTime(600)
         })
@@ -522,14 +534,14 @@ describe('OverlayHost', () => {
         expect(PAYNET_LEFT_MENU_OVERLAY_OFFSET).toEqual({
             default: 16,
             breakpoints: [
-                { minWidth: 1080, offset: 64 },
-                { minWidth: 1600, offset: 272 },
+                {minWidth: 1080, offset: 64},
+                {minWidth: 1600, offset: 272},
             ],
         })
         expect(createResponsiveLeftOffsetStyles(PAYNET_LEFT_MENU_OVERLAY_OFFSET)).toEqual({
             left: 16,
-            '@media (min-width: 1080px)': { left: 64 },
-            '@media (min-width: 1600px)': { left: 272 },
+            '@media (min-width: 1080px)': {left: 64},
+            '@media (min-width: 1600px)': {left: 272},
         })
     })
 
@@ -537,9 +549,9 @@ describe('OverlayHost', () => {
         render(<OverlayHost maxSnack={2} />)
 
         act(() => {
-            overlayActions.showError({ id: 'overflow-1', message: 'First error' })
-            overlayActions.showError({ id: 'overflow-2', message: 'Second error' })
-            overlayActions.showError({ id: 'overflow-3', message: 'Third error' })
+            overlayActions.showError({id: 'overflow-1', message: 'First error'})
+            overlayActions.showError({id: 'overflow-2', message: 'Second error'})
+            overlayActions.showError({id: 'overflow-3', message: 'Third error'})
         })
 
         expect(await screen.findByText('Second error')).toBeTruthy()

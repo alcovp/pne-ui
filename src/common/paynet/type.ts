@@ -1,4 +1,4 @@
-import {isObject} from "../pne";
+import {isObject} from '../pne'
 
 export type AbstractEntity = {
     id: number
@@ -7,11 +7,12 @@ export type AbstractEntity = {
 
 export const isAbstractEntity = (value: unknown): value is AbstractEntity => {
     if (!isObject(value)) {
-        return false;
+        return false
     }
 
-    return 'id' in value && typeof value.id === 'number' &&
-        'displayName' in value && typeof value.displayName === 'string';
+    return (
+        'id' in value && typeof value.id === 'number' && 'displayName' in value && typeof value.displayName === 'string'
+    )
 }
 
 export type AutoCompleteChoice = {
@@ -32,7 +33,6 @@ export type AllableCollection<T> = {
 }
 
 export type AbstractEntityAllableCollection = AllableCollection<AbstractEntity>
-
 
 export type Country = {
     id: number

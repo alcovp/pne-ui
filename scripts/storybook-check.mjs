@@ -101,12 +101,22 @@ const CHANNEL_EVENTS = {
 }
 
 const MIME = {
-    '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-    '.mjs': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
-    '.json': 'application/json; charset=utf-8', '.map': 'application/json; charset=utf-8',
-    '.txt': 'text/plain; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg',
-    '.gif': 'image/gif', '.webp': 'image/webp', '.ico': 'image/x-icon', '.woff': 'font/woff',
-    '.woff2': 'font/woff2', '.ttf': 'font/ttf',
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.mjs': 'text/javascript; charset=utf-8',
+    '.css': 'text/css; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.map': 'application/json; charset=utf-8',
+    '.txt': 'text/plain; charset=utf-8',
+    '.svg': 'image/svg+xml',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+    '.ttf': 'font/ttf',
 }
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
@@ -136,27 +146,37 @@ function readOptions(argv) {
     })
     const number = (name, text, min, max) => {
         const value = Number(text)
-        if (!Number.isInteger(value) || value < min || value > max) throw new Error(`--${name} takes a whole number from ${min} to ${max}`)
+        if (!Number.isInteger(value) || value < min || value > max)
+            throw new Error(`--${name} takes a whole number from ${min} to ${max}`)
         return value
     }
-    const views = values.views.split(',').map(view => view.trim()).filter(Boolean)
+    const views = values.views
+        .split(',')
+        .map(view => view.trim())
+        .filter(Boolean)
     const unknown = views.filter(view => !(view in VIEWS))
-    if (!views.length || unknown.length) throw new Error(`--views takes ${Object.keys(VIEWS).join(', ')}; got ${values.views}`)
+    if (!views.length || unknown.length)
+        throw new Error(`--views takes ${Object.keys(VIEWS).join(', ')}; got ${values.views}`)
     if (values.baseline && values['baseline-static']) throw new Error('Give either --baseline or --baseline-static')
     const pictures = !values['no-pictures']
-    if (!pictures && (values.baseline || values['baseline-static'])) throw new Error('A baseline needs pictures: drop --no-pictures')
+    if (!pictures && (values.baseline || values['baseline-static']))
+        throw new Error('A baseline needs pictures: drop --no-pictures')
     return {
         help: values.help,
         baseline: values.baseline,
         baselineStatic: values['baseline-static'] && path.resolve(values['baseline-static']),
         static: values.static && path.resolve(values.static),
         views: [...new Set(views)],
-        filters: (values.filter ?? '').split(',').map(text => text.trim().toLowerCase()).filter(Boolean),
+        filters: (values.filter ?? '')
+            .split(',')
+            .map(text => text.trim().toLowerCase())
+            .filter(Boolean),
         pictures,
         tolerance: number('tolerance', values.tolerance, 0, 255),
-        workers: values.workers === undefined
-            ? Math.min(8, os.availableParallelism())
-            : number('workers', values.workers, 1, 32),
+        workers:
+            values.workers === undefined
+                ? Math.min(8, os.availableParallelism())
+                : number('workers', values.workers, 1, 32),
         timeoutMs: number('timeout', values.timeout, 1, 3600) * 1000,
         out: path.resolve(values.out ?? path.join(ROOT, 'node_modules/.cache/storybook-check')),
         browser: values.browser,
@@ -169,13 +189,20 @@ async function serve(mounts) {
         try {
             const {pathname} = new URL(request.url, 'http://localhost')
             const [mount, ...rest] = decodeURIComponent(pathname).slice(1).split('/')
-            if (mount === 'blank') return response.writeHead(200, {'content-type': MIME['.html']}).end('<!doctype html><title>blank</title>')
+            if (mount === 'blank')
+                return response
+                    .writeHead(200, {'content-type': MIME['.html']})
+                    .end('<!doctype html><title>blank</title>')
             // The browser asks for it on its own when the preview frame is opened as a page.
             if (pathname === '/favicon.ico') return response.writeHead(204).end()
             const root = mounts[mount]
             const file = root && path.resolve(root, rest.join('/'))
-            if (!file || !file.startsWith(root + path.sep) || !(await fs.stat(file)).isFile()) throw new Error('not found')
-            response.writeHead(200, {'content-type': MIME[path.extname(file)] ?? 'application/octet-stream', 'cache-control': 'no-store'})
+            if (!file || !file.startsWith(root + path.sep) || !(await fs.stat(file)).isFile())
+                throw new Error('not found')
+            response.writeHead(200, {
+                'content-type': MIME[path.extname(file)] ?? 'application/octet-stream',
+                'cache-control': 'no-store',
+            })
             createReadStream(file).pipe(response)
         } catch {
             response.writeHead(404, {'content-type': MIME['.txt']}).end('not found')
@@ -184,7 +211,11 @@ async function serve(mounts) {
     await new Promise((resolve, reject) => server.once('error', reject).listen(0, '127.0.0.1', resolve))
     return {
         origin: `http://127.0.0.1:${server.address().port}`,
-        close: () => new Promise(resolve => { server.close(resolve); server.closeAllConnections() }),
+        close: () =>
+            new Promise(resolve => {
+                server.close(resolve)
+                server.closeAllConnections()
+            }),
     }
 }
 
@@ -198,9 +229,11 @@ async function buildStorybook(cwd, outputDir, logFile) {
     const log = openSync(logFile, 'w')
     try {
         const code = await new Promise((resolve, reject) => {
-            const child = spawn(process.execPath,
+            const child = spawn(
+                process.execPath,
                 [cli, 'build', '--config-dir', path.join(cwd, '.storybook'), '--output-dir', outputDir, '--quiet'],
-                {cwd, env: {...process.env, STORYBOOK_DISABLE_TELEMETRY: '1'}, stdio: ['ignore', log, log]})
+                {cwd, env: {...process.env, STORYBOOK_DISABLE_TELEMETRY: '1'}, stdio: ['ignore', log, log]},
+            )
             child.on('error', reject)
             child.on('close', (exitCode, signal) => resolve(exitCode ?? signal))
         })
@@ -232,10 +265,14 @@ async function exportRevision(revision) {
 
 async function hashDirectory(dir, hash, prefix = '') {
     const entries = await fs.readdir(dir, {withFileTypes: true})
-    for (const entry of entries.sort((a, b) => a.name < b.name ? -1 : 1)) {
+    for (const entry of entries.sort((a, b) => (a.name < b.name ? -1 : 1))) {
         const name = `${prefix}${entry.name}`
         if (entry.isDirectory()) await hashDirectory(path.join(dir, entry.name), hash, `${name}/`)
-        else hash.update(name).update('\0').update(await fs.readFile(path.join(dir, entry.name))).update('\0')
+        else
+            hash.update(name)
+                .update('\0')
+                .update(await fs.readFile(path.join(dir, entry.name)))
+                .update('\0')
     }
 }
 
@@ -245,11 +282,19 @@ async function hashDirectory(dir, hash, prefix = '') {
  * is a part of it: a story may show today's date.
  */
 async function baselineKey(revision, browser, options) {
-    const hash = createHash('sha256').update(JSON.stringify([
-        revision, browser.version(), options.views, options.filters, options.timeoutMs, new Date().toISOString().slice(0, 10),
-    ]))
+    const hash = createHash('sha256').update(
+        JSON.stringify([
+            revision,
+            browser.version(),
+            options.views,
+            options.filters,
+            options.timeoutMs,
+            new Date().toISOString().slice(0, 10),
+        ]),
+    )
     await hashDirectory(path.join(ROOT, '.storybook'), hash)
-    for (const file of [path.join(ROOT, 'yarn.lock'), fileURLToPath(import.meta.url)]) hash.update(await fs.readFile(file))
+    for (const file of [path.join(ROOT, 'yarn.lock'), fileURLToPath(import.meta.url)])
+        hash.update(await fs.readFile(file))
     return hash.digest('hex')
 }
 
@@ -265,7 +310,9 @@ function forwardChannelEvents(names) {
     }
     const subscribe = channel => {
         for (const name of names) {
-            channel.on(name, payload => window.__storybookCheckEvent(name, name === 'storyFinished' ? payload?.status ?? '' : text(payload)))
+            channel.on(name, payload =>
+                window.__storybookCheckEvent(name, name === 'storyFinished' ? (payload?.status ?? '') : text(payload)),
+            )
         }
     }
     let channel = window.__STORYBOOK_ADDONS_CHANNEL__
@@ -314,7 +361,10 @@ async function shoot(page, file) {
         else await delay(150)
     }
     await fs.mkdir(path.dirname(file), {recursive: true})
-    await fs.writeFile(file, previous ?? await page.screenshot({fullPage: true, animations: 'disabled', caret: 'hide', scale: 'css'}))
+    await fs.writeFile(
+        file,
+        previous ?? (await page.screenshot({fullPage: true, animations: 'disabled', caret: 'hide', scale: 'css'})),
+    )
     return previous !== null
 }
 
@@ -322,8 +372,12 @@ async function shoot(page, file) {
 async function visit(browser, job, {timeoutMs}) {
     const problems = []
     const seen = new Set()
-    let open = true, finish, grace
-    const finished = new Promise(resolve => { finish = resolve })
+    let open = true,
+        finish,
+        grace
+    const finished = new Promise(resolve => {
+        finish = resolve
+    })
     const report = (kind, text = '') => {
         const message = String(text).trim()
         const key = message.split('\n')[0] || kind
@@ -335,7 +389,10 @@ async function visit(browser, job, {timeoutMs}) {
     const started = Date.now()
     let stable = null
     const context = await browser.newContext({
-        viewport: job.viewport, deviceScaleFactor: 1, locale: 'en-US', timezoneId: 'UTC',
+        viewport: job.viewport,
+        deviceScaleFactor: 1,
+        locale: 'en-US',
+        timezoneId: 'UTC',
     })
     try {
         const page = await context.newPage()
@@ -354,9 +411,12 @@ async function visit(browser, job, {timeoutMs}) {
         page.on('pageerror', error => report('uncaught error', error.stack ?? String(error)))
         page.on('console', message => {
             const text = message.text()
-            if (message.type() === 'error' && !IGNORED_CONSOLE_ERRORS.some(ignored => ignored.test(text))) report('console.error', text)
+            if (message.type() === 'error' && !IGNORED_CONSOLE_ERRORS.some(ignored => ignored.test(text)))
+                report('console.error', text)
         })
-        page.on('requestfailed', request => report('request failed', `${request.url()} ${request.failure()?.errorText ?? ''}`))
+        page.on('requestfailed', request =>
+            report('request failed', `${request.url()} ${request.failure()?.errorText ?? ''}`),
+        )
         page.on('response', response => {
             if (response.status() >= 400) report(`HTTP ${response.status()}`, response.url())
         })
@@ -368,7 +428,9 @@ async function visit(browser, job, {timeoutMs}) {
         let timer
         const timedOut = await Promise.race([
             finished.then(() => false),
-            new Promise(resolve => { timer = setTimeout(resolve, timeoutMs, true) }),
+            new Promise(resolve => {
+                timer = setTimeout(resolve, timeoutMs, true)
+            }),
         ])
         clearTimeout(timer)
         if (timedOut) {
@@ -396,7 +458,8 @@ async function readStories(browser, base, {filters, timeoutMs}) {
     const first = entries.find(entry => entry.type === 'story')
     if (!first) throw new Error('The Storybook has no stories')
     const matches = id => !filters.length || filters.some(text => id.toLowerCase().includes(text))
-    const stories = [], docs = []
+    const stories = [],
+        docs = []
     for (const {type, id, title, name} of entries) {
         if (!matches(id)) continue
         if (type === 'docs') docs.push({id, title, name})
@@ -407,25 +470,28 @@ async function readStories(browser, base, {filters, timeoutMs}) {
         const page = await context.newPage()
         await page.goto(`${base}/iframe.html?viewMode=story&id=${encodeURIComponent(first.id)}`, {timeout: timeoutMs})
         await page.waitForFunction(() => window.__STORYBOOK_PREVIEW__?.storyStoreValue, null, {timeout: timeoutMs})
-        const {globals, viewports} = await page.evaluate(async ids => {
-            const store = window.__STORYBOOK_PREVIEW__.storyStoreValue
-            const projectGlobals = {...store.userGlobals.initialGlobals, ...store.userGlobals.globals}
-            const viewports = {}
-            for (const id of ids) {
-                // A story file that fails to load keeps the default size; opening the story reports the error.
-                const story = await store.loadStory({storyId: id}).catch(() => null)
-                if (!story) continue
-                // Both forms are in use: the `viewport` global and the older `defaultViewport` parameter.
-                const viewport = {...projectGlobals, ...story.storyGlobals}.viewport
-                const name = viewport?.value ?? story.parameters?.viewport?.defaultViewport
-                const styles = story.parameters?.viewport?.options?.[name]?.styles
-                const size = styles && [Number.parseInt(styles.width, 10), Number.parseInt(styles.height, 10)]
-                if (!size?.every(Number.isFinite)) continue
-                if (viewport?.isRotated) size.reverse()
-                viewports[id] = {width: size[0], height: size[1]}
-            }
-            return {globals: Object.keys(projectGlobals), viewports}
-        }, stories.map(story => story.id))
+        const {globals, viewports} = await page.evaluate(
+            async ids => {
+                const store = window.__STORYBOOK_PREVIEW__.storyStoreValue
+                const projectGlobals = {...store.userGlobals.initialGlobals, ...store.userGlobals.globals}
+                const viewports = {}
+                for (const id of ids) {
+                    // A story file that fails to load keeps the default size; opening the story reports the error.
+                    const story = await store.loadStory({storyId: id}).catch(() => null)
+                    if (!story) continue
+                    // Both forms are in use: the `viewport` global and the older `defaultViewport` parameter.
+                    const viewport = {...projectGlobals, ...story.storyGlobals}.viewport
+                    const name = viewport?.value ?? story.parameters?.viewport?.defaultViewport
+                    const styles = story.parameters?.viewport?.options?.[name]?.styles
+                    const size = styles && [Number.parseInt(styles.width, 10), Number.parseInt(styles.height, 10)]
+                    if (!size?.every(Number.isFinite)) continue
+                    if (viewport?.isRotated) size.reverse()
+                    viewports[id] = {width: size[0], height: size[1]}
+                }
+                return {globals: Object.keys(projectGlobals), viewports}
+            },
+            stories.map(story => story.id),
+        )
         for (const story of stories) story.viewport = viewports[story.id] ?? DEFAULT_VIEWPORT
         return {stories, docs, globals: new Set(globals)}
     } finally {
@@ -439,7 +505,11 @@ async function runTarget(browser, base, {stories, docs = [], views, shotsDir, la
     for (const story of stories) {
         for (const view of views) {
             jobs.push({
-                kind: 'story', id: story.id, title: `${story.title} / ${story.name}`, view, viewport: story.viewport,
+                kind: 'story',
+                id: story.id,
+                title: `${story.title} / ${story.name}`,
+                view,
+                viewport: story.viewport,
                 url: `${base}/iframe.html?viewMode=story&id=${encodeURIComponent(story.id)}&globals=${VIEWS[view]}`,
                 shot: shotsDir && path.join(shotsDir, view, `${story.id}.png`),
             })
@@ -447,23 +517,30 @@ async function runTarget(browser, base, {stories, docs = [], views, shotsDir, la
     }
     for (const page of docs) {
         jobs.push({
-            kind: 'docs', id: page.id, title: `${page.title} / ${page.name}`, view: views[0], viewport: DEFAULT_VIEWPORT,
+            kind: 'docs',
+            id: page.id,
+            title: `${page.title} / ${page.name}`,
+            view: views[0],
+            viewport: DEFAULT_VIEWPORT,
             url: `${base}/iframe.html?viewMode=docs&id=${encodeURIComponent(page.id)}&globals=${VIEWS[views[0]]}`,
             shot: null,
         })
     }
     if (shotsDir) await fs.rm(shotsDir, {recursive: true, force: true})
     const results = new Array(jobs.length)
-    let next = 0, done = 0
-    await Promise.all(Array.from({length: Math.min(options.workers, jobs.length)}, async () => {
-        while (next < jobs.length) {
-            const index = next++
-            results[index] = await visit(browser, jobs[index], options)
-            if (++done % 50 === 0 || done === jobs.length) console.log(`  ${label}: ${done} of ${jobs.length}`)
-        }
-    }))
+    let next = 0,
+        done = 0
+    await Promise.all(
+        Array.from({length: Math.min(options.workers, jobs.length)}, async () => {
+            while (next < jobs.length) {
+                const index = next++
+                results[index] = await visit(browser, jobs[index], options)
+                if (++done % 50 === 0 || done === jobs.length) console.log(`  ${label}: ${done} of ${jobs.length}`)
+            }
+        }),
+    )
     // A loaded machine makes a slow story look broken: the few that failed are opened again, one at a time.
-    const failed = results.flatMap((result, index) => result.problems.length ? [index] : [])
+    const failed = results.flatMap((result, index) => (result.problems.length ? [index] : []))
     for (const index of failed.length > RETRY_LIMIT ? [] : failed) {
         const again = await visit(browser, jobs[index], options)
         if (!again.problems.length) results[index] = {...again, firstAttempt: results[index].problems}
@@ -475,16 +552,24 @@ async function runTarget(browser, base, {stories, docs = [], views, shotsDir, la
 async function compareInPage({before, after, tolerance}) {
     const load = async url => createImageBitmap(await (await fetch(url)).blob(), {colorSpaceConversion: 'none'})
     const [left, right] = await Promise.all([load(before), load(after)])
-    const width = Math.max(left.width, right.width), height = Math.max(left.height, right.height)
+    const width = Math.max(left.width, right.width),
+        height = Math.max(left.height, right.height)
     const read = bitmap => {
         const context = new OffscreenCanvas(width, height).getContext('2d', {willReadFrequently: true})
         context.drawImage(bitmap, 0, 0)
         return context.getImageData(0, 0, width, height).data
     }
-    const a = read(left), b = read(right)
+    const a = read(left),
+        b = read(right)
     const result = {
-        width, height, changed: 0, maxDelta: 0,
-        resized: left.width !== right.width || left.height !== right.height ? `${left.width}×${left.height} → ${right.width}×${right.height}` : null,
+        width,
+        height,
+        changed: 0,
+        maxDelta: 0,
+        resized:
+            left.width !== right.width || left.height !== right.height
+                ? `${left.width}×${left.height} → ${right.width}×${right.height}`
+                : null,
     }
     left.close()
     right.close()
@@ -494,7 +579,12 @@ async function compareInPage({before, after, tolerance}) {
     const image = context.createImageData(width, height)
     const out = image.data
     for (let i = 0; i < a.length; i += 4) {
-        const delta = Math.max(Math.abs(a[i] - b[i]), Math.abs(a[i + 1] - b[i + 1]), Math.abs(a[i + 2] - b[i + 2]), Math.abs(a[i + 3] - b[i + 3]))
+        const delta = Math.max(
+            Math.abs(a[i] - b[i]),
+            Math.abs(a[i + 1] - b[i + 1]),
+            Math.abs(a[i + 2] - b[i + 2]),
+            Math.abs(a[i + 3] - b[i + 3]),
+        )
         if (delta > tolerance) {
             result.changed++
             if (delta > result.maxDelta) result.maxDelta = delta
@@ -520,8 +610,10 @@ async function compareInPage({before, after, tolerance}) {
 /** Compares the pictures of two runs; `before` and `after` are the results of `runTarget`. */
 async function comparePictures(browser, server, mounts, {before, after, beforeDir, afterDir, diffDir, tolerance}) {
     const key = result => `${result.view}/${result.id}`
-    const stories = results => new Map(results.filter(result => result.kind === 'story').map(result => [key(result), result]))
-    const old = stories(before), fresh = stories(after)
+    const stories = results =>
+        new Map(results.filter(result => result.kind === 'story').map(result => [key(result), result]))
+    const old = stories(before),
+        fresh = stories(after)
     const pictures = {changed: [], added: [], removed: [], missing: [], same: 0, tolerated: 0}
     mounts.before = beforeDir
     mounts.after = afterDir
@@ -547,7 +639,9 @@ async function comparePictures(browser, server, mounts, {before, after, beforeDi
                 continue
             }
             const {diff, ...numbers} = await page.evaluate(compareInPage, {
-                before: `${server.origin}/before/${name}.png`, after: `${server.origin}/after/${name}.png`, tolerance,
+                before: `${server.origin}/before/${name}.png`,
+                after: `${server.origin}/after/${name}.png`,
+                tolerance,
             })
             if (!numbers.changed) {
                 pictures.same++
@@ -558,9 +652,13 @@ async function comparePictures(browser, server, mounts, {before, after, beforeDi
             await fs.mkdir(path.dirname(file), {recursive: true})
             await fs.writeFile(file, Buffer.from(diff, 'base64'))
             pictures.changed.push({
-                ...entry, ...numbers, share: numbers.changed / (numbers.width * numbers.height),
+                ...entry,
+                ...numbers,
+                share: numbers.changed / (numbers.width * numbers.height),
                 unstable: baseline.stable === false || result.stable === false,
-                before: baseline.shot, after: result.shot, diff: file,
+                before: baseline.shot,
+                after: result.shot,
+                diff: file,
             })
         }
         for (const [name, result] of old) {
@@ -584,22 +682,37 @@ function groupByStory(entries, signature = () => '') {
 }
 
 /** Views of one story that failed the same way are reported together. */
-const failureSignature = failure => JSON.stringify([failure.inBaseline, failure.problems.map(problem => [problem.kind, problem.text.split('\n')[0]])])
+const failureSignature = failure =>
+    JSON.stringify([failure.inBaseline, failure.problems.map(problem => [problem.kind, problem.text.split('\n')[0]])])
 
-const percent = share => share < 0.0001 ? '<0.01%' : `${(share * 100).toFixed(share < 0.01 ? 2 : 1)}%`
+const percent = share => (share < 0.0001 ? '<0.01%' : `${(share * 100).toFixed(share < 0.01 ? 2 : 1)}%`)
 
 function renderHtml(report, outDir) {
-    const escape = text => String(text).replace(/[&<>"]/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[char])
+    const escape = text =>
+        String(text).replace(/[&<>"]/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[char])
     const link = file => escape(path.relative(outDir, file).split(path.sep).join('/'))
-    const picture = (file, caption) => `<figure><a href="${link(file)}"><img loading="lazy" src="${link(file)}"></a><figcaption>${caption}</figcaption></figure>`
-    const list = (title, entries) => entries.length
-        ? `<h2>${title}: ${entries.length}</h2><ul>${groupByStory(entries).map(entry =>
-            `<li>${escape(entry.title)} <code>${escape(entry.id)}</code> [${entry.views.join(', ')}]</li>`).join('')}</ul>`
-        : ''
-    const problems = entries => groupByStory(entries, failureSignature).map(entry =>
-        `<h3>${escape(entry.title)} <code>${escape(entry.id)}</code> [${entry.views.join(', ')}]${
-            entry.inBaseline ? ' — fails in the baseline too' : ''}</h3>${entry.problems.map(problem =>
-            `<p><b>${escape(problem.kind)}</b></p><pre>${escape(problem.text)}</pre>`).join('')}`).join('')
+    const picture = (file, caption) =>
+        `<figure><a href="${link(file)}"><img loading="lazy" src="${link(file)}"></a><figcaption>${caption}</figcaption></figure>`
+    const list = (title, entries) =>
+        entries.length
+            ? `<h2>${title}: ${entries.length}</h2><ul>${groupByStory(entries)
+                  .map(
+                      entry =>
+                          `<li>${escape(entry.title)} <code>${escape(entry.id)}</code> [${entry.views.join(', ')}]</li>`,
+                  )
+                  .join('')}</ul>`
+            : ''
+    const problems = entries =>
+        groupByStory(entries, failureSignature)
+            .map(
+                entry =>
+                    `<h3>${escape(entry.title)} <code>${escape(entry.id)}</code> [${entry.views.join(', ')}]${
+                        entry.inBaseline ? ' — fails in the baseline too' : ''
+                    }</h3>${entry.problems
+                        .map(problem => `<p><b>${escape(problem.kind)}</b></p><pre>${escape(problem.text)}</pre>`)
+                        .join('')}`,
+            )
+            .join('')
     const failures = report.failures.length
         ? `<h2>Failed: ${report.failures.length}</h2>${problems(report.failures)}`
         : '<h2>No story failed</h2>'
@@ -608,11 +721,19 @@ function renderHtml(report, outDir) {
         : ''
     const pictures = report.pictures
     const changed = pictures?.changed.length
-        ? `<h2>Changed pictures: ${pictures.changed.length}</h2>${pictures.changed.map(entry =>
-            `<h3>${escape(entry.title)} <code>${escape(entry.id)}</code> [${entry.view}] — ${percent(entry.share)} of the pixels, by up to ${
-                entry.maxDelta} of 255${entry.resized ? `, size ${entry.resized}` : ''}${
-                entry.unstable ? ', the picture was not stable' : ''}</h3><div class="row">${
-                picture(entry.before, 'baseline')}${picture(entry.after, 'current')}${picture(entry.diff, 'difference')}</div>`).join('')}`
+        ? `<h2>Changed pictures: ${pictures.changed.length}</h2>${pictures.changed
+              .map(
+                  entry =>
+                      `<h3>${escape(entry.title)} <code>${escape(entry.id)}</code> [${entry.view}] — ${percent(entry.share)} of the pixels, by up to ${
+                          entry.maxDelta
+                      } of 255${entry.resized ? `, size ${entry.resized}` : ''}${
+                          entry.unstable ? ', the picture was not stable' : ''
+                      }</h3><div class="row">${picture(
+                          entry.before,
+                          'baseline',
+                      )}${picture(entry.after, 'current')}${picture(entry.diff, 'difference')}</div>`,
+              )
+              .join('')}`
         : ''
     return `<!doctype html><meta charset="utf-8"><title>Storybook check</title>
 <style>
@@ -625,8 +746,12 @@ figure { margin: 0; } img { max-width: 100%; border: 1px solid #d0d7de; } figcap
 <h1>Storybook check</h1>
 <p>${escape(report.summary.join(' · '))}</p>
 ${failures}${retried}${list('Pictures that were not stable', report.unstable)}${changed}${
-    pictures ? list('New stories, nothing to compare with', pictures.added) + list('Stories that are gone', pictures.removed)
-        + list('Failed stories without a picture to compare', pictures.missing) : ''}
+    pictures
+        ? list('New stories, nothing to compare with', pictures.added) +
+          list('Stories that are gone', pictures.removed) +
+          list('Failed stories without a picture to compare', pictures.missing)
+        : ''
+}
 `
 }
 
@@ -649,28 +774,49 @@ async function main() {
     const mounts = {current: currentStatic}
     const server = await serve(mounts)
     const browser = await chromium.launch({
-        args: BROWSER_ARGS, ...(options.browser ? {executablePath: options.browser} : {channel: 'chrome'}),
+        args: BROWSER_ARGS,
+        ...(options.browser ? {executablePath: options.browser} : {channel: 'chrome'}),
     })
     try {
         const current = await readStories(browser, `${server.origin}/current`, options)
         for (const view of options.views) {
-            const missing = VIEWS[view].split(';').map(pair => pair.split(':')[0]).filter(name => !current.globals.has(name))
-            if (missing.length) throw new Error(`View ${view} sets ${missing.join(', ')}, which this Storybook does not declare as a global`)
+            const missing = VIEWS[view]
+                .split(';')
+                .map(pair => pair.split(':')[0])
+                .filter(name => !current.globals.has(name))
+            if (missing.length)
+                throw new Error(
+                    `View ${view} sets ${missing.join(', ')}, which this Storybook does not declare as a global`,
+                )
         }
         if (!current.stories.length && !current.docs.length) throw new Error('No story matches the filter')
-        console.log(`Checking ${current.stories.length} stories in ${options.views.length} views (${options.views.join(', ')})`
-            + ` and ${current.docs.length} docs pages, ${options.workers} at a time`)
+        console.log(
+            `Checking ${current.stories.length} stories in ${options.views.length} views (${options.views.join(', ')})` +
+                ` and ${current.docs.length} docs pages, ${options.workers} at a time`,
+        )
         const started = Date.now()
         const currentShots = path.join(out, 'current/shots')
-        const results = await runTarget(browser, `${server.origin}/current`, {
-            ...current, views: options.views, shotsDir: options.pictures ? currentShots : null, label: 'current',
-        }, options)
+        const results = await runTarget(
+            browser,
+            `${server.origin}/current`,
+            {
+                ...current,
+                views: options.views,
+                shotsDir: options.pictures ? currentShots : null,
+                label: 'current',
+            },
+            options,
+        )
 
-        let pictures = null, baselineName = null, baselineFailed = null
+        let pictures = null,
+            baselineName = null,
+            baselineFailed = null
         if (comparing) {
             const baselineShots = path.join(out, 'baseline/shots')
             const keptFile = path.join(out, 'baseline/results.json')
-            let baselineStatic = options.baselineStatic, before = null, key = null
+            let baselineStatic = options.baselineStatic,
+                before = null,
+                key = null
             baselineName = options.baselineStatic ? relative(options.baselineStatic) : options.baseline
             if (!baselineStatic) {
                 const revision = git('rev-parse', '--verify', `${options.baseline}^{commit}`)
@@ -678,7 +824,19 @@ async function main() {
                 key = await baselineKey(revision, browser, options)
                 const kept = await fs.readFile(keptFile, 'utf8').then(JSON.parse, () => null)
                 const shots = kept?.key === key ? kept.results.filter(result => result.shot) : null
-                if (shots && (await Promise.all(shots.map(result => fs.access(result.shot).then(() => true, () => false)))).every(Boolean)) {
+                if (
+                    shots &&
+                    (
+                        await Promise.all(
+                            shots.map(result =>
+                                fs.access(result.shot).then(
+                                    () => true,
+                                    () => false,
+                                ),
+                            ),
+                        )
+                    ).every(Boolean)
+                ) {
                     console.log(`The pictures of ${baselineName} are kept from an earlier run`)
                     before = kept.results
                 } else {
@@ -692,34 +850,61 @@ async function main() {
                 await fs.rm(keptFile, {force: true})
                 mounts.baseline = baselineStatic
                 const baseline = await readStories(browser, `${server.origin}/baseline`, options)
-                before = await runTarget(browser, `${server.origin}/baseline`, {
-                    stories: baseline.stories, views: options.views, shotsDir: baselineShots, label: 'baseline',
-                }, options)
+                before = await runTarget(
+                    browser,
+                    `${server.origin}/baseline`,
+                    {
+                        stories: baseline.stories,
+                        views: options.views,
+                        shotsDir: baselineShots,
+                        label: 'baseline',
+                    },
+                    options,
+                )
                 if (key) await fs.writeFile(keptFile, JSON.stringify({key, results: before}))
             }
             pictures = await comparePictures(browser, server, mounts, {
-                before, after: results, beforeDir: baselineShots, afterDir: currentShots,
-                diffDir: path.join(out, 'diff'), tolerance: options.tolerance,
+                before,
+                after: results,
+                beforeDir: baselineShots,
+                afterDir: currentShots,
+                diffDir: path.join(out, 'diff'),
+                tolerance: options.tolerance,
             })
-            baselineFailed = new Set(before.filter(result => result.problems.length).map(result => `${result.view}/${result.id}`))
+            baselineFailed = new Set(
+                before.filter(result => result.problems.length).map(result => `${result.view}/${result.id}`),
+            )
         }
 
-        const failures = results.filter(result => result.problems.length).map(({kind, id, title, view, problems}) => ({
-            kind, id, title, view, problems,
-            ...(baselineFailed && kind === 'story' ? {inBaseline: baselineFailed.has(`${view}/${id}`)} : {}),
-        }))
+        const failures = results
+            .filter(result => result.problems.length)
+            .map(({kind, id, title, view, problems}) => ({
+                kind,
+                id,
+                title,
+                view,
+                problems,
+                ...(baselineFailed && kind === 'story' ? {inBaseline: baselineFailed.has(`${view}/${id}`)} : {}),
+            }))
         const old = failures.filter(failure => failure.inBaseline).length
-        const retried = results.filter(result => result.firstAttempt)
+        const retried = results
+            .filter(result => result.firstAttempt)
             .map(({kind, id, title, view, firstAttempt}) => ({kind, id, title, view, problems: firstAttempt}))
-        const unstable = results.filter(result => result.stable === false).map(({id, title, view}) => ({id, title, view}))
+        const unstable = results
+            .filter(result => result.stable === false)
+            .map(({id, title, view}) => ({id, title, view}))
         const summary = [
             `${current.stories.length} stories × ${options.views.length} views, ${current.docs.length} docs pages`,
-            `${failures.length} failed${old ? `, ${old} of them in the baseline too` : ''}`
-                + (retried.length ? `, ${retried.length} passed on the second attempt` : ''),
-            ...(pictures ? [`compared with ${baselineName}: ${pictures.changed.length} pictures changed, ${pictures.same} the same`
-                + `${pictures.tolerated ? ` (${pictures.tolerated} of them within the tolerance)` : ''}, `
-                + `${pictures.added.length} new, ${pictures.removed.length} gone`
-                + (pictures.missing.length ? `, ${pictures.missing.length} without a picture` : '')] : []),
+            `${failures.length} failed${old ? `, ${old} of them in the baseline too` : ''}` +
+                (retried.length ? `, ${retried.length} passed on the second attempt` : ''),
+            ...(pictures
+                ? [
+                      `compared with ${baselineName}: ${pictures.changed.length} pictures changed, ${pictures.same} the same` +
+                          `${pictures.tolerated ? ` (${pictures.tolerated} of them within the tolerance)` : ''}, ` +
+                          `${pictures.added.length} new, ${pictures.removed.length} gone` +
+                          (pictures.missing.length ? `, ${pictures.missing.length} without a picture` : ''),
+                  ]
+                : []),
             `${Math.round((Date.now() - started) / 1000)} s`,
         ]
         const report = {summary, views: options.views, baseline: baselineName, failures, retried, unstable, pictures}
@@ -727,8 +912,13 @@ async function main() {
         await fs.writeFile(path.join(out, 'report.html'), renderHtml(report, out))
 
         for (const failure of groupByStory(failures, failureSignature)) {
-            console.log(`\n✗ ${failure.title} (${failure.id}) [${failure.views.join(', ')}]${failure.inBaseline ? ' — fails in the baseline too' : ''}`)
-            for (const problem of failure.problems) console.log(`    ${problem.kind}${problem.text ? `: ${problem.text.split('\n')[0].slice(0, 300)}` : ''}`)
+            console.log(
+                `\n✗ ${failure.title} (${failure.id}) [${failure.views.join(', ')}]${failure.inBaseline ? ' — fails in the baseline too' : ''}`,
+            )
+            for (const problem of failure.problems)
+                console.log(
+                    `    ${problem.kind}${problem.text ? `: ${problem.text.split('\n')[0].slice(0, 300)}` : ''}`,
+                )
         }
         if (retried.length) {
             console.log('\nFailed once and passed on the second attempt:')
@@ -743,12 +933,16 @@ async function main() {
         if (pictures) {
             const views = entry => `${entry.id} [${entry.views.join(', ')}]`
             const lines = [
-                ...pictures.changed.map(entry => `changed ${entry.id} [${entry.view}] ${percent(entry.share)}${entry.resized ? `, size ${entry.resized}` : ''}`),
+                ...pictures.changed.map(
+                    entry =>
+                        `changed ${entry.id} [${entry.view}] ${percent(entry.share)}${entry.resized ? `, size ${entry.resized}` : ''}`,
+                ),
                 ...groupByStory(pictures.added).map(entry => `new     ${views(entry)}`),
                 ...groupByStory(pictures.removed).map(entry => `gone    ${views(entry)}`),
                 ...groupByStory(pictures.missing).map(entry => `no picture to compare ${views(entry)}`),
             ]
-            if (lines.length) console.log(`\nPictures compared with ${baselineName}:\n${lines.map(line => `    ${line}`).join('\n')}`)
+            if (lines.length)
+                console.log(`\nPictures compared with ${baselineName}:\n${lines.map(line => `    ${line}`).join('\n')}`)
         }
         console.log(`\n${summary.join(' · ')}`)
         console.log(`Report: ${relative(path.join(out, 'report.html'))}`)

@@ -29,10 +29,7 @@ describe('table selection model', () => {
     })
 
     it('preserves all-matching mode when a row is excluded and included again', () => {
-        const allMatching = selectAllMatchingTableRows(
-            createEmptyTableSelection<number>(),
-            5,
-        ).selection
+        const allMatching = selectAllMatchingTableRows(createEmptyTableSelection<number>(), 5).selection
         const excluded = setTableRowSelected(allMatching, 3, false).selection
 
         expect(excluded).toEqual({
@@ -85,12 +82,7 @@ describe('table selection model', () => {
     })
 
     it('rejects row and page additions atomically when they exceed the limit', () => {
-        const atLimit = setTablePageSelected(
-            createEmptyTableSelection<number>(),
-            [1, 2],
-            true,
-            2,
-        ).selection
+        const atLimit = setTablePageSelected(createEmptyTableSelection<number>(), [1, 2], true, 2).selection
         const rejectedRow = setTableRowSelected(atLimit, 3, true, 2)
         const rejectedPage = setTablePageSelected(atLimit, [3, 4], true, 3)
 
@@ -125,11 +117,7 @@ describe('table selection model', () => {
     })
 
     it('accepts or rejects all-matching selection as one transition', () => {
-        const previous = setTableRowSelected(
-            createEmptyTableSelection<number>(),
-            99,
-            true,
-        ).selection
+        const previous = setTableRowSelected(createEmptyTableSelection<number>(), 99, true).selection
         const accepted = selectAllMatchingTableRows(previous, 20_000, 20_000)
         const rejected = selectAllMatchingTableRows(previous, 20_001, 20_000)
 
@@ -191,10 +179,7 @@ describe('table selection model', () => {
     })
 
     it('normalizes an empty result scope while retaining all-matching exclusions', () => {
-        const emptyAll = selectAllMatchingTableRows(
-            createEmptyTableSelection<number>(),
-            0,
-        )
+        const emptyAll = selectAllMatchingTableRows(createEmptyTableSelection<number>(), 0)
         const allMatching: TableSelectionModel<number> = {
             mode: 'allMatching',
             matchingCount: 2,

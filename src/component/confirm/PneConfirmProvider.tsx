@@ -1,10 +1,10 @@
-import React, { createContext, useCallback, use, useEffect, useMemo, useRef, useState } from 'react'
-import { Box, Button, Stack, Typography } from '@mui/material'
-import { useTranslation } from 'react-i18next'
+import React, {createContext, useCallback, use, useEffect, useMemo, useRef, useState} from 'react'
+import {Box, Button, Stack, Typography} from '@mui/material'
+import {useTranslation} from 'react-i18next'
 import PneModal from '../PneModal'
 import PneModalActions from '../PneModalActions'
-import { type AutoTestValue, createAutoTestAttributes } from '../AutoTestAttribute'
-import { hasRenderableContent } from '../internal/hasRenderableContent'
+import {type AutoTestValue, createAutoTestAttributes} from '../AutoTestAttribute'
+import {hasRenderableContent} from '../internal/hasRenderableContent'
 
 export type PneConfirmOptions = {
     /** Stable owner identity copied to the portal dialog's Selenium scope. */
@@ -55,8 +55,8 @@ const normalizeTitle = (title?: string): string | undefined => {
     return title.trim().length > 0 ? title : undefined
 }
 
-export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: PneConfirmProviderProps) => {
-    const { t } = useTranslation()
+export const PneConfirmProvider = ({children, defaultOptions, deleteOptions}: PneConfirmProviderProps) => {
+    const {t} = useTranslation()
     const queueRef = useRef<PendingConfirm[]>([])
     const currentRef = useRef<PendingConfirm | null>(null)
     const requestIdRef = useRef(0)
@@ -64,10 +64,10 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
 
     const fallbackStrings = useMemo(
         () => ({
-            title: t('pne.confirm.title', { defaultValue: 'Confirm action' }),
-            confirmLabel: t('pne.confirm.confirm', { defaultValue: 'Yes' }),
-            cancelLabel: t('pne.confirm.cancel', { defaultValue: 'Cancel' }),
-            deleteLabel: t('pne.confirm.delete', { defaultValue: 'Delete' }),
+            title: t('pne.confirm.title', {defaultValue: 'Confirm action'}),
+            confirmLabel: t('pne.confirm.confirm', {defaultValue: 'Yes'}),
+            cancelLabel: t('pne.confirm.cancel', {defaultValue: 'Cancel'}),
+            deleteLabel: t('pne.confirm.delete', {defaultValue: 'Delete'}),
         }),
         [t],
     )
@@ -93,7 +93,8 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                 const pending: PendingConfirm = {
                     requestId: ++requestIdRef.current,
                     autoTestValue: options.autoTestValue ?? defaultOptions?.autoTestValue,
-                    title: normalizeTitle(options.title) ?? normalizeTitle(defaultOptions?.title) ?? fallbackStrings.title,
+                    title:
+                        normalizeTitle(options.title) ?? normalizeTitle(defaultOptions?.title) ?? fallbackStrings.title,
                     message: options.message,
                     confirmLabel: options.confirmLabel ?? defaultOptions?.confirmLabel ?? fallbackStrings.confirmLabel,
                     cancelLabel: options.cancelLabel ?? defaultOptions?.cancelLabel ?? fallbackStrings.cancelLabel,
@@ -110,25 +111,43 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                 currentRef.current = pending
                 setCurrent(pending)
             }),
-        [defaultOptions?.autoTestValue, defaultOptions?.cancelLabel, defaultOptions?.confirmLabel, defaultOptions?.danger, defaultOptions?.showCancel, defaultOptions?.title, fallbackStrings.cancelLabel, fallbackStrings.confirmLabel, fallbackStrings.title],
+        [
+            defaultOptions?.autoTestValue,
+            defaultOptions?.cancelLabel,
+            defaultOptions?.confirmLabel,
+            defaultOptions?.danger,
+            defaultOptions?.showCancel,
+            defaultOptions?.title,
+            fallbackStrings.cancelLabel,
+            fallbackStrings.confirmLabel,
+            fallbackStrings.title,
+        ],
     )
 
     const confirmDestructive = useCallback(
-        (options: PneConfirmDestructiveOptions = {}) => confirm({ ...options, danger: true }),
+        (options: PneConfirmDestructiveOptions = {}) => confirm({...options, danger: true}),
         [confirm],
     )
 
     const confirmDelete = useCallback(
-        (options: PneConfirmDeleteOptions = {}) => confirm({
-            autoTestValue: options.autoTestValue,
-            title: normalizeTitle(options.title) ?? normalizeTitle(deleteOptions?.title),
-            message: options.message,
-            confirmLabel: deleteOptions?.confirmLabel ?? fallbackStrings.deleteLabel,
-            cancelLabel: options.cancelLabel ?? deleteOptions?.cancelLabel,
-            danger: true,
-            showCancel: options.showCancel ?? deleteOptions?.showCancel,
-        }),
-        [confirm, deleteOptions?.cancelLabel, deleteOptions?.confirmLabel, deleteOptions?.showCancel, deleteOptions?.title, fallbackStrings.deleteLabel],
+        (options: PneConfirmDeleteOptions = {}) =>
+            confirm({
+                autoTestValue: options.autoTestValue,
+                title: normalizeTitle(options.title) ?? normalizeTitle(deleteOptions?.title),
+                message: options.message,
+                confirmLabel: deleteOptions?.confirmLabel ?? fallbackStrings.deleteLabel,
+                cancelLabel: options.cancelLabel ?? deleteOptions?.cancelLabel,
+                danger: true,
+                showCancel: options.showCancel ?? deleteOptions?.showCancel,
+            }),
+        [
+            confirm,
+            deleteOptions?.cancelLabel,
+            deleteOptions?.confirmLabel,
+            deleteOptions?.showCancel,
+            deleteOptions?.title,
+            fallbackStrings.deleteLabel,
+        ],
     )
 
     useEffect(
@@ -142,7 +161,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
     )
 
     const contextValue = useMemo<PneConfirmContextValue>(
-        () => ({ confirm, confirmDestructive, confirmDelete }),
+        () => ({confirm, confirmDestructive, confirmDelete}),
         [confirm, confirmDelete, confirmDestructive],
     )
 
@@ -150,27 +169,35 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
         <PneConfirmContext value={contextValue}>
             {children}
             <PneModal
-                actions={<PneModalActions
-                    secondary={current?.showCancel ? <Button
-                        size='medium'
-                        key={`confirm-cancel-${current.requestId}`}
-                        {...createAutoTestAttributes('alert.button.cancel')}
-                        variant='outlined'
-                        onClick={() => settle(current, false)}
-                    >
-                        {current.cancelLabel}
-                    </Button> : undefined}
-                    primary={<Button
-                        size='medium'
-                        key={`confirm-submit-${current?.requestId ?? 'closed'}`}
-                        {...createAutoTestAttributes('alert.button.submit')}
-                        variant='contained'
-                        color={current?.danger ? 'error' : 'primary'}
-                        onClick={() => settle(current, true)}
-                    >
-                        {current?.confirmLabel}
-                    </Button>}
-                />}
+                actions={
+                    <PneModalActions
+                        secondary={
+                            current?.showCancel ? (
+                                <Button
+                                    size='medium'
+                                    key={`confirm-cancel-${current.requestId}`}
+                                    {...createAutoTestAttributes('alert.button.cancel')}
+                                    variant='outlined'
+                                    onClick={() => settle(current, false)}
+                                >
+                                    {current.cancelLabel}
+                                </Button>
+                            ) : undefined
+                        }
+                        primary={
+                            <Button
+                                size='medium'
+                                key={`confirm-submit-${current?.requestId ?? 'closed'}`}
+                                {...createAutoTestAttributes('alert.button.submit')}
+                                variant='contained'
+                                color={current?.danger ? 'error' : 'primary'}
+                                onClick={() => settle(current, true)}
+                            >
+                                {current?.confirmLabel}
+                            </Button>
+                        }
+                    />
+                }
                 closeLabel={current?.cancelLabel ?? fallbackStrings.cancelLabel}
                 open={Boolean(current)}
                 onClose={() => settle(current, false)}
@@ -179,7 +206,7 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                     container: createAutoTestAttributes('alert.container', current?.autoTestValue),
                 }}
                 title={current?.title ?? fallbackStrings.title}
-                containerSx={{ maxWidth: 560, width: 'calc(100% - 32px)', minWidth: 0 }}
+                containerSx={{maxWidth: 560, width: 'calc(100% - 32px)', minWidth: 0}}
             >
                 {current && hasRenderableContent(current.message) ? (
                     <Stack spacing={3}>
@@ -188,9 +215,8 @@ export const PneConfirmProvider = ({ children, defaultOptions, deleteOptions }: 
                                 sx={{
                                     fontSize: '14px',
                                     lineHeight: '20px',
-                                    color: theme => theme.palette.mode === 'dark'
-                                        ? theme.palette.text.primary
-                                        : '#4E5D78',
+                                    color: theme =>
+                                        theme.palette.mode === 'dark' ? theme.palette.text.primary : '#4E5D78',
                                 }}
                             >
                                 {current.message}

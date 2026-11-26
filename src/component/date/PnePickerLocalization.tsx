@@ -12,13 +12,15 @@ const PnePickerLocalization = ({children}: {children: React.ReactNode}) => {
     const {i18n} = useTranslation()
     const locale = resolvePnePickerLocale(i18n?.language)
 
-    return <LocalizationProvider
-        adapterLocale={locale.adapterLocale}
-        dateAdapter={AdapterDayjs}
-        localeText={locale.localeText}
-    >
-        {children}
-    </LocalizationProvider>
+    return (
+        <LocalizationProvider
+            adapterLocale={locale.adapterLocale}
+            dateAdapter={AdapterDayjs}
+            localeText={locale.localeText}
+        >
+            {children}
+        </LocalizationProvider>
+    )
 }
 
 export default PnePickerLocalization

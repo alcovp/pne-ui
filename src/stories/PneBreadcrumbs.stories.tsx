@@ -2,15 +2,11 @@ import {Box, Link} from '@mui/material'
 import type {Meta, StoryObj} from '@storybook/react-webpack5'
 import * as React from 'react'
 
-import {
-    PneBreadcrumbs,
-    PneOrdersIcon,
-    type PneBreadcrumbItem,
-} from '../index'
+import {PneBreadcrumbs, PneOrdersIcon, type PneBreadcrumbItem} from '../index'
 
 const orderItems: readonly PneBreadcrumbItem[] = [
     {
-        icon: <PneOrdersIcon/>,
+        icon: <PneOrdersIcon />,
         id: 'orders',
         label: 'Orders',
         type: 'text',
@@ -28,7 +24,10 @@ const orderItems: readonly PneBreadcrumbItem[] = [
     },
 ]
 
-const DemoLink = ({ref, ...props}: React.ComponentPropsWithoutRef<typeof Link> & {ref?: React.Ref<HTMLAnchorElement>}) => <Link ref={ref} {...props}/>
+const DemoLink = ({
+    ref,
+    ...props
+}: React.ComponentPropsWithoutRef<typeof Link> & {ref?: React.Ref<HTMLAnchorElement>}) => <Link ref={ref} {...props} />
 
 const meta = {
     title: 'pne-ui/PneBreadcrumbs',
@@ -37,7 +36,8 @@ const meta = {
     parameters: {
         docs: {
             description: {
-                component: 'Router- and i18n-agnostic breadcrumbs. Consumers provide localized labels and a bridge-aware link component.',
+                component:
+                    'Router- and i18n-agnostic breadcrumbs. Consumers provide localized labels and a bridge-aware link component.',
             },
         },
     },
@@ -48,16 +48,18 @@ const meta = {
         moreLabel: 'More pages',
     },
     decorators: [
-        Story => <Box
-            sx={{
-                alignItems: 'center',
-                display: 'flex',
-                minHeight: 64,
-                px: 1.875,
-            }}
-        >
-            <Story/>
-        </Box>,
+        Story => (
+            <Box
+                sx={{
+                    alignItems: 'center',
+                    display: 'flex',
+                    minHeight: 64,
+                    px: 1.875,
+                }}
+            >
+                <Story />
+            </Box>
+        ),
     ],
 } satisfies Meta<typeof PneBreadcrumbs>
 
@@ -91,9 +93,11 @@ export const LongTrail: Story = {
         ],
     },
     decorators: [
-        Story => <Box sx={{width: 430}}>
-            <Story/>
-        </Box>,
+        Story => (
+            <Box sx={{width: 430}}>
+                <Story />
+            </Box>
+        ),
     ],
 }
 

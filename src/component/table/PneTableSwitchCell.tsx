@@ -7,13 +7,13 @@ import PneTableControlCell from './PneTableControlCell'
 
 export type TableSwitchAccessibleName =
     | {
-        'aria-label': string
-        'aria-labelledby'?: never
-    }
+          'aria-label': string
+          'aria-labelledby'?: never
+      }
     | {
-        'aria-label'?: never
-        'aria-labelledby': string
-    }
+          'aria-label'?: never
+          'aria-labelledby': string
+      }
 
 type SwitchDataAttributes = {
     [attribute: `data-${string}`]: string | number | boolean | undefined
@@ -21,30 +21,25 @@ type SwitchDataAttributes = {
 
 export type PneTableSwitchControlProps = Omit<
     PneSwitchProps,
-    | 'aria-label'
-    | 'aria-labelledby'
-    | 'checked'
-    | 'defaultChecked'
-    | 'disabled'
-    | 'onChange'
-    | 'readOnly'
-    | 'size'
-> & SwitchDataAttributes
+    'aria-label' | 'aria-labelledby' | 'checked' | 'defaultChecked' | 'disabled' | 'onChange' | 'readOnly' | 'size'
+> &
+    SwitchDataAttributes
 
 type PneTableSwitchCellBaseProps = Omit<
     TableCellProps,
     'aria-label' | 'aria-labelledby' | 'children' | 'onChange' | 'onClick' | 'ref'
-> & TableSwitchAccessibleName & {
-    /** Locator attached to the native switch input. */
-    autoTestId?: string
-    autoTestValue?: AutoTestValue
-    checked: boolean
-    disabled?: boolean
-    /** Ref to the PneSwitch span root. Use switchProps.inputRef for the native input. */
-    switchRef?: React.Ref<HTMLSpanElement>
-    /** Switch-only props; cell props stay at the top level. */
-    switchProps?: PneTableSwitchControlProps
-}
+> &
+    TableSwitchAccessibleName & {
+        /** Locator attached to the native switch input. */
+        autoTestId?: string
+        autoTestValue?: AutoTestValue
+        checked: boolean
+        disabled?: boolean
+        /** Ref to the PneSwitch span root. Use switchProps.inputRef for the native input. */
+        switchRef?: React.Ref<HTMLSpanElement>
+        /** Switch-only props; cell props stay at the top level. */
+        switchProps?: PneTableSwitchControlProps
+    }
 
 type InteractiveTableSwitchCellProps = {
     readOnly?: false
@@ -58,10 +53,8 @@ type ReadOnlyTableSwitchCellProps = {
     onChange?: never
 }
 
-export type PneTableSwitchCellProps = PneTableSwitchCellBaseProps & (
-    | InteractiveTableSwitchCellProps
-    | ReadOnlyTableSwitchCellProps
-)
+export type PneTableSwitchCellProps = PneTableSwitchCellBaseProps &
+    (InteractiveTableSwitchCellProps | ReadOnlyTableSwitchCellProps)
 
 const switchCellSx: SxProps<Theme> = {
     boxSizing: 'border-box',
@@ -76,16 +69,14 @@ const switchCellSx: SxProps<Theme> = {
 
 type SwitchInputSlotProps = NonNullable<NonNullable<PneSwitchProps['slotProps']>['input']>
 
-const resolveInputSlotProps = (
-    slotProps: SwitchInputSlotProps | undefined,
-    ownerState: SwitchOwnerState,
-) => {
-    return typeof slotProps === 'function'
-        ? slotProps(ownerState)
-        : slotProps ?? {}
+const resolveInputSlotProps = (slotProps: SwitchInputSlotProps | undefined, ownerState: SwitchOwnerState) => {
+    return typeof slotProps === 'function' ? slotProps(ownerState) : (slotProps ?? {})
 }
 
-const PneTableSwitchCell = ({ref, ...props}: React.PropsWithoutRef<PneTableSwitchCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
+const PneTableSwitchCell = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTableSwitchCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {
         'aria-label': ariaLabel,
         'aria-labelledby': ariaLabelledBy,
@@ -100,66 +91,64 @@ const PneTableSwitchCell = ({ref, ...props}: React.PropsWithoutRef<PneTableSwitc
         sx,
         ...cellProps
     } = props
-    const {
-        slotProps: switchSlotProps,
-        ...restSwitchProps
-    } = switchProps ?? {}
+    const {slotProps: switchSlotProps, ...restSwitchProps} = switchProps ?? {}
     const consumerInputSlotProps = switchSlotProps?.input
 
     const handleCellClick = (event: MouseEvent<HTMLTableCellElement>) => {
         event.stopPropagation()
     }
 
-    return <PneTableControlCell
-        {...cellProps}
-        onClick={handleCellClick}
-        ref={ref}
-        sx={[
-            switchCellSx,
-            ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-    >
-        <PneSwitch
-            {...restSwitchProps}
-            checked={checked}
-            disabled={disabled}
-            onChange={(event, nextChecked) => {
-                if (!disabled && !readOnly) {
-                    return onChange?.(nextChecked, event)
-                }
-            }}
-            readOnly={readOnly}
-            ref={switchRef}
-            size='small'
-            slotProps={{
-                ...switchSlotProps,
-                input: ownerState => {
-                    const inputProps = resolveInputSlotProps(consumerInputSlotProps, ownerState)
-                    const consumerOnClick = inputProps.onClick
-
-                    return {
-                        ...inputProps,
-                        ...createAutoTestAttributes(autoTestId, autoTestValue),
-                        'aria-label': ariaLabel,
-                        'aria-labelledby': ariaLabelledBy,
-                        ...(readOnly ? {
-                            onClick: (event: React.MouseEvent<HTMLInputElement>) => {
-                                consumerOnClick?.(event)
-                                const input = event.currentTarget
-
-                                // A controlled checkbox input may retain the browser's
-                                // transient toggle after preventDefault. Restore it before
-                                // paint while keeping the read-only switch focusable.
-                                queueMicrotask(() => {
-                                    input.checked = checked
-                                })
-                            },
-                        } : {}),
+    return (
+        <PneTableControlCell
+            {...cellProps}
+            onClick={handleCellClick}
+            ref={ref}
+            sx={[switchCellSx, ...(Array.isArray(sx) ? sx : [sx])]}
+        >
+            <PneSwitch
+                {...restSwitchProps}
+                checked={checked}
+                disabled={disabled}
+                onChange={(event, nextChecked) => {
+                    if (!disabled && !readOnly) {
+                        return onChange?.(nextChecked, event)
                     }
-                },
-            }}
-        />
-    </PneTableControlCell>
+                }}
+                readOnly={readOnly}
+                ref={switchRef}
+                size='small'
+                slotProps={{
+                    ...switchSlotProps,
+                    input: ownerState => {
+                        const inputProps = resolveInputSlotProps(consumerInputSlotProps, ownerState)
+                        const consumerOnClick = inputProps.onClick
+
+                        return {
+                            ...inputProps,
+                            ...createAutoTestAttributes(autoTestId, autoTestValue),
+                            'aria-label': ariaLabel,
+                            'aria-labelledby': ariaLabelledBy,
+                            ...(readOnly
+                                ? {
+                                      onClick: (event: React.MouseEvent<HTMLInputElement>) => {
+                                          consumerOnClick?.(event)
+                                          const input = event.currentTarget
+
+                                          // A controlled checkbox input may retain the browser's
+                                          // transient toggle after preventDefault. Restore it before
+                                          // paint while keeping the read-only switch focusable.
+                                          queueMicrotask(() => {
+                                              input.checked = checked
+                                          })
+                                      },
+                                  }
+                                : {}),
+                        }
+                    },
+                }}
+            />
+        </PneTableControlCell>
+    )
 }
 
 PneTableSwitchCell.displayName = 'PneTableSwitchCell'

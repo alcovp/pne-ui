@@ -1,18 +1,18 @@
-import { createSearchParams } from '../src/component/search-ui/SearchUI'
+import {createSearchParams} from '../src/component/search-ui/SearchUI'
 import {
     getCriteriaWithAvailabilityRules,
     isCriterionAvailable,
 } from '../src/component/search-ui/filters/criterionAvailability'
-import { filterAvailableCriteria } from '../src/component/search-ui/filters/SearchUIFilters'
+import {filterAvailableCriteria} from '../src/component/search-ui/filters/SearchUIFilters'
 import {
     CriterionTypeEnum,
     GroupingType,
     ORDER_SEARCH_LABELS,
     SearchCriteria,
 } from '../src/component/search-ui/filters/types'
-import { initialSearchUIDefaults } from '../src/component/search-ui/SearchUIProvider'
-import { getSearchUIInitialSearchCriteria } from '../src/component/search-ui/filters/state/initial'
-import { OrdersSearchLabelsConfig } from '../src/component/search-ui/filters/state/actions'
+import {initialSearchUIDefaults} from '../src/component/search-ui/SearchUIProvider'
+import {getSearchUIInitialSearchCriteria} from '../src/component/search-ui/filters/state/initial'
+import {OrdersSearchLabelsConfig} from '../src/component/search-ui/filters/state/actions'
 
 describe('SearchUI helpers', () => {
     it('creates search params from criteria', () => {
@@ -54,7 +54,7 @@ describe('SearchUI helpers', () => {
             csvCharset: 'UTF-8-SIG',
         }
 
-        const params = createSearchParams(criteria, { page: 2, pageSize: 10, order: 'asc', sortIndex: 3 })
+        const params = createSearchParams(criteria, {page: 2, pageSize: 10, order: 'asc', sortIndex: 3})
         expect(params.startNum).toBe(20)
         expect(params.rowCount).toBe(11)
         expect(params.orderBy).toBe(3)
@@ -89,20 +89,20 @@ describe('SearchUI helpers', () => {
     })
 
     it('only exposes customer level when merchant and currency dependencies are available', () => {
-        expect(filterAvailableCriteria(initialSearchUIDefaults, [
-            CriterionTypeEnum.CUSTOMER_LEVEL,
-            CriterionTypeEnum.MERCHANT,
-        ])).toEqual([CriterionTypeEnum.MERCHANT])
+        expect(
+            filterAvailableCriteria(initialSearchUIDefaults, [
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+                CriterionTypeEnum.MERCHANT,
+            ]),
+        ).toEqual([CriterionTypeEnum.MERCHANT])
 
-        expect(filterAvailableCriteria(initialSearchUIDefaults, [
-            CriterionTypeEnum.CUSTOMER_LEVEL,
-            CriterionTypeEnum.MERCHANT,
-            CriterionTypeEnum.CURRENCY,
-        ])).toEqual([
-            CriterionTypeEnum.CUSTOMER_LEVEL,
-            CriterionTypeEnum.MERCHANT,
-            CriterionTypeEnum.CURRENCY,
-        ])
+        expect(
+            filterAvailableCriteria(initialSearchUIDefaults, [
+                CriterionTypeEnum.CUSTOMER_LEVEL,
+                CriterionTypeEnum.MERCHANT,
+                CriterionTypeEnum.CURRENCY,
+            ]),
+        ).toEqual([CriterionTypeEnum.CUSTOMER_LEVEL, CriterionTypeEnum.MERCHANT, CriterionTypeEnum.CURRENCY])
     })
 
     it('configures merchant customer identifier as an exact string criterion', () => {
@@ -119,13 +119,16 @@ describe('SearchUI helpers', () => {
             orderDateType: 'BANK' as const,
         }
         const config = {
-            criterionAvailabilityRules: [{
-                criterion: CriterionTypeEnum.ORDERS_SEARCH,
-                isAvailable: () => false,
-            }, {
-                criterion: CriterionTypeEnum.DATE_RANGE_ORDERS,
-                isAvailable: () => true,
-            }],
+            criterionAvailabilityRules: [
+                {
+                    criterion: CriterionTypeEnum.ORDERS_SEARCH,
+                    isAvailable: () => false,
+                },
+                {
+                    criterion: CriterionTypeEnum.DATE_RANGE_ORDERS,
+                    isAvailable: () => true,
+                },
+            ],
         }
 
         expect(getCriteriaWithAvailabilityRules(config)).toEqual([

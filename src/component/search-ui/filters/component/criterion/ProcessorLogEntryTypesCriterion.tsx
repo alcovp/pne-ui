@@ -1,8 +1,8 @@
-import React, { use, useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useSearchUIFiltersStore } from '../../state/store'
-import { AbstractEntity } from '../../../../../common'
-import { SearchUIDefaultsContext } from '../../../SearchUIProvider'
+import React, {use, useEffect, useState} from 'react'
+import {useTranslation} from 'react-i18next'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {AbstractEntity} from '../../../../../common'
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
 import SearchUIProcessorLogEntryTypeSelect from '../select/SearchUIProcessorLogEntryTypeSelect'
 
 const CRITERION_PROCESSOR_LOG_ENTRY_TYPE_AUTOTEST_ID = 'criterion-processor-log-entry-type'
@@ -26,17 +26,19 @@ export const ProcessorLogEntryTypesCriterion = () => {
             .catch(console.error)
     }, [])
 
-    return <SearchUIProcessorLogEntryTypeSelect
-        value={processorLogEntryType}
-        options={availableOptions}
-        onChange={setProcessorLogEntryType}
-        ariaLabel={t('react.CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE', {
-            defaultValue: 'Processor log entry type',
-        })}
-        autoTest={{
-            controlId: CRITERION_PROCESSOR_LOG_ENTRY_TYPE_AUTOTEST_ID,
-            optionsId: CRITERION_PROCESSOR_LOG_ENTRY_TYPE_OPTIONS_AUTOTEST_ID,
-            optionId: CRITERION_PROCESSOR_LOG_ENTRY_TYPE_OPTION_AUTOTEST_ID,
-        }}
-    />
+    return (
+        <SearchUIProcessorLogEntryTypeSelect
+            value={processorLogEntryType}
+            options={availableOptions}
+            onChange={setProcessorLogEntryType}
+            ariaLabel={t('react.CriterionTypeEnum.PROCESSOR_LOG_ENTRY_TYPE', {
+                defaultValue: 'Processor log entry type',
+            })}
+            autoTest={{
+                controlId: CRITERION_PROCESSOR_LOG_ENTRY_TYPE_AUTOTEST_ID,
+                optionsId: CRITERION_PROCESSOR_LOG_ENTRY_TYPE_OPTIONS_AUTOTEST_ID,
+                optionId: CRITERION_PROCESSOR_LOG_ENTRY_TYPE_OPTION_AUTOTEST_ID,
+            }}
+        />
+    )
 }

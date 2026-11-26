@@ -1,1 +1,1 @@
-export { default } from './SearchUIAbstractEntityChipSelect'
+export {default} from './SearchUIAbstractEntityChipSelect'

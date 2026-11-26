@@ -6,7 +6,7 @@ import {SEARCH_UI_DATE_RANGE_INVALID_DATE} from '../src/component/search-ui/filt
 
 const createStore = (
     dateRangeSpec: DateRangeSpec,
-    options: {config?: SearchUIFiltersConfig, criterion?: CriterionTypeEnum} = {},
+    options: {config?: SearchUIFiltersConfig; criterion?: CriterionTypeEnum} = {},
 ) => {
     const onFiltersUpdate = jest.fn()
     const onValidationChange = jest.fn()
@@ -47,16 +47,18 @@ describe('SearchUI date bounds', () => {
         jest.useRealTimers()
     })
 
-    it('searches DATE_INDEPENDENT between Wicket\'s fixed Moscow days, whenever it is pressed', () => {
+    it("searches DATE_INDEPENDENT between Wicket's fixed Moscow days, whenever it is pressed", () => {
         // The ticket's example: the old bounds followed the moment of the click.
         for (const now of ['2026-09-30T06:32:13.000Z', '2027-02-14T23:59:59.000Z']) {
             jest.useFakeTimers().setSystemTime(new Date(now))
             const {onFiltersUpdate} = createStore(DATE_INDEPENDENT)
 
-            expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-                dateFrom: new Date('1999-12-31T21:00:00.000Z'),
-                dateTo: new Date('2999-12-30T21:00:00.000Z'),
-            }))
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    dateFrom: new Date('1999-12-31T21:00:00.000Z'),
+                    dateTo: new Date('2999-12-30T21:00:00.000Z'),
+                }),
+            )
         }
     })
 
@@ -65,10 +67,12 @@ describe('SearchUI date bounds', () => {
             config: {dateRange: {dateOnlyTimeZone: 'UTC'}},
         })
 
-        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: new Date('2000-01-01T00:00:00.000Z'),
-            dateTo: new Date('2999-12-31T00:00:00.000Z'),
-        }))
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                dateFrom: new Date('2000-01-01T00:00:00.000Z'),
+                dateTo: new Date('2999-12-31T00:00:00.000Z'),
+            }),
+        )
     })
 
     it('opens an exact range on the side whose date is empty', () => {
@@ -76,14 +80,18 @@ describe('SearchUI date bounds', () => {
         const openEnd = createStore(exactly(new Date('2026-07-01T00:00:00.000Z'), null), {config})
         const openStart = createStore(exactly(null, new Date('2026-07-01T00:00:00.000Z')), {config})
 
-        expect(openEnd.onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: new Date('2026-07-01T00:00:00.000Z'),
-            dateTo: new Date('2999-12-31T00:00:00.000Z'),
-        }))
-        expect(openStart.onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: new Date('2000-01-01T00:00:00.000Z'),
-            dateTo: new Date('2026-07-02T00:00:00.000Z'),
-        }))
+        expect(openEnd.onFiltersUpdate).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                dateFrom: new Date('2026-07-01T00:00:00.000Z'),
+                dateTo: new Date('2999-12-31T00:00:00.000Z'),
+            }),
+        )
+        expect(openStart.onFiltersUpdate).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                dateFrom: new Date('2000-01-01T00:00:00.000Z'),
+                dateTo: new Date('2026-07-02T00:00:00.000Z'),
+            }),
+        )
     })
 
     it('opens an exact date-time range in the browser time, as its typed dates are', () => {
@@ -91,33 +99,33 @@ describe('SearchUI date bounds', () => {
             criterion: CriterionTypeEnum.DATE_RANGE_ORDERS,
         })
 
-        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: new Date(2026, 6, 1, 10, 20, 30),
-            dateTo: new Date(2999, 11, 31),
-        }))
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                dateFrom: new Date(2026, 6, 1, 10, 20, 30),
+                dateTo: new Date(2999, 11, 31),
+            }),
+        )
     })
 
     it('never searches with a typed date that is unfinished or does not exist', () => {
-        const {store, onFiltersUpdate, onValidationChange} = createStore(exactly(
-            new Date('2026-07-01T00:00:00.000Z'),
-            new Date('2026-07-02T00:00:00.000Z'),
-        ))
+        const {store, onFiltersUpdate, onValidationChange} = createStore(
+            exactly(new Date('2026-07-01T00:00:00.000Z'), new Date('2026-07-02T00:00:00.000Z')),
+        )
         onFiltersUpdate.mockClear()
 
-        store.getState().setDateRangeCriterion(exactly(
-            new Date('2026-07-01T00:00:00.000Z'),
-            new Date(Number.NaN),
-        ))
+        store.getState().setDateRangeCriterion(exactly(new Date('2026-07-01T00:00:00.000Z'), new Date(Number.NaN)))
         store.getState().triggerSearch()
 
         expect(onFiltersUpdate).not.toHaveBeenCalled()
         expect(store.getState().hasUnappliedFilters).toBe(true)
         expect(onValidationChange).toHaveBeenLastCalledWith({
             isValid: false,
-            errors: [expect.objectContaining({
-                code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
-                params: {boundary: 'to'},
-            })],
+            errors: [
+                expect.objectContaining({
+                    code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
+                    params: {boundary: 'to'},
+                }),
+            ],
         })
     })
 })

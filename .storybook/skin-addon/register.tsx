@@ -11,17 +11,20 @@ const TOOL_ID = `${ADDON_ID}/tool`
 const SKIN_IDS = STORYBOOK_SKINS.map(skin => skin.id)
 
 const isTypingTarget = (target: EventTarget | null): boolean =>
-    target instanceof HTMLElement
-    && (target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName))
+    target instanceof HTMLElement &&
+    (target.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName))
 
 const SkinTool = () => {
     const [globals, updateGlobals] = useGlobals()
     const current: string = SKIN_IDS.includes(globals.skin) ? globals.skin : STORYBOOK_DEFAULT_SKIN
     const select = useCallback((id: string) => updateGlobals({skin: id}), [updateGlobals])
-    const step = useCallback((delta: number) => {
-        const index = SKIN_IDS.indexOf(current)
-        select(SKIN_IDS[(index + delta + SKIN_IDS.length) % SKIN_IDS.length])
-    }, [current, select])
+    const step = useCallback(
+        (delta: number) => {
+            const index = SKIN_IDS.indexOf(current)
+            select(SKIN_IDS[(index + delta + SKIN_IDS.length) % SKIN_IDS.length])
+        },
+        [current, select],
+    )
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
@@ -35,31 +38,35 @@ const SkinTool = () => {
 
     const color = STORYBOOK_SKINS.find(skin => skin.id === current)?.experimentalColor
 
-    return <>
-        <span
-            aria-hidden
-            style={{
-                display: 'inline-block',
-                width: 12,
-                height: 12,
-                margin: '0 6px 0 8px',
-                borderRadius: 6,
-                background: color,
-                boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.2)',
-            }}
-        />
-        <select title='Skin colour' value={current} onChange={event => select(event.target.value)}>
-            {STORYBOOK_SKINS.map(skin => (
-                <option key={skin.id} value={skin.id}>{skin.title} {skin.experimentalColor}</option>
-            ))}
-        </select>
-        <IconButton title='Previous skin [Left arrow]' onClick={() => step(-1)}>
-            <ArrowLeftIcon/>
-        </IconButton>
-        <IconButton title='Next skin [Right arrow]' onClick={() => step(1)}>
-            <ArrowRightIcon/>
-        </IconButton>
-    </>
+    return (
+        <>
+            <span
+                aria-hidden
+                style={{
+                    display: 'inline-block',
+                    width: 12,
+                    height: 12,
+                    margin: '0 6px 0 8px',
+                    borderRadius: 6,
+                    background: color,
+                    boxShadow: 'inset 0 0 0 1px rgba(0, 0, 0, 0.2)',
+                }}
+            />
+            <select title='Skin colour' value={current} onChange={event => select(event.target.value)}>
+                {STORYBOOK_SKINS.map(skin => (
+                    <option key={skin.id} value={skin.id}>
+                        {skin.title} {skin.experimentalColor}
+                    </option>
+                ))}
+            </select>
+            <IconButton title='Previous skin [Left arrow]' onClick={() => step(-1)}>
+                <ArrowLeftIcon />
+            </IconButton>
+            <IconButton title='Next skin [Right arrow]' onClick={() => step(1)}>
+                <ArrowRightIcon />
+            </IconButton>
+        </>
+    )
 }
 
 addons.register(ADDON_ID, () => {
@@ -67,6 +74,6 @@ addons.register(ADDON_ID, () => {
         title: 'Skin colour',
         type: types.TOOL,
         match: ({viewMode}) => viewMode === 'story',
-        render: () => <SkinTool/>,
+        render: () => <SkinTool />,
     })
 })

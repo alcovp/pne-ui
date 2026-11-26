@@ -69,8 +69,7 @@ export const linesFitting = (contentHeight: number): number =>
     Math.max(1, Math.floor((contentHeight + SKELETON_LINE_GAP) / LINE_PITCH))
 
 /** Lines of text a text height holds: a 16px line is one, a 100px Detailed card five. */
-const linesOfText = (height: number): number =>
-    Math.max(1, Math.round((height + SKELETON_LINE_GAP) / LINE_PITCH))
+const linesOfText = (height: number): number => Math.max(1, Math.round((height + SKELETON_LINE_GAP) / LINE_PITCH))
 
 const toPixels = (value: string): number => Number.parseFloat(value) || 0
 
@@ -84,10 +83,7 @@ export const countRowColumns = (row: HTMLTableRowElement): number =>
  * Column widths read from the first row that has one cell per column. A spanned
  * cell cannot tell its columns apart, so rows with spans are skipped.
  */
-export const measureColumnWidths = (
-    table: HTMLTableElement,
-    columnCount: number,
-): number[] | undefined => {
+export const measureColumnWidths = (table: HTMLTableElement, columnCount: number): number[] | undefined => {
     for (const row of Array.from(table.rows)) {
         const cells = Array.from(row.cells)
         if (cells.length === columnCount && cells.every(cell => spanOf(cell) === 1)) {
@@ -132,10 +128,10 @@ const styledLabelAlign = (cell: HTMLTableCellElement, label: Node, view: Window)
         }
 
         const parent = element === cell ? null : element.parentElement
-        const placedByParent = parent !== null
-            && (isFlex(view.getComputedStyle(parent).display) || style.display.startsWith('inline'))
+        const placedByParent =
+            parent !== null && (isFlex(view.getComputedStyle(parent).display) || style.display.startsWith('inline'))
         if (!placedByParent) {
-            return isFlex(style.display) ? 'left' : TEXT_ALIGN[style.textAlign] ?? 'left'
+            return isFlex(style.display) ? 'left' : (TEXT_ALIGN[style.textAlign] ?? 'left')
         }
     }
 
@@ -177,12 +173,12 @@ const measureTextBox = (element: Element): TextBox | undefined => {
 
         box = box
             ? {
-                label: box.label,
-                left: Math.min(box.left, rect.left),
-                right: Math.max(box.right, rect.right),
-                top: Math.min(box.top, rect.top),
-                bottom: Math.max(box.bottom, rect.bottom),
-            }
+                  label: box.label,
+                  left: Math.min(box.left, rect.left),
+                  right: Math.max(box.right, rect.right),
+                  top: Math.min(box.top, rect.top),
+                  bottom: Math.max(box.bottom, rect.bottom),
+              }
             : {label: node, left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom}
     }
 
@@ -230,10 +226,7 @@ export const measureLabelAlign = (cell: HTMLTableCellElement): SkeletonAlign => 
  * cells hold and their vertical alignment. A Detailed orders row has a three-line
  * Date, a one-line Amount and a five-line Details card; its skeleton should too.
  */
-export const measureColumnText = (
-    table: HTMLTableElement,
-    columnCount: number,
-): SkeletonColumnText[] | undefined => {
+export const measureColumnText = (table: HTMLTableElement, columnCount: number): SkeletonColumnText[] | undefined => {
     const view = table.ownerDocument.defaultView
     const rows = Array.from(table.tBodies[0]?.rows ?? [])
         .filter(row => row.cells.length === columnCount && Array.from(row.cells).every(cell => spanOf(cell) === 1))
@@ -246,7 +239,7 @@ export const measureColumnText = (
     return Array.from({length: columnCount}, (_, column) => {
         const lines = rows
             .map(row => measureTextBox(row.cells[column]))
-            .map(text => text ? linesOfText(text.bottom - text.top) : 1)
+            .map(text => (text ? linesOfText(text.bottom - text.top) : 1))
             .sort((left, right) => left - right)
 
         return {
@@ -274,11 +267,11 @@ export const measureSkeletonColumns = (row: HTMLTableRowElement): SkeletonColumn
         return Array.from({length: span}, () => column)
     })
 
-export const isSameSkeletonColumns = (
-    left: readonly SkeletonColumn[],
-    right: readonly SkeletonColumn[],
-): boolean => left.length === right.length && left.every((column, index) => (
-    column.align === right[index].align
-    && column.hidden === right[index].hidden
-    && column.narrow === right[index].narrow
-))
+export const isSameSkeletonColumns = (left: readonly SkeletonColumn[], right: readonly SkeletonColumn[]): boolean =>
+    left.length === right.length &&
+    left.every(
+        (column, index) =>
+            column.align === right[index].align &&
+            column.hidden === right[index].hidden &&
+            column.narrow === right[index].narrow,
+    )

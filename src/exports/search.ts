@@ -65,11 +65,11 @@ export {
     type MultigetSelectActionsProps,
     type MultigetSelectProps,
 } from '../component/search-ui/multiget_select/MultigetSelect'
-export { MultigetSelectStoreProvider } from '../component/search-ui/multiget_select/state/IsolatedStoreProvider'
-export { SearchUITemplate } from '../component/search-ui/filters/types'
+export {MultigetSelectStoreProvider} from '../component/search-ui/multiget_select/state/IsolatedStoreProvider'
+export {SearchUITemplate} from '../component/search-ui/filters/types'
 export type {
     SearchUIValidationError,
     SearchUIValidationResult,
 } from '../component/search-ui/filters/validation'
-export { type SearchUIDateRangeBoundary } from '../component/search-ui/filters/dateRangeTimeZone'
-export { getSearchUIInitialState } from '../component/search-ui/state/initial'
+export {type SearchUIDateRangeBoundary} from '../component/search-ui/filters/dateRangeTimeZone'
+export {getSearchUIInitialState} from '../component/search-ui/state/initial'

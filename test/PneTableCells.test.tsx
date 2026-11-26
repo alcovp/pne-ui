@@ -30,13 +30,16 @@ const ruleValue = (element: Element, selector: string, property: string): string
     return values[values.length - 1]
 }
 
-const renderRow = (cells: React.ReactNode, onRowClick?: () => void) => render(<PneThemeProvider skin={UI_KIT_SKIN}>
-    <table>
-        <tbody>
-            <PneTableRow onClick={onRowClick}>{cells}</PneTableRow>
-        </tbody>
-    </table>
-</PneThemeProvider>)
+const renderRow = (cells: React.ReactNode, onRowClick?: () => void) =>
+    render(
+        <PneThemeProvider skin={UI_KIT_SKIN}>
+            <table>
+                <tbody>
+                    <PneTableRow onClick={onRowClick}>{cells}</PneTableRow>
+                </tbody>
+            </table>
+        </PneThemeProvider>,
+    )
 
 // UI Kit Cell: Numbers, Link, Pseudo link, Actions, Expand and Collapse.
 describe('PneTable cell kinds', () => {
@@ -52,7 +55,11 @@ describe('PneTable cell kinds', () => {
     })
 
     it('gives the link of the consumer the link colour without an underline', () => {
-        const {container} = renderRow(<PneTableLinkCell><a href='#order'>9232734</a></PneTableLinkCell>)
+        const {container} = renderRow(
+            <PneTableLinkCell>
+                <a href='#order'>9232734</a>
+            </PneTableLinkCell>,
+        )
         const cell = container.querySelector('td')!
 
         expect(cell.getAttribute('data-pne-cell')).toBe('link')
@@ -90,8 +97,12 @@ describe('PneTable cell kinds', () => {
         const onRowClick = jest.fn()
         const {container} = renderRow(
             <PneTableActionsCell>
-                <PneTableAction aria-label='Edit' onClick={onEdit}><svg/></PneTableAction>
-                <PneTableAction aria-label='Delete' disabled tone='danger'><svg/></PneTableAction>
+                <PneTableAction aria-label='Edit' onClick={onEdit}>
+                    <svg />
+                </PneTableAction>
+                <PneTableAction aria-label='Delete' disabled tone='danger'>
+                    <svg />
+                </PneTableAction>
             </PneTableActionsCell>,
             onRowClick,
         )
@@ -117,9 +128,13 @@ describe('PneTable cell kinds', () => {
     })
 
     it('shows the hint of an action', async () => {
-        renderRow(<PneTableActionsCell>
-            <PneTableAction aria-label='Edit' tooltip='Edit the record'><svg/></PneTableAction>
-        </PneTableActionsCell>)
+        renderRow(
+            <PneTableActionsCell>
+                <PneTableAction aria-label='Edit' tooltip='Edit the record'>
+                    <svg />
+                </PneTableAction>
+            </PneTableActionsCell>,
+        )
 
         fireEvent.mouseOver(screen.getByRole('button', {name: 'Edit'}))
 
@@ -130,20 +145,22 @@ describe('PneTable cell kinds', () => {
     it('opens and closes a row with the chevron and keeps the click from the row', () => {
         const onToggle = jest.fn()
         const onRowClick = jest.fn()
-        const cells = (expanded: boolean) => <PneThemeProvider skin={UI_KIT_SKIN}>
-            <table>
-                <tbody>
-                    <PneTableRow onClick={onRowClick}>
-                        <PneTableExpandCell
-                            aria-label='Details of 9232734'
-                            autoTestValue={9232734}
-                            expanded={expanded}
-                            onToggle={onToggle}
-                        />
-                    </PneTableRow>
-                </tbody>
-            </table>
-        </PneThemeProvider>
+        const cells = (expanded: boolean) => (
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <table>
+                    <tbody>
+                        <PneTableRow onClick={onRowClick}>
+                            <PneTableExpandCell
+                                aria-label='Details of 9232734'
+                                autoTestValue={9232734}
+                                expanded={expanded}
+                                onToggle={onToggle}
+                            />
+                        </PneTableRow>
+                    </tbody>
+                </table>
+            </PneThemeProvider>
+        )
         const {container, rerender} = render(cells(false))
         const button = screen.getByRole('button', {name: 'Details of 9232734'})
 
@@ -168,7 +185,7 @@ describe('PneTable cell kinds', () => {
 
     it('draws the chevron without a name when the page gives none', () => {
         const onToggle = jest.fn()
-        renderRow(<PneTableExpandCell autoTestId='jobEvents.button.expand' expanded={false} onToggle={onToggle}/>)
+        renderRow(<PneTableExpandCell autoTestId='jobEvents.button.expand' expanded={false} onToggle={onToggle} />)
         const button = screen.getByRole('button')
 
         expect(button.hasAttribute('aria-label')).toBe(false)

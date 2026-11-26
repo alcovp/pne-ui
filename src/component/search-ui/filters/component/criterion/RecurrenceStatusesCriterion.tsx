@@ -1,8 +1,8 @@
-import React, {use, useEffect, useState} from 'react';
-import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect';
-import {useSearchUIFiltersStore} from '../../state/store';
-import {SearchUIDefaultsContext} from "../../../SearchUIProvider";
-import {AbstractEntity} from '../../../../../common/paynet/type';
+import React, {use, useEffect, useState} from 'react'
+import SearchUIAbstractEntitySelect from '../select/SearchUIAbstractEntitySelect'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
+import {AbstractEntity} from '../../../../../common/paynet/type'
 
 export const RecurrenceStatusesCriterion = () => {
     const [availableOptions, setAvailableOptions] = useState<AbstractEntity[]>([])
@@ -20,9 +20,5 @@ export const RecurrenceStatusesCriterion = () => {
             .catch(console.error)
     }, [])
 
-    return <SearchUIAbstractEntitySelect
-        value={options}
-        options={availableOptions}
-        onChange={setCriterion}
-    />
+    return <SearchUIAbstractEntitySelect value={options} options={availableOptions} onChange={setCriterion} />
 }

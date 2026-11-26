@@ -17,16 +17,21 @@ const numberCellSx: SxProps<Theme> = {
  * A cell with a number: an amount, a count, a rate (UI Kit Cell: Numbers). The value stands at the
  * right edge in the mono font and does not wrap, so the digits of a column line up.
  */
-const PneTableNumberCell = ({ref, ...props}: React.PropsWithoutRef<PneTableNumberCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
+const PneTableNumberCell = ({
+    ref,
+    ...props
+}: React.PropsWithoutRef<PneTableNumberCellProps> & {ref?: React.Ref<HTMLTableCellElement>}) => {
     const {sx, ...rest} = props
 
-    return <PneTableCell
-        data-pne-cell='number'
-        {...rest}
-        align='right'
-        ref={ref}
-        sx={[numberCellSx, ...(Array.isArray(sx) ? sx : [sx])] as PneTableCellProps['sx']}
-    />
+    return (
+        <PneTableCell
+            data-pne-cell='number'
+            {...rest}
+            align='right'
+            ref={ref}
+            sx={[numberCellSx, ...(Array.isArray(sx) ? sx : [sx])] as PneTableCellProps['sx']}
+        />
+    )
 }
 
 PneTableNumberCell.displayName = 'PneTableNumberCell'

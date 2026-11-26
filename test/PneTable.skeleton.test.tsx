@@ -36,21 +36,22 @@ const DETAILED: Column[] = [
     {label: 'Details', width: 300},
 ]
 
-const rect = (left: number, top: number, width: number, height: number): DOMRect => ({
-    x: left,
-    y: top,
-    left,
-    top,
-    width,
-    height,
-    right: left + width,
-    bottom: top + height,
-    toJSON: () => ({}),
-}) as DOMRect
+const rect = (left: number, top: number, width: number, height: number): DOMRect =>
+    ({
+        x: left,
+        y: top,
+        left,
+        top,
+        width,
+        height,
+        right: left + width,
+        bottom: top + height,
+        toJSON: () => ({}),
+    }) as DOMRect
 
 const renderTable = (
     columns: Column[],
-    options: {loading: boolean, loadingKey?: string, rows: Row[], skeletonRowHeight?: number},
+    options: {loading: boolean; loadingKey?: string; rows: Row[]; skeletonRowHeight?: number},
 ) => (
     <PneTable<Row>
         data={options.rows}
@@ -61,17 +62,14 @@ const renderTable = (
         createTableHeader={() => (
             <tr>
                 {columns.map(column => (
-                    <th
-                        key={column.label}
-                        colSpan={column.colSpan}
-                        data-left={column.left}
-                        data-width={column.width}
-                    >
-                        {column.justify
-                            ? <div style={{display: 'flex', justifyContent: column.justify}}>
+                    <th key={column.label} colSpan={column.colSpan} data-left={column.left} data-width={column.width}>
+                        {column.justify ? (
+                            <div style={{display: 'flex', justifyContent: column.justify}}>
                                 <span data-label-box={column.labelBox}>{column.label}</span>
                             </div>
-                            : <span data-label-box={column.labelBox}>{column.label}</span>}
+                        ) : (
+                            <span data-label-box={column.labelBox}>{column.label}</span>
+                        )}
                     </th>
                 ))}
             </tr>
@@ -90,18 +88,20 @@ const renderTable = (
 
 const getTable = (container: HTMLElement) => container.querySelector('table') as HTMLTableElement
 
-const getColumnWidths = (container: HTMLElement) => Array.from(
-    getTable(container).querySelectorAll(':scope > colgroup > col'),
-).map(column => (column as HTMLElement).style.width)
+const getColumnWidths = (container: HTMLElement) =>
+    Array.from(getTable(container).querySelectorAll(':scope > colgroup > col')).map(
+        column => (column as HTMLElement).style.width,
+    )
 
-const getFirstBodyRow = (container: HTMLElement) =>
-    getTable(container).tBodies[0].rows[0]
+const getFirstBodyRow = (container: HTMLElement) => getTable(container).tBodies[0].rows[0]
 
-const getBars = (container: HTMLElement) => Array.from(getFirstBodyRow(container).cells)
-    .map(cell => cell.querySelector<HTMLElement>('.MuiSkeleton-root'))
+const getBars = (container: HTMLElement) =>
+    Array.from(getFirstBodyRow(container).cells).map(cell => cell.querySelector<HTMLElement>('.MuiSkeleton-root'))
 
-const getLines = (container: HTMLElement) => Array.from(getFirstBodyRow(container).cells)
-    .map(cell => Array.from(cell.querySelectorAll<HTMLElement>('.MuiSkeleton-root')))
+const getLines = (container: HTMLElement) =>
+    Array.from(getFirstBodyRow(container).cells).map(cell =>
+        Array.from(cell.querySelectorAll<HTMLElement>('.MuiSkeleton-root')),
+    )
 
 // The value the last matching rule of the element's own classes sets: jsdom ignores specificity.
 const ruleValue = (element: Element, property: string): string | undefined => {
@@ -124,9 +124,7 @@ let rowHeights: Record<number, number> = {}
 describe('PneTable skeleton geometry', () => {
     beforeEach(() => {
         jest.useFakeTimers()
-        jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
-            this: HTMLElement,
-        ) {
+        jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
             if (this.tagName === 'TABLE') {
                 return rect(0, 0, 1000, 100)
             }
@@ -138,9 +136,7 @@ describe('PneTable skeleton geometry', () => {
         })
         // A two-column view has taller rows than a three-column one.
         rowHeights = {2: 120, 3: 37}
-        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (
-            this: HTMLElement,
-        ) {
+        jest.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(function (this: HTMLElement) {
             if (!this.classList.contains('MuiTableContainer-root')) {
                 return 0
             }
@@ -168,11 +164,7 @@ describe('PneTable skeleton geometry', () => {
         delete (Range.prototype as Partial<Range>).getBoundingClientRect
     })
 
-    const finishLoading = (
-        view: ReturnType<typeof render>,
-        columns: Column[],
-        loadingKey: string,
-    ) => {
+    const finishLoading = (view: ReturnType<typeof render>, columns: Column[], loadingKey: string) => {
         view.rerender(renderTable(columns, {loading: false, loadingKey, rows: [{id: loadingKey}]}))
         act(() => {
             jest.advanceTimersByTime(600)
@@ -210,20 +202,24 @@ describe('PneTable skeleton geometry', () => {
         // Detailed rows are 120px high, and their cells held one line of text each.
         expect(getColumnWidths(view.container)).toEqual(['70%', '30%'])
         expect(getFirstBodyRow(view.container).cells).toHaveLength(2)
-        expect(getLines(view.container).map(lines => lines.map(line => line.style.height)))
-            .toEqual([['12px'], ['12px']])
+        expect(getLines(view.container).map(lines => lines.map(line => line.style.height))).toEqual([
+            ['12px'],
+            ['12px'],
+        ])
     })
 
     it('starts a view from its preset row height and then follows its real rows', () => {
         rowHeights = {2: 37, 3: 37}
         const view = render(renderTable(BRIEF, {loading: false, loadingKey: 'brief', rows: [{id: 'brief'}]}))
 
-        view.rerender(renderTable(DETAILED, {
-            loading: true,
-            loadingKey: 'full',
-            rows: [],
-            skeletonRowHeight: 90,
-        }))
+        view.rerender(
+            renderTable(DETAILED, {
+                loading: true,
+                loadingKey: 'full',
+                rows: [],
+                skeletonRowHeight: 90,
+            }),
+        )
 
         // 90px rows fit four 12px lines with 8px gaps; before rows were seen, cells show two to four.
         for (const lines of getLines(view.container)) {
@@ -232,27 +228,33 @@ describe('PneTable skeleton geometry', () => {
             expect(lines.map(line => line.style.height)).toEqual(lines.map(() => '12px'))
         }
 
-        view.rerender(renderTable(DETAILED, {
-            loading: false,
-            loadingKey: 'full',
-            rows: [{id: 'full'}],
-            skeletonRowHeight: 90,
-        }))
+        view.rerender(
+            renderTable(DETAILED, {
+                loading: false,
+                loadingKey: 'full',
+                rows: [{id: 'full'}],
+                skeletonRowHeight: 90,
+            }),
+        )
         act(() => {
             jest.advanceTimersByTime(600)
         })
         view.rerender(renderTable(BRIEF, {loading: true, loadingKey: 'brief', rows: []}))
         finishLoading(view, BRIEF, 'brief')
-        view.rerender(renderTable(DETAILED, {
-            loading: true,
-            loadingKey: 'full',
-            rows: [],
-            skeletonRowHeight: 90,
-        }))
+        view.rerender(
+            renderTable(DETAILED, {
+                loading: true,
+                loadingKey: 'full',
+                rows: [],
+                skeletonRowHeight: 90,
+            }),
+        )
 
         // Real Detailed rows turned out 37px high: one bar per cell, as the rows had.
-        expect(getLines(view.container).map(lines => lines.map(line => line.style.height)))
-            .toEqual([['12px'], ['12px']])
+        expect(getLines(view.container).map(lines => lines.map(line => line.style.height))).toEqual([
+            ['12px'],
+            ['12px'],
+        ])
     })
 
     it('draws as many lines as each column had in real rows, aligned like its cells', () => {
@@ -270,8 +272,11 @@ describe('PneTable skeleton geometry', () => {
 
         // Three lines of Date text, one of Amount, five of Details in a 120px row.
         expect(getLines(view.container).map(lines => lines.length)).toEqual([3, 1, 5])
-        expect(Array.from(getFirstBodyRow(view.container).cells).map(cell => cell.style.verticalAlign))
-            .toEqual(['top', 'top', 'top'])
+        expect(Array.from(getFirstBodyRow(view.container).cells).map(cell => cell.style.verticalAlign)).toEqual([
+            'top',
+            'top',
+            'top',
+        ])
         // A paragraph ends with a shorter line.
         const details = getLines(view.container)[2].map(line => Number.parseFloat(line.style.width))
         expect(details.slice(0, 4).every(width => width >= 75 && width < 95)).toBe(true)
@@ -293,12 +298,17 @@ describe('PneTable skeleton geometry', () => {
     })
 
     it('places every bar where its header label sits', () => {
-        const view = render(renderTable([
-            {label: 'Date', left: 0, width: 300, labelBox: '0:60'},
-            {label: 'Amount', left: 300, width: 200, labelBox: '440:500'},
-            {label: 'Card', left: 500, width: 100, labelBox: '530:570'},
-            {label: 'Flag', left: 600, width: 20, labelBox: '600:620'},
-        ], {loading: true, rows: []}))
+        const view = render(
+            renderTable(
+                [
+                    {label: 'Date', left: 0, width: 300, labelBox: '0:60'},
+                    {label: 'Amount', left: 300, width: 200, labelBox: '440:500'},
+                    {label: 'Card', left: 500, width: 100, labelBox: '530:570'},
+                    {label: 'Flag', left: 600, width: 20, labelBox: '600:620'},
+                ],
+                {loading: true, rows: []},
+            ),
+        )
 
         const bars = getBars(view.container)
 
@@ -320,11 +330,16 @@ describe('PneTable skeleton geometry', () => {
     })
 
     it('takes the alignment from the header styles when a label fills its narrow cell', () => {
-        const view = render(renderTable([
-            {label: 'Card', left: 0, width: 40, labelBox: '0:40', justify: 'center'},
-            {label: 'Amount', left: 40, width: 40, labelBox: '40:80', justify: 'flex-end'},
-            {label: 'Proc', left: 80, width: 40, labelBox: '80:120'},
-        ], {loading: true, rows: []}))
+        const view = render(
+            renderTable(
+                [
+                    {label: 'Card', left: 0, width: 40, labelBox: '0:40', justify: 'center'},
+                    {label: 'Amount', left: 40, width: 40, labelBox: '40:80', justify: 'flex-end'},
+                    {label: 'Proc', left: 80, width: 40, labelBox: '80:120'},
+                ],
+                {loading: true, rows: []},
+            ),
+        )
 
         const bars = getBars(view.container)
 
@@ -347,9 +362,7 @@ describe('PneTable skeleton geometry', () => {
             jest.advanceTimersByTime(600)
         })
 
-        const emptyState = view.container.querySelector<HTMLTableCellElement>(
-            '[data-autotest="empty-state"] td',
-        )
+        const emptyState = view.container.querySelector<HTMLTableCellElement>('[data-autotest="empty-state"] td')
         expect(emptyState?.colSpan).toBe(3)
     })
 })

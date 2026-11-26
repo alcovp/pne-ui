@@ -30,7 +30,7 @@ const template: SearchUITemplate = {
 }
 
 /** A host answer the test hands out when it wants: the panel waits for it meanwhile. */
-const deferred = <T, >() => {
+const deferred = <T,>() => {
     let resolve: (value: T) => void = () => undefined
     const promise = new Promise<T>(done => {
         resolve = done
@@ -43,23 +43,25 @@ const renderFilters = (
     defaults: Partial<SearchUIDefaults>,
     options: {hiddenCriteria?: CriterionTypeEnum[]} = {},
 ) => {
-    const utils = render(<SearchUIProvider defaults={defaults}>
-        <SearchUIFilters
-            autoTestId={scope}
-            settingsContextName={`${scope}-context`}
-            possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D]}
-            predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
-            hiddenCriteria={options.hiddenCriteria}
-            onFiltersUpdate={jest.fn()}
-            config={{manualSearch: true}}
-        />
-    </SearchUIProvider>)
-    const panel = () => utils.container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"]`,
+    const utils = render(
+        <SearchUIProvider defaults={defaults}>
+            <SearchUIFilters
+                autoTestId={scope}
+                settingsContextName={`${scope}-context`}
+                possibleCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D]}
+                predefinedCriteria={[CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY]}
+                hiddenCriteria={options.hiddenCriteria}
+                onFiltersUpdate={jest.fn()}
+                config={{manualSearch: true}}
+            />
+        </SearchUIProvider>,
     )
-    const skeleton = () => utils.container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters-skeleton"][data-autotest-value="${scope}"]`,
-    )
+    const panel = () =>
+        utils.container.querySelector<HTMLElement>(`[data-autotest="search-filters"][data-autotest-value="${scope}"]`)
+    const skeleton = () =>
+        utils.container.querySelector<HTMLElement>(
+            `[data-autotest="search-filters-skeleton"][data-autotest-value="${scope}"]`,
+        )
     // The skeleton's children: a box per criterion row, then the actions row.
     const skeletonRows = () => skeleton()?.querySelectorAll('[data-pne-skeleton-row]').length ?? 0
 
@@ -98,7 +100,10 @@ describe('SearchUIFilters loading skeleton', () => {
     })
 
     it('folds at once when the host remembers a fold and no filter set', () => {
-        const {panel, skeleton} = renderFilters('skeleton-known-folded', hostStores({collapsed: true, lastTemplate: null}))
+        const {panel, skeleton} = renderFilters(
+            'skeleton-known-folded',
+            hostStores({collapsed: true, lastTemplate: null}),
+        )
 
         expect(skeleton()).toBeNull()
         expect(panel()?.querySelector('[data-autotest="criterion"]')).toBeNull()
@@ -107,11 +112,14 @@ describe('SearchUIFilters loading skeleton', () => {
 
     it('stands a folded skeleton in for a folded panel while the chosen set loads', async () => {
         const templates = deferred<SearchUITemplate[]>()
-        const {panel, skeleton, skeletonRows} = renderFilters('skeleton-folded', hostStores({
-            collapsed: true,
-            lastTemplate: TEMPLATE_NAME,
-            templates: templates.promise,
-        }))
+        const {panel, skeleton, skeletonRows} = renderFilters(
+            'skeleton-folded',
+            hostStores({
+                collapsed: true,
+                lastTemplate: TEMPLATE_NAME,
+                templates: templates.promise,
+            }),
+        )
 
         expect(panel()).toBeNull()
         expect(skeleton()?.getAttribute('aria-busy')).toBe('true')
@@ -128,23 +136,30 @@ describe('SearchUIFilters loading skeleton', () => {
 
     it('draws a row per predefined filter while an open panel waits for the chosen set', async () => {
         const templates = deferred<SearchUITemplate[]>()
-        const {panel, skeleton, skeletonRows} = renderFilters('skeleton-open', hostStores({
-            collapsed: false,
-            lastTemplate: TEMPLATE_NAME,
-            templates: templates.promise,
-        }))
+        const {panel, skeleton, skeletonRows} = renderFilters(
+            'skeleton-open',
+            hostStores({
+                collapsed: false,
+                lastTemplate: TEMPLATE_NAME,
+                templates: templates.promise,
+            }),
+        )
 
         expect(panel()).toBeNull()
         expect(skeletonRows()).toBe(2)
 
         // The set adds a third filter: the one row the skeleton could not know about.
-        await act(async () => templates.resolve([{
-            ...template,
-            searchConditions: {
-                ...template.searchConditions,
-                criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
-            },
-        }]))
+        await act(async () =>
+            templates.resolve([
+                {
+                    ...template,
+                    searchConditions: {
+                        ...template.searchConditions,
+                        criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
+                    },
+                },
+            ]),
+        )
 
         await waitFor(() => expect(panel()).not.toBeNull())
         expect(skeleton()).toBeNull()
@@ -153,11 +168,14 @@ describe('SearchUIFilters loading skeleton', () => {
 
     it('takes the open panel while the host is still loading the fold', async () => {
         const collapsedAnswer = deferred<boolean | null>()
-        const {panel, skeleton, skeletonRows} = renderFilters('skeleton-unknown', hostStores({
-            collapsed: undefined,
-            collapsedAnswer: collapsedAnswer.promise,
-            lastTemplate: null,
-        }))
+        const {panel, skeleton, skeletonRows} = renderFilters(
+            'skeleton-unknown',
+            hostStores({
+                collapsed: undefined,
+                collapsedAnswer: collapsedAnswer.promise,
+                lastTemplate: null,
+            }),
+        )
 
         expect(panel()).toBeNull()
         expect(skeletonRows()).toBe(2)
@@ -171,56 +189,75 @@ describe('SearchUIFilters loading skeleton', () => {
 
     it('draws as many rows as the chosen set had when the host kept the number with its name', async () => {
         const templates = deferred<SearchUITemplate[]>()
-        const {panel, skeletonRows} = renderFilters('skeleton-counted', hostStores({
-            collapsed: false,
-            lastTemplate: TEMPLATE_NAME,
-            lastTemplateRows: 3,
-            templates: templates.promise,
-        }))
+        const {panel, skeletonRows} = renderFilters(
+            'skeleton-counted',
+            hostStores({
+                collapsed: false,
+                lastTemplate: TEMPLATE_NAME,
+                lastTemplateRows: 3,
+                templates: templates.promise,
+            }),
+        )
 
         // Three rows, not the predefined two: the skeleton is as tall as the panel will be.
         expect(skeletonRows()).toBe(3)
 
-        await act(async () => templates.resolve([{
-            ...template,
-            searchConditions: {
-                ...template.searchConditions,
-                criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
-            },
-        }]))
+        await act(async () =>
+            templates.resolve([
+                {
+                    ...template,
+                    searchConditions: {
+                        ...template.searchConditions,
+                        criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
+                    },
+                },
+            ]),
+        )
         await waitFor(() => expect(panel()?.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(3))
     })
 
     it('leaves out a row the view hides, counted in every set', async () => {
         const templates = deferred<SearchUITemplate[]>()
-        const {panel, skeletonRows} = renderFilters('skeleton-hidden-counted', hostStores({
-            collapsed: false,
-            lastTemplate: TEMPLATE_NAME,
-            lastTemplateRows: 3,
-            templates: templates.promise,
-        }), {hiddenCriteria: [CriterionTypeEnum.CURRENCY]})
+        const {panel, skeletonRows} = renderFilters(
+            'skeleton-hidden-counted',
+            hostStores({
+                collapsed: false,
+                lastTemplate: TEMPLATE_NAME,
+                lastTemplateRows: 3,
+                templates: templates.promise,
+            }),
+            {hiddenCriteria: [CriterionTypeEnum.CURRENCY]},
+        )
 
         // CURRENCY is predefined and cannot be removed: every set has it, and the view never shows it.
         expect(skeletonRows()).toBe(2)
 
-        await act(async () => templates.resolve([{
-            ...template,
-            searchConditions: {
-                ...template.searchConditions,
-                criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
-            },
-        }]))
+        await act(async () =>
+            templates.resolve([
+                {
+                    ...template,
+                    searchConditions: {
+                        ...template.searchConditions,
+                        criteria: [CriterionTypeEnum.STATUS, CriterionTypeEnum.CURRENCY, CriterionTypeEnum.THREE_D],
+                    },
+                },
+            ]),
+        )
         await waitFor(() => expect(panel()?.querySelectorAll('[data-autotest="criterion"]')).toHaveLength(2))
         expect(panel()?.querySelector('[data-autotest="criterion"][data-autotest-value="CURRENCY"]')).toBeNull()
     })
 
     it('leaves out a predefined row the view hides while the set loads', async () => {
         const templates = deferred<SearchUITemplate[]>()
-        const {skeletonRows} = renderFilters('skeleton-hidden-predefined', hostStores({
-            collapsed: false,
-            lastTemplate: TEMPLATE_NAME,
-            templates: templates.promise,
-        }), {hiddenCriteria: [CriterionTypeEnum.CURRENCY]})
+        const {skeletonRows} = renderFilters(
+            'skeleton-hidden-predefined',
+            hostStores({
+                collapsed: false,
+                lastTemplate: TEMPLATE_NAME,
+                templates: templates.promise,
+            }),
+            {hiddenCriteria: [CriterionTypeEnum.CURRENCY]},
+        )
 
         expect(skeletonRows()).toBe(1)
 

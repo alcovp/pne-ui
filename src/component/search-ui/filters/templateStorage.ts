@@ -14,9 +14,8 @@ import type {SearchUIDefaults} from '../SearchUIProvider'
 
 const LAST_TEMPLATE_NAME_STORAGE_KEY_PREFIX = 'last_template_name'
 
-export const getLastSearchUITemplateStorageKey = (settingsContextName: string): string => (
+export const getLastSearchUITemplateStorageKey = (settingsContextName: string): string =>
     LAST_TEMPLATE_NAME_STORAGE_KEY_PREFIX + settingsContextName
-)
 
 type LastSearchUITemplateHost = Pick<
     SearchUIDefaults,
@@ -35,13 +34,10 @@ export type LastSearchUITemplateName = {
 
 const hasHostStore = (
     defaults: LastSearchUITemplateHost,
-): defaults is LastSearchUITemplateHost & Required<Pick<
-    LastSearchUITemplateHost,
-    'getLastSearchTemplateName' | 'saveLastSearchTemplateName'
->> => (
-    typeof defaults.getLastSearchTemplateName === 'function'
-    && typeof defaults.saveLastSearchTemplateName === 'function'
-)
+): defaults is LastSearchUITemplateHost &
+    Required<Pick<LastSearchUITemplateHost, 'getLastSearchTemplateName' | 'saveLastSearchTemplateName'>> =>
+    typeof defaults.getLastSearchTemplateName === 'function' &&
+    typeof defaults.saveLastSearchTemplateName === 'function'
 
 const fromHostName = (hostName: string | null, key: string): LastSearchUITemplateName => {
     if (hostName) {
@@ -80,7 +76,8 @@ export const readLastSearchUITemplateName = (
         return fromHostName(peeked, key)
     }
 
-    return defaults.getLastSearchTemplateName(settingsContextName)
+    return defaults
+        .getLastSearchTemplateName(settingsContextName)
         .then(hostName => fromHostName(hostName, key))
         .catch((error: unknown): LastSearchUITemplateName => {
             console.warn('SearchUI: the host cannot read the last template name; using the browser storage', error)
@@ -102,11 +99,12 @@ export const rememberLastSearchUITemplateName = (
         return Promise.resolve()
     }
 
-    return defaults.saveLastSearchTemplateName({
-        contextName: settingsContextName,
-        templateName,
-        ...(templateName !== null && criteriaCount !== undefined ? {criteriaCount} : {}),
-    })
+    return defaults
+        .saveLastSearchTemplateName({
+            contextName: settingsContextName,
+            templateName,
+            ...(templateName !== null && criteriaCount !== undefined ? {criteriaCount} : {}),
+        })
         .then(() => {
             localStorage.removeItem(key)
         })

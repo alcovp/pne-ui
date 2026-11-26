@@ -57,7 +57,11 @@ export const highlightQuery = (text: string, query: string): ReactNode => {
         if (index > from) {
             parts.push(text.slice(from, index))
         }
-        parts.push(<Box component={'mark'} key={`${index}`} sx={markSx}>{text.slice(index, index + needle.length)}</Box>)
+        parts.push(
+            <Box component={'mark'} key={`${index}`} sx={markSx}>
+                {text.slice(index, index + needle.length)}
+            </Box>,
+        )
         from = index + needle.length
         index = haystack.indexOf(needle, from)
     }

@@ -9,17 +9,32 @@ import {readReleaseTag, run} from '../scripts/release-common.mjs'
 
 const COMMIT = 'a'.repeat(40)
 const PACKAGE = {
-    name: 'pne-ui', version: '4.3.0-rc.55',
+    name: 'pne-ui',
+    version: '4.3.0-rc.55',
     repository: {type: 'git', url: 'git+https://github.com/alcovp/pne-ui.git'},
-    main: 'cjs/index.js', module: 'esm/index.js', types: './esm/index.d.ts',
-    exports: {'.': {types: './esm/index.d.ts', import: './esm/index.js', require: './cjs/index.js', default: './esm/index.js'}, './fonts.css': './fonts/pne-fonts.css', './package.json': './package.json'},
+    main: 'cjs/index.js',
+    module: 'esm/index.js',
+    types: './esm/index.d.ts',
+    exports: {
+        '.': {
+            types: './esm/index.d.ts',
+            import: './esm/index.js',
+            require: './cjs/index.js',
+            default: './esm/index.js',
+        },
+        './fonts.css': './fonts/pne-fonts.css',
+        './package.json': './package.json',
+    },
     scripts: {prepare: 'node -e "process.exit(99)"'},
 }
 
 function archiveEntries(manifest = PACKAGE) {
     return [
         {name: 'package/package.json', content: JSON.stringify(manifest)},
-        ...['esm/index.js', 'cjs/index.js', 'esm/index.d.ts'].map(name => ({name: `package/${name}`, content: 'export {}\n'})),
+        ...['esm/index.js', 'cjs/index.js', 'esm/index.d.ts'].map(name => ({
+            name: `package/${name}`,
+            content: 'export {}\n',
+        })),
         {name: 'package/docs/releasing.md', content: 'Documentation'},
         {name: 'package/fonts/pne-fonts.css', content: '@font-face {}'},
     ]
@@ -45,7 +60,7 @@ function makeArchive(entries = archiveEntries()) {
         header.write(prefix, 345, 155)
         const checksum = header.reduce((sum, byte) => sum + byte, 0)
         header.write(`${checksum.toString(8).padStart(6, '0')}\0 `, 148)
-        blocks.push(header, bytes, Buffer.alloc((512 - bytes.length % 512) % 512))
+        blocks.push(header, bytes, Buffer.alloc((512 - (bytes.length % 512)) % 512))
     }
     return gzipSync(Buffer.concat([...blocks, Buffer.alloc(1024)]))
 }
@@ -53,10 +68,17 @@ function makeArchive(entries = archiveEntries()) {
 function githubEnv(version = PACKAGE.version, commit = COMMIT) {
     const ref = `refs/tags/npm/v${version}`
     return {
-        GITHUB_ACTIONS: 'true', GITHUB_EVENT_NAME: 'push', GITHUB_SERVER_URL: 'https://github.com', RUNNER_ENVIRONMENT: 'github-hosted',
-        GITHUB_REPOSITORY: 'alcovp/pne-ui', GITHUB_REF_TYPE: 'tag', GITHUB_REF: ref,
-        GITHUB_WORKFLOW_REF: `alcovp/pne-ui/.github/workflows/publish.yml@${ref}`, GITHUB_SHA: commit,
-        ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'fixture-oidc-token', ACTIONS_ID_TOKEN_REQUEST_URL: 'https://pipelines.actions.githubusercontent.com/fixture',
+        GITHUB_ACTIONS: 'true',
+        GITHUB_EVENT_NAME: 'push',
+        GITHUB_SERVER_URL: 'https://github.com',
+        RUNNER_ENVIRONMENT: 'github-hosted',
+        GITHUB_REPOSITORY: 'alcovp/pne-ui',
+        GITHUB_REF_TYPE: 'tag',
+        GITHUB_REF: ref,
+        GITHUB_WORKFLOW_REF: `alcovp/pne-ui/.github/workflows/publish.yml@${ref}`,
+        GITHUB_SHA: commit,
+        ACTIONS_ID_TOKEN_REQUEST_TOKEN: 'fixture-oidc-token',
+        ACTIONS_ID_TOKEN_REQUEST_URL: 'https://pipelines.actions.githubusercontent.com/fixture',
     }
 }
 
@@ -96,7 +118,11 @@ async function fixture(t, {version = PACKAGE.version, branch = 'feature', failAn
 }
 
 function registryData(versions, latest = '4.2.13', next = '4.3.0-rc.54') {
-    return {name: 'pne-ui', versions: Object.fromEntries(versions.map(version => [version, {}])), 'dist-tags': {latest, next}}
+    return {
+        name: 'pne-ui',
+        versions: Object.fromEntries(versions.map(version => [version, {}])),
+        'dist-tags': {latest, next},
+    }
 }
 
 function registrySequence(...responses) {
@@ -109,7 +135,9 @@ function registrySequence(...responses) {
         const data = responses.shift()
         if (data instanceof Error) throw data
         if (data.http) return {ok: false, status: data.http}
-        const expectedUrl = data.dist ? `https://registry.npmjs.org/pne-ui/${data.version}` : 'https://registry.npmjs.org/pne-ui'
+        const expectedUrl = data.dist
+            ? `https://registry.npmjs.org/pne-ui/${data.version}`
+            : 'https://registry.npmjs.org/pne-ui'
         assert.equal(url, expectedUrl)
         return {ok: true, json: async () => data}
     }
@@ -117,25 +145,44 @@ function registrySequence(...responses) {
 }
 
 const beforePublish = () => registryData(['4.2.13', '4.3.0-rc.54'])
-const published = manifest => ({name: 'pne-ui', version: manifest.version, dist: {integrity: `sha512-${manifest.sha512}`, shasum: manifest.sha1}})
+const published = manifest => ({
+    name: 'pne-ui',
+    version: manifest.version,
+    dist: {integrity: `sha512-${manifest.sha512}`, shasum: manifest.sha1},
+})
 
 test('validates the tag event against annotated metadata and the checkout', async t => {
     const f = await fixture(t)
     const result = await validateContext(f)
     assert.equal(result.tag, `npm/v${PACKAGE.version}`)
     assert.deepEqual(result.manifest, f.pkg)
-    assert.equal(f.calls.some(call => call.args[0] === 'merge-base'), false)
+    assert.equal(
+        f.calls.some(call => call.args[0] === 'merge-base'),
+        false,
+    )
 })
 
 test('rejects wrong repository, workflow, event, ref, event commit and checkout package', async t => {
     const f = await fixture(t)
     for (const change of [
-        {GITHUB_ACTIONS: 'false'}, {GITHUB_REPOSITORY: 'attacker/pne-ui'}, {GITHUB_EVENT_NAME: 'pull_request'}, {GITHUB_EVENT_NAME: 'schedule'},
-        {GITHUB_REF: 'refs/heads/master'}, {GITHUB_REF: 'refs/tags/v4.3.0'}, {GITHUB_REF_TYPE: 'branch'},
+        {GITHUB_ACTIONS: 'false'},
+        {GITHUB_REPOSITORY: 'attacker/pne-ui'},
+        {GITHUB_EVENT_NAME: 'pull_request'},
+        {GITHUB_EVENT_NAME: 'schedule'},
+        {GITHUB_REF: 'refs/heads/master'},
+        {GITHUB_REF: 'refs/tags/v4.3.0'},
+        {GITHUB_REF_TYPE: 'branch'},
         {GITHUB_WORKFLOW_REF: 'alcovp/pne-ui/.github/workflows/other.yml@refs/tags/npm/v4.3.0-rc.55'},
-        {GITHUB_SHA: 'b'.repeat(40)}, {GITHUB_SHA: '--help'}, {GITHUB_SERVER_URL: 'https://example.com'}, {RUNNER_ENVIRONMENT: 'self-hosted'},
-    ]) await assert.rejects(validateContext({...f, env: {...f.env, ...change}}))
-    await assert.rejects(validateContext({...f, readReleaseTagImpl: async () => ({...f.metadata, commit: 'b'.repeat(40)})}), /commit do not match/)
+        {GITHUB_SHA: 'b'.repeat(40)},
+        {GITHUB_SHA: '--help'},
+        {GITHUB_SERVER_URL: 'https://example.com'},
+        {RUNNER_ENVIRONMENT: 'self-hosted'},
+    ])
+        await assert.rejects(validateContext({...f, env: {...f.env, ...change}}))
+    await assert.rejects(
+        validateContext({...f, readReleaseTagImpl: async () => ({...f.metadata, commit: 'b'.repeat(40)})}),
+        /commit do not match/,
+    )
     await writeFile(path.join(f.cwd, 'package.json'), JSON.stringify({...f.pkg, scripts: {prepare: 'changed'}}))
     await assert.rejects(validateContext(f), /differs from the checked package/)
 })
@@ -144,30 +191,75 @@ test('a manual run is accepted on the release tag and rejected on a branch', asy
     const f = await fixture(t)
     const manual = {...f.env, GITHUB_EVENT_NAME: 'workflow_dispatch'}
     assert.equal((await validateContext({...f, env: manual})).tag, `npm/v${PACKAGE.version}`)
-    const branch = {...manual, GITHUB_REF: 'refs/heads/master', GITHUB_REF_TYPE: 'branch',
-        GITHUB_WORKFLOW_REF: 'alcovp/pne-ui/.github/workflows/publish.yml@refs/heads/master'}
+    const branch = {
+        ...manual,
+        GITHUB_REF: 'refs/heads/master',
+        GITHUB_REF_TYPE: 'branch',
+        GITHUB_WORKFLOW_REF: 'alcovp/pne-ui/.github/workflows/publish.yml@refs/heads/master',
+    }
     await assert.rejects(validateContext({...f, env: branch}), /release-tag context/)
 })
 
 test('stable requires master metadata and origin/master ancestry', async t => {
     const valid = await fixture(t, {version: '4.3.0', branch: 'master'})
     await validateContext(valid)
-    assert.deepEqual(valid.calls.find(call => call.args[0] === 'merge-base').args, ['merge-base', '--is-ancestor', COMMIT, 'origin/master'])
+    assert.deepEqual(valid.calls.find(call => call.args[0] === 'merge-base').args, [
+        'merge-base',
+        '--is-ancestor',
+        COMMIT,
+        'origin/master',
+    ])
     await assert.rejects(validateContext(await fixture(t, {version: '4.3.0'})), /require master/)
-    await assert.rejects(validateContext(await fixture(t, {version: '4.3.0', branch: 'master', failAncestry: true})), /Not an ancestor/)
+    await assert.rejects(
+        validateContext(await fixture(t, {version: '4.3.0', branch: 'master', failAncestry: true})),
+        /Not an ancestor/,
+    )
 })
 
 test('the production annotated-tag reader rejects a lightweight tag in a temporary git repository', async t => {
     const f = await fixture(t)
     await run('git', ['init', '-b', 'feature'], {cwd: f.cwd})
     await run('git', ['add', 'package.json'], {cwd: f.cwd})
-    await run('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '-m', 'Fixture'], {cwd: f.cwd})
+    await run(
+        'git',
+        [
+            '-c',
+            'user.name=Fixture',
+            '-c',
+            'user.email=fixture@example.invalid',
+            '-c',
+            'commit.gpgsign=false',
+            'commit',
+            '-m',
+            'Fixture',
+        ],
+        {cwd: f.cwd},
+    )
     const tag = `npm/v${PACKAGE.version}`
     await run('git', ['-c', 'tag.gpgsign=false', 'tag', tag], {cwd: f.cwd})
     const commit = await run('git', ['rev-parse', 'HEAD'], {cwd: f.cwd})
-    await assert.rejects(validateContext({cwd: f.cwd, env: githubEnv(PACKAGE.version, commit), readReleaseTagImpl: readReleaseTag}), /must be annotated/)
+    await assert.rejects(
+        validateContext({cwd: f.cwd, env: githubEnv(PACKAGE.version, commit), readReleaseTagImpl: readReleaseTag}),
+        /must be annotated/,
+    )
     await run('git', ['tag', '-d', tag], {cwd: f.cwd})
-    await run('git', ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', '-c', 'tag.gpgsign=false', 'tag', '-a', tag, '-m', JSON.stringify({...f.metadata, commit})], {cwd: f.cwd})
+    await run(
+        'git',
+        [
+            '-c',
+            'user.name=Fixture',
+            '-c',
+            'user.email=fixture@example.invalid',
+            '-c',
+            'tag.gpgsign=false',
+            'tag',
+            '-a',
+            tag,
+            '-m',
+            JSON.stringify({...f.metadata, commit}),
+        ],
+        {cwd: f.cwd},
+    )
     const tagObject = await run('git', ['rev-parse', `refs/tags/${tag}`], {cwd: f.cwd})
     assert.notEqual(tagObject, commit)
     const validated = await validateContext({cwd: f.cwd, env: githubEnv(PACKAGE.version, tagObject)})
@@ -179,7 +271,8 @@ test('reads a valid archive, including PAX long paths and ustar prefixes, withou
     const record = `path=${longPath}\n`
     let length = Buffer.byteLength(record) + 3
     while (Buffer.byteLength(`${length} ${record}`) !== length) length = Buffer.byteLength(`${length} ${record}`)
-    const entries = [...archiveEntries(),
+    const entries = [
+        ...archiveEntries(),
         {name: 'PaxHeader', type: 'x', content: `${length} ${record}`},
         {name: 'short', content: 'Long filename'},
         {name: 'prefixed.md', prefix: 'package/docs', content: 'Prefix'},
@@ -189,15 +282,38 @@ test('reads a valid archive, including PAX long paths and ustar prefixes, withou
 
 test('rejects unsafe, duplicate and unexpected archive paths, links, missing outputs and wrong package metadata', () => {
     for (const entry of [
-        {name: '../escape'}, {name: '/absolute'}, {name: 'package/../escape'}, {name: 'package/docs/.secret'},
-        {name: 'package/docs/back\\slash'}, {name: 'package/docs/new\nline'}, {name: 'package/scripts/run.mjs'},
-        {name: 'package/esm/index.js'}, {name: 'package/esm/link', type: '2', link: '/etc/passwd'},
+        {name: '../escape'},
+        {name: '/absolute'},
+        {name: 'package/../escape'},
+        {name: 'package/docs/.secret'},
+        {name: 'package/docs/back\\slash'},
+        {name: 'package/docs/new\nline'},
+        {name: 'package/scripts/run.mjs'},
+        {name: 'package/esm/index.js'},
+        {name: 'package/esm/link', type: '2', link: '/etc/passwd'},
         {name: 'package/esm/hardlink', type: '1', link: 'package/package.json'},
-    ]) assert.throws(() => inspectArchive(makeArchive([...archiveEntries(), entry]), PACKAGE))
-    assert.throws(() => inspectArchive(makeArchive(archiveEntries().filter(entry => entry.name !== 'package/cjs/index.js')), PACKAGE), /Missing package entry/)
-    assert.throws(() => inspectArchive(makeArchive(archiveEntries({...PACKAGE, name: 'other'})), PACKAGE), /Invalid release package/)
-    assert.throws(() => inspectArchive(makeArchive(archiveEntries({...PACKAGE, version: '4.3.0-rc.56'})), PACKAGE), /differs from/)
-    assert.throws(() => inspectArchive(makeArchive(archiveEntries({...PACKAGE, exports: {'.': {types: './missing'}}}))), /missing package export/)
+    ])
+        assert.throws(() => inspectArchive(makeArchive([...archiveEntries(), entry]), PACKAGE))
+    assert.throws(
+        () =>
+            inspectArchive(
+                makeArchive(archiveEntries().filter(entry => entry.name !== 'package/cjs/index.js')),
+                PACKAGE,
+            ),
+        /Missing package entry/,
+    )
+    assert.throws(
+        () => inspectArchive(makeArchive(archiveEntries({...PACKAGE, name: 'other'})), PACKAGE),
+        /Invalid release package/,
+    )
+    assert.throws(
+        () => inspectArchive(makeArchive(archiveEntries({...PACKAGE, version: '4.3.0-rc.56'})), PACKAGE),
+        /differs from/,
+    )
+    assert.throws(
+        () => inspectArchive(makeArchive(archiveEntries({...PACKAGE, exports: {'.': {types: './missing'}}}))),
+        /missing package export/,
+    )
     const corrupt = makeArchive()
     corrupt[corrupt.length - 5] ^= 255
     assert.throws(() => inspectArchive(corrupt, PACKAGE))
@@ -209,12 +325,26 @@ test('local pack needs no tag or registry, ignores scripts and removes only stal
     await writeFile(path.join(f.cwd, '.release', 'old.tgz'), 'stale')
     await writeFile(path.join(f.cwd, '.release', 'release.json'), '{}')
     await writeFile(path.join(f.cwd, '.release', 'keep.txt'), 'keep')
-    const {manifest, fileCount} = await packRelease({...f, env: {}, readReleaseTagImpl: () => assert.fail('Local pack must not read a tag')})
+    const {manifest, fileCount} = await packRelease({
+        ...f,
+        env: {},
+        readReleaseTagImpl: () => assert.fail('Local pack must not read a tag'),
+    })
     assert.equal(manifest.tag, null)
     assert.equal(fileCount, 6)
     assert.equal(manifest.commit, COMMIT)
-    assert.deepEqual(f.calls.find(call => call.command === 'npm').args, ['pack', '--json', '--ignore-scripts', '--pack-destination', path.join(f.cwd, '.release')])
-    assert.deepEqual((await readdir(path.join(f.cwd, '.release'))).sort(), ['keep.txt', `pne-ui-${PACKAGE.version}.tgz`, 'release.json'])
+    assert.deepEqual(f.calls.find(call => call.command === 'npm').args, [
+        'pack',
+        '--json',
+        '--ignore-scripts',
+        '--pack-destination',
+        path.join(f.cwd, '.release'),
+    ])
+    assert.deepEqual((await readdir(path.join(f.cwd, '.release'))).sort(), [
+        'keep.txt',
+        `pne-ui-${PACKAGE.version}.tgz`,
+        'release.json',
+    ])
     assert.deepEqual(JSON.parse(await readFile(path.join(f.cwd, '.release', 'release.json'))), manifest)
     await assert.rejects(publishRelease(f), /metadata does not match/)
 })
@@ -240,9 +370,22 @@ test('publishes only the exact verified tarball with explicit registry/access/ch
     assert.deepEqual(result, {status: 'published', version: PACKAGE.version, channel: 'next'})
     const calls = f.calls.filter(call => call.command === 'npm' && call.args[0] === 'publish')
     assert.equal(calls.length, 1)
-    assert.deepEqual(calls[0].args, ['publish', path.join(f.cwd, '.release', manifest.filename), '--ignore-scripts', '--access', 'public', '--tag', 'next', '--registry', 'https://registry.npmjs.org'])
+    assert.deepEqual(calls[0].args, [
+        'publish',
+        path.join(f.cwd, '.release', manifest.filename),
+        '--ignore-scripts',
+        '--access',
+        'public',
+        '--tag',
+        'next',
+        '--registry',
+        'https://registry.npmjs.org',
+    ])
     assert.equal(calls[0].options.env.NODE_AUTH_TOKEN, '')
-    assert.equal(f.calls.some(call => call.args.includes('install') || call.args.includes('whoami')), false)
+    assert.equal(
+        f.calls.some(call => call.args.includes('install') || call.args.includes('whoami')),
+        false,
+    )
     registry.assertConsumed()
 })
 
@@ -263,16 +406,29 @@ test('missing OIDC, artifact metadata or bytes fail before registry/publication'
         await assert.rejects(publishRelease({...f, fetchImpl, env: {...f.env, [key]: ''}}), /OIDC/)
     }
     const file = path.join(f.cwd, '.release', 'release.json')
-    for (const changes of [{schema: 2}, {commit: 'b'.repeat(40)}, {tag: null}, {channel: 'latest'}, {filename: '../escape.tgz'}, {branch: 'master'}]) {
+    for (const changes of [
+        {schema: 2},
+        {commit: 'b'.repeat(40)},
+        {tag: null},
+        {channel: 'latest'},
+        {filename: '../escape.tgz'},
+        {branch: 'master'},
+    ]) {
         await writeFile(file, JSON.stringify({...manifest, ...changes}))
         await assert.rejects(publishRelease({...f, fetchImpl}), /metadata does not match/)
     }
     await writeFile(file, JSON.stringify({...manifest, sha1: '0'.repeat(40)}))
     await assert.rejects(publishRelease({...f, fetchImpl}), /digest mismatch/)
     await writeFile(file, JSON.stringify(manifest))
-    await writeFile(path.join(f.cwd, '.release', manifest.filename), makeArchive([...archiveEntries(), {name: 'package/docs/changed.md', content: 'Changed'}]))
+    await writeFile(
+        path.join(f.cwd, '.release', manifest.filename),
+        makeArchive([...archiveEntries(), {name: 'package/docs/changed.md', content: 'Changed'}]),
+    )
     await assert.rejects(publishRelease({...f, fetchImpl}), /digest mismatch/)
-    assert.equal(f.calls.some(call => call.args[0] === 'publish'), false)
+    assert.equal(
+        f.calls.some(call => call.args[0] === 'publish'),
+        false,
+    )
 })
 
 test('idempotent rerun skips only identical bytes at the current channel target', async t => {
@@ -282,12 +438,28 @@ test('idempotent rerun skips only identical bytes at the current channel target'
     const registry = registrySequence(snapshot, published(manifest))
     assert.equal((await publishRelease({...f, fetchImpl: registry.fetchImpl})).status, 'already-published')
     registry.assertConsumed()
-    assert.equal(f.calls.some(call => call.args[0] === 'publish'), false)
+    assert.equal(
+        f.calls.some(call => call.args[0] === 'publish'),
+        false,
+    )
     for (const response of [
         {...published(manifest), dist: {...published(manifest).dist, integrity: 'sha512-other'}},
         {...published(manifest), dist: {...published(manifest).dist, shasum: 'other'}},
-    ]) await assert.rejects(publishRelease({...f, fetchImpl: registrySequence(snapshot, response).fetchImpl}), /different archive integrity/)
-    await assert.rejects(publishRelease({...f, fetchImpl: registrySequence({...snapshot, 'dist-tags': {latest: '4.2.13', next: '4.3.0-rc.54'}}, published(manifest)).fetchImpl}), /refusing a rollback/)
+    ])
+        await assert.rejects(
+            publishRelease({...f, fetchImpl: registrySequence(snapshot, response).fetchImpl}),
+            /different archive integrity/,
+        )
+    await assert.rejects(
+        publishRelease({
+            ...f,
+            fetchImpl: registrySequence(
+                {...snapshot, 'dist-tags': {latest: '4.2.13', next: '4.3.0-rc.54'}},
+                published(manifest),
+            ).fetchImpl,
+        }),
+        /refusing a rollback/,
+    )
 })
 
 test('refuses stale new versions and even an identical version if a newer same-channel release exists', async t => {
@@ -296,9 +468,24 @@ test('refuses stale new versions and even an identical version if a newer same-c
     const newer = '4.3.0-rc.56'
     const snapshot = registryData(['4.2.13', '4.3.0-rc.54', newer], '4.2.13', newer)
     await assert.rejects(publishRelease({...f, fetchImpl: registrySequence(snapshot).fetchImpl}), /would regress/)
-    await assert.rejects(publishRelease({...f, fetchImpl: registrySequence(registryData([...Object.keys(snapshot.versions), manifest.version], '4.2.13', manifest.version), published(manifest)).fetchImpl}), /would regress/)
-    await assert.rejects(publishRelease({...f, fetchImpl: registrySequence(registryData(['4.3.0', '4.3.0-rc.54'], '4.3.0')).fetchImpl}), /would regress/)
-    assert.equal(f.calls.some(call => call.args[0] === 'publish'), false)
+    await assert.rejects(
+        publishRelease({
+            ...f,
+            fetchImpl: registrySequence(
+                registryData([...Object.keys(snapshot.versions), manifest.version], '4.2.13', manifest.version),
+                published(manifest),
+            ).fetchImpl,
+        }),
+        /would regress/,
+    )
+    await assert.rejects(
+        publishRelease({...f, fetchImpl: registrySequence(registryData(['4.3.0', '4.3.0-rc.54'], '4.3.0')).fetchImpl}),
+        /would regress/,
+    )
+    assert.equal(
+        f.calls.some(call => call.args[0] === 'publish'),
+        false,
+    )
 })
 
 test('registry outages fail closed and do not publish', async t => {
@@ -307,7 +494,10 @@ test('registry outages fail closed and do not publish', async t => {
     for (const response of [{http: 503}, new Error('Network failure')]) {
         await assert.rejects(publishRelease({...f, fetchImpl: registrySequence(response).fetchImpl}))
     }
-    assert.equal(f.calls.some(call => call.args[0] === 'publish'), false)
+    assert.equal(
+        f.calls.some(call => call.args[0] === 'publish'),
+        false,
+    )
 })
 
 test('a failed npm publish is never retried', async t => {
@@ -330,5 +520,6 @@ test('CLI accepts only a single explicit operation and prints a compact validati
     await main(['validate'], {...f, print: text => lines.push(text)})
     assert.equal(JSON.parse(lines[0]).tag, `npm/v${PACKAGE.version}`)
     assert.equal(Object.hasOwn(JSON.parse(lines[0]), 'manifest'), false)
-    for (const args of [[], ['publish', '--force'], ['install'], ['pack', '.']]) await assert.rejects(main(args, f), /Usage/)
+    for (const args of [[], ['publish', '--force'], ['install'], ['pack', '.']])
+        await assert.rejects(main(args, f), /Usage/)
 })

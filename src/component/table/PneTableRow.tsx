@@ -1,8 +1,8 @@
-import {TableRow} from '@mui/material';
+import {TableRow} from '@mui/material'
 // The styled of MUI Material, not of MUI System: without a ThemeProvider it falls back to the Material
 // theme, whose palette the colours of the row are built from.
-import {styled} from '@mui/material/styles';
-import {resolvePneSemanticPalette} from '../../createTheme';
+import {styled} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../createTheme'
 
 /**
  * UI Kit Table row: a hairline under each row but the last one, and the hover fill under the pointer
@@ -15,8 +15,8 @@ const SPANS_TO_LAST_ROW = Array.from({length: 11}, (_, index) => index + 2)
     .join(', ')
 
 const PneTableRow = styled(TableRow, {
-    shouldForwardProp: prop => prop !== 'hover'
-})<{ hover?: boolean }>(({theme, hover = true}) => {
+    shouldForwardProp: prop => prop !== 'hover',
+})<{hover?: boolean}>(({theme, hover = true}) => {
     const table = resolvePneSemanticPalette(theme).table
     const paper = theme.palette.mode === 'dark' ? theme.palette.background.paper : '#fff'
     return {
@@ -32,11 +32,13 @@ const PneTableRow = styled(TableRow, {
         [SPANS_TO_LAST_ROW]: {
             borderBottomColor: 'transparent',
         },
-        ...(hover ? {
-            'tbody > &:hover': {
-                backgroundColor: table.row.hover,
-            },
-        } : {}),
+        ...(hover
+            ? {
+                  'tbody > &:hover': {
+                      backgroundColor: table.row.hover,
+                  },
+              }
+            : {}),
         // A picked row keeps its fill under the pointer too (UI Kit: Brand/100).
         '&&.Mui-selected, tbody > &&.Mui-selected:hover': {
             backgroundColor: table.row.selected,
@@ -51,4 +53,4 @@ const PneTableRow = styled(TableRow, {
     }
 })
 
-export default PneTableRow;
+export default PneTableRow

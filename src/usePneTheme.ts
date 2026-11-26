@@ -1,4 +1,4 @@
-import {Theme, useTheme} from '@mui/material/styles';
+import {Theme, useTheme} from '@mui/material/styles'
 
 export const usePneTheme = (): Theme => {
     return useTheme<Theme>()

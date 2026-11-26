@@ -14,16 +14,16 @@ export const CsvCharsetCriterion = () => {
     const setCsvCharsetCriterion = useSearchUIFiltersStore(state => state.setCsvCharsetCriterion)
     const selectedOption = csvCharset ?? DEFAULT_OPTION
 
-    return <SearchUIEnumChipSelect
-        mode={'select'}
-        value={selectedOption}
-        options={CSV_CHARSET_OPTIONS}
-        onChange={value => setCsvCharsetCriterion(
-            value === DEFAULT_OPTION ? null : value as CsvCharset,
-        )}
-        getOptionLabel={value => value === DEFAULT_OPTION
-            ? t('react.searchUI.default', {defaultValue: 'Default'})
-            : value}
-        ariaLabel={t('react.CriterionTypeEnum.CSV_CHARSET')}
-    />
+    return (
+        <SearchUIEnumChipSelect
+            mode={'select'}
+            value={selectedOption}
+            options={CSV_CHARSET_OPTIONS}
+            onChange={value => setCsvCharsetCriterion(value === DEFAULT_OPTION ? null : (value as CsvCharset))}
+            getOptionLabel={value =>
+                value === DEFAULT_OPTION ? t('react.searchUI.default', {defaultValue: 'Default'}) : value
+            }
+            ariaLabel={t('react.CriterionTypeEnum.CSV_CHARSET')}
+        />
+    )
 }

@@ -3,12 +3,7 @@ import {act, fireEvent, render, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
-import {
-    AutoCompleteChoice,
-    CriterionTypeEnum,
-    SearchUIFilters,
-    SearchUIProvider,
-} from '../src'
+import {AutoCompleteChoice, CriterionTypeEnum, SearchUIFilters, SearchUIProvider} from '../src'
 
 jest.mock('react-i18next', () => ({
     useTranslation: () => ({
@@ -41,14 +36,11 @@ const createDeferred = <T,>(): Deferred<T> => {
     return {promise, resolve}
 }
 
-const getErrorCodeCriterion = (
-    container: HTMLElement,
-    scope: string,
-): HTMLElement => {
+const getErrorCodeCriterion = (container: HTMLElement, scope: string): HTMLElement => {
     const criterion = container.querySelector<HTMLElement>(
-        `[data-autotest="search-filters"][data-autotest-value="${scope}"] `
-        + `[data-autotest="criterion"]`
-        + `[data-autotest-value="${CriterionTypeEnum.ERROR_CODE}"]`,
+        `[data-autotest="search-filters"][data-autotest-value="${scope}"] ` +
+            `[data-autotest="criterion"]` +
+            `[data-autotest-value="${CriterionTypeEnum.ERROR_CODE}"]`,
     )
 
     expect(criterion).not.toBeNull()
@@ -86,12 +78,10 @@ describe('SearchUI Error Code Selenium contract', () => {
         const secondOnFiltersUpdate = jest.fn()
         const {container} = render(
             <>
-                <SearchUIProvider
-                    defaults={{...quietAsyncDefaults, searchErrorCodes: firstSearchErrorCodes}}
-                >
+                <SearchUIProvider defaults={{...quietAsyncDefaults, searchErrorCodes: firstSearchErrorCodes}}>
                     <SearchUIFilters
-                        autoTestId="error-code-first"
-                        settingsContextName="error-code-first-context"
+                        autoTestId='error-code-first'
+                        settingsContextName='error-code-first-context'
                         possibleCriteria={[CriterionTypeEnum.ERROR_CODE]}
                         predefinedCriteria={[CriterionTypeEnum.ERROR_CODE]}
                         initialSearchConditions={{
@@ -105,12 +95,10 @@ describe('SearchUI Error Code Selenium contract', () => {
                         config={filtersConfig}
                     />
                 </SearchUIProvider>
-                <SearchUIProvider
-                    defaults={{...quietAsyncDefaults, searchErrorCodes: secondSearchErrorCodes}}
-                >
+                <SearchUIProvider defaults={{...quietAsyncDefaults, searchErrorCodes: secondSearchErrorCodes}}>
                     <SearchUIFilters
-                        autoTestId="error-code-second"
-                        settingsContextName="error-code-second-context"
+                        autoTestId='error-code-second'
+                        settingsContextName='error-code-second-context'
                         possibleCriteria={[CriterionTypeEnum.ERROR_CODE]}
                         predefinedCriteria={[CriterionTypeEnum.ERROR_CODE]}
                         initialSearchConditions={{
@@ -128,12 +116,16 @@ describe('SearchUI Error Code Selenium contract', () => {
         )
 
         await waitFor(() => {
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                errorCode: 1,
-            }))
-            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                errorCode: 2,
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    errorCode: 1,
+                }),
+            )
+            expect(secondOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    errorCode: 2,
+                }),
+            )
         })
 
         const firstCriterion = getErrorCodeCriterion(container, 'error-code-first')
@@ -164,9 +156,9 @@ describe('SearchUI Error Code Selenium contract', () => {
         })
 
         const firstPanel = document.body.querySelector<HTMLElement>(
-            '[data-autotest="criterion-error-code-panel"]'
-            + '[data-autotest-value="error-code-first"]'
-            + `[data-autotest-criterion="${CriterionTypeEnum.ERROR_CODE}"]`,
+            '[data-autotest="criterion-error-code-panel"]' +
+                '[data-autotest-value="error-code-first"]' +
+                `[data-autotest-criterion="${CriterionTypeEnum.ERROR_CODE}"]`,
         )
 
         expect(firstPanel).not.toBeNull()
@@ -185,9 +177,9 @@ describe('SearchUI Error Code Selenium contract', () => {
 
         await waitFor(() => {
             expect(firstInput.getAttribute('aria-busy')).toBe('false')
-            expect(firstPanel?.querySelectorAll(
-                '[role="option"][data-autotest="criterion-error-code-option"]',
-            )).toHaveLength(firstOptions.length)
+            expect(
+                firstPanel?.querySelectorAll('[role="option"][data-autotest="criterion-error-code-option"]'),
+            ).toHaveLength(firstOptions.length)
         })
 
         const firstListbox = firstPanel?.querySelector<HTMLElement>(
@@ -195,24 +187,25 @@ describe('SearchUI Error Code Selenium contract', () => {
         )
 
         expect(firstListbox?.getAttribute('data-autotest-value')).toBe('error-code-first')
-        expect(firstListbox?.getAttribute('data-autotest-criterion')).toBe(
-            CriterionTypeEnum.ERROR_CODE,
-        )
+        expect(firstListbox?.getAttribute('data-autotest-criterion')).toBe(CriterionTypeEnum.ERROR_CODE)
         expect(firstListbox?.getAttribute('aria-label')).toBe('Error code')
         expect(firstListbox?.hasAttribute('aria-labelledby')).toBe(false)
         expect(firstInput.getAttribute('aria-controls')).toBe(firstListbox?.id)
-        expect(firstListbox?.querySelector(
-            '[data-autotest="criterion-error-code-option"][data-autotest-value="1"]',
-        )?.getAttribute('aria-selected')).toBe('true')
-        expect(firstListbox?.querySelector(
-            '[data-autotest="criterion-error-code-option"][data-autotest-value="3"]',
-        )?.getAttribute('aria-selected')).toBe('false')
+        expect(
+            firstListbox
+                ?.querySelector('[data-autotest="criterion-error-code-option"][data-autotest-value="1"]')
+                ?.getAttribute('aria-selected'),
+        ).toBe('true')
+        expect(
+            firstListbox
+                ?.querySelector('[data-autotest="criterion-error-code-option"][data-autotest-value="3"]')
+                ?.getAttribute('aria-selected'),
+        ).toBe('false')
         expect(firstPanel?.textContent).toContain('EXTERNAL · 1 · 05')
         expect(firstPanel?.textContent).toContain('EXTERNAL · 3 · 54')
 
         const declinedOption = firstListbox?.querySelector<HTMLElement>(
-            '[role="option"][data-autotest="criterion-error-code-option"]'
-            + '[data-autotest-value="3"]',
+            '[role="option"][data-autotest="criterion-error-code-option"]' + '[data-autotest-value="3"]',
         )
 
         firstOnFiltersUpdate.mockClear()
@@ -222,9 +215,11 @@ describe('SearchUI Error Code Selenium contract', () => {
         await waitFor(() => {
             expect(firstInput.value).toBe('Declined')
             expect(firstInput.getAttribute('data-autotest-value')).toBe('3')
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                errorCode: 3,
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    errorCode: 3,
+                }),
+            )
         })
         expect(secondInput.value).toBe('Timeout')
         expect(secondInput.getAttribute('data-autotest-value')).toBe('2')
@@ -249,14 +244,17 @@ describe('SearchUI Error Code Selenium contract', () => {
             await secondResults.promise
         })
 
-        const secondPanelSelector = '[data-autotest="criterion-error-code-panel"]'
-            + '[data-autotest-value="error-code-second"]'
-            + `[data-autotest-criterion="${CriterionTypeEnum.ERROR_CODE}"]`
+        const secondPanelSelector =
+            '[data-autotest="criterion-error-code-panel"]' +
+            '[data-autotest-value="error-code-second"]' +
+            `[data-autotest-criterion="${CriterionTypeEnum.ERROR_CODE}"]`
 
         await waitFor(() => {
-            expect(document.body.querySelector(secondPanelSelector)?.querySelectorAll(
-                '[role="option"][data-autotest="criterion-error-code-option"]',
-            )).toHaveLength(secondOptions.length)
+            expect(
+                document.body
+                    .querySelector(secondPanelSelector)
+                    ?.querySelectorAll('[role="option"][data-autotest="criterion-error-code-option"]'),
+            ).toHaveLength(secondOptions.length)
         })
 
         const secondPanel = document.body.querySelector<HTMLElement>(secondPanelSelector)
@@ -265,9 +263,11 @@ describe('SearchUI Error Code Selenium contract', () => {
         )
 
         expect(secondListbox?.getAttribute('data-autotest-value')).toBe('error-code-second')
-        expect(secondListbox?.querySelector(
-            '[data-autotest="criterion-error-code-option"][data-autotest-value="2"]',
-        )?.getAttribute('aria-selected')).toBe('true')
+        expect(
+            secondListbox
+                ?.querySelector('[data-autotest="criterion-error-code-option"][data-autotest-value="2"]')
+                ?.getAttribute('aria-selected'),
+        ).toBe('true')
 
         const firstClear = firstCriterion.querySelector<HTMLButtonElement>(
             'button[data-autotest="criterion-error-code-clear"]',
@@ -281,9 +281,11 @@ describe('SearchUI Error Code Selenium contract', () => {
         await waitFor(() => {
             expect(firstInput.value).toBe('')
             expect(firstInput.hasAttribute('data-autotest-value')).toBe(false)
-            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(expect.objectContaining({
-                errorCode: null,
-            }))
+            expect(firstOnFiltersUpdate).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    errorCode: null,
+                }),
+            )
         })
         // The second instance keeps its typed query and its value: the first clear did not reach it.
         expect(secondInput.value).toBe('Tim')
@@ -294,14 +296,14 @@ describe('SearchUI Error Code Selenium contract', () => {
     it('distinguishes a typed pending search from an empty result without mirroring the query', async () => {
         const initialResults = createDeferred<AutoCompleteChoice[]>()
         const typedResults = createDeferred<AutoCompleteChoice[]>()
-        const searchErrorCodes = jest.fn(({searchString = ''}: {searchString?: string}) => (
-            searchString === '' ? initialResults.promise : typedResults.promise
-        ))
+        const searchErrorCodes = jest.fn(({searchString = ''}: {searchString?: string}) =>
+            searchString === '' ? initialResults.promise : typedResults.promise,
+        )
         const {container} = render(
             <SearchUIProvider defaults={{...quietAsyncDefaults, searchErrorCodes}}>
                 <SearchUIFilters
-                    autoTestId="error-code-empty"
-                    settingsContextName="error-code-empty-context"
+                    autoTestId='error-code-empty'
+                    settingsContextName='error-code-empty-context'
                     possibleCriteria={[CriterionTypeEnum.ERROR_CODE]}
                     predefinedCriteria={[CriterionTypeEnum.ERROR_CODE]}
                     onFiltersUpdate={jest.fn()}
@@ -334,9 +336,9 @@ describe('SearchUI Error Code Selenium contract', () => {
         expect(input.hasAttribute('data-autotest-value')).toBe(false)
 
         const panel = document.body.querySelector<HTMLElement>(
-            '[data-autotest="criterion-error-code-panel"]'
-            + '[data-autotest-value="error-code-empty"]'
-            + `[data-autotest-criterion="${CriterionTypeEnum.ERROR_CODE}"]`,
+            '[data-autotest="criterion-error-code-panel"]' +
+                '[data-autotest-value="error-code-empty"]' +
+                `[data-autotest-criterion="${CriterionTypeEnum.ERROR_CODE}"]`,
         )
 
         expect(panel).not.toBeNull()

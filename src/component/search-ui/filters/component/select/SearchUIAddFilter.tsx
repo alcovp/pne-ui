@@ -1,15 +1,15 @@
-import React, {useId, useState} from 'react';
-import {CriterionTypeEnum} from '../../types';
-import {Menu, MenuItem, SxProps, Button} from '@mui/material';
-import {useTranslation} from 'react-i18next';
-import AddIcon from '@mui/icons-material/Add';
-import {withPneDropdownMenuLook} from '../../../../dropdown/dropdownLook';
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
-import {useSearchUIAutoTestScope} from '../../AutoTestScope';
+import React, {useId, useState} from 'react'
+import {CriterionTypeEnum} from '../../types'
+import {Menu, MenuItem, SxProps, Button} from '@mui/material'
+import {useTranslation} from 'react-i18next'
+import AddIcon from '@mui/icons-material/Add'
+import {withPneDropdownMenuLook} from '../../../../dropdown/dropdownLook'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {useSearchUIAutoTestScope} from '../../AutoTestScope'
 
-const ADD_FILTER_AUTOTEST_ID = 'add-filter';
-const ADD_FILTER_OPTIONS_AUTOTEST_ID = 'add-filter-options';
-const ADD_FILTER_OPTION_AUTOTEST_ID = 'add-filter-option';
+const ADD_FILTER_AUTOTEST_ID = 'add-filter'
+const ADD_FILTER_OPTIONS_AUTOTEST_ID = 'add-filter-options'
+const ADD_FILTER_OPTION_AUTOTEST_ID = 'add-filter-option'
 
 type Props = {
     onChange: (value: CriterionTypeEnum) => void
@@ -28,11 +28,7 @@ const SearchUIAddFilter = (props: Props) => {
     const {t: optionRenderer} = useTranslation('', {keyPrefix: 'react.CriterionTypeEnum'})
     const autoTestScope = useSearchUIAutoTestScope()?.scope
     const menuId = useId()
-    const {
-        onChange,
-        options,
-        size = 'small',
-    } = props
+    const {onChange, options, size = 'small'} = props
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
     const open = anchorEl !== null
     const label = t('react.searchUI.addCriterion')
@@ -55,45 +51,51 @@ const SearchUIAddFilter = (props: Props) => {
         onChange(option)
     }
 
-    return <>
-        <Button
-            {...createAutoTestAttributes(ADD_FILTER_AUTOTEST_ID)}
-            onClick={handleOpen}
-            onKeyDown={handleKeyDown}
-            size={size}
-            variant='soft'
-            startIcon={<AddIcon/>}
-            sx={addFilterButtonSx}
-            aria-controls={open ? menuId : undefined}
-            aria-expanded={open}
-            aria-haspopup={'menu'}
-        >{label}</Button>
-        <Menu
-            // UI Kit Dropdown menu: the panel and the 32px rows of the library's lists.
-            {...withPneDropdownMenuLook({sx: addFilterMenuSx}, 'medium')}
-            open={open}
-            onClose={handleClose}
-            anchorEl={anchorEl}
-            // Under the button from its left edge, as the saved filters menu opens.
-            anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-            transformOrigin={{vertical: 'top', horizontal: 'left'}}
-            slotProps={{
-                list: {
-                    ...createAutoTestAttributes(ADD_FILTER_OPTIONS_AUTOTEST_ID, autoTestScope),
-                    id: menuId,
-                    'aria-label': label,
-                },
-            }}
-        >
-            {options.map(option => <MenuItem
-                {...createAutoTestAttributes(ADD_FILTER_OPTION_AUTOTEST_ID, option)}
-                key={option}
-                onClick={() => handleSelect(option)}
+    return (
+        <>
+            <Button
+                {...createAutoTestAttributes(ADD_FILTER_AUTOTEST_ID)}
+                onClick={handleOpen}
+                onKeyDown={handleKeyDown}
+                size={size}
+                variant='soft'
+                startIcon={<AddIcon />}
+                sx={addFilterButtonSx}
+                aria-controls={open ? menuId : undefined}
+                aria-expanded={open}
+                aria-haspopup={'menu'}
             >
-                {optionRenderer(option)}
-            </MenuItem>)}
-        </Menu>
-    </>
+                {label}
+            </Button>
+            <Menu
+                // UI Kit Dropdown menu: the panel and the 32px rows of the library's lists.
+                {...withPneDropdownMenuLook({sx: addFilterMenuSx}, 'medium')}
+                open={open}
+                onClose={handleClose}
+                anchorEl={anchorEl}
+                // Under the button from its left edge, as the saved filters menu opens.
+                anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                slotProps={{
+                    list: {
+                        ...createAutoTestAttributes(ADD_FILTER_OPTIONS_AUTOTEST_ID, autoTestScope),
+                        id: menuId,
+                        'aria-label': label,
+                    },
+                }}
+            >
+                {options.map(option => (
+                    <MenuItem
+                        {...createAutoTestAttributes(ADD_FILTER_OPTION_AUTOTEST_ID, option)}
+                        key={option}
+                        onClick={() => handleSelect(option)}
+                    >
+                        {optionRenderer(option)}
+                    </MenuItem>
+                ))}
+            </Menu>
+        </>
+    )
 }
 
 export default SearchUIAddFilter

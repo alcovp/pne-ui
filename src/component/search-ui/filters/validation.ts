@@ -1,13 +1,7 @@
-import {
-    CriterionTypeEnum,
-} from './types'
+import {CriterionTypeEnum} from './types'
 import type {SearchUIFiltersState} from './state/type'
-import {
-    isValidSearchUIDate,
-    resolveDateOnlyTimeZone,
-    type SearchUIDateRangeBoundary,
-} from './dateRangeTimeZone'
-import { dayjs } from './dayjsSetup'
+import {isValidSearchUIDate, resolveDateOnlyTimeZone, type SearchUIDateRangeBoundary} from './dateRangeTimeZone'
+import {dayjs} from './dayjsSetup'
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 
@@ -19,29 +13,29 @@ type SearchUIDateRangeCriterion = CriterionTypeEnum.DATE_RANGE | CriterionTypeEn
 
 export type SearchUIValidationError =
     | {
-        criterion: SearchUIDateRangeCriterion
-        code: typeof SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED
-        messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded'
-        params: {
-            maxRangeSpanInDays: number
-        }
-    }
+          criterion: SearchUIDateRangeCriterion
+          code: typeof SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED
+          messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded'
+          params: {
+              maxRangeSpanInDays: number
+          }
+      }
     | {
-        criterion: SearchUIDateRangeCriterion
-        /** A typed exact date is unfinished or does not exist, such as 31.02. */
-        code: typeof SEARCH_UI_DATE_RANGE_INVALID_DATE
-        messageKey: 'react.searchUI.dateRange.invalidDate'
-        params: {
-            boundary: SearchUIDateRangeBoundary
-        }
-    }
+          criterion: SearchUIDateRangeCriterion
+          /** A typed exact date is unfinished or does not exist, such as 31.02. */
+          code: typeof SEARCH_UI_DATE_RANGE_INVALID_DATE
+          messageKey: 'react.searchUI.dateRange.invalidDate'
+          params: {
+              boundary: SearchUIDateRangeBoundary
+          }
+      }
     | {
-        criterion: SearchUIDateRangeCriterion
-        /** The exact end lies before the start; equal ends are a valid range. */
-        code: typeof SEARCH_UI_DATE_RANGE_END_BEFORE_START
-        messageKey: 'react.searchUI.dateRange.endBeforeStart'
-        params: Record<string, never>
-    }
+          criterion: SearchUIDateRangeCriterion
+          /** The exact end lies before the start; equal ends are a valid range. */
+          code: typeof SEARCH_UI_DATE_RANGE_END_BEFORE_START
+          messageKey: 'react.searchUI.dateRange.endBeforeStart'
+          params: Record<string, never>
+      }
 
 export type SearchUIValidationResult = {
     isValid: boolean
@@ -55,8 +49,7 @@ export const assertValidMaxRangeSpanInDays = (value: number | undefined): void =
 
     if (!Number.isInteger(value) || value <= 0) {
         throw new Error(
-            '[pne-ui] Invalid SearchUIFiltersConfig.dateRange.maxRangeSpanInDays: '
-            + 'expected a positive integer',
+            '[pne-ui] Invalid SearchUIFiltersConfig.dateRange.maxRangeSpanInDays: ' + 'expected a positive integer',
         )
     }
 }
@@ -68,10 +61,7 @@ export const validateSearchUIFiltersState = (
     assertValidMaxRangeSpanInDays(maxRangeSpanInDays)
 
     const criterion = getActiveDateRangeCriterion(state.criteria)
-    if (
-        criterion === null
-        || state.dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT'
-    ) {
+    if (criterion === null || state.dateRangeSpec.dateRangeSpecType === 'DATE_INDEPENDENT') {
         return createValidResult()
     }
 
@@ -80,25 +70,34 @@ export const validateSearchUIFiltersState = (
 
     if (exact) {
         // Only a typed date can be unfinished or impossible; an empty end is an open range.
-        const invalidBoundaries = ([['from', dateFrom], ['to', dateTo]] as const)
+        const invalidBoundaries = (
+            [
+                ['from', dateFrom],
+                ['to', dateTo],
+            ] as const
+        )
             .filter(([, date]) => date !== null && !isValidSearchUIDate(date))
             .map(([boundary]) => boundary)
         if (invalidBoundaries.length > 0) {
-            return createInvalidResult(invalidBoundaries.map(boundary => ({
-                criterion,
-                code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
-                messageKey: 'react.searchUI.dateRange.invalidDate',
-                params: {boundary},
-            })))
+            return createInvalidResult(
+                invalidBoundaries.map(boundary => ({
+                    criterion,
+                    code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
+                    messageKey: 'react.searchUI.dateRange.invalidDate',
+                    params: {boundary},
+                })),
+            )
         }
 
         if (dateFrom !== null && dateTo !== null && dateTo.getTime() < dateFrom.getTime()) {
-            return createInvalidResult([{
-                criterion,
-                code: SEARCH_UI_DATE_RANGE_END_BEFORE_START,
-                messageKey: 'react.searchUI.dateRange.endBeforeStart',
-                params: {},
-            }])
+            return createInvalidResult([
+                {
+                    criterion,
+                    code: SEARCH_UI_DATE_RANGE_END_BEFORE_START,
+                    messageKey: 'react.searchUI.dateRange.endBeforeStart',
+                    params: {},
+                },
+            ])
         }
     }
 
@@ -108,17 +107,15 @@ export const validateSearchUIFiltersState = (
 
     if (dateFrom === null || dateTo === null) {
         // An empty exact end reaches the DATE_INDEPENDENT bound, far beyond any maximum.
-        return exact
-            ? createMaxRangeSpanExceededResult(criterion, maxRangeSpanInDays)
-            : createValidResult()
+        return exact ? createMaxRangeSpanExceededResult(criterion, maxRangeSpanInDays) : createValidResult()
     }
 
     const exceedsMaximum = isDateOnlyExactRange(state)
         ? getInclusiveCalendarSpanInDays(
-            dateFrom,
-            dateTo,
-            resolveDateOnlyTimeZone(state.config?.dateRange?.dateOnlyTimeZone),
-        ) > maxRangeSpanInDays
+              dateFrom,
+              dateTo,
+              resolveDateOnlyTimeZone(state.config?.dateRange?.dateOnlyTimeZone),
+          ) > maxRangeSpanInDays
         : dateTo.getTime() - dateFrom.getTime() > maxRangeSpanInDays * MILLISECONDS_PER_DAY
 
     if (!exceedsMaximum) {
@@ -141,16 +138,17 @@ const createInvalidResult = (errors: SearchUIValidationError[]): SearchUIValidat
 const createMaxRangeSpanExceededResult = (
     criterion: SearchUIDateRangeCriterion,
     maxRangeSpanInDays: number,
-): SearchUIValidationResult => createInvalidResult([{
-    criterion,
-    code: SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
-    messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded',
-    params: {maxRangeSpanInDays},
-}])
+): SearchUIValidationResult =>
+    createInvalidResult([
+        {
+            criterion,
+            code: SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
+            messageKey: 'react.searchUI.dateRange.maxRangeSpanExceeded',
+            params: {maxRangeSpanInDays},
+        },
+    ])
 
-const getActiveDateRangeCriterion = (
-    criteria: CriterionTypeEnum[],
-): SearchUIDateRangeCriterion | null => {
+const getActiveDateRangeCriterion = (criteria: CriterionTypeEnum[]): SearchUIDateRangeCriterion | null => {
     if (criteria.includes(CriterionTypeEnum.DATE_RANGE)) {
         return CriterionTypeEnum.DATE_RANGE
     }
@@ -162,20 +160,14 @@ const getActiveDateRangeCriterion = (
     return null
 }
 
-const isDateOnlyExactRange = (
-    state: Pick<SearchUIFiltersState, 'criteria' | 'config' | 'dateRangeSpec'>,
-): boolean => {
-    const useTime = state.criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS)
-        || !!state.config?.dateRange?.enableTimeSelection
+const isDateOnlyExactRange = (state: Pick<SearchUIFiltersState, 'criteria' | 'config' | 'dateRangeSpec'>): boolean => {
+    const useTime =
+        state.criteria.includes(CriterionTypeEnum.DATE_RANGE_ORDERS) || !!state.config?.dateRange?.enableTimeSelection
 
     return state.dateRangeSpec.dateRangeSpecType === 'EXACTLY' && !useTime
 }
 
-const getInclusiveCalendarSpanInDays = (
-    dateFrom: Date,
-    dateTo: Date,
-    timeZone: string | null,
-): number => {
+const getInclusiveCalendarSpanInDays = (dateFrom: Date, dateTo: Date, timeZone: string | null): number => {
     const fromCalendarDay = getCalendarDayNumber(dateFrom, timeZone)
     const toCalendarDay = getCalendarDayNumber(dateTo, timeZone)
 
@@ -185,9 +177,5 @@ const getInclusiveCalendarSpanInDays = (
 const getCalendarDayNumber = (date: Date, timeZone: string | null): number => {
     const calendarDate = timeZone ? dayjs(date).tz(timeZone) : dayjs(date)
 
-    return Date.UTC(
-        calendarDate.year(),
-        calendarDate.month(),
-        calendarDate.date(),
-    ) / MILLISECONDS_PER_DAY
+    return Date.UTC(calendarDate.year(), calendarDate.month(), calendarDate.date()) / MILLISECONDS_PER_DAY
 }

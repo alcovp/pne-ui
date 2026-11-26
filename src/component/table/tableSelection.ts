@@ -2,16 +2,16 @@ export type TableRowId = string | number
 
 export type TableSelectionModel<TKey extends TableRowId = TableRowId> =
     | {
-        mode: 'explicit'
-        selectedIds: ReadonlySet<TKey>
-    }
+          mode: 'explicit'
+          selectedIds: ReadonlySet<TKey>
+      }
     | {
-        mode: 'allMatching'
-        /** IDs from the same selectable, applied-result scope represented by matchingCount. */
-        excludedIds: ReadonlySet<TKey>
-        /** Exact number of selectable rows in the applied-result scope. */
-        matchingCount: number
-    }
+          mode: 'allMatching'
+          /** IDs from the same selectable, applied-result scope represented by matchingCount. */
+          excludedIds: ReadonlySet<TKey>
+          /** Exact number of selectable rows in the applied-result scope. */
+          matchingCount: number
+      }
 
 export type TableSelectionPageState = 'none' | 'some' | 'all'
 
@@ -22,14 +22,12 @@ export type TableSelectionUpdate<TKey extends TableRowId = TableRowId> = {
     limitExceeded: boolean
 }
 
-export const createEmptyTableSelection = <TKey extends TableRowId, >(): TableSelectionModel<TKey> => ({
+export const createEmptyTableSelection = <TKey extends TableRowId>(): TableSelectionModel<TKey> => ({
     mode: 'explicit',
     selectedIds: new Set<TKey>(),
 })
 
-export const getTableSelectionCount = <TKey extends TableRowId, >(
-    selection: TableSelectionModel<TKey>,
-): number => {
+export const getTableSelectionCount = <TKey extends TableRowId>(selection: TableSelectionModel<TKey>): number => {
     if (selection.mode === 'explicit') {
         return selection.selectedIds.size
     }
@@ -37,7 +35,7 @@ export const getTableSelectionCount = <TKey extends TableRowId, >(
     return Math.max(0, selection.matchingCount - selection.excludedIds.size)
 }
 
-export const isTableRowSelected = <TKey extends TableRowId, >(
+export const isTableRowSelected = <TKey extends TableRowId>(
     selection: TableSelectionModel<TKey>,
     rowId: TKey,
 ): boolean => {
@@ -48,7 +46,7 @@ export const isTableRowSelected = <TKey extends TableRowId, >(
     return !selection.excludedIds.has(rowId)
 }
 
-export const getTableSelectionPageState = <TKey extends TableRowId, >(
+export const getTableSelectionPageState = <TKey extends TableRowId>(
     selection: TableSelectionModel<TKey>,
     rowIds: Iterable<TKey>,
 ): TableSelectionPageState => {
@@ -72,7 +70,7 @@ export const getTableSelectionPageState = <TKey extends TableRowId, >(
     return selectedCount === uniqueRowIds.size ? 'all' : 'some'
 }
 
-export const setTableRowSelected = <TKey extends TableRowId, >(
+export const setTableRowSelected = <TKey extends TableRowId>(
     selection: TableSelectionModel<TKey>,
     rowId: TKey,
     selected: boolean,
@@ -93,11 +91,7 @@ export const setTableRowSelected = <TKey extends TableRowId, >(
             selectedIds.delete(rowId)
         }
 
-        return acceptedOrRejected(
-            selection,
-            {mode: 'explicit', selectedIds},
-            selected ? maxSelected : undefined,
-        )
+        return acceptedOrRejected(selection, {mode: 'explicit', selectedIds}, selected ? maxSelected : undefined)
     }
 
     const excludedIds = new Set(selection.excludedIds)
@@ -115,7 +109,7 @@ export const setTableRowSelected = <TKey extends TableRowId, >(
     )
 }
 
-export const setTablePageSelected = <TKey extends TableRowId, >(
+export const setTablePageSelected = <TKey extends TableRowId>(
     selection: TableSelectionModel<TKey>,
     rowIds: Iterable<TKey>,
     selected: boolean,
@@ -138,11 +132,7 @@ export const setTablePageSelected = <TKey extends TableRowId, >(
             }
         })
 
-        return acceptedOrRejected(
-            selection,
-            {mode: 'explicit', selectedIds},
-            selected ? maxSelected : undefined,
-        )
+        return acceptedOrRejected(selection, {mode: 'explicit', selectedIds}, selected ? maxSelected : undefined)
     }
 
     const excludedIds = new Set(selection.excludedIds)
@@ -161,7 +151,7 @@ export const setTablePageSelected = <TKey extends TableRowId, >(
     )
 }
 
-export const selectAllMatchingTableRows = <TKey extends TableRowId, >(
+export const selectAllMatchingTableRows = <TKey extends TableRowId>(
     selection: TableSelectionModel<TKey>,
     matchingCount: number,
     maxSelected?: number,
@@ -173,7 +163,7 @@ export const selectAllMatchingTableRows = <TKey extends TableRowId, >(
     return acceptedOrRejected(selection, nextSelection, maxSelected)
 }
 
-export const clearTableSelection = <TKey extends TableRowId, >(
+export const clearTableSelection = <TKey extends TableRowId>(
     selection: TableSelectionModel<TKey>,
 ): TableSelectionUpdate<TKey> => {
     if (getTableSelectionCount(selection) === 0 && selection.mode === 'explicit') {
@@ -187,7 +177,7 @@ export const clearTableSelection = <TKey extends TableRowId, >(
     }
 }
 
-const normalizeAllMatchingSelection = <TKey extends TableRowId, >(
+const normalizeAllMatchingSelection = <TKey extends TableRowId>(
     matchingCount: number,
     excludedIds: ReadonlySet<TKey>,
 ): TableSelectionModel<TKey> => {
@@ -202,7 +192,7 @@ const normalizeAllMatchingSelection = <TKey extends TableRowId, >(
     }
 }
 
-const acceptedOrRejected = <TKey extends TableRowId, >(
+const acceptedOrRejected = <TKey extends TableRowId>(
     previousSelection: TableSelectionModel<TKey>,
     nextSelection: TableSelectionModel<TKey>,
     maxSelected?: number,
@@ -226,9 +216,7 @@ const acceptedOrRejected = <TKey extends TableRowId, >(
     }
 }
 
-const unchanged = <TKey extends TableRowId, >(
-    selection: TableSelectionModel<TKey>,
-): TableSelectionUpdate<TKey> => {
+const unchanged = <TKey extends TableRowId>(selection: TableSelectionModel<TKey>): TableSelectionUpdate<TKey> => {
     return {
         selection,
         changed: false,
@@ -236,7 +224,7 @@ const unchanged = <TKey extends TableRowId, >(
     }
 }
 
-const areTableSelectionsEqual = <TKey extends TableRowId, >(
+const areTableSelectionsEqual = <TKey extends TableRowId>(
     left: TableSelectionModel<TKey>,
     right: TableSelectionModel<TKey>,
 ): boolean => {
@@ -249,18 +237,14 @@ const areTableSelectionsEqual = <TKey extends TableRowId, >(
     }
 
     if (left.mode === 'allMatching' && right.mode === 'allMatching') {
-        return left.matchingCount === right.matchingCount
-            && areSetsEqual(left.excludedIds, right.excludedIds)
+        return left.matchingCount === right.matchingCount && areSetsEqual(left.excludedIds, right.excludedIds)
     }
 
     return false
 }
 
-const areSetsEqual = <TKey extends TableRowId, >(
-    left: ReadonlySet<TKey>,
-    right: ReadonlySet<TKey>,
-): boolean => left.size === right.size
-    && Array.from(left).every(value => right.has(value))
+const areSetsEqual = <TKey extends TableRowId>(left: ReadonlySet<TKey>, right: ReadonlySet<TKey>): boolean =>
+    left.size === right.size && Array.from(left).every(value => right.has(value))
 
 const assertMatchingCount = (matchingCount: number): void => {
     if (!Number.isSafeInteger(matchingCount) || matchingCount < 0) {
@@ -269,8 +253,7 @@ const assertMatchingCount = (matchingCount: number): void => {
 }
 
 const assertMaxSelected = (maxSelected?: number): void => {
-    if (maxSelected !== undefined
-        && (!Number.isSafeInteger(maxSelected) || maxSelected < 0)) {
+    if (maxSelected !== undefined && (!Number.isSafeInteger(maxSelected) || maxSelected < 0)) {
         throw new RangeError('maxSelected must be a non-negative safe integer')
     }
 }

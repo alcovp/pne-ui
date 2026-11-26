@@ -44,18 +44,15 @@ export const moveAriaPropsToInput = <Props extends object>(
     }
 }
 
-export const composeToggleInputSlotProps = <OwnerState, >(
+export const composeToggleInputSlotProps = <OwnerState>(
     externalInputSlotProps: readonly unknown[],
     options: ComposeToggleInputSlotPropsOptions,
 ): ((ownerState: OwnerState) => ToggleInputSlotProps) => {
     return ownerState => {
-        const resolvedExternalProps = externalInputSlotProps.map(slotProps => (
-            resolveInputSlotProps<OwnerState>(slotProps, ownerState)
-        ))
-        const externalProps = mergeExternalInputSlotProps(
-            resolvedExternalProps,
-            options.mergeClassNameAndStyle,
+        const resolvedExternalProps = externalInputSlotProps.map(slotProps =>
+            resolveInputSlotProps<OwnerState>(slotProps, ownerState),
         )
+        const externalProps = mergeExternalInputSlotProps(resolvedExternalProps, options.mergeClassNameAndStyle)
         const topLevelAriaProps = options.inputAriaProps as unknown as Record<string, unknown>
         const externalOnClick = externalProps.onClick
         const effectiveAriaLabel = {
@@ -72,32 +69,28 @@ export const composeToggleInputSlotProps = <OwnerState, >(
             ...externalProps,
             'aria-describedby': mergeAriaIds(
                 getString(topLevelAriaProps['aria-describedby']),
-                ...resolvedExternalProps.map(slotProps => (
-                    getString(slotProps['aria-describedby'])
-                )),
+                ...resolvedExternalProps.map(slotProps => getString(slotProps['aria-describedby'])),
                 options.describedBy,
             ),
             'aria-disabled': options.forceDisabled
                 ? true
-                : externalProps['aria-disabled'] ?? topLevelAriaProps['aria-disabled'],
+                : (externalProps['aria-disabled'] ?? topLevelAriaProps['aria-disabled']),
             'aria-labelledby': isNonBlankString(effectiveAriaLabel)
                 ? undefined
                 : mergeAriaIds(
-                    getString(topLevelAriaProps['aria-labelledby']),
-                    ...resolvedExternalProps.map(slotProps => (
-                        getString(slotProps['aria-labelledby'])
-                    )),
-                    options.labelId,
-                ),
+                      getString(topLevelAriaProps['aria-labelledby']),
+                      ...resolvedExternalProps.map(slotProps => getString(slotProps['aria-labelledby'])),
+                      options.labelId,
+                  ),
             'aria-invalid': options.forceInvalid
                 ? true
-                : externalProps['aria-invalid'] ?? topLevelAriaProps['aria-invalid'],
+                : (externalProps['aria-invalid'] ?? topLevelAriaProps['aria-invalid']),
             'aria-readonly': options.readOnly
                 ? true
-                : externalProps['aria-readonly'] ?? topLevelAriaProps['aria-readonly'],
+                : (externalProps['aria-readonly'] ?? topLevelAriaProps['aria-readonly']),
             'aria-required': options.forceRequired
                 ? true
-                : externalProps['aria-required'] ?? topLevelAriaProps['aria-required'],
+                : (externalProps['aria-required'] ?? topLevelAriaProps['aria-required']),
             ...(options.controlId ? {id: options.controlId} : {}),
             ...(options.forceDisabled ? {disabled: true} : {}),
         }
@@ -141,9 +134,7 @@ const mergeExternalInputSlotProps = (
     const classNames = slotProps
         .map(props => props.className)
         .filter((className): className is string => typeof className === 'string' && className !== '')
-    const styles = slotProps
-        .map(props => props.style)
-        .filter(isObject)
+    const styles = slotProps.map(props => props.style).filter(isObject)
 
     if (classNames.length > 0) {
         merged.className = classNames.join(' ')
@@ -156,17 +147,11 @@ const mergeExternalInputSlotProps = (
     return merged
 }
 
-const resolveInputSlotProps = <OwnerState, >(
-    slotProps: unknown,
-    ownerState: OwnerState,
-): ToggleInputSlotProps => {
-    const resolved = typeof slotProps === 'function'
-        ? (slotProps as (state: OwnerState) => unknown)(ownerState)
-        : slotProps
+const resolveInputSlotProps = <OwnerState>(slotProps: unknown, ownerState: OwnerState): ToggleInputSlotProps => {
+    const resolved =
+        typeof slotProps === 'function' ? (slotProps as (state: OwnerState) => unknown)(ownerState) : slotProps
 
-    return isObject(resolved)
-        ? resolved as ToggleInputSlotProps
-        : {}
+    return isObject(resolved) ? (resolved as ToggleInputSlotProps) : {}
 }
 
 const getString = (value: unknown): string | undefined => {
@@ -181,12 +166,8 @@ const isObject = (value: unknown): value is Record<string, unknown> => {
     return value !== null && typeof value === 'object'
 }
 
-const mergeRefs = <Element, >(
-    ...refs: Array<React.Ref<Element> | undefined>
-): React.RefCallback<Element> | undefined => {
-    const definedRefs = refs.filter(
-        (ref): ref is NonNullable<React.Ref<Element>> => ref != null,
-    )
+const mergeRefs = <Element>(...refs: Array<React.Ref<Element> | undefined>): React.RefCallback<Element> | undefined => {
+    const definedRefs = refs.filter((ref): ref is NonNullable<React.Ref<Element>> => ref != null)
 
     if (definedRefs.length === 0) {
         return undefined
@@ -206,9 +187,7 @@ const mergeRefs = <Element, >(
             if (typeof ref === 'function') {
                 const cleanup = ref(element)
 
-                return typeof cleanup === 'function'
-                    ? cleanup
-                    : () => ref(null)
+                return typeof cleanup === 'function' ? cleanup : () => ref(null)
             }
 
             ref.current = element

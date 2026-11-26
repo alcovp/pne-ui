@@ -14,13 +14,9 @@ import {
     TableSelectionModel,
     TransactionSessionGroup,
 } from '../index'
-import React, { useMemo, useState } from 'react'
-import {
-    SearchParams,
-    SearchUI,
-    SearchUIView,
-} from '../component/search-ui/SearchUI'
-import { SearchUIFiltersConfig } from '../component/search-ui/filters/SearchUIFilters'
+import React, {useMemo, useState} from 'react'
+import {SearchParams, SearchUI, SearchUIView} from '../component/search-ui/SearchUI'
+import {SearchUIFiltersConfig} from '../component/search-ui/filters/SearchUIFilters'
 import {
     CriterionTypeEnum,
     LinkedEntityTypeEnum,
@@ -30,12 +26,12 @@ import {
     TransactionSessionStatus,
     TransactionSessionStatuses,
 } from '../component/search-ui/filters/types'
-import { Meta, StoryObj } from '@storybook/react-webpack5'
-import { expect, userEvent, waitFor } from 'storybook/test'
-import { SearchUIProvider } from '../component/search-ui/SearchUIProvider'
+import {Meta, StoryObj} from '@storybook/react-webpack5'
+import {expect, userEvent, waitFor} from 'storybook/test'
+import {SearchUIProvider} from '../component/search-ui/SearchUIProvider'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import { Alert, Box, IconButton, Tooltip, Button } from '@mui/material'
-import { sharesRow } from './tableControlRows'
+import {Alert, Box, IconButton, Tooltip, Button} from '@mui/material'
+import {sharesRow} from './tableControlRows'
 
 type DataType = AbstractEntity
 
@@ -66,9 +62,7 @@ const defaultPossibleCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.DATE_RANGE,
 ]
 
-const defaultPredefinedCriteria: CriterionTypeEnum[] = [
-    CriterionTypeEnum.DATE_RANGE,
-]
+const defaultPredefinedCriteria: CriterionTypeEnum[] = [CriterionTypeEnum.DATE_RANGE]
 
 const defaultFiltersConfig: SearchUIFiltersConfig = {
     dateRange: {
@@ -81,10 +75,12 @@ const defaultFiltersConfig: SearchUIFiltersConfig = {
 
 const ordersSearchAvailabilityConfig: SearchUIFiltersConfig = {
     manualSearch: true,
-    criterionAvailabilityRules: [{
-        criterion: CriterionTypeEnum.ORDERS_SEARCH,
-        isAvailable: conditions => conditions.orderDateType === 'SESSION_STATUS_CHANGED',
-    }],
+    criterionAvailabilityRules: [
+        {
+            criterion: CriterionTypeEnum.ORDERS_SEARCH,
+            isAvailable: conditions => conditions.orderDateType === 'SESSION_STATUS_CHANGED',
+        },
+    ],
 }
 
 const criterionToLinkedEntityMap: Partial<Record<CriterionTypeEnum, LinkedEntityTypeEnum>> = {
@@ -127,11 +123,7 @@ const customerLevelMerchantCriterion: MultigetCriterion = {
 }
 
 const customerLevelStoryArgs = {
-    possibleCriteria: [
-        CriterionTypeEnum.CUSTOMER_LEVEL,
-        CriterionTypeEnum.MERCHANT,
-        CriterionTypeEnum.CURRENCY,
-    ],
+    possibleCriteria: [CriterionTypeEnum.CUSTOMER_LEVEL, CriterionTypeEnum.MERCHANT, CriterionTypeEnum.CURRENCY],
     predefinedCriteria: [CriterionTypeEnum.CUSTOMER_LEVEL],
     showVisaButton: false,
 } satisfies HookWrapProps
@@ -157,50 +149,52 @@ const allFiltersStoryPossibleCriteria: CriterionTypeEnum[] = [
     CriterionTypeEnum.COUNTRIES,
 ]
 
-const createTransactionSessionStatuses = (...displayNames: string[]): TransactionSessionStatus[] => (
+const createTransactionSessionStatuses = (...displayNames: string[]): TransactionSessionStatus[] =>
     displayNames.map(displayName => ({
         displayName,
         selected: true,
     }))
-)
 
 const transactionSessionStatusesEntries: [TransactionSessionGroup, TransactionSessionStatus[]][] = [
-    ['ALL', createTransactionSessionStatuses(
-        'MOCK_ONE',
-        'MOCK_TWO',
-        'CLONE1',
-        'CLONE2',
-        'CLONE3',
-        'CLONE4',
-        'CLONE5',
-        'CLONE6',
-        'CLONE7',
-        'CLONE8',
-        'CLONE9',
-        'CLONE10',
-        'CLONE11',
-        'CLONE12',
-        'CLONE13',
-        'CLONE14',
-        'CLONE15',
-        'THREE',
-    )],
+    [
+        'ALL',
+        createTransactionSessionStatuses(
+            'MOCK_ONE',
+            'MOCK_TWO',
+            'CLONE1',
+            'CLONE2',
+            'CLONE3',
+            'CLONE4',
+            'CLONE5',
+            'CLONE6',
+            'CLONE7',
+            'CLONE8',
+            'CLONE9',
+            'CLONE10',
+            'CLONE11',
+            'CLONE12',
+            'CLONE13',
+            'CLONE14',
+            'CLONE15',
+            'THREE',
+        ),
+    ],
     ['APPROVED', createTransactionSessionStatuses('MOCK_ONE', 'MOCK_TWO')],
     ['PROCESSING', createTransactionSessionStatuses('THREE')],
 ]
 
 const mockGateEntities: AbstractEntity[] = [
-    { id: 1, displayName: '(1) name1' },
-    { id: 2, displayName: '(2) name2' },
-    { id: 3, displayName: '(3) name3asdasdasd asd asdasd a sasdasdasdasdasdasd' },
-    { id: 4, displayName: '(4) name1' },
-    { id: 5, displayName: '(5) name2' },
-    { id: 6, displayName: '(6) name3' },
-    { id: 7, displayName: '(7) name1' },
-    { id: 8, displayName: '(8) name2' },
-    { id: 9, displayName: '(9) name3' },
-    { id: 10, displayName: '(10) name1' },
-    { id: 11, displayName: '(11) name2' },
+    {id: 1, displayName: '(1) name1'},
+    {id: 2, displayName: '(2) name2'},
+    {id: 3, displayName: '(3) name3asdasdasd asd asdasd a sasdasdasdasdasdasd'},
+    {id: 4, displayName: '(4) name1'},
+    {id: 5, displayName: '(5) name2'},
+    {id: 6, displayName: '(6) name3'},
+    {id: 7, displayName: '(7) name1'},
+    {id: 8, displayName: '(8) name2'},
+    {id: 9, displayName: '(9) name3'},
+    {id: 10, displayName: '(10) name1'},
+    {id: 11, displayName: '(11) name2'},
 ]
 
 const allFiltersGateSelection = mockGateEntities.slice(0, 10)
@@ -225,19 +219,18 @@ const allFiltersInitialSearchConditions: Partial<Omit<SearchUIConditionsInput, '
     currencies: {
         all: false,
         entities: [
-            { id: 1, displayName: 'USD' },
-            { id: 2, displayName: 'RUB' },
+            {id: 1, displayName: 'USD'},
+            {id: 2, displayName: 'RUB'},
         ],
     },
 }
 
 class Service {
-
     static async getList(searchParams: SearchParams): Promise<DataType[]> {
         console.log('getList call:\n' + JSON.stringify(searchParams, null, 4))
         let data: DataType[] = []
         for (let i = 1; i <= 999; i++) {
-            data.push({ id: i, displayName: 'John ' + i })
+            data.push({id: i, displayName: 'John ' + i})
         }
         await new Promise(resolve => setTimeout(resolve, 400))
 
@@ -260,13 +253,9 @@ class Service {
             })
         }
 
-        const dataSlice = data.slice(
-            searchParams.startNum,
-            searchParams.startNum + searchParams.rowCount,
-        )
+        const dataSlice = data.slice(searchParams.startNum, searchParams.startNum + searchParams.rowCount)
         return dataSlice
     }
-
 }
 
 type TableViewStoryId = 'summary' | 'operations' | 'risk'
@@ -308,15 +297,17 @@ const createTableViewRow = (row: TableViewStoryRow) => (
     </PneTableRow>
 )
 
-const tableViewSettingsAction = <Tooltip title='View settings'>
-    <IconButton
-        aria-label='View settings'
-        size='small'
-        sx={{borderRadius: '4px', height: '32px', padding: '8px', width: '32px'}}
-    >
-        <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}}/>
-    </IconButton>
-</Tooltip>
+const tableViewSettingsAction = (
+    <Tooltip title='View settings'>
+        <IconButton
+            aria-label='View settings'
+            size='small'
+            sx={{borderRadius: '4px', height: '32px', padding: '8px', width: '32px'}}
+        >
+            <SettingsOutlinedIcon sx={{height: '16px', width: '16px'}} />
+        </IconButton>
+    </Tooltip>
+)
 
 const tableViewStoryViews: readonly SearchUIView<TableViewStoryRow, TableViewStoryId>[] = [
     {
@@ -350,70 +341,76 @@ const tableViewStoryViews: readonly SearchUIView<TableViewStoryRow, TableViewSto
 const TableViewsWrap = ({duplicatePagination = true}: {duplicatePagination?: boolean}) => {
     const [value, setValue] = useState<TableViewStoryId>('summary')
 
-    return <Box data-story-section='pne-ui-search-ui-table-views' sx={{backgroundColor: '#fff'}}>
-        <SearchUI<TableViewStoryRow, TableViewStoryId>
-            autoTestId='storybook-search-ui-table-views'
-            config={{
-                hideShowFiltersButton: true,
-                hideTemplatesSelect: true,
-            }}
-            possibleCriteria={[]}
-            settingsContextName='storybook-search-ui-table-views'
-            tableParams={{
-                duplicatePagination,
-                rowsPerPageOptions: [5, 10, 25],
-                displayOptions: {pageSize: 5},
-            }}
-            tableViews={{
-                'aria-label': 'Results view',
-                onChange: setValue,
-                value,
-                views: tableViewStoryViews,
-            }}
-        />
-    </Box>
+    return (
+        <Box data-story-section='pne-ui-search-ui-table-views' sx={{backgroundColor: '#fff'}}>
+            <SearchUI<TableViewStoryRow, TableViewStoryId>
+                autoTestId='storybook-search-ui-table-views'
+                config={{
+                    hideShowFiltersButton: true,
+                    hideTemplatesSelect: true,
+                }}
+                possibleCriteria={[]}
+                settingsContextName='storybook-search-ui-table-views'
+                tableParams={{
+                    duplicatePagination,
+                    rowsPerPageOptions: [5, 10, 25],
+                    displayOptions: {pageSize: 5},
+                }}
+                tableViews={{
+                    'aria-label': 'Results view',
+                    onChange: setValue,
+                    value,
+                    views: tableViewStoryViews,
+                }}
+            />
+        </Box>
+    )
 }
 
-const selectableTableViewStoryViews: readonly SearchUIView<
-    TableViewStoryRow,
-    TableViewStoryId,
-    string
->[] = [
+const selectableTableViewStoryViews: readonly SearchUIView<TableViewStoryRow, TableViewStoryId, string>[] = [
     {
         id: 'summary',
         label: 'Summary',
         searchData: async () => tableViewStoryRows.summary,
-        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => <PneTableRow>
-            <PneTableSelectionHeaderCell
-                aria-label='Select current page'
-                disabled={!selection
-                    || selection.interactionDisabled
-                    || selection.pageSelectableCount === 0}
-                onChange={checked => selection?.setPageSelected(checked)}
-                state={selection?.pageState ?? 'none'}
-            />
-            <PneHeaderTableCell>ID</PneHeaderTableCell>
-            <PneHeaderTableCell>Account</PneHeaderTableCell>
-            <PneHeaderTableCell>State</PneHeaderTableCell>
-        </PneTableRow>,
-        createTableRow: (row, _index, _data, _setData, {selection} = {
-            appliedSearchCriteria: null,
-        }) => <PneTableRow
-            aria-selected={selection?.isRowSelected(row) ?? false}
-            key={row.id}
-            selected={selection?.isRowSelected(row) ?? false}
-        >
-            <PneTableSelectionCell
-                aria-label={`Select ${row.id}`}
-                autoTestValue={row.id}
-                checked={selection?.isRowSelected(row) ?? false}
-                disabled={!selection || selection.interactionDisabled}
-                onChange={checked => selection?.setRowSelected(row, checked)}
-            />
-            <PneTableCell>{row.id}</PneTableCell>
-            <PneTableCell>{row.primary}</PneTableCell>
-            <PneTableCell>{row.secondary}</PneTableCell>
-        </PneTableRow>,
+        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => (
+            <PneTableRow>
+                <PneTableSelectionHeaderCell
+                    aria-label='Select current page'
+                    disabled={!selection || selection.interactionDisabled || selection.pageSelectableCount === 0}
+                    onChange={checked => selection?.setPageSelected(checked)}
+                    state={selection?.pageState ?? 'none'}
+                />
+                <PneHeaderTableCell>ID</PneHeaderTableCell>
+                <PneHeaderTableCell>Account</PneHeaderTableCell>
+                <PneHeaderTableCell>State</PneHeaderTableCell>
+            </PneTableRow>
+        ),
+        createTableRow: (
+            row,
+            _index,
+            _data,
+            _setData,
+            {selection} = {
+                appliedSearchCriteria: null,
+            },
+        ) => (
+            <PneTableRow
+                aria-selected={selection?.isRowSelected(row) ?? false}
+                key={row.id}
+                selected={selection?.isRowSelected(row) ?? false}
+            >
+                <PneTableSelectionCell
+                    aria-label={`Select ${row.id}`}
+                    autoTestValue={row.id}
+                    checked={selection?.isRowSelected(row) ?? false}
+                    disabled={!selection || selection.interactionDisabled}
+                    onChange={checked => selection?.setRowSelected(row, checked)}
+                />
+                <PneTableCell>{row.id}</PneTableCell>
+                <PneTableCell>{row.primary}</PneTableCell>
+                <PneTableCell>{row.secondary}</PneTableCell>
+            </PneTableRow>
+        ),
         actions: tableViewSettingsAction,
         sortOnActivate: {sortColumnIndex: 1, sortAsc: true},
     },
@@ -421,37 +418,45 @@ const selectableTableViewStoryViews: readonly SearchUIView<
         id: 'operations',
         label: 'Operations',
         searchData: async () => tableViewStoryRows.operations,
-        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => <PneTableRow>
-            <PneTableSelectionHeaderCell
-                aria-label='Select current page'
-                disabled={!selection
-                    || selection.interactionDisabled
-                    || selection.pageSelectableCount === 0}
-                onChange={checked => selection?.setPageSelected(checked)}
-                state={selection?.pageState ?? 'none'}
-            />
-            <PneHeaderTableCell>ID</PneHeaderTableCell>
-            <PneHeaderTableCell>Operation</PneHeaderTableCell>
-            <PneHeaderTableCell>Status</PneHeaderTableCell>
-        </PneTableRow>,
-        createTableRow: (row, _index, _data, _setData, {selection} = {
-            appliedSearchCriteria: null,
-        }) => <PneTableRow
-            aria-selected={selection?.isRowSelected(row) ?? false}
-            key={row.id}
-            selected={selection?.isRowSelected(row) ?? false}
-        >
-            <PneTableSelectionCell
-                aria-label={`Select ${row.id}`}
-                autoTestValue={row.id}
-                checked={selection?.isRowSelected(row) ?? false}
-                disabled={!selection || selection.interactionDisabled}
-                onChange={checked => selection?.setRowSelected(row, checked)}
-            />
-            <PneTableCell>{row.id}</PneTableCell>
-            <PneTableCell>{row.primary}</PneTableCell>
-            <PneTableCell>{row.secondary}</PneTableCell>
-        </PneTableRow>,
+        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => (
+            <PneTableRow>
+                <PneTableSelectionHeaderCell
+                    aria-label='Select current page'
+                    disabled={!selection || selection.interactionDisabled || selection.pageSelectableCount === 0}
+                    onChange={checked => selection?.setPageSelected(checked)}
+                    state={selection?.pageState ?? 'none'}
+                />
+                <PneHeaderTableCell>ID</PneHeaderTableCell>
+                <PneHeaderTableCell>Operation</PneHeaderTableCell>
+                <PneHeaderTableCell>Status</PneHeaderTableCell>
+            </PneTableRow>
+        ),
+        createTableRow: (
+            row,
+            _index,
+            _data,
+            _setData,
+            {selection} = {
+                appliedSearchCriteria: null,
+            },
+        ) => (
+            <PneTableRow
+                aria-selected={selection?.isRowSelected(row) ?? false}
+                key={row.id}
+                selected={selection?.isRowSelected(row) ?? false}
+            >
+                <PneTableSelectionCell
+                    aria-label={`Select ${row.id}`}
+                    autoTestValue={row.id}
+                    checked={selection?.isRowSelected(row) ?? false}
+                    disabled={!selection || selection.interactionDisabled}
+                    onChange={checked => selection?.setRowSelected(row, checked)}
+                />
+                <PneTableCell>{row.id}</PneTableCell>
+                <PneTableCell>{row.primary}</PneTableCell>
+                <PneTableCell>{row.secondary}</PneTableCell>
+            </PneTableRow>
+        ),
         actions: tableViewSettingsAction,
         sortOnActivate: {sortColumnIndex: 2, sortAsc: false},
     },
@@ -459,37 +464,45 @@ const selectableTableViewStoryViews: readonly SearchUIView<
         id: 'risk',
         label: 'Risk',
         searchData: async () => tableViewStoryRows.risk,
-        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => <PneTableRow>
-            <PneTableSelectionHeaderCell
-                aria-label='Select current page'
-                disabled={!selection
-                    || selection.interactionDisabled
-                    || selection.pageSelectableCount === 0}
-                onChange={checked => selection?.setPageSelected(checked)}
-                state={selection?.pageState ?? 'none'}
-            />
-            <PneHeaderTableCell>ID</PneHeaderTableCell>
-            <PneHeaderTableCell>Signal</PneHeaderTableCell>
-            <PneHeaderTableCell>Severity</PneHeaderTableCell>
-        </PneTableRow>,
-        createTableRow: (row, _index, _data, _setData, {selection} = {
-            appliedSearchCriteria: null,
-        }) => <PneTableRow
-            aria-selected={selection?.isRowSelected(row) ?? false}
-            key={row.id}
-            selected={selection?.isRowSelected(row) ?? false}
-        >
-            <PneTableSelectionCell
-                aria-label={`Select ${row.id}`}
-                autoTestValue={row.id}
-                checked={selection?.isRowSelected(row) ?? false}
-                disabled={!selection || selection.interactionDisabled}
-                onChange={checked => selection?.setRowSelected(row, checked)}
-            />
-            <PneTableCell>{row.id}</PneTableCell>
-            <PneTableCell>{row.primary}</PneTableCell>
-            <PneTableCell>{row.secondary}</PneTableCell>
-        </PneTableRow>,
+        createTableHeader: (_params, {selection} = {appliedSearchCriteria: null}) => (
+            <PneTableRow>
+                <PneTableSelectionHeaderCell
+                    aria-label='Select current page'
+                    disabled={!selection || selection.interactionDisabled || selection.pageSelectableCount === 0}
+                    onChange={checked => selection?.setPageSelected(checked)}
+                    state={selection?.pageState ?? 'none'}
+                />
+                <PneHeaderTableCell>ID</PneHeaderTableCell>
+                <PneHeaderTableCell>Signal</PneHeaderTableCell>
+                <PneHeaderTableCell>Severity</PneHeaderTableCell>
+            </PneTableRow>
+        ),
+        createTableRow: (
+            row,
+            _index,
+            _data,
+            _setData,
+            {selection} = {
+                appliedSearchCriteria: null,
+            },
+        ) => (
+            <PneTableRow
+                aria-selected={selection?.isRowSelected(row) ?? false}
+                key={row.id}
+                selected={selection?.isRowSelected(row) ?? false}
+            >
+                <PneTableSelectionCell
+                    aria-label={`Select ${row.id}`}
+                    autoTestValue={row.id}
+                    checked={selection?.isRowSelected(row) ?? false}
+                    disabled={!selection || selection.interactionDisabled}
+                    onChange={checked => selection?.setRowSelected(row, checked)}
+                />
+                <PneTableCell>{row.id}</PneTableCell>
+                <PneTableCell>{row.primary}</PneTableCell>
+                <PneTableCell>{row.secondary}</PneTableCell>
+            </PneTableRow>
+        ),
         actions: tableViewSettingsAction,
     },
 ]
@@ -501,87 +514,88 @@ const TableSelectionViewsWrap = () => {
         selectedIds: new Set(),
     }))
 
-    return <Box
-        data-story-section='pne-ui-search-ui-selection-views'
-        sx={{backgroundColor: '#fff'}}
-    >
-        <SearchUI<TableViewStoryRow, TableViewStoryId, string>
-            autoTestId='storybook-search-ui-selection-views'
-            config={{
-                hideShowFiltersButton: true,
-                hideTemplatesSelect: true,
-            }}
-            possibleCriteria={[]}
-            settingsContextName='storybook-search-ui-selection-views'
-            tableParams={{
-                duplicatePagination: true,
-                rowsPerPageOptions: [5, 10, 25],
-                displayOptions: {pageSize: 5},
-            }}
-            tableSelection={{
-                getRowId: row => row.id,
-                maxSelected: 10,
-                onSelectionChange: setSelection,
-                renderControls: ({selection: controller}) => (
-                    <PneTableSelectionControls
-                        actions={<>
-                            <Button
-                                size='large'
-                                disabled={controller.interactionDisabled}
-                                onClick={() => {
-                                    void controller.selectAllMatchingResults?.()
-                                }}
-                                variant='text'
-                                sx={{minHeight: '40px'}}
-                            >
-                                Выбрать все
-                            </Button>
-                            <Button
-                                size='large'
-                                disabled={controller.interactionDisabled
-                                    || controller.selectedCount === 0}
-                                onClick={controller.clear}
-                                variant='text'
-                                sx={{minHeight: '40px'}}
-                            >
-                                Отменить выбор
-                            </Button>
-                            <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
-                                <Box>Операции с выбранным</Box>
-                                <Button size='large' variant='outlined' sx={{minHeight: '40px'}}>
-                                    Действия
-                                </Button>
-                            </Box>
-                        </>}
-                        summary={`Выбрано шлюзов: ${controller.selectedCount}`}
-                    />
-                ),
-                renderFeedback: ({selection: controller}) => <Alert severity='info'>
-                    Selection feedback. Total items: {controller.selectedCount}. The feedback remains
-                    full-width even when this message wraps onto another line.
-                </Alert>,
-                resolveAllMatchingCount: async ({viewId}) => (
-                    viewId ? tableViewStoryRows[viewId].length : 0
-                ),
-                selection,
-                toolbarAriaLabel: 'Result table controls',
-            }}
-            tableViews={{
-                'aria-label': 'Results view',
-                onChange: setValue,
-                value,
-                views: selectableTableViewStoryViews,
-            }}
-        />
-    </Box>
+    return (
+        <Box data-story-section='pne-ui-search-ui-selection-views' sx={{backgroundColor: '#fff'}}>
+            <SearchUI<TableViewStoryRow, TableViewStoryId, string>
+                autoTestId='storybook-search-ui-selection-views'
+                config={{
+                    hideShowFiltersButton: true,
+                    hideTemplatesSelect: true,
+                }}
+                possibleCriteria={[]}
+                settingsContextName='storybook-search-ui-selection-views'
+                tableParams={{
+                    duplicatePagination: true,
+                    rowsPerPageOptions: [5, 10, 25],
+                    displayOptions: {pageSize: 5},
+                }}
+                tableSelection={{
+                    getRowId: row => row.id,
+                    maxSelected: 10,
+                    onSelectionChange: setSelection,
+                    renderControls: ({selection: controller}) => (
+                        <PneTableSelectionControls
+                            actions={
+                                <>
+                                    <Button
+                                        size='large'
+                                        disabled={controller.interactionDisabled}
+                                        onClick={() => {
+                                            void controller.selectAllMatchingResults?.()
+                                        }}
+                                        variant='text'
+                                        sx={{minHeight: '40px'}}
+                                    >
+                                        Выбрать все
+                                    </Button>
+                                    <Button
+                                        size='large'
+                                        disabled={controller.interactionDisabled || controller.selectedCount === 0}
+                                        onClick={controller.clear}
+                                        variant='text'
+                                        sx={{minHeight: '40px'}}
+                                    >
+                                        Отменить выбор
+                                    </Button>
+                                    <Box sx={{alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 1}}>
+                                        <Box>Операции с выбранным</Box>
+                                        <Button size='large' variant='outlined' sx={{minHeight: '40px'}}>
+                                            Действия
+                                        </Button>
+                                    </Box>
+                                </>
+                            }
+                            summary={`Выбрано шлюзов: ${controller.selectedCount}`}
+                        />
+                    ),
+                    renderFeedback: ({selection: controller}) => (
+                        <Alert severity='info'>
+                            Selection feedback. Total items: {controller.selectedCount}. The feedback remains full-width
+                            even when this message wraps onto another line.
+                        </Alert>
+                    ),
+                    resolveAllMatchingCount: async ({viewId}) => (viewId ? tableViewStoryRows[viewId].length : 0),
+                    selection,
+                    toolbarAriaLabel: 'Result table controls',
+                }}
+                tableViews={{
+                    'aria-label': 'Results view',
+                    onChange: setValue,
+                    value,
+                    views: selectableTableViewStoryViews,
+                }}
+            />
+        </Box>
+    )
 }
 
-const HookWrap = (props: HookWrapProps) => <OverlayHost>
-    <HookWrapContent {...props}/>
-</OverlayHost>
+const HookWrap = (props: HookWrapProps) => (
+    <OverlayHost>
+        <HookWrapContent {...props} />
+    </OverlayHost>
+)
 
 const HookWrapContent = (props: HookWrapProps) => {
-
     const {
         possibleCriteria = defaultPossibleCriteria,
         predefinedCriteria = defaultPredefinedCriteria,
@@ -592,15 +606,17 @@ const HookWrapContent = (props: HookWrapProps) => {
         transactionSessionStatusesScenario = 'record',
     } = props
 
-    const initialMultigetCriteria = useMemo<MultigetCriterion[]>(() => (
-        predefinedCriteria
-            .map(createInitialMultigetCriterion)
-            .filter((criterion): criterion is MultigetCriterion => criterion !== null)
-    ), [predefinedCriteria])
+    const initialMultigetCriteria = useMemo<MultigetCriterion[]>(
+        () =>
+            predefinedCriteria
+                .map(createInitialMultigetCriterion)
+                .filter((criterion): criterion is MultigetCriterion => criterion !== null),
+        [predefinedCriteria],
+    )
 
     const initialSearchConditions = useMemo(() => {
         const base = {
-            multigetCriteria: initialMultigetCriteria.map(criterion => ({ ...criterion })),
+            multigetCriteria: initialMultigetCriteria.map(criterion => ({...criterion})),
         }
 
         if (!initialSearchConditionsOverride) {
@@ -612,13 +628,13 @@ const HookWrapContent = (props: HookWrapProps) => {
         }
 
         if (override.multigetCriteria) {
-            override.multigetCriteria = override.multigetCriteria.map(criterion => ({ ...criterion }))
+            override.multigetCriteria = override.multigetCriteria.map(criterion => ({...criterion}))
         }
 
         if (override.currencies) {
             override.currencies = {
                 all: override.currencies.all,
-                entities: override.currencies.entities?.map(entity => ({ ...entity })),
+                entities: override.currencies.entities?.map(entity => ({...entity})),
             }
         }
 
@@ -631,10 +647,13 @@ const HookWrapContent = (props: HookWrapProps) => {
     const [data, setData] = useState<DataType[]>([])
     const [searchConditions, setSearchConditions] = useState<Partial<SearchUIConditionsInput>>({})
 
-    const visaCardType = useMemo<AbstractEntity>(() => ({
-        id: 1,
-        displayName: 'VISA',
-    }), [])
+    const visaCardType = useMemo<AbstractEntity>(
+        () => ({
+            id: 1,
+            displayName: 'VISA',
+        }),
+        [],
+    )
 
     const filtersConfig = useMemo<SearchUIFiltersConfig>(() => {
         const override: SearchUIFiltersConfig = storyConfig ?? {}
@@ -664,191 +683,194 @@ const HookWrapContent = (props: HookWrapProps) => {
         }
 
         return {
-            getTransactionSessionStatuses: async () => (
+            getTransactionSessionStatuses: async () =>
                 Object.fromEntries(
                     transactionSessionStatusesEntries.map(([group, statuses]) => [
                         group,
-                        statuses.map(status => ({ ...status })),
+                        statuses.map(status => ({...status})),
                     ]),
-                ) as TransactionSessionStatuses
-            ),
+                ) as TransactionSessionStatuses,
         }
     }, [transactionSessionStatusesScenario])
 
-    return <SearchUIProvider
-        defaults={{
-            getDefaultCurrency: (): AbstractEntity => ({
-                id: 99,
-                displayName: 'BBB',
-            }),
-            getMatchLinkedItems: async () => {
-                await new Promise(resolve => setTimeout(resolve, 400))
+    return (
+        <SearchUIProvider
+            defaults={{
+                getDefaultCurrency: (): AbstractEntity => ({
+                    id: 99,
+                    displayName: 'BBB',
+                }),
+                getMatchLinkedItems: async () => {
+                    await new Promise(resolve => setTimeout(resolve, 400))
 
-                return mockGateEntities
-            },
-            getCountries: async () => {
-                return [
-                    { id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS' },
-                    { id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX' },
-                ] satisfies Country[]
-            },
-            getCurrencies: async () => {
-                return [
-                    { id: 1, displayName: 'USD' },
-                    { id: 2, displayName: 'RUB' },
-                    { id: 99, displayName: 'BBB' },
-                ]
-            },
-            getCustomerLevels: async ({ merchantId, currencyIds }) => {
-                const levels = [
-                    {
-                        level: { id: 1, displayName: `Regular (merchant ${merchantId})` },
-                        currencyIds: [1, 2],
-                    },
-                    {
-                        level: { id: 2, displayName: `VIP (merchant ${merchantId})` },
-                        currencyIds: [1],
-                    },
-                ]
-
-                return levels
-                    .filter(item => currencyIds.length === 0
-                            || item.currencyIds.some(currencyId => currencyIds.includes(currencyId)))
-                    .map(item => item.level)
-            },
-            getCardTypes: async () => {
-                return [
-                    visaCardType,
-                    { id: 2, displayName: 'MASTERCARD' },
-                    { id: 99, displayName: 'UNIONPAY' },
-                ]
-            },
-            getProjectAvailableCurrencies: async () => {
-                return [
-                    { choiceId: 1, displayName: 'USD', description: '', status: 'E' },
-                    { choiceId: 2, displayName: 'RUB', description: '', status: 'E' },
-                    { choiceId: 99, displayName: 'BBB', description: '', status: 'E' },
-                ] satisfies AutoCompleteChoiceWithStatus[]
-            },
-            showGatesCriterion: () => true,
-            showProjectsCriterion: () => true,
-            getProcessorLogEntryTypes: async () => {
-                return [
-                    { id: 1, displayName: 'One' },
-                    { id: 2, displayName: 'Second' },
-                    { id: 99, displayName: '33333' },
-                ]
-            },
-            getTransactionTypes: async () => {
-                return [
-                    { id: 611, displayName: 'chargeback' },
-                    { id: 722, displayName: 'fraud' },
-                    { id: 833, displayName: 'sale' },
-                ]
-            },
-            getTransactionStatuses: async () => {
-                return [
-                    { id: 1, displayName: 'One' },
-                    { id: 2, displayName: 'Second' },
-                    { id: 99, displayName: '33333' },
-                ]
-            },
-            getTransactionMarkerTypes: async () => {
-                return [
-                    { id: 1, displayName: 'Fraud alerts' },
-                    { id: 2, displayName: 'Manual review' },
-                    { id: 3, displayName: 'Auto' },
-                ]
-            },
-            getRecurringPaymentTypes: async () => {
-                return [
-                    { id: 1, displayName: 'Subscription' },
-                    { id: 2, displayName: 'Installment' },
-                ]
-            },
-            getRecurringPaymentStatuses: async () => {
-                return [
-                    { id: 1, displayName: 'Active' },
-                    { id: 2, displayName: 'Paused' },
-                    { id: 3, displayName: 'Cancelled' },
-                ]
-            },
-            getMFOTypes: async () => {
-                return [
-                    { id: 1, displayName: 'MFO type 1' },
-                    { id: 2, displayName: 'MFO type 2' },
-                ]
-            },
-            searchErrorCodes: async () => {
-                return [
-                    { choiceId: 1, displayName: 'Timeout', description: 'EXTERNAL:1 Timeout 05' },
-                    { choiceId: 2, displayName: 'Timeout', description: 'EXTERNAL:2 Timeout 51' },
-                    {
-                        choiceId: 99,
-                        displayName: 'Referenced transaction can not be captured (cut off time reached)',
-                        description: 'EXTERNAL:99 Referenced transaction can not be captured (cut off time reached) 700.300.400',
-                    },
-                ]
-            },
-            ...transactionSessionStatusesDefaults,
-        }}
-    >
-        {showVisaButton ? (
-            <div style={{ marginBottom: 16 }}>
-                <Button
-                    variant='contained'
-                    size={'small'}
-                    onClick={onAddVisaCardType}
-                >
-                    {'Apply VISA card filter'}
-                </Button>
-            </div>
-        ) : null}
-        <SearchUI<DataType>
-            tableParams={{
-                duplicatePagination: true,
-                rowsPerPageOptions: [1, 5, 8],
-                displayOptions: {
-                    pageSize: 5,
-                    // sortAsc: true,
-                    // sortColumnIndex: 1
+                    return mockGateEntities
                 },
+                getCountries: async () => {
+                    return [
+                        {id: 1, displayName: 'Russia', theCode: 'RU', theCode3: 'RUS'},
+                        {id: 2, displayName: 'Not Russia', theCode: 'XX', theCode3: 'XXX'},
+                    ] satisfies Country[]
+                },
+                getCurrencies: async () => {
+                    return [
+                        {id: 1, displayName: 'USD'},
+                        {id: 2, displayName: 'RUB'},
+                        {id: 99, displayName: 'BBB'},
+                    ]
+                },
+                getCustomerLevels: async ({merchantId, currencyIds}) => {
+                    const levels = [
+                        {
+                            level: {id: 1, displayName: `Regular (merchant ${merchantId})`},
+                            currencyIds: [1, 2],
+                        },
+                        {
+                            level: {id: 2, displayName: `VIP (merchant ${merchantId})`},
+                            currencyIds: [1],
+                        },
+                    ]
+
+                    return levels
+                        .filter(
+                            item =>
+                                currencyIds.length === 0 ||
+                                item.currencyIds.some(currencyId => currencyIds.includes(currencyId)),
+                        )
+                        .map(item => item.level)
+                },
+                getCardTypes: async () => {
+                    return [visaCardType, {id: 2, displayName: 'MASTERCARD'}, {id: 99, displayName: 'UNIONPAY'}]
+                },
+                getProjectAvailableCurrencies: async () => {
+                    return [
+                        {choiceId: 1, displayName: 'USD', description: '', status: 'E'},
+                        {choiceId: 2, displayName: 'RUB', description: '', status: 'E'},
+                        {choiceId: 99, displayName: 'BBB', description: '', status: 'E'},
+                    ] satisfies AutoCompleteChoiceWithStatus[]
+                },
+                showGatesCriterion: () => true,
+                showProjectsCriterion: () => true,
+                getProcessorLogEntryTypes: async () => {
+                    return [
+                        {id: 1, displayName: 'One'},
+                        {id: 2, displayName: 'Second'},
+                        {id: 99, displayName: '33333'},
+                    ]
+                },
+                getTransactionTypes: async () => {
+                    return [
+                        {id: 611, displayName: 'chargeback'},
+                        {id: 722, displayName: 'fraud'},
+                        {id: 833, displayName: 'sale'},
+                    ]
+                },
+                getTransactionStatuses: async () => {
+                    return [
+                        {id: 1, displayName: 'One'},
+                        {id: 2, displayName: 'Second'},
+                        {id: 99, displayName: '33333'},
+                    ]
+                },
+                getTransactionMarkerTypes: async () => {
+                    return [
+                        {id: 1, displayName: 'Fraud alerts'},
+                        {id: 2, displayName: 'Manual review'},
+                        {id: 3, displayName: 'Auto'},
+                    ]
+                },
+                getRecurringPaymentTypes: async () => {
+                    return [
+                        {id: 1, displayName: 'Subscription'},
+                        {id: 2, displayName: 'Installment'},
+                    ]
+                },
+                getRecurringPaymentStatuses: async () => {
+                    return [
+                        {id: 1, displayName: 'Active'},
+                        {id: 2, displayName: 'Paused'},
+                        {id: 3, displayName: 'Cancelled'},
+                    ]
+                },
+                getMFOTypes: async () => {
+                    return [
+                        {id: 1, displayName: 'MFO type 1'},
+                        {id: 2, displayName: 'MFO type 2'},
+                    ]
+                },
+                searchErrorCodes: async () => {
+                    return [
+                        {choiceId: 1, displayName: 'Timeout', description: 'EXTERNAL:1 Timeout 05'},
+                        {choiceId: 2, displayName: 'Timeout', description: 'EXTERNAL:2 Timeout 51'},
+                        {
+                            choiceId: 99,
+                            displayName: 'Referenced transaction can not be captured (cut off time reached)',
+                            description:
+                                'EXTERNAL:99 Referenced transaction can not be captured (cut off time reached) 700.300.400',
+                        },
+                    ]
+                },
+                ...transactionSessionStatusesDefaults,
             }}
-            settingsContextName={settingsContextName}
-            exactSearchLabels={[
-                // ExactCriterionSearchLabelEnum.ALL,
-                ExactCriterionSearchLabelEnum.ID,
-                ExactCriterionSearchLabelEnum.NAME,
-            ]}
-            possibleCriteria={possibleCriteria}
-            predefinedCriteria={predefinedCriteria}
-            config={filtersConfig}
-            searchData={(searchParams) => {
-                console.log(JSON.stringify({
-                    searchLabel: searchParams.exactSearchLabel,
-                    searchString: searchParams.exactSearchValue,
-                    orderDateType: searchParams.orderDateType,
-                    processorLogEntryType: searchParams.processorLogEntryType,
-                }, null, 4))
-                return Service.getList(searchParams)
-            }}
-            dataUseState={[data, setData]}
-            initialSearchConditions={initialSearchConditions}
-            searchConditions={searchConditions}
-            createTableHeader={() =>
-                <PneTableRow>
-                    <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
-                    <PneHeaderTableCell>{'header2'}</PneHeaderTableCell>
-                </PneTableRow>
-            }
-            createTableRow={(item) =>
-                <PneTableRow key={item.id}>
-                    <PneTableCell>{item.id}</PneTableCell>
-                    <PneTableCell>{item.displayName}</PneTableCell>
-                </PneTableRow>
-            }
-        />
-    </SearchUIProvider>
+        >
+            {showVisaButton ? (
+                <div style={{marginBottom: 16}}>
+                    <Button variant='contained' size={'small'} onClick={onAddVisaCardType}>
+                        {'Apply VISA card filter'}
+                    </Button>
+                </div>
+            ) : null}
+            <SearchUI<DataType>
+                tableParams={{
+                    duplicatePagination: true,
+                    rowsPerPageOptions: [1, 5, 8],
+                    displayOptions: {
+                        pageSize: 5,
+                        // sortAsc: true,
+                        // sortColumnIndex: 1
+                    },
+                }}
+                settingsContextName={settingsContextName}
+                exactSearchLabels={[
+                    // ExactCriterionSearchLabelEnum.ALL,
+                    ExactCriterionSearchLabelEnum.ID,
+                    ExactCriterionSearchLabelEnum.NAME,
+                ]}
+                possibleCriteria={possibleCriteria}
+                predefinedCriteria={predefinedCriteria}
+                config={filtersConfig}
+                searchData={searchParams => {
+                    console.log(
+                        JSON.stringify(
+                            {
+                                searchLabel: searchParams.exactSearchLabel,
+                                searchString: searchParams.exactSearchValue,
+                                orderDateType: searchParams.orderDateType,
+                                processorLogEntryType: searchParams.processorLogEntryType,
+                            },
+                            null,
+                            4,
+                        ),
+                    )
+                    return Service.getList(searchParams)
+                }}
+                dataUseState={[data, setData]}
+                initialSearchConditions={initialSearchConditions}
+                searchConditions={searchConditions}
+                createTableHeader={() => (
+                    <PneTableRow>
+                        <PneHeaderTableCell>{'header1'}</PneHeaderTableCell>
+                        <PneHeaderTableCell>{'header2'}</PneHeaderTableCell>
+                    </PneTableRow>
+                )}
+                createTableRow={item => (
+                    <PneTableRow key={item.id}>
+                        <PneTableCell>{item.id}</PneTableCell>
+                        <PneTableCell>{item.displayName}</PneTableCell>
+                    </PneTableRow>
+                )}
+            />
+        </SearchUIProvider>
+    )
 }
 
 // The orders-like filter set: two fixed rows with the reset only, three removable rows with the cross
@@ -893,11 +915,11 @@ export const Default: Story = {
 }
 
 export const TableViews: Story = {
-    render: () => <TableViewsWrap/>,
+    render: () => <TableViewsWrap />,
 }
 
 export const TableViewsBottomPaginationOnly: Story = {
-    render: () => <TableViewsWrap duplicatePagination={false}/>,
+    render: () => <TableViewsWrap duplicatePagination={false} />,
 }
 
 export const TableSelectionAndViewsMobile360: Story = {
@@ -905,51 +927,31 @@ export const TableSelectionAndViewsMobile360: Story = {
         viewport: {defaultViewport: 'mobile360'},
     },
     play: ({canvasElement}) => {
-        const topControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-top-controls"]',
-        )
-        const feedback = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-feedback"]',
-        )
-        const actionBand = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-actions"]',
-        )
-        const paginationToolbar = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-toolbar"]',
-        )
-        const tableControlBar = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-control-bar"]',
-        )
-        const contextual = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-contextual-controls"]',
-        )
-        const persistent = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-persistent-controls"]',
-        )
-        const selectionControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="selection-controls"]',
-        )
-        const viewSelector = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-views"]',
-        )
-        const navigation = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="page-navigation"]',
-        )
-        const pageSizes = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="page-sizes"]',
-        )
+        const topControls = canvasElement.querySelector<HTMLElement>('[data-autotest="table-top-controls"]')
+        const feedback = canvasElement.querySelector<HTMLElement>('[data-autotest="table-feedback"]')
+        const actionBand = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-actions"]')
+        const paginationToolbar = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-toolbar"]')
+        const tableControlBar = canvasElement.querySelector<HTMLElement>('[data-autotest="table-control-bar"]')
+        const contextual = canvasElement.querySelector<HTMLElement>('[data-autotest="table-contextual-controls"]')
+        const persistent = canvasElement.querySelector<HTMLElement>('[data-autotest="table-persistent-controls"]')
+        const selectionControls = canvasElement.querySelector<HTMLElement>('[data-autotest="selection-controls"]')
+        const viewSelector = canvasElement.querySelector<HTMLElement>('[data-autotest="table-views"]')
+        const navigation = canvasElement.querySelector<HTMLElement>('[data-autotest="page-navigation"]')
+        const pageSizes = canvasElement.querySelector<HTMLElement>('[data-autotest="page-sizes"]')
 
-        if (!feedback
-            || !topControls
-            || !actionBand
-            || !paginationToolbar
-            || !tableControlBar
-            || !contextual
-            || !persistent
-            || !selectionControls
-            || !viewSelector
-            || !navigation
-            || !pageSizes) {
+        if (
+            !feedback ||
+            !topControls ||
+            !actionBand ||
+            !paginationToolbar ||
+            !tableControlBar ||
+            !contextual ||
+            !persistent ||
+            !selectionControls ||
+            !viewSelector ||
+            !navigation ||
+            !pageSizes
+        ) {
             throw new Error('SearchUI Selection and View controls are missing at 360px')
         }
 
@@ -969,8 +971,7 @@ export const TableSelectionAndViewsMobile360: Story = {
         if (sharesRow(paginationToolbar, navigation)) {
             throw new Error('SearchUI table controls must occupy their own row at 360px')
         }
-        if (paginationToolbar.getBoundingClientRect().top
-            >= navigation.getBoundingClientRect().top) {
+        if (paginationToolbar.getBoundingClientRect().top >= navigation.getBoundingClientRect().top) {
             throw new Error('SearchUI table controls must sit above the pagination at 360px')
         }
         if (sharesRow(contextual, persistent)) {
@@ -980,16 +981,13 @@ export const TableSelectionAndViewsMobile360: Story = {
             throw new Error('SearchUI feedback must precede Selection, View, and Pagination')
         }
         if (
-            actionBand.children[0] !== paginationToolbar
-            || navigation.parentElement !== pageSizes.parentElement
-            || actionBand.children[1] !== navigation.parentElement
+            actionBand.children[0] !== paginationToolbar ||
+            navigation.parentElement !== pageSizes.parentElement ||
+            actionBand.children[1] !== navigation.parentElement
         ) {
             throw new Error('SearchUI pagination halves must stay one group after the toolbar')
         }
-        if (
-            tableControlBar.children[0] !== contextual
-            || tableControlBar.children[1] !== persistent
-        ) {
+        if (tableControlBar.children[0] !== contextual || tableControlBar.children[1] !== persistent) {
             throw new Error('SearchUI Selection must precede View in DOM and keyboard order')
         }
 
@@ -997,13 +995,15 @@ export const TableSelectionAndViewsMobile360: Story = {
         const contextualRect = contextual.getBoundingClientRect()
         const persistentRect = persistent.getBoundingClientRect()
         const navigationRect = navigation.getBoundingClientRect()
-        if (feedbackRect.top >= contextualRect.top
-            || contextualRect.top >= persistentRect.top
-            || persistentRect.top >= navigationRect.top) {
+        if (
+            feedbackRect.top >= contextualRect.top ||
+            contextualRect.top >= persistentRect.top ||
+            persistentRect.top >= navigationRect.top
+        ) {
             throw new Error('SearchUI mobile rows are not Feedback, Selection, View, Pagination')
         }
     },
-    render: () => <TableSelectionViewsWrap/>,
+    render: () => <TableSelectionViewsWrap />,
 }
 
 export const TableViewsMobile360: Story = {
@@ -1011,40 +1011,26 @@ export const TableViewsMobile360: Story = {
         viewport: {defaultViewport: 'mobile360'},
     },
     play: ({canvasElement}) => {
-        const topControls = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-top-controls"]',
-        )
-        const viewSelector = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="table-views"]',
-        )
+        const topControls = canvasElement.querySelector<HTMLElement>('[data-autotest="table-top-controls"]')
+        const viewSelector = canvasElement.querySelector<HTMLElement>('[data-autotest="table-views"]')
         const topPagination = canvasElement.querySelector<HTMLElement>(
             '[data-autotest="pagination"][data-autotest-value="top"]',
         )
-        const actionBand = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-actions"]',
-        )
-        const navigation = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="page-navigation"]',
-        )
-        const paginationToolbar = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="pagination-toolbar"]',
-        )
-        const pageSizes = canvasElement.querySelector<HTMLElement>(
-            '[data-autotest="page-sizes"]',
-        )
-        const settingsAction = canvasElement.querySelector<HTMLElement>(
-            'button[aria-label="View settings"]',
-        )
+        const actionBand = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-actions"]')
+        const navigation = canvasElement.querySelector<HTMLElement>('[data-autotest="page-navigation"]')
+        const paginationToolbar = canvasElement.querySelector<HTMLElement>('[data-autotest="pagination-toolbar"]')
+        const pageSizes = canvasElement.querySelector<HTMLElement>('[data-autotest="page-sizes"]')
+        const settingsAction = canvasElement.querySelector<HTMLElement>('button[aria-label="View settings"]')
 
         if (
-            !topControls
-            || !topPagination
-            || !actionBand
-            || !navigation
-            || !paginationToolbar
-            || !pageSizes
-            || !viewSelector
-            || !settingsAction
+            !topControls ||
+            !topPagination ||
+            !actionBand ||
+            !navigation ||
+            !paginationToolbar ||
+            !pageSizes ||
+            !viewSelector ||
+            !settingsAction
         ) {
             throw new Error('Responsive table controls are missing from the 360px story')
         }
@@ -1064,10 +1050,7 @@ export const TableViewsMobile360: Story = {
             throw new Error('The 360px layout must keep View on a pagination row of its own')
         }
 
-        if (
-            actionBand.children[0] !== paginationToolbar
-            || actionBand.children[1] !== navigation.parentElement
-        ) {
+        if (actionBand.children[0] !== paginationToolbar || actionBand.children[1] !== navigation.parentElement) {
             throw new Error('DOM order must follow the wrapped rows: toolbar, then pagination')
         }
 
@@ -1097,7 +1080,7 @@ export const TableViewsMobile360: Story = {
             throw new Error('View settings must match the 24x24px pagination controls at 360px')
         }
     },
-    render: () => <TableViewsWrap/>,
+    render: () => <TableViewsWrap />,
 }
 
 export const AllFilters: Story = {
@@ -1119,15 +1102,17 @@ export const MultigetModalMobileScroll: Story = {
         showVisaButton: false,
         settingsContextName: 'storybook-multiget-mobile-scroll',
         initialSearchConditions: {
-            multigetCriteria: [{
-                entityType: LinkedEntityTypeEnum.GATE,
-                filterType: MultichoiceFilterTypeEnum.NONE,
-                searchString: '',
-                selectedItems: allFiltersGateSelectedIds,
-                selectedItemNames: allFiltersGateSelectedNames,
-                deselectedItems: '',
-                deselectedItemNames: '',
-            }],
+            multigetCriteria: [
+                {
+                    entityType: LinkedEntityTypeEnum.GATE,
+                    filterType: MultichoiceFilterTypeEnum.NONE,
+                    searchString: '',
+                    selectedItems: allFiltersGateSelectedIds,
+                    selectedItemNames: allFiltersGateSelectedNames,
+                    deselectedItems: '',
+                    deselectedItemNames: '',
+                },
+            ],
         },
     },
     globals: {
@@ -1144,12 +1129,10 @@ export const MultigetModalMobileScroll: Story = {
             },
         },
     },
-    play: async ({ canvasElement }) => {
+    play: async ({canvasElement}) => {
         const iframeDocument = canvasElement.ownerDocument
         const iframeWindow = iframeDocument.defaultView!
-        const verification = canvasElement.querySelector<HTMLElement>(
-            '[data-story-verification="pending"]',
-        )!
+        const verification = canvasElement.querySelector<HTMLElement>('[data-story-verification="pending"]')!
         const trigger = await waitFor(() => {
             const element = canvasElement.querySelector<HTMLButtonElement>(
                 'button[data-autotest="criterion-multiget-trigger"]',
@@ -1175,9 +1158,7 @@ export const MultigetModalMobileScroll: Story = {
         })
         const body = dialog.querySelector<HTMLElement>('[data-pne-modal-body="true"]')!
         const footer = dialog.querySelector<HTMLElement>('[data-pne-modal-footer="true"]')!
-        const available = dialog.querySelector<HTMLElement>(
-            '[data-autotest="criterion-multiget-available"]',
-        )!
+        const available = dialog.querySelector<HTMLElement>('[data-autotest="criterion-multiget-available"]')!
         // The lists close the body: no divider stands between them and the footer line of the dialog.
         const contentEnd = body.firstElementChild?.lastElementChild as HTMLElement
         const viewportWidth = iframeWindow.innerWidth
@@ -1199,8 +1180,7 @@ export const MultigetModalMobileScroll: Story = {
         expect(contentEnd.contains(available)).toBe(true)
         expectFullyInViewport(dialog)
         expectFullyInViewport(footer)
-        expect(body.getBoundingClientRect().bottom)
-            .toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1)
+        expect(body.getBoundingClientRect().bottom).toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1)
 
         const footerTopBeforeScroll = footer.getBoundingClientRect().top
 
@@ -1208,22 +1188,20 @@ export const MultigetModalMobileScroll: Story = {
         await new Promise<void>(resolve => requestAnimationFrame(() => resolve()))
 
         expect(body.scrollTop).toBeGreaterThanOrEqual(body.scrollHeight - body.clientHeight - 1)
-        expect(contentEnd.getBoundingClientRect().top)
-            .toBeGreaterThanOrEqual(body.getBoundingClientRect().top - 1)
-        expect(contentEnd.getBoundingClientRect().bottom)
-            .toBeLessThanOrEqual(body.getBoundingClientRect().bottom + 1)
-        expect(Math.abs(footer.getBoundingClientRect().top - footerTopBeforeScroll))
-            .toBeLessThanOrEqual(1)
-        expect(body.getBoundingClientRect().bottom)
-            .toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1)
+        expect(contentEnd.getBoundingClientRect().top).toBeGreaterThanOrEqual(body.getBoundingClientRect().top - 1)
+        expect(contentEnd.getBoundingClientRect().bottom).toBeLessThanOrEqual(body.getBoundingClientRect().bottom + 1)
+        expect(Math.abs(footer.getBoundingClientRect().top - footerTopBeforeScroll)).toBeLessThanOrEqual(1)
+        expect(body.getBoundingClientRect().bottom).toBeLessThanOrEqual(footer.getBoundingClientRect().top + 1)
         expectFullyInViewport(dialog)
         expectFullyInViewport(footer)
 
         verification.dataset.storyVerification = 'passed'
     },
-    render: args => <Box data-story-verification='pending'>
-        <HookWrap {...args}/>
-    </Box>,
+    render: args => (
+        <Box data-story-verification='pending'>
+            <HookWrap {...args} />
+        </Box>
+    ),
 }
 
 export const ManualSearch: Story = {
@@ -1312,10 +1290,7 @@ export const ConditionalOrdersSearch: Story = {
             CriterionTypeEnum.CURRENCY,
             CriterionTypeEnum.TRANSACTION_TYPES,
         ],
-        predefinedCriteria: [
-            CriterionTypeEnum.DATE_RANGE_ORDERS,
-            CriterionTypeEnum.ORDERS_SEARCH,
-        ],
+        predefinedCriteria: [CriterionTypeEnum.DATE_RANGE_ORDERS, CriterionTypeEnum.ORDERS_SEARCH],
         config: ordersSearchAvailabilityConfig,
         showVisaButton: false,
         initialSearchConditions: {
@@ -1346,7 +1321,7 @@ export const CustomerLevelWithOptions: Story = {
             multigetCriteria: [customerLevelMerchantCriterion],
             currencies: {
                 all: false,
-                entities: [{ id: 1, displayName: 'USD' }],
+                entities: [{id: 1, displayName: 'USD'}],
             },
         },
     },
@@ -1367,7 +1342,7 @@ export const CustomerLevelWithoutOptions: Story = {
             multigetCriteria: [customerLevelMerchantCriterion],
             currencies: {
                 all: false,
-                entities: [{ id: 99, displayName: 'BBB' }],
+                entities: [{id: 99, displayName: 'BBB'}],
             },
         },
     },

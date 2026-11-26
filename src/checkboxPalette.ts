@@ -1,5 +1,12 @@
 import type {PneBrandRamp} from './brandRamp'
-import {brandFillStep, brandFillSteps, deeperStep, labelOnFill, readableBrandStep, readsOnDarkSurfaces} from './buttonPalette'
+import {
+    brandFillStep,
+    brandFillSteps,
+    deeperStep,
+    labelOnFill,
+    readableBrandStep,
+    readsOnDarkSurfaces,
+} from './buttonPalette'
 import {PNE_DARK_COLORS, PNE_NEUTRAL_RAMP, PNE_STATUS_COLORS, type PneColorMode} from './themeColors'
 
 /**
@@ -85,9 +92,17 @@ const createDark = (ramp: PneBrandRamp): PneCheckboxPalette => {
     const brandRing = readsOnDarkSurfaces(fill) ? TRANSPARENT : ramp[readableBrandStep(ramp, 500, 'dark')]
     const d = PNE_DARK_COLORS
     const error = PNE_STATUS_COLORS.error
-    const on = (color: string): PneCheckboxStateColors => ({fill: color, ring: brandRing, mark: labelOnFill(color, 'dark')})
+    const on = (color: string): PneCheckboxStateColors => ({
+        fill: color,
+        ring: brandRing,
+        mark: labelOnFill(color, 'dark'),
+    })
     // Error and neutral fills carry a page-coloured mark.
-    const plain = (color: string): PneCheckboxStateColors => ({fill: color, ring: TRANSPARENT, mark: d.backgroundDefault})
+    const plain = (color: string): PneCheckboxStateColors => ({
+        fill: color,
+        ring: TRANSPARENT,
+        mark: d.backgroundDefault,
+    })
     return {
         off: {
             default: off(TRANSPARENT, d.borderControl),

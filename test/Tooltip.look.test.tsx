@@ -8,7 +8,11 @@ import {PNE_TOOLTIP_GAP} from '../src/tooltipLook'
 const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
 const renderTooltip = (ui: React.ReactElement, mode: 'light' | 'dark' = 'light') => {
-    render(<PneThemeProvider mode={mode} skin={UI_KIT_SKIN}>{ui}</PneThemeProvider>)
+    render(
+        <PneThemeProvider mode={mode} skin={UI_KIT_SKIN}>
+            {ui}
+        </PneThemeProvider>,
+    )
     const popper = screen.getByRole('tooltip')
     const body = popper.querySelector<HTMLElement>('.MuiTooltip-tooltip')!
     return {body, popper}
@@ -35,7 +39,11 @@ const trigger = <button type='button'>Refresh</button>
 
 describe('MUI Tooltip under the pne-ui theme', () => {
     it('is the UI Kit body: dark fill, white 12/16 text, radius 4, padding 4/8, up to 240 wide', () => {
-        const {body} = renderTooltip(<Tooltip open title='Refresh the list'>{trigger}</Tooltip>)
+        const {body} = renderTooltip(
+            <Tooltip open title='Refresh the list'>
+                {trigger}
+            </Tooltip>,
+        )
 
         expect(ruleValue(body, '&', 'background-color')).toBe('#2C3136')
         expect(ruleValue(body, '&', 'color')).toBe('#FFFFFF')
@@ -48,7 +56,11 @@ describe('MUI Tooltip under the pne-ui theme', () => {
     })
 
     it('has the arrow by default: a 10×6 triangle of the body colour in the 6px to the trigger', () => {
-        const {body, popper} = renderTooltip(<Tooltip open title='Refresh the list'>{trigger}</Tooltip>)
+        const {body, popper} = renderTooltip(
+            <Tooltip open title='Refresh the list'>
+                {trigger}
+            </Tooltip>,
+        )
         const arrow = popper.querySelector<HTMLElement>('.MuiTooltip-arrow')!
 
         expect(arrow).not.toBeNull()
@@ -59,22 +71,34 @@ describe('MUI Tooltip under the pne-ui theme', () => {
         expect(ruleValue(popper, '&[data-popper-placement*="bottom"] .MuiTooltip-arrow', 'margin-top')).toBe('-6px')
         expect(ruleValue(popper, '&[data-popper-placement*="left"] .MuiTooltip-arrow', 'width')).toBe('6px')
         expect(ruleValue(popper, '&[data-popper-placement*="left"] .MuiTooltip-arrow', 'height')).toBe('10px')
-        expect(ruleValue(body, '.MuiTooltip-popper[data-popper-placement*="bottom"] &', 'margin-top'))
-            .toBe(`${PNE_TOOLTIP_GAP}px`)
-        expect(ruleValue(body, '.MuiTooltip-popper[data-popper-placement*="top"] &', 'margin-bottom'))
-            .toBe(`${PNE_TOOLTIP_GAP}px`)
+        expect(ruleValue(body, '.MuiTooltip-popper[data-popper-placement*="bottom"] &', 'margin-top')).toBe(
+            `${PNE_TOOLTIP_GAP}px`,
+        )
+        expect(ruleValue(body, '.MuiTooltip-popper[data-popper-placement*="top"] &', 'margin-bottom')).toBe(
+            `${PNE_TOOLTIP_GAP}px`,
+        )
     })
 
     it('drops the arrow on arrow={false} and keeps the gap', () => {
-        const {body, popper} = renderTooltip(<Tooltip arrow={false} open title='Refresh the list'>{trigger}</Tooltip>)
+        const {body, popper} = renderTooltip(
+            <Tooltip arrow={false} open title='Refresh the list'>
+                {trigger}
+            </Tooltip>,
+        )
 
         expect(popper.querySelector('.MuiTooltip-arrow')).toBeNull()
-        expect(ruleValue(body, '.MuiTooltip-popper[data-popper-placement*="bottom"] &', 'margin-top'))
-            .toBe(`${PNE_TOOLTIP_GAP}px`)
+        expect(ruleValue(body, '.MuiTooltip-popper[data-popper-placement*="bottom"] &', 'margin-top')).toBe(
+            `${PNE_TOOLTIP_GAP}px`,
+        )
     })
 
     it('is a light body with dark text on a dark page', () => {
-        const {body, popper} = renderTooltip(<Tooltip open title='Refresh the list'>{trigger}</Tooltip>, 'dark')
+        const {body, popper} = renderTooltip(
+            <Tooltip open title='Refresh the list'>
+                {trigger}
+            </Tooltip>,
+            'dark',
+        )
 
         expect(ruleValue(body, '&', 'background-color')).toBe('#F0F4F8')
         expect(ruleValue(body, '&', 'color')).toBe('#1D2227')

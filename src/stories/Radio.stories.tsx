@@ -23,7 +23,7 @@ const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', w
 
 type PinnedRadioProps = RadioProps & {'data-pne-state'?: 'hover' | 'pressed' | 'focus'}
 
-const MATRIX_COLUMNS: Array<{label: string, props: PinnedRadioProps}> = [
+const MATRIX_COLUMNS: Array<{label: string; props: PinnedRadioProps}> = [
     {label: 'Default', props: {}},
     {label: 'Hover', props: {'data-pne-state': 'hover'}},
     {label: 'Pressed', props: {'data-pne-state': 'pressed'}},
@@ -31,7 +31,7 @@ const MATRIX_COLUMNS: Array<{label: string, props: PinnedRadioProps}> = [
     {label: 'Disabled', props: {disabled: true}},
 ]
 
-const MATRIX_ROWS: Array<{label: string, props: PinnedRadioProps}> = [
+const MATRIX_ROWS: Array<{label: string; props: PinnedRadioProps}> = [
     {label: 'off · medium', props: {checked: false}},
     {label: 'on · medium', props: {checked: true}},
     {label: 'off · small', props: {checked: false, size: 'small'}},
@@ -44,14 +44,14 @@ export const Matrix: Story = {
     render: () => (
         <Box sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 2, maxWidth: 760}}>
-                Off is the canvas fill in a 1.5px ring; on is a thick brand ring around the canvas centre. Hover
-                and press recolour the circle, there is no halo. Hover, Pressed and Focus are pinned
-                with <code>data-pne-state</code>; product code never sets it.
+                Off is the canvas fill in a 1.5px ring; on is a thick brand ring around the canvas centre. Hover and
+                press recolour the circle, there is no halo. Hover, Pressed and Focus are pinned with{' '}
+                <code>data-pne-state</code>; product code never sets it.
             </Typography>
             <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 4px', ml: -2}}>
                 <thead>
                     <tr>
-                        <th/>
+                        <th />
                         {MATRIX_COLUMNS.map(column => (
                             <Box component='th' key={column.label} sx={{...CAPTION_SX, fontWeight: 400}}>
                                 {column.label}
@@ -62,7 +62,9 @@ export const Matrix: Story = {
                 <tbody>
                     {MATRIX_ROWS.map(row => (
                         <tr key={row.label}>
-                            <Box component='td' sx={CAPTION_SX}>{row.label}</Box>
+                            <Box component='td' sx={CAPTION_SX}>
+                                {row.label}
+                            </Box>
                             {MATRIX_COLUMNS.map(column => (
                                 <Box component='td' key={column.label} sx={{textAlign: 'center'}}>
                                     <Radio
@@ -82,16 +84,19 @@ export const Matrix: Story = {
 
 const OPTIONS = ['Black', 'White', 'Loyal']
 
-const Group = ({row, size}: {row?: boolean, size: 'small' | 'medium'}) => {
+const Group = ({row, size}: {row?: boolean; size: 'small' | 'medium'}) => {
     const [value, setValue] = React.useState('Black')
     return (
         <FormControl>
-            <FormLabel sx={CAPTION_SX}>{size}{row ? ' · row' : ''}</FormLabel>
+            <FormLabel sx={CAPTION_SX}>
+                {size}
+                {row ? ' · row' : ''}
+            </FormLabel>
             <RadioGroup onChange={(_event, next) => setValue(next)} row={row} value={value}>
                 {OPTIONS.map(option => (
-                    <FormControlLabel control={<Radio size={size}/>} key={option} label={option} value={option}/>
+                    <FormControlLabel control={<Radio size={size} />} key={option} label={option} value={option} />
                 ))}
-                <FormControlLabel control={<Radio size={size}/>} disabled label='Disabled' value='Disabled'/>
+                <FormControlLabel control={<Radio size={size} />} disabled label='Disabled' value='Disabled' />
             </RadioGroup>
         </FormControl>
     )
@@ -102,11 +107,11 @@ export const Groups: Story = {
     parameters: {controls: {disable: true}},
     render: () => (
         <Stack spacing={3} sx={{p: 3}}>
-            <Group row size='medium'/>
-            <Group row size='small'/>
+            <Group row size='medium' />
+            <Group row size='small' />
             <Stack direction='row' spacing={6}>
-                <Group size='medium'/>
-                <Group size='small'/>
+                <Group size='medium' />
+                <Group size='small' />
             </Stack>
         </Stack>
     ),
@@ -127,5 +132,5 @@ const PlaygroundRadio = (props: RadioProps) => {
 }
 
 export const Playground: Story = {
-    render: args => <PlaygroundRadio {...args}/>,
+    render: args => <PlaygroundRadio {...args} />,
 }

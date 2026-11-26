@@ -33,7 +33,7 @@ type Story = StoryObj<PlaygroundArgs>
 
 const CAPTION_SX = {color: 'text.secondary', fontSize: 11, lineHeight: '16px', whiteSpace: 'nowrap'} as const
 
-type Currency = {code: string, title: string, disabled?: boolean}
+type Currency = {code: string; title: string; disabled?: boolean}
 
 const CURRENCIES: readonly Currency[] = [
     {code: 'USD', title: 'Доллар США'},
@@ -48,7 +48,9 @@ const CURRENCIES: readonly Currency[] = [
 const CurrencyOption = ({currency}: {currency: Currency}) => (
     <Box component='span' sx={{display: 'flex', flex: 1, gap: 2, justifyContent: 'space-between'}}>
         <span>{currency.title}</span>
-        <Box component='span' sx={{color: 'text.secondary', fontSize: 12}}>{currency.code}</Box>
+        <Box component='span' sx={{color: 'text.secondary', fontSize: 12}}>
+            {currency.code}
+        </Box>
     </Box>
 )
 
@@ -58,7 +60,7 @@ const CurrencyOption = ({currency}: {currency: Currency}) => (
 type MatrixColumn = {
     label: string
     value?: string
-    field?: {error?: boolean, disabled?: boolean}
+    field?: {error?: boolean; disabled?: boolean}
     pinned?: 'hover' | 'focus'
 }
 
@@ -90,7 +92,7 @@ const MATRIX_ROWS: MatrixRow[] = [
 
 const MATRIX_OPTIONS = ['Value', 'Other value'] as const
 
-const MatrixCell = ({row, column}: {row: MatrixRow, column: MatrixColumn}) => (
+const MatrixCell = ({row, column}: {row: MatrixRow; column: MatrixColumn}) => (
     <PneField
         disabled={column.field?.disabled}
         error={column.field?.error}
@@ -115,16 +117,20 @@ export const Matrix: Story = {
     render: () => (
         <Box sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', mb: 2, maxWidth: 900}}>
-                Rows are size × variant plus required, columns the states as in the Figma matrix. The label
-                above the box is PneField. Hover and Focus are pinned with <code>data-pne-state</code>; product
-                code never sets it. The open list is in the next story.
+                Rows are size × variant plus required, columns the states as in the Figma matrix. The label above the
+                box is PneField. Hover and Focus are pinned with <code>data-pne-state</code>; product code never sets
+                it. The open list is in the next story.
             </Typography>
             <Box component='table' sx={{borderCollapse: 'separate', borderSpacing: '16px 12px', ml: -2}}>
                 <thead>
                     <tr>
-                        <th/>
+                        <th />
                         {MATRIX_COLUMNS.map(column => (
-                            <Box component='th' key={column.label} sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}>
+                            <Box
+                                component='th'
+                                key={column.label}
+                                sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left'}}
+                            >
                                 {column.label}
                             </Box>
                         ))}
@@ -133,12 +139,15 @@ export const Matrix: Story = {
                 <tbody>
                     {MATRIX_ROWS.map(row => (
                         <tr key={row.title}>
-                            <Box component='th' sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}>
+                            <Box
+                                component='th'
+                                sx={{...CAPTION_SX, fontWeight: 400, textAlign: 'left', verticalAlign: 'top', pt: 3}}
+                            >
                                 {row.title}
                             </Box>
                             {MATRIX_COLUMNS.map(column => (
                                 <Box component='td' key={column.label} sx={{verticalAlign: 'top'}}>
-                                    <MatrixCell column={column} row={row}/>
+                                    <MatrixCell column={column} row={row} />
                                 </Box>
                             ))}
                         </tr>
@@ -174,13 +183,13 @@ const OpenListDemo = ({size, variant}: Pick<PlaygroundArgs, 'size' | 'variant'>)
                     getOptionDisabled={option => option.disabled === true}
                     getOptionKey={option => option.code}
                     getOptionLabel={option => option.title}
-                    getOptionProps={option => option.code === 'KZT' ? {'data-pne-state': 'hover'} : {}}
+                    getOptionProps={option => (option.code === 'KZT' ? {'data-pne-state': 'hover'} : {})}
                     onChange={setValue}
                     onClose={() => setOpen(false)}
                     onOpen={() => setOpen(true)}
                     open={open}
                     options={CURRENCIES}
-                    renderOption={option => <CurrencyOption currency={option}/>}
+                    renderOption={option => <CurrencyOption currency={option} />}
                     renderValue={option => option?.title}
                     size={size}
                     value={value}
@@ -198,10 +207,10 @@ export const OpenList: Story = {
         disabled: {table: {disable: true}},
         error: {table: {disable: true}},
     },
-    render: args => <OpenListDemo size={args.size} variant={args.variant}/>,
+    render: args => <OpenListDemo size={args.size} variant={args.variant} />,
 }
 
-type LogEntry = {at: string, text: string}
+type LogEntry = {at: string; text: string}
 
 const timestamp = () => new Date().toLocaleTimeString('ru-RU', {hour12: false})
 
@@ -250,16 +259,22 @@ const DynamicsDemo = () => {
                         onOpen={() => log('Открыт список')}
                         options={CURRENCIES}
                         placeholder='Выберите валюту'
-                        renderOption={option => <CurrencyOption currency={option}/>}
+                        renderOption={option => <CurrencyOption currency={option} />}
                         value={value}
                     />
                 </PneField>
-                <Button onClick={submit} variant='contained' size='medium'>Сохранить</Button>
+                <Button onClick={submit} variant='contained' size='medium'>
+                    Сохранить
+                </Button>
             </Stack>
             <Box>
                 <Typography sx={{...CAPTION_SX, mb: 0.5}}>Лог</Typography>
                 <Box component='ul' sx={{m: 0, pl: 2, fontSize: 12, lineHeight: '18px', color: 'text.secondary'}}>
-                    {entries.map((entry, index) => <li key={index}>{entry.at} — {entry.text}</li>)}
+                    {entries.map((entry, index) => (
+                        <li key={index}>
+                            {entry.at} — {entry.text}
+                        </li>
+                    ))}
                 </Box>
             </Box>
         </Stack>
@@ -268,7 +283,7 @@ const DynamicsDemo = () => {
 
 export const Dynamics: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <DynamicsDemo/>,
+    render: () => <DynamicsDemo />,
 }
 
 const ENCODINGS = ['UTF-8', 'ANSI', 'KOI8-R'] as const
@@ -294,10 +309,10 @@ const PlaygroundDemo = (args: PlaygroundArgs) => {
 }
 
 export const Playground: Story = {
-    render: args => <PlaygroundDemo {...args}/>,
+    render: args => <PlaygroundDemo {...args} />,
 }
 
-type Region = {code: string, disabled: boolean, title: string}
+type Region = {code: string; disabled: boolean; title: string}
 
 const REGIONS: readonly Region[] = [
     {code: 'eu', disabled: false, title: 'Europe'},
@@ -325,5 +340,5 @@ const ObjectOptionsDemo = () => {
 /** Object options: the key, label, disabled flag and row attributes come from the option. */
 export const ObjectOptions: Story = {
     parameters: {controls: {disable: true}},
-    render: () => <ObjectOptionsDemo/>,
+    render: () => <ObjectOptionsDemo />,
 }

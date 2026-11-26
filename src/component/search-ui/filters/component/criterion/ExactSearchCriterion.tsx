@@ -1,16 +1,15 @@
-import React from 'react';
-import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSelect';
-import {useTranslation} from 'react-i18next';
-import {useSearchUIFiltersStore} from '../../state/store';
-import {Box, SxProps, type Theme} from '@mui/material';
-import PneTextField from '../../../../PneTextField';
-import { filtersInputSx } from './style';
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
+import React from 'react'
+import SearchUIExactSearchLabelSelect from '../select/SearchUIExactSearchLabelSelect'
+import {useTranslation} from 'react-i18next'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {Box, SxProps, type Theme} from '@mui/material'
+import PneTextField from '../../../../PneTextField'
+import {filtersInputSx} from './style'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 
-const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input';
+const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input'
 
 export const ExactSearchCriterion = () => {
-
     const {t} = useTranslation()
 
     const exactSearchLabel = useSearchUIFiltersStore(s => s.exactSearchLabel || s.exactSearchLabels[0])
@@ -20,31 +19,35 @@ export const ExactSearchCriterion = () => {
     const setExactCriterionSearchValue = useSearchUIFiltersStore(s => s.setExactCriterionSearchValue)
     const exactSearchValueLabel = t('react.searchUI.exactSearch.value', {defaultValue: 'Exact search value'})
 
-    return <Box sx={centerSx}>
-        <PneTextField
-            value={exactSearchValue}
-            onChange={(e) => setExactCriterionSearchValue(e.target.value)}
-            placeholder={t('search')}
-            sx={filtersInputSx}
-            size={'small'}
-            variant={'filled'}
-            slotProps={{
-                input: {
-                    disableUnderline: true,
-                },
-                htmlInput: {
-                    ...createAutoTestAttributes(CRITERION_INPUT_AUTOTEST_ID),
-                    'aria-label': exactSearchValueLabel,
-                },
-            }}
-        />
-        <Box component={'span'} sx={inSx}>{t('in')}</Box>
-        <SearchUIExactSearchLabelSelect
-            value={exactSearchLabel}
-            options={exactSearchLabels}
-            onChange={setExactCriterionSearchLabel}
-        />
-    </Box>
+    return (
+        <Box sx={centerSx}>
+            <PneTextField
+                value={exactSearchValue}
+                onChange={e => setExactCriterionSearchValue(e.target.value)}
+                placeholder={t('search')}
+                sx={filtersInputSx}
+                size={'small'}
+                variant={'filled'}
+                slotProps={{
+                    input: {
+                        disableUnderline: true,
+                    },
+                    htmlInput: {
+                        ...createAutoTestAttributes(CRITERION_INPUT_AUTOTEST_ID),
+                        'aria-label': exactSearchValueLabel,
+                    },
+                }}
+            />
+            <Box component={'span'} sx={inSx}>
+                {t('in')}
+            </Box>
+            <SearchUIExactSearchLabelSelect
+                value={exactSearchLabel}
+                options={exactSearchLabels}
+                onChange={setExactCriterionSearchLabel}
+            />
+        </Box>
+    )
 }
 
 const inSx: SxProps<Theme> = {

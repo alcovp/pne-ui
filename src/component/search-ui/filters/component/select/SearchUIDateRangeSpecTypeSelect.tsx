@@ -8,10 +8,7 @@ import {PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
 import {chipChevronSx, selectUnderChipSx} from './style'
 import PneSelect from '../../../../dropdown/PneSelect'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
 
 const CRITERION_RANGE_SPEC_AUTOTEST_ID = 'criterion-range-spec'
 const CRITERION_RANGE_SPEC_OPTIONS_AUTOTEST_ID = 'criterion-range-spec-options'
@@ -48,9 +45,10 @@ const SearchUIDateRangeSpecTypeSelect = () => {
         }
     }, [availableSpecTypes, dateRangeSpec, setDateRangeCriterion])
 
-    const withInputNear = dateRangeSpec.dateRangeSpecType === 'EXACTLY'
-        || dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE'
-        || dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
+    const withInputNear =
+        dateRangeSpec.dateRangeSpecType === 'EXACTLY' ||
+        dateRangeSpec.dateRangeSpecType === 'DAYS_BEFORE' ||
+        dateRangeSpec.dateRangeSpecType === 'HOURS_BEFORE'
 
     const selectSx: SxProps<Theme> = {
         flexShrink: 0,
@@ -70,47 +68,43 @@ const SearchUIDateRangeSpecTypeSelect = () => {
         })
     }
 
-    return <Box sx={{position: 'relative'}}>
-        <Chip
-            onDelete={() => setOpen(true)}
-            deleteIcon={<PneChevronDownIcon sx={chipChevronSx}/>}
-            label={optionRenderer(dateRangeSpec.dateRangeSpecType)}
-            size={'small'}
-            aria-hidden={true}
-            tabIndex={-1}
-            sx={{pointerEvents: 'none'}}
-        />
-        <PneSelect
-            size='large'
-            open={open}
-            onClose={() => setOpen(false)}
-            onOpen={() => setOpen(true)}
-            sx={selectSx}
-            getOptionLabel={optionRenderer}
-            value={dateRangeSpec.dateRangeSpecType}
-            onChange={handleSetDateRangeSpecType}
-            options={availableSpecTypes}
-            getOptionProps={option => createAutoTestAttributes(
-                CRITERION_RANGE_SPEC_OPTION_AUTOTEST_ID,
-                option,
-            )}
-            MenuProps={{
-                slotProps: {
-                    list: createSearchUIOwnedAutoTestAttributes(
-                        CRITERION_RANGE_SPEC_OPTIONS_AUTOTEST_ID,
-                        autoTestOwner,
-                    ),
-                },
-            }}
-            SelectDisplayProps={{
-                ...createAutoTestAttributes(
-                    CRITERION_RANGE_SPEC_AUTOTEST_ID,
-                    dateRangeSpec.dateRangeSpecType,
-                ),
-                'aria-label': rangeSpecAriaLabel,
-            }}
-        />
-    </Box>
+    return (
+        <Box sx={{position: 'relative'}}>
+            <Chip
+                onDelete={() => setOpen(true)}
+                deleteIcon={<PneChevronDownIcon sx={chipChevronSx} />}
+                label={optionRenderer(dateRangeSpec.dateRangeSpecType)}
+                size={'small'}
+                aria-hidden={true}
+                tabIndex={-1}
+                sx={{pointerEvents: 'none'}}
+            />
+            <PneSelect
+                size='large'
+                open={open}
+                onClose={() => setOpen(false)}
+                onOpen={() => setOpen(true)}
+                sx={selectSx}
+                getOptionLabel={optionRenderer}
+                value={dateRangeSpec.dateRangeSpecType}
+                onChange={handleSetDateRangeSpecType}
+                options={availableSpecTypes}
+                getOptionProps={option => createAutoTestAttributes(CRITERION_RANGE_SPEC_OPTION_AUTOTEST_ID, option)}
+                MenuProps={{
+                    slotProps: {
+                        list: createSearchUIOwnedAutoTestAttributes(
+                            CRITERION_RANGE_SPEC_OPTIONS_AUTOTEST_ID,
+                            autoTestOwner,
+                        ),
+                    },
+                }}
+                SelectDisplayProps={{
+                    ...createAutoTestAttributes(CRITERION_RANGE_SPEC_AUTOTEST_ID, dateRangeSpec.dateRangeSpecType),
+                    'aria-label': rangeSpecAriaLabel,
+                }}
+            />
+        </Box>
+    )
 }
 
 export default SearchUIDateRangeSpecTypeSelect

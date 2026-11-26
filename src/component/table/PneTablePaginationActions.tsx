@@ -1,30 +1,27 @@
-import React, {useLayoutEffect, useRef, useState} from "react";
-import Box from "@mui/material/Box";
-import {Icon, IconButton, SxProps} from "@mui/material";
-import {PaginatorProps} from "./AbstractTable";
-import PneFirstPageIcon from "./PneFirstPageIcon";
-import PnePreviousPageIcon from "./PnePreviousPageIcon";
-import PneNextPageIcon from "./PneNextPageIcon";
-import {createAutoTestAttributes} from "../AutoTestAttribute";
+import React, {useLayoutEffect, useRef, useState} from 'react'
+import Box from '@mui/material/Box'
+import {Icon, IconButton, SxProps} from '@mui/material'
+import {PaginatorProps} from './AbstractTable'
+import PneFirstPageIcon from './PneFirstPageIcon'
+import PnePreviousPageIcon from './PnePreviousPageIcon'
+import PneNextPageIcon from './PneNextPageIcon'
+import {createAutoTestAttributes} from '../AutoTestAttribute'
 import {
     createTableControlCurrentStyle,
     createTableControlShellStyle,
     createTableControlTextButtonStyle,
-} from "./tableControlButtonStyle";
-import {usePneTheme} from "../../usePneTheme";
-import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from "../../labelCentring";
-import {resolvePneSemanticPalette} from "../../createTheme";
-import {measureNaturalWidths} from "./measureNaturalWidth";
-import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from "./tableControlMetrics";
+} from './tableControlButtonStyle'
+import {usePneTheme} from '../../usePneTheme'
+import {PNE_LABEL_TRIM, PNE_LABEL_TRIM_SUPPORT} from '../../labelCentring'
+import {resolvePneSemanticPalette} from '../../createTheme'
+import {measureNaturalWidths} from './measureNaturalWidth'
+import {TABLE_CONTROL_GAP, TABLE_CONTROL_SIZE} from './tableControlMetrics'
 
 interface IPaginationActionsProps {
     count: number
     page: number
     rowsPerPage: number
-    onPageChange: (
-        event: React.MouseEvent<HTMLButtonElement> | null,
-        newPage: number
-    ) => void
+    onPageChange: (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void
     paginator: PaginatorProps
     shouldRequestScroll: boolean
     toolbar?: React.ReactNode
@@ -127,7 +124,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         paginator,
         shouldRequestScroll,
         toolbar,
-    } = props;
+    } = props
 
     const {
         hasNext,
@@ -138,7 +135,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         requestScrollToPagination,
         activeActionSx = {},
         controlRowBreakpoints,
-    } = paginator;
+    } = paginator
 
     const theme = usePneTheme()
     // UI Kit Paginations: Button Tertiary sm in the white shell of a button group; the page size in
@@ -149,7 +146,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const hoverStyle = {
         backgroundColor: controlColors.hover.fill,
         color: controlColors.hover.text,
-        ...activeActionSx
+        ...activeActionSx,
     }
 
     const buttonStyle = {
@@ -173,7 +170,7 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     const selectedButtonStyle = {
         ...pageSizeButtonStyle,
         ...createTableControlCurrentStyle(theme),
-        ...activeActionSx
+        ...activeActionSx,
     }
 
     const displayedRowsStyle = {
@@ -215,54 +212,54 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
         if (shouldRequestScroll) {
             requestScrollToPagination?.()
         }
-        onPageChange(event, 0);
-    };
+        onPageChange(event, 0)
+    }
 
     const handleBackButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         if (shouldRequestScroll) {
             requestScrollToPagination?.()
         }
-        onPageChange(event, page - 1);
-    };
+        onPageChange(event, page - 1)
+    }
 
     const handleNextButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         if (shouldRequestScroll) {
             requestScrollToPagination?.()
         }
-        onPageChange(event, page + 1);
-    };
+        onPageChange(event, page + 1)
+    }
 
     const handleChangePageSizeButtonClick = (size: number) => {
-        onPageSizeChange(size);
-    };
+        onPageSizeChange(size)
+    }
 
     const populateRowsPerPageOptions = () => {
         return rowsPerPageOptions.map(option => {
-            let size: number;
-            let label: string;
+            let size: number
+            let label: string
             if (typeof option === 'number') {
-                size = option;
-                label = option.toString();
+                size = option
+                label = option.toString()
             } else {
                 // size = option.value;
                 // label = option.label;
-                throw new Error('Uncomment RowsPerPageOption type to do like this');
+                throw new Error('Uncomment RowsPerPageOption type to do like this')
             }
-            const selected = rowsPerPage === size;
-            return <IconButton
-                key={label}
-                sx={selected ? selectedButtonStyle : pageSizeButtonStyle}
-                onClick={() => handleChangePageSizeButtonClick(size)}
-                {...createAutoTestAttributes('page-size', label)}
-            >
-                {label}
-            </IconButton>
+            const selected = rowsPerPage === size
+            return (
+                <IconButton
+                    key={label}
+                    sx={selected ? selectedButtonStyle : pageSizeButtonStyle}
+                    onClick={() => handleChangePageSizeButtonClick(size)}
+                    {...createAutoTestAttributes('page-size', label)}
+                >
+                    {label}
+                </IconButton>
+            )
         })
     }
 
-    const hasToolbar = toolbar !== undefined
-        && toolbar !== null
-        && typeof toolbar !== 'boolean'
+    const hasToolbar = toolbar !== undefined && toolbar !== null && typeof toolbar !== 'boolean'
     const navigationRef = useRef<HTMLDivElement>(null)
     const pageSizesRef = useRef<HTMLDivElement>(null)
     const toolbarRef = useRef<HTMLDivElement>(null)
@@ -272,87 +269,90 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
     )
     const toolbarRowBreakpoint = controlRowBreakpoints?.toolbar ?? measuredThreshold
 
-    const navigationElement = <Box
-        {...createAutoTestAttributes('page-navigation')}
-        key='page-navigation'
-        ref={navigationRef}
-        sx={{
-            ...shellStyle,
-            display: 'flex',
-            gridArea: 'navigation',
-            justifySelf: 'start',
-            /* Holds the start of the row when the pagination group wraps. */
-            marginRight: 'auto',
-            minWidth: 0,
-        }}
-    >
-        <IconButton
-            sx={buttonStyle}
-            onClick={handleFirstPageButtonClick}
-            disabled={disableActions || page === 0}
-            aria-label="first page"
-            {...createAutoTestAttributes('first-page')}
+    const navigationElement = (
+        <Box
+            {...createAutoTestAttributes('page-navigation')}
+            key='page-navigation'
+            ref={navigationRef}
+            sx={{
+                ...shellStyle,
+                display: 'flex',
+                gridArea: 'navigation',
+                justifySelf: 'start',
+                /* Holds the start of the row when the pagination group wraps. */
+                marginRight: 'auto',
+                minWidth: 0,
+            }}
         >
-            <PneFirstPageIcon/>
-        </IconButton>
-        <IconButton
-            sx={buttonStyle}
-            onClick={handleBackButtonClick}
-            disabled={disableActions || page === 0}
-            aria-label="previous page"
-            {...createAutoTestAttributes('prev-page')}
-        >
-            <PnePreviousPageIcon/>
-        </IconButton>
-        <Icon
-            sx={displayedRowsStyle}
-            {...createAutoTestAttributes('current-page')}
-        >
-            {displayedRowsLabel}
-        </Icon>
-        <IconButton
-            sx={buttonStyle}
-            onClick={handleNextButtonClick}
-            disabled={disableActions || !hasNext}
-            aria-label="next page"
-            {...createAutoTestAttributes('next-page')}
-        >
-            <PneNextPageIcon/>
-        </IconButton>
-    </Box>
+            <IconButton
+                sx={buttonStyle}
+                onClick={handleFirstPageButtonClick}
+                disabled={disableActions || page === 0}
+                aria-label='first page'
+                {...createAutoTestAttributes('first-page')}
+            >
+                <PneFirstPageIcon />
+            </IconButton>
+            <IconButton
+                sx={buttonStyle}
+                onClick={handleBackButtonClick}
+                disabled={disableActions || page === 0}
+                aria-label='previous page'
+                {...createAutoTestAttributes('prev-page')}
+            >
+                <PnePreviousPageIcon />
+            </IconButton>
+            <Icon sx={displayedRowsStyle} {...createAutoTestAttributes('current-page')}>
+                {displayedRowsLabel}
+            </Icon>
+            <IconButton
+                sx={buttonStyle}
+                onClick={handleNextButtonClick}
+                disabled={disableActions || !hasNext}
+                aria-label='next page'
+                {...createAutoTestAttributes('next-page')}
+            >
+                <PneNextPageIcon />
+            </IconButton>
+        </Box>
+    )
 
-    const toolbarElement = hasToolbar ? <Box
-        {...createAutoTestAttributes('pagination-toolbar')}
-        key='pagination-toolbar'
-        ref={toolbarRef}
-        sx={{
-            alignItems: 'center',
-            display: 'flex',
-            gridArea: 'toolbar',
-            justifyContent: 'flex-end',
-            justifySelf: 'stretch',
-            minWidth: 0,
-        }}
-    >
-        {toolbar}
-    </Box> : null
+    const toolbarElement = hasToolbar ? (
+        <Box
+            {...createAutoTestAttributes('pagination-toolbar')}
+            key='pagination-toolbar'
+            ref={toolbarRef}
+            sx={{
+                alignItems: 'center',
+                display: 'flex',
+                gridArea: 'toolbar',
+                justifyContent: 'flex-end',
+                justifySelf: 'stretch',
+                minWidth: 0,
+            }}
+        >
+            {toolbar}
+        </Box>
+    ) : null
 
-    const pageSizesElement = <Box
-        key='page-sizes'
-        ref={pageSizesRef}
-        sx={{
-            ...shellStyle,
-            display: 'flex',
-            flexWrap: 'wrap',
-            gridArea: 'sizes',
-            justifyContent: 'flex-end',
-            justifySelf: 'end',
-            minWidth: 0,
-        }}
-        {...createAutoTestAttributes('page-sizes', rowsPerPage)}
-    >
-        {populateRowsPerPageOptions()}
-    </Box>
+    const pageSizesElement = (
+        <Box
+            key='page-sizes'
+            ref={pageSizesRef}
+            sx={{
+                ...shellStyle,
+                display: 'flex',
+                flexWrap: 'wrap',
+                gridArea: 'sizes',
+                justifyContent: 'flex-end',
+                justifySelf: 'end',
+                minWidth: 0,
+            }}
+            {...createAutoTestAttributes('page-sizes', rowsPerPage)}
+        >
+            {populateRowsPerPageOptions()}
+        </Box>
+    )
 
     /*
      * The two halves of the pagination are one group, so the toolbar can never
@@ -366,63 +366,61 @@ const PneTablePaginationActions = (props: IPaginationActionsProps) => {
      * layout. Only the single-row layout reads navigation-toolbar-sizes, and
      * there all three sit side by side.
      */
-    const paginationGroup = <Box
-        key='pagination-group'
-        sx={{
-            alignItems: 'center',
-            display: 'contents',
-            [`@container (width < ${toolbarRowBreakpoint}px)`]: {
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: WRAPPING_GAP,
-                gridArea: 'pagination',
-                justifyContent: 'flex-end',
-                minWidth: 0,
-            },
-        }}
-    >
-        {navigationElement}
-        {pageSizesElement}
-    </Box>
-
-    return <Box
-        sx={{
-            /*
-             * Establishes the query container. It has to be an ancestor of the
-             * band: `@container` rules apply to descendants, not to the container
-             * element itself.
-             */
-            containerType: 'inline-size',
-            minWidth: 0,
-            width: '100%',
-        }}
-    >
+    const paginationGroup = (
         <Box
-            {...createAutoTestAttributes('pagination-actions')}
+            key='pagination-group'
             sx={{
                 alignItems: 'center',
-                display: 'grid',
-                gap: WRAPPING_GAP,
-                gridTemplateAreas: hasToolbar
-                    ? '"navigation toolbar sizes"'
-                    : '"navigation sizes"',
-                gridTemplateColumns: hasToolbar
-                    ? 'auto minmax(0, 1fr) auto'
-                    : 'minmax(0, 1fr) auto',
-                minWidth: 0,
-                width: '100%',
+                display: 'contents',
                 [`@container (width < ${toolbarRowBreakpoint}px)`]: {
-                    gridTemplateAreas: hasToolbar
-                        ? '"toolbar" "pagination"'
-                        : '"pagination"',
-                    gridTemplateColumns: 'minmax(0, 1fr)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: WRAPPING_GAP,
+                    gridArea: 'pagination',
+                    justifyContent: 'flex-end',
+                    minWidth: 0,
                 },
             }}
         >
-            {toolbarElement}
-            {paginationGroup}
+            {navigationElement}
+            {pageSizesElement}
         </Box>
-    </Box>
+    )
+
+    return (
+        <Box
+            sx={{
+                /*
+                 * Establishes the query container. It has to be an ancestor of the
+                 * band: `@container` rules apply to descendants, not to the container
+                 * element itself.
+                 */
+                containerType: 'inline-size',
+                minWidth: 0,
+                width: '100%',
+            }}
+        >
+            <Box
+                {...createAutoTestAttributes('pagination-actions')}
+                sx={{
+                    alignItems: 'center',
+                    display: 'grid',
+                    gap: WRAPPING_GAP,
+                    gridTemplateAreas: hasToolbar ? '"navigation toolbar sizes"' : '"navigation sizes"',
+                    gridTemplateColumns: hasToolbar ? 'auto minmax(0, 1fr) auto' : 'minmax(0, 1fr) auto',
+                    minWidth: 0,
+                    width: '100%',
+                    [`@container (width < ${toolbarRowBreakpoint}px)`]: {
+                        gridTemplateAreas: hasToolbar ? '"toolbar" "pagination"' : '"pagination"',
+                        gridTemplateColumns: 'minmax(0, 1fr)',
+                    },
+                }}
+            >
+                {toolbarElement}
+                {paginationGroup}
+            </Box>
+        </Box>
+    )
 }
 
-export default PneTablePaginationActions;
+export default PneTablePaginationActions

@@ -1,10 +1,10 @@
 import React from 'react'
-import { Box, Chip, CircularProgress, Stack, Typography } from '@mui/material'
-import type { Meta, StoryObj } from '@storybook/react-webpack5'
-import { expect, userEvent, within } from 'storybook/test'
+import {Box, Chip, CircularProgress, Stack, Typography} from '@mui/material'
+import type {Meta, StoryObj} from '@storybook/react-webpack5'
+import {expect, userEvent, within} from 'storybook/test'
 import OverlayToast from '../component/overlay/OverlayToast'
-import { normalizePaynetError, PaynetErrorContent } from '../index'
-import type { NormalizedPaynetError } from '../index'
+import {normalizePaynetError, PaynetErrorContent} from '../index'
+import type {NormalizedPaynetError} from '../index'
 
 type ErrorFixture = {
     createError: () => unknown
@@ -59,8 +59,9 @@ const fixtures = {
     validationViolations: {
         id: 'validation-violations',
         label: 'Validation / violations',
-        description: 'Bean Validation of a UI API call: the host translates the headline and resolves each violation; '
-            + 'without a host resolver the server text is shown.',
+        description:
+            'Bean Validation of a UI API call: the host translates the headline and resolves each violation; ' +
+            'without a host resolver the server text is shown.',
         source: 'Backend',
         createError: () => ({
             errorId: 'story-violations-400',
@@ -79,7 +80,7 @@ const fixtures = {
                     propertyPath: 'request.levelName',
                     message: 'size must be between 0 and 32',
                     messageFormat: 'size must be between {min} and {max}',
-                    messageParams: { min: 0, max: 32 },
+                    messageParams: {min: 0, max: 32},
                 },
             ],
         }),
@@ -104,8 +105,8 @@ const fixtures = {
             messageId: 'react.unexpected.exception.message',
             details: {
                 fieldErrors: [
-                    { field: 'amount', reason: 'Must be greater than zero' },
-                    { field: 'currency', reason: 'Unsupported currency code' },
+                    {field: 'amount', reason: 'Must be greater than zero'},
+                    {field: 'currency', reason: 'Unsupported currency code'},
                 ],
                 processor: {
                     code: 'VALIDATION_FAILED',
@@ -140,13 +141,16 @@ const fixtures = {
         createError: () => ({
             response: {
                 status: 502,
-                data: new Blob([
-                    JSON.stringify({
-                        errorId: 'story-blob-502',
-                        messageId: 'react.unexpected.exception.message',
-                        details: 'Upstream report service returned an invalid response.',
-                    }),
-                ], { type: 'application/json' }),
+                data: new Blob(
+                    [
+                        JSON.stringify({
+                            errorId: 'story-blob-502',
+                            messageId: 'react.unexpected.exception.message',
+                            details: 'Upstream report service returned an invalid response.',
+                        }),
+                    ],
+                    {type: 'application/json'},
+                ),
             },
         }),
     },
@@ -177,7 +181,7 @@ const allFixtures: ErrorFixture[] = [
     fixtures.technicalMetadata,
 ]
 
-const ErrorFixturePreview = ({ fixture }: { fixture: ErrorFixture }) => {
+const ErrorFixturePreview = ({fixture}: {fixture: ErrorFixture}) => {
     const [error, setError] = React.useState<NormalizedPaynetError | null>(null)
 
     React.useEffect(() => {
@@ -207,30 +211,22 @@ const ErrorFixturePreview = ({ fixture }: { fixture: ErrorFixture }) => {
                 width: '100%',
             }}
         >
-            <Stack
-                direction='row'
-                spacing={1}
-                sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-            >
-                <Typography component='h2' sx={{ fontSize: 14, fontWeight: 700, lineHeight: '20px' }}>
+            <Stack direction='row' spacing={1} sx={{alignItems: 'center', justifyContent: 'space-between'}}>
+                <Typography component='h2' sx={{fontSize: 14, fontWeight: 700, lineHeight: '20px'}}>
                     {fixture.label}
                 </Typography>
                 <Chip label={fixture.source} size='small' variant='outlined' />
             </Stack>
-            <Typography color='textSecondary' sx={{ fontSize: 12, lineHeight: '18px', minHeight: 36 }}>
+            <Typography color='textSecondary' sx={{fontSize: 12, lineHeight: '18px', minHeight: 36}}>
                 {fixture.description}
             </Typography>
             {/* The notification itself, as OverlayHost shows it: 448px wide or as wide as the place lets it be. */}
-            <Box data-story-error-surface sx={{ maxWidth: '100%', minWidth: 0, width: 448 }}>
+            <Box data-story-error-surface sx={{maxWidth: '100%', minWidth: 0, width: 448}}>
                 <OverlayToast onClose={() => undefined} presentation='banner' tone='error'>
                     {error ? (
                         <PaynetErrorContent error={error} />
                     ) : (
-                        <Stack
-                            direction='row'
-                            spacing={1}
-                            sx={{ alignItems: 'center', minHeight: 64 }}
-                        >
+                        <Stack direction='row' spacing={1} sx={{alignItems: 'center', minHeight: 64}}>
                             <CircularProgress size={16} />
                             <Typography variant='body2'>Normalizing fixture…</Typography>
                         </Stack>
@@ -247,21 +243,21 @@ type FixtureGalleryProps = {
     intro: string
 }
 
-const FixtureGallery = ({ fixtures: galleryFixtures, heading, intro }: FixtureGalleryProps) => (
+const FixtureGallery = ({fixtures: galleryFixtures, heading, intro}: FixtureGalleryProps) => (
     <Box
         data-story-errors
         sx={{
             bgcolor: 'grey.50',
             boxSizing: 'border-box',
             minHeight: '100vh',
-            p: { xs: 2, md: 3 },
+            p: {xs: 2, md: 3},
         }}
     >
-        <Stack spacing={0.5} sx={{ mb: 3, maxWidth: 760 }}>
-            <Typography component='h1' sx={{ fontSize: 20, fontWeight: 700, lineHeight: '28px' }}>
+        <Stack spacing={0.5} sx={{mb: 3, maxWidth: 760}}>
+            <Typography component='h1' sx={{fontSize: 20, fontWeight: 700, lineHeight: '28px'}}>
                 {heading}
             </Typography>
-            <Typography color='textSecondary' sx={{ fontSize: 14, lineHeight: '20px' }}>
+            <Typography color='textSecondary' sx={{fontSize: 14, lineHeight: '20px'}}>
                 {intro}
             </Typography>
         </Stack>
@@ -271,10 +267,12 @@ const FixtureGallery = ({ fixtures: galleryFixtures, heading, intro }: FixtureGa
                 alignItems: 'start',
                 display: 'grid',
                 gap: 3,
-                gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'repeat(2, minmax(0, 1fr))' },
+                gridTemplateColumns: {xs: 'minmax(0, 1fr)', lg: 'repeat(2, minmax(0, 1fr))'},
             }}
         >
-            {galleryFixtures.map(fixture => <ErrorFixturePreview fixture={fixture} key={fixture.id} />)}
+            {galleryFixtures.map(fixture => (
+                <ErrorFixturePreview fixture={fixture} key={fixture.id} />
+            ))}
         </Box>
     </Box>
 )
@@ -287,8 +285,9 @@ const meta = {
         layout: 'fullscreen',
         docs: {
             description: {
-                component: 'Visual fixtures for the shared backend error presenter. Each card uses the same '
-                    + 'error content rendered inside the notification banner of OverlayHost; raw fixtures are normalized by the public API.',
+                component:
+                    'Visual fixtures for the shared backend error presenter. Each card uses the same ' +
+                    'error content rendered inside the notification banner of OverlayHost; raw fixtures are normalized by the public API.',
             },
         },
     },
@@ -342,8 +341,8 @@ export const LongDetailsDialog: Story = {
         heading: 'Full diagnostic dialog',
         intro: 'The complete stack trace is available on demand without making the notification permanently tall.',
     },
-    play: async ({ canvasElement }) => {
-        await userEvent.click(await within(canvasElement).findByRole('button', { name: 'Show full details' }))
+    play: async ({canvasElement}) => {
+        await userEvent.click(await within(canvasElement).findByRole('button', {name: 'Show full details'}))
     },
 }
 
@@ -353,13 +352,13 @@ export const CopiedErrorId: Story = {
         heading: 'Copied error ID feedback',
         intro: 'Clicking the inline support ID copies it and replaces the copy icon with a success check for two seconds.',
     },
-    play: async ({ canvasElement }) => {
+    play: async ({canvasElement}) => {
         const storyNavigator = canvasElement.ownerDocument.defaultView!.navigator
         Object.defineProperty(storyNavigator, 'clipboard', {
             configurable: true,
-            value: { writeText: async () => undefined },
+            value: {writeText: async () => undefined},
         })
-        const copyButton = await within(canvasElement).findByRole('button', { name: /Copy error ID/ })
+        const copyButton = await within(canvasElement).findByRole('button', {name: /Copy error ID/})
         await userEvent.click(copyButton)
         await expect(copyButton).toHaveAttribute('data-copy-state', 'copied')
     },
@@ -379,5 +378,5 @@ export const MobileWidth: Story = {
         heading: 'Errors on a narrow viewport',
         intro: 'Checks text wrapping, close-button space and details overflow at 360 px.',
     },
-    globals: { viewport: { value: 'mobile360', isRotated: false } },
+    globals: {viewport: {value: 'mobile360', isRotated: false}},
 }

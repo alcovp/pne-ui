@@ -11,9 +11,11 @@ export const TransactionDateTypeCriterion = () => {
     const {t} = useTranslation()
     const datesType = useSearchUIFiltersStore(state => state.datesType)
 
-    return <Chip
-        {...createAutoTestAttributes(CRITERION_OPTION_AUTOTEST_ID, datesType)}
-        label={t(`advancedSearch.transactionsDatesType.${datesType}`)}
-        size={'small'}
-    />
+    return (
+        <Chip
+            {...createAutoTestAttributes(CRITERION_OPTION_AUTOTEST_ID, datesType)}
+            label={t(`advancedSearch.transactionsDatesType.${datesType}`)}
+            size={'small'}
+        />
+    )
 }

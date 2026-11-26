@@ -1,17 +1,14 @@
-import React, {useEffect} from 'react';
-import {CriterionTypeEnum, LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../../types';
-import {Box, Chip, Link, SxProps} from '@mui/material';
-import {MultigetSelect, MultigetSelectActions} from '../../../multiget_select/MultigetSelect';
-import {useSearchUIFiltersStore} from '../../state/store';
-import PneModal from '../../../../PneModal';
-import useModal from '../../../../useModal';
-import {MultigetSelectStoreProvider} from "../../../multiget_select/state/IsolatedStoreProvider";
-import {useTranslation} from "react-i18next";
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope';
+import React, {useEffect} from 'react'
+import {CriterionTypeEnum, LinkedEntityTypeEnum, MultichoiceFilterTypeEnum, MultigetCriterion} from '../../types'
+import {Box, Chip, Link, SxProps} from '@mui/material'
+import {MultigetSelect, MultigetSelectActions} from '../../../multiget_select/MultigetSelect'
+import {useSearchUIFiltersStore} from '../../state/store'
+import PneModal from '../../../../PneModal'
+import useModal from '../../../../useModal'
+import {MultigetSelectStoreProvider} from '../../../multiget_select/state/IsolatedStoreProvider'
+import {useTranslation} from 'react-i18next'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
 
 const CRITERION_MULTIGET_TRIGGER_AUTOTEST_ID = 'criterion-multiget-trigger'
 const CRITERION_MULTIGET_VALUE_AUTOTEST_ID = 'criterion-multiget-value'
@@ -24,10 +21,7 @@ interface IProps {
 }
 
 export const MultigetCriterionPanel = (props: IProps) => {
-    const {
-        criterionType,
-        entityType,
-    } = props
+    const {criterionType, entityType} = props
     const {t} = useTranslation()
     const autoTestOwner = useSearchUIAutoTestScope()
     const panelId = React.useId()
@@ -43,7 +37,7 @@ export const MultigetCriterionPanel = (props: IProps) => {
     if (currentMultigetCriterion === undefined) {
         throw new Error(
             `Cannot find multiget criteria with type: ${entityType}. 
-            Maybe you did not define it in initialSearchConditions prop?`
+            Maybe you did not define it in initialSearchConditions prop?`,
         )
     }
     const linkedMultigetCriteria = multigetCriteria.filter(c => c.entityType !== entityType)
@@ -73,110 +67,133 @@ export const MultigetCriterionPanel = (props: IProps) => {
     const getItemNamesChips = (commaSeparatedIds: string, commaSeparatedNames: string) => {
         const ids = commaSeparatedIds.split(',')
 
-        return <>{commaSeparatedNames.split(',').map((name, index) => {
-            const id = Number.parseInt(ids[index], 10)
-            const autoTestAttributes = Number.isNaN(id)
-                ? {}
-                : createAutoTestAttributes(CRITERION_MULTIGET_VALUE_AUTOTEST_ID, id)
+        return (
+            <>
+                {commaSeparatedNames.split(',').map((name, index) => {
+                    const id = Number.parseInt(ids[index], 10)
+                    const autoTestAttributes = Number.isNaN(id)
+                        ? {}
+                        : createAutoTestAttributes(CRITERION_MULTIGET_VALUE_AUTOTEST_ID, id)
 
-            return <Chip
-                {...autoTestAttributes}
-                label={name}
-                // eslint-disable-next-line @eslint-react/no-array-index-key -- a value without an id has only its name and place
-                key={Number.isNaN(id) ? `${name}-${index}` : id}
-                size={'small'}
-            />
-        })}</>
+                    return (
+                        <Chip
+                            {...autoTestAttributes}
+                            label={name}
+                            // eslint-disable-next-line @eslint-react/no-array-index-key -- a value without an id has only its name and place
+                            key={Number.isNaN(id) ? `${name}-${index}` : id}
+                            size={'small'}
+                        />
+                    )
+                })}
+            </>
+        )
     }
 
     const getLinkChildren = () => {
         switch (currentMultigetCriterion.filterType) {
             case MultichoiceFilterTypeEnum.ALL:
                 if (currentMultigetCriterion.deselectedItemNames) {
-                    return <Box sx={chipsSx}>
-                        <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.allExcluding')}</Box>
-                        {getItemNamesChips(
-                            currentMultigetCriterion.deselectedItems,
-                            currentMultigetCriterion.deselectedItemNames,
-                        )}
-                    </Box>
+                    return (
+                        <Box sx={chipsSx}>
+                            <Box component={'span'} sx={linkSpanSx}>
+                                {t('react.searchUI.allExcluding')}
+                            </Box>
+                            {getItemNamesChips(
+                                currentMultigetCriterion.deselectedItems,
+                                currentMultigetCriterion.deselectedItemNames,
+                            )}
+                        </Box>
+                    )
                 } else {
-                    return <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.all')}</Box>
+                    return (
+                        <Box component={'span'} sx={linkSpanSx}>
+                            {t('react.searchUI.all')}
+                        </Box>
+                    )
                 }
             case MultichoiceFilterTypeEnum.NONE:
                 if (currentMultigetCriterion.selectedItemNames) {
-                    return <Box sx={chipsSx}>
-                        {getItemNamesChips(
-                            currentMultigetCriterion.selectedItems,
-                            currentMultigetCriterion.selectedItemNames,
-                        )}
-                    </Box>
+                    return (
+                        <Box sx={chipsSx}>
+                            {getItemNamesChips(
+                                currentMultigetCriterion.selectedItems,
+                                currentMultigetCriterion.selectedItemNames,
+                            )}
+                        </Box>
+                    )
                 } else {
-                    return <Box component={'span'} sx={linkSpanSx}>{t('react.searchUI.none')}</Box>
+                    return (
+                        <Box component={'span'} sx={linkSpanSx}>
+                            {t('react.searchUI.none')}
+                        </Box>
+                    )
                 }
             case MultichoiceFilterTypeEnum.SEARCH:
-                return <Box
-                    component={'span'}
-                    sx={linkSpanSx}
-                >{'Search by "' + currentMultigetCriterion.searchString + '"'}</Box>
+                return (
+                    <Box component={'span'} sx={linkSpanSx}>
+                        {'Search by "' + currentMultigetCriterion.searchString + '"'}
+                    </Box>
+                )
             default:
                 throw new Error('Unexpected MultichoiceFilterTypeEnum: ' + currentMultigetCriterion.filterType)
         }
     }
 
-    return <>
-        <Link
-            {...createAutoTestAttributes(
-                CRITERION_MULTIGET_TRIGGER_AUTOTEST_ID,
-                currentMultigetCriterion.filterType,
-            )}
-            onClick={handleOpen}
-            component="button"
-            type="button"
-            underline="hover"
-            aria-label={triggerLabel}
-            aria-controls={open ? panelId : undefined}
-            aria-expanded={open}
-            aria-haspopup="dialog"
-            sx={linkSx}
-        >
-            {getLinkChildren()}
-        </Link>
-        <MultigetSelectStoreProvider>
-            <PneModal
-                actions={(
-                    <MultigetSelectActions
+    return (
+        <>
+            <Link
+                {...createAutoTestAttributes(
+                    CRITERION_MULTIGET_TRIGGER_AUTOTEST_ID,
+                    currentMultigetCriterion.filterType,
+                )}
+                onClick={handleOpen}
+                component='button'
+                type='button'
+                underline='hover'
+                aria-label={triggerLabel}
+                aria-controls={open ? panelId : undefined}
+                aria-expanded={open}
+                aria-haspopup='dialog'
+                sx={linkSx}
+            >
+                {getLinkChildren()}
+            </Link>
+            <MultigetSelectStoreProvider>
+                <PneModal
+                    actions={
+                        <MultigetSelectActions
+                            multigetCriterion={currentMultigetCriterion}
+                            onSave={changeCriterion}
+                            onCancel={handleClose}
+                        />
+                    }
+                    open={open}
+                    onClose={handleClose}
+                    title={modalTitle}
+                    containerSx={modalContainerSx}
+                    closeLabel={t('close', {defaultValue: 'Close'})}
+                    slotProps={{
+                        container: {
+                            ...createSearchUIOwnedAutoTestAttributes(
+                                CRITERION_MULTIGET_PANEL_AUTOTEST_ID,
+                                autoTestOwner,
+                            ),
+                            id: panelId,
+                        },
+                        closeButton: createAutoTestAttributes(CRITERION_MULTIGET_CLOSE_AUTOTEST_ID),
+                    }}
+                >
+                    <MultigetSelect
                         multigetCriterion={currentMultigetCriterion}
+                        linkedMultigetCriteria={linkedMultigetCriteria}
                         onSave={changeCriterion}
                         onCancel={handleClose}
+                        actionsPlacement='external'
                     />
-                )}
-                open={open}
-                onClose={handleClose}
-                title={modalTitle}
-                containerSx={modalContainerSx}
-                closeLabel={t('close', {defaultValue: 'Close'})}
-                slotProps={{
-                    container: {
-                        ...createSearchUIOwnedAutoTestAttributes(
-                            CRITERION_MULTIGET_PANEL_AUTOTEST_ID,
-                            autoTestOwner,
-                        ),
-                        id: panelId,
-                    },
-                    closeButton: createAutoTestAttributes(CRITERION_MULTIGET_CLOSE_AUTOTEST_ID),
-                }}
-            >
-                <MultigetSelect
-                    multigetCriterion={currentMultigetCriterion}
-                    linkedMultigetCriteria={linkedMultigetCriteria}
-                    onSave={changeCriterion}
-                    onCancel={handleClose}
-                    actionsPlacement='external'
-                />
-            </PneModal>
-        </MultigetSelectStoreProvider>
-    </>
+                </PneModal>
+            </MultigetSelectStoreProvider>
+        </>
+    )
 }
 
 const chipsSx: SxProps = {

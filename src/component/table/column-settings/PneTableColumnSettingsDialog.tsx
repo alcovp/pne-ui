@@ -10,7 +10,8 @@ import {
     SxProps,
     Theme,
     Tooltip,
-    Typography, Button,
+    Typography,
+    Button,
 } from '@mui/material'
 import {
     DragDropContext,
@@ -179,9 +180,7 @@ type ColumnSettingsFormProps<TColumn extends PneTableColumnOption> = Omit<
     'open'
 >
 
-const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
-    props: ColumnSettingsFormProps<TColumn>,
-) => {
+const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(props: ColumnSettingsFormProps<TColumn>) => {
     const {
         autoTestId,
         columns,
@@ -207,34 +206,43 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
         }
     }, [])
 
-    const byId = useMemo(() => new Map<PneTableColumnId, TColumn>(columns.map(column => [column.id, column])), [columns])
+    const byId = useMemo(
+        () => new Map<PneTableColumnId, TColumn>(columns.map(column => [column.id, column])),
+        [columns],
+    )
 
     /** Drops rows the catalog no longer has and appends catalog columns the draft does not know as visible. */
-    const syncRows = useCallback((current: readonly DraftRow[]): DraftRow[] => {
-        const seen = new Set<PneTableColumnId>()
-        const synced: DraftRow[] = []
-        for (const row of current) {
-            if (byId.has(row.id) && !seen.has(row.id)) {
-                seen.add(row.id)
-                synced.push({...row})
+    const syncRows = useCallback(
+        (current: readonly DraftRow[]): DraftRow[] => {
+            const seen = new Set<PneTableColumnId>()
+            const synced: DraftRow[] = []
+            for (const row of current) {
+                if (byId.has(row.id) && !seen.has(row.id)) {
+                    seen.add(row.id)
+                    synced.push({...row})
+                }
             }
-        }
-        for (const column of columns) {
-            if (!seen.has(column.id)) {
-                synced.push({id: column.id, visible: true})
+            for (const column of columns) {
+                if (!seen.has(column.id)) {
+                    synced.push({id: column.id, visible: true})
+                }
             }
-        }
-        return synced
-    }, [byId, columns])
+            return synced
+        },
+        [byId, columns],
+    )
 
     const items = useMemo<DraftListItem<TColumn>[]>(
         () => syncRows(rows).map(row => ({column: byId.get(row.id) as TColumn, visible: row.visible})),
         [byId, rows, syncRows],
     )
-    const draftValue = useMemo<PneTableColumnSettingsValue>(() => ({
-        visibleColumnIds: items.filter(item => item.visible).map(item => item.column.id),
-        hiddenColumnIds: items.filter(item => !item.visible).map(item => item.column.id),
-    }), [items])
+    const draftValue = useMemo<PneTableColumnSettingsValue>(
+        () => ({
+            visibleColumnIds: items.filter(item => item.visible).map(item => item.column.id),
+            hiddenColumnIds: items.filter(item => !item.visible).map(item => item.column.id),
+        }),
+        [items],
+    )
     const resolvedDraft = useMemo(() => resolvePneTableColumnSettings(columns, draftValue), [columns, draftValue])
     const normalizedSearch = normalizeSearch(search)
     const filtering = normalizedSearch !== ''
@@ -317,167 +325,182 @@ const ColumnSettingsForm = <TColumn extends PneTableColumnOption>(
             defaultValue: 'Reorder {{name}}',
         })
 
-        return <ListItem
-            {...provided.draggableProps}
-            ref={provided.innerRef}
-            style={provided.draggableProps.style}
-            sx={itemSx}
-        >
-            {/* A disabled button gets no pointer events, so the hint lives on this wrapper. */}
-            <Tooltip
-                describeChild
-                enterDelay={300}
-                enterNextDelay={300}
-                title={locked ? lastVisibleHint : ''}
+        return (
+            <ListItem
+                {...provided.draggableProps}
+                ref={provided.innerRef}
+                style={provided.draggableProps.style}
+                sx={itemSx}
             >
-                <Box component='span' sx={itemBodySx}>
-                    <ListItemButton
-                        dense
-                        disabled={saving || locked}
-                        onClick={() => toggle(column.id)}
-                        sx={itemButtonSx}
-                    >
-                        <ListItemIcon sx={{minWidth: 0}}>
-                            <PneCheckbox
-                                checked={visible}
-                                disabled={saving || locked}
-                                disableRipple
-                                size='medium'
-                                slotProps={{
-                                    input: {
-                                        ...createAutoTestAttributes(COLUMN_SETTINGS_OPTION_AUTOTEST_ID, column.id),
-                                        'aria-labelledby': labelId,
-                                    },
-                                }}
-                                sx={{padding: 0}}
-                                tabIndex={-1}
+                {/* A disabled button gets no pointer events, so the hint lives on this wrapper. */}
+                <Tooltip describeChild enterDelay={300} enterNextDelay={300} title={locked ? lastVisibleHint : ''}>
+                    <Box component='span' sx={itemBodySx}>
+                        <ListItemButton
+                            dense
+                            disabled={saving || locked}
+                            onClick={() => toggle(column.id)}
+                            sx={itemButtonSx}
+                        >
+                            <ListItemIcon sx={{minWidth: 0}}>
+                                <PneCheckbox
+                                    checked={visible}
+                                    disabled={saving || locked}
+                                    disableRipple
+                                    size='medium'
+                                    slotProps={{
+                                        input: {
+                                            ...createAutoTestAttributes(COLUMN_SETTINGS_OPTION_AUTOTEST_ID, column.id),
+                                            'aria-labelledby': labelId,
+                                        },
+                                    }}
+                                    sx={{padding: 0}}
+                                    tabIndex={-1}
+                                />
+                            </ListItemIcon>
+                            <ListItemText
+                                id={labelId}
+                                primary={column.label}
+                                slotProps={{primary: {noWrap: true, sx: itemLabelSx}}}
+                                sx={{margin: 0}}
                             />
-                        </ListItemIcon>
-                        <ListItemText
-                            id={labelId}
-                            primary={column.label}
-                            slotProps={{primary: {noWrap: true, sx: itemLabelSx}}}
-                            sx={{margin: 0}}
-                        />
-                    </ListItemButton>
-                </Box>
-            </Tooltip>
-            {draggable && provided.dragHandleProps ? <IconButton
-                {...provided.dragHandleProps}
-                {...createAutoTestAttributes(COLUMN_SETTINGS_REORDER_AUTOTEST_ID, column.id)}
-                aria-label={reorderLabel}
-                disableRipple
-                style={{touchAction: 'none'}}
-                sx={[pneIconActionSx('small'), gripSx] as SxProps<Theme>}
-                type='button'
-            >
-                <PneDragHandleIcon/>
-            </IconButton> : null}
-        </ListItem>
+                        </ListItemButton>
+                    </Box>
+                </Tooltip>
+                {draggable && provided.dragHandleProps ? (
+                    <IconButton
+                        {...provided.dragHandleProps}
+                        {...createAutoTestAttributes(COLUMN_SETTINGS_REORDER_AUTOTEST_ID, column.id)}
+                        aria-label={reorderLabel}
+                        disableRipple
+                        style={{touchAction: 'none'}}
+                        sx={[pneIconActionSx('small'), gripSx] as SxProps<Theme>}
+                        type='button'
+                    >
+                        <PneDragHandleIcon />
+                    </IconButton>
+                ) : null}
+            </ListItem>
+        )
     }
 
-    return <PneModal
-        {...createAutoTestAttributes(COLUMN_SETTINGS_DIALOG_AUTOTEST_ID, autoTestId)}
-        actions={<PneModalActions
-            leading={<Button
-                size='medium'
-                {...createAutoTestAttributes(COLUMN_SETTINGS_RESET_AUTOTEST_ID)}
-                disabled={saving || resolvedDraft.isDefault}
-                onClick={handleReset}
-                variant='text'
-            >
-                {t('pneTable.columnSettings.reset', {defaultValue: 'Reset to default'})}
-            </Button>}
-            primary={<Button
-                size='medium'
-                {...createAutoTestAttributes(COLUMN_SETTINGS_SAVE_AUTOTEST_ID)}
-                disabled={saving}
-                onClick={() => {
-                    void handleSave()
-                }}
-                variant='contained'
-            >
-                {t('pneTable.columnSettings.save', {defaultValue: 'Save'})}
-            </Button>}
-            secondary={<Button
-                size='medium'
-                {...createAutoTestAttributes(COLUMN_SETTINGS_CANCEL_AUTOTEST_ID)}
-                disabled={saving}
-                onClick={onClose}
-                variant='outlined'
-            >
-                {t('pneTable.columnSettings.cancel', {defaultValue: 'Cancel'})}
-            </Button>}
-        />}
-        containerSx={[
-            {maxWidth: '100%', width: '480px'},
-            ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
-        ]}
-        onClose={() => {
-            if (!saving) {
-                onClose()
+    return (
+        <PneModal
+            {...createAutoTestAttributes(COLUMN_SETTINGS_DIALOG_AUTOTEST_ID, autoTestId)}
+            actions={
+                <PneModalActions
+                    leading={
+                        <Button
+                            size='medium'
+                            {...createAutoTestAttributes(COLUMN_SETTINGS_RESET_AUTOTEST_ID)}
+                            disabled={saving || resolvedDraft.isDefault}
+                            onClick={handleReset}
+                            variant='text'
+                        >
+                            {t('pneTable.columnSettings.reset', {defaultValue: 'Reset to default'})}
+                        </Button>
+                    }
+                    primary={
+                        <Button
+                            size='medium'
+                            {...createAutoTestAttributes(COLUMN_SETTINGS_SAVE_AUTOTEST_ID)}
+                            disabled={saving}
+                            onClick={() => {
+                                void handleSave()
+                            }}
+                            variant='contained'
+                        >
+                            {t('pneTable.columnSettings.save', {defaultValue: 'Save'})}
+                        </Button>
+                    }
+                    secondary={
+                        <Button
+                            size='medium'
+                            {...createAutoTestAttributes(COLUMN_SETTINGS_CANCEL_AUTOTEST_ID)}
+                            disabled={saving}
+                            onClick={onClose}
+                            variant='outlined'
+                        >
+                            {t('pneTable.columnSettings.cancel', {defaultValue: 'Cancel'})}
+                        </Button>
+                    }
+                />
             }
-        }}
-        open
-        title={title ?? dialogTitle}
-    >
-        {/* 12px and the 4px inset of the list: the rows start 16px under the search field. */}
-        <Box sx={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
-            {searchable ? <PneTextField
-                autoComplete='off'
-                fullWidth
-                label={searchLabel}
-                onChange={event => setSearch(event.target.value)}
-                slotProps={{
-                    htmlInput: createAutoTestAttributes(COLUMN_SETTINGS_SEARCH_AUTOTEST_ID),
-                }}
-                type='search'
-                value={search}
-            /> : null}
-            <DragDropContext
-                enableDefaultSensors={false}
-                onDragEnd={handleDragEnd}
-                sensors={reorderSensors}
-            >
-                <Droppable
-                    droppableId={DROPPABLE_ID}
-                    isDropDisabled={!dragEnabled}
-                    // The modal container is centered with a CSS transform, which turns it
-                    // into the containing block of the fixed-positioned dragged row and the
-                    // surface clips it. The clone is rendered into document.body instead.
-                    renderClone={(provided, _snapshot, rubric) => renderRow(provided, filteredItems[rubric.source.index])}
-                >
-                    {droppable => <List
-                        {...droppable.droppableProps}
-                        aria-label={dialogTitle}
-                        dense
-                        ref={droppable.innerRef}
-                        sx={listSx}
+            containerSx={[
+                {maxWidth: '100%', width: '480px'},
+                ...(Array.isArray(containerSx) ? containerSx : [containerSx]),
+            ]}
+            onClose={() => {
+                if (!saving) {
+                    onClose()
+                }
+            }}
+            open
+            title={title ?? dialogTitle}
+        >
+            {/* 12px and the 4px inset of the list: the rows start 16px under the search field. */}
+            <Box sx={{display: 'flex', flexDirection: 'column', gap: '12px'}}>
+                {searchable ? (
+                    <PneTextField
+                        autoComplete='off'
+                        fullWidth
+                        label={searchLabel}
+                        onChange={event => setSearch(event.target.value)}
+                        slotProps={{
+                            htmlInput: createAutoTestAttributes(COLUMN_SETTINGS_SEARCH_AUTOTEST_ID),
+                        }}
+                        type='search'
+                        value={search}
+                    />
+                ) : null}
+                <DragDropContext enableDefaultSensors={false} onDragEnd={handleDragEnd} sensors={reorderSensors}>
+                    <Droppable
+                        droppableId={DROPPABLE_ID}
+                        isDropDisabled={!dragEnabled}
+                        // The modal container is centered with a CSS transform, which turns it
+                        // into the containing block of the fixed-positioned dragged row and the
+                        // surface clips it. The clone is rendered into document.body instead.
+                        renderClone={(provided, _snapshot, rubric) =>
+                            renderRow(provided, filteredItems[rubric.source.index])
+                        }
                     >
-                        {filteredItems.map((item, index) => <Draggable
-                            // The grip is a real button; without this the library refuses to lift from it.
-                            disableInteractiveElementBlocking
-                            draggableId={item.column.id}
-                            index={index}
-                            isDragDisabled={!(dragEnabled && item.visible)}
-                            key={item.column.id}
-                        >
-                            {provided => renderRow(provided, item)}
-                        </Draggable>)}
-                        {droppable.placeholder}
-                        {filteredItems.length === 0 ? <ListItem
-                            {...createAutoTestAttributes(COLUMN_SETTINGS_EMPTY_AUTOTEST_ID)}
-                            sx={{justifyContent: 'center', minHeight: `${ROW_HEIGHT}px`, padding: 0}}
-                        >
-                            <Typography color='textSecondary' sx={{fontSize: '14px', lineHeight: '20px'}}>
-                                {t('pneTable.columnSettings.noMatches', {defaultValue: 'No columns match'})}
-                            </Typography>
-                        </ListItem> : null}
-                    </List>}
-                </Droppable>
-            </DragDropContext>
-        </Box>
-    </PneModal>
+                        {droppable => (
+                            <List
+                                {...droppable.droppableProps}
+                                aria-label={dialogTitle}
+                                dense
+                                ref={droppable.innerRef}
+                                sx={listSx}
+                            >
+                                {filteredItems.map((item, index) => (
+                                    <Draggable
+                                        // The grip is a real button; without this the library refuses to lift from it.
+                                        disableInteractiveElementBlocking
+                                        draggableId={item.column.id}
+                                        index={index}
+                                        isDragDisabled={!(dragEnabled && item.visible)}
+                                        key={item.column.id}
+                                    >
+                                        {provided => renderRow(provided, item)}
+                                    </Draggable>
+                                ))}
+                                {droppable.placeholder}
+                                {filteredItems.length === 0 ? (
+                                    <ListItem
+                                        {...createAutoTestAttributes(COLUMN_SETTINGS_EMPTY_AUTOTEST_ID)}
+                                        sx={{justifyContent: 'center', minHeight: `${ROW_HEIGHT}px`, padding: 0}}
+                                    >
+                                        <Typography color='textSecondary' sx={{fontSize: '14px', lineHeight: '20px'}}>
+                                            {t('pneTable.columnSettings.noMatches', {defaultValue: 'No columns match'})}
+                                        </Typography>
+                                    </ListItem>
+                                ) : null}
+                            </List>
+                        )}
+                    </Droppable>
+                </DragDropContext>
+            </Box>
+        </PneModal>
+    )
 }
 
 /**
@@ -498,7 +521,7 @@ const PneTableColumnSettingsDialog = <TColumn extends PneTableColumnOption = Pne
         return null
     }
 
-    return <ColumnSettingsForm {...formProps}/>
+    return <ColumnSettingsForm {...formProps} />
 }
 
 export default PneTableColumnSettingsDialog

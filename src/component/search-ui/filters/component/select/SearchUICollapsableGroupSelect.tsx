@@ -1,17 +1,14 @@
-import React, {use, useId, useState} from 'react';
-import {Box, Popover, SxProps} from '@mui/material';
-import type {Theme} from '@mui/material/styles';
-import {resolvePneSemanticPalette} from '../../../../../createTheme';
-import {createPneMenuPanelStyle, createPnePickedRowStyle, PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
-import {useSearchUIFiltersStore} from "../../state/store";
-import {OrderSearchLabel} from "../../types";
-import {useTranslation} from "react-i18next";
-import {createAutoTestAttributes} from '../../../../AutoTestAttribute';
-import {
-    createSearchUIOwnedAutoTestAttributes,
-    useSearchUIAutoTestScope,
-} from '../../AutoTestScope';
-import {SearchUIDefaultsContext} from '../../../SearchUIProvider';
+import React, {use, useId, useState} from 'react'
+import {Box, Popover, SxProps} from '@mui/material'
+import type {Theme} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../../../../createTheme'
+import {createPneMenuPanelStyle, createPnePickedRowStyle, PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
+import {useSearchUIFiltersStore} from '../../state/store'
+import {OrderSearchLabel} from '../../types'
+import {useTranslation} from 'react-i18next'
+import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
+import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
+import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
 
 const CRITERION_LABEL_OPTIONS_AUTOTEST_ID = 'criterion-label-options'
 const CRITERION_LABEL_GROUP_AUTOTEST_ID = 'criterion-label-group'
@@ -27,10 +24,7 @@ interface GroupConfig {
     }[]
 }
 
-const CMS_ORDER_SEARCH_LABELS: ReadonlySet<OrderSearchLabel> = new Set([
-    'customer_id',
-    'merchant_customer_identifier',
-])
+const CMS_ORDER_SEARCH_LABELS: ReadonlySet<OrderSearchLabel> = new Set(['customer_id', 'merchant_customer_identifier'])
 
 export const ORDERS_SEARCH_LABEL_GROUPS: GroupConfig[] = [
     {
@@ -140,12 +134,7 @@ type Props = {
 
 export const SearchUICollapsableGroupSelect = (props: Props) => {
     const {t} = useTranslation()
-    const {
-        anchorEl,
-        id,
-        open,
-        onClose,
-    } = props
+    const {anchorEl, id, open, onClose} = props
 
     const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
     const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
@@ -157,9 +146,9 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
     const visibleGroups = cmsOrderSearchLabelsVisible
         ? ORDERS_SEARCH_LABEL_GROUPS
         : ORDERS_SEARCH_LABEL_GROUPS.map(group => ({
-            ...group,
-            items: group.items.filter(item => !CMS_ORDER_SEARCH_LABELS.has(item.value)),
-        }))
+              ...group,
+              items: group.items.filter(item => !CMS_ORDER_SEARCH_LABELS.has(item.value)),
+          }))
 
     const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(readExpandedGroups)
 
@@ -178,109 +167,108 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
         writeExpandedGroup(groupId, expanded)
     }
 
-    const selectedGroup = visibleGroups.find(group => (
-        group.items.some(item => item.value === ordersSearchLabel)
-    ))
+    const selectedGroup = visibleGroups.find(group => group.items.some(item => item.value === ordersSearchLabel))
 
-    return <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={onClose}
-        anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
-        transformOrigin={{vertical: 'top', horizontal: 'left'}}
-        slotProps={{paper: {
-            ...createSearchUIOwnedAutoTestAttributes(
-                CRITERION_LABEL_OPTIONS_AUTOTEST_ID,
-                autoTestOwner,
-            ),
-            id,
-            role: 'dialog',
-            'aria-label': fieldLabel,
-            'aria-modal': true,
-            sx: optionsDialogSx,
-        }}}
-    >
-        <Box component={'fieldset'} sx={fieldsetSx}>
-            <Box component={'legend'} sx={visuallyHiddenSx}>{fieldLabel}</Box>
-            {visibleGroups.map((group, groupIndex) => {
-                const isExpanded = expandedGroups[group.id]
-                const summaryId = `${id}-summary-${groupIndex}`
-                const optionsId = `${id}-group-${groupIndex}`
-                const shouldFocusSummary = selectedGroup === undefined
-                    ? groupIndex === 0
-                    : selectedGroup.id === group.id && !isExpanded
-
-                return <Box
-                    component={'details'}
-                    key={group.id}
-                    open={isExpanded}
-                    onToggle={(event: React.SyntheticEvent<HTMLDetailsElement>) => {
-                        handleToggle(group.id, event.currentTarget.open)
-                    }}
-                >
-                    <Box
-                        {...createAutoTestAttributes(
-                            CRITERION_LABEL_GROUP_AUTOTEST_ID,
-                            group.autoTestValue,
-                        )}
-                        component={'summary'}
-                        id={summaryId}
-                        tabIndex={0}
-                        autoFocus={open && shouldFocusSummary}
-                        aria-controls={optionsId}
-                        aria-expanded={isExpanded}
-                        sx={groupSummarySx}
-                    >
-                        {t(group.label)}
-                        <PneChevronDownIcon aria-hidden={true} sx={isExpanded ? expandedChevronSx : chevronSx}/>
-                    </Box>
-                    <Box
-                        id={optionsId}
-                        role={'group'}
-                        aria-labelledby={summaryId}
-                    >
-                        {group.items.map((item, itemIndex) => {
-                            const checked = ordersSearchLabel === item.value
-                            const optionId = `${id}-option-${groupIndex}-${itemIndex}`
-
-                            return <Box
-                                component={'label'}
-                                htmlFor={optionId}
-                                key={item.value}
-                                data-pne-picked={checked ? '' : undefined}
-                                sx={optionLabelSx}
-                            >
-                                <Box
-                                    {...createAutoTestAttributes(
-                                        CRITERION_LABEL_OPTION_AUTOTEST_ID,
-                                        item.value,
-                                    )}
-                                    component={'input'}
-                                    id={optionId}
-                                    type={'radio'}
-                                    name={radioGroupId}
-                                    value={item.value}
-                                    checked={checked}
-                                    autoFocus={open && isExpanded && checked}
-                                    onChange={() => handleChange(item.value)}
-                                    onClick={() => {
-                                        if (checked) onClose()
-                                    }}
-                                    sx={radioSx}
-                                />
-                                {t(item.label)}
-                            </Box>
-                        })}
-                    </Box>
+    return (
+        <Popover
+            open={open}
+            anchorEl={anchorEl}
+            onClose={onClose}
+            anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+            transformOrigin={{vertical: 'top', horizontal: 'left'}}
+            slotProps={{
+                paper: {
+                    ...createSearchUIOwnedAutoTestAttributes(CRITERION_LABEL_OPTIONS_AUTOTEST_ID, autoTestOwner),
+                    id,
+                    role: 'dialog',
+                    'aria-label': fieldLabel,
+                    'aria-modal': true,
+                    sx: optionsDialogSx,
+                },
+            }}
+        >
+            <Box component={'fieldset'} sx={fieldsetSx}>
+                <Box component={'legend'} sx={visuallyHiddenSx}>
+                    {fieldLabel}
                 </Box>
-            })}
-        </Box>
-    </Popover>
+                {visibleGroups.map((group, groupIndex) => {
+                    const isExpanded = expandedGroups[group.id]
+                    const summaryId = `${id}-summary-${groupIndex}`
+                    const optionsId = `${id}-group-${groupIndex}`
+                    const shouldFocusSummary =
+                        selectedGroup === undefined ? groupIndex === 0 : selectedGroup.id === group.id && !isExpanded
+
+                    return (
+                        <Box
+                            component={'details'}
+                            key={group.id}
+                            open={isExpanded}
+                            onToggle={(event: React.SyntheticEvent<HTMLDetailsElement>) => {
+                                handleToggle(group.id, event.currentTarget.open)
+                            }}
+                        >
+                            <Box
+                                {...createAutoTestAttributes(CRITERION_LABEL_GROUP_AUTOTEST_ID, group.autoTestValue)}
+                                component={'summary'}
+                                id={summaryId}
+                                tabIndex={0}
+                                autoFocus={open && shouldFocusSummary}
+                                aria-controls={optionsId}
+                                aria-expanded={isExpanded}
+                                sx={groupSummarySx}
+                            >
+                                {t(group.label)}
+                                <PneChevronDownIcon
+                                    aria-hidden={true}
+                                    sx={isExpanded ? expandedChevronSx : chevronSx}
+                                />
+                            </Box>
+                            <Box id={optionsId} role={'group'} aria-labelledby={summaryId}>
+                                {group.items.map((item, itemIndex) => {
+                                    const checked = ordersSearchLabel === item.value
+                                    const optionId = `${id}-option-${groupIndex}-${itemIndex}`
+
+                                    return (
+                                        <Box
+                                            component={'label'}
+                                            htmlFor={optionId}
+                                            key={item.value}
+                                            data-pne-picked={checked ? '' : undefined}
+                                            sx={optionLabelSx}
+                                        >
+                                            <Box
+                                                {...createAutoTestAttributes(
+                                                    CRITERION_LABEL_OPTION_AUTOTEST_ID,
+                                                    item.value,
+                                                )}
+                                                component={'input'}
+                                                id={optionId}
+                                                type={'radio'}
+                                                name={radioGroupId}
+                                                value={item.value}
+                                                checked={checked}
+                                                autoFocus={open && isExpanded && checked}
+                                                onChange={() => handleChange(item.value)}
+                                                onClick={() => {
+                                                    if (checked) onClose()
+                                                }}
+                                                sx={radioSx}
+                                            />
+                                            {t(item.label)}
+                                        </Box>
+                                    )
+                                })}
+                            </Box>
+                        </Box>
+                    )
+                })}
+            </Box>
+        </Popover>
+    )
 }
 
-const createDefaultExpandedGroups = (): Record<string, boolean> => Object.fromEntries(
-    ORDERS_SEARCH_LABEL_GROUPS.map(group => [group.id, true]),
-)
+const createDefaultExpandedGroups = (): Record<string, boolean> =>
+    Object.fromEntries(ORDERS_SEARCH_LABEL_GROUPS.map(group => [group.id, true]))
 
 const readExpandedGroups = (): Record<string, boolean> => {
     const defaults = createDefaultExpandedGroups()
@@ -291,10 +279,12 @@ const readExpandedGroups = (): Record<string, boolean> => {
 
         const parsed = JSON.parse(stored) as Record<string, unknown>
 
-        return Object.fromEntries(ORDERS_SEARCH_LABEL_GROUPS.map(group => [
-            group.id,
-            typeof parsed?.[group.id] === 'boolean' ? parsed[group.id] : true,
-        ])) as Record<string, boolean>
+        return Object.fromEntries(
+            ORDERS_SEARCH_LABEL_GROUPS.map(group => [
+                group.id,
+                typeof parsed?.[group.id] === 'boolean' ? parsed[group.id] : true,
+            ]),
+        ) as Record<string, boolean>
     } catch {
         return defaults
     }

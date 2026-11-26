@@ -20,14 +20,12 @@ jest.mock('react-i18next', () => ({
 
 // MUI X 9 date fields are editable sections; the browser hands every keystroke to the focused
 // section as an `input` event, and MUI reads the typed character from its text.
-const fieldOf = (autoTestId: string) => document.querySelector<HTMLElement>(
-    `[role="group"][data-autotest="${autoTestId}"]`,
-) as HTMLElement
+const fieldOf = (autoTestId: string) =>
+    document.querySelector<HTMLElement>(`[role="group"][data-autotest="${autoTestId}"]`) as HTMLElement
 const rangeField = () => fieldOf('criterion-date-range')
 const hiddenInputOf = (field: HTMLElement) => field.querySelector('input') as HTMLInputElement
-const sectionOf = (index: number) => rangeField().querySelector<HTMLElement>(
-    `[data-sectionindex="${index}"] [role="spinbutton"]`,
-) as HTMLElement
+const sectionOf = (index: number) =>
+    rangeField().querySelector<HTMLElement>(`[data-sectionindex="${index}"] [role="spinbutton"]`) as HTMLElement
 
 const selectSection = (index: number) => {
     const section = sectionOf(index)
@@ -58,38 +56,38 @@ const END_YEAR = 5
 const renderExactRange = (options: {enableTimeSelection?: boolean} = {}) => {
     const onFiltersUpdate = jest.fn<void, [SearchCriteria]>()
     const onValidationChange = jest.fn()
-    render(<SearchUIFilters
-        settingsContextName={'date-range-field'}
-        possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
-        predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
-        initialSearchConditions={{
-            dateRangeSpec: {
-                dateRangeSpecType: 'EXACTLY',
-                dateFrom: options.enableTimeSelection
-                    ? new Date(2026, 6, 1, 10, 20, 30)
-                    : new Date('2026-07-01T00:00:00.000Z'),
-                dateTo: options.enableTimeSelection
-                    ? new Date(2026, 6, 2, 11, 21, 31)
-                    : new Date('2026-07-02T00:00:00.000Z'),
-            },
-        }}
-        onFiltersUpdate={onFiltersUpdate}
-        onValidationChange={onValidationChange}
-        config={{
-            hideShowFiltersButton: true,
-            hideTemplatesSelect: true,
-            dateRange: options.enableTimeSelection
-                ? {enableTimeSelection: true}
-                : {dateOnlyTimeZone: 'UTC'},
-        }}
-    />)
+    render(
+        <SearchUIFilters
+            settingsContextName={'date-range-field'}
+            possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+            predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+            initialSearchConditions={{
+                dateRangeSpec: {
+                    dateRangeSpecType: 'EXACTLY',
+                    dateFrom: options.enableTimeSelection
+                        ? new Date(2026, 6, 1, 10, 20, 30)
+                        : new Date('2026-07-01T00:00:00.000Z'),
+                    dateTo: options.enableTimeSelection
+                        ? new Date(2026, 6, 2, 11, 21, 31)
+                        : new Date('2026-07-02T00:00:00.000Z'),
+                },
+            }}
+            onFiltersUpdate={onFiltersUpdate}
+            onValidationChange={onValidationChange}
+            config={{
+                hideShowFiltersButton: true,
+                hideTemplatesSelect: true,
+                dateRange: options.enableTimeSelection ? {enableTimeSelection: true} : {dateOnlyTimeZone: 'UTC'},
+            }}
+        />,
+    )
     return {onFiltersUpdate, onValidationChange}
 }
 
 const refreshButton = () => screen.getByRole('button', {name: 'Refresh'}) as HTMLButtonElement
 
-const searchedDates = (onFiltersUpdate: jest.Mock<void, [SearchCriteria]>) => onFiltersUpdate.mock.calls
-    .map(([criteria]) => [criteria.dateFrom, criteria.dateTo])
+const searchedDates = (onFiltersUpdate: jest.Mock<void, [SearchCriteria]>) =>
+    onFiltersUpdate.mock.calls.map(([criteria]) => [criteria.dateFrom, criteria.dateTo])
 
 describe('SearchUI exact date field', () => {
     beforeEach(() => {
@@ -125,7 +123,9 @@ describe('SearchUI exact date field', () => {
         mockLanguage = 'ru'
         renderExactRange()
 
-        fireEvent.click(document.querySelector('button[data-autotest="criterion-date-range-picker-toggle"]') as HTMLElement)
+        fireEvent.click(
+            document.querySelector('button[data-autotest="criterion-date-range-picker-toggle"]') as HTMLElement,
+        )
 
         const calendar = await waitFor(() => {
             const dialog = document.body.querySelector<HTMLElement>(
@@ -151,12 +151,18 @@ describe('SearchUI exact date field', () => {
         expect(refreshButton().disabled).toBe(true)
         expect(onValidationChange).toHaveBeenLastCalledWith({
             isValid: false,
-            errors: [expect.objectContaining({
-                code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
-                params: {boundary: 'from'},
-            })],
+            errors: [
+                expect.objectContaining({
+                    code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
+                    params: {boundary: 'from'},
+                }),
+            ],
         })
-        expect(searchedDates(onFiltersUpdate).flat().every(date => !Number.isNaN(date?.getTime()))).toBe(true)
+        expect(
+            searchedDates(onFiltersUpdate)
+                .flat()
+                .every(date => !Number.isNaN(date?.getTime())),
+        ).toBe(true)
     })
 
     it('reports an end before the start', async () => {
@@ -167,9 +173,11 @@ describe('SearchUI exact date field', () => {
         typeIntoSection(END_MONTH, '06')
 
         expect((await screen.findByRole('alert')).textContent).toBe('react.searchUI.dateRange.endBeforeStart')
-        expect(onValidationChange).toHaveBeenLastCalledWith(expect.objectContaining({
-            errors: [expect.objectContaining({code: SEARCH_UI_DATE_RANGE_END_BEFORE_START})],
-        }))
+        expect(onValidationChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                errors: [expect.objectContaining({code: SEARCH_UI_DATE_RANGE_END_BEFORE_START})],
+            }),
+        )
         expect(onFiltersUpdate).not.toHaveBeenCalled()
     })
 
@@ -179,10 +187,14 @@ describe('SearchUI exact date field', () => {
 
         typeIntoSection(END_YEAR, '3000')
 
-        await waitFor(() => expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: new Date('2026-07-01T00:00:00.000Z'),
-            dateTo: new Date('3000-07-03T00:00:00.000Z'),
-        })))
+        await waitFor(() =>
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    dateFrom: new Date('2026-07-01T00:00:00.000Z'),
+                    dateTo: new Date('3000-07-03T00:00:00.000Z'),
+                }),
+            ),
+        )
         expect(screen.queryByRole('alert')).toBeNull()
         expect(rangeField().getAttribute('aria-invalid')).toBe('false')
     })
@@ -200,10 +212,14 @@ describe('SearchUI exact date field', () => {
 
         leaveField()
 
-        await waitFor(() => expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: new Date('2026-07-01T00:00:00.000Z'),
-            dateTo: new Date('2999-12-31T00:00:00.000Z'),
-        })))
+        await waitFor(() =>
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    dateFrom: new Date('2026-07-01T00:00:00.000Z'),
+                    dateTo: new Date('2999-12-31T00:00:00.000Z'),
+                }),
+            ),
+        )
         expect(screen.queryByRole('alert')).toBeNull()
     })
 
@@ -220,12 +236,16 @@ describe('SearchUI exact date field', () => {
         leaveField()
 
         expect((await screen.findByRole('alert')).textContent).toBe('react.searchUI.dateRange.invalidDate')
-        expect(onValidationChange).toHaveBeenLastCalledWith(expect.objectContaining({
-            errors: [expect.objectContaining({
-                code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
-                params: {boundary: 'to'},
-            })],
-        }))
+        expect(onValidationChange).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                errors: [
+                    expect.objectContaining({
+                        code: SEARCH_UI_DATE_RANGE_INVALID_DATE,
+                        params: {boundary: 'to'},
+                    }),
+                ],
+            }),
+        )
         expect(onFiltersUpdate).not.toHaveBeenCalled()
     })
 
@@ -234,14 +254,17 @@ describe('SearchUI exact date field', () => {
         await waitFor(() => expect(onFiltersUpdate).toHaveBeenCalled())
         onFiltersUpdate.mockClear()
 
-        fireEvent.click(document.querySelector('button[data-autotest="criterion-date-range-picker-toggle"]') as HTMLElement)
-        const dayOption = async (day: string) => waitFor(() => {
-            const option = document.body.querySelector<HTMLElement>(
-                `[role="gridcell"][data-autotest="criterion-date-option"][data-autotest-value="${day}"]`,
-            )
-            expect(option).not.toBeNull()
-            return option as HTMLElement
-        })
+        fireEvent.click(
+            document.querySelector('button[data-autotest="criterion-date-range-picker-toggle"]') as HTMLElement,
+        )
+        const dayOption = async (day: string) =>
+            waitFor(() => {
+                const option = document.body.querySelector<HTMLElement>(
+                    `[role="gridcell"][data-autotest="criterion-date-option"][data-autotest-value="${day}"]`,
+                )
+                expect(option).not.toBeNull()
+                return option as HTMLElement
+            })
 
         fireEvent.click(await dayOption('2026-07-10'))
         // A lone first day is no range yet; searching it would mean an open end.
@@ -249,23 +272,29 @@ describe('SearchUI exact date field', () => {
 
         fireEvent.click(await dayOption('2026-07-12'))
 
-        await waitFor(() => expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: new Date('2026-07-10T00:00:00.000Z'),
-            dateTo: new Date('2026-07-13T00:00:00.000Z'),
-        })))
+        await waitFor(() =>
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({
+                    dateFrom: new Date('2026-07-10T00:00:00.000Z'),
+                    dateTo: new Date('2026-07-13T00:00:00.000Z'),
+                }),
+            ),
+        )
         expect(onFiltersUpdate).toHaveBeenCalledTimes(1)
     })
 
     it('shows today alone once another period is switched to exact dates', async () => {
         const onFiltersUpdate = jest.fn<void, [SearchCriteria]>()
-        render(<SearchUIFilters
-            settingsContextName={'date-range-field'}
-            possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
-            predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
-            initialSearchConditions={{dateRangeSpec: {dateRangeSpecType: 'LAST_MONTH'}}}
-            onFiltersUpdate={onFiltersUpdate}
-            config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
-        />)
+        render(
+            <SearchUIFilters
+                settingsContextName={'date-range-field'}
+                possibleCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                predefinedCriteria={[CriterionTypeEnum.DATE_RANGE]}
+                initialSearchConditions={{dateRangeSpec: {dateRangeSpecType: 'LAST_MONTH'}}}
+                onFiltersUpdate={onFiltersUpdate}
+                config={{hideShowFiltersButton: true, hideTemplatesSelect: true}}
+            />,
+        )
         const rangeType = await waitFor(() => {
             const result = document.querySelector<HTMLElement>(
                 '[role="combobox"][data-autotest="criterion-range-spec"]',
@@ -275,21 +304,28 @@ describe('SearchUI exact date field', () => {
         })
 
         fireEvent.mouseDown(rangeType)
-        fireEvent.click(await waitFor(() => {
-            const option = document.body.querySelector<HTMLElement>(
-                '[role="option"][data-autotest="criterion-range-spec-option"][data-autotest-value="EXACTLY"]',
-            )
-            expect(option).not.toBeNull()
-            return option as HTMLElement
-        }))
+        fireEvent.click(
+            await waitFor(() => {
+                const option = document.body.querySelector<HTMLElement>(
+                    '[role="option"][data-autotest="criterion-range-spec-option"][data-autotest-value="EXACTLY"]',
+                )
+                expect(option).not.toBeNull()
+                return option as HTMLElement
+            }),
+        )
 
         // Not the days of the month left behind with one more day after them.
         const today = dayjs().startOf('day')
-        await waitFor(() => expect(hiddenInputOf(rangeField()).value)
-            .toBe(`${today.format('DD.MM.YYYY')} – ${today.format('DD.MM.YYYY')}`))
-        expect(onFiltersUpdate).toHaveBeenLastCalledWith(expect.objectContaining({
-            dateFrom: today.toDate(),
-            dateTo: today.add(1, 'day').toDate(),
-        }))
+        await waitFor(() =>
+            expect(hiddenInputOf(rangeField()).value).toBe(
+                `${today.format('DD.MM.YYYY')} – ${today.format('DD.MM.YYYY')}`,
+            ),
+        )
+        expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+            expect.objectContaining({
+                dateFrom: today.toDate(),
+                dateTo: today.add(1, 'day').toDate(),
+            }),
+        )
     })
 })
