@@ -26,7 +26,7 @@
         "build:esm": "yarn tsc",
         "build:cjs": "yarn tsc -p tsconfig.cjs.json",
         "lint": "eslint \"{**/*,*}.{js,mjs,ts,jsx,tsx}\"",
-        "test": "jest --config jestconfig.json --maxWorkers=2",
+        "test": "jest --config jestconfig.json --maxWorkers=4",
         "typecheck:api": "yarn tsc -p tsconfig.type-tests.json --pretty false",
         "check": "yarn build && yarn check:built",
         "storybook": "storybook dev -p 6006",
