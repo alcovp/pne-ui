@@ -71,7 +71,10 @@ describe('the date pickers of the library', () => {
         expect(ruleValue(medium.root, `&[data-pne-size="small"] ${BOX}`, 'min-height')).toBe('24px')
         expect(ruleValue(medium.root, `&[data-pne-size="medium"] ${BOX}`, 'min-height')).toBe('32px')
         expect(ruleValue(medium.root, `&[data-pne-size="large"] ${BOX}`, 'min-height')).toBe('40px')
-        expect(ruleValue(medium.root, `&[data-pne-size="medium"] ${BOX} ${SECTIONS}`, 'padding')).toBe('6px 0')
+        // The one line of the date is as high as the box, with no paddings above and below it.
+        expect(ruleValue(medium.root, `&[data-pne-size="medium"] ${BOX} ${SECTIONS}`, 'padding')).toBe('0px')
+        expect(ruleValue(medium.root, `&[data-pne-size="medium"] ${BOX} ${SECTIONS}`, 'line-height')).toBe('32px')
+        expect(ruleValue(medium.root, `&[data-pne-size="large"] ${BOX} ${SECTIONS}`, 'line-height')).toBe('40px')
         expect(ruleValue(medium.root, `&[data-pne-size="large"] ${BOX}`, 'padding')).toBe('0 10px 0 12px')
         medium.unmount()
 

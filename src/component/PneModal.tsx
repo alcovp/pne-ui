@@ -192,6 +192,21 @@ const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneMod
     const subtitleId = hasSubtitle ? generatedSubtitleId : undefined
     const resolvedAriaLabel = normalizeLabel(ariaLabel)
     const windowFrame = usePneModalFrame({container: containerElement, movable, open, resizable})
+    const hasBody = hasRenderableContent(children)
+    const [bodyIsOneRow, setBodyIsOneRow] = React.useState(false)
+
+    // A body of one row (a line of text, one control) reads with the title and the buttons as one block:
+    // lines 8px over and under it would only cage it. The observer reports at once and on each change.
+    React.useLayoutEffect(() => {
+        const body = containerElement?.querySelector<HTMLElement>(':scope > [data-pne-modal-body]')
+        if (!body || typeof ResizeObserver === 'undefined') return undefined
+
+        const observer = new ResizeObserver(() => {
+            setBodyIsOneRow(body.scrollHeight <= ONE_ROW_BODY_HEIGHT)
+        })
+        observer.observe(body)
+        return () => observer.disconnect()
+    }, [containerElement, hasBody])
 
     React.useLayoutEffect(() => exposeForwardedRef(ref, containerElement), [containerElement, ref])
 
@@ -296,6 +311,7 @@ const PneModal = function PneModal({ref, ...props}: React.PropsWithoutRef<PneMod
             aria-modal='true'
             className={className}
             data-pne-modal-container='true'
+            data-pne-modal-lines={!hasBody || bodyIsOneRow ? 'none' : undefined}
             data-pne-modal-movable={movable ? 'true' : undefined}
             data-pne-modal-resizable={resizable ? 'true' : undefined}
             data-pne-modal-action={windowFrame.action ?? undefined}
@@ -640,8 +656,12 @@ const warnAboutMissingAccessibleName = (
 
 // UI Kit Modal: the window is a 16px-rounded card with 16px around its content, a 1px border and a soft
 // shadow. Its parts stand in that padding: the header and the buttons are parted from the body by
-// hairlines that keep 8px on each side, so the lines stop short of the window's edges.
+// hairlines that keep 8px on each side, so the lines stop short of the window's edges. A window with no
+// body, or with a body of one row, draws no hairlines (`data-pne-modal-lines="none"`): two lines with
+// nothing or a single line between them part nothing. They keep their pixel, so the window does not jump.
 const WINDOW_PADDING = 16
+// The paddings of the body and 32px of content: a line of text or one control of the usual size.
+const ONE_ROW_BODY_HEIGHT = 47
 
 const Container = styled(PneSurface)(({theme}) => {
     const modal = resolvePneSemanticPalette(theme).modal
@@ -676,6 +696,9 @@ const Header = styled(PneSurfaceHeader)(({theme}) => ({
     borderBottom: `1px solid ${resolvePneSemanticPalette(theme).modal.divider}`,
     gap: '8px',
     padding: '0 0 8px',
+    '[data-pne-modal-lines="none"] > &': {
+        borderBottomColor: 'transparent',
+    },
 }))
 
 // The title stands 3px lower, on the middle line of the 32px close button.
@@ -701,6 +724,9 @@ const Body = styled(PneSurfaceBody)({
 const Footer = styled(PneSurfaceFooter)(({theme}) => ({
     borderTop: `1px solid ${resolvePneSemanticPalette(theme).modal.divider}`,
     padding: '7px 0 0',
+    '[data-pne-modal-lines="none"] > &': {
+        borderTopColor: 'transparent',
+    },
 }))
 
 // UI Kit Text/Heading in a modal: 18/26 SemiBold. A colour the consumer gives stays.

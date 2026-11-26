@@ -114,9 +114,10 @@ const fieldSx: SxProps<Theme> = {
     '& .MuiFilledInput-root::before, & .MuiFilledInput-root::after': {
         display: 'none',
     },
+    // Centred by the input's own height, not by paddings (see the field look).
     '&&&&& .MuiAutocomplete-input.MuiFilledInput-input': {
-        padding: '6px 0',
-        height: '20px',
+        padding: 0,
+        height: '32px',
         fontSize: '14px',
         lineHeight: '20px',
     },

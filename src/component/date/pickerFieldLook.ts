@@ -23,8 +23,11 @@ const BUTTON = '.MuiInputAdornment-root .MuiIconButton-root'
 const sizeRules = (size: PneFieldSize): Rules => {
     const config = PNE_FIELD_SIZE[size]
     const root = `&[data-pne-size="${size}"]`
-    const paddingBlock = (config.height - config.lineHeight) / 2
     const text = {fontSize: `${config.fontSize}px`, lineHeight: `${config.lineHeight}px`}
+    // The one line of a date is as high as the box and has no paddings above and below: a padding and
+    // half of the line's leading are fractions of a device pixel at a fractional screen scale, each dropped
+    // on its own, and the date stood a pixel above the middle of the box at 125 %.
+    const line = `${config.height}px`
     return {
         [`${root} ${BOX}`]: {
             ...text,
@@ -33,10 +36,11 @@ const sizeRules = (size: PneFieldSize): Rules => {
         },
         [`${root} ${BOX} ${SECTIONS}`]: {
             ...text,
-            padding: `${paddingBlock}px 0`,
+            lineHeight: line,
+            padding: 0,
         },
         [`${root} ${BOX} .MuiPickersSectionList-section, ${root} ${BOX} .MuiPickersSectionList-sectionContent`]: {
-            lineHeight: `${config.lineHeight}px`,
+            lineHeight: line,
         },
         [`${root} ${BOX} .MuiInputAdornment-root`]: {
             gap: '4px',

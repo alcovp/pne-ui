@@ -11,6 +11,8 @@
  * columns. Without one the skeleton follows the header it has, across the full
  * table width.
  */
+import type {SxProps, Theme} from '@mui/material/styles'
+import {resolvePneSemanticPalette} from '../../createTheme'
 
 export type SkeletonGeometry = {
     /** Columns of the header the geometry was measured with. */
@@ -46,6 +48,16 @@ const HIDDEN_COLUMN_WIDTH = 30
 const NARROW_COLUMN_WIDTH = 120
 const ALIGN_TOLERANCE = 2
 const SAMPLE_ROWS = 5
+
+/**
+ * UI Kit Skeleton/Line: a 12px bar for a 14/20 line of text, radius 2, on the sunken fill, with a
+ * soft 1.4s pulse. Set on a MUI `Skeleton`.
+ */
+export const pneSkeletonLineSx: SxProps<Theme> = theme => ({
+    animationDuration: '1.4s',
+    backgroundColor: resolvePneSemanticPalette(theme).table.skeleton,
+    borderRadius: '2px',
+})
 
 /** A skeleton text line and the gap below it: one 20px line of table text. */
 export const SKELETON_LINE_HEIGHT = 12

@@ -24,10 +24,15 @@ export const filtersInputSx: SxProps = {
         height: SEARCH_UI_VALUE_HEIGHT,
         borderRadius: SEARCH_UI_VALUE_RADIUS,
     },
+    // The text is centred by the input's own height (see the field look): paddings above and below it
+    // put it a pixel high at a 125 % screen scale.
     '& .MuiInputBase-input.MuiFilledInput-input': {
-        py: '6px',
         fontSize: '14px',
         lineHeight: '20px',
+    },
+    '& input.MuiInputBase-input.MuiFilledInput-input': {
+        height: SEARCH_UI_VALUE_HEIGHT,
+        py: 0,
     },
     // A date field of MUI X is a box of its own kind: the same 32px, no room kept for a floating label.
     '& .MuiPickersInputBase-root.MuiPickersFilledInput-root': {
@@ -35,10 +40,14 @@ export const filtersInputSx: SxProps = {
         height: SEARCH_UI_VALUE_HEIGHT,
         paddingRight: '4px',
     },
+    // One line as high as the box, with no paddings above and below (see the picker field look).
     '& .MuiPickersFilledInput-root .MuiPickersInputBase-sectionsContainer': {
         fontSize: '14px',
-        lineHeight: '20px',
-        padding: '6px 0 6px 8px',
+        lineHeight: SEARCH_UI_VALUE_HEIGHT,
+        padding: '0 0 0 8px',
+    },
+    '&&& .MuiPickersFilledInput-root .MuiPickersSectionList-section, &&& .MuiPickersFilledInput-root .MuiPickersSectionList-sectionContent': {
+        lineHeight: SEARCH_UI_VALUE_HEIGHT,
     },
     ...pickerToggleSx,
 }

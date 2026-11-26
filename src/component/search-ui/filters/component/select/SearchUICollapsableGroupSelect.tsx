@@ -1,7 +1,8 @@
 import React, {use, useId, useState} from 'react';
-import {Box, Popover, SxProps, Typography} from '@mui/material';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {Box, Popover, SxProps} from '@mui/material';
+import type {Theme} from '@mui/material/styles';
+import {resolvePneSemanticPalette} from '../../../../../createTheme';
+import {createPneMenuPanelStyle, createPnePickedRowStyle, PneChevronDownIcon} from '../../../../dropdown/dropdownLook';
 import {useSearchUIFiltersStore} from "../../state/store";
 import {OrderSearchLabel} from "../../types";
 import {useTranslation} from "react-i18next";
@@ -230,11 +231,8 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                         aria-expanded={isExpanded}
                         sx={groupSummarySx}
                     >
-                        <Typography variant={'subtitle2'}>{t(group.label)}</Typography>
-                        {isExpanded
-                            ? <ExpandLessIcon aria-hidden={true} fontSize={'small'}/>
-                            : <ExpandMoreIcon aria-hidden={true} fontSize={'small'}/>
-                        }
+                        {t(group.label)}
+                        <PneChevronDownIcon aria-hidden={true} sx={isExpanded ? expandedChevronSx : chevronSx}/>
                     </Box>
                     <Box
                         id={optionsId}
@@ -249,7 +247,8 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                                 component={'label'}
                                 htmlFor={optionId}
                                 key={item.value}
-                                sx={createOptionLabelSx(checked)}
+                                data-pne-picked={checked ? '' : undefined}
+                                sx={optionLabelSx}
                             >
                                 <Box
                                     {...createAutoTestAttributes(
@@ -269,9 +268,7 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                                     }}
                                     sx={radioSx}
                                 />
-                                <Typography component={'span'} variant={'body2'}>
-                                    {t(item.label)}
-                                </Typography>
+                                {t(item.label)}
                             </Box>
                         })}
                     </Box>
@@ -313,17 +310,20 @@ const writeExpandedGroup = (groupId: string, expanded: boolean) => {
     }
 }
 
-const optionsDialogSx: SxProps = {
+// UI Kit Dropdown list: the panel of the theme's lists, wide enough for the longest field name.
+const optionsDialogSx: SxProps<Theme> = theme => ({
+    ...createPneMenuPanelStyle(theme),
     width: 'max-content',
     minWidth: '280px',
     maxWidth: 'min(420px, calc(100vw - 32px))',
     maxHeight: 'min(480px, calc(100vh - 32px))',
-}
+})
 
 const fieldsetSx: SxProps = {
     border: 0,
     m: 0,
-    p: 0,
+    // The 4px inset of the panel around its rows.
+    p: '4px',
     minWidth: 0,
 }
 
@@ -339,45 +339,83 @@ const visuallyHiddenSx: SxProps = {
     border: 0,
 }
 
-const groupSummarySx: SxProps = {
-    bgcolor: '#f0f0f0',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    lineHeight: 1.5,
-    p: 1,
-    cursor: 'pointer',
-    listStyle: 'none',
-    '&::-webkit-details-marker': {
-        display: 'none',
-    },
+// UI Kit Dropdown list, group caption: 12/16 Medium in the muted text colour at the foot of a 28px
+// row; groups are split by a hairline. The caption folds its group, so it carries the list's chevron.
+const groupSummarySx: SxProps<Theme> = theme => {
+    const pne = resolvePneSemanticPalette(theme)
+    return {
+        alignItems: 'flex-end',
+        borderRadius: '4px',
+        boxSizing: 'border-box',
+        color: pne.dropdown.status.text,
+        cursor: 'pointer',
+        display: 'flex',
+        fontSize: '12px',
+        fontWeight: 500,
+        height: '28px',
+        justifyContent: 'space-between',
+        lineHeight: '16px',
+        listStyle: 'none',
+        padding: '0 12px 4px',
+        '&::-webkit-details-marker': {
+            display: 'none',
+        },
+        'details + details > &': {
+            borderRadius: '0 0 4px 4px',
+            borderTop: `1px solid ${pne.dropdown.panel.ring}`,
+            height: '33px',
+            marginTop: '4px',
+        },
+        '&:focus-visible': {
+            outline: `2px solid ${pne.focusRing}`,
+            outlineOffset: '-2px',
+        },
+    }
 }
 
-const createOptionLabelSx = (selected: boolean): SxProps => ({
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center',
-    columnGap: 1,
-    pl: 4,
-    pr: 2,
-    py: 1,
-    cursor: 'pointer',
-    bgcolor: selected ? 'action.selected' : undefined,
-    '&:hover': {
-        bgcolor: 'action.hover',
-    },
-    '&:focus-within': {
-        outline: '2px solid',
-        outlineColor: 'primary.main',
-        outlineOffset: '-2px',
-    },
-})
+const chevronSx: SxProps<Theme> = {
+    fontSize: '16px',
+}
+
+const expandedChevronSx: SxProps<Theme> = {
+    fontSize: '16px',
+    transform: 'rotate(180deg)',
+}
+
+// UI Kit Dropdown/Option of the panel's lists (a 40px row, 14/20 text): the pointer and the keyboard
+// highlight the row, the picked one is tinted and carries the check at its end. The radio button
+// itself is not drawn: it lies over the whole row, so the row takes the click and the focus.
+const optionLabelSx: SxProps<Theme> = theme => {
+    const dropdown = resolvePneSemanticPalette(theme).dropdown
+    return {
+        alignItems: 'center',
+        borderRadius: '4px',
+        boxSizing: 'border-box',
+        color: dropdown.option.text,
+        cursor: 'pointer',
+        display: 'flex',
+        fontSize: '14px',
+        lineHeight: '20px',
+        minHeight: '40px',
+        padding: '10px 12px',
+        position: 'relative',
+        '&:hover, &:focus-within': {
+            backgroundColor: dropdown.option.hover,
+        },
+        '&[data-pne-picked]': createPnePickedRowStyle(theme),
+        '&[data-pne-picked]:hover, &[data-pne-picked]:focus-within': {
+            backgroundColor: dropdown.option.hover,
+        },
+    }
+}
 
 const radioSx: SxProps = {
-    width: '16px',
-    height: '16px',
-    m: 0,
-    flex: '0 0 auto',
+    appearance: 'none',
     cursor: 'pointer',
-    accentColor: 'currentColor',
+    height: '100%',
+    inset: 0,
+    m: 0,
+    opacity: 0,
+    position: 'absolute',
+    width: '100%',
 }

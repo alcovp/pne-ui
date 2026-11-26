@@ -43,6 +43,14 @@ const sizeRules = (size: PneFieldSize): Rules => {
             minHeight: 0,
             padding: `${paddingBlock}px ${config.paddingInline}px`,
         },
+        // A one-line input centres its text in its own height. Paddings above and below it are a fraction of
+        // a device pixel at a fractional screen scale, dropped once for the padding and once for the line: at
+        // 125 % the value stood a pixel above the middle of the box.
+        [`${root} input.MuiInputBase-input`]: {
+            height: `${config.height}px`,
+            paddingBottom: 0,
+            paddingTop: 0,
+        },
         [`${root} .MuiInputBase-adornedStart`]: {paddingLeft: `${config.paddingInline}px`},
         [`${root} .MuiInputBase-adornedEnd`]: {paddingRight: `${config.paddingEnd}px`},
         [`${root} .MuiInputBase-input.MuiInputBase-inputAdornedStart`]: {paddingLeft: 0},
@@ -68,11 +76,17 @@ const sizeRules = (size: PneFieldSize): Rules => {
         [`${root}[data-pne-resize="default"] .MuiInputBase-multiline .MuiInputBase-input`]: {
             height: `${MULTILINE_DEFAULT_HEIGHT}px`,
         },
+        // The value of a select is one line as high as the box, for the same reason: no fraction of a
+        // device pixel is dropped for a padding and again for the leading of the line.
         [`${root} .MuiSelect-select.MuiInputBase-input`]: {
             alignItems: 'center',
             display: 'flex',
+            height: `${config.height}px`,
+            lineHeight: `${config.height}px`,
             minHeight: `${config.lineHeight}px`,
+            paddingBottom: 0,
             paddingRight: `${config.paddingEnd + config.iconButton + config.gap}px`,
+            paddingTop: 0,
         },
         [`${root} .MuiSelect-icon.PneSelect-chevron`]: {
             right: `${chevronInset}px`,

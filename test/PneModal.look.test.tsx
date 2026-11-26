@@ -1,12 +1,15 @@
 import {Button} from '@mui/material'
 import * as React from 'react'
-import {cleanup, render, screen} from '@testing-library/react'
+import {act, cleanup, render, screen} from '@testing-library/react'
 
 import {PneModal, PneModalActions, PneThemeProvider, type Skin} from '../src'
 
 const UI_KIT_SKIN = {experimentalColor: '#026fd7'} as Skin
 
-const renderModal = (props: Partial<React.ComponentProps<typeof PneModal>> = {}) => {
+const renderModal = (
+    props: Partial<React.ComponentProps<typeof PneModal>> = {},
+    body: React.ReactNode = 'Body text',
+) => {
     render(<PneThemeProvider skin={UI_KIT_SKIN}>
         <PneModal
             actions={<PneModalActions primary={<Button variant='contained' size='medium'>Save</Button>}/>}
@@ -16,7 +19,7 @@ const renderModal = (props: Partial<React.ComponentProps<typeof PneModal>> = {})
             title='Min/max amounts'
             {...props as object}
         >
-            Body text
+            {body}
         </PneModal>
     </PneThemeProvider>)
     const dialog = screen.getByRole('dialog')
@@ -92,6 +95,47 @@ describe('PneModal (UI Kit look)', () => {
         expect(style(body!).lineHeight).toBe('20px')
         expect(style(footer!).padding).toBe('7px 0px 0px')
         expect(style(footer!).borderTop).toBe('1px solid rgb(226, 233, 240)')
+    })
+
+    it('draws no hairlines in a window with no body: they would lie one on the other', () => {
+        const withBody = renderModal()
+        expect(withBody.dialog.hasAttribute('data-pne-modal-lines')).toBe(false)
+        cleanup()
+
+        const {dialog, header, body, footer} = renderModal({}, null)
+        expect(body).toBeNull()
+        expect(dialog.getAttribute('data-pne-modal-lines')).toBe('none')
+        // The lines keep their pixel and lose their colour, so the window does not change its height.
+        expect(style(header).borderBottomColor).toBe('rgba(0, 0, 0, 0)')
+        expect(style(footer!).borderTopColor).toBe('rgba(0, 0, 0, 0)')
+    })
+
+    it('draws no hairlines around a body of one row, and brings them back when the body grows', () => {
+        const observers: Array<() => void> = []
+        const original = window.ResizeObserver
+        window.ResizeObserver = class {
+            constructor(private readonly callback: () => void) {
+                observers.push(callback)
+            }
+            observe() { this.callback() }
+            unobserve() { /* nothing is kept */ }
+            disconnect() { /* nothing is kept */ }
+        } as unknown as typeof ResizeObserver
+        let bodyHeight = 35
+        Object.defineProperty(HTMLElement.prototype, 'scrollHeight', {configurable: true, get: () => bodyHeight})
+
+        try {
+            const {dialog} = renderModal()
+            // A line of text and the paddings of the body.
+            expect(dialog.getAttribute('data-pne-modal-lines')).toBe('none')
+
+            bodyHeight = 120
+            act(() => observers.forEach(notify => notify()))
+            expect(dialog.hasAttribute('data-pne-modal-lines')).toBe(false)
+        } finally {
+            delete (HTMLElement.prototype as {scrollHeight?: number}).scrollHeight
+            window.ResizeObserver = original
+        }
     })
 
     it('marks a body with no buttons under it, whose lower edge is the padding of the window', () => {

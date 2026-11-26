@@ -31,6 +31,15 @@ export const AddedListWrapper = styled('div')(({theme}) => ({
         boxSizing: 'border-box',
         padding: '4px',
     },
+    // A virtual list stands its viewport out of the flow, as wide as the box with its paddings. It starts
+    // at the edge of the box and keeps the inset at its sides itself: left where the padding put it, it was
+    // 4px wider than the box, and the list scrolled sideways.
+    '& > [data-virtuoso-scroller] > [data-viewport-type]': {
+        boxSizing: 'border-box',
+        left: 0,
+        paddingLeft: '4px',
+        paddingRight: '4px',
+    },
 }));
 
 export const HeaderColumnWrapper = styled('div')`

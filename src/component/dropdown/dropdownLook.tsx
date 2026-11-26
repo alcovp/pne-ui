@@ -106,6 +106,10 @@ const pickedRowStyle = (dropdown: PneDropdownPalette): SystemStyleObject<Theme> 
     },
 })
 
+/** The picked row of a UI Kit list (the tint and the check at its end), for a list that draws rows of its own. */
+export const createPnePickedRowStyle = (theme: Theme): SystemStyleObject<Theme> =>
+    pickedRowStyle(resolvePneSemanticPalette(theme).dropdown)
+
 const disabledRowStyle = (dropdown: PneDropdownPalette): SystemStyleObject<Theme> => ({
     color: dropdown.option.disabled,
     opacity: 1,
@@ -411,7 +415,6 @@ const autocompleteFieldSizeRules = (size: PneFieldSize): Rules => {
     const root = `&&&[data-pne-size="${size}"]`
     const multiple = `${root}[data-pne-multiple]`
     const box = '.MuiAutocomplete-inputRoot'
-    const paddingBlock = (config.height - config.lineHeight) / 2
     const chipInset = (config.height - config.chip.height) / 2
     const oneButton = config.paddingEnd + config.iconButton + config.gap
     const twoButtons = oneButton + config.iconButton + 4
@@ -424,8 +427,10 @@ const autocompleteFieldSizeRules = (size: PneFieldSize): Rules => {
         [`${root}.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon ${box}`]: {
             paddingRight: `${twoButtons}px`,
         },
+        // The text of a one-line input is centred by its height, not by paddings (see the field look).
         [`${root} ${box} .MuiAutocomplete-input`]: {
-            padding: `${paddingBlock}px 0 ${paddingBlock}px ${config.paddingInline}px`,
+            height: `${config.height}px`,
+            padding: `0 0 0 ${config.paddingInline}px`,
         },
         [`${root} .MuiAutocomplete-endAdornment`]: {
             right: `${config.paddingEnd}px`,
@@ -442,8 +447,8 @@ const autocompleteFieldSizeRules = (size: PneFieldSize): Rules => {
             paddingTop: `${chipInset}px`,
         },
         [`${multiple} ${box} .MuiAutocomplete-input`]: {
-            padding: `${(config.chip.height - config.lineHeight) / 2}px 0 ${(config.chip.height - config.lineHeight) / 2}px `
-                + `${config.paddingInline - chipInset}px`,
+            height: `${config.chip.height}px`,
+            padding: `0 0 0 ${config.paddingInline - chipInset}px`,
         },
         [`${root} .MuiAutocomplete-tag.MuiChip-root`]: {
             fontSize: `${config.fontSize}px`,
@@ -451,6 +456,10 @@ const autocompleteFieldSizeRules = (size: PneFieldSize): Rules => {
             height: `${config.chip.height}px`,
             lineHeight: `${config.lineHeight}px`,
             padding: `0 ${Math.max(2, config.chip.paddingInline - 4)}px 0 ${config.chip.paddingInline}px`,
+        },
+        // A badge with no cross (a value that cannot be removed) keeps the same space at both sides.
+        [`${root} .MuiAutocomplete-tag.MuiChip-root:not(.MuiChip-deletable)`]: {
+            paddingRight: `${config.chip.paddingInline}px`,
         },
         [`${root} .MuiAutocomplete-tag .MuiChip-deleteIcon.PneAutocomplete-icon`]: {
             fontSize: `${config.chip.cross}px`,

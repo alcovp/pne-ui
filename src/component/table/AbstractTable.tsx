@@ -22,6 +22,7 @@ import {createAutoTestAttributes} from '../AutoTestAttribute';
 import {
     countRowColumns,
     isSameSkeletonColumns,
+    pneSkeletonLineSx,
     linesFitting,
     measureColumnText,
     measureColumnWidths,
@@ -42,13 +43,7 @@ const TABLE_TOP_CONTROLS_AUTOTEST_ID = 'table-top-controls';
 const TABLE_TOOLBAR_AUTOTEST_ID = 'table-toolbar';
 // A body row of the UI Kit table: 40px, the same with text, an icon, a flag or a switch.
 const DEFAULT_SKELETON_ROW_HEIGHT = 40;
-// UI Kit Skeleton/Line: a 12px bar for a 14/20 line of text, radius 2, on the sunken fill, with a
-// soft 1.4s pulse.
-const skeletonBarSx: SxProps<Theme> = theme => ({
-    animationDuration: '1.4s',
-    backgroundColor: resolvePneSemanticPalette(theme).table.skeleton,
-    borderRadius: '2px',
-});
+const skeletonBarSx = pneSkeletonLineSx;
 const SKELETON_LINE_ALIGN: Record<SkeletonAlign, React.CSSProperties['alignItems']> = {
     left: 'flex-start',
     center: 'center',

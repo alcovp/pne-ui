@@ -201,6 +201,46 @@ export const Destructive: Story = {
     </ModalStoryHarness>,
 };
 
+export const OneLine: Story = {
+    parameters: {
+        docs: {
+            description: {
+                story: "Содержимое в одну строку: линий над ним и под ним нет, заголовок, текст и кнопки читаются одним блоком.",
+            },
+        },
+    },
+    play: openModal,
+    render: () => <ModalStoryHarness
+        renderActions={close => <PneModalActions
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Отмена</Button>}
+            primary={<Button size='medium' variant="contained" color="error" onClick={close}>Удалить</Button>}
+        />}
+        title='Удаление ключа'
+    >
+        После удаления приватный ключ нельзя будет восстановить.
+    </ModalStoryHarness>,
+};
+
+export const NoBody: Story = {
+    parameters: {
+        docs: {
+            description: {
+                story: "Без содержимого: вопрос стоит в заголовке, под ним сразу кнопки, линий нет.",
+            },
+        },
+    },
+    play: openModal,
+    render: () => <ModalStoryHarness
+        renderActions={close => <PneModalActions
+            secondary={<Button size='medium' variant="outlined" onClick={close}>Отмена</Button>}
+            primary={<Button size='medium' variant="contained" onClick={close}>Приостановить</Button>}
+        />}
+        title='Приостановить регулярный платёж?'
+    >
+        {null}
+    </ModalStoryHarness>,
+};
+
 export const Wizard: Story = {
     parameters: {
         docs: {

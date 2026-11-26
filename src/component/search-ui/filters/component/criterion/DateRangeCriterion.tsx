@@ -599,8 +599,16 @@ const dateRangePickerSx: SxProps = {
         minHeight: SEARCH_UI_VALUE_HEIGHT,
     },
     ...pickerToggleSx,
-    '& .MuiPickersInputBase-sectionsContainer': {
+    // One line as high as the box, with no paddings above and below (see the picker field look): at a
+    // 125 % screen scale the dates stood a pixel above the middle of the box.
+    '&& .MuiPickersInputBase-sectionsContainer': {
         fontSize: '14px',
+        lineHeight: SEARCH_UI_VALUE_HEIGHT,
+        paddingBottom: 0,
+        paddingTop: 0,
+    },
+    '&& .MuiPickersSectionList-section, && .MuiPickersSectionList-sectionContent': {
+        lineHeight: SEARCH_UI_VALUE_HEIGHT,
     },
     ...fieldErrorSx,
 }

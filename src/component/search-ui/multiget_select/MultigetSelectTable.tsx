@@ -1,5 +1,6 @@
 import React from 'react'
 import {Box, Pagination, Button} from '@mui/material'
+import Skeleton from '@mui/material/Skeleton'
 import {AbstractEntity} from '../../../common/paynet/type'
 import {MULTIGET_PAGE_SIZE} from './constants'
 import {useTranslation} from 'react-i18next'
@@ -14,11 +15,17 @@ import {
     createTableControlShellStyle,
     createTableControlTextButtonStyle,
 } from '../../table/tableControlButtonStyle'
+import {pneSkeletonLineSx, SKELETON_LINE_HEIGHT} from '../../table/tableSkeleton'
+import useDelayedLoading from '../../table/useDelayedLoading'
 
 const CRITERION_MULTIGET_AVAILABLE_AUTOTEST_ID = 'criterion-multiget-available'
 const CRITERION_MULTIGET_SELECTED_AUTOTEST_ID = 'criterion-multiget-selected'
 const CRITERION_MULTIGET_ADD_AUTOTEST_ID = 'criterion-multiget-add'
 const CRITERION_MULTIGET_REMOVE_AUTOTEST_ID = 'criterion-multiget-remove'
+const CRITERION_MULTIGET_SKELETON_AUTOTEST_ID = 'criterion-multiget-skeleton'
+
+// The names of a page differ in length; the skeleton lines repeat this run of widths, in percent of the row.
+const SKELETON_LINE_WIDTHS = [62, 44, 71, 53, 38, 66, 47, 58, 41, 69]
 
 export const MultigetSelectTable = () => {
 
@@ -32,6 +39,8 @@ export const MultigetSelectTable = () => {
     const isLoading = useMultigetSelectStore()(s => s.isLoading)
     const setSelectedItems = useMultigetSelectStore()(s => s.setSelectedItems)
     const setCurrentPage = useMultigetSelectStore()(s => s.setCurrentPage)
+    // As in the table: the first page shows its skeleton at once, a later load only when it takes a while.
+    const showSkeleton = useDelayedLoading(isLoading)
 
     const onEntityClick = (entity: AbstractEntity) => {
         if (!selectedItems.some(e => +e.id === +entity.id)) {
@@ -71,7 +80,20 @@ export const MultigetSelectTable = () => {
                 </Box>
             </Box>
             <Box sx={availableListSx}>
-                {availableItems.slice(0, MULTIGET_PAGE_SIZE).map(entity => {
+                {showSkeleton && SKELETON_LINE_WIDTHS.slice(0, MULTIGET_PAGE_SIZE).map(width => <Box
+                    {...createAutoTestAttributes(CRITERION_MULTIGET_SKELETON_AUTOTEST_ID)}
+                    aria-hidden={true}
+                    key={width}
+                    sx={skeletonRowSx}
+                >
+                    <Skeleton
+                        variant='rectangular'
+                        height={SKELETON_LINE_HEIGHT}
+                        width={`${width}%`}
+                        sx={pneSkeletonLineSx}
+                    />
+                </Box>)}
+                {!showSkeleton && availableItems.slice(0, MULTIGET_PAGE_SIZE).map(entity => {
                     const rowSelected = selectedItems.some(e => +e.id === +entity.id)
                     return <Box
                         {...createAutoTestAttributes(CRITERION_MULTIGET_ADD_AUTOTEST_ID, entity.id)}
@@ -167,6 +189,16 @@ const availableListSx: SxProps<Theme> = theme => ({
     ...listBoxSx(theme),
     minHeight: `${MULTIGET_PAGE_SIZE * 32 + 8}px`,
 })
+
+// The place of a row while its page loads: the row's height and paddings around one skeleton line.
+const skeletonRowSx = {
+    alignItems: 'center',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexShrink: 0,
+    height: '32px',
+    padding: '6px 8px 6px 12px',
+}
 
 const selectedListSx: SxProps<Theme> = theme => ({
     ...listBoxSx(theme),

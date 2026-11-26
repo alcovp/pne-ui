@@ -37,9 +37,18 @@ export const selectUnderChipSx: SystemStyleObject<Theme> = {
     '& .MuiOutlinedInput-root.MuiInputBase-root': {
         backgroundColor: 'transparent',
     },
-    '& .MuiSelect-select.MuiInputBase-input.MuiOutlinedInput-input': {
+    // The box and its input are those of a 40px field; over a chip both are the chip's box, so the
+    // keyboard focus rings the chip and not 60px around it.
+    '&&& .MuiInputBase-root': {
         height: '100%',
+        minHeight: 0,
+    },
+    '&&& .MuiSelect-select.MuiInputBase-input': {
+        boxSizing: 'border-box',
         fontSize: '0',
+        height: '100%',
+        minHeight: 0,
+        padding: 0,
     },
 }
 

@@ -204,6 +204,9 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             expect(new Set(Array.from(radios, radio => radio.value)).size).toBe(45)
             expect(checkedRadios).toHaveLength(1)
             expect(checkedRadios[0].value).toBe(selectedLabel)
+            // The row of the picked field is the one marked for the tint and the check of a UI Kit list.
+            expect(dialog.querySelectorAll('label[data-pne-picked]')).toHaveLength(1)
+            expect(checkedRadios[0].closest('label')?.hasAttribute('data-pne-picked')).toBe(true)
 
             for (const [groupValue] of groupInventory) {
                 const summary = dialog.querySelector<HTMLElement>(

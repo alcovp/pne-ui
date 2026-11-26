@@ -91,22 +91,29 @@ describe('PneAutocomplete (UI Kit look)', () => {
         expect(ruleValue(root, `${sized} .MuiAutocomplete-tag.MuiChip-root`, 'height')).toBe(height)
         expect(ruleValue(root, `${sized} .MuiAutocomplete-tag.MuiChip-root`, 'font-size')).toBe(fontSize)
         expect(ruleValue(root, `${sized} .MuiAutocomplete-tag.MuiChip-root`, 'padding')).toBe(padding)
+        // A badge with no cross keeps the left padding at its right too.
+        expect(ruleValue(root, `${sized} .MuiAutocomplete-tag.MuiChip-root:not(.MuiChip-deletable)`, 'padding-right'))
+            .toBe(padding.split(' ')[3])
+        expect(ruleValue(root, `${sized}[data-pne-multiple] .MuiAutocomplete-inputRoot .MuiAutocomplete-input`, 'height'))
+            .toBe(height)
         expect(ruleValue(root, `${sized}[data-pne-multiple] .MuiAutocomplete-inputRoot`, 'padding-top')).toBe(inset)
         expect(ruleValue(root, `${sized}[data-pne-multiple] .MuiAutocomplete-inputRoot`, 'gap')).toBe('4px')
         expect(ruleValue(root, `${sized} .MuiAutocomplete-endAdornment .MuiIconButton-root`, 'width')).toBe(button)
     })
 
     it.each([
-        ['small', '4px 0 4px 8px', '4px', '24px', '44px'],
-        ['medium', '6px 0 6px 8px', '6px', '34px', '58px'],
-        ['large', '10px 0 10px 12px', '10px', '38px', '62px'],
-    ] as const)('sets the text and the icon buttons of a %s single field by the UI Kit', (size, padding, right, one, two) => {
+        ['small', '24px', '0 0 0 8px', '4px', '24px', '44px'],
+        ['medium', '32px', '0 0 0 8px', '6px', '34px', '58px'],
+        ['large', '40px', '0 0 0 12px', '10px', '38px', '62px'],
+    ] as const)('sets the text and the icon buttons of a %s single field by the UI Kit', (size, height, padding, right, one, two) => {
         const {container} = inTheme(<PneAutocomplete label='Currency' options={CURRENCIES} size={size} value='EUR'/>)
         const root = container.querySelector('.MuiAutocomplete-root')!
         const sized = `&&&[data-pne-size="${size}"]`
         const box = '.MuiAutocomplete-inputRoot'
 
         expect(root.hasAttribute('data-pne-multiple')).toBe(false)
+        // The text is centred by the height of the input, with no paddings above and below it.
+        expect(ruleValue(root, `${sized} ${box} .MuiAutocomplete-input`, 'height')).toBe(height)
         expect(ruleValue(root, `${sized} ${box} .MuiAutocomplete-input`, 'padding')).toBe(padding)
         expect(ruleValue(root, `${sized} .MuiAutocomplete-endAdornment`, 'right')).toBe(right)
         expect(ruleValue(

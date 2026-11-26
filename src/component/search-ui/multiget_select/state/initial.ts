@@ -10,5 +10,6 @@ export const getMultigetSelectInitialState = (): MultigetSelectState => ({
     selectedItems: [],
     currentPage: 1,
     hasNextPage: false,
-    isLoading: false,
+    // The panel asks for its first page as it opens: until the answer the list shows its skeleton.
+    isLoading: true,
 })

@@ -90,6 +90,13 @@ describe('PneTextField (UI Kit look)', () => {
         expect(ruleValue(root, `${sized} .MuiInputBase-input`, 'line-height')).toBe(lineHeight)
         expect(ruleValue(root, `${sized} .MuiInputBase-input`, 'height')).toBe(lineHeight)
         expect(ruleValue(root, `${sized} .MuiInputBase-input`, 'padding')).toBe(padding)
+        // A one-line input is as high as the box and centres its text itself, with no paddings above and below.
+        expect(ruleValue(root, `${sized} input.MuiInputBase-input`, 'height')).toBe(height)
+        expect(ruleValue(root, `${sized} input.MuiInputBase-input`, 'padding-top')).toBe('0px')
+        expect(ruleValue(root, `${sized} input.MuiInputBase-input`, 'padding-bottom')).toBe('0px')
+        // The value of a select is one line as high as the box.
+        expect(ruleValue(root, `${sized} .MuiSelect-select.MuiInputBase-input`, 'line-height')).toBe(height)
+        expect(ruleValue(root, `${sized} .MuiSelect-select.MuiInputBase-input`, 'padding-top')).toBe('0px')
         // MUI keeps its compact base under the geometry of pne-ui, whatever the size.
         expect(root.querySelector('.MuiInputBase-root')?.classList.contains('MuiInputBase-sizeSmall')).toBe(true)
     })
