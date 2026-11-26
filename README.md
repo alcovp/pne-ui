@@ -159,6 +159,28 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 />
 ```
 
+Элемент с `keepVisible` не сворачивается в меню вместе с серединой цепочки, `endAdornment` встаёт сразу за
+крошкой, вне её ссылки.
+
+## PnePageHeader
+
+`PnePageHeader` — шапка страницы приложения: одна строка из хлебных крошек и действий страницы, под ней линия.
+Отдельного заголовка нет, страницу называет последняя крошка. `entity` кладёт в крошку сущности (`crumbId`) её
+id и имя: на странице самой сущности id копируется по клику, на её вкладках крошка остаётся ссылкой; `link`
+ставит рядом маленькую ↗. Действия уходят на свою строку, только если не помещается даже свёрнутая цепочка.
+Пока шапка прилипает (`sticky`, по умолчанию), её высота лежит в `--pne-page-header-height` на `<html>`.
+`menuInset` оставляет место кнопке меню на узких экранах (`PAYNET_LEFT_MENU_PAGE_HEADER_INSET`).
+
+```tsx
+<PnePageHeader
+    breadcrumbs={items}
+    entity={{crumbId: "gate", id: "311056", name: "Visa EUR", link: {href: ordersUrl, label: t("orders")}}}
+    actions={<Button size="medium">{t("edit")}</Button>}
+    linkComponent={AppLink}
+    labels={{breadcrumbs: t("navigation.breadcrumbs"), copy: t("copy"), copied: t("copied")}}
+/>
+```
+
 `AppLink` — ссылка приложения (обёртка над ссылкой его роутера); в `pne-ui` такого компонента нет.
 
 ## Кнопка

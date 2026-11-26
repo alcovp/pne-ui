@@ -9,7 +9,7 @@
   - Windows and messages: `PneModal`, `PneModalActions`, `confirm/`, `overlay/` (`OverlayHost`, toasts, the operation centre, API errors), `PneCoachmark`, `PneBanner`.
   - `table/`: `PneTable` over `AbstractTable`, the cells, pagination, selection, `column-settings/` and the `useTable` hook.
   - `search-ui/`: the filter panel (`filters/`), the entity picker (`multiget_select/`) and `SearchUI`, which joins the panel to a table.
-  - `non-abstract-entity-selector/`, `fab/`, `PneBreadcrumbs`.
+  - `non-abstract-entity-selector/`, `fab/`, `PneBreadcrumbs`, `PnePageHeader` (the page header over the breadcrumbs).
 - `src/stories`: one block per component, `pne-ui/<Component>`.
 - `test/` (Jest), `type-tests/` (compile-only contracts of the public API), `test-release/` (the release scripts, `node --test`).
 - `scripts/`: the release, `storybook:check` and `usage:map`. `.storybook/`: the test skins (`skins.ts`) and the page the stories stand on (`hostPage.tsx`).

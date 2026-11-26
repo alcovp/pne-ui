@@ -211,6 +211,79 @@ describe('PneBreadcrumbs', () => {
         expect(within(navigation).getByRole('link', {name: 'Orders search'})).not.toBeNull()
     })
 
+    it('keeps the crumbs that keep their place when the middle folds, and puts adornments outside the links', async () => {
+        render(
+            <PneBreadcrumbs
+                ariaLabel='Entity path'
+                items={[
+                    {id: 'settings', label: 'Settings', type: 'text'},
+                    {href: '/paynet-ui/gates', id: 'gates', label: 'Gates', type: 'link'},
+                    {
+                        endAdornment: <a href='/paynet-ui/react-orders?gate=311056'>Orders</a>,
+                        href: '/paynet-ui/gates/311056',
+                        id: 'gate',
+                        keepVisible: true,
+                        label: '311056 Gate name',
+                        type: 'link',
+                    },
+                    {id: 'properties', label: 'Properties', type: 'text'},
+                ]}
+                linkComponent={BridgeLink}
+                moreLabel='More pages'
+            />,
+        )
+
+        const navigation = screen.getByRole('navigation', {name: 'Entity path'})
+        const root = navigation.parentElement as HTMLElement
+        const list = navigation.querySelector('ol') as HTMLOListElement
+        Object.defineProperty(root, 'clientWidth', {configurable: true, get: () => 180})
+        Object.defineProperty(list, 'scrollWidth', {configurable: true, get: () => 520})
+
+        act(() => {
+            window.dispatchEvent(new Event('resize'))
+        })
+
+        const moreButton = within(navigation).getByRole('button', {name: 'More pages'})
+        const entityLink = within(navigation).getByRole('link', {name: '311056 Gate name'})
+        expect(entityLink.getAttribute('href')).toBe('/paynet-ui/gates/311056')
+        const ordersLink = within(navigation).getByRole('link', {name: 'Orders'})
+        expect(entityLink.contains(ordersLink)).toBe(false)
+        expect(ordersLink.closest('[data-pne-breadcrumb-keep="true"]')).not.toBeNull()
+        expect(within(navigation).getByText('Properties')).not.toBeNull()
+        expect(within(navigation).queryByRole('link', {name: 'Gates'})).toBeNull()
+
+        fireEvent.click(moreButton)
+        const menu = await screen.findByRole('menu')
+        expect(
+            within(menu)
+                .getAllByRole('menuitem')
+                .map(item => item.textContent),
+        ).toEqual(['Gates'])
+    })
+
+    it('does not fold a trail whose middle crumbs all keep their place', () => {
+        render(
+            <PneBreadcrumbs
+                ariaLabel='Kept path'
+                items={[baseItems[0], {...baseItems[1], keepVisible: true} as PneBreadcrumbItem, baseItems[2]]}
+                moreLabel='More pages'
+            />,
+        )
+
+        const navigation = screen.getByRole('navigation', {name: 'Kept path'})
+        const root = navigation.parentElement as HTMLElement
+        const list = navigation.querySelector('ol') as HTMLOListElement
+        Object.defineProperty(root, 'clientWidth', {configurable: true, get: () => 120})
+        Object.defineProperty(list, 'scrollWidth', {configurable: true, get: () => 520})
+
+        act(() => {
+            window.dispatchEvent(new Event('resize'))
+        })
+
+        expect(within(navigation).queryByRole('button', {name: 'More pages'})).toBeNull()
+        expect(within(navigation).getByRole('link', {name: 'Orders search'})).not.toBeNull()
+    })
+
     it('invalidates a collapsed measurement when rich label content changes', () => {
         const {rerender} = render(
             <PneBreadcrumbs

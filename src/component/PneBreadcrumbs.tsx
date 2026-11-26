@@ -25,6 +25,10 @@ type PneBreadcrumbBaseItem = {
     autoTestId?: string
     /** Accessible/full label for truncated content. Defaults to a primitive label. */
     tooltip?: React.ReactNode
+    /** Stays in the trail when its middle folds into "...": the crumb of the entity the page shows. */
+    keepVisible?: boolean
+    /** Shown right after the crumb, in its place in the trail and outside its link: a related link, a mark. */
+    endAdornment?: React.ReactNode
 }
 
 export type PneBreadcrumbLinkItem = PneBreadcrumbBaseItem & {
@@ -174,7 +178,12 @@ export const PneBreadcrumbs = ({
     const measurementKey = getMeasurementKey(items)
     const isNarrowViewport = useMediaQuery('(max-width:425px)')
 
-    const menuItems = React.useMemo(() => (items.length > 2 ? items.slice(1, -1) : []), [items])
+    // The middle of the trail folds into "..." except the crumbs that keep their place.
+    const menuItems = React.useMemo(
+        () => (items.length > 2 ? items.slice(1, -1).filter(item => !item.keepVisible) : []),
+        [items],
+    )
+    const canFold = menuItems.length > 0
 
     React.useEffect(() => {
         expandedWidthRef.current = 0
@@ -213,10 +222,10 @@ export const PneBreadcrumbs = ({
             ? ownerWindow.innerWidth - Math.max(rootRect.left, 0) - viewportSafetyOffset
             : Number.POSITIVE_INFINITY
         const availableWidth = containerWidth > 0 ? Math.min(containerWidth, viewportWidth) : viewportWidth
-        const shouldCollapse = items.length > 2 && expandedWidth > 0 && expandedWidth > availableWidth
+        const shouldCollapse = canFold && expandedWidth > 0 && expandedWidth > availableWidth
 
         setCollapsed(current => (current === shouldCollapse ? current : shouldCollapse))
-    }, [collapsed, items.length])
+    }, [collapsed, canFold])
 
     React.useEffect(() => {
         const root = rootRef.current
@@ -296,7 +305,7 @@ export const PneBreadcrumbs = ({
         )
     }
 
-    const renderItem = (item: PneBreadcrumbItem, index: number): React.ReactNode => {
+    const renderCrumb = (item: PneBreadcrumbItem, index: number): React.ReactNode => {
         const sxProperties = getItemSx(item, index, items.length)
         const content = renderContent(item, index)
         const autoTestId = getItemAutoTestId(item)
@@ -352,6 +361,27 @@ export const PneBreadcrumbs = ({
             >
                 {content}
             </MuiLink>
+        )
+    }
+
+    const renderItem = (item: PneBreadcrumbItem, index: number): React.ReactNode => {
+        const crumb = renderCrumb(item, index)
+        if (!item.endAdornment && !item.keepVisible) {
+            return crumb
+        }
+
+        // The adornment shares the crumb's place in the trail and stays out of its link; the mark lets a
+        // header measure the trail folded around the crumbs that keep their place.
+        return (
+            <Box
+                key={item.id}
+                component='span'
+                data-pne-breadcrumb-keep={item.keepVisible ? 'true' : undefined}
+                sx={{alignItems: 'center', display: 'flex', gap: '4px', minWidth: 0}}
+            >
+                {crumb}
+                {item.endAdornment}
+            </Box>
         )
     }
 
@@ -413,6 +443,10 @@ export const PneBreadcrumbs = ({
                   >
                       <MoreHorizIcon />
                   </IconButton>,
+                  ...items
+                      .slice(1, -1)
+                      .map((item, offset) => (item.keepVisible ? renderItem(item, offset + 1) : null))
+                      .filter(item => item !== null),
                   renderItem(items[items.length - 1], items.length - 1),
               ]
             : items.map(renderItem)

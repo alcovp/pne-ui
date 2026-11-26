@@ -7,6 +7,7 @@ import PneModal, {type PneModalRootProps} from '../PneModal'
 import {OverlayPortalContainerContext} from './OverlayPortalContainerContext'
 import {PaynetErrorPresentationContext} from './PaynetErrorPresentationContext'
 import type {NormalizedPaynetError, PaynetViolation, PaynetViolationMessageResolver} from './types'
+import {copyTextToClipboard} from '../copyTextToClipboard'
 
 export type PaynetErrorContentProps = {
     error: NormalizedPaynetError
@@ -53,36 +54,6 @@ const createDetailsPreview = (details: string): string => {
             : linePreview
 
     return `${preview.trimEnd()}\n…`
-}
-
-const copyTextToClipboard = async (text: string): Promise<boolean> => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-        try {
-            await navigator.clipboard.writeText(text)
-            return true
-        } catch {
-            // Fall through to the legacy path. Clipboard access can be denied
-            // in embedded or non-secure application contexts.
-        }
-    }
-
-    if (typeof document === 'undefined' || typeof document.execCommand !== 'function') return false
-
-    const textarea = document.createElement('textarea')
-    textarea.value = text
-    textarea.setAttribute('readonly', '')
-    textarea.style.left = '-9999px'
-    textarea.style.position = 'fixed'
-    document.body.appendChild(textarea)
-    textarea.select()
-
-    try {
-        return document.execCommand('copy')
-    } catch {
-        return false
-    } finally {
-        textarea.remove()
-    }
 }
 
 const hasTextSelectionWithin = (element: HTMLElement): boolean => {
