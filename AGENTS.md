@@ -15,6 +15,7 @@ A component is added only when all three hold. If one fails, it stays in the app
 Node comes from `.nvmrc`, Yarn from `packageManager`; use `yarn`, not `npm`.
 
 - `yarn release:check`: the build, every check (lint, Jest, the type checks of the API, contracts, stories and tests) and the package archive. It changes nothing in git or npm. CI runs the same checks as `yarn check`, and `storybook:check --no-pictures`.
+- `yarn format`: Biome lays the code out (`biome.json`); `yarn format:check` is a step of `yarn check`. Biome only formats, ESLint checks. `type-tests/` is not formatted: the line of a `@ts-expect-error` is part of the test.
 - `yarn test <file>`: one test file. There are no jest-dom matchers. SWC only strips the types: `yarn typecheck:tests` checks them.
 - `yarn tsc`: the TypeScript 7 compiler.
 - `yarn storybook:check`: builds Storybook and opens every story in headless Chrome in three views (light, dark, near-black skin); errors and failed play functions fail it. `--baseline origin/master` also lists the stories whose picture changed; `--help` shows the rest.

@@ -2,7 +2,6 @@ import js from '@eslint/js'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
 import globals from 'globals'
 import eslintReact from '@eslint-react/eslint-plugin'
-import stylistic from '@stylistic/eslint-plugin'
 import reactHooksPlugin from 'eslint-plugin-react-hooks'
 import storybookPlugin from 'eslint-plugin-storybook'
 
@@ -15,20 +14,24 @@ const withAttribute = (name, values) =>
 const buttonRules = [
     {
         selector: `${BUTTON}${withAttribute('variant', 'outlined|soft')}${withAttribute('color', 'error|warning|success')}`,
-        message: 'An outlined or soft button has the brand colour only: drop `color`, or use variant="contained" or "text" with it.',
+        message:
+            'An outlined or soft button has the brand colour only: drop `color`, or use variant="contained" or "text" with it.',
     },
     {
         selector: `${BUTTON}${withAttribute('variant', 'contained')}${withAttribute('color', 'success')}`,
-        message: 'There is no filled success button: variant="contained" takes color="error" or "warning"; an activation is variant="text" color="success".',
+        message:
+            'There is no filled success button: variant="contained" takes color="error" or "warning"; an activation is variant="text" color="success".',
     },
     {
         selector: `${BUTTON}${withAttribute('variant', 'text')}${withAttribute('color', 'warning')}`,
-        message: 'There is no text warning button: variant="text" takes color="error" or "success"; a caution is variant="contained" color="warning".',
+        message:
+            'There is no text warning button: variant="text" takes color="error" or "success"; a caution is variant="contained" color="warning".',
     },
     {
         // No `variant` is `text`; a spread may bring the variant, so such a button is left alone.
         selector: `${BUTTON}:not(:has(> JSXAttribute[name.name="variant"])):not(:has(> JSXSpreadAttribute))${withAttribute('color', 'warning')}`,
-        message: 'A button without `variant` is a text button, and there is no text warning button: a caution is variant="contained" color="warning".',
+        message:
+            'A button without `variant` is a text button, and there is no text warning button: a caution is variant="contained" color="warning".',
     },
 ]
 
@@ -36,20 +39,16 @@ const buttonRules = [
 // A dotted path ("text.secondary", "error.main") is accepted by the types and silently ignored.
 const typographyRules = [
     {
-        selector: 'JSXOpeningElement[name.name=/^(Typography|Link|PneLink)$/] > JSXAttribute[name.name="color"]:matches([value.value=/\\./], [value.expression.value=/\\./], [value.expression.type="ConditionalExpression"]:has(Literal[value=/\\./]))',
-        message: 'Typography ignores a dotted palette path in `color`: write a palette name ("textSecondary", "error") or put the colour into `sx`.',
+        selector:
+            'JSXOpeningElement[name.name=/^(Typography|Link|PneLink)$/] > JSXAttribute[name.name="color"]:matches([value.value=/\\./], [value.expression.value=/\\./], [value.expression.type="ConditionalExpression"]:has(Literal[value=/\\./]))',
+        message:
+            'Typography ignores a dotted palette path in `color`: write a palette name ("textSecondary", "error") or put the colour into `sx`.',
     },
 ]
 
 export default [
     {
-        ignores: [
-            'node_modules/**',
-            'cjs/**',
-            'esm/**',
-            'storybook-static/**',
-            '.release/**',
-        ],
+        ignores: ['node_modules/**', 'cjs/**', 'esm/**', 'storybook-static/**', '.release/**'],
     },
     js.configs.recommended,
     ...tsPlugin.configs['flat/recommended'],
@@ -73,28 +72,8 @@ export default [
         },
         plugins: {
             'react-hooks': reactHooksPlugin,
-            '@stylistic': stylistic,
         },
         rules: {
-            indent: [
-                'error',
-                4,
-                {
-                    SwitchCase: 1,
-                },
-            ],
-            'linebreak-style': [
-                'error',
-                'unix',
-            ],
-            '@stylistic/jsx-first-prop-new-line': [
-                'error',
-                'multiline',
-            ],
-            '@stylistic/jsx-closing-bracket-location': [
-                2,
-                'line-aligned',
-            ],
             'no-restricted-syntax': ['error', ...buttonRules, ...typographyRules],
             // The two rules of hooks come from the plugin of the React team, under the names the
             // code already disables them by.
@@ -117,10 +96,6 @@ export default [
             '@typescript-eslint/no-unused-expressions': 'off',
             '@typescript-eslint/no-empty-function': 'off',
             'no-unused-expressions': 'off',
-            'array-bracket-spacing': [
-                'error',
-                'never',
-            ],
         },
     },
     {
@@ -152,7 +127,8 @@ export default [
                     patterns: [
                         {
                             regex: '^(\\.\\./)*\\.\\.?(/index)?$|(^|/)exports(/|$)',
-                            message: 'Import the module that declares the symbol, not a pne-ui barrel: barrels close import cycles.',
+                            message:
+                                'Import the module that declares the symbol, not a pne-ui barrel: barrels close import cycles.',
                         },
                     ],
                 },
