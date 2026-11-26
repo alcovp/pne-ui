@@ -68,6 +68,10 @@ const switchCellSx: SxProps<Theme> = {
     padding: 0,
     textAlign: 'center',
     width: '40px',
+    // In its own cell the switch stands in the middle with its whole hit area, not on a line of fields.
+    '& .MuiSwitch-root': {
+        marginLeft: 0,
+    },
 }
 
 type SwitchInputSlotProps = NonNullable<NonNullable<PneSwitchProps['slotProps']>['input']>

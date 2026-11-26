@@ -46,6 +46,8 @@ describe('PneSwitch (UI Kit look)', () => {
         expect([ruleValue(root, '', 'width'), ruleValue(root, '', 'height')]).toEqual([rootWidth, rootHeight])
         expect([ruleValue(root, '.MuiSwitch-track', 'width'), ruleValue(root, '.MuiSwitch-track', 'height')]).toEqual([trackWidth, trackHeight])
         expect([ruleValue(root, '.MuiSwitch-track', 'left'), ruleValue(root, '.MuiSwitch-track', 'top')]).toEqual([trackLeft, trackTop])
+        // The track starts where the fields of a column do: the hit area before it hangs out of the layout.
+        expect(ruleValue(root, '', 'margin-left')).toBe(`-${trackLeft}`)
         expect([ruleValue(root, '.MuiSwitch-thumb', 'width'), ruleValue(root, '.MuiSwitch-thumb', 'height')]).toEqual([thumb, thumb])
     })
 

@@ -546,6 +546,9 @@ const createSwitchSx = (config: SwitchSizeConfig): SxProps<Theme> => theme => {
     return {
         width: config.rootWidth,
         height: config.rootHeight,
+        // The track stands in the middle of the hit area. In a column of fields the switch starts where the
+        // fields do: the part of the hit area before the track hangs out of the layout.
+        marginLeft: `-${config.trackLeft}px`,
         padding: 0,
         overflow: 'visible',
         '& .MuiSwitch-switchBase': {

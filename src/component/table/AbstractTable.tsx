@@ -10,10 +10,10 @@ import type {Theme} from '@mui/material/styles';
 import type { TablePaginationActionsProps } from '@mui/material/TablePaginationActions';
 import PneTableRow from './PneTableRow';
 import PneTableCell from './PneTableCell';
+import PneEmptyState from '../PneEmptyState';
 import PneTablePagination from './PneTablePagination';
 import PneTablePaginationActions from './PneTablePaginationActions';
 import {TABLE_CONTROL_BAND_SIZE} from './tableControlMetrics';
-import {resolvePneSemanticPalette} from '../../createTheme';
 import {PneTableHeaderVariantContext, type PneTableHeaderVariant} from './tableHeaderVariant';
 import {Order} from "../../common/pne/type";
 import {useTranslation} from "react-i18next";
@@ -554,12 +554,9 @@ const AbstractTable = <D, >(
                                     hover={false}
                                 >
                                     <PneTableCell colSpan={columnCount} sx={emptyStateCellSx}>
-                                        <Box sx={emptyStateSx}>
-                                            <Box aria-hidden='true' component='span' sx={emptyStateSignSx}>
-                                                <EmptyStateGlyph/>
-                                            </Box>
-                                            <span>{noRowsMessage || t('advancedSearch.noRows')}</span>
-                                        </Box>
+                                        <PneEmptyState sx={emptyStateSx}>
+                                            {noRowsMessage || t('advancedSearch.noRows')}
+                                        </PneEmptyState>
                                     </PneTableCell>
                                 </PneTableRow>
                             )}
@@ -573,9 +570,8 @@ const AbstractTable = <D, >(
     </Box>
 }
 
-// UI Kit Empty state, the look only: the message of an empty table stands in the middle under a
-// glyph in a 48px round fill, 14/20 Medium, with 32px over and under it. The table knows no more
-// than its message, so there is no description and no action.
+// The empty state of a table stands in the middle of what is seen of it, with 32px over and under it:
+// a table wider than its container scrolls sideways, and the message stays in view.
 const EMPTY_STATE_PADDING_X = 24
 const EMPTY_STATE_WIDTH_PROPERTY = '--pne-table-empty-state-width'
 
@@ -584,47 +580,9 @@ const emptyStateCellSx: SxProps = {
 }
 
 const emptyStateSx: SxProps<Theme> = {
-    alignItems: 'center',
-    boxSizing: 'border-box',
-    display: 'flex',
-    flexDirection: 'column',
-    fontWeight: 500,
-    gap: '8px',
     left: `${EMPTY_STATE_PADDING_X}px`,
     position: 'sticky',
-    textAlign: 'center',
     width: `var(${EMPTY_STATE_WIDTH_PROPERTY}, 100%)`,
 }
-
-const emptyStateSignSx: SxProps<Theme> = theme => {
-    const empty = resolvePneSemanticPalette(theme).table.empty
-    return {
-        alignItems: 'center',
-        backgroundColor: empty.fill,
-        borderRadius: '50%',
-        color: empty.icon,
-        display: 'flex',
-        height: '48px',
-        justifyContent: 'center',
-        width: '48px',
-    }
-}
-
-// UI Kit IcActionSearch: nothing was found.
-const EmptyStateGlyph = () => (
-    <svg
-        fill='none'
-        height='24'
-        stroke='currentColor'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-        strokeWidth='1.5'
-        viewBox='0 0 24 24'
-        width='24'
-    >
-        <circle cx='11' cy='11' r='7'/>
-        <path d='M16.5 16.5 20 20'/>
-    </svg>
-)
 
 export default AbstractTable;

@@ -1,4 +1,6 @@
 export { default as PneTable } from '../component/table/PneTable'
+export { default as PneEmptyState } from '../component/PneEmptyState'
+export type { PneEmptyStateProps } from '../component/PneEmptyState'
 export {
     PneTableViewSelector,
     type PneTableViewOption,
