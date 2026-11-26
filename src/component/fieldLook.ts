@@ -59,10 +59,12 @@ const sizeRules = (size: PneFieldSize): Rules => {
         [`${root} .MuiInputAdornment-positionStart`]: {marginRight: `${config.gap}px`, marginTop: 0},
         [`${root} .MuiInputAdornment-positionEnd`]: {marginLeft: `${config.gap}px`},
         [`${root} .MuiInputAdornment-root, ${root} .MuiInputAdornment-root .MuiTypography-root`]: text,
-        // UI Kit Field/Textarea: the same paddings at every size, the text of the size.
+        // UI Kit Field/Textarea, drawn at 32px: the first line as high as the value of the one-line field, the
+        // text as far from the left edge, 4px at the other sides. A textarea of another size takes the paddings of
+        // its own one-line field, so its first line and its text stand where the fields and labels around it do.
         [`${root} .MuiInputBase-multiline`]: {
             alignItems: 'flex-start',
-            padding: MULTILINE_PADDING,
+            padding: `${paddingBlock}px ${MULTILINE_PADDING_END}px ${MULTILINE_PADDING_END}px ${config.paddingInline}px`,
         },
         [`${root} .MuiInputBase-multiline .MuiInputBase-input`]: {
             height: 'auto',
@@ -75,7 +77,7 @@ const sizeRules = (size: PneFieldSize): Rules => {
         },
         // Rows the consumer did not set: the UI Kit box, 88px high.
         [`${root}[data-pne-resize="default"] .MuiInputBase-multiline .MuiInputBase-input`]: {
-            height: `${MULTILINE_DEFAULT_HEIGHT}px`,
+            height: `${MULTILINE_BOX_HEIGHT - paddingBlock - MULTILINE_PADDING_END}px`,
         },
         // The value of a select is one line as high as the box, for the same reason: no fraction of a
         // device pixel is dropped for a padding and again for the leading of the line.
@@ -96,9 +98,8 @@ const sizeRules = (size: PneFieldSize): Rules => {
 }
 
 const CHEVRON_SIZE = 14
-const MULTILINE_PADDING = '6px 4px 4px 8px'
-// 88px of the box less its paddings.
-const MULTILINE_DEFAULT_HEIGHT = 78
+const MULTILINE_PADDING_END = 4
+const MULTILINE_BOX_HEIGHT = 88
 
 /**
  * The UI Kit field look on MUI's outlined and filled inputs under the root it is set on (PneTextField,

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import {act, fireEvent, render, screen} from '@testing-library/react'
+import {FormControlLabel, Stack, Typography} from '@mui/material'
 
 import {PneSwitch, PneThemeProvider, type Skin} from '../src'
 
@@ -75,13 +76,50 @@ describe('PneSwitch (UI Kit look)', () => {
                 trackTop,
             ])
             // The track starts where the fields of a column do: the hit area before it hangs out of the layout.
-            expect(ruleValue(root, '', 'margin-left')).toBe(`-${trackLeft}`)
+            expect(ruleValue(root, ':where(:first-child)', 'margin-left')).toBe(`-${trackLeft}`)
             expect([
                 ruleValue(root, '.MuiSwitch-thumb', 'width'),
                 ruleValue(root, '.MuiSwitch-thumb', 'height'),
             ]).toEqual([thumb, thumb])
         },
     )
+
+    it('steps back to the line of the fields only where it opens its line', () => {
+        const view = render(
+            <PneThemeProvider skin={UI_KIT_SKIN}>
+                <div data-testid='alone'>
+                    <PneSwitch aria-label='Alone' />
+                </div>
+                <Stack data-testid='between' direction='row' sx={{gap: 2}}>
+                    <Typography>all</Typography>
+                    <PneSwitch aria-label='Between' />
+                    <Typography>enabled</Typography>
+                </Stack>
+                <Stack data-testid='spaced' direction='row' spacing={2}>
+                    <Typography>Title</Typography>
+                    <PneSwitch aria-label='Spaced' />
+                </Stack>
+                <FormControlLabel
+                    data-testid='label-first'
+                    control={<PneSwitch aria-label='Label first' />}
+                    label='Default'
+                    labelPlacement='start'
+                />
+            </PneThemeProvider>,
+        )
+        // An unset margin reads as an empty string in jsdom.
+        const marginOf = (testId: string) =>
+            parseFloat(
+                window.getComputedStyle(view.getByTestId(testId).querySelector('.MuiSwitch-root')!).marginLeft || '0',
+            )
+
+        expect(marginOf('alone')).toBe(-13)
+        // After the text of its row and after a label placed before it the gap of the row stays.
+        expect(marginOf('between')).toBe(0)
+        // The margin a Stack gives the items after its first one stays.
+        expect(marginOf('spaced')).toBe(16)
+        expect(marginOf('label-first')).toBe(0)
+    })
 
     it('draws the off value as a white knob on a neutral track and the on value on the brand fill, with no ring and no shadow', () => {
         const {root} = renderSwitch(<PneSwitch aria-label='Values' />)

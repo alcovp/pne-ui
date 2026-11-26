@@ -187,6 +187,26 @@ describe('PneTextField (UI Kit look)', () => {
         )
     })
 
+    it.each([
+        ['small', '4px 4px 4px 8px', '80px'],
+        ['large', '10px 4px 4px 12px', '74px'],
+    ] as const)(
+        'gives a %s multiline field the paddings of its one-line field and keeps the 88px box',
+        (size, padding, height) => {
+            const {root} = renderField(<PneTextField aria-label='Comment' multiline size={size} />)
+            const sized = `&[data-pne-size="${size}"]`
+
+            expect(ruleValue(root, `${sized} .MuiInputBase-multiline`, 'padding')).toBe(padding)
+            expect(
+                ruleValue(
+                    root,
+                    `${sized}[data-pne-resize="default"] .MuiInputBase-multiline .MuiInputBase-input`,
+                    'height',
+                ),
+            ).toBe(height)
+        },
+    )
+
     it('keeps the rows a consumer sets, and lets a box with minRows or maxRows grow with its text', () => {
         const fixed = renderField(<PneTextField aria-label='Comment' multiline rows={5} />)
         expect(fixed.root.getAttribute('data-pne-resize')).toBe('rows')

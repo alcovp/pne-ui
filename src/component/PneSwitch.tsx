@@ -562,9 +562,12 @@ const createSwitchSx =
         return {
             width: config.rootWidth,
             height: config.rootHeight,
-            // The track stands in the middle of the hit area. In a column of fields the switch starts where the
-            // fields do: the part of the hit area before the track hangs out of the layout.
-            marginLeft: `-${config.trackLeft}px`,
+            // The track stands in the middle of the hit area. A switch that opens its line starts where the fields of
+            // the column do: the part of the hit area before the track hangs out of the layout. After a text of its
+            // row («all [switch] enabled») the switch keeps the gap the row gives it, and so does one placed after
+            // its label. `:where` keeps the weight of one class: a cell or a row that sets the margin still wins.
+            '&:where(:first-child)': {marginLeft: `-${config.trackLeft}px`},
+            '.MuiFormControlLabel-labelPlacementStart > &': {marginLeft: 0},
             padding: 0,
             overflow: 'visible',
             '& .MuiSwitch-switchBase': {
