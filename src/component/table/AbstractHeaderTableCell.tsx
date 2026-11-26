@@ -30,6 +30,11 @@ const mainHeaderCellSx: SxProps<Theme> = {
     color: (theme: Theme) => resolvePneSemanticPalette(theme).table.header.text,
     padding: '10px 12px 9px',
     borderBottom: (theme: Theme) => `1px solid ${resolvePneSemanticPalette(theme).table.line}`,
+    // MUI fills a sticky header cell with the page background, a grey band over a table that stands on a
+    // surface. The header that stays while the rows scroll looks as every header does: on the surface.
+    '&.MuiTableCell-stickyHeader': {
+        backgroundColor: (theme: Theme) => theme.palette.background.paper,
+    },
 }
 
 // UI Kit Cell/Header-island: a 24px strip on the sunken fill with 12/16 Medium text and no line
