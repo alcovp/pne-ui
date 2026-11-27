@@ -114,6 +114,16 @@ zod-схемами, нужны свои схемы. `dayjs` берётся у п
 `PneBuiltInAutocompleteOption`, страницу и сортировку, которые SearchUI передаёт в поиск, — сам `SearchParams`
 (`startNum`, `rowCount`, `orderBy`, `sortOrder`). Остальные типы экспортируются по-прежнему.
 
+С 5.0 удалено то, чем приложения не пользовались:
+
+- компоненты `PneFloatingActionButtons` и `PermanentOverlay` вместе с их типами;
+- `maxSnack` у `OverlayHost` — на экране всегда не больше 10 уведомлений;
+- `conflictingCriteriaGroups` в настройках `SearchUIFilters` и `onValidationChange` у `SearchUI` (у
+  `SearchUIFilters` он остался);
+- `defaultOpen`, `keepPreviousOptions` и `onLoadError` у `PneAsyncAutocomplete`, тип
+  `PneAsyncAutocompleteLoadErrorContext`;
+- `formControlProps`, `formGroupProps` и `helperTextProps` у `PneLabeledCheckbox`.
+
 Из списка допустимых элементов `AbstractEntitySelector` убран тип платёжного аппарата хоста. Селектор
 по-прежнему берёт любой объект с `id` и `name` (тип `AbstractEntitySelectorNamedItem`) или с `id` и
 `displayName`; остальные поля объекта возвращаются в `onChange` как были.
@@ -379,8 +389,7 @@ import {IconButton} from '@mui/material'
 несколько соседних controls. `PneField` не принимает ID произвольной layout-обёртки за ID самого control.
 
 Подпись стоит над control (UI Kit Field, Label position Top): 12/16 Medium, в ошибке цвет не меняется — краснеет
-helper text, у `disabled` подпись бледная. `labelPosition="left"` ставит подпись слева в колонку 160 px, по
-центру control, 14/20 цветом значения; helper text остаётся под control.
+helper text, у `disabled` подпись бледная.
 
 `id` принадлежит root `FormControl` и служит namespace для сгенерированных ID. `controlId` принадлежит самому
 интерактивному control и используется в `label[for]`; эти ID должны различаться. Указанный на child `id` не
@@ -506,7 +515,6 @@ const { ref, ...field } = controllerField
 | `PneDateTimePicker` | дату и время | `DateTimePicker` | `DD.MM.YYYY HH:mm` |
 | `PneTimePicker` | время | `TimePicker` | `HH:mm` |
 | `PneDateRangePicker` | период | `DateRangePicker` (Pro) | `DD.MM.YYYY` |
-| `PneDateTimeRangePicker` | период со временем | `DateTimeRangePicker` (Pro) | `DD.MM.YYYY HH:mm` |
 
 ```tsx
 import dayjs, {type Dayjs} from 'dayjs'
@@ -621,13 +629,11 @@ Neutral/50 с кольцом Neutral/400; при наведении кольцо
 
 ## PneLabeledCheckbox
 
-`PneLabeledCheckbox` добавляет локальные `label`, `helperText` и `error`, генерирует ID helper text, сохраняет
-явный `helperTextProps.id` и объединяет все `aria-describedby`.
+`PneLabeledCheckbox` добавляет локальные `label`, `helperText` и `error`, генерирует ID helper text и объединяет
+все `aria-describedby`.
 
 Вид `PneLabeledCheckbox` — UI Kit Checkboxes/Set: подпись 14/20 в 8 px от флажка и на одной линии с ним,
-пояснение 12/16 под подписью, в ошибке пояснение красное. `variant="card"` рисует флажок
-карточкой для нескольких крупных вариантов: серая карточка, при выборе — подложка и кольцо цвета бренда,
-клик в любом месте карточки переключает флажок. Цвета — `theme.palette.pne.checkbox.text` и `.card`.
+пояснение 12/16 под подписью, в ошибке пояснение красное. Цвета — `theme.palette.pne.checkbox.text`.
 
 ## Шрифты
 
@@ -951,8 +957,8 @@ type Region = {code: string; title: string; disabled: boolean}
 `PneAsyncAutocomplete` — красным, со значком предупреждения. Размеры по `size`, как у поля: строка списка
 24/32/40 px с текстом поля, флажок 14/16/20 px, служебная строка высотой в две обычные, в списке восемь строк и
 дальше прокрутка; бейджи значений на 8 px ниже поля (16/24/32 px) с 4 px вокруг; кнопки шеврона и крестика 16 px
-у `small` и 20 px у остальных. У `PneAsyncAutocomplete` спиннер загрузки крутится в строке «загрузка» списка; в
-поле он остаётся, только пока список при `keepPreviousOptions` показывает прежние варианты. Свои `popupIcon`, `clearIcon`, значок
+у `small` и 20 px у остальных. У `PneAsyncAutocomplete` спиннер загрузки крутится в строке «загрузка» списка, не в
+поле. Свои `popupIcon`, `clearIcon`, значок
 удаления в `slotProps.chip` и `sx` в `slotProps.paper` по-прежнему можно передать. Цвета — `theme.palette.pne.dropdown`.
 
 ## PneAsyncAutocomplete
@@ -967,7 +973,6 @@ plain query и контекст запроса:
     loadOptions={(query, {signal}) => api.searchMerchants({query, signal})}
     reloadKey={manager?.id}
     minQueryLength={2}
-    onLoadError={(error, {query, reason}) => reportAutocompleteError(error, query, reason)}
     label="Merchant"
 />
 ```
@@ -984,9 +989,9 @@ type PneLoadOptions<T> = (
 
 Новый запрос отменяет предыдущий через `AbortSignal` и дополнительно защищён request ID на случай, если loader
 игнорирует signal. Закрытие и unmount также отменяют активный запрос. Sync throw и rejected Promise переходят в
-одно error-состояние; `AbortError` не вызывает `onLoadError`. `loadErrorText`, `minQueryLengthText`, MUI
+одно error-состояние; `AbortError` ошибкой не считается. `loadErrorText`, `minQueryLengthText`, MUI
 `loadingText` и `noOptionsText` разделяют error/min-query/loading/empty состояния и объявляются assistive
-technology. `keepPreviousOptions` по умолчанию выключен.
+technology. На время новой загрузки прежние варианты из списка убираются.
 
 `open` и `inputValue` поддерживают controlled и uncontrolled режимы с исходными MUI callbacks/reasons.
 Изменение identity `loadOptions` не перезапускает открытый поиск: для реальной зависимости результата от
@@ -2228,11 +2233,9 @@ export const App = () => (
 ### Пропсы `OverlayHost`
 
 - `anchorOrigin` — угол стопки уведомлений, по умолчанию слева внизу; уведомление может задать свой;
-- `maxSnack` — не больше стольких уведомлений сразу (по умолчанию 10): при переполнении самые старые удаляются,
-  а не остаются скрытой очередью;
 - `leftOffset` — отступ левой стопки от края экрана, по умолчанию 24 px; рядом с левым меню Paynet передайте
   `PAYNET_LEFT_MENU_OVERLAY_OFFSET` (16 px, от 1080 px — 64, от 1600 px — 272);
-- `container` — куда рисовать стопки, постоянные оверлеи и панель операций: по умолчанию одним React portal в
+- `container` — куда рисовать стопки и панель операций: по умолчанию одним React portal в
   `document.body`, без обёртки в DOM приложения; можно передать `Element` или функцию, `null` рисует на месте.
   Слой берётся из `theme.zIndex.snackbar` / `theme.zIndex.modal`;
 - `operationCenter` — панель фоновых операций, см. `PneOperationCenter` ниже;
@@ -2242,6 +2245,8 @@ export const App = () => (
 
 - Для уведомлений используйте `overlayActions.showSuccess/showError/showWarning/showInfo`, `showSnackbar` или
   `showUndoSnackbar`; `removeSnackbar(id)` убирает одно уведомление, `clearSnackbars()` — все.
+- На экране не больше 10 уведомлений сразу: при переполнении самые старые удаляются, а не остаются скрытой
+  очередью.
 - `showError` принимает как готовый UI-текст (`{ message }`), так и исходную Paynet/transport ошибку (`{ error }`). Во втором случае библиотека сама разворачивает Paynet v1, Axios/Fetch/Blob payload, переводит `messageId`, показывает `errorId`, `errorI18N` и доступный пользователю `details`.
 - `showUndoSnackbar` возвращает `id` snackbar и добавляет встроенную action-кнопку `Undo` (или ваш `undoLabel`).
 - Уведомление без `autoHideMs` закрывается само через 5000 мс; ошибка (`showError`, `variant: 'error'`)
@@ -2269,46 +2274,6 @@ export const App = () => (
 стоит на страницах: бледная заливка тона в кольце его цвета, отступы 12/16, знак тона 20 px слева, крестик
 24 px. Уведомление добавляет к нему только своё: ширину стопки, тень тоста поверх кольца и полосу таймера;
 действие потребителя встаёт под текстом. Цвета — `theme.palette.pne.toast`, одинаковые для всех скинов.
-
-### Постоянные оверлеи: `PermanentOverlay`
-
-`OverlayHost` рендерит snackbars из `overlayActions` и принимает декларативные постоянные оверлеи через `PermanentOverlay`
-(по одному на слот: `top-left/top-right/bottom-left/bottom-right`).
-```tsx
-import React from 'react'
-import { OverlayHost, PermanentOverlay, PneFloatingActionButtons, overlayActions } from 'pne-ui'
-
-const AppShell = () => (
-    <OverlayHost>
-        <PermanentOverlay
-            id='page-fab'
-            slot='bottom-right'
-            render={() => (
-                <PneFloatingActionButtons
-                    actions={[
-                        {
-                            id: 'save',
-                            label: 'Save',
-                            onClick: () => overlayActions.showSuccess({ message: 'Saved!' }),
-                        },
-                        { id: 'divider', kind: 'divider' },
-                        {
-                            id: 'info',
-                            label: 'Info',
-                            onClick: () => overlayActions.showInfo({ message: 'Something happened' }),
-                        },
-                    ]}
-                />
-            )}
-        />
-        {/* ваш layout, роутер, модалки и т.д. */}
-    </OverlayHost>
-)
-```
-
-- `PermanentOverlay` можно размещать на любом уровне дерева под хостом; последний зарегистрированный в слоте заменяет предыдущий.
-- Слоты фиксированы четырьмя углами; сместить позицию можно через `offset`/`zIndex` пропы на `PermanentOverlay`.
-- По умолчанию слот — `bottom-right`, отступ от краёв 24 px; `render` получает `{breakpoint}`.
 
 ### Панель фоновых операций: `PneOperationCenter`
 
@@ -2718,9 +2683,8 @@ export const TransactionReportFiltersExample = ({
 `OverlayHost` должен быть смонтирован в приложении-хосте.
 
 У высокоуровневого `SearchUI` используются те же `possibleCriteria`,
-`predefinedCriteria`, `initialSearchConditions`, `config` и
-`onValidationChange`; результат для бэкенда передаётся в `searchData` как часть
-`SearchParams`.
+`predefinedCriteria`, `initialSearchConditions` и `config`; результат для бэкенда
+передаётся в `searchData` как часть `SearchParams`.
 
 Выбор в `initialSearchConditions.multigetCriteria` подразумевает свой критерий: он
 активен с первой загрузки и возвращается по «Default». Критерий из `possibleCriteria`
@@ -3231,54 +3195,6 @@ const OwnChip = ({children}: {children: React.ReactNode}) => {
 
 `data-pne-state` на компонентах (`hover`, `pressed`, `focus`, `loading`) закрепляет состояние для образцов
 Storybook; в коде продукта атрибут не задаётся.
-
-## PneFloatingActionButtons
-
-Плавающее меню действий: на десктопе показывает стек FAB над триггером и параллельно меню, на мобильных все
-пункты уходят в меню. Поддерживает экшены, произвольные блоки контента и разделители. По умолчанию мобильным
-считается экран уже 800 px (`mobileBreakpoint`). Когда страница прокручена, над стеком появляется кнопка
-«Scroll to top» (ключ `pne.fab.scrollToTop`).
-
-Ключевые пропы:
-- `actions: PneFabItem[]` — действие `{ id, label, onClick, icon?, disabled?, tooltip?, showInMenu?,
-  showInFabStack? }`, разделитель `{ id, kind: 'divider' }`, произвольный блок `{ id, kind: 'content', node }`.
-  По умолчанию действие стоит и в меню, и в стеке; `showInMenu: false` или `showInFabStack: false` убирает его
-  из одного из них.
-- `mobileBreakpoint` (по умолчанию `800`) — экран уже этой ширины показывает только меню. Значение должно
-  совпадать с одним из шагов `breakpoints` (по умолчанию `360, 640, 800, 1024, 1600, 2500`); промежуточное
-  значение действует как следующий шаг.
-- `breakpoints` — шаги ширины для `mobileBreakpoint`.
-- `position` (`{ bottom?: number; right?: number }`) — смещение от края.
-- `fabLabel` — подсказка и доступное имя триггера (по умолчанию «Actions», ключ `pne.fab.actions`), `fabIcon` —
-  его значок.
-- `bannerText` — необязательный блок внизу меню.
-
-Минимальный пример:
-
-```tsx
-import { PneFloatingActionButtons, overlayActions } from 'pne-ui'
-
-const actions = [
-    { id: 'refresh', label: 'Refresh data', onClick: () => overlayActions.showInfo({ message: 'Refreshed' }) },
-    { id: 'save', label: 'Save', onClick: () => overlayActions.showSuccess({ message: 'Saved' }) },
-    { id: 'divider', kind: 'divider' as const },
-    { id: 'custom', kind: 'content' as const, node: <div style={{ padding: 8 }}>Any JSX here</div> },
-]
-
-export const FabDemo = () => (
-    <PneFloatingActionButtons
-        actions={actions}
-        fabLabel='Actions'
-        bannerText='Page actions'
-        position={{ bottom: 24, right: 24 }}
-        mobileBreakpoint={1024} // мобильный вид до 1024 px
-    />
-)
-```
-
-Поведение по размерам:
-- Ширина ≥ `mobileBreakpoint`: стек FAB над триггером и меню.
-- Ширина < `mobileBreakpoint`: только триггер и меню, стек FAB скрыт.
 
 ## Публикация пакета
 

@@ -100,14 +100,13 @@ export const States: Story = {
                         <PneField label='Account'>
                             <PneAsyncAutocomplete<Account>
                                 data-pne-state='focus'
-                                defaultOpen
                                 loadErrorText='Не удалось загрузить список'
                                 loadOptions={column.loadOptions}
                                 loadingText='Загрузка…'
                                 minQueryLength={column.minQueryLength}
                                 minQueryLengthText={minimum => `Введите ещё символы для поиска (от ${minimum})`}
                                 noOptionsText='Ничего не найдено'
-                                onLoadError={() => undefined}
+                                open
                                 placeholder='Начните вводить'
                             />
                         </PneField>
@@ -201,7 +200,6 @@ const PlaygroundDemo = ({controlled, delay, fail, minQueryLength}: PlaygroundArg
                 onChange={(_event, next) => setValue(next)}
                 onClose={controlled ? () => setOpen(false) : undefined}
                 onInputChange={controlled ? (_event, next) => setInputValue(next) : undefined}
-                onLoadError={() => undefined}
                 onOpen={controlled ? () => setOpen(true) : undefined}
                 open={controlled ? open : undefined}
                 reloadKey={`${delay}:${fail}`}

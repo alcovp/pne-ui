@@ -98,10 +98,6 @@ export type TransactionTypesCriterionConfig = {
  */
 export type SearchUIFiltersConfig = {
     /**
-     * Группы критериев, которые не могут быть активны одновременно.
-     */
-    conflictingCriteriaGroups?: CriterionTypeEnum[][]
-    /**
      * Правила доступности критериев, зависящие от текущего состояния фильтров.
      * Недоступный критерий удаляется из активных критериев и не отображается в списке добавления.
      * Если недоступный критерий снова становится доступным и входит в predefinedCriteria, он возвращается автоматически.
@@ -657,7 +653,6 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
     const loadTemplates = useSearchUIFiltersStore(s => s.loadTemplates)
     const criteria = useSearchUIFiltersStore(s => s.criteria)
     const addCriterion = useSearchUIFiltersStore(s => s.addCriterion)
-    const conflictingCriteriaGroups = useSearchUIFiltersStore(s => s.config?.conflictingCriteriaGroups)
     const hideTemplatesSelect = useSearchUIFiltersStore(s => s.config?.hideTemplatesSelect)
     const hideShowFiltersButton = useSearchUIFiltersStore(s => s.config?.hideShowFiltersButton)
     const hideRefreshButton = useSearchUIFiltersStore(s => s.config?.hideRefreshButton)
@@ -813,15 +808,7 @@ const InitializedSearchUIFiltersContent = (props: InitializedSearchUIFiltersCont
                     return false
                 }
 
-                if (criteria.includes(candidate)) {
-                    return true
-                }
-
-                return !conflictingCriteriaGroups?.some(
-                    group =>
-                        group.includes(candidate) &&
-                        group.some(conflictingCriterion => criteria.includes(conflictingCriterion)),
-                )
+                return true
             })
         })
     const allCriteriaAdded = criteriaOptions.length === 0

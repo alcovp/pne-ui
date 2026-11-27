@@ -1137,7 +1137,6 @@ describe('PneLabeledCheckbox', () => {
                     aria-describedby='external-help'
                     error
                     helperText='Choose carefully'
-                    helperTextProps={{id: 'selection-helper'}}
                     label='Select all'
                     slotProps={{
                         input: {
@@ -1151,8 +1150,8 @@ describe('PneLabeledCheckbox', () => {
         const input = screen.getByRole('checkbox', {name: 'Select all'}) as HTMLInputElement
         const helper = screen.getByText('Choose carefully')
 
-        expect(helper.id).toBe('selection-helper')
-        expect(getDescriptionIds(input)).toEqual(['external-help', 'selection-helper', 'slot-help'])
+        expect(helper.id).not.toBe('')
+        expect(getDescriptionIds(input)).toEqual(['external-help', helper.id, 'slot-help'])
         expect(input.getAttribute('aria-invalid')).toBe('true')
     })
 
@@ -1205,7 +1204,6 @@ describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
         )
 
         const container = containerOf('Include declined')
-        expect(container.getAttribute('data-pne-variant')).toBe('plain')
         expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'font-size')).toBe('14px')
         expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'line-height')).toBe('20px')
         expect(containerRuleValue(container, '.MuiFormControlLabel-label', 'color')).toBe('#2C3136')
@@ -1219,68 +1217,10 @@ describe('PneLabeledCheckbox (UI Kit Checkboxes/Set)', () => {
     })
 
     it('keeps the description out of the name of the checkbox', () => {
-        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' variant='card' />)
+        render(<PneLabeledCheckbox helperText='Adds about 4k rows' label='Include declined' />)
 
         expect(screen.getByRole('checkbox', {name: 'Include declined'})).not.toBeNull()
         expect(screen.getByLabelText('Include declined')).not.toBeNull()
-    })
-
-    it('draws the card as a tinted, ringed frame when picked and marks its state on the container', () => {
-        render(
-            <PneThemeProvider skin={{experimentalColor: '#026fd7'} as Skin}>
-                <PneLabeledCheckbox label='Off' variant='card' />
-                <PneLabeledCheckbox defaultChecked label='On' variant='card' />
-                <PneLabeledCheckbox indeterminate label='Mixed' variant='card' />
-                <PneLabeledCheckbox checked disabled label='Disabled' onChange={() => undefined} variant='card' />
-                <PneLabeledCheckbox checked label='Read only' onChange={() => undefined} readOnly variant='card' />
-                <PneLabeledCheckbox error label='Invalid' variant='card' />
-            </PneThemeProvider>,
-        )
-
-        const off = containerOf('Off')
-        expect(off.getAttribute('data-pne-variant')).toBe('card')
-        expect(off.hasAttribute('data-pne-checked')).toBe(false)
-        expect(containerOf('On').getAttribute('data-pne-checked')).toBe('true')
-        expect(containerOf('Mixed').getAttribute('data-pne-checked')).toBe('true')
-        expect(containerOf('Disabled').getAttribute('data-pne-disabled')).toBe('true')
-        expect(containerOf('Read only').getAttribute('data-pne-readonly')).toBe('true')
-        expect(containerOf('Invalid').getAttribute('data-pne-error')).toBe('true')
-
-        expect(containerRuleValue(off, '', 'background-color')).toBe('#F0F4F8')
-        expect(containerRuleValue(off, '', 'border-radius')).toBe('8px')
-        expect(containerRuleValue(off, '', 'padding')).toBe('6px')
-        // The hover rule is a selector list; its last member is the pinned specimen state.
-        expect(containerRuleValue(off, '[data-pne-state="hover"]', 'box-shadow')).toBe('inset 0 0 0 1px #E2E9F0')
-        expect(containerRuleValue(off, '[data-pne-checked]', 'background-color')).toBe('#EBF3FF')
-        expect(containerRuleValue(off, '[data-pne-checked]', 'box-shadow')).toBe('inset 0 0 0 1px #026FD7')
-        expect(containerRuleValue(off, '[data-pne-readonly]', 'box-shadow')).toBe('none')
-        expect(containerRuleValue(off, '[data-pne-disabled]', 'background-color')).toBe('#F0F4F8')
-        expect(containerRuleValue(off, '[data-pne-error]', 'box-shadow')).toBe('inset 0 0 0 1px #CC2538')
-        // The card is the click target, so the box gives up its own hit area.
-        expect(containerRuleValue(off, '.MuiCheckbox-root', 'padding')).toBe('0px')
-    })
-
-    it('follows the value of an uncontrolled card and toggles it by a click on the card or its description', () => {
-        const onChange = jest.fn()
-        render(
-            <PneLabeledCheckbox helperText='Visa, Mastercard' label='Bank cards' onChange={onChange} variant='card' />,
-        )
-
-        const input = screen.getByRole('checkbox', {name: 'Bank cards'}) as HTMLInputElement
-        const container = containerOf('Bank cards')
-
-        fireEvent.click(screen.getByText('Visa, Mastercard'))
-        expect(input.checked).toBe(true)
-        expect(container.getAttribute('data-pne-checked')).toBe('true')
-        expect(onChange).toHaveBeenCalledTimes(1)
-
-        fireEvent.click(container)
-        expect(input.checked).toBe(false)
-        expect(container.hasAttribute('data-pne-checked')).toBe(false)
-
-        fireEvent.click(screen.getByText('Bank cards'))
-        expect(input.checked).toBe(true)
-        expect(onChange).toHaveBeenCalledTimes(3)
     })
 
     it('leaves a click on the description of a plain checkbox alone', () => {

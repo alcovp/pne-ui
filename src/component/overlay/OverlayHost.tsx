@@ -2,13 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react'
 import {Box, Collapse, Portal, Snackbar, type SnackbarOrigin, useMediaQuery} from '@mui/material'
 import {useBreakpoint} from '../responsive/useBreakpoint'
 import {useOverlayStore} from './overlayStore'
-import type {
-    PaynetViolationMessageResolver,
-    PermanentOverlayInstance,
-    PermanentOverlaySlot,
-    SnackbarOptions,
-} from './types'
-import {PermanentOverlayContext} from './PermanentOverlayContext'
+import type {PaynetViolationMessageResolver, SnackbarOptions} from './types'
 import {OverlayPortalContainerContext} from './OverlayPortalContainerContext'
 import {PaynetErrorPresentationContext} from './PaynetErrorPresentationContext'
 import {registerOverlayHost} from './overlayRuntime'
@@ -43,7 +37,6 @@ export const PAYNET_LEFT_MENU_OVERLAY_OFFSET = {
 
 export type OverlayHostProps = {
     anchorOrigin?: SnackbarOrigin
-    maxSnack?: number
     /**
      * Final viewport coordinate for left-anchored snackbar stacks.
      * Defaults to 24px. Use `PAYNET_LEFT_MENU_OVERLAY_OFFSET` when the
@@ -52,7 +45,7 @@ export type OverlayHostProps = {
      */
     leftOffset?: number | OverlayHostResponsiveOffset
     /**
-     * Portal target for snackbar stacks, permanent overlays, and the operation center. Defaults to `document.body`.
+     * Portal target for snackbar stacks and the operation center. Defaults to `document.body`.
      * Pass `null` to render overlays in place (for example, in a non-DOM harness).
      */
     container?: OverlayPortalContainer | (() => OverlayPortalContainer | null) | null
@@ -92,13 +85,13 @@ type PresentedSnackbar = {
 
 type HorizontalCollision = boolean | null
 
-const STACK_GAP = 12
 // UI Kit OverlayHost: 8px between notifications.
 const NOTIFICATION_GAP = 8
 const STACK_OFFSET = 24
+// At most this many notifications stay on the screen: the oldest leave the store, they are not queued.
+const MAX_SNACKBARS = 10
 const OPERATION_CENTER_OFFSET = 16
 const STACK_REFLOW_DURATION_MS = 200
-const PERMANENT_OFFSET = 24
 const useOverlayLayoutEffect = typeof window === 'undefined' ? React.useEffect : React.useLayoutEffect
 
 const useHorizontalCollision = (
@@ -409,64 +402,12 @@ const MeasuredSnackbarStack = ({
     )
 }
 
-type MeasuredPermanentOverlayProps = {
-    breakpoint: number
-    content: React.ReactNode
-    entry: PermanentOverlayInstance
-    operationCenterElement: HTMLDivElement | null
-    operationCenterHeight: number
-}
-
-const MeasuredPermanentOverlay = ({
-    breakpoint,
-    content,
-    entry,
-    operationCenterElement,
-    operationCenterHeight,
-}: MeasuredPermanentOverlayProps) => {
-    const [element, setElement] = useState<HTMLDivElement | null>(null)
-    const offset = entry.offset ?? PERMANENT_OFFSET
-    const horizontalCollision = useHorizontalCollision(element, operationCenterElement, offset, breakpoint)
-    const vertical = entry.slot.startsWith('top') ? 'top' : 'bottom'
-    const horizontal = entry.slot.endsWith('left') ? 'left' : 'right'
-    const fallbackCollision = breakpoint < 800 || horizontal === 'right'
-    const reservesOperationBottom =
-        vertical === 'bottom' && operationCenterHeight > 0 && (horizontalCollision ?? fallbackCollision)
-    const verticalOffset = reservesOperationBottom
-        ? operationCenterHeight + Math.max(offset, OPERATION_CENTER_OFFSET) + STACK_GAP
-        : offset
-
-    return (
-        <Box
-            data-pne-overlay-slot={entry.slot}
-            ref={setElement}
-            sx={{
-                position: 'fixed',
-                zIndex: entry.zIndex ?? (theme => theme.zIndex.modal),
-                [vertical]: verticalOffset,
-                [horizontal]: offset,
-                ...(reservesOperationBottom
-                    ? {
-                          '@supports (bottom: env(safe-area-inset-bottom))': {
-                              bottom: `calc(${verticalOffset}px + env(safe-area-inset-bottom, 0px))`,
-                          },
-                      }
-                    : {}),
-            }}
-        >
-            {content}
-        </Box>
-    )
-}
-
 /**
  * Renders shared snackbars and host-supplied presentation layers.
  * Mount this once near the root of the app and trigger notifications via `overlayActions`.
- * Permanent overlays are registered declaratively via `<PermanentOverlay />` components.
  */
 export function OverlayHost({
     anchorOrigin = {vertical: 'bottom', horizontal: 'left'},
-    maxSnack = 10,
     leftOffset = STACK_OFFSET,
     container,
     operationCenter,
@@ -482,56 +423,22 @@ export function OverlayHost({
     const [operationCenterHeight, setOperationCenterHeight] = useState(0)
     const hasOperationCenter = operationCenter != null
 
-    const [permanentOverlays, setPermanentOverlays] = useState<Map<PermanentOverlaySlot, PermanentOverlayInstance>>(
-        () => new Map(),
-    )
-
-    const registerPermanentOverlay = useCallback((overlay: PermanentOverlayInstance) => {
-        setPermanentOverlays(prev => {
-            const next = new Map(prev)
-            next.set(overlay.slot, overlay)
-            return next
-        })
-    }, [])
-
-    const unregisterPermanentOverlay = useCallback((id: string, slot?: PermanentOverlaySlot) => {
-        setPermanentOverlays(prev => {
-            const next = new Map(prev)
-            if (slot) {
-                const current = next.get(slot)
-                if (current?.id === id) next.delete(slot)
-            } else {
-                for (const [key, value] of next.entries()) {
-                    if (value.id === id) next.delete(key)
-                }
-            }
-            return next
-        })
-    }, [])
-
-    const contextValue = useMemo(
-        () => ({register: registerPermanentOverlay, unregister: unregisterPermanentOverlay}),
-        [registerPermanentOverlay, unregisterPermanentOverlay],
-    )
-
     React.useEffect(() => {
-        if (typeof maxSnack !== 'number' || maxSnack <= 0 || snackbars.length <= maxSnack) {
+        if (snackbars.length <= MAX_SNACKBARS) {
             return
         }
 
-        snackbars.slice(0, snackbars.length - maxSnack).forEach(snackbar => {
+        snackbars.slice(0, snackbars.length - MAX_SNACKBARS).forEach(snackbar => {
             if (snackbar.id) {
                 removeSnackbar(snackbar.id)
             }
         })
-    }, [maxSnack, removeSnackbar, snackbars])
+    }, [removeSnackbar, snackbars])
 
-    const visibleSnackbars = useMemo(() => {
-        if (typeof maxSnack === 'number' && maxSnack > 0 && snackbars.length > maxSnack) {
-            return snackbars.slice(snackbars.length - maxSnack)
-        }
-        return snackbars
-    }, [maxSnack, snackbars])
+    const visibleSnackbars = useMemo(
+        () => (snackbars.length > MAX_SNACKBARS ? snackbars.slice(snackbars.length - MAX_SNACKBARS) : snackbars),
+        [snackbars],
+    )
 
     const keyedVisibleSnackbars = useMemo(
         () => visibleSnackbars.filter((snackbar): snackbar is KeyedSnackbar => typeof snackbar.id === 'string'),
@@ -612,14 +519,6 @@ export function OverlayHost({
         return groups
     }, [anchorOrigin, presentedSnackbars])
 
-    const permanentPresentations = useMemo(() => {
-        const entries = Array.from(permanentOverlays.values())
-        return entries.flatMap(entry => {
-            const content = entry.render({breakpoint})
-            return content ? [{content, entry}] : []
-        })
-    }, [breakpoint, permanentOverlays])
-
     React.useEffect(() => registerOverlayHost(), [])
 
     useOverlayLayoutEffect(() => {
@@ -664,16 +563,6 @@ export function OverlayHost({
                     />
                 )
             })}
-            {permanentPresentations.map(({content, entry}) => (
-                <MeasuredPermanentOverlay
-                    breakpoint={breakpoint}
-                    content={content}
-                    entry={entry}
-                    key={entry.slot}
-                    operationCenterElement={operationCenterElement}
-                    operationCenterHeight={operationCenterHeight}
-                />
-            ))}
             {operationCenter != null ? (
                 <Box
                     data-pne-overlay-operation-center
@@ -722,10 +611,8 @@ export function OverlayHost({
     return (
         <OverlayPortalContainerContext value={container}>
             <PaynetErrorPresentationContext value={presentationContextValue}>
-                <PermanentOverlayContext value={contextValue}>
-                    {children}
-                    {container === null ? overlayContent : <Portal container={container}>{overlayContent}</Portal>}
-                </PermanentOverlayContext>
+                {children}
+                {container === null ? overlayContent : <Portal container={container}>{overlayContent}</Portal>}
             </PaynetErrorPresentationContext>
         </OverlayPortalContainerContext>
     )

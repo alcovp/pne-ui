@@ -37,7 +37,6 @@ export const Default: Story = {
         disabled: false,
         checked: false,
         size: 'small',
-        variant: 'plain',
     },
     argTypes: {
         label: {
@@ -58,10 +57,6 @@ export const Default: Story = {
         size: {
             control: 'radio',
             options: ['small', 'medium', 'large'],
-        },
-        variant: {
-            control: 'radio',
-            options: ['plain', 'card'],
         },
     },
     render: args => <ControlledLabeledCheckbox {...args} />,

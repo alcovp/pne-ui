@@ -28,7 +28,6 @@ import useTable, {UseTableParams} from '../table/useTable'
 import useTableSelection, {UseTableSelectionParams} from '../table/useTableSelection'
 import {useSearchUIFiltersStore} from './filters/state/store'
 import {SearchUIFiltersStoreProvider} from './filters/state/SearchUIFiltersStoreProvider'
-import type {SearchUIValidationResult} from './filters/validation'
 import {
     createSearchUITableSelectionScopeKey,
     SearchUITableFactoryContext,
@@ -105,10 +104,6 @@ type SearchUICommonProps<D extends object, TViewId extends string, TKey extends 
     config?: SearchUIFiltersConfig
     /** Optional transient selection controller for the current applied result set. */
     tableSelection?: SearchUITableSelectionConfig<D, TKey, TViewId>
-    /**
-     * Колбэк состояния валидации фильтров.
-     */
-    onValidationChange?: (validationResult: SearchUIValidationResult) => void
 }
 
 export type SearchUIDataSource<D extends object> = (searchParams: SearchParams) => Promise<D[]>
@@ -273,7 +268,6 @@ const SearchUIContent = <D extends object, TViewId extends string = string, TKey
         dataUseState,
         config,
         tableSelection,
-        onValidationChange,
     } = props
     const resolvedTable = resolveSearchUITable(props)
     const tableResetIdentity =
@@ -450,7 +444,6 @@ const SearchUIContent = <D extends object, TViewId extends string = string, TKey
                 initialSearchConditions={initialSearchConditions}
                 searchConditions={searchConditions}
                 onFiltersUpdate={ignoreAppliedSearchCriteria}
-                onValidationChange={onValidationChange}
                 config={config}
                 searchLoading={loading}
             />

@@ -4,7 +4,6 @@ export type {
     OverlayHostResponsiveOffset,
     OverlayPortalContainer,
 } from '../component/overlay/OverlayHost'
-export {PermanentOverlay} from '../component/overlay/PermanentOverlay'
 export {default as PneBanner} from '../component/PneBanner'
 export type {PneBannerActionProps, PneBannerProps, PneBannerTone} from '../component/PneBanner'
 export {PneOperationCenter} from '../component/overlay/PneOperationCenter'

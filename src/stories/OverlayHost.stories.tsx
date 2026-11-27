@@ -1,36 +1,13 @@
 import React from 'react'
-import AddIcon from '@mui/icons-material/Add'
-import RefreshIcon from '@mui/icons-material/Refresh'
 import {Box, Stack, Typography} from '@mui/material'
-import {PneFloatingActionButtons, OverlayHost, PermanentOverlay, overlayActions} from '../index'
+import {OverlayHost, overlayActions} from '../index'
 import type {Meta, StoryObj} from '@storybook/react-webpack5'
 import {expect, userEvent, waitFor, within} from 'storybook/test'
 
 const OverlayDemo = () => {
-    const fabActions = [
-        {
-            id: 'add',
-            label: 'Add action',
-            icon: <AddIcon fontSize='small' />,
-            onClick: () => overlayActions.showSuccess({message: 'Add action clicked'}),
-        },
-        {
-            id: 'refresh',
-            label: 'Refresh data',
-            icon: <RefreshIcon fontSize='small' />,
-            onClick: () => overlayActions.showInfo({message: 'Data refreshed'}),
-        },
-    ]
-
     return (
         <Box sx={{minHeight: 260, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2}}>
-            <OverlayHost>
-                <PermanentOverlay
-                    id='fab'
-                    slot='bottom-right'
-                    render={() => <PneFloatingActionButtons actions={fabActions} />}
-                />
-            </OverlayHost>
+            <OverlayHost />
             <Stack direction='row' spacing={2}>
                 <button onClick={() => overlayActions.showError({message: 'Something went wrong'})}>Show error</button>
                 <button

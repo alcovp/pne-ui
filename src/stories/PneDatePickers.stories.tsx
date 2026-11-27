@@ -8,7 +8,6 @@ import {
     PneDatePicker,
     PneDateRangePicker,
     PneDateTimePicker,
-    PneDateTimeRangePicker,
     PneField,
     PneTextField,
     PneTimePicker,
@@ -125,13 +124,6 @@ const RANGE_ROWS: MatrixRow[] = [
         title: 'date range',
         width: 232,
         render: column => <PneDateRangePicker {...common(column, 232)} value={column.filled ? RANGE : [null, null]} />,
-    },
-    {
-        title: 'date and time range',
-        width: 320,
-        render: column => (
-            <PneDateTimeRangePicker {...common(column, 320)} value={column.filled ? RANGE : [null, null]} />
-        ),
     },
 ]
 

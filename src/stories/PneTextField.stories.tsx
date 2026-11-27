@@ -155,9 +155,9 @@ export const Matrix: Story = {
     ),
 }
 
-// Figma «Положение подписи и подсказка» and «Многострочное поле»: the label over the control, on
-// its left (`labelPosition="left"`) or inside the box, as a start adornment.
-const POSITIONS = ['Top', 'Left', 'Inside'] as const
+// Figma «Положение подписи и подсказка» and «Многострочное поле»: the label over the control or
+// inside the box, as a start adornment.
+const POSITIONS = ['Top', 'Inside'] as const
 
 const PositionCell = ({
     position,
@@ -176,10 +176,7 @@ const PositionCell = ({
             error={error}
             helperText={error ? 'Опишите, как исправить ошибку' : 'Подсказка о формате значения'}
             label={inside ? undefined : 'Label'}
-            labelPosition={position === 'Left' ? 'left' : 'top'}
-            // A tall control takes the label at its first line instead of its middle.
-            slotProps={multiline && position === 'Left' ? {label: {sx: {alignSelf: 'start', mt: '10px'}}} : undefined}
-            sx={{width: position === 'Left' ? 380 : 208}}
+            sx={{width: 208}}
         >
             <PneTextField
                 aria-label={inside ? 'Mark in' : undefined}
@@ -241,13 +238,11 @@ export const LabelPositions: Story = {
     render: () => (
         <Stack spacing={3} sx={{p: 3}}>
             <Typography sx={{fontSize: 14, color: 'text.secondary', maxWidth: 900}}>
-                The label stands over the control, on its left (<code>PneField labelPosition=&quot;left&quot;</code>: a
-                160px column, the helper text under the control) or inside the box as a start adornment. A multiline
-                field takes the same label positions; with no rows set it is the 88px box of the UI Kit, and the user
-                drags its corner.
+                The label stands over the control or inside the box as a start adornment. A multiline field takes the
+                label over it; with no rows set it is the 88px box of the UI Kit, and the user drags its corner.
             </Typography>
             <PositionsTable positions={POSITIONS} />
-            <PositionsTable multiline positions={['Top', 'Left']} />
+            <PositionsTable multiline positions={['Top']} />
         </Stack>
     ),
 }

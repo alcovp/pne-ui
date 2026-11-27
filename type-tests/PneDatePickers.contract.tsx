@@ -6,7 +6,6 @@ import {
     type PneDatePickerProps,
     PneDateRangePicker,
     PneDateTimePicker,
-    PneDateTimeRangePicker,
     PnePickerTextField,
     PneTimePicker,
 } from 'pne-ui'
@@ -35,7 +34,6 @@ const date = <PneDatePicker {...dateProps} ref={rootRef}/>
 const dateTime = <PneDateTimePicker format='DD.MM.YYYY HH:mm:ss' size='small' value={day}/>
 const time = <PneTimePicker value={day}/>
 const range = <PneDateRangePicker value={[day, null]}/>
-const dateTimeRange = <PneDateTimeRangePicker value={[day, day]}/>
 const ownField = <PneDatePicker slots={{textField: PnePickerTextField}} slotProps={{textField: {sx: {width: 200}}}}/>
 
 // @ts-expect-error A field has three sizes: small, medium and large.
@@ -48,7 +46,6 @@ void date
 void dateTime
 void time
 void range
-void dateTimeRange
 void ownField
 void wrongSize
 void wrongValue

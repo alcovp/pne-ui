@@ -26,18 +26,10 @@ describe('createPneCheckboxPalette', () => {
         expect(colors.on.readOnly).toEqual({fill: '#8D9399', ring: NONE, mark: '#F7FBFF'})
     })
 
-    it('gives the labelled checkbox its text and its card by UI Kit role', () => {
+    it('gives the labelled checkbox its text by UI Kit role', () => {
         const colors = palette('#026fd7')
 
         expect(colors.text).toEqual({label: '#2C3136', helper: '#6E747A', error: '#B1182C', disabled: '#B2B8BF'})
-        expect(colors.card).toEqual({
-            fill: '#F0F4F8',
-            fillOn: '#EBF3FF',
-            ringOn: '#026FD7',
-            ringHover: '#E2E9F0',
-            ringError: '#CC2538',
-        })
-        expect(getContrastRatio(palette('#f0b90a').card.ringOn, '#FFFFFF')).toBeGreaterThanOrEqual(3)
     })
 
     it('is exposed through the theme', () => {

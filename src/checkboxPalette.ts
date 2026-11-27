@@ -37,14 +37,6 @@ export type PneCheckboxPalette = {
         error: string
         disabled: string
     }
-    /** The Frame layout of a labelled checkbox: a card, tinted and ringed when picked. */
-    card: {
-        fill: string
-        fillOn: string
-        ringOn: string
-        ringHover: string
-        ringError: string
-    }
 }
 
 const TRANSPARENT = 'transparent'
@@ -81,7 +73,6 @@ const createLight = (ramp: PneBrandRamp): PneCheckboxPalette => {
             readOnly: plain(n[500]),
         },
         text: {label: n[900], helper: n[600], error: PNE_STATUS_COLORS.error[700], disabled: n[400]},
-        card: {fill: n[100], fillOn: ramp[100], ringOn: ramp[ring], ringHover: n[200], ringError: error},
     }
 }
 
@@ -121,13 +112,6 @@ const createDark = (ramp: PneBrandRamp): PneCheckboxPalette => {
             readOnly: plain(d.textMuted),
         },
         text: {label: d.textPrimary, helper: d.textSecondary, error: error[300], disabled: d.textDisabled},
-        card: {
-            fill: d.surfaceSubtle,
-            fillOn: ramp[900],
-            ringOn: ramp[readableBrandStep(ramp, 400, 'dark')],
-            ringHover: d.borderDefault,
-            ringError: error[400],
-        },
     }
 }
 

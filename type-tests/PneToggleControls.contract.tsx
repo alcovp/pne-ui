@@ -81,7 +81,6 @@ const validContracts = <>
     />
     <PneLabeledCheckbox
         {...labeledProps}
-        helperTextProps={{id: 'selection-help'}}
         inputRef={inputRef}
         ref={rootRef}
     />

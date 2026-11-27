@@ -4,7 +4,6 @@ export type {PneFieldSize} from '../component/fieldSize'
 export {default as PneField} from '../component/PneField'
 export type {
     PneFieldChildren,
-    PneFieldLabelPosition,
     PneFieldHelperTextSlotProps,
     PneFieldLabelSlotProps,
     PneFieldProps,
@@ -29,7 +28,6 @@ export type {
     PneAsyncAutocompleteCustomProps,
     PneAsyncAutocompleteHtmlInputProps,
     PneAsyncAutocompleteLoadContext,
-    PneAsyncAutocompleteLoadErrorContext,
     PneAsyncAutocompleteLoadReason,
     PneAsyncAutocompleteProps,
     PneLoadOptions,
@@ -57,7 +55,7 @@ export type {
 export {PneCheckbox} from '../component/PneCheckbox'
 export type {PneCheckboxProps, PneCheckboxSize} from '../component/PneCheckbox'
 export {PneLabeledCheckbox} from '../component/PneLabeledCheckbox'
-export type {PneLabeledCheckboxProps, PneLabeledCheckboxVariant} from '../component/PneLabeledCheckbox'
+export type {PneLabeledCheckboxProps} from '../component/PneLabeledCheckbox'
 export {default as PneSwitch} from '../component/PneSwitch'
 export type {
     PneSwitchChangeHandler,

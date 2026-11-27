@@ -38,10 +38,10 @@ describe('PneAsyncAutocomplete', () => {
 
         render(
             <PneAsyncAutocomplete<AutoCompleteChoice>
-                defaultOpen
                 disablePortal
                 htmlInputProps={{'aria-label': 'Remote account'}}
                 loadOptions={loadOptions}
+                open
             />,
         )
 
@@ -62,10 +62,10 @@ describe('PneAsyncAutocomplete', () => {
                 <span id='remote-account-context'>Consumer context</span>
                 <PneField error id='remote-account-field' label='Remote account'>
                     <PneAsyncAutocomplete<AutoCompleteChoice>
-                        defaultOpen
                         disablePortal
                         htmlInputProps={{'aria-labelledby': 'remote-account-context'}}
                         loadOptions={loadOptions}
+                        open
                     />
                 </PneField>
             </>,
@@ -296,9 +296,8 @@ describe('PneAsyncAutocomplete', () => {
         expect(nextLoader).toHaveBeenCalledWith('', expect.objectContaining({reason: 'reload'}))
     })
 
-    it('reports synchronous loader failures as unknown and makes the error accessible', async () => {
+    it('makes a synchronous loader failure accessible', async () => {
         const failure = new Error('network failed')
-        const onLoadError = jest.fn()
         const loadOptions = jest.fn(() => {
             throw failure
         }) as unknown as PneLoadOptions<AutoCompleteChoice>
@@ -308,73 +307,24 @@ describe('PneAsyncAutocomplete', () => {
                 disablePortal
                 loadErrorText='Could not load accounts'
                 loadOptions={loadOptions}
-                onLoadError={onLoadError}
                 open
             />,
         )
 
         expect((await screen.findByRole('alert')).textContent).toContain('Could not load accounts')
-        expect(onLoadError).toHaveBeenCalledWith(failure, {
-            query: '',
-            reason: 'open',
-            signal: expect.any(AbortSignal),
-        })
         expect(screen.getByRole('combobox').getAttribute('aria-busy')).toBe('false')
     })
 
     it('silences AbortError rejections', async () => {
-        const onLoadError = jest.fn()
         const loadOptions = jest.fn(async () => {
             throw new DOMException('cancelled', 'AbortError')
         })
 
-        render(
-            <PneAsyncAutocomplete<AutoCompleteChoice>
-                disablePortal
-                loadOptions={loadOptions}
-                onLoadError={onLoadError}
-                open
-            />,
-        )
+        render(<PneAsyncAutocomplete<AutoCompleteChoice> disablePortal loadOptions={loadOptions} open />)
 
         await waitFor(() => expect(loadOptions).toHaveBeenCalled())
         await waitFor(() => expect(screen.getByRole('combobox').getAttribute('aria-busy')).toBe('false'))
-        expect(onLoadError).not.toHaveBeenCalled()
         expect(screen.queryByRole('alert')).toBeNull()
-    })
-
-    it('keeps previous options only while the next request is loading', async () => {
-        const nextRequest = createDeferred<readonly AutoCompleteChoice[]>()
-        const loadOptions = jest.fn((query: string) =>
-            query === '' ? Promise.resolve([choice(1, 'Previous result')]) : nextRequest.promise,
-        )
-
-        render(
-            <PneAsyncAutocomplete<AutoCompleteChoice>
-                disablePortal
-                keepPreviousOptions
-                label='Account'
-                loadErrorText='Reload failed'
-                loadOptions={loadOptions}
-                open
-            />,
-        )
-
-        expect(await screen.findByRole('option', {name: 'Previous result'})).toBeTruthy()
-        const input = screen.getByRole('combobox', {name: 'Account'})
-        fireEvent.focus(input)
-        fireEvent.change(input, {
-            target: {value: 'next'},
-        })
-        await waitFor(() => expect(screen.getByRole('combobox').getAttribute('aria-busy')).toBe('true'))
-        expect(screen.getByRole('option', {name: 'Previous result'})).toBeTruthy()
-
-        await act(async () => {
-            nextRequest.reject(new Error('failed'))
-            await nextRequest.promise.catch(() => undefined)
-        })
-        expect((await screen.findByRole('alert')).textContent).toContain('Reload failed')
-        expect(screen.queryByRole('option', {name: 'Previous result'})).toBeNull()
     })
 
     it('does not tear down a controlled-open request when the owner ignores onClose', async () => {
@@ -463,7 +413,7 @@ describe('PneAsyncAutocomplete', () => {
 
         render(
             <React.StrictMode>
-                <PneAsyncAutocomplete<AutoCompleteChoice> defaultOpen loadOptions={loadOptions} />
+                <PneAsyncAutocomplete<AutoCompleteChoice> loadOptions={loadOptions} open />
             </React.StrictMode>,
         )
 

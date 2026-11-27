@@ -1,11 +1,5 @@
 import React, {ReactNode, useCallback, useEffect, useId, useLayoutEffect, useRef, useState} from 'react'
-import {
-    Autocomplete,
-    type AutocompleteInputChangeReason,
-    AutocompleteProps,
-    CircularProgress,
-    SxProps,
-} from '@mui/material'
+import {Autocomplete, type AutocompleteInputChangeReason, AutocompleteProps, SxProps} from '@mui/material'
 import type {ChipTypeMap} from '@mui/material/Chip'
 import {useThemeProps} from '@mui/material/styles'
 import {
@@ -17,7 +11,7 @@ import {
     PneAutocompleteOption,
     PneBuiltInAutocompleteOption,
 } from '../../common/paynet/dropdown'
-import {PNE_FIELD_SIZE, resolvePneFieldSize} from '../fieldSize'
+import {resolvePneFieldSize} from '../fieldSize'
 import PneTextField from '../PneTextField'
 import {PneChevronDownIcon, PneCloseIcon, pneAutocompleteFieldSx} from './dropdownLook'
 import {mergeAriaIds, usePneFieldControlProps} from '../PneFieldContext'
@@ -41,30 +35,21 @@ export interface PneAsyncAutocompleteLoadContext {
     reason: PneAsyncAutocompleteLoadReason
 }
 
-export interface PneAsyncAutocompleteLoadErrorContext extends PneAsyncAutocompleteLoadContext {
-    query: string
-}
-
 export type PneLoadOptions<T> = (query: string, context: PneAsyncAutocompleteLoadContext) => Promise<readonly T[]>
 
 export type PneAsyncAutocompleteHtmlInputProps = PneAutocompleteHtmlInputProps
 
 interface PneAsyncAutocompleteOwnedProps<T extends PneAutocompleteOption> {
-    /** Initial popup state when `open` is uncontrolled. @default false */
-    defaultOpen?: boolean
     /** Loads remote options immediately for the supplied query. This component does not debounce calls. */
     loadOptions: PneLoadOptions<T>
     /** The minimum query length required before calling `loadOptions`. */
     minQueryLength?: number
     /** Changing this value while open reloads the current query. Loader identity changes do not. */
     reloadKey?: unknown
-    /** Keeps previous options during the next load. Errors and ineligible queries still clear them. @default false */
-    keepPreviousOptions?: boolean
     /** Text shown and announced after a load failure. */
     loadErrorText?: ReactNode
     /** Text shown and announced while the query is shorter than `minQueryLength`. */
     minQueryLengthText?: ReactNode | ((minimum: number, query: string) => ReactNode)
-    onLoadError?: (error: unknown, context: PneAsyncAutocompleteLoadErrorContext) => void
 }
 
 export type PneAsyncAutocompleteBuiltInProps<
@@ -222,7 +207,6 @@ const PneAsyncAutocompleteImplementation = <
         clearIcon,
         component: _component,
         'data-pne-state': pinnedState,
-        defaultOpen = false,
         disabled,
         error,
         fullWidth,
@@ -234,7 +218,6 @@ const PneAsyncAutocompleteImplementation = <
         inputRef,
         inputValue: controlledInputValue,
         isOptionEqualToValue,
-        keepPreviousOptions = false,
         label,
         loadErrorText = 'Unable to load options',
         loadOptions,
@@ -244,7 +227,6 @@ const PneAsyncAutocompleteImplementation = <
         noOptionsText,
         onClose,
         onInputChange,
-        onLoadError,
         onOpen,
         open: controlledOpen,
         placeholder,
@@ -262,15 +244,13 @@ const PneAsyncAutocompleteImplementation = <
 
     const generatedId = useId()
     const resolvedSize = resolvePneFieldSize(size)
-    const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen)
+    const [uncontrolledOpen, setUncontrolledOpen] = useState(false)
     const [uncontrolledQuery, setUncontrolledQuery] = useState('')
     const [options, setOptions] = useState<readonly T[]>([])
     const [loadState, setLoadState] = useState<LoadState>('idle')
     const requestIdRef = useRef(0)
     const controllerRef = useRef<AbortController | undefined>(undefined)
     const loadOptionsRef = useRef(loadOptions)
-    const onLoadErrorRef = useRef(onLoadError)
-    const keepPreviousOptionsRef = useRef(keepPreviousOptions)
     const minQueryLengthRef = useRef(normalizeMinQueryLength(minQueryLength))
     const pendingInputTransitionsRef = useRef<PendingInputTransition[]>([])
 
@@ -335,10 +315,8 @@ const PneAsyncAutocompleteImplementation = <
 
     useAsyncLifecycleEffect(() => {
         loadOptionsRef.current = loadOptions
-        onLoadErrorRef.current = onLoadError
-        keepPreviousOptionsRef.current = keepPreviousOptions
         minQueryLengthRef.current = normalizedMinQueryLength
-    }, [keepPreviousOptions, loadOptions, normalizedMinQueryLength, onLoadError])
+    }, [loadOptions, normalizedMinQueryLength])
 
     const committedRequestInputsRef = useRef({
         minQueryLength: normalizedMinQueryLength,
@@ -398,9 +376,7 @@ const PneAsyncAutocompleteImplementation = <
         const loader = loadOptionsRef.current
         controllerRef.current = controller
 
-        if (!keepPreviousOptionsRef.current) {
-            setOptions([])
-        }
+        setOptions([])
         setLoadState('loading')
 
         void Promise.resolve()
@@ -434,10 +410,6 @@ const PneAsyncAutocompleteImplementation = <
 
                     setOptions([])
                     setLoadState('error')
-                    onLoadErrorRef.current?.(loadError, {
-                        ...context,
-                        query: nextQuery,
-                    })
                 },
             )
     }, [])
@@ -611,22 +583,6 @@ const PneAsyncAutocompleteImplementation = <
                         size={resolvedSize}
                         slotProps={{
                             ...params.slotProps,
-                            input: {
-                                ...params.slotProps.input,
-                                // The list shows the spinner in its loading row; while it keeps the previous
-                                // options on screen instead, the spinner stands in the field.
-                                endAdornment: (
-                                    <>
-                                        {loading && options.length > 0 ? (
-                                            <CircularProgress
-                                                color='inherit'
-                                                size={PNE_FIELD_SIZE[resolvedSize].icon}
-                                            />
-                                        ) : null}
-                                        {params.slotProps.input.endAdornment}
-                                    </>
-                                ),
-                            },
                             htmlInput: (() => {
                                 const mergedInputProps = mergeAutocompleteHtmlInputProps(
                                     params.slotProps.htmlInput,

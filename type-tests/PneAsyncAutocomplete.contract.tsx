@@ -3,7 +3,6 @@ import * as React from 'react'
 import {
     PneAsyncAutocomplete,
     type PneAsyncAutocompleteLoadContext,
-    type PneAsyncAutocompleteLoadErrorContext,
     type PneAsyncAutocompleteLoadReason,
     type PneAsyncAutocompleteProps,
     type PneLoadOptions,
@@ -56,10 +55,6 @@ const loadContext: PneAsyncAutocompleteLoadContext = {
     reason: 'reload',
     signal: new AbortController().signal,
 }
-const loadErrorContext: PneAsyncAutocompleteLoadErrorContext = {
-    ...loadContext,
-    query: 'eu',
-}
 
 const inferredEntity = <PneAsyncAutocomplete
     helperText={<span>Choose a gateway</span>}
@@ -86,14 +81,6 @@ const customObject = <PneAsyncAutocomplete
     getOptionLabel={region => region.title}
     htmlInputProps={{'aria-labelledby': 'region-context'}}
     loadOptions={regionLoader}
-    onLoadError={(error, context) => {
-        const unknownError: unknown = error
-        const query: string = context.query
-        const reason: PneAsyncAutocompleteLoadReason = context.reason
-        void unknownError
-        void query
-        void reason
-    }}
     value={regions[0]}
 />
 
@@ -190,7 +177,6 @@ const componentDebounce = <PneAsyncAutocomplete debounceMs={300} loadOptions={as
 
 void regionLoader
 void loadContext
-void loadErrorContext
 void inferredEntity
 void inferredChoice
 void customObject

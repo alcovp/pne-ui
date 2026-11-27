@@ -546,32 +546,29 @@ describe('OverlayHost', () => {
     })
 
     it('evicts overflow instead of retaining hidden snackbars that can reappear', async () => {
-        render(<OverlayHost maxSnack={2} />)
+        render(<OverlayHost />)
+        // Ten notifications stay at most.
+        const ids = Array.from({length: 11}, (_, index) => `overflow-${index + 1}`)
 
         act(() => {
-            overlayActions.showError({id: 'overflow-1', message: 'First error'})
-            overlayActions.showError({id: 'overflow-2', message: 'Second error'})
-            overlayActions.showError({id: 'overflow-3', message: 'Third error'})
+            ids.forEach(id => overlayActions.showError({id, message: `Error ${id}`}))
         })
 
-        expect(await screen.findByText('Second error')).toBeTruthy()
-        expect(screen.getByText('Third error')).toBeTruthy()
+        expect(await screen.findByText('Error overflow-2')).toBeTruthy()
+        expect(screen.getByText('Error overflow-11')).toBeTruthy()
 
         await waitFor(() => {
-            expect(useOverlayStore.getState().snackbars.map(snackbar => snackbar.id)).toEqual([
-                'overflow-2',
-                'overflow-3',
-            ])
+            expect(useOverlayStore.getState().snackbars.map(snackbar => snackbar.id)).toEqual(ids.slice(1))
         })
 
         act(() => {
-            overlayActions.removeSnackbar('overflow-3')
+            overlayActions.removeSnackbar('overflow-11')
         })
 
         await waitFor(() => {
-            expect(screen.queryByText('Third error')).toBeNull()
+            expect(screen.queryByText('Error overflow-11')).toBeNull()
         })
-        expect(screen.getByText('Second error')).toBeTruthy()
-        expect(screen.queryByText('First error')).toBeNull()
+        expect(screen.getByText('Error overflow-2')).toBeTruthy()
+        expect(screen.queryByText('Error overflow-1')).toBeNull()
     })
 })

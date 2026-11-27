@@ -244,7 +244,7 @@ describe('PneAsyncAutocomplete (UI Kit look)', () => {
     it('marks a failed load on the paper, so its row reads as an error', async () => {
         inTheme(
             <PneAsyncAutocomplete<AutoCompleteChoice>
-                defaultOpen
+                open
                 htmlInputProps={{'aria-label': 'Remote account'}}
                 loadOptions={async () => {
                     throw new Error('down')
@@ -265,7 +265,7 @@ describe('PneAsyncAutocomplete (UI Kit look)', () => {
     it('shows the spinner in the loading row of the list, not in the field', async () => {
         const {container} = inTheme(
             <PneAsyncAutocomplete<AutoCompleteChoice>
-                defaultOpen
+                open
                 htmlInputProps={{'aria-label': 'Remote account'}}
                 loadOptions={() => new Promise<readonly AutoCompleteChoice[]>(() => undefined)}
                 loadingText='Loading'

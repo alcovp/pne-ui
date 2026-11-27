@@ -336,33 +336,10 @@ describe('PneField (UI Kit look)', () => {
         const root = container.querySelector<HTMLElement>('.MuiFormControl-root')!
         const label = container.querySelector('.MuiFormLabel-root')!
 
-        expect(root.getAttribute('data-pne-label-position')).toBe('top')
         expect(ruleValue(label, '&', 'font-size')).toBe('12px')
         expect(ruleValue(label, '&', 'line-height')).toBe('16px')
         expect(ruleValue(label, '&', 'font-weight')).toBe('500')
         expect(ruleValue(root, '&', 'gap')).toBe('4px')
-    })
-
-    it('puts the label into a 160px column on the left, as the value reads, with the helper text under the control', () => {
-        const {container} = render(
-            <PneThemeProvider skin={UI_KIT_SKIN}>
-                <PneField helperText='Format hint' label='Email' labelPosition='left'>
-                    <PneTextField />
-                </PneField>
-            </PneThemeProvider>,
-        )
-        const root = container.querySelector<HTMLElement>('.MuiFormControl-root')!
-        const label = container.querySelector('.MuiFormLabel-root')!
-
-        expect(root.getAttribute('data-pne-label-position')).toBe('left')
-        expect(ruleValue(root, '&', 'display')).toBe('grid')
-        expect(ruleValue(root, '&', 'grid-template-columns')).toBe('160px minmax(0, 1fr)')
-        expect(ruleValue(root, '&', 'column-gap')).toBe('12px')
-        expect(ruleValue(root, '& > :not(.MuiFormLabel-root)', 'grid-column')).toBe('2')
-        expect(ruleValue(label, '&', 'font-size')).toBe('14px')
-        expect(ruleValue(label, '&', 'font-weight')).toBe('400')
-        expect(ruleValue(label, '&', 'color')).toBe('#2C3136')
-        expect(ruleValue(label, '&', 'grid-column')).toBe('1')
     })
 
     it('reads a label inside the box as the value', () => {
