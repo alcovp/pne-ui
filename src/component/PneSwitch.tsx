@@ -489,7 +489,6 @@ type SwitchSizeConfig = {
     trackWidth: number
     trackHeight: number
     thumbSize: number
-    thumbPadding: number
     checkedShift: number
     spinnerInset: number
     spinnerStroke: number
@@ -514,6 +513,20 @@ const valueColorsSx = (switchBase: string, colors: PneSwitchStateColors): Switch
     },
 })
 
+/**
+ * The knob is a circle cut in the middle of a box that is as high as the track and stands on it, not a box of its
+ * own set 2px into the track. At a 125 % display the track is 25 device pixels high and the knob 20: the 5 left
+ * do not halve, and the browser, which keeps the edges of a box on whole pixels, left 2 above the knob and 3
+ * below (or the other way round, by the place on the page). A shape inside one box is not rounded: its edge is
+ * smoothed by half a pixel on both sides and the knob stays in the middle at any scale.
+ */
+const knobMask = ({trackHeight, thumbSize}: SwitchSizeConfig): string => {
+    const centre = trackHeight / 2
+    const circle = `%3Ccircle cx='${centre}' cy='${centre}' r='${thumbSize / 2}'/%3E`
+    const svg = `%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 ${trackHeight} ${trackHeight}'%3E${circle}%3C/svg%3E`
+    return `url("data:image/svg+xml,${svg}") center / 100% 100% no-repeat`
+}
+
 const INTERACTIVE_ROOT = '&:not([data-pne-readonly]):not([data-pne-loading]):not([data-pne-state="loading"])'
 const INTERACTIVE_BASE = '.MuiSwitch-switchBase:not(.Mui-disabled)'
 
@@ -523,6 +536,8 @@ const createSwitchSx =
         const pne = resolvePneSemanticPalette(theme)
         const colors = pne.switch
         const focusRing = `0 0 0 2px ${theme.palette.background.default}, 0 0 0 4px ${pne.focusRing}`
+        // The knob stands this far inside its box, which is as high as the track.
+        const knobInset = (config.trackHeight - config.thumbSize) / 2
         // The ring sits `spinnerInset` inside the knob (12px in the 16px knob, 8px in the 12px one).
         // Lengths are strings on purpose: sx reads bare numbers of margin props as theme spacing.
         const spinner = (color: string): SystemStyleObject<Theme> => ({
@@ -532,7 +547,7 @@ const createSwitchSx =
             borderRightColor: 'transparent',
             boxSizing: 'border-box',
             content: '""',
-            inset: `${config.spinnerInset}px`,
+            inset: `${knobInset + config.spinnerInset}px`,
             position: 'absolute',
             '@media (prefers-reduced-motion: reduce)': {
                 animation: 'none',
@@ -573,7 +588,7 @@ const createSwitchSx =
             '& .MuiSwitch-switchBase': {
                 top: config.trackTop,
                 left: config.trackLeft,
-                padding: `${config.thumbPadding}px`,
+                padding: 0,
                 '&.Mui-checked': {
                     transform: `translateX(${config.checkedShift}px)`,
                 },
@@ -612,10 +627,12 @@ const createSwitchSx =
                 left: -(config.trackLeft + config.checkedShift),
             },
             '& .MuiSwitch-thumb': {
-                width: config.thumbSize,
-                height: config.thumbSize,
-                borderRadius: '50%',
+                width: config.trackHeight,
+                height: config.trackHeight,
+                borderRadius: 0,
                 boxShadow: 'none',
+                WebkitMask: knobMask(config),
+                mask: knobMask(config),
                 position: 'relative',
                 transition: 'background-color 140ms linear',
             },
@@ -644,7 +661,7 @@ const createSwitchSx =
     }
 
 // UI Kit Switcher: md 32×20 track with a 16px knob inset by 2, xs 24×16 with 12; the hit
-// areas (root) are 58×32 and 40×24 as in Figma.
+// areas (root) are 58×32 and 40×24 as in Figma. The inset is drawn by `knobMask`.
 const switchSxBySize: Record<PneSwitchSize, SxProps<Theme>> = {
     small: createSwitchSx({
         rootWidth: 40,
@@ -654,7 +671,6 @@ const switchSxBySize: Record<PneSwitchSize, SxProps<Theme>> = {
         trackWidth: 24,
         trackHeight: 16,
         thumbSize: 12,
-        thumbPadding: 2,
         checkedShift: 8,
         spinnerInset: 2,
         spinnerStroke: 1.25,
@@ -667,7 +683,6 @@ const switchSxBySize: Record<PneSwitchSize, SxProps<Theme>> = {
         trackWidth: 32,
         trackHeight: 20,
         thumbSize: 16,
-        thumbPadding: 2,
         checkedShift: 12,
         spinnerInset: 2,
         spinnerStroke: 1.5,

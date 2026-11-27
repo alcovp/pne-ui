@@ -77,10 +77,20 @@ describe('PneSwitch (UI Kit look)', () => {
             ])
             // The track starts where the fields of a column do: the hit area before it hangs out of the layout.
             expect(ruleValue(root, ':where(:first-child)', 'margin-left')).toBe(`-${trackLeft}`)
+            // The knob is a circle cut in the middle of a box as high as the track, standing on the track: two
+            // boxes of their own could not keep a 2px inset even at a 125 % display (2 and 3 device pixels).
+            expect(ruleValue(root, '.MuiSwitch-switchBase', 'padding')).toMatch(/^0(px)?$/)
             expect([
                 ruleValue(root, '.MuiSwitch-thumb', 'width'),
                 ruleValue(root, '.MuiSwitch-thumb', 'height'),
-            ]).toEqual([thumb, thumb])
+            ]).toEqual([trackHeight, trackHeight])
+            const box = parseFloat(trackHeight)
+            for (const property of ['mask', '-webkit-mask']) {
+                const mask = ruleValue(root, '.MuiSwitch-thumb', property)
+
+                expect(mask).toContain(`viewBox='0 0 ${box} ${box}'`)
+                expect(mask).toContain(`cx='${box / 2}' cy='${box / 2}' r='${parseFloat(thumb) / 2}'`)
+            }
         },
     )
 
@@ -190,7 +200,8 @@ describe('PneSwitch (UI Kit look)', () => {
                 'border',
             ),
         ).toBe('1.5px solid #026FD7')
-        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'inset')).toBe('2px')
+        // 2px inside the knob, which itself stands 2px inside its box.
+        expect(ruleValue(root, '[data-pne-state="loading"].MuiSwitch-thumb::after', 'inset')).toBe('4px')
     })
 
     it('marks read-only and pinned states on the root span', () => {
