@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {fireEvent, render, screen, waitFor} from '@testing-library/react'
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react'
 
 import 'jest-canvas-mock'
 
@@ -188,7 +188,8 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             expect(dialog.getAttribute('data-autotest-value')).toBe(scope)
             expect(criterion.contains(dialog)).toBe(false)
             expect(dialog.querySelectorAll('[role="option"]')).toHaveLength(0)
-            expect(dialog.querySelectorAll('fieldset')).toHaveLength(1)
+            // One group of radio buttons; the hidden fieldset is the outline of the search field.
+            expect(dialog.querySelectorAll('fieldset:not([aria-hidden="true"])')).toHaveLength(1)
             expect(groups).toHaveLength(7)
             expect(radios).toHaveLength(45)
             expect(radios[0].tagName).toBe('INPUT')
@@ -414,6 +415,143 @@ const openLabelPicker = async (container: HTMLElement) => {
 
     return {dialog, trigger}
 }
+
+describe('SearchUI order-search label search', () => {
+    beforeEach(() => {
+        localStorage.clear()
+    })
+
+    const getSearch = (dialog: HTMLElement): HTMLInputElement => {
+        const search = dialog.querySelector<HTMLInputElement>('input[data-autotest="criterion-label-search"]')
+
+        expect(search).not.toBeNull()
+
+        return search as HTMLInputElement
+    }
+    const radiosOf = (dialog: HTMLElement) =>
+        Array.from(
+            dialog.querySelectorAll<HTMLInputElement>('input[type="radio"][data-autotest="criterion-label-option"]'),
+            radio => radio.value,
+        )
+
+    it('opens with the cursor in an empty search field above the whole list', async () => {
+        const {container} = renderOrderSearch(undefined, 'source_last4', '9579', 'search-open')
+        const {dialog} = await openLabelPicker(container)
+        const search = getSearch(dialog)
+
+        expect(search.value).toBe('')
+        expect(search.placeholder).toBe('Search')
+        expect(document.activeElement).toBe(search)
+        expect(radiosOf(dialog)).toHaveLength(45)
+        expect(dialog.querySelectorAll('summary[data-autotest="criterion-label-group"]')).toHaveLength(7)
+    })
+
+    it('keeps only the matching fields under plain group names and picks the first one on Enter', async () => {
+        const {container, onFiltersUpdate} = renderOrderSearch(undefined, 'customer_id', '42', 'search-filter')
+        const {dialog, trigger} = await openLabelPicker(container)
+        const search = getSearch(dialog)
+
+        fireEvent.change(search, {target: {value: '  LAST 4 '}})
+
+        expect(radiosOf(dialog)).toEqual(['source_last4', 'dest_last4'])
+        // Nothing folds while a query is typed: the groups of the matches are plain captions.
+        expect(dialog.querySelectorAll('details')).toHaveLength(0)
+        expect(dialog.querySelectorAll('summary')).toHaveLength(0)
+        expect(
+            Array.from(dialog.querySelectorAll('[data-pne-group]'), group => group.firstElementChild?.textContent),
+        ).toEqual(['searchLabelGroup.sourceCard', 'searchLabelGroup.destinationCard'])
+
+        fireEvent.keyDown(search, {key: 'Enter'})
+
+        await waitFor(() => {
+            expect(trigger.getAttribute('data-autotest-value')).toBe('source_last4')
+            expect(trigger.getAttribute('aria-expanded')).toBe('false')
+            expect(onFiltersUpdate).toHaveBeenLastCalledWith(
+                expect.objectContaining({ordersSearchLabel: 'source_last4'}),
+            )
+        })
+    })
+
+    it('shows every field of a group whose name matches', async () => {
+        const {container} = renderOrderSearch(undefined, 'customer_id', '42', 'search-group')
+        const {dialog} = await openLabelPicker(container)
+
+        fireEvent.change(getSearch(dialog), {target: {value: 'searchLabelGroup.wire'}})
+
+        expect(radiosOf(dialog)).toEqual(['account_number', 'routing_number'])
+    })
+
+    it('says that nothing is found and comes back to the folded groups once the query is cleared', async () => {
+        localStorage.setItem(
+            'SearchUI_ordersSearch_expandedGroups',
+            JSON.stringify({'searchLabelGroupID.orders.main': false}),
+        )
+        const {container} = renderOrderSearch(undefined, 'customer_id', '42', 'search-empty')
+        const {dialog} = await openLabelPicker(container)
+        const search = getSearch(dialog)
+
+        expect(radiosOf(dialog)).toHaveLength(45)
+        expect(dialog.querySelector<HTMLDetailsElement>('details')?.open).toBe(false)
+
+        fireEvent.change(search, {target: {value: 'no such field'}})
+
+        expect(radiosOf(dialog)).toHaveLength(0)
+        expect(dialog.querySelector('[data-autotest="criterion-label-search-empty"]')?.textContent).toBe(
+            'Nothing found',
+        )
+        // Enter has nothing to pick.
+        fireEvent.keyDown(search, {key: 'Enter'})
+        expect(getOwnedDialog('order-search-visibility')).not.toBeNull()
+
+        // A folded group still gives its matches.
+        fireEvent.change(search, {target: {value: 'searchLabel.order_id'}})
+        expect(radiosOf(dialog)).toEqual(['order_id'])
+
+        fireEvent.change(search, {target: {value: ''}})
+
+        expect(radiosOf(dialog)).toHaveLength(45)
+        expect(dialog.querySelector<HTMLDetailsElement>('details')?.open).toBe(false)
+        expect(
+            JSON.parse(localStorage.getItem('SearchUI_ordersSearch_expandedGroups') ?? '{}')[
+                'searchLabelGroupID.orders.main'
+            ],
+        ).toBe(false)
+    })
+
+    it('moves down from the search field to the picked field, and to the first match of a query', async () => {
+        const {container} = renderOrderSearch(undefined, 'customer_email', 'a@b.test', 'search-arrow')
+        const {dialog} = await openLabelPicker(container)
+        const search = getSearch(dialog)
+
+        fireEvent.keyDown(search, {key: 'ArrowDown'})
+
+        expect((document.activeElement as HTMLInputElement).value).toBe('customer_email')
+
+        act(() => search.focus())
+        fireEvent.change(search, {target: {value: 'last 4'}})
+        fireEvent.keyDown(search, {key: 'ArrowDown'})
+
+        expect((document.activeElement as HTMLInputElement).value).toBe('source_last4')
+    })
+
+    it('starts every opening with an empty search', async () => {
+        const {container} = renderOrderSearch(undefined, 'customer_id', '42', 'search-reopen')
+        const first = await openLabelPicker(container)
+
+        fireEvent.change(getSearch(first.dialog), {target: {value: 'last 4'}})
+        expect(radiosOf(first.dialog)).toHaveLength(2)
+        fireEvent.keyDown(first.dialog, {key: 'Escape'})
+
+        await waitFor(() => {
+            expect(getOwnedDialog('order-search-visibility')).toBeNull()
+        })
+
+        const second = await openLabelPicker(container)
+
+        expect(getSearch(second.dialog).value).toBe('')
+        expect(radiosOf(second.dialog)).toHaveLength(45)
+    })
+})
 
 describe('SearchUI order-search label visibility', () => {
     beforeEach(() => {

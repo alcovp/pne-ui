@@ -1,6 +1,7 @@
-import React, {use, useId, useState} from 'react'
-import {Box, Popover, SxProps} from '@mui/material'
+import React, {use, useId, useRef, useState} from 'react'
+import {Box, InputAdornment, Popover, SxProps} from '@mui/material'
 import type {Theme} from '@mui/material/styles'
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import {resolvePneSemanticPalette} from '../../../../../createTheme'
 import {createPneMenuPanelStyle, createPnePickedRowStyle, PneChevronDownIcon} from '../../../../dropdown/dropdownLook'
 import {useSearchUIFiltersStore} from '../../state/store'
@@ -9,10 +10,13 @@ import {useTranslation} from 'react-i18next'
 import {createAutoTestAttributes} from '../../../../AutoTestAttribute'
 import {createSearchUIOwnedAutoTestAttributes, useSearchUIAutoTestScope} from '../../AutoTestScope'
 import {SearchUIDefaultsContext} from '../../../SearchUIProvider'
+import PneTextField from '../../../../PneTextField'
 
 const CRITERION_LABEL_OPTIONS_AUTOTEST_ID = 'criterion-label-options'
 const CRITERION_LABEL_GROUP_AUTOTEST_ID = 'criterion-label-group'
 const CRITERION_LABEL_OPTION_AUTOTEST_ID = 'criterion-label-option'
+const CRITERION_LABEL_SEARCH_AUTOTEST_ID = 'criterion-label-search'
+const CRITERION_LABEL_SEARCH_EMPTY_AUTOTEST_ID = 'criterion-label-search-empty'
 
 interface GroupConfig {
     id: string
@@ -135,39 +139,8 @@ type Props = {
 export const SearchUICollapsableGroupSelect = (props: Props) => {
     const {t} = useTranslation()
     const {anchorEl, id, open, onClose} = props
-
-    const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
-    const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
     const autoTestOwner = useSearchUIAutoTestScope()
-    const radioGroupId = useId()
     const fieldLabel = t('react.searchUI.ordersSearch.label', {defaultValue: 'Order search field'})
-    const {showCMSOrderSearchLabels} = use(SearchUIDefaultsContext)
-    const cmsOrderSearchLabelsVisible = showCMSOrderSearchLabels()
-    const visibleGroups = cmsOrderSearchLabelsVisible
-        ? ORDERS_SEARCH_LABEL_GROUPS
-        : ORDERS_SEARCH_LABEL_GROUPS.map(group => ({
-              ...group,
-              items: group.items.filter(item => !CMS_ORDER_SEARCH_LABELS.has(item.value)),
-          }))
-
-    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(readExpandedGroups)
-
-    const handleChange = (value: OrderSearchLabel) => {
-        setOrderSearchCriterionLabel(value)
-        onClose()
-    }
-
-    const handleToggle = (groupId: string, expanded: boolean) => {
-        if (expandedGroups[groupId] === expanded) return
-
-        setExpandedGroups(prev => ({
-            ...prev,
-            [groupId]: expanded,
-        }))
-        writeExpandedGroup(groupId, expanded)
-    }
-
-    const selectedGroup = visibleGroups.find(group => group.items.some(item => item.value === ordersSearchLabel))
 
     return (
         <Popover
@@ -185,23 +158,185 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                     'aria-modal': true,
                     sx: optionsDialogSx,
                 },
+                transition: {onEntering: revealPickedOption},
             }}
         >
+            <SearchUIOrdersSearchLabelOptions id={id} fieldLabel={fieldLabel} onClose={onClose} />
+        </Popover>
+    )
+}
+
+type OptionsProps = {
+    id: string
+    fieldLabel: string
+    onClose: () => void
+}
+
+/** The content of the open panel. It lives only while the panel is open, so every opening starts with an empty search. */
+const SearchUIOrdersSearchLabelOptions = ({id, fieldLabel, onClose}: OptionsProps) => {
+    const {t} = useTranslation()
+
+    const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
+    const setOrderSearchCriterionLabel = useSearchUIFiltersStore(s => s.setOrderSearchCriterionLabel)
+    const radioGroupId = useId()
+    const {showCMSOrderSearchLabels} = use(SearchUIDefaultsContext)
+    const cmsOrderSearchLabelsVisible = showCMSOrderSearchLabels()
+    const visibleGroups = cmsOrderSearchLabelsVisible
+        ? ORDERS_SEARCH_LABEL_GROUPS
+        : ORDERS_SEARCH_LABEL_GROUPS.map(group => ({
+              ...group,
+              items: group.items.filter(item => !CMS_ORDER_SEARCH_LABELS.has(item.value)),
+          }))
+
+    const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(readExpandedGroups)
+    const [query, setQuery] = useState('')
+    const [lockedWidth, setLockedWidth] = useState<number>()
+    const rootRef = useRef<HTMLDivElement>(null)
+
+    // A query shows the matching fields of every group, folded or not. A group whose name matches shows all its fields.
+    const normalizedQuery = normalizeSearch(query)
+    const filtering = normalizedQuery !== ''
+    const shownGroups = filtering
+        ? visibleGroups
+              .map(group =>
+                  normalizeSearch(t(group.label)).includes(normalizedQuery)
+                      ? group
+                      : {
+                            ...group,
+                            items: group.items.filter(item => normalizeSearch(t(item.label)).includes(normalizedQuery)),
+                        },
+              )
+              .filter(group => group.items.length > 0)
+        : visibleGroups
+    const firstMatch = filtering ? shownGroups[0]?.items[0] : undefined
+    const searchLabel = t('react.searchUI.search', {defaultValue: 'Search'})
+
+    const handleChange = (value: OrderSearchLabel) => {
+        setOrderSearchCriterionLabel(value)
+        onClose()
+    }
+
+    const handleToggle = (groupId: string, expanded: boolean) => {
+        if (expandedGroups[groupId] === expanded) return
+
+        setExpandedGroups(prev => ({
+            ...prev,
+            [groupId]: expanded,
+        }))
+        writeExpandedGroup(groupId, expanded)
+    }
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        // The panel is as wide as its longest field name; a shorter list of matches must not narrow it.
+        if (lockedWidth === undefined) setLockedWidth(rootRef.current?.offsetWidth || undefined)
+        setQuery(event.target.value)
+    }
+
+    const handleSearchKeyDown = (event: React.KeyboardEvent) => {
+        if (event.key === 'ArrowDown') {
+            event.preventDefault()
+            focusFirstChoice(rootRef.current)
+        } else if (event.key === 'Enter' && firstMatch) {
+            event.preventDefault()
+            handleChange(firstMatch.value)
+        }
+    }
+
+    const renderOptions = (group: GroupConfig) =>
+        group.items.map(item => {
+            const checked = ordersSearchLabel === item.value
+            const optionId = `${id}-option-${item.value}`
+
+            return (
+                <Box
+                    component={'label'}
+                    htmlFor={optionId}
+                    key={item.value}
+                    data-pne-picked={checked ? '' : undefined}
+                    sx={optionLabelSx}
+                >
+                    <Box
+                        {...createAutoTestAttributes(CRITERION_LABEL_OPTION_AUTOTEST_ID, item.value)}
+                        component={'input'}
+                        id={optionId}
+                        type={'radio'}
+                        name={radioGroupId}
+                        value={item.value}
+                        checked={checked}
+                        onChange={() => handleChange(item.value)}
+                        onClick={() => {
+                            if (checked) onClose()
+                        }}
+                        sx={radioSx}
+                    />
+                    {t(item.label)}
+                </Box>
+            )
+        })
+
+    return (
+        <Box ref={rootRef} sx={lockedWidth === undefined ? rootSx : {...rootSx, minWidth: `${lockedWidth}px`}}>
+            <Box sx={searchSx}>
+                <PneTextField
+                    size='large'
+                    aria-label={searchLabel}
+                    autoComplete={'off'}
+                    autoFocus
+                    fullWidth
+                    onChange={handleSearchChange}
+                    onKeyDown={handleSearchKeyDown}
+                    placeholder={searchLabel}
+                    slotProps={{
+                        htmlInput: createAutoTestAttributes(CRITERION_LABEL_SEARCH_AUTOTEST_ID),
+                        input: {
+                            startAdornment: (
+                                <InputAdornment position={'start'}>
+                                    <SearchRoundedIcon sx={{fontSize: 16}} />
+                                </InputAdornment>
+                            ),
+                        },
+                    }}
+                    type={'search'}
+                    value={query}
+                />
+            </Box>
             <Box component={'fieldset'} sx={fieldsetSx}>
                 <Box component={'legend'} sx={visuallyHiddenSx}>
                     {fieldLabel}
                 </Box>
-                {visibleGroups.map((group, groupIndex) => {
+                {shownGroups.length === 0 ? (
+                    <Box
+                        {...createAutoTestAttributes(CRITERION_LABEL_SEARCH_EMPTY_AUTOTEST_ID)}
+                        role={'status'}
+                        sx={searchEmptySx}
+                    >
+                        {t('react.searchUI.ordersSearch.noMatches', {defaultValue: 'Nothing found'})}
+                    </Box>
+                ) : null}
+                {shownGroups.map(group => {
+                    // The ids follow the group, not its place: a query leaves some groups out.
+                    const captionId = `${id}-summary-${group.autoTestValue}`
+                    const optionsId = `${id}-group-${group.autoTestValue}`
+
+                    // Matches are shown as a plain list under their group names: nothing folds while a query is typed.
+                    if (filtering) {
+                        return (
+                            <Box key={group.id} data-pne-group={''} role={'group'} aria-labelledby={captionId}>
+                                <Box id={captionId} sx={groupCaptionSx}>
+                                    {t(group.label)}
+                                </Box>
+                                {renderOptions(group)}
+                            </Box>
+                        )
+                    }
+
                     const isExpanded = expandedGroups[group.id]
-                    const summaryId = `${id}-summary-${groupIndex}`
-                    const optionsId = `${id}-group-${groupIndex}`
-                    const shouldFocusSummary =
-                        selectedGroup === undefined ? groupIndex === 0 : selectedGroup.id === group.id && !isExpanded
 
                     return (
                         <Box
                             component={'details'}
                             key={group.id}
+                            data-pne-group={''}
                             open={isExpanded}
                             onToggle={(event: React.SyntheticEvent<HTMLDetailsElement>) => {
                                 handleToggle(group.id, event.currentTarget.open)
@@ -210,9 +345,8 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                             <Box
                                 {...createAutoTestAttributes(CRITERION_LABEL_GROUP_AUTOTEST_ID, group.autoTestValue)}
                                 component={'summary'}
-                                id={summaryId}
+                                id={captionId}
                                 tabIndex={0}
-                                autoFocus={open && shouldFocusSummary}
                                 aria-controls={optionsId}
                                 aria-expanded={isExpanded}
                                 sx={groupSummarySx}
@@ -223,48 +357,33 @@ export const SearchUICollapsableGroupSelect = (props: Props) => {
                                     sx={isExpanded ? expandedChevronSx : chevronSx}
                                 />
                             </Box>
-                            <Box id={optionsId} role={'group'} aria-labelledby={summaryId}>
-                                {group.items.map((item, itemIndex) => {
-                                    const checked = ordersSearchLabel === item.value
-                                    const optionId = `${id}-option-${groupIndex}-${itemIndex}`
-
-                                    return (
-                                        <Box
-                                            component={'label'}
-                                            htmlFor={optionId}
-                                            key={item.value}
-                                            data-pne-picked={checked ? '' : undefined}
-                                            sx={optionLabelSx}
-                                        >
-                                            <Box
-                                                {...createAutoTestAttributes(
-                                                    CRITERION_LABEL_OPTION_AUTOTEST_ID,
-                                                    item.value,
-                                                )}
-                                                component={'input'}
-                                                id={optionId}
-                                                type={'radio'}
-                                                name={radioGroupId}
-                                                value={item.value}
-                                                checked={checked}
-                                                autoFocus={open && isExpanded && checked}
-                                                onChange={() => handleChange(item.value)}
-                                                onClick={() => {
-                                                    if (checked) onClose()
-                                                }}
-                                                sx={radioSx}
-                                            />
-                                            {t(item.label)}
-                                        </Box>
-                                    )
-                                })}
+                            <Box id={optionsId} role={'group'} aria-labelledby={captionId}>
+                                {renderOptions(group)}
                             </Box>
                         </Box>
                     )
                 })}
             </Box>
-        </Popover>
+        </Box>
     )
+}
+
+const normalizeSearch = (value: string) => value.trim().toLocaleLowerCase()
+
+// The panel opens with the cursor in the search field, so focus no longer brings the picked field into view.
+const revealPickedOption = (paper: HTMLElement) => {
+    const picked = paper.querySelector<HTMLElement>('[data-pne-picked]')
+    if (picked) paper.scrollTop = picked.offsetTop - (paper.clientHeight - picked.offsetHeight) / 2
+}
+
+// Down from the search field: to the picked field when its row is shown, else to the first row, else to the first group.
+const focusFirstChoice = (root: HTMLElement | null) => {
+    const shown = Array.from(root?.querySelectorAll<HTMLInputElement>('input[type="radio"]') ?? []).filter(radio => {
+        const group = radio.closest('details')
+        return group === null || group.open
+    })
+    const target = shown.find(radio => radio.checked) ?? shown[0] ?? root?.querySelector<HTMLElement>('summary')
+    target?.focus()
 }
 
 const createDefaultExpandedGroups = (): Record<string, boolean> =>
@@ -309,11 +428,40 @@ const optionsDialogSx: SxProps<Theme> = theme => ({
     maxHeight: 'min(480px, calc(100vh - 32px))',
 })
 
+// The panel's ring is drawn inside the panel: the content starts a pixel below the edge and leaves the ring in view.
+const rootSx = {
+    pt: '1px',
+}
+
+// UI Kit Dropdown list, the search row: as high as a row of the list, it stays at the top while the fields
+// scroll under it. With the pixel above it keeps the panel's 4px inset; the 4px below are the gap to the list.
+const searchSx: SxProps<Theme> = theme => ({
+    backgroundColor: resolvePneSemanticPalette(theme).dropdown.panel.fill,
+    m: '0 4px',
+    p: '3px 0 4px',
+    position: 'sticky',
+    top: '1px',
+    zIndex: 1,
+})
+
+// UI Kit Dropdown list, nothing found: the text in the middle of two rows.
+const searchEmptySx: SxProps<Theme> = theme => ({
+    alignItems: 'center',
+    color: resolvePneSemanticPalette(theme).dropdown.status.text,
+    display: 'flex',
+    fontSize: '14px',
+    justifyContent: 'center',
+    lineHeight: '20px',
+    minHeight: '80px',
+    padding: '8px 12px',
+    textAlign: 'center',
+})
+
 const fieldsetSx: SxProps = {
     border: 0,
     m: 0,
-    // The 4px inset of the panel around its rows.
-    p: '4px',
+    // The 4px inset of the panel around its rows; the search row above carries the top one.
+    p: '0 4px 4px',
     minWidth: 0,
 }
 
@@ -330,38 +478,45 @@ const visuallyHiddenSx: SxProps = {
 }
 
 // UI Kit Dropdown list, group caption: 12/16 Medium in the muted text colour at the foot of a 28px
-// row; groups are split by a hairline. The caption folds its group, so it carries the list's chevron.
-const groupSummarySx: SxProps<Theme> = theme => {
+// row; groups are split by a hairline.
+const groupCaptionStyle = (theme: Theme) => {
     const pne = resolvePneSemanticPalette(theme)
     return {
         alignItems: 'flex-end',
         borderRadius: '4px',
         boxSizing: 'border-box',
         color: pne.dropdown.status.text,
-        cursor: 'pointer',
         display: 'flex',
         fontSize: '12px',
         fontWeight: 500,
         height: '28px',
         justifyContent: 'space-between',
         lineHeight: '16px',
-        listStyle: 'none',
         padding: '0 12px 4px',
-        '&::-webkit-details-marker': {
-            display: 'none',
-        },
-        'details + details > &': {
+        '[data-pne-group] + [data-pne-group] > &': {
             borderRadius: '0 0 4px 4px',
             borderTop: `1px solid ${pne.dropdown.panel.ring}`,
             height: '33px',
             marginTop: '4px',
         },
-        '&:focus-visible': {
-            outline: `2px solid ${pne.focusRing}`,
-            outlineOffset: '-2px',
-        },
     }
 }
+
+const groupCaptionSx: SxProps<Theme> = groupCaptionStyle
+
+// The caption that folds its group carries the list's chevron.
+const groupSummarySx: SxProps<Theme> = theme => ({
+    ...groupCaptionStyle(theme),
+    cursor: 'pointer',
+    listStyle: 'none',
+    '&::-webkit-details-marker': {
+        display: 'none',
+    },
+    '&:focus-visible': {
+        outline: `2px solid ${resolvePneSemanticPalette(theme).focusRing}`,
+        outlineOffset: '-2px',
+    },
+})
 
 const chevronSx: SxProps<Theme> = {
     fontSize: '16px',

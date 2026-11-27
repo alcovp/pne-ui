@@ -1824,7 +1824,11 @@ Raw values `ExactCriterionSearchLabelEnum`:
 - 45 native radio inputs: `criterion-label-option/<raw ORDER_SEARCH_LABEL>`; если хост вернул `false` из
   `showCMSOrderSearchLabels`, их 43 — без `customer_id` и `merchant_customer_identifier`;
 - expanded state группы: `aria-expanded` на `summary` и native `details.open`;
-- выбранное поле: native radio `checked`/Selenium `isSelected()`.
+- выбранное поле: native radio `checked`/Selenium `isSelected()`;
+- поле поиска над списком: `input[data-autotest="criterion-label-search"]`, при открытии курсор стоит в нём и оно
+  пустое. Пока в нём есть текст, в dialog остаются только radio подходящих полей (по названию поля или группы),
+  группы — простые подписи без `summary`, свёрнутые группы тоже отдают свои совпадения; Enter выбирает первое
+  совпадение. Если совпадений нет — `criterion-label-search-empty`.
 
 Selectable raw labels по группам:
 
