@@ -11,7 +11,15 @@ import {createAutoTestAttributes} from '../../../../../AutoTestAttribute';
 
 const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input'
 
-export const OrdersSearchInput = () => {
+type Props = {
+    /** The value is shown as wrong: its text turns red, as a wrong date does. */
+    error?: boolean
+    onBlur?: () => void
+    onFocus?: () => void
+}
+
+export const OrdersSearchInput = (props: Props) => {
+    const {error = false, onBlur, onFocus} = props
 
     const {t} = useTranslation()
 
@@ -110,6 +118,24 @@ export const OrdersSearchInput = () => {
                         htmlInput: nativeInputProps,
                     }}
                 />
+            case 'url':
+                return <PneTextField
+                    value={ordersSearchValue}
+                    onChange={handleTextChange}
+                    onBlur={onBlur}
+                    onFocus={onFocus}
+                    error={error}
+                    placeholder={t('search')}
+                    sx={valueInputSx}
+                    size={'small'}
+                    variant={'filled'}
+                    slotProps={{
+                        input: {
+                            disableUnderline: true,
+                        },
+                        htmlInput: nativeInputProps,
+                    }}
+                />
             case 'country':
                 return <OrdersSearchCountrySelect/>
             default:
@@ -130,5 +156,9 @@ const valueInputSx: SxProps = {
         py: '3px',
         fontSize: '13px',
         lineHeight: '18px',
+    },
+    // The pill has no outline or underline, so an error colours the typed text, as a wrong date does.
+    '& .MuiInputBase-root.MuiFilledInput-root.Mui-error': {
+        color: 'error.main',
     },
 }

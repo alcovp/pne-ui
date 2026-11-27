@@ -1212,9 +1212,23 @@ Raw values `ExactCriterionSearchLabelEnum`:
 
 - label trigger: `button[role="combobox"][data-autotest="criterion-label"]`;
 - выбранный raw search label находится в `data-autotest-value` trigger;
-- обычные, numeric, IP и masked inputs используют actual
+- обычные, numeric, IP, masked и request source inputs используют actual
   `input[data-autotest="criterion-input"]`; значение читается из `.value`;
 - country-вариант использует actual combobox `criterion-input/<raw country id>`.
+
+`request_source` — адрес сайта из платёжного запроса (Request source), длина не ограничена. В поиск уходит
+введённое значение как есть. Под полем:
+
+- `criterion-request-source-delay` — задержка данных до 7 минут (`react.searchUI.ordersSearch.requestSource.delay`);
+- `criterion-request-source-hostname`, hostname в `data-autotest-value` — по нему идёт поиск
+  (`react.searchUI.ordersSearch.requestSource.hostname`, `{{hostname}}`);
+- `criterion-request-source-error`, `role="alert"` — в значении нет hostname: ошибка
+  `ORDERS_SEARCH_INVALID_REQUEST_SOURCE` (`react.searchUI.ordersSearch.requestSource.invalid`). `run-search`
+  блокируется сразу, текст виден, когда фокус уходит из поля. Пустое поле — поиск без этого фильтра.
+
+Hostname берётся по правилам сервера: хост URL со схемой `http(s)://` или без неё, без порта, пути, параметров,
+якоря и логина, в нижнем регистре, без `www.` в начале. В нём есть точка и только буквы любых алфавитов, цифры,
+`-`, `_` и точки. Кириллица и punycode друг в друга не переводятся.
 
 Группированный label dialog:
 
@@ -1225,14 +1239,14 @@ Raw values `ExactCriterionSearchLabelEnum`:
 Внутри него:
 
 - семь native disclosure summaries: `criterion-label-group/<main|customer|source-card|destination-card|wire|card-present-api|mobile-api>`;
-- 45 native radio inputs: `criterion-label-option/<raw ORDER_SEARCH_LABEL>`;
+- 46 native radio inputs: `criterion-label-option/<raw ORDER_SEARCH_LABEL>`;
 - expanded state группы: `aria-expanded` на `summary` и native `details.open`;
 - выбранное поле: native radio `checked`/Selenium `isSelected()`.
 
 Selectable raw labels по группам:
 
 - `main`: `merchant_invoice_id`, `order_id`, `processor_order_id`, `purpose`, `transaction_amount`,
-  `session_token`, `batch_id`;
+  `session_token`, `batch_id`, `request_source`;
 - `customer`: `customer_id`, `merchant_customer_identifier`, `customer_phone`, `customer_email`, `customer_ip`,
   `customer_ip_country`, `customer_billing_country`;
 - `source-card`: `source_bank_name`, `source_country`, `source_from_order_id`, `source_bin`,

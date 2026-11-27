@@ -44,7 +44,7 @@ const hiddenOrderSearchLabels = [
 ] as const
 
 const groupInventory = [
-    ['main', 7],
+    ['main', 8],
     ['customer', 7],
     ['source-card', 12],
     ['destination-card', 11],
@@ -93,7 +93,7 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
         localStorage.clear()
     })
 
-    it('preserves the seven-group and 45-label product inventory', () => {
+    it('preserves the seven-group and 46-label product inventory', () => {
         expect(ORDERS_SEARCH_LABEL_GROUPS.map(group => [
             group.autoTestValue,
             group.items.length,
@@ -106,8 +106,8 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             !hiddenOrderSearchLabels.includes(label as typeof hiddenOrderSearchLabels[number])
         ))
 
-        expect(selectableLabels).toHaveLength(45)
-        expect(new Set(selectableLabels).size).toBe(45)
+        expect(selectableLabels).toHaveLength(46)
+        expect(new Set(selectableLabels).size).toBe(46)
         expect([...selectableLabels].sort()).toEqual([...expectedSelectableLabels].sort())
     })
 
@@ -196,12 +196,12 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             expect(dialog.querySelectorAll('[role="option"]')).toHaveLength(0)
             expect(dialog.querySelectorAll('fieldset')).toHaveLength(1)
             expect(groups).toHaveLength(7)
-            expect(radios).toHaveLength(45)
+            expect(radios).toHaveLength(46)
             expect(radios[0].tagName).toBe('INPUT')
             expect(radios[0].type).toBe('radio')
             expect(radios[0].getAttribute('aria-hidden')).toBeNull()
             expect(new Set(Array.from(radios, radio => radio.name)).size).toBe(1)
-            expect(new Set(Array.from(radios, radio => radio.value)).size).toBe(45)
+            expect(new Set(Array.from(radios, radio => radio.value)).size).toBe(46)
             expect(checkedRadios).toHaveLength(1)
             expect(checkedRadios[0].value).toBe(selectedLabel)
 

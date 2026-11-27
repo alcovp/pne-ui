@@ -270,6 +270,7 @@ export const ORDER_SEARCH_LABELS = [
     'purpose',
     'transaction_amount',
     'session_token',
+    'request_source',
 
     'customer_phone',
     'customer_email',

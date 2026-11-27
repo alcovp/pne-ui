@@ -79,6 +79,7 @@ export {
     SEARCH_UI_DATE_RANGE_END_BEFORE_START,
     SEARCH_UI_DATE_RANGE_INVALID_DATE,
     SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED,
+    SEARCH_UI_ORDERS_SEARCH_INVALID_REQUEST_SOURCE,
     type SearchUIValidationError,
     type SearchUIValidationResult,
 } from '../component/search-ui/filters/validation'

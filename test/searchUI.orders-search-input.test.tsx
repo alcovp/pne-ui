@@ -95,6 +95,7 @@ describe('SearchUI orders-search native input Selenium contract', () => {
         expect(inputTypeCounts.amount).toBe(1)
         expect(inputTypeCounts.card6and4).toBe(2)
         expect(inputTypeCounts.country).toBe(4)
+        expect(inputTypeCounts.url).toBe(1)
         expect(inputTypeCounts.string + inputTypeCounts.integer + inputTypeCounts.ip).toBe(48)
         expect(ORDER_SEARCH_LABELS.filter(label => (
             OrdersSearchLabelsConfig[label].type === 'country'
