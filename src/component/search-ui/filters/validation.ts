@@ -2,12 +2,14 @@ import {CriterionTypeEnum} from './types'
 import type {SearchUIFiltersState} from './state/type'
 import {isValidSearchUIDate, resolveDateOnlyTimeZone, type SearchUIDateRangeBoundary} from './dateRangeTimeZone'
 import {dayjs} from './dayjsSetup'
+import {getRequestSourceHostname} from './requestSource'
 
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000
 
 export const SEARCH_UI_DATE_RANGE_MAX_SPAN_EXCEEDED = 'DATE_RANGE_MAX_SPAN_EXCEEDED' as const
 export const SEARCH_UI_DATE_RANGE_INVALID_DATE = 'DATE_RANGE_INVALID_DATE' as const
 export const SEARCH_UI_DATE_RANGE_END_BEFORE_START = 'DATE_RANGE_END_BEFORE_START' as const
+export const SEARCH_UI_ORDERS_SEARCH_INVALID_REQUEST_SOURCE = 'ORDERS_SEARCH_INVALID_REQUEST_SOURCE' as const
 
 type SearchUIDateRangeCriterion = CriterionTypeEnum.DATE_RANGE | CriterionTypeEnum.DATE_RANGE_ORDERS
 
@@ -36,6 +38,13 @@ export type SearchUIValidationError =
           messageKey: 'react.searchUI.dateRange.endBeforeStart'
           params: Record<string, never>
       }
+    | {
+          criterion: CriterionTypeEnum.ORDERS_SEARCH
+          /** The typed request source holds no hostname; an empty value is no filter, not an error. */
+          code: typeof SEARCH_UI_ORDERS_SEARCH_INVALID_REQUEST_SOURCE
+          messageKey: 'react.searchUI.ordersSearch.requestSource.invalid'
+          params: Record<string, never>
+      }
 
 export type SearchUIValidationResult = {
     isValid: boolean
@@ -55,6 +64,39 @@ export const assertValidMaxRangeSpanInDays = (value: number | undefined): void =
 }
 
 export const validateSearchUIFiltersState = (
+    state: Pick<SearchUIFiltersState, 'criteria' | 'config' | 'dateRangeSpec'> &
+        Partial<Pick<SearchUIFiltersState, 'ordersSearchLabel' | 'ordersSearchValue'>>,
+): SearchUIValidationResult => {
+    const errors = [...validateDateRange(state).errors, ...validateOrdersSearch(state)]
+
+    return errors.length > 0 ? createInvalidResult(errors) : createValidResult()
+}
+
+const validateOrdersSearch = (
+    state: Pick<SearchUIFiltersState, 'criteria'> &
+        Partial<Pick<SearchUIFiltersState, 'ordersSearchLabel' | 'ordersSearchValue'>>,
+): SearchUIValidationError[] => {
+    const value = state.ordersSearchValue?.trim() ?? ''
+    if (
+        !state.criteria.includes(CriterionTypeEnum.ORDERS_SEARCH) ||
+        state.ordersSearchLabel !== 'request_source' ||
+        value === '' ||
+        getRequestSourceHostname(value) !== null
+    ) {
+        return []
+    }
+
+    return [
+        {
+            criterion: CriterionTypeEnum.ORDERS_SEARCH,
+            code: SEARCH_UI_ORDERS_SEARCH_INVALID_REQUEST_SOURCE,
+            messageKey: 'react.searchUI.ordersSearch.requestSource.invalid',
+            params: {},
+        },
+    ]
+}
+
+const validateDateRange = (
     state: Pick<SearchUIFiltersState, 'criteria' | 'config' | 'dateRangeSpec'>,
 ): SearchUIValidationResult => {
     const maxRangeSpanInDays = state.config?.dateRange?.maxRangeSpanInDays

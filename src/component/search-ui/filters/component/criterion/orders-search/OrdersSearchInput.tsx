@@ -14,7 +14,15 @@ import {createAutoTestAttributes} from '../../../../../AutoTestAttribute'
 
 const CRITERION_INPUT_AUTOTEST_ID = 'criterion-input'
 
-export const OrdersSearchInput = () => {
+type Props = {
+    /** The value is shown as wrong, in the error look of the field. */
+    error?: boolean
+    onBlur?: () => void
+    onFocus?: () => void
+}
+
+export const OrdersSearchInput = (props: Props) => {
+    const {error = false, onBlur, onFocus} = props
     const {t} = useTranslation()
 
     const ordersSearchLabel = useSearchUIFiltersStore(s => s.ordersSearchLabel)
@@ -115,6 +123,26 @@ export const OrdersSearchInput = () => {
                             input: {
                                 disableUnderline: true,
                                 inputComponent: Card6And4MaskInput as React.ElementType<InputBaseComponentProps>,
+                            },
+                            htmlInput: nativeInputProps,
+                        }}
+                    />
+                )
+            case 'url':
+                return (
+                    <PneTextField
+                        value={ordersSearchValue}
+                        onChange={handleTextChange}
+                        onBlur={onBlur}
+                        onFocus={onFocus}
+                        error={error}
+                        placeholder={t('search')}
+                        sx={valueInputSx}
+                        size={'small'}
+                        variant={'filled'}
+                        slotProps={{
+                            input: {
+                                disableUnderline: true,
                             },
                             htmlInput: nativeInputProps,
                         }}

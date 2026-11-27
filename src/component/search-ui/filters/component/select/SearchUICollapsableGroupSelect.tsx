@@ -43,6 +43,7 @@ export const ORDERS_SEARCH_LABEL_GROUPS: GroupConfig[] = [
             {value: 'transaction_amount', label: 'searchLabel.transaction_amount'},
             {value: 'session_token', label: 'searchLabel.session_token'},
             {value: 'batch_id', label: 'searchLabel.batch_id'},
+            {value: 'request_source', label: 'searchLabel.request_source'},
         ],
     },
     {

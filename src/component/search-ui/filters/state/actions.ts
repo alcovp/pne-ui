@@ -2007,7 +2007,7 @@ const calculateNonExactDates = (
 }
 
 type OrderSearchInputType = {
-    type: 'string' | 'integer' | 'amount' | 'ip' | 'country' | 'card6and4'
+    type: 'string' | 'integer' | 'amount' | 'ip' | 'country' | 'card6and4' | 'url'
     maxLength: number
 }
 
@@ -2018,6 +2018,8 @@ export const OrdersSearchLabelsConfig: Readonly<Record<OrderSearchLabel, OrderSe
     purpose: {type: 'string', maxLength: 128},
     transaction_amount: {type: 'amount', maxLength: 128},
     session_token: {type: 'string', maxLength: 36},
+    // No length limit: a long URL with a path is fine, only its hostname is searched for.
+    request_source: {type: 'url', maxLength: Number.POSITIVE_INFINITY},
     customer_phone: {type: 'string', maxLength: 128},
     customer_email: {type: 'string', maxLength: 128},
     customer_ip: {type: 'ip', maxLength: 128},

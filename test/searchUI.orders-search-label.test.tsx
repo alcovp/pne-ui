@@ -39,7 +39,7 @@ const hiddenOrderSearchLabels = [
 ] as const
 
 const groupInventory = [
-    ['main', 7],
+    ['main', 8],
     ['customer', 7],
     ['source-card', 12],
     ['destination-card', 11],
@@ -88,7 +88,7 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
         localStorage.clear()
     })
 
-    it('preserves the seven-group and 45-label product inventory', () => {
+    it('preserves the seven-group and 46-label product inventory', () => {
         expect(ORDERS_SEARCH_LABEL_GROUPS.map(group => [group.autoTestValue, group.items.length])).toEqual(
             groupInventory,
         )
@@ -98,8 +98,8 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             label => !hiddenOrderSearchLabels.includes(label as (typeof hiddenOrderSearchLabels)[number]),
         )
 
-        expect(selectableLabels).toHaveLength(45)
-        expect(new Set(selectableLabels).size).toBe(45)
+        expect(selectableLabels).toHaveLength(46)
+        expect(new Set(selectableLabels).size).toBe(46)
         expect([...selectableLabels].sort()).toEqual([...expectedSelectableLabels].sort())
     })
 
@@ -191,12 +191,12 @@ describe('SearchUI orders-search grouped label Selenium contract', () => {
             // One group of radio buttons; the hidden fieldset is the outline of the search field.
             expect(dialog.querySelectorAll('fieldset:not([aria-hidden="true"])')).toHaveLength(1)
             expect(groups).toHaveLength(7)
-            expect(radios).toHaveLength(45)
+            expect(radios).toHaveLength(46)
             expect(radios[0].tagName).toBe('INPUT')
             expect(radios[0].type).toBe('radio')
             expect(radios[0].getAttribute('aria-hidden')).toBeNull()
             expect(new Set(Array.from(radios, radio => radio.name)).size).toBe(1)
-            expect(new Set(Array.from(radios, radio => radio.value)).size).toBe(45)
+            expect(new Set(Array.from(radios, radio => radio.value)).size).toBe(46)
             expect(checkedRadios).toHaveLength(1)
             expect(checkedRadios[0].value).toBe(selectedLabel)
             // The row of the picked field is the one marked for the tint and the check of a UI Kit list.
@@ -442,7 +442,7 @@ describe('SearchUI order-search label search', () => {
         expect(search.value).toBe('')
         expect(search.placeholder).toBe('Search')
         expect(document.activeElement).toBe(search)
-        expect(radiosOf(dialog)).toHaveLength(45)
+        expect(radiosOf(dialog)).toHaveLength(46)
         expect(dialog.querySelectorAll('summary[data-autotest="criterion-label-group"]')).toHaveLength(7)
     })
 
@@ -490,7 +490,7 @@ describe('SearchUI order-search label search', () => {
         const {dialog} = await openLabelPicker(container)
         const search = getSearch(dialog)
 
-        expect(radiosOf(dialog)).toHaveLength(45)
+        expect(radiosOf(dialog)).toHaveLength(46)
         expect(dialog.querySelector<HTMLDetailsElement>('details')?.open).toBe(false)
 
         fireEvent.change(search, {target: {value: 'no such field'}})
@@ -509,7 +509,7 @@ describe('SearchUI order-search label search', () => {
 
         fireEvent.change(search, {target: {value: ''}})
 
-        expect(radiosOf(dialog)).toHaveLength(45)
+        expect(radiosOf(dialog)).toHaveLength(46)
         expect(dialog.querySelector<HTMLDetailsElement>('details')?.open).toBe(false)
         expect(
             JSON.parse(localStorage.getItem('SearchUI_ordersSearch_expandedGroups') ?? '{}')[
@@ -549,7 +549,7 @@ describe('SearchUI order-search label search', () => {
         const second = await openLabelPicker(container)
 
         expect(getSearch(second.dialog).value).toBe('')
-        expect(radiosOf(second.dialog)).toHaveLength(45)
+        expect(radiosOf(second.dialog)).toHaveLength(46)
     })
 })
 
